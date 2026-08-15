@@ -12,13 +12,35 @@
 
 `build/` 폴더에 빌드용 스크립트들이 있습니다. 각 플랫폼별로 빌드하려면 아래 표를 참고하세요.
 
-|플랫폼|빌드스크립트|
-|--|--|
-|Windows|build-win64.bat|
-|Linux|build-linux64.sh|
-|Mac|build-osx64.sh|
+|플랫폼|빌드 스크립트|산출 위치|
+|--|--|--|
+|Windows|`build-win64.ps1`|`bin/win-x64/tabbit.exe` · `bin/win-arm64/tabbit.exe`|
+|Linux|`build-linux64.sh`|`bin/linux-x64/tabbit` · `bin/linux-arm64/tabbit`|
+|Mac|`build-osx64.sh`|`bin/osx-arm64/tabbit` · `bin/osx-x64/tabbit`|
 
 빌드 전에 [.NET 10 SDK](https://dotnet.microsoft.com/download)를 설치해 주셔야합니다.
+
+**아키텍처는 실행한 머신에서 판정합니다** — 셸 쪽은 `uname -m`, PowerShell 쪽은
+`RuntimeInformation.OSArchitecture`입니다. 애플 실리콘에서 `build-osx64.sh`를 실행하면
+`osx-arm64`가 나옵니다 — self-contained 산출물은 네이티브 코드라서 아키텍처가 어긋나면
+실행 자체가 되지 않기 때문입니다. 다른 아키텍처가 필요하면 런타임 식별자를 인자로 넘깁니다.
+
+```bash
+./build/build-osx64.sh osx-x64      # 인텔 맥
+./build/build-linux64.sh linux-arm64
+```
+
+```powershell
+.\build\build-win64.ps1 win-arm64
+.\build\build-osx64.ps1 osx-x64     # 윈도우에서 맥용으로 크로스 퍼블리시
+```
+
+> `build/`의 PowerShell 스크립트는 각 플랫폼용으로 **크로스 퍼블리시**하는 용도이기도 합니다.
+> 리눅스·맥에서는 같은 이름의 `.sh`를 쓰면 되고, 그쪽이 아키텍처까지 판정합니다.
+
+**런타임 식별자마다 디렉터리가 분리됩니다.** 예전에는 전부 `bin/` 하나를 공유했는데,
+self-contained 퍼블리시는 네이티브 의존 파일을 실행 파일 옆에 두므로 두 플랫폼을 한
+머신에서 빌드하면 나중 것이 앞의 것의 의존 파일을 덮어씁니다.
 
 생성되는 실행 파일은 self-contained 단일 파일입니다. `PublishTrimmed`는 의도적으로 사용하지 않습니다 — NPOI, Newtonsoft.Json, Google.Apis가 모두 리플렉션으로 타입을 찾기 때문에 트리밍이 런타임에 필요한 멤버를 제거합니다.
 

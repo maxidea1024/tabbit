@@ -26,6 +26,37 @@ internal static class UnrealToolchain
     private static bool OnWindows => Environment.OSVersion.Platform == PlatformID.Win32NT;
 
     /// <summary>
+    /// What this platform is called in an engine tree.
+    /// </summary>
+    /// <remarks>
+    /// The engine names a directory after the host platform in three places that matter
+    /// here - the build script, the binaries, and the target UnrealBuildTool is asked for -
+    /// and all three used to be spelled `Win64` outright. An engine on Linux or macOS then
+    /// failed on the first path rather than on anything to do with the generated code, and
+    /// the message named a `Build.bat` that platform has never had.
+    /// </remarks>
+    private static string EnginePlatform
+        => OnWindows ? "Win64"
+         : OperatingSystem.IsMacOS() ? "Mac"
+         : "Linux";
+
+    /// <summary>The suffix an executable carries here, which off Windows is none.</summary>
+    private static string ExeSuffix => OnWindows ? ".exe" : "";
+
+    /// <summary>
+    /// The script that drives UnrealBuildTool.
+    /// </summary>
+    /// <remarks>
+    /// Windows keeps it directly under BatchFiles; every other platform keeps its own in a
+    /// subdirectory named for it. Both are returned to the caller as something to run, and
+    /// off Windows that is the shell script itself rather than an interpreter plus a script.
+    /// </remarks>
+    private static string BuildScript(string engineRoot)
+        => OnWindows
+            ? Path.Combine(engineRoot, "Engine", "Build", "BatchFiles", "Build.bat")
+            : Path.Combine(engineRoot, "Engine", "Build", "BatchFiles", EnginePlatform, "Build.sh");
+
+    /// <summary>
     /// Builds a scenario's generated Unreal module against the off-engine stubs and runs a
     /// harness over it.
     /// </summary>
@@ -153,14 +184,14 @@ internal static class UnrealToolchain
     /// </remarks>
     public static ToolResult BuildUpdaterWithUbt(string engineRoot, string moduleDir)
     {
-        string build = Path.Combine(engineRoot, "Engine", "Build", "BatchFiles", "Build.bat");
+        string build = BuildScript(engineRoot);
 
         if (!File.Exists(build))
         {
             return new ToolResult
             {
                 Succeeded = false,
-                Output = $"No Build.bat at {build}. TABBIT_UE_ROOT must name an engine.",
+                Output = $"No {Path.GetFileName(build)} at {build}. TABBIT_UE_ROOT must name an engine.",
             };
         }
 
@@ -203,7 +234,13 @@ internal static class UnrealToolchain
                 File.Copy(from, Path.Combine(programDir, "Private", to), overwrite: true);
             }
 
-            var built = Execute("cmd.exe", engineRoot, "/c", build, Program, "Win64", "Development", "-WaitMutex");
+            // Through cmd on Windows because Build.bat is a batch file and cannot be started
+            // as a process; elsewhere Build.sh is executable and is the process.
+            var built = OnWindows
+                ? Execute("cmd.exe", engineRoot,
+                          "/c", build, Program, EnginePlatform, "Development", "-WaitMutex")
+                : Execute(build, engineRoot,
+                          Program, EnginePlatform, "Development", "-WaitMutex");
 
             if (!built.Succeeded)
                 return built;
@@ -211,7 +248,8 @@ internal static class UnrealToolchain
             // Built is most of it, but a header that declares what the .cpp does not
             // define links and then does nothing. Running it also checks the two pieces
             // that can be checked without a server: the manifest parser and the hash.
-            string exe = Path.Combine(engineRoot, "Engine", "Binaries", "Win64", Program + ".exe");
+            string exe = Path.Combine(
+                engineRoot, "Engine", "Binaries", EnginePlatform, Program + ExeSuffix);
 
             return Execute(exe, Path.GetDirectoryName(exe));
         }
@@ -221,21 +259,32 @@ internal static class UnrealToolchain
 
             foreach (string leftover in new[]
                      {
-                         Path.Combine(engineRoot, "Engine", "Intermediate", "Build", "Win64", Program),
+                         Path.Combine(engineRoot, "Engine", "Intermediate", "Build", EnginePlatform, Program),
                      })
             {
                 TryDelete(leftover);
             }
 
-            foreach (string path in Directory.EnumerateFiles(
-                         Path.Combine(engineRoot, "Engine", "Binaries", "Win64"), Program + ".*"))
+            // `Program*` rather than `Program.*`: off Windows the executable itself carries
+            // no extension, so the pattern that matched every leftover beside it did not
+            // match the one thing this certainly wrote.
+            //
+            // The directory is checked first because this runs in a finally. An engine that
+            // never got as far as producing one would otherwise throw from here and replace
+            // the real failure with a DirectoryNotFoundException.
+            string binaries = Path.Combine(engineRoot, "Engine", "Binaries", EnginePlatform);
+
+            if (Directory.Exists(binaries))
             {
-                try
+                foreach (string path in Directory.EnumerateFiles(binaries, Program + "*"))
                 {
-                    File.Delete(path);
-                }
-                catch (IOException)
-                {
+                    try
+                    {
+                        File.Delete(path);
+                    }
+                    catch (IOException)
+                    {
+                    }
                 }
             }
         }
@@ -260,7 +309,8 @@ internal static class UnrealToolchain
     public static ToolResult RunHeaderTool(
         string engineRoot, string moduleDir, string moduleName, string headerName)
     {
-        string headerTool = Path.Combine(engineRoot, "Engine", "Binaries", "Win64", "UnrealHeaderTool.exe");
+        string headerTool = Path.Combine(
+            engineRoot, "Engine", "Binaries", EnginePlatform, "UnrealHeaderTool" + ExeSuffix);
 
         if (!File.Exists(headerTool))
         {

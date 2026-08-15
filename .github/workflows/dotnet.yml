@@ -189,3 +189,86 @@ jobs:
           # was 83 MB, more than everything else together.
           echo "published files:"
           ls -la published
+
+  # The same tool on the other two operating systems.
+  #
+  # The job above is the whole suite and runs only on Linux, which is what let a Windows-only
+  # assumption sit in the build for as long as nobody built anywhere else: the netstandard2.1
+  # reference assemblies are laid down under `packs` by the Windows SDK installer and left to
+  # NuGet everywhere else, and the tool could not be compiled at all off Windows because of it.
+  # That is a first-line-of-the-build failure, and no amount of test coverage on one platform
+  # sees it.
+  #
+  # Deliberately not the whole suite here. The database and history gates need Docker, which a
+  # macOS runner does not have, and a job that fails on the runner rather than on the code is a
+  # job people learn to ignore. What runs instead is everything platform-sensitive that needs
+  # no server: the goldens - which is where a path separator or a line ending shows up - and
+  # the three toolchains all three runners have.
+  cross-platform:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    # One platform failing should not hide whether the other is fine.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Setup TypeScript
+        run: |
+          npm install -g typescript@5.8.3
+          npx tsc --version
+        shell: bash
+
+      # Records which one the run used. Windows runners ship MSVC, which the gate finds
+      # through vcvars64.bat; macOS ships clang, which answers to `g++` and `gcc`.
+      - name: Report the C++ toolchain
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            g++ --version
+            gcc --version
+          else
+            echo "MSVC, located by the suite through vcvars64.bat"
+          fi
+        shell: bash
+
+      - name: Build
+        run: dotnet build Tabbit.slnx -c Release
+
+      # Named classes rather than a pattern, so adding a gate that needs a server does not
+      # silently join a job that has none to give it.
+      - name: Test
+        shell: bash
+        run: >
+          dotnet test Tabbit.slnx --no-build -c Release --verbosity normal --filter
+          "FullyQualifiedName~ConversionGoldenTests|FullyQualifiedName~CsGeneratorTests|FullyQualifiedName~CppGeneratorTests|FullyQualifiedName~CppNestedAndOptionalTests|FullyQualifiedName~CNestedAndOptionalTests|FullyQualifiedName~HeaderIncludeTests|FullyQualifiedName~GeneratedTypescriptTests|FullyQualifiedName~TypescriptBinaryReaderTests|FullyQualifiedName~GeneratedFileEndingTests"
+
+      # The build scripts are how a person builds this, and the shell ones did not run at
+      # all: the committed mode was 644, so the shebang never got a chance, and the line
+      # after the publish renamed an output spelled `tabbit` to one spelled `Tabbit` - the
+      # same file on NTFS and no file at all on ext4. Nothing ran them, so nothing said so.
+      - name: The platform's own build script
+        if: runner.os == 'macOS'
+        run: |
+          ./build/build-osx64.sh
+          ./bin/osx-arm64/tabbit --recipe test/fixtures/recipes/core.json --silent
+
+      - name: The platform's own build script
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          .\build\build-win64.ps1 win-x64
+          .\bin\win-x64\tabbit.exe --recipe test/fixtures/recipes/core.json --silent

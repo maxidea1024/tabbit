@@ -108,7 +108,37 @@ dotnet test            # 전체 회귀 스위트
 |데이터 갱신기|13개 언어의 업데이터를 각자의 툴체인으로 빌드해 **실제 HTTP 서버**에 붙입니다 — 받은 바이트 비교, 해시 불일치 거부와 캐시 불변, 5xx 재시도, 404 비재시도. 직접 쓴 MD5는 공개 벡터로 따로 확인합니다.|
 |셀프컨테인드 배포|CI가 매 실행마다 linux-x64로 퍼블리시하고 그 산출물로 변환을 돌립니다.|
 
-생성기나 템플릿을 건드렸다면 **네 가지를 순서대로** 합니다.
+### 플랫폼
+
+**스위트는 Windows · Linux · macOS에서 같은 것을 검증합니다.** 골든 트리는 세 곳에서
+바이트 단위로 동일합니다 — 경로 구분자는 [`Location`](../src/Models/Location.cs)이 항상
+`/`로 정규화하고, 개행은 익스포터가 LF로 고정하며, `lib/`와 셸 스크립트는 `.gitattributes`가
+LF로 못박습니다.
+
+플랫폼이 갈리는 곳은 **컴파일러를 찾는 방법**뿐이고, 그것은 게이트가 알아서 합니다.
+
+|게이트|Windows|Linux · macOS|
+|--|--|--|
+|C · C++ · Unreal(오프엔진)|MSVC. `vcvars64.bat`를 배치 파일로 호출합니다 — `cl`은 그 스크립트가 내보내는 include·lib 경로 없이는 동작하지 않고, 그 경로는 실행해 본 적 없는 프로세스가 물려받을 수 없기 때문입니다|`g++` · `gcc`를 직접 실행합니다|
+|Node 계열(`npx tsc` · `node`)|`cmd` 경유. 둘 다 배치 래퍼로 설치되어 프로세스로 직접 시작할 수 없습니다|직접 실행합니다|
+|libcurl (C · C++ 업데이터)|`TABBIT_LIBCURL_ROOT`가 가리키는 prefix. 기본값은 vcpkg 설치 위치입니다|`-lcurl`. 배포판 패키지가 컴파일러가 보는 자리에 넣습니다|
+|나머지 12개 언어|PATH, 그다음 잘 알려진 설치 위치|PATH, 그다음 `/opt/homebrew/bin` · `/usr/local/bin` · `/usr/bin`|
+
+Homebrew 경로를 함께 보는 이유는 편의가 아닙니다. 애플 실리콘의 `/opt/homebrew`는 로그인
+셸의 PATH에는 있고 IDE가 띄운 테스트 호스트의 PATH에는 없습니다. PATH만 보면 그 언어를
+**없는 것으로 판정하고 건너뛰는데**, 적합성 스위트가 조용히 내놓아서는 안 되는 답이 그것입니다.
+
+**언리얼 게이트만 엔진이 필요합니다**(`TABBIT_UE_ROOT`). 엔진 트리는 플랫폼마다 디렉터리
+이름이 다르므로 — Windows는 `Build.bat`과 `Binaries/Win64`, 나머지는
+`BatchFiles/<플랫폼>/Build.sh`와 `Binaries/Linux` · `Binaries/Mac` — 게이트가 호스트에
+맞춰 고릅니다.
+
+**데이터베이스 게이트는 Docker가 필요합니다.** 컨테이너 안에서 스위트를 돌리면 그
+게이트만 실패하는데, 이는 이식성 문제가 아니라 Docker에 닿지 못하는 것입니다.
+
+생성기나 템플릿을 건드렸다면 **네 가지를 순서대로** 합니다. 아래는 cmd 기준이고,
+셸에서는 `set X=Y &&` 자리에 `X=Y`를 그대로 앞에 붙입니다 —
+`TABBIT_UPDATE_GOLDEN=1 dotnet test`.
 
 ```
 set TABBIT_UE_ROOT=C:/path/to/UnrealEngine     # 언리얼 게이트를 돌릴 때만

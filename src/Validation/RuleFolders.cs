@@ -267,7 +267,10 @@ public sealed class RuleFolders
     {
         var known = new HashSet<string>(allowed, StringComparer.OrdinalIgnoreCase);
 
-        foreach (string directory in Directory.EnumerateDirectories(parent))
+        // Ordered, so the folder this names when there are several is the same one on every
+        // platform - the message reports the first it meets, and an unordered scan made that
+        // "whichever the filesystem handed over first".
+        foreach (string directory in Helpers.PathNames.InOrder(Directory.EnumerateDirectories(parent)))
         {
             string name = Path.GetFileName(directory);
 
@@ -417,7 +420,10 @@ public sealed class RuleFolders
     {
         string full = Path.GetFullPath(path);
 
-        return full.StartsWith(Root, StringComparison.OrdinalIgnoreCase)
+        // Compared the way this platform's filesystem compares paths: on Linux a root of
+        // `/x/rules` does not contain `/x/Rules`, and stripping it as though it did would
+        // put a nonsense relative path in a report.
+        return full.StartsWith(Root, Tabbit.Helpers.PathNames.Comparison)
             ? full.Substring(Root.Length).TrimStart('/', '\\').Replace('\\', '/')
             : full.Replace('\\', '/');
     }
