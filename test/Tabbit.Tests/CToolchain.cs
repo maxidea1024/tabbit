@@ -197,21 +197,20 @@ internal static class CToolchain
             return Execute("gcc", workDir, arguments.ToArray());
         }
 
-        string script = Path.Combine(workDir, "build-updater.bat");
-        string quoted = string.Join(" ", sources.Select(path => $"\"{path}\""));
-
-        File.WriteAllText(script, string.Join(Environment.NewLine, new[]
+        var clArguments = new List<string>
         {
-            "@echo off",
-            $"call \"{FindVcVars()}\" >nul",
-            $"cd /d \"{workDir}\"",
-            $"cl /nologo /TC /W4 /WX /utf-8 /I \"{runtimeParent}\" " +
-            $"/I \"{Path.Combine(LibcurlRoot, "include")}\" {quoted} /Fe\"{exe}\" " +
-            $"/link \"{Path.Combine(LibcurlRoot, "lib", "libcurl.lib")}\"",
-            "exit /b %ERRORLEVEL%",
-        }));
+            "/nologo", "/TC", "/W4", "/WX", "/utf-8",
+            $"/I \"{runtimeParent}\"",
+            $"/I \"{Path.Combine(LibcurlRoot, "include")}\"",
+        };
 
-        var built = Execute("cmd.exe", workDir, "/c", script);
+        clArguments.AddRange(sources.Select(path => $"\"{path}\""));
+        clArguments.Add($"/Fo:\"{workDir}\\\\\"");
+        clArguments.Add($"/Fe\"{exe}\"");
+
+        var built = CppToolchain.RunMsvc(
+            workDir, "build-updater", clArguments,
+            libraries: new[] { Path.Combine(LibcurlRoot, "lib", "libcurl.lib") });
 
         if (!built.Succeeded)
             return built;
@@ -244,30 +243,21 @@ internal static class CToolchain
         string workDir, string includeDir, string runtimeDir,
         IReadOnlyList<string> sources, string accessorHeader, string exe)
     {
-        string vcvars = FindVcVars();
-
-        // A batch file rather than a direct cl.exe launch: cl needs the include and
-        // library paths vcvars64.bat exports, and those cannot be inherited from a
-        // process that never ran it.
-        //
         // /TC forces C even for a file cl would otherwise take for C++, and /utf-8 says
         // the sources are UTF-8 - which they are, and the corpus depends on it.
-        string script = Path.Combine(workDir, "build.bat");
-
-        var quoted = string.Join(" ", sources.Select(path => $"\"{path}\""));
-
-        File.WriteAllText(script, string.Join(Environment.NewLine, new[]
+        var arguments = new List<string>
         {
-            "@echo off",
-            $"call \"{vcvars}\" >nul",
-            $"cd /d \"{workDir}\"",
-            $"cl /nologo /TC /W4 /WX /utf-8 /DTABBIT_ACCESSOR_HEADER=\\\"{accessorHeader}\\\" " +
-            $"/I \"{includeDir}\" /I \"{runtimeDir}\" {quoted} " +
-            $"/Fe\"{exe}\"",
-            "exit /b %ERRORLEVEL%",
-        }));
+            "/nologo", "/TC", "/W4", "/WX", "/utf-8",
+            $"/DTABBIT_ACCESSOR_HEADER=\\\"{accessorHeader}\\\"",
+            $"/I \"{includeDir}\"",
+            $"/I \"{runtimeDir}\"",
+        };
 
-        return Execute("cmd.exe", workDir, "/c", script);
+        arguments.AddRange(sources.Select(path => $"\"{path}\""));
+        arguments.Add($"/Fo:\"{workDir}\\\\\"");
+        arguments.Add($"/Fe\"{exe}\"");
+
+        return CppToolchain.RunMsvc(workDir, "build", arguments);
     }
 
     private static ToolResult BuildWithGcc(
@@ -288,13 +278,9 @@ internal static class CToolchain
         return Execute("gcc", workDir, arguments.ToArray());
     }
 
-    /// <summary>
-    /// Locates vcvars64.bat, by the same search the C++ toolchain uses.
-    ///
-    /// Borrowed rather than copied: two searches that could disagree about which
-    /// compiler is in use would be two answers to one question.
-    /// </summary>
-    private static string FindVcVars() => CppToolchain.FindVcVars();
+    // No FindVcVars here any more. It used to be borrowed from the C++ toolchain so that two
+    // searches could not disagree about which compiler is in use; now the whole MSVC launch is
+    // borrowed - CppToolchain.RunMsvc - and the search went with it.
 
     private static ToolResult Execute(string fileName, string workingDirectory, params string[] args)
         => CppToolchain.Execute(fileName, workingDirectory, args);

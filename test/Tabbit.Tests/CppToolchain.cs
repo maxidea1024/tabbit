@@ -22,9 +22,9 @@ internal sealed class ToolResult
 /// Those are separate programs that have to stay in lockstep, and a byte-level
 /// disagreement would otherwise only surface in someone's game build.
 ///
-/// MSVC on Windows, g++ elsewhere. MSVC needs its environment set up by
-/// vcvars64.bat, which is why the Windows path goes through a batch file rather
-/// than invoking cl.exe directly.
+/// MSVC on Windows, g++ elsewhere. MSVC needs the environment vcvars64.bat exports,
+/// which is why the Windows path goes through a script rather than invoking cl.exe
+/// directly - see <see cref="RunMsvc"/>.
 /// </summary>
 internal static class CppToolchain
 {
@@ -151,21 +151,17 @@ internal static class CppToolchain
         }
 
         string libcurl = CToolchain.LibcurlRoot;
-        string script = Path.Combine(workDir, "build-updater.bat");
 
-        File.WriteAllText(script, string.Join(Environment.NewLine, new[]
+        var built = RunMsvc(workDir, "build-updater", new[]
         {
-            "@echo off",
-            $"call \"{FindVcVars()}\" >nul",
-            $"cd /d \"{workDir}\"",
-            $"cl /nologo /std:c++17 /EHsc /W3 /utf-8 /I \"{runtimeParent}\" " +
-            $"/I \"{Path.Combine(libcurl, "include")}\" \"{source}\" " +
-            $"/Fo:\"{workDir}\\\\\" /Fe:\"{exe}\" " +
-            $"/link \"{Path.Combine(libcurl, "lib", "libcurl.lib")}\"",
-            "exit /b %ERRORLEVEL%",
-        }));
-
-        var built = Execute("cmd.exe", workDir, "/c", script);
+            "/nologo", "/std:c++17", "/EHsc", "/W3", "/utf-8",
+            $"/I \"{runtimeParent}\"",
+            $"/I \"{Path.Combine(libcurl, "include")}\"",
+            $"\"{source}\"",
+            $"/Fo:\"{workDir}\\\\\"",
+            $"/Fe:\"{exe}\"",
+        },
+        libraries: new[] { Path.Combine(libcurl, "lib", "libcurl.lib") });
 
         if (!built.Succeeded)
             return built;
@@ -184,23 +180,85 @@ internal static class CppToolchain
     private static ToolResult BuildWithMsvc(string workDir, string includeDir, string runtimeDir,
                                             string source, string exe, string accessorName)
     {
-        string vcvars = FindVcVars();
+        return RunMsvc(workDir, "build", new[]
+        {
+            "/nologo", "/std:c++17", "/EHsc", "/W3", "/utf-8",
+            $"/DTABBIT_ACCESSOR_HEADER=\\\"{accessorName}.h\\\"",
+            $"/I \"{includeDir}\"",
+            $"/I \"{runtimeDir}\"",
+            $"\"{source}\"",
+            $"/Fo:\"{workDir}\\\\\"",
+            $"/Fe:\"{exe}\"",
+        });
+    }
 
-        // A batch file rather than a direct cl.exe launch: cl needs the include and
-        // library paths that vcvars64.bat exports, and those cannot be inherited
-        // from a process that never ran it.
-        string script = Path.Combine(workDir, "build.bat");
+    /// <summary>
+    /// Runs `cl` with the environment vcvars64.bat exports.
+    /// </summary>
+    /// <remarks>
+    /// `cl` cannot find its own include and library paths; vcvars64.bat exports them, and a
+    /// process that never ran it cannot inherit them. So something has to run that script and
+    /// hand the result to the compiler, and this is the one place that happens - the C, C++
+    /// and Unreal gates all come through here rather than each writing a script of its own.
+    ///
+    /// PowerShell rather than a batch file, because this repository's scripts are PowerShell.
+    /// vcvars64.bat is Microsoft's and stays a batch file, so it is run through `cmd` and the
+    /// environment it leaves behind is read back out of `set` and imported here.
+    ///
+    /// The compiler options go in a response file rather than on the command line. `cl` has
+    /// read those since forever, and it sidesteps the one hard part of calling a native
+    /// program from PowerShell: an argument like /DTABBIT_ACCESSOR_HEADER=\"Foo.h\" has to
+    /// reach `cl` with its quotes intact, and PowerShell 5.1's rules for that are not
+    /// something to rely on. A response file has one argument per line and no such rules.
+    /// </remarks>
+    /// <param name="libraries">
+    /// What to link against, if anything. These go after the response file on the command line
+    /// rather than inside it, because `/link` takes the rest of the *command line* and a
+    /// response file is expanded before that is decided. Inside the file, `/link` was read as
+    /// an ordinary option and the library after it as an input file - which under `/TC` means
+    /// "a C source", so the build failed with syntax errors inside libcurl.lib.
+    /// </param>
+    internal static ToolResult RunMsvc(
+        string workDir, string name, IEnumerable<string> arguments,
+        IEnumerable<string> libraries = null)
+    {
+        Directory.CreateDirectory(workDir);
+
+        string responseFile = Path.Combine(workDir, name + ".rsp");
+        File.WriteAllText(responseFile, string.Join(Environment.NewLine, arguments) + Environment.NewLine);
+
+        string link = libraries == null
+            ? ""
+            : string.Concat(libraries.Select(path => $" '{path.Replace("'", "''")}'"));
+
+        if (link.Length > 0)
+            link = " /link" + link;
+
+        string script = Path.Combine(workDir, name + ".ps1");
+
         File.WriteAllText(script, string.Join(Environment.NewLine, new[]
         {
-            "@echo off",
-            $"call \"{vcvars}\" >nul",
-            $"cl /nologo /std:c++17 /EHsc /W3 /utf-8 /DTABBIT_ACCESSOR_HEADER=\\\"{accessorName}.h\\\" " +
-            $"/I \"{includeDir}\" /I \"{runtimeDir}\" \"{source}\" " +
-            $"/Fo:\"{workDir}\\\\\" /Fe:\"{exe}\"",
-            "exit /b %ERRORLEVEL%",
+            "# Written by the test suite. See CppToolchain.RunMsvc for why it looks like this.",
+            "$ErrorActionPreference = 'Stop'",
+            "",
+            $"cmd /c \"call `\"{FindVcVars()}`\" >nul 2>&1 && set\" | ForEach-Object {{",
+            "    if ($_ -match '^([^=]+)=(.*)$') {",
+            "        [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2])",
+            "    }",
+            "}",
+            "",
+            $"Set-Location -LiteralPath '{workDir.Replace("'", "''")}'",
+            "",
+            $"& cl '@{responseFile.Replace("'", "''")}'{link}",
+            "",
+            "# cl is a native program, so a non-zero exit is not a PowerShell error.",
+            "exit $LASTEXITCODE",
+            "",
         }));
 
-        return Execute("cmd.exe", workDir, "/c", script);
+        return Execute("powershell", workDir,
+                       "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+                       "-File", script);
     }
 
     private static ToolResult BuildWithGcc(string workDir, string includeDir, string runtimeDir,

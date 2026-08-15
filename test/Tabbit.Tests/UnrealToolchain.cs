@@ -117,23 +117,19 @@ internal static class UnrealToolchain
         string workDir, IReadOnlyList<string> includes, IReadOnlyList<string> sources,
         string exe, string accessorName, string apiMacro)
     {
-        string vcvars = CppToolchain.FindVcVars();
-        string script = Path.Combine(workDir, "build-off-engine.bat");
-
-        string includeFlags = string.Join(" ", includes.Select(dir => $"/I \"{dir}\""));
-        string sourceFiles = string.Join(" ", sources.Select(file => $"\"{file}\""));
-
-        File.WriteAllText(script, string.Join(Environment.NewLine, new[]
+        var arguments = new List<string>
         {
-            "@echo off",
-            $"call \"{vcvars}\" >nul",
-            $"cl /nologo /std:c++20 /EHsc /W3 /utf-8 " +
-            $"/DTABBIT_ACCESSOR_HEADER=\\\"{accessorName}.h\\\" /D{apiMacro}= " +
-            $"{includeFlags} {sourceFiles} /Fo:\"{workDir}\\\\\" /Fe:\"{exe}\"",
-            "exit /b %ERRORLEVEL%",
-        }));
+            "/nologo", "/std:c++20", "/EHsc", "/W3", "/utf-8",
+            $"/DTABBIT_ACCESSOR_HEADER=\\\"{accessorName}.h\\\"",
+            $"/D{apiMacro}=",
+        };
 
-        return Execute("cmd.exe", workDir, "/c", script);
+        arguments.AddRange(includes.Select(dir => $"/I \"{dir}\""));
+        arguments.AddRange(sources.Select(file => $"\"{file}\""));
+        arguments.Add($"/Fo:\"{workDir}\\\\\"");
+        arguments.Add($"/Fe:\"{exe}\"");
+
+        return CppToolchain.RunMsvc(workDir, "build-off-engine", arguments);
     }
 
     private static ToolResult BuildOffEngineWithGcc(
