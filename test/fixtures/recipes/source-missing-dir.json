@@ -1,0 +1,22 @@
+{
+  // An Excel source pointing at a directory that is not there.
+  //
+  // Directory.GetFiles would throw about the path on its own, which does not say which
+  // recipe entry named it - and a recipe may hold several.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/no-such-directory"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/source-missing-dir/json-named"
+      }
+    ]
+  }
+}

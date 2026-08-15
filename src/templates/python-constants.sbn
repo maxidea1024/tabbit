@@ -1,0 +1,14 @@
+{{~## One constant class. `set` is the single set this file is for. ##~}}
+{{ include 'python-file-head.sbn' ~}}
+class {{ set.name }}:
+    """Generated from {{ set.location }}.
+{{~ for line in set.comment }}
+    {{ line }}
+{{~ end ~}}
+    """
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+    # {{ line }}
+{{~ end ~}}
+    {{ constant.name }} = {{ constant.value }}
+{{~ end ~}}

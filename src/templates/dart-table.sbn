@@ -1,0 +1,238 @@
+{{~## One table: its record class and its table class. ##~}}
+{{ include 'dart-part-head.sbn' ~}}
+{{~## The element type of each record group, ahead of the row that holds one. A top-level
+   class - Dart has no nested ones - and the generated files are parts of one library,
+   which is why the name carries the table's. ##~}}
+{{~ for field in table.fields ~}}
+{{~## An array of arrays declares no element type: its outer level has no name, so there is
+   nothing for a class to be. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~## One class per level, innermost first - the view flattened the nesting so this loop does
+   not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+/// One element of [{{ rt.owner }}].
+{{~ else ~}}
+/// A record inside [{{ rt.owner }}].
+{{~ end ~}}
+class {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+  {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+// Generated from {{ table.location }}
+{{~ for line in table.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+class {{ table.record_name }} {
+{{~ for field in table.fields ~}}
+{{~ for line in field.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+{{~ for declaration in field.declarations ~}}
+  {{ declaration }}
+{{~ end ~}}
+{{~ end ~}}
+
+}
+
+/// Every row of {{ table.raw_name }}.
+class {{ table.table_name }} {
+  /// Every row, in the order the sheet declared them.
+  ///
+  /// The list a read published, not one a read fills. A refresh replaces the reference
+  /// rather than the contents, so whoever holds this holds one whole load.
+  List<{{ table.record_name }}> get records => _records;
+  List<{{ table.record_name }}> _records = [];
+
+{{~ for index in table.indexes ~}}
+  Map<{{ index.key_type }}, {{ table.record_name }}> {{ index.map_name }} = {};
+{{~ end ~}}
+{{~ for index in table.indexes }}
+  /// The row with this {{ index.field_name }}, or null when the table has none.
+  ///
+  /// The lookup to reach for when a missing row is an ordinary answer - an optional
+  /// reference, a key that came from user input.
+  {{ table.record_name }}? findBy{{ index.suffix }}({{ index.key_type }} key) => {{ index.map_name }}[key];
+
+  /// The row with this {{ index.field_name }}, or a thrown exception naming what was missing.
+  ///
+  /// For a key that has to be there - one from another table, or a constant. The name says
+  /// it throws, because a caller reading getBy{{ index.suffix }}(key).name at a glance
+  /// cannot otherwise tell whether the next line is a null check or a catch.
+  {{ table.record_name }} getBy{{ index.suffix }}OrThrow({{ index.key_type }} key) {
+    final record = {{ index.map_name }}[key];
+
+    if (record == null) {
+      throw RecordNotFoundException(
+          'there is no record in table `{{ table.raw_name }}` that corresponds to '
+          'field `{{ index.field_name }}` value $key');
+    }
+
+    return record;
+  }
+
+  /// Whether the table holds a row with this {{ index.field_name }}.
+  bool contains{{ index.suffix }}({{ index.key_type }} key) => {{ index.map_name }}.containsKey(key);
+{{~ end ~}}
+
+  /// Loads the table from a .tcb file written by Tabbit.
+  /// Column by column, matched by tag rather than position: a column this build does
+  /// not know is skipped by its block length, and one whose type changed incompatibly
+  /// fails naming the field.
+  void read(String filename) {
+    // Opened unconditionally, and with whatever {{ accessor_name }}.encryptionKey and {{ accessor_name }}.macKey hold
+    // - which is null unless the project set them. A file that is neither encrypted nor
+    // signed comes back from this untouched, so the load path is the same either way and
+    // there is no condition here that could be the wrong way round.
+    // spec/tcb-mac-and-signature.md.
+    final reader = TcbReader(open(readAllBytes(filename), {{ accessor_name }}.encryptionKey,
+        {{ accessor_name }}.macKey, {{ accessor_name }}.verifyMac));
+    final header = readTableHeader(reader);
+    final count = header.rowCount;
+{{~ if table.needs_cursor ~}}
+    late TcbColumnCursor cursor;
+{{~ end ~}}
+{{~ if table.needs_presence ~}}
+{{~## Declared once for the whole switch, like the cursor: a `case` is not its own scope in
+      Dart, so a declaration inside two of them collides. ##~}}
+    late List<int> presence;
+{{~ end ~}}
+
+    // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
+    final loaded = <{{ table.record_name }}>[];
+{{~ for index in table.indexes ~}}
+    final loadedBy{{ index.suffix }} = <{{ index.key_type }}, {{ table.record_name }}>{};
+{{~ end ~}}
+
+    for (var i = 0; i < count; i++) {
+      loaded.add({{ table.record_name }}());
+    }
+
+    for (final column in header.columns) {
+      final blockEnd = reader.position + column.byteLength;
+
+      switch (column.tag) {
+{{~ for column_view in table.columns ~}}
+        case {{ column_view.tag }}:
+          {{ column_view.column_check }}
+{{~ if column_view.is_nullable ~}}
+          // The bitmap is at the front of the block, so it is read before the values. The
+          // values are written for every row either way, which is what lets the read shapes
+          // below stay as they are.
+          presence = readPresence(reader, column, count);
+{{~ end ~}}
+{{~## Opened here, ahead of every read shape, because an array's elements read through it as
+   well: its block states an encoding for them and one for the row lengths, and the cursor
+   is what decodes both. After the presence bitmap, which sits in front of the block the
+   cursor is about to start reading. ##~}}
+{{~ if column_view.cursor_open != '' ~}}
+          {{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+   call per row that each re-dispatch on the encoding. An encoding with no run to give
+   answers 1, so this loop is correct over all of them. ##~}}
+          for (var i = 0; i < count; ) {
+            final (n, value) = cursor.{{ column_view.run_call }}(count - i);
+            for (var left = n; left > 0; left--, i++) {
+              {{ column_view.run_spend }}
+            }
+          }
+{{~ else ~}}
+          for (final record in loaded) {
+{{~ if column_view.kind == 'var_array' ~}}
+            final elementCount = {{ column_view.length_read }};
+            record.{{ column_view.name }} = List.generate(elementCount, (_) => {{ column_view.read_element }});
+{{~ else if column_view.kind == 'record_var' ~}}
+            final elementCount = {{ column_view.length_read }};
+{{~ if column_view.is_first_member ~}}
+            // The first member builds the list; the rest check. Building it again would
+            // discard what the members before it wrote, and taking the shorter of two
+            // counts would shift every value after it.
+            record.{{ column_view.name }} =
+                List.generate(elementCount, (_) => {{ column_view.record_type_name }}());
+{{~ else ~}}
+            if (record.{{ column_view.name }}.length != elementCount) {
+              throw TcbException(
+                  '{{ table.raw_name }}.{{ column_view.name }}: the file gives one member of this '
+                  'record a different element count than another');
+            }
+{{~ end ~}}
+            for (var j = 0; j < elementCount; j++) {
+              record.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+            }
+{{~ else if column_view.kind == 'array_of_arrays_member' ~}}
+{{~## One inner list. Which outer element it is, is which column this is - so that index is
+   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+            for (var j = 0; j < {{ column_view.element_count }}; j++) {
+              record.{{ column_view.name }}[{{ column_view.member_at }}][j] = {{ column_view.read_element }};
+            }
+{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~## The member is the array: the index goes after its name rather than before. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+            for (var j = 0; j < {{ column_view.element_count }}; j++) {
+              record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_element }};
+            }
+{{~ else if column_view.kind == 'record_serial' ~}}
+            for (var j = 0; j < {{ column_view.element_count }}; j++) {
+              record.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+            }
+{{~ else if column_view.kind == 'serial_ref' ~}}
+            record.{{ column_view.name }}Index = List.generate({{ column_view.element_count }}, (_) => {{ column_view.read_element }});
+{{~ else if column_view.kind == 'serial' ~}}
+            record.{{ column_view.name }} = List.generate({{ column_view.element_count }}, (_) => {{ column_view.read_element }});
+{{~ else if column_view.kind == 'scalar_ref' ~}}
+            record.{{ column_view.name }}Index = {{ column_view.read_element }};
+{{~ else ~}}
+            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+{{~ end ~}}
+          }
+{{~ end ~}}
+{{~ if column_view.is_nullable }}
+          // A pass of its own rather than a line inside each read shape, so the row index is
+          // worked out once. The block carries a value for every row, so an absent one has
+          // just been given whatever was there; putting the empty value back is what makes
+          // this path agree with the JSON one.
+          for (var row = 0; row < count; row++) {
+            final record = loaded[row];
+            record.{{ column_view.presence_member }} = isPresent(presence, row);
+
+            if (!record.{{ column_view.presence_member }}) {
+              record.{{ column_view.name }} = {{ column_view.empty_value }};
+            }
+          }
+{{~ end ~}}
+          break;
+{{~ end ~}}
+        default:
+          // A column added after this code was generated.
+          reader.skip(column.byteLength);
+          break;
+      }
+
+      checkBlockEnd(reader, column, blockEnd);
+    }
+
+    for (final record in loaded) {
+{{~ for index in table.indexes ~}}
+      loadedBy{{ index.suffix }}[record.{{ index.member }}] = record;
+{{~ end ~}}
+    }
+
+    // Published, now that every column read.
+    _records = loaded;
+{{~ for index in table.indexes ~}}
+    {{ index.map_name }} = loadedBy{{ index.suffix }};
+{{~ end ~}}
+  }
+}

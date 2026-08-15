@@ -1,0 +1,94 @@
+{
+  // Regression recipe for the `core.xlsx` fixture.
+  //
+  // Every path is relative to the repository root, which is where the test
+  // harness invokes Tabbit from. Output lands in test/fixtures/output/core
+  // (transient, gitignored) and is compared against test/fixtures/golden/core.
+  //
+  // Both JSON row formats are exported because they take different code paths in
+  // JsonExporter, so both need covering. The named form is the one generated readers
+  // consume - it is what the conformance corpus compares against and what the
+  // TypeScript round trip reads.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/core/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/core/json-compact",
+        "UseCompactRowFormat": true,
+        "Indented": true
+      },
+      {
+        "Path": "test/fixtures/output/core/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ],
+    "MongoDb": [],
+    "MySql": []
+  },
+
+  // The summary describes the whole model rather than producing anything a build
+  // consumes, so it is the one target that reads the unnarrowed model.
+  "Targets": [
+    {
+      "Type": "summary",
+      "Path": "test/fixtures/output/core/summary",
+      "TargetSide": "cs"
+    }
+  ],
+
+  "CodeGenerations": {
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/core/cpp",
+        "Namespace": "tabbit_fixtures::core",
+        "AccessorName": "CoreAccessor",
+        "BinaryTableFileExtension": ".tcb"
+      }
+    ],
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/core/csharp",
+
+        // On here so the regression suite compiles it - including the Unity branches, which
+        // reach UnityWebRequest and are the ones no plain build ever sees.
+        "WriteUpdater": true,
+        "Namespace": "Tabbit.Fixtures.Core",
+        "AccessorName": "CoreAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/core/typescript",
+
+        // On here so the updater is type-checked and compiled by the TypeScript gates.
+        "WriteUpdater": true
+      }
+    ],
+    "Html": [
+      {
+        "Path": "test/fixtures/output/core/html"
+      }
+    ]
+  }
+}

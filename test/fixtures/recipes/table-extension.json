@@ -1,0 +1,64 @@
+{
+  // A recipe whose table files are not called `.tcb`.
+  //
+  // Every other recipe leaves the extension at its default, so nothing ever read the
+  // setting back out - and the C# accessor had a `".tcb"` literal where the recipe's
+  // value belonged. A recipe that set the extension on both the export and the target got
+  // the right file names out of the exporter and a reader that looked for the default
+  // anyway. Nothing failed; the generated code simply did not find its data.
+  //
+  // `.bytes` rather than an invented extension, because it is the one a real project
+  // reaches for: Unity only includes a file in a build as a TextAsset if it carries an
+  // extension the importer recognises, and `.bytes` is that extension for binary data.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/reserved-words"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/table-extension/binary",
+        "FileExtension": ".bytes"
+      }
+    ]
+  },
+
+  "Targets": [
+    { "Type": "go", "Path": "test/fixtures/output/table-extension/go",
+      "PackageName": "x", "ModulePath": "x", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "rust", "Path": "test/fixtures/output/table-extension/rust",
+      "CrateName": "x", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "python", "Path": "test/fixtures/output/table-extension/python",
+      "PackageName": "x", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "java", "Path": "test/fixtures/output/table-extension/java",
+      "PackageName": "x", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "kotlin", "Path": "test/fixtures/output/table-extension/kotlin",
+      "PackageName": "x", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "ruby", "Path": "test/fixtures/output/table-extension/ruby",
+      "ModuleName": "X", "AccessorName": "a", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "dart", "Path": "test/fixtures/output/table-extension/dart",
+      "AccessorName": "a", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "c", "Path": "test/fixtures/output/table-extension/c",
+      "AccessorName": "A", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "php", "Path": "test/fixtures/output/table-extension/php",
+      "Namespace": "X", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "unreal", "Path": "test/fixtures/output/table-extension/unreal",
+      "ModuleName": "X", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" }
+  ],
+
+  "CodeGenerations": {
+    "Cpp": [
+      { "Path": "test/fixtures/output/table-extension/cpp",
+        "Namespace": "x", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" }
+    ],
+    "CSharp": [
+      { "Path": "test/fixtures/output/table-extension/csharp",
+        "Namespace": "X", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" }
+    ]
+  }
+}

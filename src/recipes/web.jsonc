@@ -1,0 +1,64 @@
+// Tabbit recipe — 웹 (구글 스프레드시트 → TypeScript)
+//
+// TypeScript만 JSON과 바이너리 양쪽을 읽을 수 있어 둘 다 내보냅니다.
+// 브라우저로 배포할 때 바이너리 리더를 끼우지 않고 JSON을 fetch하고 싶은 경우가
+// 실제로 있기 때문입니다. 두 경로는 같은 값을 냅니다.
+
+{
+  "ArrayDelimiter": ";",
+
+  "Sources": {
+    "GoogleSheets": [
+      {
+        // 이 파일은 절대 커밋하지 마세요.
+        // 저장소 히스토리에 한 번 들어가면 지워도 복제된 사본에는 남습니다.
+        // 발급 절차는 doc/sheets.md 에 스크린샷과 함께 있습니다.
+        "ClientSecretFilename": "./secrets/googlesheets-client-secret.json",
+
+        // 스프레드시트 URL의 /d/ 와 /edit 사이에 있는 문자열입니다.
+        "SheetsId": "여기에-스프레드시트-ID"
+      }
+    ]
+
+    // 엑셀도 함께 읽으려면 Xlsx 항목을 추가하면 됩니다. 둘은 배타적이지 않습니다.
+  },
+
+  "Exports": {
+    // 사람이 보거나 다른 도구가 가져다 쓸 용도. 브라우저에서 fetch해도 됩니다.
+    "Json": [
+      {
+        "Path": "./public/data",
+
+        // true면 각 행을 필드 이름 없이 값 배열로만 씁니다. 작아지지만 읽기 어렵습니다.
+        "UseCompactRowFormat": false,
+
+        // 사람이 들여다볼 때만 켜세요.
+        "Indented": false
+      }
+    ],
+
+    // 크기와 파싱 시간이 중요할 때. 이름 있는 JSON의 3분의 1 안팎입니다.
+    "Binary": [
+      { "Path": "./public/data", "FileExtension": ".tcb" }
+    ]
+  },
+
+  "CodeGenerations": {
+    "Typescript": [
+      {
+        "Path": "./src/generated",
+        "AccessorName": "Tables",
+
+        // true면 enum이 숫자 대신 문자열 유니온이 됩니다.
+        // 디버거와 로그에서 읽히지만 파일에 저장된 정수와는 어긋납니다.
+        "UseStringEnum": false,
+
+        "BinaryTableFileExtension": ".tcb"
+      }
+    ],
+
+    "Html": [
+      { "Path": "./docs/data" }
+    ]
+  }
+}

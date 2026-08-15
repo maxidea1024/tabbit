@@ -1,0 +1,12 @@
+[
+  {
+    "index": 1,
+    "key": "spawn_rate",
+    "amount": 35
+  },
+  {
+    "index": 2,
+    "key": "loot_bias",
+    "amount": 12
+  }
+]

@@ -1,0 +1,26 @@
+[
+  [
+    1,
+    "Short Sword",
+    1,
+    1,
+    1,
+    "Sharp & quick; deals <b>bonus</b> damage"
+  ],
+  [
+    2,
+    "Leather Armor",
+    2,
+    2,
+    2,
+    "Blocks 5% of \"physical\" hits"
+  ],
+  [
+    3,
+    "Small Potion",
+    3,
+    3,
+    0,
+    "Restores 10 HP <or> 5 MP"
+  ]
+]

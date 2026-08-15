@@ -1,0 +1,50 @@
+// ---------------------------------------------------------------------------------------------
+// rules/tables/ - one table each. Copy this file, rename it, and delete this header.
+//
+//   Name it  <Table>Rules.cs  and name the class the same: ItemRules.cs holds ItemRules.
+//   The part before `Rules` is the table, and the run refuses a name no table has - so a renamed
+//   table gets a message rather than a rule that quietly stopped checking.
+//
+//   Rename to `.cs`. A `.template` file is not scanned, which is the only reason this one can sit
+//   here without the run trying to execute it.
+//
+// When it runs   After the sheets are read and the model is built. These rules run at the same
+//                time as each other, so none of them may depend on the order - a rule that has to
+//                see several tables at once belongs in rules/global/.
+//
+// What you get   context.Tables  the accessor generated from the sheets. Every field is typed, so
+//                                a misspelling is a compile error rather than a wrong result.
+//                                The static `Tables` is the same data reached globally - either
+//                                works, and this one is the instance this run loaded.
+//                context         ITableContext: how a rule reports. Pass the row and the field
+//                                name and the message points at the cell the value came from.
+//                context.Table   this table's own schema - its columns, their types, where each
+//                                was declared. The file name already says which table, so this
+//                                does not repeat it.
+//                context.Schema, context.Option(...), context.Files(...), context.Json(...)
+//
+// Not here       context.Db(...) and context.Redis(...) - those are rules/runtime/ only, and not
+//                on this type.
+//                [RulePriority] - it is refused here, because there is no order among rules that
+//                run at the same time.
+//
+// This folder is flat. A file one level down is not run at all; put shared helpers in
+// rules/shared/.
+//
+// Full guide: doc/validation.md
+// ---------------------------------------------------------------------------------------------
+
+using Tabbit.Rules;
+using Tabbit.Validation;
+
+internal static class ExampleRules
+{
+    public static void Validate(ITableContext context)
+    {
+        foreach (var row in context.Tables.Example.Records)
+        {
+            // if (row.Something < 0)
+            //     context.Error(row, nameof(row.Something), "Cannot be negative.");
+        }
+    }
+}

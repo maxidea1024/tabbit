@@ -1,0 +1,25 @@
+{
+  // The conformance fixture's Flag enum, which a BlueprintType enum cannot hold: its
+  // labels run to 1048576 and down to -7, and a BlueprintType enum is uint8.
+  //
+  // The generator has to say so. Left to the header tool, the same mistake surfaces as
+  // a parse failure some distance from the value that caused it, and only after a build
+  // has been started.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/conformance"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/unreal-enum-range/Source",
+      "ModuleName": "TabbitOutOfRange",
+      "AccessorName": "FTabbitOutOfRange"
+    }
+  ]
+}

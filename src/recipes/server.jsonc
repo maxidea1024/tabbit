@@ -1,0 +1,52 @@
+// Tabbit recipe — 게임 서버 (데이터베이스 적재)
+//
+// 파일로도 내보내고 데이터베이스에도 직접 넣습니다.
+// 적재는 섀도 테이블에 한 뒤 원자적으로 교체하므로, 실패하면 기존 데이터가 그대로입니다.
+
+{
+  "ArrayDelimiter": ";",
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "./sheets" }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      { "Path": "./build/data", "TargetSide": "s" }
+    ],
+
+    "MySql": [
+      {
+        // 비밀번호를 여기에 적지 마세요.
+        // ${NAME} 이 환경 변수를 채웁니다. 변수가 없으면 오류이고,
+        // 어느 변수가 없는지 이름으로 말해줍니다 — 빈 문자열로 조용히 넘어가지 않습니다.
+        "ConnectionString": "Server=localhost;Database=game;Uid=tabbit;Pwd=${DB_PASSWORD}",
+
+        // 기록되는 모든 테이블 이름의 접두사.
+        // 데이터베이스 하나에 독립된 세트를 여럿 둘 때 씁니다. 필요 없으면 비우세요.
+        "NamePrefix": "",
+
+        "TargetSide": "s"
+      }
+    ]
+
+    // PostgreSql / MongoDB / Redis 도 같은 모양입니다.
+    // "Redis": [ { "ConnectionString": "${REDIS_HOST}:6379,password=${REDIS_PASSWORD}" } ]
+  },
+
+  "Targets": [
+    // 서버 코드. go / rust / java / kotlin / python / php 등으로 바꿀 수 있습니다.
+    {
+      "Type": "cpp",
+      "Path": "./src/generated",
+
+      // 비워두면 전역 네임스페이스입니다.
+      "Namespace": "game::data",
+
+      "AccessorName": "GameData",
+      "TargetSide": "s"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{{~##
+   One constant set.
+
+   The file is the module, so there is no `pub mod` wrapper here any more and no `use super::*`
+   standing in for it - lib.rs declares `pub mod <set>;` and the public path a consumer writes
+   is unchanged.
+
+   The set's own comment arrives as the file head's `module_doc`, because a `///` needs an item
+   to attach to and this file's contents are the item.
+##~}}
+{{ include 'rust-file-head.sbn' ~}}
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+pub const {{ constant.name }}: {{ constant.type }} = {{ constant.value }};
+{{~ end ~}}

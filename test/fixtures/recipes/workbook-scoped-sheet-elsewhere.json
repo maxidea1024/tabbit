@@ -1,0 +1,27 @@
+{
+  // The same exclusion as `workbook-scoped-sheet`, aimed at a workbook this entry does not
+  // read. Nothing may be dropped: `Localization` has to be in the output.
+  //
+  // This is the half that fails if the workbook part of a pattern is ignored - and ignoring it
+  // is the plausible defect, because then every qualified pattern quietly becomes a pattern
+  // about every workbook.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true,
+        "ExcludeSheets": ["[somewhere-else.xlsx]Serial"]
+      }
+    ]
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/workbook-scoped-sheet-elsewhere/json",
+        "Indented": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{{~## One enum. `enumm` is the single enum this file is for. ##~}}
+{{ include 'rust-file-head.sbn' ~}}
+// Generated from {{ enumm.location }}
+{{~ for line in enumm.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[repr(i32)]
+pub enum {{ enumm.name }} {
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+    /// {{ line }}
+{{~ end ~}}
+{{~ if label.is_default ~}}
+    #[default]
+{{~ end ~}}
+    {{ label.name }} = {{ label.value }},
+{{~ end ~}}
+}
+
+impl {{ enumm.name }} {
+    /// The label with this value, or None when the sheet declared no such label.
+    pub fn from_value(value: i32) -> Option<Self> {
+        match value {
+{{~ for label in enumm.labels ~}}
+            {{ label.value }} => Some({{ enumm.name }}::{{ label.name }}),
+{{~ end ~}}
+            _ => None,
+        }
+    }
+
+    /// The declared value, which is what travels on the wire.
+    pub fn value(self) -> i32 {
+        self as i32
+    }
+}

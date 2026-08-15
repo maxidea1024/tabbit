@@ -1,0 +1,20 @@
+[
+  {
+    "index": 1,
+    "main": {
+      "itemId": 2,
+      "count": 5
+    },
+    "pad": 0,
+    "pad2": 0
+  },
+  {
+    "index": 2,
+    "main": {
+      "itemId": 0,
+      "count": 0
+    },
+    "pad": 0,
+    "pad2": 0
+  }
+]

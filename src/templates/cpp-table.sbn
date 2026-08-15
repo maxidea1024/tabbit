@@ -1,0 +1,291 @@
+{{~## One table: its record struct and its table class. ##~}}
+{{ include 'cpp-file-head.sbn' ~}}
+// Generated from {{ table.location }}
+{{~## The element type of each record group, ahead of the record that holds one. A plain
+   struct, so a vector of them needs no per-element allocation and `v[j].member = x` is a
+   legal assignment - which is exactly what a member column's read does.
+   See spec/nested-fields.md. ##~}}
+{{~ for field in table.fields ~}}
+{{~## An array of arrays declares no element type: its outer level has no name, so there is
+   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~## One struct per level, innermost first - which C++ requires rather than prefers: a struct
+   has to be complete before another declares a member of it. The view flattened the nesting so
+   this loop does not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+/// One element of {{ rt.owner }}.
+{{~ else ~}}
+/// A record inside {{ rt.owner }}.
+{{~ end ~}}
+struct {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+  {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+};
+
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for line in table.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+struct {{ table.record_name }} {
+{{~ for field in table.fields ~}}
+{{~ for line in field.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+{{~ for declaration in field.declarations ~}}
+  {{ declaration }}
+{{~ end ~}}
+{{~ if field.is_nullable ~}}
+{{~## The value member keeps its type and holds the type's empty value when the row had
+   none; this says which it was. Not std::optional, so that all thirteen languages have one
+   shape and C++ does not split from Unreal - see spec/optional-fields.md. ##~}}
+  /// Whether this row has a value for `{{ field.name }}`.
+  bool {{ field.presence_member }} = false;
+{{~ end ~}}
+{{~ end ~}}
+};
+
+{{~ for line in table.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+class {{ table.table_name }} {
+ public:
+  const std::vector<{{ table.record_name }}>& records() const { return records_; }
+
+{{~ for index in table.indexes ~}}
+  /// The row with this {{ index.field_name }}, or nullptr when the table has none.
+  ///
+  /// The lookup to reach for when a missing row is an ordinary answer - an optional
+  /// reference, a key that came from user input.
+  const {{ table.record_name }}* find_by_{{ index.suffix }}({{ index.key_param }} key) const {
+    const auto it = {{ index.map_name }}.find(key);
+    return it == {{ index.map_name }}.end() ? nullptr : &records_[it->second];
+  }
+
+  /// The row with this {{ index.field_name }}, or a thrown exception naming what was missing.
+  ///
+  /// For a key that has to be there - one from another table, or a constant. The name says
+  /// it throws, because a caller reading `get_by_{{ index.suffix }}(key)->name` at a glance
+  /// cannot otherwise tell whether the next line is a null check or a catch.
+  const {{ table.record_name }}& get_by_{{ index.suffix }}_or_throw({{ index.key_param }} key) const {
+    const {{ table.record_name }}* found = find_by_{{ index.suffix }}(key);
+
+    if (found == nullptr) {
+      throw tabbit::RecordNotFound(
+        std::string("there is no record in table `{{ table.raw_name }}` that corresponds to "
+                    "field `{{ index.field_name }}` value ") + {{ index.key_text }});
+    }
+
+    return *found;
+  }
+
+  /// Whether the table holds a row with this {{ index.field_name }}.
+  bool contains_{{ index.suffix }}({{ index.key_param }} key) const {
+    return {{ index.map_name }}.find(key) != {{ index.map_name }}.end();
+  }
+
+{{~ end ~}}
+  /// Loads the table from a .tcb file written by Tabbit.
+  void read(const std::string& filename) {
+    // Not const, and it outlives the reader on purpose: opening the envelope decrypts in
+    // place and hands back a window onto these same bytes rather than a copy of them.
+    std::vector<std::uint8_t> buffer = tabbit::read_all_bytes(filename);
+
+    // Unconditionally, and with whatever `encryption_key` and `mac_key` hold - which is
+    // empty unless the project set them. A file that is neither encrypted nor signed comes
+    // back from this untouched, so the load path is the same either way and there is no
+    // condition here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+    const std::pair<const std::uint8_t*, std::size_t> bytes =
+      tabbit::open(buffer, encryption_key, mac_key, verify_mac);
+
+    tabbit::TcbReader reader(bytes.first, bytes.second);
+
+    // Column by column, matched by tag rather than position: a column this build
+    // does not know is skipped by its block length, and one whose type changed
+    // incompatibly fails naming the field.
+    const tabbit::Header header = tabbit::read_table_header(reader);
+    const std::size_t row_count = static_cast<std::size_t>(header.row_count);
+
+    // Read into storage of its own and swapped in at the end: reading a table that is
+    // already loaded is a refresh, and one that throws part way through - a truncated
+    // file, a column this build cannot read - has to leave the rows already there.
+    std::vector<{{ table.record_name }}> records;
+    records.resize(row_count);
+{{~ if table.needs_presence ~}}
+{{~## Declared once for the whole switch: a `case` shares the switch's scope in C++, so a
+   declaration inside two of them collides. ##~}}
+    std::vector<std::uint8_t> presence;
+{{~ end ~}}
+
+    for (const tabbit::Column& column : header.columns) {
+      const std::size_t block_end = reader.position() + static_cast<std::size_t>(column.byte_length);
+
+      switch (column.tag) {
+{{~## One case per column of the file, not per declared member. They are the same thing for
+   every table without a record group, and a record group is one column per member. ##~}}
+{{~ for column_view in table.columns ~}}
+        case {{ column_view.tag }}: {
+          {{ column_view.column_check }}
+{{~ if column_view.is_nullable ~}}
+{{~## The bitmap sits at the front of the block, so it is read before the values. The values
+   are written for every row either way, which is what lets the read shapes below stay as
+   they are. ##~}}
+          presence = tabbit::read_presence(reader, column, row_count);
+{{~ end ~}}
+{{~## Opened here, ahead of every read shape, because an array's elements read through it
+   as well: its block states an encoding for them and one for the row lengths, and the
+   cursor is what decodes both. After the presence bitmap, which sits in front of the block
+   the cursor is about to start reading. ##~}}
+{{~ if column_view.cursor_open != '' ~}}
+          {{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+   call per row that each re-dispatch on the encoding. An encoding with no run to give
+   answers 1, so this loop is correct over all of them. ##~}}
+          {{ column_view.run_value_type }} value{};
+          for (std::size_t i = 0; i < row_count; ) {
+            std::int32_t n = cursor.{{ column_view.run_call }}(
+                static_cast<std::int32_t>(row_count - i), value);
+            for (; n > 0; --n, ++i) {
+              {{ column_view.run_spend }}
+            }
+          }
+{{~ else ~}}
+          for (std::size_t i = 0; i < row_count; ++i) {
+            auto& record = records[i];
+{{~ if column_view.kind == "var_array" ~}}
+            {{ column_view.length_read }}
+            record.{{ column_view.name }}.resize(static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              {{ column_view.read_var_element }};
+            }
+{{~ else if column_view.kind == "record_var" ~}}
+{{~## A trimmed record array: the length is written per row, once per member, and every
+   member of the group carries the same one. The first member sizes the vector; the rest
+   check, because resizing again would discard what the members before them wrote. ##~}}
+            {{ column_view.length_read }}
+{{~ if column_view.is_first_member ~}}
+            record.{{ column_view.name }}.assign(static_cast<std::size_t>(element_count), {{ column_view.record_type_name }}());
+{{~ else ~}}
+            if (record.{{ column_view.name }}.size() != static_cast<std::size_t>(element_count)) {
+              throw tabbit::TcbError(
+                  "{{ table.raw_name }}.{{ column_view.name }}: the file gives this row a different "
+                  "element count for one member of the record than for another; every member of a "
+                  "record carries the same count, so the file is damaged");
+            }
+{{~ end ~}}
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              {{ column_view.read_var_element }};
+            }
+{{~ else if column_view.kind == "array_of_arrays_member" ~}}
+{{~## One inner vector. Which outer element it is, is which column this is - so the outer
+   level is sized once by the first column and this sizes its own inner vector. ##~}}
+            record.{{ column_view.name }}.resize({{ column_view.outer_count }});
+            record.{{ column_view.name }}[{{ column_view.member_at }}].resize({{ column_view.element_count }});
+            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
+              {{ column_view.read_element }};
+            }
+{{~ else if column_view.kind == "record_member_serial" ~}}
+{{~## The member is the vector: it is sized and indexed rather than the record. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+{{~ if column_view.member_ref_suffix != '' ~}}
+{{~## A reference member holds one key per element as well as one row, and the read writes
+   into the key - so both are sized. spec/references-in-records.md. ##~}}
+            record.{{ column_view.name }}{{ column_view.member_access }}.assign({{ column_view.element_count }}, nullptr);
+            record.{{ column_view.name }}{{ column_view.member_access }}_index.resize({{ column_view.element_count }});
+{{~ else ~}}
+            record.{{ column_view.name }}{{ column_view.member_access }}.resize({{ column_view.element_count }});
+{{~ end ~}}
+            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
+              {{ column_view.read_element }};
+            }
+{{~ else if column_view.kind == "record_serial" ~}}
+{{~## One member of a fixed record array. The vector and its elements came with the record,
+   so this fills a field of each rather than re-creating them. ##~}}
+            record.{{ column_view.name }}.resize({{ column_view.element_count }});
+            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
+              {{ column_view.read_element }};
+            }
+{{~ else if column_view.kind == "record_member" ~}}
+            {{ column_view.read_scalar }};
+{{~ else if column_view.kind == "serial_ref" ~}}
+            record.{{ column_view.name }}.assign({{ column_view.element_count }}, {{ column_view.ref_default }});
+            record.{{ column_view.name }}_index.resize({{ column_view.element_count }});
+            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
+              {{ column_view.read_element }};
+            }
+{{~ else if column_view.kind == "serial" ~}}
+            record.{{ column_view.name }}.resize({{ column_view.element_count }});
+            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
+              {{ column_view.read_element }};
+            }
+{{~ else ~}}
+            {{ column_view.read_scalar }};
+{{~ end ~}}
+          }
+{{~ end ~}}
+{{~ if column_view.is_nullable ~}}
+{{~## A pass of its own rather than a line inside each read shape, so the row index is
+   worked out once instead of in each of them. The block carries a value for every row, so
+   an absent one has just been given whatever was there. ##~}}
+          for (std::size_t i = 0; i < row_count; ++i) {
+            records[i].{{ column_view.presence_member }} = tabbit::is_present(presence, i);
+
+            if (!records[i].{{ column_view.presence_member }}) {
+              records[i].{{ column_view.name }} = {{ column_view.empty_value }};
+            }
+          }
+{{~ end ~}}
+          break;
+        }
+{{~ end ~}}
+        default:
+          // A column added after this code was generated.
+          reader.skip(column.byte_length);
+          break;
+      }
+
+      tabbit::check_block_end(reader, column, block_end);
+    }
+
+    publish(std::move(records));
+  }
+
+ private:
+  friend class {{ accessor_name }};
+
+  /// One whole load, in place of the previous one.
+  ///
+  /// The indexes are built here rather than by the caller, because they have to arrive
+  /// with the rows: a table holding this load's rows and the last one's index would
+  /// answer a lookup with a row that is no longer at that position.
+  void publish(std::vector<{{ table.record_name }}>&& records) {
+{{~ for index in table.indexes ~}}
+    std::unordered_map<{{ index.key_type }}, std::size_t> {{ index.suffix }}_map;
+    {{ index.suffix }}_map.reserve(records.size());
+    for (std::size_t i = 0; i < records.size(); ++i) {
+      {{ index.suffix }}_map.emplace(records[i].{{ index.member }}, i);
+    }
+
+{{~ end ~}}
+    records_ = std::move(records);
+{{~ for index in table.indexes ~}}
+    {{ index.map_name }} = std::move({{ index.suffix }}_map);
+{{~ end ~}}
+  }
+
+  std::vector<{{ table.record_name }}> records_;
+{{~ for index in table.indexes ~}}
+  std::unordered_map<{{ index.key_type }}, std::size_t> {{ index.map_name }};
+{{~ end ~}}
+};
+{{ include 'cpp-file-foot.sbn' ~}}

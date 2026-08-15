@@ -1,0 +1,1357 @@
+/* ---------------------------------------------------------------------------
+ * Tabbit's data updater.
+ *
+ * Brings a local copy of the exported data up to date with a copy served over
+ * HTTP - a CDN, a bucket, a patch server - so a running program can take new
+ * data without being redeployed. Emitted beside the reader and reads nothing
+ * but the manifest, so it knows nothing about the schema and never has to
+ * change when one does.
+ *
+ * The manifest is what the exporter already writes next to the data: one entry
+ * per file with its size and MD5. Comparing it with the local copy is the whole
+ * of the diff, so a run downloads what changed and nothing else.
+ *
+ * Three properties, because a patcher that fails badly is worse than one that
+ * does not exist:
+ *
+ *   Nothing is replaced until everything has arrived and been checked. Files
+ *   land in a staging directory first and the local manifest is written last,
+ *   so an update killed halfway leaves the previous data readable and the next
+ *   run redoes the difference.
+ *
+ *   Every file is checked against the hash the manifest gives for it, so a
+ *   truncated transfer that a proxy reported as success does not reach the
+ *   cache.
+ *
+ *   A transient failure is retried with a doubling backoff, and a permanent one
+ *   is not.
+ *
+ * Reading is somebody else's job. This produces a directory, and the generated
+ * tables read it.
+ *
+ * --------------------------------------------------------------------------
+ * libcurl
+ *
+ * This is the one file Tabbit emits that is not self-contained. C has no HTTP
+ * client and no portable one to fall back on, so the transfer is libcurl:
+ *
+ *     cc ... -lcurl
+ *
+ * Everything else stays inside this file. The manifest parser and the MD5 are
+ * written out below rather than pulled from a second library, so turning the
+ * updater on costs one link flag and nothing more. Turn `WriteUpdater` off and
+ * the generated C has no dependencies at all, which is what it had before.
+ *
+ * --------------------------------------------------------------------------
+ * Layout
+ *
+ * A single header holding declarations and code, like the reader beside it.
+ * Define TABBIT_UPDATER_IMPLEMENTATION in exactly one translation unit; the
+ * generator writes that translation unit for you.
+ * --------------------------------------------------------------------------
+ */
+
+#ifndef TABBIT_UPDATER_H
+#define TABBIT_UPDATER_H
+
+/* This needs POSIX, and says so here.
+ *
+ * nanosleep, strcasecmp, mkdir and rmdir are all POSIX rather than ISO C, and glibc
+ * declares none of them when a translation unit is compiled as strict ISO C - which is how
+ * the gate builds this, and how anybody passing -std=c99 builds it. Without the macro they
+ * become implicit declarations, which is a warning at best and an error under -Werror.
+ *
+ * It has to be asked for before the first libc header of the translation unit, because
+ * that is when features.h reads it. So: include this header first, or define the macro
+ * yourself before you include anything. Nothing in ISO C can do what this file does - there
+ * is no sleep, no filesystem and no case-insensitive compare in the standard - so requiring
+ * POSIX is not a limitation being introduced here, only one being written down. */
+#if !defined(_WIN32) && !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE 200809L
+#endif
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+/* For TABBIT_ERROR_MAX and the file helpers, which the reader beside this one
+ * already has and which a second copy of would only be a second thing to keep
+ * in step. */
+#include "tabbit_tcb_reader.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* What an update is allowed to do.
+ *
+ * Zero-initialise and call tb_update_options_init, which fills in the working
+ * defaults; a struct of zeroes would mean no attempts and no timeout. */
+typedef struct tb_update_options {
+  /* The binary exporter writes manifest-binary.json; the JSON exporter writes
+   * manifest-json.json. */
+  const char* manifest_file_name;
+
+  /* The first attempt is included, so three is two retries. */
+  int32_t max_attempts;
+
+  /* Milliseconds before the second attempt. Doubled for each attempt after it. */
+  int32_t retry_delay_ms;
+
+  int32_t request_timeout_seconds;
+  bool verify_hash;
+
+  /* Called with one line of progress, when set. */
+  void (*log)(void* context, const char* message);
+  void* log_context;
+} tb_update_options;
+
+/* Fills in the defaults. */
+void tb_update_options_init(tb_update_options* options);
+
+/* What an update did. */
+typedef struct tb_update_result {
+  bool succeeded;
+  bool up_to_date;
+  int32_t downloaded_count;
+  int64_t downloaded_bytes;
+  int32_t deleted_count;
+
+  /* Why it failed, when it did. Empty on success. */
+  char error[TABBIT_ERROR_MAX];
+} tb_update_result;
+
+/* Brings `cache_directory` up to date with the data served under `base_url`.
+ *
+ * Returns whether it worked, and fills `result` either way. A failure leaves
+ * the data already on disk exactly as it was, so a caller that cannot reach the
+ * server carries on with what it has - which is why this reports rather than
+ * aborts.
+ *
+ * `options` may be NULL, which means the defaults. */
+bool tb_update(const char* base_url, const char* cache_directory,
+               const tb_update_options* options, tb_update_result* result);
+
+/* The MD5 of some bytes, as 32 lower-case hex characters plus a terminator.
+ *
+ * Public because the gate checks it against the known vectors, and because a
+ * consumer verifying its own download has the same question. */
+void tb_md5_hex(const uint8_t* data, size_t length, char out[33]);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* TABBIT_UPDATER_H */
+
+/* ======================================================================== */
+
+#ifdef TABBIT_UPDATER_IMPLEMENTATION
+
+#include <curl/curl.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#if defined(_WIN32)
+#include <direct.h>
+#include <windows.h>
+#define tb_mkdir(path) _mkdir(path)
+#define tb_rmdir(path) _rmdir(path)
+#define tb_sleep_ms(ms) Sleep((DWORD)(ms))
+#else
+#include <strings.h>  /* strcasecmp */
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
+#define tb_mkdir(path) mkdir((path), 0777)
+#define tb_rmdir(path) rmdir(path)
+
+/* nanosleep rather than usleep. usleep was removed from POSIX in 2008, and glibc now
+ * declares it only under a feature-test macro - so a translation unit compiled as strict
+ * ISO C, which is how the gate builds this, got an implicit declaration and a hard error.
+ * A header cannot fix that by defining the macro itself: by the time it is included, the
+ * libc headers that read it may already have been. nanosleep needs no such macro, and
+ * takes the split seconds this wants anyway. */
+static void tb_sleep_ms_impl(long ms)
+{
+    struct timespec requested;
+    requested.tv_sec = (time_t)(ms / 1000);
+    requested.tv_nsec = (long)(ms % 1000) * 1000000L;
+
+    /* Restarted rather than abandoned when a signal arrives: the caller asked to wait
+     * before a retry, and coming back early would spend the attempt immediately. */
+    while (nanosleep(&requested, &requested) == -1)
+        ;
+}
+#define tb_sleep_ms(ms) tb_sleep_ms_impl((long)(ms))
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ------------------------------------------------------------------ MD5 */
+
+/* Written out rather than taken from OpenSSL, so that turning the updater on
+ * costs one link flag and not two. A wrong one could not hide either: every
+ * download would fail its hash check on the first run. */
+
+static uint32_t tb_md5_rotate(uint32_t value, uint32_t bits) {
+  return (value << bits) | (value >> (32u - bits));
+}
+
+void tb_md5_hex(const uint8_t* data, size_t length, char out[33]) {
+  static const uint32_t SHIFTS[64] = {
+    7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
+    5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20,
+    4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
+    6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
+  };
+
+  /* floor(abs(sin(i + 1)) * 2^32). Tabulated here rather than computed, because
+   * computing it would pull in math.h and -lm for sixty-four constants that
+   * never change - and the values are checked by the gate against the published
+   * vectors, which is the only reading of them that counts. */
+  static const uint32_t SINES[64] = {
+    0xd76aa478u, 0xe8c7b756u, 0x242070dbu, 0xc1bdceeeu,
+    0xf57c0fafu, 0x4787c62au, 0xa8304613u, 0xfd469501u,
+    0x698098d8u, 0x8b44f7afu, 0xffff5bb1u, 0x895cd7beu,
+    0x6b901122u, 0xfd987193u, 0xa679438eu, 0x49b40821u,
+    0xf61e2562u, 0xc040b340u, 0x265e5a51u, 0xe9b6c7aau,
+    0xd62f105du, 0x02441453u, 0xd8a1e681u, 0xe7d3fbc8u,
+    0x21e1cde6u, 0xc33707d6u, 0xf4d50d87u, 0x455a14edu,
+    0xa9e3e905u, 0xfcefa3f8u, 0x676f02d9u, 0x8d2a4c8au,
+    0xfffa3942u, 0x8771f681u, 0x6d9d6122u, 0xfde5380cu,
+    0xa4beea44u, 0x4bdecfa9u, 0xf6bb4b60u, 0xbebfbc70u,
+    0x289b7ec6u, 0xeaa127fau, 0xd4ef3085u, 0x04881d05u,
+    0xd9d4d039u, 0xe6db99e5u, 0x1fa27cf8u, 0xc4ac5665u,
+    0xf4292244u, 0x432aff97u, 0xab9423a7u, 0xfc93a039u,
+    0x655b59c3u, 0x8f0ccc92u, 0xffeff47du, 0x85845dd1u,
+    0x6fa87e4fu, 0xfe2ce6e0u, 0xa3014314u, 0x4e0811a1u,
+    0xf7537e82u, 0xbd3af235u, 0x2ad7d2bbu, 0xeb86d391u
+  };
+
+  uint32_t a0 = 0x67452301u, b0 = 0xefcdab89u, c0 = 0x98badcfeu, d0 = 0x10325476u;
+  uint64_t bit_length = (uint64_t)length * 8u;
+  size_t padded;
+  size_t offset;
+  uint8_t tail[128];
+  size_t tail_length;
+  size_t whole;
+  int i;
+
+  /* The message is hashed in place up to the last whole 64-byte block, and the
+   * remainder is copied into a small buffer with the padding - so nothing here
+   * allocates however large the file is. */
+  whole = length - (length % 64);
+
+  padded = (length % 64) + 1;
+  if (padded > 56) {
+    tail_length = 128;
+  } else {
+    tail_length = 64;
+  }
+
+  memset(tail, 0, sizeof tail);
+  memcpy(tail, data + whole, length % 64);
+  tail[length % 64] = 0x80;
+
+  for (i = 0; i < 8; ++i)
+    tail[tail_length - 8 + i] = (uint8_t)((bit_length >> (8 * i)) & 0xFFu);
+
+  for (offset = 0; offset < whole + tail_length; offset += 64) {
+    const uint8_t* chunk = offset < whole ? data + offset : tail + (offset - whole);
+    uint32_t words[16];
+    uint32_t a = a0, b = b0, c = c0, d = d0;
+
+    for (i = 0; i < 16; ++i) {
+      words[i] = (uint32_t)chunk[i * 4]
+               | ((uint32_t)chunk[i * 4 + 1] << 8)
+               | ((uint32_t)chunk[i * 4 + 2] << 16)
+               | ((uint32_t)chunk[i * 4 + 3] << 24);
+    }
+
+    for (i = 0; i < 64; ++i) {
+      uint32_t f;
+      int g;
+
+      if (i < 16) {
+        f = (b & c) | (~b & d);
+        g = i;
+      } else if (i < 32) {
+        f = (d & b) | (~d & c);
+        g = (5 * i + 1) % 16;
+      } else if (i < 48) {
+        f = b ^ c ^ d;
+        g = (3 * i + 5) % 16;
+      } else {
+        f = c ^ (b | ~d);
+        g = (7 * i) % 16;
+      }
+
+      f = f + a + SINES[i] + words[g];
+
+      a = d;
+      d = c;
+      c = b;
+      b = b + tb_md5_rotate(f, SHIFTS[i]);
+    }
+
+    a0 += a;
+    b0 += b;
+    c0 += c;
+    d0 += d;
+  }
+
+  {
+    const uint32_t digest[4] = { a0, b0, c0, d0 };
+    static const char HEX[] = "0123456789abcdef";
+    int at = 0;
+    int word;
+
+    for (word = 0; word < 4; ++word) {
+      int byte;
+
+      for (byte = 0; byte < 4; ++byte) {
+        uint8_t value = (uint8_t)((digest[word] >> (8 * byte)) & 0xFFu);
+
+        out[at++] = HEX[(value >> 4) & 0xF];
+        out[at++] = HEX[value & 0xF];
+      }
+    }
+
+    out[32] = '\0';
+  }
+}
+
+/* -------------------------------------------------------------- manifest */
+
+/* One file of the manifest, and the hash to check it by. */
+typedef struct tb_manifest_entry {
+  char* name;
+  int64_t size;
+  char hash[33];
+} tb_manifest_entry;
+
+typedef struct tb_manifest {
+  tb_manifest_entry* entries;
+  int32_t count;
+} tb_manifest;
+
+static void tb_manifest_free(tb_manifest* manifest) {
+  int32_t at;
+
+  for (at = 0; at < manifest->count; ++at)
+    free(manifest->entries[at].name);
+
+  free(manifest->entries);
+
+  manifest->entries = NULL;
+  manifest->count = 0;
+}
+
+/* A reader over the manifest's text.
+ *
+ * Not a DOM. Building one in C means an allocation and an owner for every value
+ * in a document this only ever asks three questions of - so this walks the
+ * grammar instead, skipping whole values properly rather than searching for
+ * substrings. A quoted brace inside a name would defeat the second and does not
+ * defeat this. */
+typedef struct tb_json {
+  const char* text;
+  size_t length;
+  size_t at;
+} tb_json;
+
+static void tb_json_skip_space(tb_json* json) {
+  while (json->at < json->length) {
+    char c = json->text[json->at];
+
+    if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+      json->at++;
+    else
+      break;
+  }
+}
+
+static char tb_json_peek(const tb_json* json) {
+  return json->at < json->length ? json->text[json->at] : '\0';
+}
+
+/* Reads a string into `out`, truncating rather than allocating when it does not
+ * fit - the caller sizes for what a name or a hash can be. */
+static bool tb_json_read_string(tb_json* json, char* out, size_t out_size) {
+  size_t written = 0;
+
+  if (tb_json_peek(json) != '"')
+    return false;
+
+  json->at++;
+
+  while (json->at < json->length) {
+    char c = json->text[json->at++];
+
+    if (c == '"') {
+      if (out != NULL && out_size > 0)
+        out[written < out_size ? written : out_size - 1] = '\0';
+
+      return true;
+    }
+
+    if (c == '\\') {
+      char escape;
+
+      if (json->at >= json->length)
+        return false;
+
+      escape = json->text[json->at++];
+
+      switch (escape) {
+        case '"': c = '"'; break;
+        case '\\': c = '\\'; break;
+        case '/': c = '/'; break;
+        case 'b': c = '\b'; break;
+        case 'f': c = '\f'; break;
+        case 'n': c = '\n'; break;
+        case 'r': c = '\r'; break;
+        case 't': c = '\t'; break;
+        case 'u':
+          /* A manifest names files and hex digests, so anything outside ASCII
+           * here is a document this was not written for. The escape is stepped
+           * over and a replacement kept, which keeps the parse honest without
+           * pulling in UTF-8 encoding for a case that does not arise. */
+          if (json->at + 4 > json->length)
+            return false;
+
+          json->at += 4;
+          c = '?';
+          break;
+        default:
+          return false;
+      }
+    }
+
+    if (out != NULL && written + 1 < out_size)
+      out[written++] = c;
+  }
+
+  return false;
+}
+
+static bool tb_json_skip_value(tb_json* json);
+
+static bool tb_json_skip_container(tb_json* json, char close) {
+  json->at++; /* the opening brace or bracket */
+  tb_json_skip_space(json);
+
+  if (tb_json_peek(json) == close) {
+    json->at++;
+    return true;
+  }
+
+  for (;;) {
+    tb_json_skip_space(json);
+
+    if (close == '}') {
+      if (!tb_json_read_string(json, NULL, 0))
+        return false;
+
+      tb_json_skip_space(json);
+
+      if (tb_json_peek(json) != ':')
+        return false;
+
+      json->at++;
+      tb_json_skip_space(json);
+    }
+
+    if (!tb_json_skip_value(json))
+      return false;
+
+    tb_json_skip_space(json);
+
+    if (tb_json_peek(json) == close) {
+      json->at++;
+      return true;
+    }
+
+    if (tb_json_peek(json) != ',')
+      return false;
+
+    json->at++;
+  }
+}
+
+static bool tb_json_skip_value(tb_json* json) {
+  char c = tb_json_peek(json);
+
+  if (c == '{')
+    return tb_json_skip_container(json, '}');
+
+  if (c == '[')
+    return tb_json_skip_container(json, ']');
+
+  if (c == '"')
+    return tb_json_read_string(json, NULL, 0);
+
+  /* A number or one of the three literals: both run until something that cannot
+   * be part of one. */
+  if (c == '\0')
+    return false;
+
+  while (json->at < json->length) {
+    char at = json->text[json->at];
+
+    if (at == ',' || at == '}' || at == ']' || at == ' ' || at == '\t'
+        || at == '\r' || at == '\n')
+      break;
+
+    json->at++;
+  }
+
+  return true;
+}
+
+/* Reads one `{ "Name": ..., "Size": ..., "Hash": ... }` into an entry. */
+static bool tb_json_read_entry(tb_json* json, tb_manifest_entry* entry) {
+  char name[512];
+
+  name[0] = '\0';
+  entry->name = NULL;
+  entry->size = 0;
+  entry->hash[0] = '\0';
+
+  if (tb_json_peek(json) != '{')
+    return false;
+
+  json->at++;
+  tb_json_skip_space(json);
+
+  if (tb_json_peek(json) == '}') {
+    json->at++;
+    return true;
+  }
+
+  for (;;) {
+    char key[64];
+
+    tb_json_skip_space(json);
+
+    if (!tb_json_read_string(json, key, sizeof key))
+      return false;
+
+    tb_json_skip_space(json);
+
+    if (tb_json_peek(json) != ':')
+      return false;
+
+    json->at++;
+    tb_json_skip_space(json);
+
+    if (strcmp(key, "Name") == 0) {
+      if (!tb_json_read_string(json, name, sizeof name))
+        return false;
+    } else if (strcmp(key, "Hash") == 0) {
+      if (!tb_json_read_string(json, entry->hash, sizeof entry->hash))
+        return false;
+    } else if (strcmp(key, "Size") == 0) {
+      size_t start = json->at;
+
+      if (!tb_json_skip_value(json))
+        return false;
+
+      entry->size = (int64_t)strtoll(json->text + start, NULL, 10);
+    } else if (!tb_json_skip_value(json)) {
+      return false;
+    }
+
+    tb_json_skip_space(json);
+
+    if (tb_json_peek(json) == '}') {
+      json->at++;
+      break;
+    }
+
+    if (tb_json_peek(json) != ',')
+      return false;
+
+    json->at++;
+  }
+
+  if (name[0] == '\0')
+    return true; /* No name: an entry the caller drops. */
+
+  entry->name = (char*)malloc(strlen(name) + 1);
+
+  if (entry->name == NULL)
+    return false;
+
+  memcpy(entry->name, name, strlen(name) + 1);
+  return true;
+}
+
+/* Reads the entries out of a manifest's JSON. */
+static bool tb_parse_manifest(const char* text, size_t length, tb_manifest* out) {
+  tb_json json;
+  int32_t capacity = 16;
+
+  out->entries = NULL;
+  out->count = 0;
+
+  json.text = text;
+  json.length = length;
+  json.at = 0;
+
+  tb_json_skip_space(&json);
+
+  if (tb_json_peek(&json) != '{')
+    return false;
+
+  json.at++;
+  tb_json_skip_space(&json);
+
+  /* Walk the top-level object until "Items", stepping properly over whatever
+   * else the manifest carries. */
+  for (;;) {
+    char key[64];
+
+    if (tb_json_peek(&json) == '}')
+      return false; /* No Items array. */
+
+    tb_json_skip_space(&json);
+
+    if (!tb_json_read_string(&json, key, sizeof key))
+      return false;
+
+    tb_json_skip_space(&json);
+
+    if (tb_json_peek(&json) != ':')
+      return false;
+
+    json.at++;
+    tb_json_skip_space(&json);
+
+    if (strcmp(key, "Items") == 0)
+      break;
+
+    if (!tb_json_skip_value(&json))
+      return false;
+
+    tb_json_skip_space(&json);
+
+    if (tb_json_peek(&json) != ',')
+      return false;
+
+    json.at++;
+    tb_json_skip_space(&json);
+  }
+
+  if (tb_json_peek(&json) != '[')
+    return false;
+
+  json.at++;
+  tb_json_skip_space(&json);
+
+  out->entries = (tb_manifest_entry*)malloc((size_t)capacity * sizeof *out->entries);
+
+  if (out->entries == NULL)
+    return false;
+
+  if (tb_json_peek(&json) == ']')
+    return true;
+
+  for (;;) {
+    tb_manifest_entry entry;
+
+    tb_json_skip_space(&json);
+
+    if (!tb_json_read_entry(&json, &entry)) {
+      tb_manifest_free(out);
+      return false;
+    }
+
+    if (entry.name != NULL) {
+      if (out->count == capacity) {
+        tb_manifest_entry* grown;
+
+        capacity *= 2;
+        grown = (tb_manifest_entry*)realloc(out->entries,
+                                            (size_t)capacity * sizeof *out->entries);
+
+        if (grown == NULL) {
+          free(entry.name);
+          tb_manifest_free(out);
+          return false;
+        }
+
+        out->entries = grown;
+      }
+
+      out->entries[out->count++] = entry;
+    }
+
+    tb_json_skip_space(&json);
+
+    if (tb_json_peek(&json) == ']')
+      return true;
+
+    if (tb_json_peek(&json) != ',') {
+      tb_manifest_free(out);
+      return false;
+    }
+
+    json.at++;
+  }
+}
+
+/* ------------------------------------------------------------------ disk */
+
+#if defined(_WIN32)
+#define TB_SEPARATOR '\\'
+#else
+#define TB_SEPARATOR '/'
+#endif
+
+/* Joins a directory and a manifest name, with the separator this platform
+ * writes. Truncation is reported rather than silently producing a path that
+ * points somewhere else. */
+static bool tb_local_path(char* out, size_t out_size, const char* directory,
+                          const char* name) {
+  size_t at = 0;
+  size_t i;
+  size_t directory_length = strlen(directory);
+
+  if (directory_length + 1 + strlen(name) + 1 > out_size)
+    return false;
+
+  memcpy(out, directory, directory_length);
+  at = directory_length;
+
+  while (at > 0 && (out[at - 1] == '/' || out[at - 1] == '\\'))
+    at--;
+
+  out[at++] = TB_SEPARATOR;
+
+  for (i = 0; name[i] != '\0'; ++i)
+    out[at++] = name[i] == '/' ? TB_SEPARATOR : name[i];
+
+  out[at] = '\0';
+  return true;
+}
+
+/* Creates a directory and every parent of it. An existing one is not a
+ * failure. */
+static bool tb_make_directory(const char* path) {
+  char buffer[1024];
+  size_t length = strlen(path);
+  size_t at;
+
+  if (length + 1 > sizeof buffer)
+    return false;
+
+  memcpy(buffer, path, length + 1);
+
+  for (at = 1; at <= length; ++at) {
+    if (at < length && buffer[at] != '/' && buffer[at] != '\\')
+      continue;
+
+    if (at < length) {
+      char saved = buffer[at];
+
+      buffer[at] = '\0';
+      (void)tb_mkdir(buffer);
+      buffer[at] = saved;
+    } else {
+      (void)tb_mkdir(buffer);
+    }
+  }
+
+  return true;
+}
+
+/* The directories of a path, without its last component. */
+static bool tb_parent_of(char* out, size_t out_size, const char* path) {
+  size_t length = strlen(path);
+
+  while (length > 0 && path[length - 1] != '/' && path[length - 1] != '\\')
+    length--;
+
+  while (length > 0 && (path[length - 1] == '/' || path[length - 1] == '\\'))
+    length--;
+
+  if (length == 0 || length + 1 > out_size)
+    return false;
+
+  memcpy(out, path, length);
+  out[length] = '\0';
+  return true;
+}
+
+/* MSVC deprecates fopen and the C gate builds with warnings as errors, so the
+ * secure form is used where there is one - the same split the reader makes. */
+static FILE* tb_fopen(const char* filename, const char* mode) {
+#if defined(_MSC_VER)
+  FILE* file = NULL;
+
+  if (fopen_s(&file, filename, mode) != 0)
+    return NULL;
+
+  return file;
+#else
+  return fopen(filename, mode);
+#endif
+}
+
+static bool tb_file_exists(const char* path) {
+  FILE* file = tb_fopen(path, "rb");
+
+  if (file == NULL)
+    return false;
+
+  fclose(file);
+  return true;
+}
+
+static bool tb_write_file(const char* path, const uint8_t* data, size_t length) {
+  FILE* file = tb_fopen(path, "wb");
+  size_t written;
+
+  if (file == NULL)
+    return false;
+
+  written = length == 0 ? 0 : fwrite(data, 1, length, file);
+
+  if (fclose(file) != 0)
+    return false;
+
+  return written == length;
+}
+
+/* ------------------------------------------------------------- transfer */
+
+typedef struct tb_body {
+  uint8_t* data;
+  size_t length;
+  size_t capacity;
+} tb_body;
+
+static size_t tb_body_write(char* chunk, size_t size, size_t count, void* context) {
+  tb_body* body = (tb_body*)context;
+  size_t arriving = size * count;
+
+  if (body->length + arriving > body->capacity) {
+    size_t capacity = body->capacity == 0 ? 8192 : body->capacity;
+    uint8_t* grown;
+
+    while (capacity < body->length + arriving)
+      capacity *= 2;
+
+    grown = (uint8_t*)realloc(body->data, capacity);
+
+    if (grown == NULL)
+      return 0; /* Short write: libcurl fails the transfer. */
+
+    body->data = grown;
+    body->capacity = capacity;
+  }
+
+  memcpy(body->data + body->length, chunk, arriving);
+  body->length += arriving;
+
+  return arriving;
+}
+
+static void tb_body_free(tb_body* body) {
+  free(body->data);
+
+  body->data = NULL;
+  body->length = 0;
+  body->capacity = 0;
+}
+
+/* Joins a base URL and a file name.
+ *
+ * Not a path join, which on Windows produces a backslash and a URL no server
+ * will answer. */
+static bool tb_join_url(char* out, size_t out_size, const char* base_url,
+                        const char* name) {
+  size_t at = strlen(base_url);
+  size_t i;
+
+  if (at + 1 + strlen(name) + 1 > out_size)
+    return false;
+
+  memcpy(out, base_url, at);
+
+  while (at > 0 && out[at - 1] == '/')
+    at--;
+
+  out[at++] = '/';
+
+  for (i = 0; name[i] != '\0'; ++i)
+    out[at++] = name[i] == '\\' ? '/' : name[i];
+
+  out[at] = '\0';
+  return true;
+}
+
+static void tb_log(const tb_update_options* options, const char* message) {
+  if (options->log != NULL)
+    options->log(options->log_context, message);
+}
+
+/* One request. `transient` says whether trying again could go differently. */
+static bool tb_fetch(const char* url, const tb_update_options* options,
+                     tb_body* body, bool* transient, char* error, size_t error_size) {
+  CURL* handle = curl_easy_init();
+  CURLcode code;
+  long status = 0;
+
+  *transient = false;
+
+  if (handle == NULL) {
+    snprintf(error, error_size, "'%s' could not be prepared for transfer.", url);
+    return false;
+  }
+
+  curl_easy_setopt(handle, CURLOPT_URL, url);
+  curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
+  curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, tb_body_write);
+  curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void*)body);
+  curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT,
+                   (long)options->request_timeout_seconds);
+  curl_easy_setopt(handle, CURLOPT_TIMEOUT, (long)options->request_timeout_seconds);
+
+  code = curl_easy_perform(handle);
+
+  if (code != CURLE_OK) {
+    /* The request never got an answer - DNS, a refused connection, a timeout. */
+    snprintf(error, error_size, "'%s' could not be reached: %s.", url,
+             curl_easy_strerror(code));
+
+    *transient = true;
+    curl_easy_cleanup(handle);
+    return false;
+  }
+
+  curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &status);
+  curl_easy_cleanup(handle);
+
+  if (status >= 200 && status < 300)
+    return true;
+
+  snprintf(error, error_size, "'%s' answered %ld.", url, status);
+
+  /* 408 and 429 are the server asking for another attempt, and 5xx is it
+   * failing on its own account. A 404 is an answer: retrying it costs three
+   * round trips to hear the same thing. */
+  *transient = status == 408 || status == 429 || (status >= 500 && status <= 599);
+
+  return false;
+}
+
+/* Fetches one URL, retrying what is worth retrying. */
+static bool tb_download(const char* url, const tb_update_options* options,
+                        tb_body* body, char* error, size_t error_size) {
+  int32_t attempts = options->max_attempts < 1 ? 1 : options->max_attempts;
+  int32_t delay = options->retry_delay_ms;
+  int32_t attempt;
+
+  for (attempt = 1; ; ++attempt) {
+    bool transient = false;
+
+    body->length = 0;
+
+    if (tb_fetch(url, options, body, &transient, error, error_size))
+      return true;
+
+    if (!transient || attempt >= attempts)
+      return false;
+
+    {
+      char message[TABBIT_ERROR_MAX + 64];
+
+      snprintf(message, sizeof message, "tabbit: %s Retrying in %.1fs (%d of %d).",
+               error, (double)delay / 1000.0, (int)attempt, (int)attempts);
+
+      tb_log(options, message);
+    }
+
+    tb_sleep_ms(delay);
+
+    /* Doubling rather than a fixed wait: a server refusing because it is
+     * overloaded is not helped by every client coming back at the same
+     * interval. */
+    delay *= 2;
+  }
+}
+
+/* --------------------------------------------------------------- update */
+
+void tb_update_options_init(tb_update_options* options) {
+  options->manifest_file_name = "manifest-binary.json";
+  options->max_attempts = 3;
+  options->retry_delay_ms = 500;
+  options->request_timeout_seconds = 30;
+  options->verify_hash = true;
+  options->log = NULL;
+  options->log_context = NULL;
+}
+
+/* Reads the cached manifest.
+ *
+ * A missing or unreadable one is an empty manifest, which makes the next update
+ * fetch everything - the safe direction to be wrong in. */
+static void tb_read_local_manifest(const char* path, tb_manifest* out) {
+  uint8_t* bytes = NULL;
+  int32_t length = 0;
+
+  out->entries = NULL;
+  out->count = 0;
+
+  if (!tb_read_all_bytes(path, &bytes, &length))
+    return;
+
+  if (!tb_parse_manifest((const char*)bytes, (size_t)length, out)) {
+    out->entries = NULL;
+    out->count = 0;
+  }
+
+  tb_free_bytes(bytes);
+}
+
+static const tb_manifest_entry* tb_find_entry(const tb_manifest* manifest,
+                                              const char* name) {
+  int32_t at;
+
+  for (at = 0; at < manifest->count; ++at) {
+    if (strcmp(manifest->entries[at].name, name) == 0)
+      return &manifest->entries[at];
+  }
+
+  return NULL;
+}
+
+/* Removes a staged file and any directory it left empty, up to the staging
+ * root. Nothing here is worth failing over: the caller is already unwinding. */
+static void tb_remove_staged(const char* staging, const char* name) {
+  char path[1024];
+  char parent[1024];
+
+  if (!tb_local_path(path, sizeof path, staging, name))
+    return;
+
+  remove(path);
+
+  while (tb_parent_of(parent, sizeof parent, path) != false
+         && strcmp(parent, staging) != 0) {
+    if (tb_rmdir(parent) != 0)
+      return;
+
+    memcpy(path, parent, strlen(parent) + 1);
+  }
+}
+
+bool tb_update(const char* base_url, const char* cache_directory,
+               const tb_update_options* options, tb_update_result* result) {
+  tb_update_options defaults;
+  tb_manifest remote;
+  tb_manifest local;
+  tb_body body;
+  char staging[1024];
+  char path[1024];
+  char url[2048];
+  char* manifest_text = NULL;
+  size_t manifest_length = 0;
+  int32_t at;
+  int32_t staged = 0;
+  bool failed = false;
+
+  if (options == NULL) {
+    tb_update_options_init(&defaults);
+    options = &defaults;
+  }
+
+  memset(result, 0, sizeof *result);
+
+  remote.entries = NULL;
+  remote.count = 0;
+  local.entries = NULL;
+  local.count = 0;
+
+  body.data = NULL;
+  body.length = 0;
+  body.capacity = 0;
+
+  /* --- the manifest ---------------------------------------------------- */
+
+  if (!tb_join_url(url, sizeof url, base_url, options->manifest_file_name)) {
+    snprintf(result->error, sizeof result->error, "the base URL is too long.");
+    return false;
+  }
+
+  if (!tb_download(url, options, &body, result->error, sizeof result->error)) {
+    tb_body_free(&body);
+    goto failed;
+  }
+
+  manifest_length = body.length;
+  manifest_text = (char*)malloc(manifest_length + 1);
+
+  if (manifest_text == NULL) {
+    snprintf(result->error, sizeof result->error, "out of memory reading the manifest.");
+    tb_body_free(&body);
+    goto failed;
+  }
+
+  memcpy(manifest_text, body.data, manifest_length);
+  manifest_text[manifest_length] = '\0';
+
+  if (!tb_parse_manifest(manifest_text, manifest_length, &remote)) {
+    snprintf(result->error, sizeof result->error,
+             "the manifest could not be read: it has no Items array.");
+    goto failed;
+  }
+
+  if (!tb_local_path(path, sizeof path, cache_directory, options->manifest_file_name)) {
+    snprintf(result->error, sizeof result->error, "the cache path is too long.");
+    goto failed;
+  }
+
+  tb_read_local_manifest(path, &local);
+
+  /* --- what to fetch and what to remove -------------------------------- */
+
+  {
+    int32_t wanted = 0;
+    int32_t gone = 0;
+
+    for (at = 0; at < remote.count; ++at) {
+      const tb_manifest_entry* previous = tb_find_entry(&local, remote.entries[at].name);
+      bool current;
+
+      if (!tb_local_path(path, sizeof path, cache_directory, remote.entries[at].name)) {
+        snprintf(result->error, sizeof result->error, "the cache path is too long.");
+        goto failed;
+      }
+
+      /* The file's presence is checked as well as the manifest's word for it: a
+       * cache somebody cleaned out by hand would otherwise never be refilled. */
+      current = previous != NULL
+                && strcmp(previous->hash, remote.entries[at].hash) == 0
+                && tb_file_exists(path);
+
+      if (!current)
+        wanted++;
+    }
+
+    for (at = 0; at < local.count; ++at) {
+      if (tb_find_entry(&remote, local.entries[at].name) == NULL)
+        gone++;
+    }
+
+    if (wanted == 0 && gone == 0) {
+      tb_log(options, "tabbit: already up to date.");
+
+      result->succeeded = true;
+      result->up_to_date = true;
+
+      free(manifest_text);
+      tb_manifest_free(&remote);
+      tb_manifest_free(&local);
+      tb_body_free(&body);
+      return true;
+    }
+
+    {
+      char message[128];
+
+      snprintf(message, sizeof message,
+               "tabbit: %d file(s) to fetch, %d to remove.", (int)wanted, (int)gone);
+
+      tb_log(options, message);
+    }
+  }
+
+  /* --- fetch into staging ---------------------------------------------- */
+
+  if (!tb_local_path(staging, sizeof staging, cache_directory, ".staging")) {
+    snprintf(result->error, sizeof result->error, "the cache path is too long.");
+    goto failed;
+  }
+
+  tb_make_directory(cache_directory);
+  tb_make_directory(staging);
+
+  for (at = 0; at < remote.count; ++at) {
+    const tb_manifest_entry* entry = &remote.entries[at];
+    const tb_manifest_entry* previous = tb_find_entry(&local, entry->name);
+    char parent[1024];
+
+    if (!tb_local_path(path, sizeof path, cache_directory, entry->name))
+      continue;
+
+    if (previous != NULL && strcmp(previous->hash, entry->hash) == 0
+        && tb_file_exists(path))
+      continue;
+
+    if (!tb_join_url(url, sizeof url, base_url, entry->name)) {
+      snprintf(result->error, sizeof result->error, "'%s' makes too long a URL.",
+               entry->name);
+      failed = true;
+      break;
+    }
+
+    if (!tb_download(url, options, &body, result->error, sizeof result->error)) {
+      failed = true;
+      break;
+    }
+
+    if (options->verify_hash && entry->hash[0] != '\0') {
+      char actual[33];
+
+      tb_md5_hex(body.data, body.length, actual);
+
+#if defined(_WIN32)
+      if (_stricmp(actual, entry->hash) != 0) {
+#else
+      if (strcasecmp(actual, entry->hash) != 0) {
+#endif
+        snprintf(result->error, sizeof result->error,
+                 "'%s' arrived with hash %s, and the manifest says %s. "
+                 "Nothing was replaced.", entry->name, actual, entry->hash);
+
+        failed = true;
+        break;
+      }
+    }
+
+    if (!tb_local_path(path, sizeof path, staging, entry->name)) {
+      snprintf(result->error, sizeof result->error, "'%s' makes too long a path.",
+               entry->name);
+      failed = true;
+      break;
+    }
+
+    if (tb_parent_of(parent, sizeof parent, path))
+      tb_make_directory(parent);
+
+    if (!tb_write_file(path, body.data, body.length)) {
+      snprintf(result->error, sizeof result->error, "'%s' could not be staged.",
+               entry->name);
+      failed = true;
+      break;
+    }
+
+    result->downloaded_bytes += (int64_t)body.length;
+    staged++;
+  }
+
+  if (failed) {
+    /* Nothing the caller can read was touched: the staged files go, and the
+     * data on disk is the load it already had. */
+    int32_t undo;
+
+    for (undo = 0; undo < remote.count; ++undo)
+      tb_remove_staged(staging, remote.entries[undo].name);
+
+    tb_rmdir(staging);
+    goto failed;
+  }
+
+  /* --- apply. Nothing below reaches the network. ------------------------ */
+
+  for (at = 0; at < local.count; ++at) {
+    if (tb_find_entry(&remote, local.entries[at].name) != NULL)
+      continue;
+
+    if (tb_local_path(path, sizeof path, cache_directory, local.entries[at].name))
+      remove(path);
+
+    result->deleted_count++;
+  }
+
+  for (at = 0; at < remote.count; ++at) {
+    char staged_path[1024];
+    char parent[1024];
+
+    if (!tb_local_path(staged_path, sizeof staged_path, staging, remote.entries[at].name))
+      continue;
+
+    if (!tb_file_exists(staged_path))
+      continue;
+
+    if (!tb_local_path(path, sizeof path, cache_directory, remote.entries[at].name))
+      continue;
+
+    if (tb_parent_of(parent, sizeof parent, path))
+      tb_make_directory(parent);
+
+    remove(path);
+
+    if (rename(staged_path, path) != 0) {
+      snprintf(result->error, sizeof result->error, "'%s' could not be moved into place.",
+               remote.entries[at].name);
+      goto failed;
+    }
+
+    result->downloaded_count++;
+  }
+
+  /* Last, and that ordering is the recovery story: a run killed before this
+   * point leaves a manifest describing the data that is still on disk, so the
+   * next run fetches the same files again rather than believing it has them. */
+  if (!tb_local_path(path, sizeof path, cache_directory, options->manifest_file_name)
+      || !tb_write_file(path, (const uint8_t*)manifest_text, manifest_length)) {
+    snprintf(result->error, sizeof result->error,
+             "the manifest could not be written to the cache.");
+    goto failed;
+  }
+
+  for (at = 0; at < remote.count; ++at)
+    tb_remove_staged(staging, remote.entries[at].name);
+
+  tb_rmdir(staging);
+
+  {
+    char message[128];
+
+    snprintf(message, sizeof message, "tabbit: updated. %d fetched, %d removed.",
+             (int)result->downloaded_count, (int)result->deleted_count);
+
+    tb_log(options, message);
+  }
+
+  result->succeeded = true;
+
+  free(manifest_text);
+  tb_manifest_free(&remote);
+  tb_manifest_free(&local);
+  tb_body_free(&body);
+  return true;
+
+failed:
+  {
+    char message[TABBIT_ERROR_MAX + 32];
+
+    snprintf(message, sizeof message, "tabbit: update failed: %s", result->error);
+    tb_log(options, message);
+  }
+
+  free(manifest_text);
+  tb_manifest_free(&remote);
+  tb_manifest_free(&local);
+  tb_body_free(&body);
+
+  result->succeeded = false;
+  return false;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* TABBIT_UPDATER_IMPLEMENTATION */

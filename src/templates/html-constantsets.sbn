@@ -1,0 +1,25 @@
+﻿{{~## Every constant set on one page. ##~}}
+{{~ include 'html-head.sbn' ~}}
+<br>
+{{~ for set in sets ~}}
+<div class="definition">
+<h3 id="constantset_{{ set.name }}"><i>ConstantSet: {{ set.source_link }}</i></h3>
+{{~ if set.comment != '' ~}}
+<div class="comment">{{ set.comment }}</div>
+{{~ end ~}}
+<table>
+<thead><th>No</th><th>Name</th><th>Type</th><th>Value</th><th>Description</th></thead>
+{{~ for constant in set.constants ~}}
+<tr>
+<td>{{ constant.no }}</td>
+<td id="const_{{ set.name }}.{{ constant.name }}">{{ constant.name_cell }}</td>
+<td>{{ constant.type_cell }}</td>
+<td>{{ constant.value_cell }}</td>
+<td>{{ constant.comment }}</td>
+</tr>
+{{~ end ~}}
+</table>
+</div>
+<br>
+{{~ end ~}}
+{{ include 'html-foot.sbn' }}

@@ -1,0 +1,124 @@
+{
+  // The trailing `?` converted end to end.
+  //
+  // The fixture pairs every type that refuses a blank cell with the same type marked
+  // optional, so the goldens hold both answers side by side: a blank passes in one column
+  // and would have been an error in the one next to it.
+  //
+  // What the goldens are watching for today is that the marker is *only* a parse-time
+  // permission. `int?` reads a blank as 0 and produces the same bytes, the same JSON and
+  // the same accessors as `int` - the file has no way to say "absent" yet. When it does
+  // (see spec/optional-fields.md), this recipe's goldens are what will show the change.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/optional"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/optional/csharp",
+        "Namespace": "Tabbit.Fixtures.Optional",
+        "AccessorName": "OptionalAccessor"
+      }
+    ],
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/optional/cpp",
+        "AccessorName": "OptionalAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/optional/typescript"
+      }
+    ]
+  },
+
+  // The Unreal target is reached through `Targets` - it has no recipe section of its own.
+  // Here so UHT sees the generated USTRUCTs: what a golden tree cannot answer is whether
+  // the header tool accepts them, and that is the whole question for a record group.
+  "Targets": [
+    {
+      // Go has no recipe section either - the targets added since the `Targets` list
+      // exists are reached only through it.
+      "Type": "go",
+      "Path": "test/fixtures/output/optional/go",
+      "PackageName": "optional",
+      "ModulePath": "optional"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/optional/ruby",
+      "ModuleName": "Optional"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/optional/php",
+      "Namespace": "Tabbit\\Fixtures\\Optional",
+      "AccessorName": "OptionalAccessor"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/optional/dart"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/optional/python",
+      "PackageName": "optional_data"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/optional/kotlin",
+      "PackageName": "tabbit.fixtures.optional",
+      "AccessorName": "OptionalAccessor"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/optional/java",
+      "PackageName": "tabbit.fixtures.optional",
+      "AccessorName": "OptionalAccessor"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/optional/rust",
+      "CrateName": "optional"
+    },
+    {
+      // C has no recipe section either - both it and unreal are reached by type.
+      "Type": "c",
+      "Path": "test/fixtures/output/optional/c",
+      "AccessorName": "Optional"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/optional/unreal/Source",
+      "ModuleName": "Optional",
+      "AccessorName": "FOptional",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ],
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/optional/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/optional/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ],
+    "MongoDb": [],
+    "MySql": []
+  }
+}

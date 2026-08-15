@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "4bd682e6efaa39464d74d4cbb9a3ea1c",
+  "TotalSize": 794,
+  "Items": [
+    {
+      "Name": "Common.textset",
+      "Size": 248,
+      "Hash": "d02d874db2a9f8f6c6fdb7014d34126e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Item.textset",
+      "Size": 74,
+      "Hash": "755c8510af3d48aef09a02374f8615ef",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Quest.textset",
+      "Size": 472,
+      "Hash": "6fee6ab62d2fdecd6515f38f7a3d8d4f",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

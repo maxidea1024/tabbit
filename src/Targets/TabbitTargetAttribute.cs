@@ -1,0 +1,86 @@
+using System;
+
+namespace Tabbit.Targets;
+
+/// <summary>
+/// What a target produces, which decides when it runs.
+///
+/// Exports run before code generation because the generated readers are written to
+/// expect the data files that the exporters produce; when a run is inspected by hand
+/// it reads better for the data to already be there.
+/// </summary>
+public enum TargetKind
+{
+    /// <summary>Writes data: files or database storage.</summary>
+    Export,
+
+    /// <summary>Writes source code, or documentation about the data.</summary>
+    CodeGeneration,
+
+    /// <summary>
+    /// Describes the conversion rather than producing something a build consumes:
+    /// statistics, and the change history.
+    ///
+    /// Last, so it can describe a run that has already happened. It is also the only
+    /// kind that reads <see cref="ITarget"/>'s unnarrowed model, because a description
+    /// of one side of the data presented as a description of all of it is not a
+    /// narrower answer but a wrong one.
+    /// </summary>
+    Description,
+}
+
+/// <summary>
+/// Marks a class as a Tabbit output target and gives the registry what it needs to
+/// drive it.
+///
+/// Adding a target means adding one file with this attribute on it. Nothing else in
+/// the codebase is edited - not <see cref="Program"/>, not the validation pass. That
+/// is the point: the old shape needed a target's name written out in three separate
+/// places, and the database exporters shipped with one of the three missing, so their
+/// target side was never validated.
+///
+/// Discovery is a scan of this assembly, deliberately. Loading targets from external
+/// assemblies would mean a plugin contract to keep stable across versions, for a tool
+/// whose targets all live in this repository anyway.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+public sealed class TabbitTargetAttribute : Attribute
+{
+    public TabbitTargetAttribute(string id, TargetKind kind)
+    {
+        Id = id ?? throw new ArgumentNullException(nameof(id));
+        Kind = kind;
+    }
+
+    /// <summary>
+    /// Stable short name, lower case. This is what a recipe's `Targets` entry names in
+    /// its `Type` field, so changing one is a breaking change to every recipe using it.
+    /// </summary>
+    public string Id { get; }
+
+    /// <summary>What the target produces.</summary>
+    public TargetKind Kind { get; }
+
+    /// <summary>
+    /// Dotted path of the target's own recipe section, such as `Exports.Binary`.
+    ///
+    /// Optional. The targets that predate the `Targets` list have one; a target added
+    /// since is reached only through `Targets` and leaves this unset, which is what
+    /// keeps a new language from having to extend
+    /// <see cref="Recipe.RecipeModel"/>.
+    ///
+    /// The registry reads the section through this rather than asking the target for
+    /// its entries, so a target cannot name one section here and read another. It is
+    /// resolved and type-checked against the target's entry type at startup.
+    /// </summary>
+    public string? Section { get; set; }
+
+    /// <summary>
+    /// Sort key within a kind; lower runs first. Ties break on <see cref="Id"/> so the
+    /// order is total and a run's log is reproducible.
+    ///
+    /// Targets are independent - each writes to its own destination - so this exists
+    /// to keep output stable rather than to satisfy a dependency.
+    /// </summary>
+    public int Order { get; set; }
+}

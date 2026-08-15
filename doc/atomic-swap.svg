@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 268" width="440" height="268"
+     role="img" aria-label="변환은 스테이징 영역에 먼저 쓰고, 전부 성공했을 때만 한 번에 교체합니다. 도중에 실패하면 이전 결과가 그대로 남습니다.">
+  <title>스테이징과 원자적 교체</title>
+  <desc>변환은 결과를 옆자리에 먼저 씁니다. 전부 성공하면 한 번에 교체하고, 도중에 실패하면 옆자리를 버리므로 쓰고 있던 데이터는 손대지 않은 채로 남습니다.</desc>
+
+  <style>
+    /*
+      "실패해도 이전 데이터가 남는다"는 말은 글로 읽으면 그냥 안심시키는 문장처럼 보입니다.
+      실제로는 쓰는 자리가 따로 있다는 구조의 결과라서, 그 자리를 보여주는 편이 빠릅니다.
+
+      Colours are GitHub's own, with a dark override - served as an image, so the query
+      follows the viewer's system theme.
+    */
+    .live   { fill: #ffffff; stroke: #d1d9e0; }
+    .stage  { fill: #f6f8fa; stroke: #d1d9e0; }
+    .good   { fill: #dafbe1; stroke: #4ac26b; }
+    .bad    { fill: #ffebe9; stroke: #ff8182; }
+    .step   { fill: #1f2328; font-weight: 600; }
+    .note   { fill: #59636e; }
+    .okx    { fill: #1a7f37; font-weight: 600; }
+    .badx   { fill: #cf222e; font-weight: 600; }
+    .flow   { stroke: #9aa4b2; fill: none; }
+    .arrow  { fill: #9aa4b2; }
+    .dashed { stroke: #afb8c1; fill: none; }
+
+    @media (prefers-color-scheme: dark) {
+      .live   { fill: #151b23; stroke: #3d444d; }
+      .stage  { fill: #0d1117; stroke: #3d444d; }
+      .good   { fill: #0f2f1a; stroke: #2ea043; }
+      .bad    { fill: #3c1618; stroke: #f85149; }
+      .step   { fill: #f0f6fc; }
+      .note   { fill: #9198a1; }
+      .okx    { fill: #3fb950; }
+      .badx   { fill: #f85149; }
+      .flow   { stroke: #6a7381; }
+      .arrow  { fill: #6a7381; }
+      .dashed { stroke: #545d68; }
+    }
+
+    text {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      text-anchor: middle;
+    }
+    .t13 { font-size: 13px; }
+    .t12 { font-size: 12px; }
+    .t11 { font-size: 11px; }
+  </style>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0.5 1 L 9 5 L 0.5 9 z" class="arrow"/>
+    </marker>
+  </defs>
+
+  <!-- 변환은 언제나 옆자리에 쓴다 -->
+  <text x="220" y="20" class="t13 step">변환은 언제나 옆자리에 씁니다</text>
+
+  <rect x="24" y="34" width="180" height="52" rx="10" class="live" stroke-width="1.5"/>
+  <text x="114" y="58" class="t12 step">쓰고 있던 데이터</text>
+  <text x="114" y="76" class="t11 note">건드리지 않습니다</text>
+
+  <rect x="236" y="34" width="180" height="52" rx="10" class="stage" stroke-width="1.5"
+        stroke-dasharray="5 4"/>
+  <text x="326" y="58" class="t12 step">스테이징 · 섀도</text>
+  <text x="326" y="76" class="t11 note">이번 변환 결과</text>
+
+  <!-- 갈림길 -->
+  <path d="M 326 90 v 14 H 150 v 16" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 326 104 H 350 v 16" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- 성공 -->
+  <rect x="24" y="124" width="252" height="60" rx="10" class="good" stroke-width="1.5"/>
+  <text x="150" y="148" class="t12 okx">전부 성공하면 한 번에 교체</text>
+  <text x="150" y="168" class="t11 note">파일은 옮기고, DB는 RENAME 한 번</text>
+
+  <!-- 실패 -->
+  <rect x="292" y="124" width="124" height="60" rx="10" class="bad" stroke-width="1.5"/>
+  <text x="354" y="148" class="t12 badx">실패하면 버림</text>
+  <text x="354" y="168" class="t11 note">이전 데이터 유지</text>
+
+  <!-- 읽는 쪽도 같다 -->
+  <line x1="24" y1="206" x2="416" y2="206" class="dashed" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="220" y="228" class="t12 step">읽는 쪽도 같습니다</text>
+  <text x="220" y="248" class="t11 note">전부 읽고 참조까지 연결한 다음에 교체 — 반쯤 채워진 상태가 없습니다</text>
+</svg>

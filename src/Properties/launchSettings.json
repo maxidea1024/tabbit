@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "conformance corpus": {
+      "commandName": "Project",
+      "commandLineArgs": "--recipe test/fixtures/recipes/conformance.json --debug",
+      "workingDirectory": ".."
+    },
+    "side by side": {
+      "commandName": "Project",
+      "commandLineArgs": "--recipe side-by-side/side-by-side.json --debug",
+      "workingDirectory": ".."
+    }
+  }
+}

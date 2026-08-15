@@ -1,0 +1,1305 @@
+{
+  "schemaVersion": 1,
+  "run": "<RUN>",
+  "data": {
+    "hash": "9cf0827f9c3af2947aa6d480285ceb9144d500d0633b21b2f25051c34fb9013b",
+    "totals": {
+      "tables": 7,
+      "rows": 19,
+      "fields": 40,
+      "cells": 115,
+      "emptyCells": 0,
+      "contentBytes": 738,
+      "enums": 3,
+      "enumLabels": 11,
+      "constantSets": 1,
+      "constants": 8,
+      "referenceFields": 1,
+      "arrayFields": 4
+    },
+    "fieldTypes": {
+      "Grade": 2,
+      "ItemCategory.Record": 1,
+      "SkillType": 1,
+      "ValueType": 1,
+      "bigint": 1,
+      "bool": 1,
+      "datetime": 1,
+      "double": 1,
+      "float": 2,
+      "int": 13,
+      "string": 14,
+      "timespan": 1,
+      "uuid": 1
+    },
+    "fieldTargetSides": {
+      "c": 1,
+      "cs": 37,
+      "s": 2
+    },
+    "sources": [
+      {
+        "file": "test/fixtures/xlsx/core/core.xlsx",
+        "sheets": 5,
+        "tables": 7,
+        "rows": 19
+      }
+    ],
+    "tables": [
+      {
+        "name": "TestFieldTypes",
+        "rawName": "TestFieldTypes",
+        "hash": "9c4703e186db9704593128a476e519108b3426c2b8e3da158814276bd9d82835",
+        "schemaHash": "dd73b7e187fa8358a66819c01f1b584501d025ffc2ec1079f6eb2228da84630d",
+        "targetSide": "cs",
+        "comment": "One column per supported primitive type.",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Types",
+          "cell": "B2",
+          "url": null
+        },
+        "rowCount": 3,
+        "fieldCount": 11,
+        "cellCount": 33,
+        "emptyCellCount": 0,
+        "contentBytes": 274,
+        "fields": [
+          {
+            "name": "Index",
+            "rawName": "index",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "primary index",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "B4",
+              "url": null
+            },
+            "isIndex": true,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "StringField",
+            "rawName": "StringField",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "utf8 text",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "C4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": 6
+          },
+          {
+            "name": "BoolField",
+            "rawName": "BoolField",
+            "typeName": "bool",
+            "type": "Bool",
+            "targetSide": "c",
+            "comment": "logical flag",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "D4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "IntField",
+            "rawName": "IntField",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "s",
+            "comment": "32 bit integer",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "E4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "BigIntField",
+            "rawName": "BigIntField",
+            "typeName": "bigint",
+            "type": "Int64",
+            "targetSide": "cs",
+            "comment": "64 bit integer",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "F4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "FloatField",
+            "rawName": "FloatField",
+            "typeName": "float",
+            "type": "Float",
+            "targetSide": "cs",
+            "comment": "single precision",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "G4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "DoubleField",
+            "rawName": "DoubleField",
+            "typeName": "double",
+            "type": "Double",
+            "targetSide": "cs",
+            "comment": "double precision",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "H4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "DatetimeField",
+            "rawName": "DatetimeField",
+            "typeName": "datetime",
+            "type": "DateTime",
+            "targetSide": "cs",
+            "comment": "date and time",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "I4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "TimespanField",
+            "rawName": "TimespanField",
+            "typeName": "timespan",
+            "type": "TimeSpan",
+            "targetSide": "cs",
+            "comment": "time interval",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "J4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "UuidField",
+            "rawName": "UuidField",
+            "typeName": "uuid",
+            "type": "Uuid",
+            "targetSide": "cs",
+            "comment": "globally unique id",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "K4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "ValueTypeField",
+            "rawName": "ValueTypeField",
+            "typeName": "ValueType",
+            "type": "Enum",
+            "targetSide": "cs",
+            "comment": "enum reference",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Types",
+              "cell": "L4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          }
+        ],
+        "references": [],
+        "referencedBy": []
+      },
+      {
+        "name": "ItemCategory",
+        "rawName": "ItemCategory",
+        "hash": "d9f8f222984c00f12ecce14a1a43346ad4e7e56df11421841e502374bc6e316d",
+        "schemaHash": "424b76a64e5dc35b95e05f434a88c38d6e3b90e754b71225ce35ad5c0a2e1230",
+        "targetSide": "cs",
+        "comment": "Referenced by Item.CategoryId.",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Refs",
+          "cell": "B2",
+          "url": null
+        },
+        "rowCount": 3,
+        "fieldCount": 3,
+        "cellCount": 9,
+        "emptyCellCount": 0,
+        "contentBytes": 69,
+        "fields": [
+          {
+            "name": "Index",
+            "rawName": "index",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "primary index",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "B4",
+              "url": null
+            },
+            "isIndex": true,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Name",
+            "rawName": "Name",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "category name",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "C4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": 6
+          },
+          {
+            "name": "Description",
+            "rawName": "Description",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "human readable description",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "D4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": 18
+          }
+        ],
+        "references": [],
+        "referencedBy": [
+          "Item"
+        ]
+      },
+      {
+        "name": "Item",
+        "rawName": "Item",
+        "hash": "a316cdff3db9c38d03d389274e3770ac6b0be81d8e94cfb9cf2ca1f902316bd8",
+        "schemaHash": "615beb82cb3c8adb6dbee945978505b765b69152b56a158b04fd1f4f6fb65e97",
+        "targetSide": "cs",
+        "comment": "References ItemCategory by record.",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Refs",
+          "cell": "I2",
+          "url": null
+        },
+        "rowCount": 3,
+        "fieldCount": 7,
+        "cellCount": 21,
+        "emptyCellCount": 0,
+        "contentBytes": 148,
+        "fields": [
+          {
+            "name": "Index",
+            "rawName": "index",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "primary index",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "I4",
+              "url": null
+            },
+            "isIndex": true,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Name",
+            "rawName": "Name",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "item name",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "J4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": 13
+          },
+          {
+            "name": "CategoryId",
+            "rawName": "CategoryId",
+            "typeName": "ItemCategory.Record",
+            "type": "ForeignRecord",
+            "targetSide": "cs",
+            "comment": "owning category",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "K4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": true,
+            "refTable": "ItemCategory",
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "GradeField",
+            "rawName": "GradeField",
+            "typeName": "Grade",
+            "type": "Enum",
+            "targetSide": "cs",
+            "comment": "item grade",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "L4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "SkillField",
+            "rawName": "SkillField",
+            "typeName": "SkillType",
+            "type": "Enum",
+            "targetSide": "cs",
+            "comment": "granted skill",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "M4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Description",
+            "rawName": "Description",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "shop blurb",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "N4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": 40
+          },
+          {
+            "name": "Price",
+            "rawName": "Price",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "s",
+            "comment": "shop price",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Refs",
+              "cell": "O4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 3,
+            "distinctCapped": false,
+            "maxLength": null
+          }
+        ],
+        "references": [
+          "ItemCategory"
+        ],
+        "referencedBy": []
+      },
+      {
+        "name": "Localization",
+        "rawName": "Localization",
+        "hash": "969f67ff662b6452435637da469d31b655980dbd5b420da922926d04e4aaf0b5",
+        "schemaHash": "6ce265c6c16bc83ba51797fede20a163d1f09d95f17f75b64971af69755c367f",
+        "targetSide": "cs",
+        "comment": "Trailing-number columns collapse into arrays.",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Serial",
+          "cell": "B2",
+          "url": null
+        },
+        "rowCount": 2,
+        "fieldCount": 6,
+        "cellCount": 12,
+        "emptyCellCount": 0,
+        "contentBytes": 80,
+        "fields": [
+          {
+            "name": "Index",
+            "rawName": "index",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "primary index",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Serial",
+              "cell": "B4",
+              "url": null
+            },
+            "isIndex": true,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Key",
+            "rawName": "Key",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "lookup key",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Serial",
+              "cell": "C4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": 8
+          },
+          {
+            "name": "TextEn1",
+            "rawName": "TextEn1",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "english text 1",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Serial",
+              "cell": "D4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": 7
+          },
+          {
+            "name": "TextEn2",
+            "rawName": "TextEn2",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "english text 2",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Serial",
+              "cell": "E4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": 3
+          },
+          {
+            "name": "TextKo1",
+            "rawName": "TextKo1",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "korean text 1",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Serial",
+              "cell": "F4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": 6
+          },
+          {
+            "name": "TextKo2",
+            "rawName": "TextKo2",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "korean text 2",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Serial",
+              "cell": "G4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": 2
+          }
+        ],
+        "references": [],
+        "referencedBy": []
+      },
+      {
+        "name": "ArrayTypes",
+        "rawName": "ArrayTypes",
+        "hash": "8094a54095f34faa32bad6761625632edfbca2915b085204ac4906d8691b975a",
+        "schemaHash": "26ccdba5717e3289a335cbd3aebe82d702b489e75c57f670d66d9f54eb966b1c",
+        "targetSide": "cs",
+        "comment": "One cell holding several delimited values, length varying per row.",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Arrays",
+          "cell": "B2",
+          "url": null
+        },
+        "rowCount": 4,
+        "fieldCount": 7,
+        "cellCount": 28,
+        "emptyCellCount": 0,
+        "contentBytes": 118,
+        "fields": [
+          {
+            "name": "Index",
+            "rawName": "index",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "primary index",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Arrays",
+              "cell": "B4",
+              "url": null
+            },
+            "isIndex": true,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 4,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Tags",
+            "rawName": "Tags",
+            "typeName": "string",
+            "type": "StringArray",
+            "targetSide": "cs",
+            "comment": "free-form tags",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Arrays",
+              "cell": "C4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": true,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 4,
+            "distinctCapped": false,
+            "maxLength": 22
+          },
+          {
+            "name": "Costs",
+            "rawName": "Costs",
+            "typeName": "int",
+            "type": "Int32Array",
+            "targetSide": "cs",
+            "comment": "cost per level",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Arrays",
+              "cell": "D4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": true,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 4,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Weights",
+            "rawName": "Weights",
+            "typeName": "float",
+            "type": "FloatArray",
+            "targetSide": "cs",
+            "comment": "drop weights",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Arrays",
+              "cell": "E4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": true,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 4,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Grades",
+            "rawName": "Grades",
+            "typeName": "Grade",
+            "type": "EnumArray",
+            "targetSide": "cs",
+            "comment": "allowed grades",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Arrays",
+              "cell": "F4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": true,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 4,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Slot1",
+            "rawName": "Slot1",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "fixed slot 1",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Arrays",
+              "cell": "G4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 4,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Slot2",
+            "rawName": "Slot2",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "fixed slot 2",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Arrays",
+              "cell": "H4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 4,
+            "distinctCapped": false,
+            "maxLength": null
+          }
+        ],
+        "references": [],
+        "referencedBy": []
+      },
+      {
+        "name": "ServerTuning",
+        "rawName": "ServerTuning",
+        "hash": "43d2a673b2b906a1f4583acc7af86057083875dbb6c933ba34567d4a498f36bc",
+        "schemaHash": "2cb93672dc6505d486147f35614d3585bdf9ed219d2a45ade02013a81a76b8c8",
+        "targetSide": "s",
+        "comment": "Server-only table. Must not appear in client output.",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Sides",
+          "cell": "B2",
+          "url": null
+        },
+        "rowCount": 2,
+        "fieldCount": 3,
+        "cellCount": 6,
+        "emptyCellCount": 0,
+        "contentBytes": 25,
+        "fields": [
+          {
+            "name": "Index",
+            "rawName": "index",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "primary index",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Sides",
+              "cell": "B4",
+              "url": null
+            },
+            "isIndex": true,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Key",
+            "rawName": "Key",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "tuning key",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Sides",
+              "cell": "C4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": 10
+          },
+          {
+            "name": "Amount",
+            "rawName": "Amount",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "tuning amount",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Sides",
+              "cell": "D4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": null
+          }
+        ],
+        "references": [],
+        "referencedBy": []
+      },
+      {
+        "name": "ClientStrings",
+        "rawName": "ClientStrings",
+        "hash": "ec31553e7052ca075816706c520783ececd857ee6c246a657cc7af480e7f5ff9",
+        "schemaHash": "c531bceb6316fa82dcb6e3cea07f1358e0cc7fdbaefb2b7d25edbe53e9d38ca4",
+        "targetSide": "c",
+        "comment": "Client-only table. Must not appear in server output.",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Sides",
+          "cell": "G2",
+          "url": null
+        },
+        "rowCount": 2,
+        "fieldCount": 3,
+        "cellCount": 6,
+        "emptyCellCount": 0,
+        "contentBytes": 24,
+        "fields": [
+          {
+            "name": "Index",
+            "rawName": "index",
+            "typeName": "int",
+            "type": "Int32",
+            "targetSide": "cs",
+            "comment": "primary index",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Sides",
+              "cell": "G4",
+              "url": null
+            },
+            "isIndex": true,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": null
+          },
+          {
+            "name": "Key",
+            "rawName": "Key",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "string key",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Sides",
+              "cell": "H4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": 9
+          },
+          {
+            "name": "Text",
+            "rawName": "Text",
+            "typeName": "string",
+            "type": "String",
+            "targetSide": "cs",
+            "comment": "display text",
+            "location": {
+              "file": "test/fixtures/xlsx/core/core.xlsx",
+              "sheet": "Sides",
+              "cell": "I4",
+              "url": null
+            },
+            "isIndex": false,
+            "isArray": false,
+            "isReference": false,
+            "refTable": null,
+            "refField": null,
+            "emptyCount": 0,
+            "distinctCount": 2,
+            "distinctCapped": false,
+            "maxLength": 6
+          }
+        ],
+        "references": [],
+        "referencedBy": []
+      }
+    ],
+    "enums": [
+      {
+        "name": "ValueType",
+        "comment": "Value types used by the test tables.",
+        "targetSide": "cs",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Enums",
+          "cell": "B2",
+          "url": null
+        },
+        "labels": [
+          {
+            "name": "None",
+            "value": 0,
+            "comment": "no value"
+          },
+          {
+            "name": "Int32",
+            "value": 1,
+            "comment": "32 bit integer"
+          },
+          {
+            "name": "Int64",
+            "value": 2,
+            "comment": "64 bit integer"
+          },
+          {
+            "name": "Float",
+            "value": 3,
+            "comment": "single precision float"
+          }
+        ],
+        "usedBy": [
+          "TestFieldTypes.ValueTypeField"
+        ]
+      },
+      {
+        "name": "Grade",
+        "comment": "Item grade. Deliberately omits a zero entry.",
+        "targetSide": "cs",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Enums",
+          "cell": "G2",
+          "url": null
+        },
+        "labels": [
+          {
+            "name": "None",
+            "value": 0,
+            "comment": "None (automatically inserted by Tabbit)"
+          },
+          {
+            "name": "Common",
+            "value": 1,
+            "comment": "common grade"
+          },
+          {
+            "name": "Rare",
+            "value": 2,
+            "comment": "rare grade"
+          },
+          {
+            "name": "Epic",
+            "value": 3,
+            "comment": "epic grade"
+          }
+        ],
+        "usedBy": [
+          "ArrayTypes.Grades",
+          "Item.GradeField"
+        ]
+      },
+      {
+        "name": "SkillType",
+        "comment": "Declared in snake_case on purpose.",
+        "targetSide": "cs",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Enums",
+          "cell": "L2",
+          "url": null
+        },
+        "labels": [
+          {
+            "name": "None",
+            "value": 0,
+            "comment": "no skill"
+          },
+          {
+            "name": "FireBall",
+            "value": 1,
+            "comment": "throws a fireball"
+          },
+          {
+            "name": "IceShard",
+            "value": 2,
+            "comment": "throws an ice shard"
+          }
+        ],
+        "usedBy": [
+          "Item.SkillField"
+        ]
+      }
+    ],
+    "constantSets": [
+      {
+        "name": "GameConfig",
+        "comment": "Assorted tuning constants.",
+        "targetSide": "cs",
+        "location": {
+          "file": "test/fixtures/xlsx/core/core.xlsx",
+          "sheet": "Consts",
+          "cell": "B2",
+          "url": null
+        },
+        "constants": [
+          {
+            "name": "MaxLevel",
+            "typeName": "int",
+            "value": "100",
+            "comment": "level cap"
+          },
+          {
+            "name": "StartGold",
+            "typeName": "bigint",
+            "value": "1000",
+            "comment": "gold granted to new accounts"
+          },
+          {
+            "name": "DropRate",
+            "typeName": "float",
+            "value": "0.25",
+            "comment": "base drop rate"
+          },
+          {
+            "name": "DebugMode",
+            "typeName": "bool",
+            "value": "false",
+            "comment": "whether debug hooks are active"
+          },
+          {
+            "name": "DefaultGrade",
+            "typeName": "Grade",
+            "value": "Rare",
+            "comment": "grade assigned when unspecified"
+          },
+          {
+            "name": "SeasonStart",
+            "typeName": "datetime",
+            "value": "637817220000000000",
+            "comment": "when the season opens"
+          },
+          {
+            "name": "RoundLength",
+            "typeName": "timespan",
+            "value": "3000000000",
+            "comment": "length of one round"
+          },
+          {
+            "name": "BuildId",
+            "typeName": "uuid",
+            "value": "6f9619ff-8b86-d011-b42d-00c04fc964ff",
+            "comment": "identifies this data build"
+          }
+        ]
+      }
+    ]
+  }
+}

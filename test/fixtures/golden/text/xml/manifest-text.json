@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "76bb321018265104a74163b96b53fcc0",
+  "TotalSize": 1084,
+  "Items": [
+    {
+      "Name": "Common.xml",
+      "Size": 343,
+      "Hash": "540e2290e5e36303b994b6ffebfec822",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Item.xml",
+      "Size": 177,
+      "Hash": "4988e62c32ce91c62b51a2137a0f1723",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Quest.xml",
+      "Size": 564,
+      "Hash": "ab44b0757ba02aee6e5528d69e582fa9",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

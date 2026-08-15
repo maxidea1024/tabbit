@@ -1,0 +1,289 @@
+{{~## One table: its record struct and its table type. ##~}}
+{{ include 'go-file-head.sbn' ~}}
+{{~## The element type of each record group, ahead of the row that holds one. Every
+   generated type shares one package, which is why the name carries the table's. ##~}}
+{{~ for field in table.fields ~}}
+{{~## An array of arrays declares no element type: its outer level has no name, so there is
+   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~## One struct per level, innermost first - the view flattened the nesting so this loop does
+   not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+// {{ rt.type_name }} is one element of {{ rt.owner }}.
+{{~ else ~}}
+// {{ rt.type_name }} is a record inside {{ rt.owner }}.
+{{~ end ~}}
+type {{ rt.type_name }} struct {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+	// {{ line }}
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+	{{ line }}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+// {{ table.record_name }} was generated from {{ table.location }}.
+{{~ for line in table.comment ~}}
+// {{ line }}
+{{~ end ~}}
+type {{ table.record_name }} struct {
+{{~ for field in table.fields ~}}
+{{~ for line in field.comment ~}}
+	// {{ line }}
+{{~ end ~}}
+{{~ for declaration in field.declarations ~}}
+	{{ declaration }}
+{{~ end ~}}
+{{~ if field.is_nullable ~}}
+	// Whether this row has a value for {{ field.name }}. The value member keeps its type
+	// and holds the type's empty value when the row had none; this says which it was.
+	{{ field.presence_member }} bool
+{{~ end ~}}
+{{~ end ~}}
+}
+
+// {{ table.table_name }} holds every row of {{ table.raw_name }}.
+type {{ table.table_name }} struct {
+	records []{{ table.record_name }}
+{{~ for index in table.indexes ~}}
+	{{ index.map_name }} map[{{ index.key_type }}]int
+{{~ end ~}}
+}
+
+// Records returns every row, in the order the sheet declared them.
+func (t *{{ table.table_name }}) Records() []{{ table.record_name }} { return t.records }
+{{~ for index in table.indexes }}
+// FindBy{{ index.suffix }} returns the row with this {{ index.field_name }}, or nil when the table has none.
+//
+// The lookup to reach for when a missing row is an ordinary answer - an optional
+// reference, a key that came from user input.
+func (t *{{ table.table_name }}) FindBy{{ index.suffix }}(key {{ index.key_type }}) *{{ table.record_name }} {
+	position, found := t.{{ index.map_name }}[key]
+	if !found {
+		return nil
+	}
+
+	return &t.records[position]
+}
+
+// GetBy{{ index.suffix }}OrError returns the row with this {{ index.field_name }}, or an error naming
+// what was missing.
+//
+// For a key that has to be there - one from another table, or a constant. Go has no
+// exception to throw, so where the other languages name a throw this one names the error
+// it returns; either way the call site can tell without going to the definition.
+func (t *{{ table.table_name }}) GetBy{{ index.suffix }}OrError(key {{ index.key_type }}) (*{{ table.record_name }}, error) {
+	position, found := t.{{ index.map_name }}[key]
+	if !found {
+		return nil, fmt.Errorf(
+			"there is no record in table `{{ table.raw_name }}` that corresponds to field `{{ index.field_name }}` value %v", key)
+	}
+
+	return &t.records[position], nil
+}
+
+// Contains{{ index.suffix }} reports whether the table holds a row with this {{ index.field_name }}.
+func (t *{{ table.table_name }}) Contains{{ index.suffix }}(key {{ index.key_type }}) bool {
+	_, found := t.{{ index.map_name }}[key]
+	return found
+}
+{{~ end ~}}
+
+// Read loads the table from a .tcb file written by Tabbit.
+func (t *{{ table.table_name }}) Read(filename string) error {
+	data, err := tabbit.ReadAllBytes(filename)
+	if err != nil {
+		return err
+	}
+
+	// Unconditionally, and with whatever EncryptionKey and MacKey hold - which is nil
+	// unless the project set them. A file that is neither encrypted nor signed comes back
+	// from this untouched, so the load path is the same either way and there is no
+	// condition here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+	//
+	// What comes back is a window onto data rather than a copy of it, which is why data
+	// stays in scope for the whole read.
+	opened, err := tabbit.Open(data, EncryptionKey, MacKey, VerifyMac)
+	if err != nil {
+		return err
+	}
+
+	reader := tabbit.NewReader(opened)
+	count, columns := tabbit.ReadTableHeader(reader)
+
+	// Column by column, matched by tag rather than position: a column this build does
+	// not know is skipped by its block length, and one whose type changed incompatibly
+	// fails naming the field.
+	//
+	// Read into rows of its own and assigned at the end. Reading a table that is already
+	// loaded is a refresh, and a refresh that turns out to be unreadable has to leave what
+	// the table holds alone - the previous rows and an error, not an empty table.
+	records := make([]{{ table.record_name }}, count)
+{{~ if table.needs_record_init }}
+	// A record array whose length is the sheet's column count is created with the row
+	// rather than by whichever member column arrives first. A Go struct has no field
+	// initializer, so otherwise the slice would stay nil until that member was read - and
+	// a file that no longer carries it would leave the members after it indexing nothing.
+	for i := int32(0); i < count; i++ {
+{{~ for field in table.fields ~}}
+{{~ if field.is_fixed_record_array ~}}
+		records[i].{{ field.name }} = make({{ field.array_type }}, {{ field.element_count }})
+{{~ else if field.members_are_anonymous ~}}
+{{~## An array of arrays: both levels made with the row, for the same reason. ##~}}
+		records[i].{{ field.name }} = make([][]{{ field.element_type_name }}, {{ field.outer_count }})
+		for at := range records[i].{{ field.name }} {
+			records[i].{{ field.name }}[at] = make([]{{ field.element_type_name }}, {{ field.element_count }})
+		}
+{{~ else if field.members_are_arrays ~}}
+{{~## One record, and the slices are its members - so each of them is made here for the
+   same reason. ##~}}
+{{~ for member in field.members ~}}
+		records[i].{{ field.name }}.{{ member.name }} = make({{ member.slice_type }}, {{ member.element_count }})
+{{~ if member.ref_key_slice_type != '' ~}}
+{{~## A reference member holds one key per element as well as one row, and the read writes
+   into the key - so both are made. spec/references-in-records.md. ##~}}
+		records[i].{{ field.name }}.{{ member.name }}Index = make({{ member.ref_key_slice_type }}, {{ member.element_count }})
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+	}
+{{~ end }}
+	for _, column := range columns {
+		blockEnd := reader.Position() + int(column.ByteLength)
+
+		switch column.Tag {
+{{~ for column_view in table.columns ~}}
+		case {{ column_view.tag }}:
+			if {{ column_view.column_check }} {
+{{~ if column_view.is_nullable ~}}
+				// The bitmap is at the front of the block, so it is read before the values.
+				// The values are written for every row either way, which is what lets the
+				// read shapes below stay as they are.
+				presence := tabbit.ReadPresence(reader, column, count)
+{{~ end ~}}
+{{~## Opened here, ahead of every read shape, because an array's elements read through it
+   as well: its block states an encoding for them and one for the row lengths, and the
+   cursor is what decodes both. After the presence bitmap, which sits in front of the
+   block the cursor is about to start reading. ##~}}
+{{~ if column_view.cursor_open != '' ~}}
+				{{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+   call per row that each re-dispatch on the encoding. An encoding with no run to give
+   answers 1, so this loop is correct over all of them. ##~}}
+				for i := int32(0); i < count; {
+					n, value := cursor.{{ column_view.run_call }}(count - i)
+					for ; n > 0; n-- {
+						{{ column_view.run_spend }}
+						i++
+					}
+				}
+{{~ else ~}}
+				for i := int32(0); i < count; i++ {
+					r := &records[i]
+{{~ if column_view.kind == 'var_array' ~}}
+					{{ column_view.length_read }}
+					r.{{ column_view.name }} = make({{ column_view.array_type }}, elementCount)
+					for j := 0; j < elementCount; j++ {
+						r.{{ column_view.name }}[j] = {{ column_view.read_value }}
+					}
+{{~ else if column_view.kind == 'record_var' ~}}
+					{{ column_view.length_read }}
+{{~ if column_view.is_first_member ~}}
+					// The first member allocates; the rest check. Allocating again would
+					// discard what the members before it wrote, and taking the shorter of
+					// two counts would shift every value after it.
+					r.{{ column_view.name }} = make({{ column_view.array_type }}, elementCount)
+{{~ else ~}}
+					if len(r.{{ column_view.name }}) != elementCount {
+						return fmt.Errorf(
+							"{{ table.raw_name }}: the file gives one member of `{{ column_view.name }}` a different element count than another")
+					}
+{{~ end ~}}
+					for j := 0; j < elementCount; j++ {
+						r.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_value }}
+					}
+{{~ else if column_view.kind == 'array_of_arrays_member' ~}}
+{{~## One inner slice. Which outer element it is, is which column this is - so the outer
+   index is fixed here and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+					for j := 0; j < {{ column_view.element_count }}; j++ {
+						r.{{ column_view.name }}[{{ column_view.member_at }}][j] = {{ column_view.read_value }}
+					}
+{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~## The member is the array: the index goes after its name rather than before. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+					for j := 0; j < {{ column_view.element_count }}; j++ {
+						r.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_value }}
+					}
+{{~ else if column_view.kind == 'record_serial' ~}}
+					for j := 0; j < {{ column_view.element_count }}; j++ {
+						r.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_value }}
+					}
+{{~ else if column_view.kind == 'serial_ref' ~}}
+					r.{{ column_view.name }} = make({{ column_view.array_type }}, {{ column_view.element_count }})
+					r.{{ column_view.name }}Index = make([]int32, {{ column_view.element_count }})
+					for j := 0; j < {{ column_view.element_count }}; j++ {
+						r.{{ column_view.name }}Index[j] = {{ column_view.read_value }}
+					}
+{{~ else if column_view.kind == 'serial' ~}}
+					r.{{ column_view.name }} = make({{ column_view.array_type }}, {{ column_view.element_count }})
+					for j := 0; j < {{ column_view.element_count }}; j++ {
+						r.{{ column_view.name }}[j] = {{ column_view.read_value }}
+					}
+{{~ else if column_view.kind == 'scalar_ref' ~}}
+					r.{{ column_view.name }}Index = {{ column_view.read_value }}
+{{~ else ~}}
+					r.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_value }}
+{{~ end ~}}
+				}
+{{~ end ~}}
+{{~ if column_view.is_nullable }}
+				// A pass of its own rather than a line inside each read shape, so the row
+				// index is worked out once. The block carries a value for every row, so an
+				// absent one has just been given whatever was there; putting the empty
+				// value back is what makes this path agree with the JSON one.
+				for i := int32(0); i < count; i++ {
+					records[i].{{ column_view.presence_member }} = tabbit.IsPresent(presence, i)
+
+					if !records[i].{{ column_view.presence_member }} {
+						records[i].{{ column_view.name }} = {{ column_view.empty_value }}
+					}
+				}
+{{~ end ~}}
+			}
+{{~ end ~}}
+		default:
+			// A column added after this code was generated.
+			reader.Skip(column.ByteLength)
+		}
+
+		tabbit.CheckBlockEnd(reader, column, blockEnd)
+	}
+
+	if err := reader.Err(); err != nil {
+		return fmt.Errorf("{{ table.raw_name }}: %w", err)
+	}
+
+{{~ for index in table.indexes ~}}
+	{{ index.map_name }} := make(map[{{ index.key_type }}]int, len(records))
+	for i := range records {
+		{{ index.map_name }}[records[i].{{ index.member }}] = i
+	}
+
+{{~ end ~}}
+	// Published, now that every column read and the indexes are built.
+	t.records = records
+{{~ for index in table.indexes ~}}
+	t.{{ index.map_name }} = {{ index.map_name }}
+{{~ end ~}}
+
+	return nil
+}

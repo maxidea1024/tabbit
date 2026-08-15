@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 326" width="560" height="326"
+     role="img" aria-label="상수 세트는 코드로만, 테이블의 행과 컬럼은 데이터로만 나갑니다. enum은 이름이 코드로 값이 데이터로 나뉘어 양쪽이 함께 나가야 합니다.">
+  <title>고친 것에 따라 갈리는 배포 경로</title>
+  <desc>상수 세트는 생성된 코드의 선언이 전부라 데이터 파일에 아무것도 나가지 않습니다. 테이블의 행 값과 컬럼은 데이터 파일에만 실리므로 데이터 패치로 끝납니다. enum만 레이블 이름은 코드에, 그 값은 데이터에 나뉘어 있어 양쪽이 함께 나가야 합니다.</desc>
+
+  <style>
+    /*
+      배포가 갈리는 지점은 "무엇을 고쳤나"가 아니라 "그것이 어디에 적히나"입니다.
+      표로 적으면 규칙 목록처럼 보이지만, 실제로는 화살표가 어디로 가느냐 하나입니다.
+
+      Colours are GitHub's own, with a dark override - served as an image, so the query
+      follows the viewer's system theme.
+    */
+    .src   { fill: #ffffff; stroke: #d1d9e0; }
+    .code  { fill: #fff8c5; stroke: #d4a72c; }
+    .data  { fill: #ddf4ff; stroke: #54aeff; }
+    .step  { fill: #1f2328; font-weight: 600; }
+    .note  { fill: #59636e; }
+    .flow  { stroke: #9aa4b2; fill: none; }
+    .arrow { fill: #9aa4b2; }
+
+    @media (prefers-color-scheme: dark) {
+      .src   { fill: #151b23; stroke: #3d444d; }
+      .code  { fill: #3a2d0b; stroke: #d29922; }
+      .data  { fill: #0c2d6b; stroke: #388bfd; }
+      .step  { fill: #f0f6fc; }
+      .note  { fill: #9198a1; }
+      .flow  { stroke: #6a7381; }
+      .arrow { fill: #6a7381; }
+    }
+
+    text {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      text-anchor: middle;
+    }
+    .t13 { font-size: 13px; }
+    .t12 { font-size: 12px; }
+    .t11 { font-size: 11px; }
+  </style>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0.5 1 L 9 5 L 0.5 9 z" class="arrow"/>
+    </marker>
+  </defs>
+
+  <text x="280" y="22" class="t13 step">고친 것이 어디에 적히느냐가 배포 경로를 정합니다</text>
+
+  <!-- 왼쪽: 시트에서 고친 것 -->
+  <rect x="20" y="44" width="200" height="56" rx="10" class="src" stroke-width="1.5"/>
+  <text x="120" y="68" class="t12 step">상수 세트</text>
+  <text x="120" y="86" class="t11 note">데이터 파일에는 나가지 않습니다</text>
+
+  <rect x="20" y="114" width="200" height="56" rx="10" class="src" stroke-width="1.5"/>
+  <text x="120" y="138" class="t12 step">enum 레이블</text>
+  <text x="120" y="156" class="t11 note">이름은 코드로, 값은 데이터로</text>
+
+  <rect x="20" y="184" width="200" height="56" rx="10" class="src" stroke-width="1.5"/>
+  <text x="120" y="208" class="t12 step">테이블 컬럼</text>
+  <text x="120" y="226" class="t11 note">추가 · 삭제 · 이름 · 순서</text>
+
+  <rect x="20" y="254" width="200" height="56" rx="10" class="src" stroke-width="1.5"/>
+  <text x="120" y="278" class="t12 step">테이블의 행 값</text>
+  <text x="120" y="296" class="t11 note">밸런스 수치</text>
+
+  <!-- 오른쪽: 나가야 하는 것 -->
+  <rect x="340" y="56" width="200" height="86" rx="10" class="code" stroke-width="1.5"/>
+  <text x="440" y="82" class="t12 step">코드 배포</text>
+  <text x="440" y="102" class="t11 note">재생성 → 빌드 → 스토어 · 서버</text>
+  <text x="440" y="120" class="t11 note">빠르지 않고, 되돌리기 어렵습니다</text>
+
+  <rect x="340" y="212" width="200" height="86" rx="10" class="data" stroke-width="1.5"/>
+  <text x="440" y="238" class="t12 step">데이터 패치</text>
+  <text x="440" y="258" class="t11 note">.tcb 파일만 올리면 끝</text>
+  <text x="440" y="276" class="t11 note">즉시 반영, 롤백도 파일 교체</text>
+
+  <!-- 선은 교차하지 않습니다. enum만 둘로 갈라집니다 -->
+  <path d="M 220 72 C 280 72, 280 99, 340 99" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 220 142 C 280 142, 280 99, 340 99" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 220 142 C 280 142, 280 255, 340 255" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 220 212 C 280 212, 280 255, 340 255" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 220 282 C 280 282, 280 255, 340 255" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+</svg>

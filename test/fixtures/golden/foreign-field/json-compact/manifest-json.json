@@ -1,0 +1,19 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "77727139023c0001cf084406f26a69ed",
+  "TotalSize": 196,
+  "Items": [
+    {
+      "Name": "ItemCategory.json",
+      "Size": 109,
+      "Hash": "1d9616287dc4fe4104949b8e0dab626a",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Item.json",
+      "Size": 87,
+      "Hash": "c9ce84175e15e042a4a28fdc8a031128",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

@@ -1,0 +1,1829 @@
+<?php
+
+/*
+ * Tabbit Tcb reader for PHP 8.1 and above.
+ *
+ * Reads the .tcb files produced by Tabbit's binary exporter. The format is
+ * defined by the C# writer in src/Exporters/TcbWriter.cs, and this is a
+ * deliberate re-implementation of the reading half of it:
+ *
+ *   fixed8      one byte
+ *   fixed32     four bytes, little endian
+ *   fixed64     eight bytes, little endian
+ *   varint32    seven bits per byte, high bit set while more bytes follow,
+ *               at most five bytes
+ *   counter32   zig-zag encoded int32 written as a varint32, so small values
+ *               of either sign cost one byte
+ *   string      counter32 byte length, then that many UTF-8 bytes
+ *   int32/uint32   fixed32
+ *   int64          fixed64
+ *   bool           fixed8, zero meaning false
+ *   float/double   fixed32 / fixed64 holding the IEEE-754 bit pattern
+ *   datetime       fixed64 of .NET ticks: 100 ns units since 0001-01-01
+ *   timespan       fixed64 of .NET ticks
+ *   uuid           sixteen bytes in .NET Guid layout
+ *
+ * No dependencies beyond the standard library. Reading needs nothing but core,
+ * where unpack() lives; opening an encrypted file needs ext-openssl, which has
+ * shipped with PHP since 7.2 and is asked for only when a file turns out to be
+ * encrypted.
+ */
+
+declare(strict_types=1);
+
+namespace Tabbit;
+
+/** Thrown when a table file is truncated, malformed, or not a table file. */
+/**
+ * A lookup for a key no row carries.
+ *
+ * Thrown by the generated getBy*OrThrow lookups, which is where a caller has said the key
+ * has to be there. findBy* answers the same question with null.
+ *
+ * Its own type rather than TcbException: nothing is wrong with the file, and a
+ * caller catching one of these is not catching the other.
+ */
+final class RecordNotFoundException extends \RuntimeException
+{
+}
+
+final class TcbException extends \RuntimeException
+{
+}
+
+/**
+ * A 128 bit identifier, held as the sixteen bytes in .NET Guid order.
+ *
+ * That order is not plain big-endian: the first three components are little
+ * endian and the trailing eight bytes are not, which is what __toString has to
+ * account for.
+ */
+final class Uuid implements \Stringable
+{
+    public function __construct(public readonly string $bytes)
+    {
+        if (\strlen($bytes) !== 16) {
+            throw new TcbException('A uuid is sixteen bytes, not ' . \strlen($bytes) . '.');
+        }
+    }
+
+    public static function empty(): self
+    {
+        return new self(\str_repeat("\0", 16));
+    }
+
+    /** The 8-4-4-4-12 form, matching .NET's Guid.ToString("D"). */
+    public function __toString(): string
+    {
+        static $order = [3, 2, 1, 0, 5, 4, 7, 6, 8, 9, 10, 11, 12, 13, 14, 15];
+
+        $text = '';
+
+        foreach ($order as $i => $index) {
+            if ($i === 4 || $i === 6 || $i === 8 || $i === 10) {
+                $text .= '-';
+            }
+
+            $text .= \sprintf('%02x', \ord($this->bytes[$index]));
+        }
+
+        return $text;
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->bytes === $other->bytes;
+    }
+}
+
+/**
+ * Sequential reader over a table file's bytes.
+ *
+ * Every read either advances the cursor or throws, so a caller never has to
+ * check a return value - which is what PHP callers expect, and unlike the C and
+ * Unreal readers there is no build here that turns exceptions off.
+ */
+final class TcbReader
+{
+    /** Version stamped at the head of every table file by the exporter. */
+    /**
+     * The format is column-oriented and self-describing: the header names every column
+     * and how long its block is, and a reader that meets a version it does not know stops
+     * rather than guessing.
+     */
+    // 102 replaced 101 outright - a descriptor gained its encoding byte - before any
+    // 101 file had shipped.
+    public const FILE_FORMAT_VERSION = 105;
+
+    // The wire element types and kinds, as a column descriptor spells them.
+    public const ELEMENT_VARINT = 0;
+    public const ELEMENT_BOOL = 1;
+    public const ELEMENT_I32 = 2;
+    public const ELEMENT_I64 = 3;
+    public const ELEMENT_F32 = 4;
+    public const ELEMENT_F64 = 5;
+    public const ELEMENT_STRING = 6;
+    public const ELEMENT_UUID = 7;
+
+    public const KIND_SCALAR = 0;
+    public const KIND_FIXED_ARRAY = 1;
+    public const KIND_VAR_ARRAY = 2;
+
+    // How a block's values are laid out. Raw is the layout 101 had; the others compress
+    // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+    public const ENCODING_RAW = 0;
+    public const ENCODING_VARINT = 1;
+    public const ENCODING_DELTA = 2;
+    public const ENCODING_RLE = 3;
+    public const ENCODING_DELTA_RLE = 4;
+    public const ENCODING_DICT = 5;
+    public const ENCODING_DICT_RLE = 6;
+    public const ENCODING_DICT_FRONT = 7;
+    public const ENCODING_DICT_FRONT_RLE = 8;
+
+    // Three of these four are composition rather than a new layout: an array block names
+    // encodings for its lengths and its elements, a whole-number block names the integer
+    // encoding its floats travel under, and a segment dictionary is a dictionary whose
+    // entries are built from a table of pieces.
+    public const ENCODING_ARRAY = 9;
+    public const ENCODING_WHOLE = 10;
+    public const ENCODING_DICT_SEGMENT = 11;
+    public const ENCODING_DICT_SEGMENT_RLE = 12;
+
+    /** An integer stream at the width its own range needs, over a base. */
+    public const ENCODING_BITPACK = 13;
+
+    // The file header, at fixed offsets whether or not the file is encrypted and whether or
+    // not it carries a MAC. spec/tcb-mac-and-signature.md.
+    public const MAGIC_OFFSET = 0;
+    public const VERSION_OFFSET = 4;
+    public const FLAGS_OFFSET = 8;
+    public const CIPHER_OFFSET = 9;
+    public const NONCE_OFFSET = 10;
+    public const MAC_OFFSET = 22;
+    public const KEY_CHECK_OFFSET = 38;
+
+    /** Where the body begins. The header before it is always this long. */
+    public const HEADER_SIZE = 42;
+
+    public const NONCE_SIZE = 12;
+    public const MAC_SIZE = 16;
+
+    /**
+     * The four bytes every table file starts with, and the key check under the cipher.
+     *
+     * The same four bytes serve twice. At offset zero they are the file format signature,
+     * in the clear whether or not the file is encrypted. At the key check they are under
+     * the key, so a file that decrypts to something else was written with a different key -
+     * which is the one thing no structural check can tell from damage.
+     */
+    public const MAGIC = "TCB\0";
+
+    /** Bit 0 of the flags byte: from the key check on, the file is ciphertext. */
+    public const FLAG_ENCRYPTED = 0x01;
+
+    /** The cipher byte of a file that is not encrypted. */
+    public const CIPHER_NONE = 0;
+
+    /** The only cipher the format defines. */
+    public const CIPHER_CHACHA20 = 1;
+
+    private readonly string $data;
+    private int $position = 0;
+    private readonly int $length;
+
+    public function __construct(
+        string $data,
+        ?string $key = null,
+        ?string $macKey = null,
+        bool $verifyMac = true,
+    ) {
+        $this->data = self::open($data, $key, $macKey, $verifyMac);
+        $this->length = \strlen($this->data);
+    }
+
+    public static function fromFile(
+        string $filename,
+        ?string $key = null,
+        ?string $macKey = null,
+        bool $verifyMac = true,
+    ): self {
+        $data = @\file_get_contents($filename);
+
+        if ($data === false) {
+            throw new TcbException("Cannot read `{$filename}`.");
+        }
+
+        return new self($data, $key, $macKey, $verifyMac);
+    }
+
+    /**
+     * A file's plaintext bytes: the file itself when it is not encrypted, and what it
+     * decrypts to when it is.
+     *
+     * An unencrypted file comes back untouched, so this sits in the load path whether or
+     * not the project uses a key - a reader that opens the envelope only when there is one
+     * is a reader that cannot take both kinds of file.
+     *
+     * What comes back begins with a five-byte plaintext header - the version the file
+     * declared, then flags of zero - so the header read below meets the same bytes either
+     * way. The cipher byte, the nonce and the magic have all been read and checked by
+     * then, and none of them is part of the table.
+     *
+     * ChaCha20 comes from ext-openssl rather than from a routine written here: PHP's
+     * per-byte loops do not carry the megabytes a table file reaches.
+     *
+     * From openssl and not from ext-sodium, which would be the obvious choice and does not
+     * work. What sodium exposes is `xchacha20`, a different construction with a 24-byte
+     * nonce; it has no function for the 12-byte-nonce ChaCha20 this format uses, so a
+     * reader written against it could never open a file the converter sealed. OpenSSL's
+     * `chacha20` is that cipher, and it takes the block counter and nonce as one 16-byte
+     * IV - counter first, little endian - which is why this format's counter of zero is
+     * written out here rather than assumed.
+     *
+     * The order is verify, then decrypt. The tag covers the file as it is stored, so an
+     * altered file is refused before the key is used on it, and the header - the flags, the
+     * cipher byte, the nonce - is covered along with the body.
+     *
+     * What the two layers are and are not for: both keys ship inside the client that reads
+     * the file. Encryption stops a data file being read in an editor; the MAC stops an
+     * edited one loading. Neither stops anyone who can take the keys out of the client, and
+     * no format does.
+     *
+     * `$macKey` is null when the project does not sign its files. A reader that has one
+     * refuses a file that carries no MAC: the field being zero is how a file says it is
+     * unauthenticated, so accepting that from a project that signs its files would put the
+     * check sixteen zero bytes away from being removed.
+     *
+     * `$verifyMac` false skips the check. For tools and for measuring load time - and no
+     * weaker than it looks, because anyone who can flip this flag in a shipped build can
+     * read the key out of the same build.
+     */
+    public static function open(
+        string $data,
+        ?string $key,
+        ?string $macKey = null,
+        bool $verifyMac = true,
+    ): string {
+        if (\strlen($data) < self::HEADER_SIZE) {
+            throw new TcbException('The file is too short to be a table.');
+        }
+
+        if (\substr($data, self::MAGIC_OFFSET, 4) !== self::MAGIC) {
+            throw new TcbException('The file does not begin with the table file signature.');
+        }
+
+        if ($verifyMac) {
+            self::checkMac($data, $macKey);
+        }
+
+        if ((\ord($data[self::FLAGS_OFFSET]) & self::FLAG_ENCRYPTED) === 0) {
+            return $data;
+        }
+
+        $cipher = \ord($data[self::CIPHER_OFFSET]);
+
+        if ($cipher !== self::CIPHER_CHACHA20) {
+            throw new TcbException(
+                "The file uses cipher {$cipher}, which this reader does not know.");
+        }
+
+        if ($key === null || \strlen($key) !== 32) {
+            throw new TcbException(
+                'The file is encrypted and no key, or a key that is not 32 bytes, was given.');
+        }
+
+        // Named rather than left to a fatal on the call: a missing extension is a
+        // deployment fact, and the message has to say which one to turn on.
+        if (!\function_exists('openssl_decrypt')) {
+            throw new TcbException(
+                'The file is encrypted and ext-openssl is not loaded. '
+                . 'Enable `extension=openssl` in php.ini.');
+        }
+
+        // The block counter, four bytes little endian, then the nonce. This format starts
+        // at block zero, so the counter is written out rather than left to a default.
+        $iv = "\x00\x00\x00\x00" . \substr($data, self::NONCE_OFFSET, self::NONCE_SIZE);
+
+        $plain = \openssl_decrypt(
+            \substr($data, self::KEY_CHECK_OFFSET),
+            'chacha20',
+            $key,
+            \OPENSSL_RAW_DATA | \OPENSSL_ZERO_PADDING,
+            $iv);
+
+        if ($plain === false) {
+            throw new TcbException(
+                'The file is encrypted and this build of openssl could not apply chacha20.');
+        }
+
+        if (\substr($plain, 0, 4) !== self::MAGIC) {
+            throw new TcbException(
+                'The file did not decrypt to a table - the key is not the one it was '
+                . 'written with.');
+        }
+
+        // Back to what a plain file holds in the fields the envelope wrote, so that a
+        // second call over what this returns passes it through instead of decrypting it
+        // again.
+        $header = \substr($data, 0, self::KEY_CHECK_OFFSET);
+
+        $header[self::FLAGS_OFFSET] = \chr(
+            \ord($header[self::FLAGS_OFFSET]) & ~self::FLAG_ENCRYPTED);
+
+        $header[self::CIPHER_OFFSET] = \chr(self::CIPHER_NONE);
+
+        for ($at = 0; $at < self::NONCE_SIZE; ++$at) {
+            $header[self::NONCE_OFFSET + $at] = "\0";
+        }
+
+        return $header . $plain;
+    }
+
+    /**
+     * The MAC field against the file's own bytes, and against whether a key was given.
+     *
+     * The tag is HMAC-SHA-256 over every byte but the sixteen it lives in, truncated to
+     * those sixteen. `hash_hmac` is a core function rather than an extension, so unlike the
+     * cipher this needs nothing turned on.
+     *
+     * What it catches is what the structural checks cannot. A block length that does not
+     * add up is a malformed file and the reader says so; four other bytes in an f32 column
+     * is a well-formed file holding a different number, and no check over a file's shape
+     * can tell that from data that was always there.
+     */
+    private static function checkMac(string $data, ?string $macKey): void
+    {
+        // Nothing to check with. A file that carries a tag is read anyway rather than
+        // refused: this reader has no way to tell whether the tag is good, and a client
+        // built before the project turned MACs on is one this format has promised can still
+        // read what it is sent.
+        if ($macKey === null || $macKey === '') {
+            return;
+        }
+
+        if (\strlen($macKey) !== 32) {
+            throw new TcbException('The MAC key given is not 32 bytes.');
+        }
+
+        $carried = \substr($data, self::MAC_OFFSET, self::MAC_SIZE);
+
+        if ($carried === \str_repeat("\0", self::MAC_SIZE)) {
+            throw new TcbException(
+                'The file carries no MAC and this build expects one - it was exported '
+                . 'without a MAC key, or the field was cleared after it was written.');
+        }
+
+        // Two pieces: the sixteen bytes the tag lives in cannot be part of what produces
+        // it. PHP has no incremental HMAC without ext-hash's context API, so the covered
+        // bytes are joined here - one copy of the file, and the only place this runtime
+        // makes one.
+        $covered = \substr($data, 0, self::MAC_OFFSET)
+            . \substr($data, self::KEY_CHECK_OFFSET);
+
+        $expected = \substr(
+            \hash_hmac('sha256', $covered, $macKey, true), 0, self::MAC_SIZE);
+
+        if (!\hash_equals($expected, $carried)) {
+            throw new TcbException(
+                'The file does not match its MAC - it was altered after it was exported, '
+                . 'or it was signed with a different key.');
+        }
+    }
+
+    /**
+     * Advances past bytes without interpreting them: an unknown column whole block.
+     * The column-oriented layout is what makes this one call the entirety of skipping.
+     */
+    public function skip(int $byteCount): void
+    {
+        $remaining = $this->remaining();
+
+        if ($byteCount < 0 || $byteCount > $remaining) {
+            throw new TcbException("Cannot skip {$byteCount} bytes with {$remaining} remaining.");
+        }
+
+        $this->position += $byteCount;
+    }
+
+    // Promotions: a member reading a file element narrower than itself. Only the
+    // mathematically lossless directions exist; checkColumn already refused the rest.
+
+    /** An int member from i32 or varint. */
+    public function readI32As(int $element): int
+    {
+        return $element === self::ELEMENT_I32 ? $this->readInt32() : $this->readCounter32();
+    }
+
+    /** A 64-bit member from i64, i32 or varint. */
+    public function readI64As(int $element): int
+    {
+        if ($element === self::ELEMENT_I64) {
+            return $this->readInt64();
+        }
+
+        return $element === self::ELEMENT_I32 ? $this->readInt32() : $this->readCounter32();
+    }
+
+    /** A float member from f64, f32 or i32 - all exact in a PHP float. */
+    public function readF64As(int $element): float
+    {
+        if ($element === self::ELEMENT_F64) {
+            return $this->readDouble();
+        }
+
+        return $element === self::ELEMENT_F32 ? $this->readFloat() : (float)$this->readInt32();
+    }
+
+    public function position(): int
+    {
+        return $this->position;
+    }
+
+    public function remaining(): int
+    {
+        return $this->length - $this->position;
+    }
+
+    // ------------------------------------------------------------ primitives
+
+    public function readBool(): bool
+    {
+        return $this->readFixed8() !== 0;
+    }
+
+    public function readInt32(): int
+    {
+        $value = $this->readFixed32();
+
+        // unpack('V') is unsigned, and PHP's int is signed, so anything with the
+        // top bit set arrives as a large positive number rather than a negative
+        // one. Folding it back is the whole of the difference.
+        return $value >= 0x80000000 ? $value - 0x100000000 : $value;
+    }
+
+    public function readUint32(): int
+    {
+        return $this->readFixed32();
+    }
+
+    /**
+     * A 64 bit value, assembled from two 32 bit halves.
+     *
+     * Not unpack('P'), which hands back an unsigned interpretation that PHP
+     * cannot hold past 2^63 and silently turns into a float - losing exactly the
+     * precision this format exists to preserve. Not unpack('q') either: that one
+     * is machine byte order and the format is little endian regardless of where
+     * it is read.
+     *
+     * The shift is arithmetic on PHP's signed 64 bit int, so a high half with its
+     * top bit set produces the right negative value without any special case.
+     */
+    public function readInt64(): int
+    {
+        $low = $this->readFixed32();
+        $high = $this->readFixed32();
+
+        if ($high >= 0x80000000) {
+            $high -= 0x100000000;
+        }
+
+        return ($high << 32) | $low;
+    }
+
+    public function readFloat(): float
+    {
+        $bytes = $this->take(4);
+
+        /** @var array{1: float} $parsed */
+        $parsed = \unpack('g', $bytes);
+
+        return $parsed[1];
+    }
+
+    public function readDouble(): float
+    {
+        $bytes = $this->take(8);
+
+        /** @var array{1: float} $parsed */
+        $parsed = \unpack('e', $bytes);
+
+        return $parsed[1];
+    }
+
+    /**
+     * Bytes with no length in front of them: a fixed-width dictionary entry, or the
+     * rest of a front coded one, both of which state their length elsewhere.
+     */
+    /**
+     * An int64 written in as few bytes as its magnitude needed, either sign.
+     *
+     * The base of a bit-packed block, which is a value of the column's own element type -
+     * an i64 column's base does not fit in thirty-two bits. One byte when it is zero.
+     */
+    public function readCounter64(): int
+    {
+        $encoded = 0;
+        $shift = 0;
+
+        while (true) {
+            $piece = $this->readFixed8();
+            $encoded |= ($piece & 0x7F) << $shift;
+
+            if (($piece & 0x80) === 0) {
+                break;
+            }
+
+            $shift += 7;
+
+            if ($shift > 63) {
+                throw new TcbException('A 64-bit variable length integer runs past ten bytes.');
+            }
+        }
+
+        // PHP's int is already 64 bits and signed, so the shift is arithmetic and the
+        // zig-zag undo needs no widening.
+        return ($encoded >> 1) ^ -($encoded & 1);
+    }
+
+    /**
+     * A stream of bytes under one of the integer encodings, which is what a packed block
+     * and a presence bitmap both end in.
+     *
+     * One reader for both, so a bitmap and a packed value block cannot disagree about the
+     * same bits. The count is known before the call in both cases, so nothing here reads a
+     * length.
+     *
+     * @return list<int>
+     */
+    public function readByteStream(int $encoding, int $count, string $fieldName): array
+    {
+        if ($encoding === self::ENCODING_RAW) {
+            $out = [];
+
+            for ($at = 0; $at < $count; $at++) {
+                $out[] = $this->readFixed8();
+            }
+
+            return $out;
+        }
+
+        if ($encoding > self::ENCODING_DELTA_RLE) {
+            throw new TcbException(
+                "{$fieldName}: encoding {$encoding} cannot carry a packed byte stream.");
+        }
+
+        $walking = $encoding === self::ENCODING_DELTA || $encoding === self::ENCODING_DELTA_RLE;
+
+        $out = \array_fill(0, \max($count, 1), 0);
+        $filled = 0;
+        $previous = 0;
+
+        // The first value of a delta stream is written outright; the rest are steps from
+        // it. A run in a delta stream repeats the step, not the value, so it walks.
+        if ($count > 0 && $walking) {
+            $previous = self::asByte($this->readCounter32(), $fieldName);
+            $out[$filled++] = $previous;
+        }
+
+        while ($filled < $count) {
+            $run = 1;
+            $step = 0;
+            $value = 0;
+
+            switch ($encoding) {
+                case self::ENCODING_VARINT:
+                    $value = self::asByte($this->readCounter32(), $fieldName);
+                    break;
+
+                case self::ENCODING_DELTA:
+                    $step = $this->readCounter32();
+                    break;
+
+                case self::ENCODING_RLE:
+                    $run = $this->readCounter32();
+                    $value = self::asByte($this->readCounter32(), $fieldName);
+                    break;
+
+                default: // ENCODING_DELTA_RLE
+                    $run = $this->readCounter32();
+                    $step = $this->readCounter32();
+                    break;
+            }
+
+            if ($run < 1 || $run > $count - $filled) {
+                $left = $count - $filled;
+
+                throw new TcbException(
+                    "{$fieldName}: a run of {$run} cannot cover the {$left} bytes left.");
+            }
+
+            for ($at = 0; $at < $run; $at++) {
+                if ($walking) {
+                    $previous = self::asByte(self::wrapInt32($previous + $step), $fieldName);
+                    $out[$filled++] = $previous;
+                } else {
+                    $out[$filled++] = $value;
+                }
+            }
+        }
+
+        return $count === 0 ? [] : \array_slice($out, 0, $count);
+    }
+
+    /** A decoded value that has to be a byte, or the block is corrupt. */
+    private static function asByte(int $value, string $fieldName): int
+    {
+        if ($value < 0 || $value > 255) {
+            throw new TcbException("{$fieldName}: {$value} is not a byte.");
+        }
+
+        return $value;
+    }
+
+    /** A 32-bit wrapping sum, spelled out because PHP's int is 64 bits wide. */
+    private static function wrapInt32(int $value): int
+    {
+        $value &= 0xFFFFFFFF;
+
+        return $value >= 0x80000000 ? $value - 0x100000000 : $value;
+    }
+
+    public function readBytes(int $count): string
+    {
+        return $this->take($count);
+    }
+
+    /** UTF-8 bytes. A PHP string is a byte string, so nothing is decoded here. */
+    public function readString(): string
+    {
+        $length = $this->readCounter32();
+
+        if ($length < 0) {
+            throw new TcbException("A string length of {$length} is negative.");
+        }
+
+        return $this->take($length);
+    }
+
+    /**
+     * Ticks, for both datetime and timespan.
+     *
+     * Not DateTimeImmutable: a sheet reaches 0001-01-01 and TimeSpan's full
+     * range, PHP's date types carry microseconds rather than ticks, and a value
+     * a caller only passes through should not be rounded on the way past.
+     */
+    public function readDateTimeTicks(): int
+    {
+        return $this->readInt64();
+    }
+
+    public function readTimespanTicks(): int
+    {
+        return $this->readInt64();
+    }
+
+    public function readUuid(): Uuid
+    {
+        return new Uuid($this->take(16));
+    }
+
+    /**
+     * An encoding byte at the head of a block.
+     *
+     * A composed encoding names the one its lengths or its elements travel under, and that
+     * byte sits inside the block rather than in the descriptor - which is what keeps
+     * skipping an unknown column one advance whatever it was encoded as.
+     */
+    public function readEncoding(): int
+    {
+        return $this->readFixed8();
+    }
+
+    /**
+     * A single byte, for the fields a composed block states outright.
+     *
+     * A bit-packed block's width is one of those - a number rather than an encoding, so
+     * it does not go through readEncoding.
+     */
+    public function readByte(): int
+    {
+        return $this->readFixed8();
+    }
+
+    /** An enum's underlying value, which travels zig-zag encoded. */
+    public function readEnum(): int
+    {
+        return $this->readCounter32();
+    }
+
+    /** The element count in front of a variable length array. */
+    public function readCounter32(): int
+    {
+        $encoded = $this->readVarint32();
+
+        // Zig-zag: the sign is in the low bit. The mask keeps the shift inside
+        // 32 bits, since PHP's int is wider than the value being decoded.
+        $value = (($encoded >> 1) ^ -($encoded & 1)) & 0xFFFFFFFF;
+
+        return $value >= 0x80000000 ? $value - 0x100000000 : $value;
+    }
+
+    // --------------------------------------------------------------- header
+
+    /**
+     * Reads and checks the file header, returning the row count that follows it.
+     *
+     * The reserved byte is written as zero and is where compression or
+     * encryption flags would go; a non-zero value means the file needs handling
+     * this build does not have.
+     */
+    /**
+     * Reads and checks a table file header.
+     *
+     * Returns [rowCount, columns]: the column descriptors the data blocks follow, each
+     * an array with tag, element, kind, count and byteLength keys.
+     */
+    public function readTableHeader(): array
+    {
+        // Checked again here rather than only in open(), because a reader can be handed
+        // bytes that never went through it.
+        if ($this->readFixed32() !== \unpack('V', self::MAGIC)[1]) {
+            throw new TcbException('The file does not begin with the table file signature.');
+        }
+
+        $version = $this->readFixed32();
+
+        if ($version !== self::FILE_FORMAT_VERSION) {
+            throw new TcbException(
+                "Table format version {$version} is not supported (expected "
+                . self::FILE_FORMAT_VERSION . ').'
+            );
+        }
+
+        $flags = $this->readFixed8();
+
+        // Still every bit, bit 0 included. open() clears it on a file it has decrypted, so
+        // reaching here with it set means the bytes were handed straight to the reader
+        // without the key - and saying so beats letting the structural checks make what
+        // they can of ciphertext.
+        if (($flags & self::FLAG_ENCRYPTED) !== 0) {
+            throw new TcbException(
+                'The table is encrypted and was not decrypted - pass the key through open() '
+                . 'first.');
+        }
+
+        if ($flags !== 0) {
+            throw new TcbException('The table declares unsupported features.');
+        }
+
+        // The cipher byte, the nonce, the MAC and the key check. open() has dealt with all
+        // four by now; what is left is to be standing at the body.
+        $this->skip(self::HEADER_SIZE - self::CIPHER_OFFSET);
+
+        $rowCount = $this->readCounter32();
+
+        if ($rowCount < 0) {
+            throw new TcbException("The table row count {$rowCount} is negative.");
+        }
+
+        $columnCount = $this->readCounter32();
+
+        if ($columnCount < 0) {
+            throw new TcbException("The table column count {$columnCount} is negative.");
+        }
+
+        $columns = [];
+
+        for ($at = 0; $at < $columnCount; $at++) {
+            $tag = $this->readCounter32();
+            $wire = $this->readFixed8();
+            $encoding = $this->readFixed8();
+            $count = $this->readCounter32();
+            $byteLength = $this->readFixed32();
+
+            $columns[] = [
+                'tag' => $tag,
+                'element' => $wire & 0x0F,
+                'kind' => ($wire >> 4) & 0x03,
+
+                // Whether the block begins with one presence bit per row, low bit first.
+                // Part of the column's shape rather than a detail of its contents: a reader
+                // that does not expect the bitmap reads it as values, so checkColumn refuses
+                // a disagreement the same way it refuses a changed kind.
+                'nullable' => ($wire & 0x40) !== 0,
+
+                'encoding' => $encoding,
+                'count' => $count,
+                'byteLength' => $byteLength,
+            ];
+        }
+
+        // What the descriptors say about the file, checked before anybody allocates for the
+        // row count. The blocks are all that follows the header, so their declared lengths have
+        // to add up to the bytes left. A raw block also costs at least one byte per row - a
+        // varint's shortest form, an empty string's length prefix, a variable array's counter -
+        // so a larger row count is one the exporter could not have written. An encoded block
+        // has no such floor; its decode checks run sums and dictionary bounds instead.
+
+        $available = $this->remaining();
+        $declared = 0;
+
+        foreach ($columns as $column) {
+            if ($column['byteLength'] < 0 || $column['byteLength'] > $available - $declared) {
+                throw new TcbException(
+                    "Column tag {$column['tag']} declares {$column['byteLength']} bytes, which " .
+                    'the file cannot hold.');
+            }
+
+            $declared += $column['byteLength'];
+
+            if ($column['encoding'] === self::ENCODING_RAW && $rowCount > $column['byteLength']) {
+                throw new TcbException(
+                    "The row count {$rowCount} is larger than column tag {$column['tag']} can " .
+                    "hold in its {$column['byteLength']} bytes.");
+            }
+        }
+
+        if ($declared !== $available) {
+            throw new TcbException(
+                "The columns declare {$declared} bytes but {$available} follow the header.");
+        }
+
+        return [$rowCount, $columns];
+    }
+
+    /**
+     * A nullable column's presence bitmap, which sits at the front of its block.
+     *
+     * Empty for a column that is not optional, which is what lets the generated code call
+     * `isPresent` without testing first.
+     *
+     * @return list<int>
+     */
+    public function readPresence(array $column, int $rowCount): array
+    {
+        if (!$column['nullable']) {
+            return [];
+        }
+
+        // The bitmap is a bit-packed boolean column of width one, so it carries an
+        // encoding byte and is laid out by the same choice a packed value block uses. Its
+        // width and base are known in advance, which is why it does not carry them.
+        $encoding = $this->readFixed8();
+
+        return $this->readByteStream(
+            $encoding, \intdiv($rowCount + 7, 8), 'a presence bitmap');
+    }
+
+    /**
+     * Whether a row has a value, for a column that says which do.
+     *
+     * An empty bitmap means the column is not optional, and then every row has one.
+     *
+     * @param list<int> $presence
+     */
+    public static function isPresent(array $presence, int $row): bool
+    {
+        return $presence === [] || ($presence[$row >> 3] & (1 << ($row & 7))) !== 0;
+    }
+
+    /**
+     * That a column is what the generated member expects, or a lossless promotion of it.
+     * Refusal is by name and both types, never by reading anyway.
+     */
+    public static function checkColumn(array $column, string $fieldName, int $kind, int $count, bool $nullable, array $accepted): void
+    {
+        // Nullability is part of the shape: a file that says optional puts a presence bitmap
+        // in front of the block, and code not expecting one would read the bitmap as values.
+        // So adding or removing a `?` is a schema change like any other, caught here rather
+        // than in whatever the misread bytes happened to mean.
+        if ($column['nullable'] !== $nullable) {
+            throw new TcbException(
+                "{$fieldName}: the file and the generated member disagree about whether this "
+                . 'column is optional. The schema changed; regenerate the code or rebuild the '
+                . 'data.');
+        }
+
+        if ($column['kind'] !== $kind || ($kind !== self::KIND_VAR_ARRAY && $column['count'] !== $count)) {
+            throw new TcbException(
+                "{$fieldName}: the file column (kind {$column['kind']}, count {$column['count']}) "
+                . "does not match the generated member (kind {$kind}, count {$count}). The schema "
+                . 'changed shape; regenerate the code or rebuild the data.'
+            );
+        }
+
+        // An encoding this build cannot decode - or one the spec does not define for
+        // this element - is refused by name, exactly like an element it cannot read. An
+        // unknown column's encoding never gets here - a skip is a skip whatever the
+        // block's layout.
+        if (!self::encodingSupported($column)) {
+            throw new TcbException(
+                "{$fieldName}: the file's column uses encoding {$column['encoding']}, which "
+                . 'this reader cannot decode for its element type. Regenerate the code or '
+                . 'rebuild the data.');
+        }
+
+        if (!\in_array($column['element'], $accepted, true)) {
+            throw new TcbException(
+                "{$fieldName}: the file carries element type {$column['element']}, which this "
+                . 'member cannot read. The column changed type incompatibly; regenerate the code '
+                . 'or rebuild the data.'
+            );
+        }
+    }
+
+    /**
+     * The (element, encoding) pairs the spec defines. Integers take the integer encodings,
+     * strings the dictionary ones, and an array takes the composition that applies all of
+     * those to its elements.
+     */
+    private static function encodingSupported(array $column): bool
+    {
+        if ($column['encoding'] === self::ENCODING_RAW) {
+            return true;
+        }
+
+        // An array's block says what its elements use, and that inner encoding is checked
+        // as it is read rather than here - the descriptor carries only the outer one, so
+        // this is as far as the descriptor can be checked.
+        if ($column['kind'] !== self::KIND_SCALAR) {
+            return $column['encoding'] === self::ENCODING_ARRAY;
+        }
+
+        return match ($column['element']) {
+            self::ELEMENT_BOOL, self::ELEMENT_VARINT
+                => $column['encoding'] === self::ENCODING_RLE
+                    || $column['encoding'] === self::ENCODING_BITPACK,
+
+            self::ELEMENT_I32 => ($column['encoding'] >= self::ENCODING_VARINT
+                    && $column['encoding'] <= self::ENCODING_DELTA_RLE)
+                || $column['encoding'] === self::ENCODING_BITPACK,
+
+            // The dictionary is parameterized by element, so this reaches it with entries
+            // that are simply their own raw bytes.
+            self::ELEMENT_I64 => $column['encoding'] === self::ENCODING_DICT
+                || $column['encoding'] === self::ENCODING_DICT_RLE
+                || $column['encoding'] === self::ENCODING_BITPACK,
+
+            // A float column additionally reaches the integer encodings, through the block
+            // that says its values are whole numbers.
+            self::ELEMENT_F32, self::ELEMENT_F64
+                => $column['encoding'] === self::ENCODING_DICT
+                    || $column['encoding'] === self::ENCODING_DICT_RLE
+                    || $column['encoding'] === self::ENCODING_WHOLE,
+
+            // And a string dictionary can be front coded or built from segments, both of
+            // which are meaningless for a fixed-width element and refused for one.
+            self::ELEMENT_STRING => ($column['encoding'] >= self::ENCODING_DICT
+                    && $column['encoding'] <= self::ENCODING_DICT_FRONT_RLE)
+                || $column['encoding'] === self::ENCODING_DICT_SEGMENT
+                || $column['encoding'] === self::ENCODING_DICT_SEGMENT_RLE,
+
+            default => false,
+        };
+    }
+
+    /**
+     * That a block was consumed exactly: a mismatch is a format disagreement, and stopping
+     * here names the column instead of corrupting the next.
+     */
+    public function checkBlockEnd(array $column, int $expectedEnd): void
+    {
+        if ($this->position !== $expectedEnd) {
+            $short = $expectedEnd - $this->position;
+            throw new TcbException(
+                "Column tag {$column['tag']}: its block declared {$column['byteLength']} bytes "
+                . "but the read ended {$short} bytes short of its boundary."
+            );
+        }
+    }
+
+    // ---------------------------------------------------------------- inner
+
+    private function take(int $count): string
+    {
+        if ($count < 0 || $this->remaining() < $count) {
+            throw new TcbException(
+                "Table data ended after {$this->position} of {$this->length} bytes "
+                . "while {$count} more were expected."
+            );
+        }
+
+        $slice = \substr($this->data, $this->position, $count);
+
+        $this->position += $count;
+
+        return $slice;
+    }
+
+    private function readFixed8(): int
+    {
+        return \ord($this->take(1));
+    }
+
+    private function readFixed32(): int
+    {
+        /** @var array{1: int} $parsed */
+        $parsed = \unpack('V', $this->take(4));
+
+        return $parsed[1];
+    }
+
+    private function readVarint32(): int
+    {
+        $value = 0;
+
+        for ($shift = 0; $shift < 35; $shift += 7) {
+            $byte = $this->readFixed8();
+
+            $value |= ($byte & 0x7F) << $shift;
+
+            if (($byte & 0x80) === 0) {
+                return $value & 0xFFFFFFFF;
+            }
+        }
+
+        throw new TcbException('A varint32 is longer than five bytes.');
+    }
+}
+
+/**
+ * Reads one scalar column's values in row order, whatever the block's encoding.
+ *
+ * The generated row loop stays a row loop; this is the one place that knows how a
+ * delta accumulates, how long a run has left, or that a dictionary index is a
+ * reference into strings decoded once. That last one matters beyond file size: a
+ * hundred-thousand-row column with three distinct strings decodes three strings,
+ * and copy-on-write hands them out per row without copying a byte.
+ *
+ * checkColumn has already refused any (element, encoding) pair the spec does not
+ * define, so the branches here do not re-litigate that.
+ */
+final class TcbColumnCursor
+{
+    private readonly int $element;
+
+    /**
+     * The block's layout.
+     *
+     * Not readonly, because a composed encoding is unwrapped in the constructor and what
+     * is left is what the row-by-row reads below dispatch on: an array block becomes its
+     * element encoding, a whole-number block becomes the integer encoding its values
+     * travel under, and a segment dictionary becomes the plain dictionary it decoded to.
+     */
+    private int $encoding;
+
+    /**
+     * The block's string dictionary, decoded once and handed out per row.
+     *
+     * Filled for a string element - plain, front coded or built from segments - and empty
+     * otherwise.
+     *
+     * @var list<string>
+     */
+    private array $dictionary = [];
+
+    /**
+     * The block's dictionary for a fixed-width element, kept as the entries' own raw
+     * bytes and turned into values only when a row asks - which is what guarantees the
+     * value is reconstructed exactly as the raw layout would have read it.
+     *
+     * @var list<string>
+     */
+    private array $valueDictionary = [];
+
+    /**
+     * How wide those entries are: 4 for f32, 8 for i64 and f64, and zero when the block
+     * has no fixed-width dictionary at all - which is what the reads below ask.
+     */
+    private int $valueWidth = 0;
+
+    /**
+     * How many elements each row holds, decoded up front for an encoded array column.
+     *
+     * Up front because the element stream follows the length stream in the block, so every
+     * length has been read by the time the first element is. Null for a raw array, whose
+     * lengths are interleaved with its elements and read as they are reached.
+     *
+     * @var list<int>|null
+     */
+    private ?array $lengths = null;
+
+    private int $lengthAt = 0;
+
+    /** Whether a float column's values are travelling as integers. */
+    private bool $wholeNumbers = false;
+
+    /**
+     * A bit-packed column's bytes, decoded up front, and where in them the next value is.
+     *
+     * Up front because the bytes are themselves under an encoding and a value can cross a
+     * byte boundary, so handing values out one at a time would mean carrying a decoder and
+     * a bit offset that disagree about where they are.
+     *
+     * @var list<int>
+     */
+    private array $packed = [];
+    private int $packedWidth = 0;
+    private int $packedBase = 0;
+    private int $packedBit = 0;
+
+    // A run-length family's current run: what remains of it, and its value - which is
+    // a plain value for RLE, a delta for DELTA_RLE, an index for DICT_RLE.
+    private int $runRemaining = 0;
+    private int $runValue = 0;
+
+    // The delta family's accumulator, once $started.
+    private int $previous = 0;
+    private bool $started = false;
+
+    // Rows not yet handed out. A run that claims more than this is corrupt, and
+    // catching it here names the field instead of leaving it to the block-end check.
+    private int $rowsRemaining;
+
+    public function __construct(
+        private readonly TcbReader $reader,
+        array $column,
+        int $rowCount,
+        private readonly string $fieldName
+    ) {
+        $this->element = $column['element'];
+        $this->encoding = $column['encoding'];
+        $this->rowsRemaining = $rowCount;
+
+        // An array column's block names an encoding for its elements and, where its rows
+        // differ in length, one for the lengths. Both are encodings that already exist, so
+        // all this does is read them and then go on being the element stream's cursor.
+        if ($this->encoding === TcbReader::ENCODING_ARRAY) {
+            $this->encoding = $reader->readEncoding();
+
+            if ($column['kind'] === TcbReader::KIND_VAR_ARRAY) {
+                $lengthEncoding = $reader->readEncoding();
+                $this->lengths = self::readLengths($reader, $lengthEncoding, $rowCount, $fieldName);
+
+                // What the cursor now has left to hand out is elements, not rows.
+                $this->rowsRemaining = \array_sum($this->lengths);
+            } else {
+                $this->rowsRemaining = $rowCount * $column['count'];
+            }
+        }
+
+        // A bit-packed column states the width its range needs, the base subtracted from
+        // every value, and which encoding carries the packed bytes. Decoded here so that
+        // handing values out is a shift and an add.
+        if ($this->encoding === TcbReader::ENCODING_BITPACK) {
+            $width = $reader->readByte();
+            $base = $reader->readCounter64();
+            $inner = $reader->readEncoding();
+
+            if ($width < 1 || $width > 64) {
+                throw new TcbException(
+                    "{$fieldName}: a bit width of {$width} is not between 1 and 64.");
+            }
+
+            $this->packedWidth = $width;
+            $this->packedBase = $base;
+            $this->packed = $reader->readByteStream(
+                $inner, \intdiv($this->rowsRemaining * $width + 7, 8), $fieldName);
+
+            return;
+        }
+
+        // A float column whose values are all whole numbers carries them as integers and
+        // says which integer encoding they travel under. From here down it is that
+        // encoding's cursor, and only the handing out converts back.
+        if ($this->encoding === TcbReader::ENCODING_WHOLE) {
+            $inner = $reader->readEncoding();
+
+            if ($inner < TcbReader::ENCODING_VARINT || $inner > TcbReader::ENCODING_DELTA_RLE) {
+                throw new TcbException(
+                    "{$fieldName}: encoding {$inner} cannot carry a whole-number column's values.");
+            }
+
+            $this->encoding = $inner;
+            $this->wholeNumbers = true;
+        }
+
+        // A segment dictionary is built once, here, and from then on the block is a
+        // dictionary with an index stream like any other - so the row-by-row paths below
+        // need to know nothing about it.
+        if ($this->encoding === TcbReader::ENCODING_DICT_SEGMENT
+            || $this->encoding === TcbReader::ENCODING_DICT_SEGMENT_RLE) {
+            $this->dictionary = self::readSegmentDictionary($reader, $fieldName);
+
+            $this->encoding = $this->encoding === TcbReader::ENCODING_DICT_SEGMENT
+                ? TcbReader::ENCODING_DICT
+                : TcbReader::ENCODING_DICT_RLE;
+
+            return;
+        }
+
+        $plainDictionary = $this->encoding === TcbReader::ENCODING_DICT
+            || $this->encoding === TcbReader::ENCODING_DICT_RLE;
+
+        $frontDictionary = $this->encoding === TcbReader::ENCODING_DICT_FRONT
+            || $this->encoding === TcbReader::ENCODING_DICT_FRONT_RLE;
+
+        if (!$plainDictionary && !$frontDictionary) {
+            return;
+        }
+
+        $count = $reader->readCounter32();
+
+        if ($count < 0) {
+            throw new TcbException("{$fieldName}: the dictionary entry count is negative.");
+        }
+
+        if ($frontDictionary) {
+            $this->dictionary = self::readFrontCodedDictionary($reader, $count, $fieldName);
+
+            return;
+        }
+
+        if ($this->element === TcbReader::ELEMENT_STRING) {
+            for ($at = 0; $at < $count; $at++) {
+                $this->dictionary[] = $reader->readString();
+            }
+
+            return;
+        }
+
+        // A fixed-width element: the entries are the value's own bytes, so they are taken
+        // as bytes and turned into values only when a row asks.
+        $this->valueWidth = $this->element === TcbReader::ELEMENT_F32 ? 4 : 8;
+
+        for ($at = 0; $at < $count; $at++) {
+            $this->valueDictionary[] = $reader->readBytes($this->valueWidth);
+        }
+    }
+
+    /**
+     * How many elements the next row of an array column holds.
+     *
+     * One call whichever way the block is laid out. An encoded array decoded every length
+     * before the first element was read, so this hands out what it already has; a raw one
+     * states each row's length in front of that row's elements, so this reads it where it
+     * stands.
+     */
+    public function nextLength(): int
+    {
+        if ($this->lengths !== null) {
+            if ($this->lengthAt >= \count($this->lengths)) {
+                throw new TcbException("{$this->fieldName}: the column has no more rows to read.");
+            }
+
+            return $this->lengths[$this->lengthAt++];
+        }
+
+        $length = $this->reader->readCounter32();
+
+        if ($length < 0) {
+            throw new TcbException("{$this->fieldName}: a row declares {$length} elements.");
+        }
+
+        return $length;
+    }
+
+    /**
+     * The lengths of an array column's rows, as their own encoded stream.
+     *
+     * A varint stream, so what may be chosen for it is what may be chosen for any varint
+     * column - each length as a counter32, or runs of them. Most columns have rows that are
+     * all the same length, which is one run.
+     *
+     * @return list<int>
+     */
+    private static function readLengths(
+        TcbReader $reader,
+        int $encoding,
+        int $rowCount,
+        string $fieldName
+    ): array {
+        $lengths = [];
+
+        if ($encoding === TcbReader::ENCODING_RAW) {
+            for ($at = 0; $at < $rowCount; $at++) {
+                $length = $reader->readCounter32();
+
+                if ($length < 0) {
+                    throw new TcbException("{$fieldName}: row {$at} declares {$length} elements.");
+                }
+
+                $lengths[] = $length;
+            }
+
+            return $lengths;
+        }
+
+        if ($encoding !== TcbReader::ENCODING_RLE) {
+            throw new TcbException(
+                "{$fieldName}: encoding {$encoding} cannot carry an array column's row lengths.");
+        }
+
+        $filled = 0;
+
+        while ($filled < $rowCount) {
+            $run = $reader->readCounter32();
+            $value = $reader->readCounter32();
+
+            if ($run < 1 || $run > $rowCount - $filled) {
+                $left = $rowCount - $filled;
+
+                throw new TcbException(
+                    "{$fieldName}: a run of {$run} lengths cannot cover the {$left} rows left "
+                    . 'in the column.');
+            }
+
+            if ($value < 0) {
+                throw new TcbException("{$fieldName}: a row declares {$value} elements.");
+            }
+
+            for ($at = 0; $at < $run; $at++) {
+                $lengths[] = $value;
+                $filled++;
+            }
+        }
+
+        return $lengths;
+    }
+
+    /**
+     * A dictionary whose entries are lists of references into a table of the pieces they
+     * are built from.
+     *
+     * Two reads and a concatenation: the table, which is front coded because its own
+     * entries share their fronts, and then each value as the pieces it is made of. The
+     * result is the same array of whole strings every other dictionary produces, so nothing
+     * downstream of here knows which kind it came from.
+     *
+     * @return list<string>
+     */
+    private static function readSegmentDictionary(TcbReader $reader, string $fieldName): array
+    {
+        $segmentCount = $reader->readCounter32();
+
+        if ($segmentCount < 0) {
+            throw new TcbException("{$fieldName}: the segment count is negative.");
+        }
+
+        if ($segmentCount > $reader->remaining()) {
+            throw new TcbException(
+                "{$fieldName}: a segment table of {$segmentCount} entries is larger than the "
+                . 'file can hold.');
+        }
+
+        $segments = [];
+        $previous = '';
+
+        for ($at = 0; $at < $segmentCount; $at++) {
+            $shared = $reader->readCounter32();
+            $rest = $reader->readCounter32();
+
+            if ($shared < 0 || $rest < 0 || $shared > \strlen($previous)) {
+                $previousLength = \strlen($previous);
+
+                throw new TcbException(
+                    "{$fieldName}: segment {$at} shares {$shared} bytes with an entry of "
+                    . "{$previousLength}.");
+            }
+
+            $previous = \substr($previous, 0, $shared) . $reader->readBytes($rest);
+            $segments[] = $previous;
+        }
+
+        $count = $reader->readCounter32();
+
+        if ($count < 0) {
+            throw new TcbException("{$fieldName}: the dictionary entry count is negative.");
+        }
+
+        if ($count > $reader->remaining()) {
+            throw new TcbException(
+                "{$fieldName}: a dictionary of {$count} entries is larger than the file can hold.");
+        }
+
+        $entries = [];
+
+        for ($at = 0; $at < $count; $at++) {
+            $pieces = $reader->readCounter32();
+
+            if ($pieces < 0) {
+                throw new TcbException(
+                    "{$fieldName}: dictionary entry {$at} declares {$pieces} pieces.");
+            }
+
+            $value = '';
+
+            for ($piece = 0; $piece < $pieces; $piece++) {
+                $index = $reader->readCounter32();
+
+                if ($index < 0 || $index >= $segmentCount) {
+                    throw new TcbException(
+                        "{$fieldName}: segment index {$index} is out of range - the table holds "
+                        . "{$segmentCount} entries.");
+                }
+
+                $value .= $segments[$index];
+            }
+
+            $entries[] = $value;
+        }
+
+        return $entries;
+    }
+
+    /**
+     * A sorted dictionary whose entries state only what they do not share with the entry
+     * before them.
+     *
+     * Decoded into whole strings here rather than kept folded, because a row wants a
+     * string and the folding was only ever about the bytes on disk.
+     *
+     * @return list<string>
+     */
+    private static function readFrontCodedDictionary(
+        TcbReader $reader,
+        int $count,
+        string $fieldName
+    ): array {
+        $entries = [];
+        $previous = '';
+
+        for ($at = 0; $at < $count; $at++) {
+            $shared = $reader->readCounter32();
+            $rest = $reader->readCounter32();
+
+            if ($shared < 0 || $rest < 0 || $shared > \strlen($previous)) {
+                $previousLength = \strlen($previous);
+
+                throw new TcbException(
+                    "{$fieldName}: dictionary entry {$at} shares {$shared} bytes with an "
+                    . "entry of {$previousLength}.");
+            }
+
+            $previous = \substr($previous, 0, $shared) . $reader->readBytes($rest);
+            $entries[] = $previous;
+        }
+
+        return $entries;
+    }
+
+    /** The next int32 - which also serves enums, and reference indexes. */
+    /**
+     * The next value of a bit-packed stream: the packed bits, over the block's base.
+     *
+     * A value may cross a byte boundary, so this walks bits rather than bytes. PHP's int
+     * is 64 bits and wraps on overflow, which is the arithmetic the format asks for.
+     */
+    private function nextPacked(): int
+    {
+        $slot = 0;
+
+        for ($at = 0; $at < $this->packedWidth; $at++, $this->packedBit++) {
+            if (($this->packed[$this->packedBit >> 3] >> ($this->packedBit & 7) & 1) !== 0) {
+                $slot |= 1 << $at;
+            }
+        }
+
+        return $this->packedBase + $slot;
+    }
+
+    public function nextI32(): int
+    {
+        $this->rowsRemaining--;
+
+        if ($this->encoding === TcbReader::ENCODING_BITPACK) {
+            $value = $this->nextPacked() & 0xFFFFFFFF;
+
+            return $value >= 0x80000000 ? $value - 0x100000000 : $value;
+        }
+
+        switch ($this->encoding) {
+            case TcbReader::ENCODING_RAW:
+                return $this->element === TcbReader::ELEMENT_I32
+                    ? $this->reader->readInt32()
+                    : $this->reader->readCounter32();
+
+            case TcbReader::ENCODING_VARINT:
+                return $this->reader->readCounter32();
+
+            case TcbReader::ENCODING_DELTA:
+                // The addition wraps on purpose, mirroring the writer's wrapping
+                // subtraction; together they are exact for every int32 pair. PHP's
+                // int is 64 bits, so the wrap is spelled out by wrap32.
+                if ($this->started) {
+                    $this->previous = self::wrap32($this->previous + $this->reader->readCounter32());
+                } else {
+                    $this->previous = $this->reader->readCounter32();
+                    $this->started = true;
+                }
+
+                return $this->previous;
+
+            case TcbReader::ENCODING_RLE:
+                if ($this->runRemaining === 0) {
+                    $this->readRun();
+                }
+
+                $this->runRemaining--;
+
+                return $this->runValue;
+
+            default: // ENCODING_DELTA_RLE; checkColumn refused everything else.
+                if (!$this->started) {
+                    $this->previous = $this->reader->readCounter32();
+                    $this->started = true;
+
+                    return $this->previous;
+                }
+
+                if ($this->runRemaining === 0) {
+                    $this->readRun();
+                }
+
+                $this->runRemaining--;
+                $this->previous = self::wrap32($this->previous + $this->runValue);
+
+                return $this->previous;
+        }
+    }
+
+    /**
+     * An int64 member: from an i64 column raw or through its dictionary, and from
+     * anything narrower by decoding an int32 and widening it.
+     */
+    public function nextI64(): int
+    {
+        if ($this->element !== TcbReader::ELEMENT_I64) {
+            return $this->nextI32();
+        }
+
+        if ($this->encoding === TcbReader::ENCODING_BITPACK) {
+            $this->rowsRemaining--;
+
+            return $this->nextPacked();
+        }
+
+        if ($this->valueWidth !== 0) {
+            return self::int64FromBytes($this->nextValueEntry());
+        }
+
+        $this->rowsRemaining--;
+
+        return $this->reader->readInt64();
+    }
+
+    /** A float member: raw, the dictionary entry's exact bit pattern, or a whole number. */
+    public function nextF32(): float
+    {
+        if ($this->wholeNumbers) {
+            return (float)$this->nextI32();
+        }
+
+        if ($this->valueWidth !== 0) {
+            /** @var array{1: float} $parsed */
+            $parsed = \unpack('g', $this->nextValueEntry());
+
+            return $parsed[1];
+        }
+
+        $this->rowsRemaining--;
+
+        return $this->reader->readFloat();
+    }
+
+    /**
+     * A double member: from f64 or f32 - either of them raw or dictionary-encoded - and
+     * from an i32 column by decoding and widening.
+     */
+    public function nextF64(): float
+    {
+        if ($this->wholeNumbers) {
+            return (float)$this->nextI32();
+        }
+
+        if ($this->element === TcbReader::ELEMENT_F64) {
+            if ($this->valueWidth !== 0) {
+                /** @var array{1: float} $parsed */
+                $parsed = \unpack('e', $this->nextValueEntry());
+
+                return $parsed[1];
+            }
+
+            $this->rowsRemaining--;
+
+            return $this->reader->readDouble();
+        }
+
+        if ($this->element === TcbReader::ELEMENT_F32) {
+            return $this->nextF32();
+        }
+
+        return (float)$this->nextI32();
+    }
+
+    /** A bool member: one byte raw, or a run of them. */
+    public function nextBool(): bool
+    {
+        if ($this->encoding === TcbReader::ENCODING_RLE
+            || $this->encoding === TcbReader::ENCODING_BITPACK
+        ) {
+            return $this->nextI32() !== 0;
+        }
+
+        $this->rowsRemaining--;
+
+        return $this->reader->readBool();
+    }
+
+    /** The bytes of the next row's dictionary entry, for a fixed-width element. */
+    private function nextValueEntry(): string
+    {
+        $this->rowsRemaining--;
+
+        if ($this->encoding === TcbReader::ENCODING_DICT) {
+            $index = $this->reader->readCounter32();
+        } else {
+            if ($this->runRemaining === 0) {
+                $this->readRun();
+            }
+
+            $this->runRemaining--;
+            $index = $this->runValue;
+        }
+
+        if ($index < 0 || $index >= \count($this->valueDictionary)) {
+            $held = \count($this->valueDictionary);
+
+            throw new TcbException(
+                "{$this->fieldName}: dictionary index {$index} is out of range - the "
+                . "dictionary holds {$held} entries.");
+        }
+
+        return $this->valueDictionary[$index];
+    }
+
+    /** The next string - the dictionary's instance where the block has one. */
+    public function nextString(): string
+    {
+        $this->rowsRemaining--;
+
+        switch ($this->encoding) {
+            case TcbReader::ENCODING_RAW:
+                return $this->reader->readString();
+
+            case TcbReader::ENCODING_DICT:
+            case TcbReader::ENCODING_DICT_FRONT:
+                return $this->dictionaryEntry($this->reader->readCounter32());
+
+            default: // ENCODING_DICT_RLE and ENCODING_DICT_FRONT_RLE
+                if ($this->runRemaining === 0) {
+                    $this->readRun();
+                }
+
+                $this->runRemaining--;
+
+                return $this->dictionaryEntry($this->runValue);
+        }
+    }
+
+    /**
+     * Up to $limit rows that all hold the next value, as [count, value]. The count is
+     * always at least 1.
+     *
+     * This is what makes a run cost one call instead of one per row: the generated loop
+     * asks once, then assigns the value that many times. An encoding that cannot promise
+     * sameness cheaply answers 1, so the caller's loop is correct over every encoding and
+     * only faster over runs.
+     *
+     * @return array{0: int, 1: int}
+     */
+    public function nextSameI32(int $limit): array
+    {
+        if ($this->encoding === TcbReader::ENCODING_RLE) {
+            $this->rowsRemaining--;
+            if ($this->runRemaining === 0) {
+                $this->readRun();
+            }
+
+            $n = $this->runRemaining < $limit ? $this->runRemaining : $limit;
+            $this->runRemaining -= $n;
+            $this->rowsRemaining -= $n - 1;
+
+            return [$n, $this->runValue];
+        }
+
+        if ($this->encoding === TcbReader::ENCODING_DELTA_RLE && $this->started) {
+            $this->rowsRemaining--;
+            if ($this->runRemaining === 0) {
+                $this->readRun();
+            }
+
+            if ($this->runValue === 0) {
+                // A zero-delta run is a run of one value.
+                $n = $this->runRemaining < $limit ? $this->runRemaining : $limit;
+                $this->runRemaining -= $n;
+                $this->rowsRemaining -= $n - 1;
+
+                return [$n, $this->previous];
+            }
+
+            $this->runRemaining--;
+            $this->previous = self::wrap32($this->previous + $this->runValue);
+
+            return [1, $this->previous];
+        }
+
+        return [1, $this->nextI32()];
+    }
+
+    /**
+     * The string counterpart of nextSameI32().
+     *
+     * @return array{0: int, 1: string}
+     */
+    public function nextSameString(int $limit): array
+    {
+        if ($this->encoding === TcbReader::ENCODING_DICT_RLE
+            || $this->encoding === TcbReader::ENCODING_DICT_FRONT_RLE) {
+            $this->rowsRemaining--;
+            if ($this->runRemaining === 0) {
+                $this->readRun();
+            }
+
+            $n = $this->runRemaining < $limit ? $this->runRemaining : $limit;
+            $this->runRemaining -= $n;
+            $this->rowsRemaining -= $n - 1;
+
+            return [$n, $this->dictionaryEntry($this->runValue)];
+        }
+
+        return [1, $this->nextString()];
+    }
+
+    private function readRun(): void
+    {
+        $length = $this->reader->readCounter32();
+
+        // + 1 because the row this run was read for is already counted out of
+        // $rowsRemaining by its next* call.
+        if ($length < 1 || $length > $this->rowsRemaining + 1) {
+            $rows = $this->rowsRemaining + 1;
+
+            throw new TcbException(
+                "{$this->fieldName}: a run of {$length} values cannot cover the "
+                . "{$rows} rows left in the column.");
+        }
+
+        $this->runRemaining = $length;
+        $this->runValue = $this->reader->readCounter32();
+    }
+
+    private function dictionaryEntry(int $index): string
+    {
+        if ($index < 0 || $index >= \count($this->dictionary)) {
+            $held = \count($this->dictionary);
+
+            throw new TcbException(
+                "{$this->fieldName}: dictionary index {$index} is out of range - the "
+                . "dictionary holds {$held} entries.");
+        }
+
+        return $this->dictionary[$index];
+    }
+
+    /**
+     * A dictionary entry's eight bytes as a 64 bit value.
+     *
+     * Assembled from two 32 bit halves for the reason TcbReader::readInt64 gives: 'P'
+     * is unsigned and turns into a float past 2^63, and 'q' is machine byte order
+     * where the format is little endian wherever it is read.
+     */
+    private static function int64FromBytes(string $bytes): int
+    {
+        /** @var array{1: int, 2: int} $parsed */
+        $parsed = \unpack('V2', $bytes);
+
+        $low = $parsed[1];
+        $high = $parsed[2];
+
+        if ($high >= 0x80000000) {
+            $high -= 0x100000000;
+        }
+
+        return ($high << 32) | $low;
+    }
+
+    /**
+     * A sum folded back into int32: the low 32 bits, sign extended - the same
+     * normalization readCounter32 applies, spelled out because PHP's int is wider
+     * than the value wrapping.
+     */
+    private static function wrap32(int $value): int
+    {
+        $value &= 0xFFFFFFFF;
+
+        return $value >= 0x80000000 ? $value - 0x100000000 : $value;
+    }
+}

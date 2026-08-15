@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 250" width="440" height="250"
+     role="img" aria-label="행 지향에서는 한 컬럼의 값이 행마다 흩어져 있고, 컬럼 지향에서는 한 블록으로 모여 있어 블록 길이만큼 건너뛰면 됩니다">
+  <title>행 지향과 컬럼 지향</title>
+  <desc>행 지향에서는 건너뛸 컬럼의 값이 행마다 흩어져 있어 행마다 해석해야 하지만, 컬럼 지향에서는 한 블록에 모여 있어 헤더의 블록 길이만큼 한 번에 건너뛸 수 있습니다.</desc>
+
+  <style>
+    /*
+      The one idea the format is built on, and the one that a byte dump cannot show:
+      the same nine values, laid out two ways. Colours are GitHub's own, with a dark
+      override - served as an image, so the query follows the viewer's system theme.
+    */
+    .cell  { fill: #ffffff; stroke: #d1d9e0; }
+    .pick  { fill: #ddefff; stroke: #6cb0f7; }
+    .step  { fill: #1f2328; font-weight: 600; }
+    .note  { fill: #59636e; }
+    .cap   { fill: #0969da; font-weight: 600; }
+    .brace { stroke: #0969da; fill: none; }
+
+    @media (prefers-color-scheme: dark) {
+      .cell  { fill: #151b23; stroke: #3d444d; }
+      .pick  { fill: #113054; stroke: #316dca; }
+      .step  { fill: #f0f6fc; }
+      .note  { fill: #9198a1; }
+      .cap   { fill: #4493f8; }
+      .brace { stroke: #4493f8; }
+    }
+
+    text {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    }
+    .t13 { font-size: 13px; }
+    .t12 { font-size: 12px; }
+    .t11 { font-size: 11px; }
+    .mid { text-anchor: middle; }
+  </style>
+
+  <!-- A. Row oriented: the column you want to skip is scattered through every row. -->
+  <text x="220" y="22" class="t13 step mid">행 지향이라면</text>
+
+  <g>
+    <!-- row 1 -->
+    <rect x="56"  y="36" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+    <rect x="89"  y="36" width="30" height="28" rx="4" class="pick" stroke-width="1.3"/>
+    <rect x="122" y="36" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+    <!-- row 2 -->
+    <rect x="172" y="36" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+    <rect x="205" y="36" width="30" height="28" rx="4" class="pick" stroke-width="1.3"/>
+    <rect x="238" y="36" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+    <!-- row 3 -->
+    <rect x="288" y="36" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+    <rect x="321" y="36" width="30" height="28" rx="4" class="pick" stroke-width="1.3"/>
+    <rect x="354" y="36" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+  </g>
+
+  <text x="104" y="80" class="t11 note mid">1행</text>
+  <text x="220" y="80" class="t11 note mid">2행</text>
+  <text x="336" y="80" class="t11 note mid">3행</text>
+
+  <text x="220" y="104" class="t12 note mid">파란 컬럼을 건너뛰려 해도, 앞뒤 값의 길이를 알아야 하니</text>
+  <text x="220" y="122" class="t12 note mid">결국 행마다 하나씩 해석하게 됩니다</text>
+
+  <!-- B. Column oriented: it is one block, and its length is in the header. -->
+  <text x="220" y="164" class="t13 step mid">컬럼 지향 — Tabbit의 형식</text>
+
+  <g>
+    <rect x="56"  y="178" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+    <rect x="89"  y="178" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+    <rect x="122" y="178" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+
+    <rect x="172" y="178" width="30" height="28" rx="4" class="pick" stroke-width="1.3"/>
+    <rect x="205" y="178" width="30" height="28" rx="4" class="pick" stroke-width="1.3"/>
+    <rect x="238" y="178" width="30" height="28" rx="4" class="pick" stroke-width="1.3"/>
+
+    <rect x="288" y="178" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+    <rect x="321" y="178" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+    <rect x="354" y="178" width="30" height="28" rx="4" class="cell" stroke-width="1.3"/>
+  </g>
+
+  <!-- The block's length is a header field, so skipping it is one advance. -->
+  <path d="M 172 214 v 5 h 96 v -5" class="brace" stroke-width="1.3"/>
+  <text x="220" y="238" class="t11 cap mid">byteLength 만큼 advance 한 번</text>
+</svg>

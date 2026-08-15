@@ -1,0 +1,24 @@
+{
+  // A record group whose second element never declares one of the members.
+  //
+  // Expected to fail during cooking, so the outputs below are never reached. They are
+  // here because a recipe with no output at all is a different thing to test.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/nested-hole"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/nested-hole/json",
+        "Indented": true
+      }
+    ]
+  }
+}

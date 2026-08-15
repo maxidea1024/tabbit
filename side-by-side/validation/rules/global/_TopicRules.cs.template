@@ -1,0 +1,47 @@
+// ---------------------------------------------------------------------------------------------
+// rules/global/ - the whole model. Copy this file, rename it, and delete this header.
+//
+//   Name it  <Topic>Rules.cs  and name the class the same: ConventionsRules.cs holds
+//   ConventionsRules. Nothing binds the name to a table here, so name it after what it checks.
+//
+//   Rename to `.cs`. A `.template` file is not scanned, which is the only reason this one can sit
+//   here without the run trying to execute it.
+//
+// When it runs   After the table rules, one file at a time in tier order.
+//
+// What you get   context.Tables  every table, so this is where rules across tables live - a
+//                            reference in one table resolving into another, a convention over all
+//                            of them. The static `Tables` reaches the same data globally.
+//                context     IGlobalContext: reporting, and it still points at cells - pass the
+//                            row and the field.
+//                context.Schema, context.Option(...), context.Files(...), context.Json(...)
+//
+// Not here       context.Db(...) and context.Redis(...) - those are rules/runtime/ only, and not
+//                on this type. No context.Table either: a global rule is about more than one, so
+//                it names the tables it means.
+//
+// Priority       [RulePriority(-10)] on the class puts it in an earlier tier. Rules sharing a
+//                value are one tier, lower runs first, and no attribute means the default tier 0.
+//
+//                It is a barrier rather than an ordering: if a tier reports, the tiers after it do
+//                not run. That is what keeps a failed foundation from being buried under fifty
+//                rules reporting its consequences. `tabbit --list-validators` prints the order.
+//
+// This folder is flat. A file one level down is not run at all; put shared helpers in
+// rules/shared/.
+//
+// Full guide: doc/validation.md
+// ---------------------------------------------------------------------------------------------
+
+using Tabbit.Rules;
+using Tabbit.Validation;
+
+internal static class ExampleRules
+{
+    public static void Validate(IGlobalContext context)
+    {
+        // foreach (var row in context.Tables.Example.Records)
+        //     if (!context.Tables.Other.Contains(row.OtherId))
+        //         context.Error(row, nameof(row.OtherId), $"No `Other` with id {row.OtherId}.");
+    }
+}

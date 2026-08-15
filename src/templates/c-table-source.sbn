@@ -1,0 +1,411 @@
+{{~## One table's implementation: parse, load, free and find.
+
+   A note on the blank lines, because this template decides them rather than the C does. A
+   tag line whose closing brace carries no tilde emits the newline that follows it; one
+   whose closing brace carries a tilde swallows it. So a blank line between two emitted
+   blocks is written as exactly one such thing - either a literal blank line inside a fully
+   trimmed block, or the untrimmed newline of the if or for that opens the block. Two of
+   them stacked is two blank lines, which is what this file used to do at every case of the
+   switch below. ##~}}
+{{ include 'c-source-head.sbn' ~}}
+
+static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_reader* reader) {
+  int32_t row;
+  int32_t at;
+  tb_column* columns = NULL;
+  int32_t column_count = 0;
+{{~ if table.needs_cursor ~}}
+  tb_cursor cursor;
+{{~ end ~}}
+{{~ if table.needs_presence ~}}
+  /* Declared with the other locals: C89 wants them at the top of the function, and the
+   * switch's cases share its scope either way. */
+  const uint8_t* presence = NULL;
+{{~ end ~}}
+
+  if (!tb_read_table_header(reader, &table->count, &columns, &column_count))
+    return false;
+
+  if (table->count > 0) {
+    table->records = ({{ table.record_name }}*)tb_arena_alloc(
+      &table->arena, (size_t)table->count * sizeof *table->records);
+
+    if (table->records == NULL)
+      return tb_fail_with(reader, "out of memory allocating the rows");
+{{~ for index in table.indexes }}
+    table->{{ index.array_name }} = ({{ index.entry_type }}*)tb_arena_alloc(
+      &table->arena, (size_t)table->count * sizeof *table->{{ index.array_name }});
+
+    if (table->{{ index.array_name }} == NULL)
+      return tb_fail_with(reader, "out of memory allocating the {{ index.field_name }} index");
+{{~ end ~}}
+  }
+
+{{~ if table.has_string_fields ~}}
+  /* The arena hands back zeroed memory, so every member starts at its zero - which for
+   * a string is NULL, and NULL is what reaches printf when a column the file does not
+   * carry is read. An empty string instead: a literal, so there is nothing to free and
+   * nothing to allocate. */
+  for (row = 0; row < table->count; ++row) {
+    {{ table.record_name }}* record = &table->records[row];
+
+{{~ for field in table.fields ~}}
+{{~ if field.is_string && !field.is_var_array ~}}
+{{~ if field.is_fixed_array ~}}
+    {
+      int32_t element;
+
+      for (element = 0; element < {{ field.element_count }}; ++element)
+        record->{{ field.name }}[element] = "";
+    }
+{{~ else ~}}
+    record->{{ field.name }} = "";
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+  }
+
+{{~ end ~}}
+  /* Column by column, matched by tag rather than by position: a column this build has
+   * no member for is skipped by its declared length, and one whose type no longer fits
+   * the member stops the read naming the field. Rows arrive with every member at an
+   * empty value, so one the file has nothing for keeps it. */
+  for (at = 0; at < column_count && !tb_failed(reader); ++at) {
+    const tb_column* column = &columns[at];
+    int32_t block_end = reader->position + column->byte_length;
+
+    switch (column->tag) {
+{{~ for column_view in table.columns }}
+    case {{ column_view.tag }}:
+      {{ column_view.column_check }}
+{{~ if column_view.is_nullable }}
+      /* The bitmap is at the front of the block, so it is read before the values. The
+       * values are written for every row either way, which is what lets the read shapes
+       * below stay as they are. */
+      (void)tb_read_presence(reader, column, table->count, &presence);
+{{~ end ~}}
+{{~## Opened here, ahead of every read shape, because an array's elements read through it
+   as well: its block states an encoding for them and one for the row lengths, and the
+   cursor is what decodes both. After the presence bitmap, which sits in front of the
+   block the cursor is about to start reading. ##~}}
+{{~ if column_view.cursor_open != '' }}
+      {{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.kind == 'var_array' }}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+        int32_t element_count = 0;
+        int32_t element;
+
+        {{ column_view.length_read }}
+{{~ if column_view.cursor_open == '' }}
+        /* The count came off the wire, and in a raw block one element is at least one
+         * byte. An encoded one has no such floor - a run covers any number of elements -
+         * so there the allocation itself is what refuses a count too large to honour. */
+        if (!tb_row_count_is_plausible(reader, element_count, 1))
+          return tb_fail_with(reader, "an array is longer than the file can hold");
+{{~ end ~}}
+
+        record->{{ column_view.name }}_count = element_count;
+        record->{{ column_view.name }} = ({{ column_view.element_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }});
+
+        if (element_count > 0 && record->{{ column_view.name }} == NULL)
+          return tb_fail_with(reader, "out of memory allocating an array");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
+{{~ if column_view.needs_scratch ~}}
+        {
+          int32_t scratch = 0;
+          (void){{ column_view.read_scratch }};
+          record->{{ column_view.name }}[element] = ({{ column_view.enum_type }})scratch;
+        }
+{{~ else ~}}
+          (void){{ column_view.read_element }};
+{{~ end ~}}
+      }
+{{~ else if column_view.kind == 'record_var' }}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+        int32_t element_count = 0;
+        int32_t element;
+
+        {{ column_view.length_read }}
+{{~ if column_view.cursor_open == '' }}
+        /* The count came off the wire, and in a raw block one element is at least one
+         * byte. An encoded one has no such floor - a run covers any number of elements -
+         * so there the allocation itself is what refuses a count too large to honour. */
+        if (!tb_row_count_is_plausible(reader, element_count, 1))
+          return tb_fail_with(reader, "a record array is longer than the file can hold");
+{{~ end ~}}
+
+{{~ if column_view.is_first_member ~}}
+        /* The first member allocates; the rest check. Allocating again would discard what
+         * the members before it wrote, and taking the shorter of two counts would shift
+         * every value after it. */
+        record->{{ column_view.name }}_count = element_count;
+        record->{{ column_view.name }} = (struct {{ column_view.record_type_name }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }});
+
+        if (element_count > 0 && record->{{ column_view.name }} == NULL)
+          return tb_fail_with(reader, "out of memory allocating a record array");
+{{~ else ~}}
+        if (record->{{ column_view.name }}_count != element_count)
+          return tb_fail_with(reader,
+            "the file gives one member of a record a different element count than another");
+{{~ end ~}}
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
+{{~ if column_view.needs_scratch ~}}
+        {
+          int32_t scratch = 0;
+          (void){{ column_view.read_scratch }};
+          record->{{ column_view.name }}[element]{{ column_view.member_access }} = ({{ column_view.enum_type }})scratch;
+        }
+{{~ else ~}}
+          (void){{ column_view.read_element }};
+{{~ end ~}}
+      }
+{{~ else if column_view.kind == 'array_of_arrays_member' }}
+{{~## One inner array. Which outer element it is, is which column this is - so that index is
+   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+        int32_t element;
+
+        for (element = 0; element < {{ column_view.element_count }}; ++element)
+{{~ if column_view.needs_scratch ~}}
+        {
+          int32_t scratch = 0;
+          (void){{ column_view.read_scratch }};
+          record->{{ column_view.name }}[{{ column_view.member_at }}][element] = ({{ column_view.enum_type }})scratch;
+        }
+{{~ else ~}}
+          (void){{ column_view.read_element }};
+{{~ end ~}}
+      }
+{{~ else if column_view.kind == 'record_member_serial' }}
+{{~## The member is the array: the index goes after its name rather than before. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+        int32_t element;
+
+        for (element = 0; element < {{ column_view.element_count }}; ++element)
+{{~ if column_view.needs_scratch ~}}
+        {
+          int32_t scratch = 0;
+          (void){{ column_view.read_scratch }};
+          record->{{ column_view.name }}{{ column_view.member_access }}[element] = ({{ column_view.enum_type }})scratch;
+        }
+{{~ else ~}}
+          (void){{ column_view.read_element }};
+{{~ end ~}}
+      }
+{{~ else if column_view.kind == 'record_serial' }}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+        int32_t element;
+
+        for (element = 0; element < {{ column_view.element_count }}; ++element)
+{{~ if column_view.needs_scratch ~}}
+        {
+          int32_t scratch = 0;
+          (void){{ column_view.read_scratch }};
+          record->{{ column_view.name }}[element]{{ column_view.member_access }} = ({{ column_view.enum_type }})scratch;
+        }
+{{~ else ~}}
+          (void){{ column_view.read_element }};
+{{~ end ~}}
+      }
+{{~ else if column_view.kind == 'serial_ref' }}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+        int32_t element;
+
+        for (element = 0; element < {{ column_view.element_count }}; ++element)
+          (void){{ column_view.read_element }};
+      }
+{{~ else if column_view.kind == 'serial' }}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+        int32_t element;
+
+        for (element = 0; element < {{ column_view.element_count }}; ++element)
+{{~ if column_view.needs_scratch ~}}
+        {
+          int32_t scratch = 0;
+          (void){{ column_view.read_scratch }};
+          record->{{ column_view.name }}[element] = ({{ column_view.enum_type }})scratch;
+        }
+{{~ else ~}}
+          (void){{ column_view.read_element }};
+{{~ end ~}}
+      }
+{{~ else if column_view.run_call != '' }}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+   call per row that each re-dispatch on the encoding. An encoding with no run to give
+   answers 1, so this loop is correct over all of them. ##~}}
+      {
+        int32_t run_length = 0;
+        {{ column_view.run_value_declaration }}
+
+        row = 0;
+
+        while (row < table->count && !tb_failed(reader)) {
+          if (!{{ column_view.run_call }}(&cursor, table->count - row, &run_length, &value))
+            break;
+
+          for (; run_length > 0; --run_length, ++row)
+            {{ column_view.run_spend }}
+        }
+      }
+{{~ else if column_view.kind == 'scalar_ref' }}
+{{~## The read is the column view's, not spelled here: a reference carries the key its
+   target is addressed by, and that is not always an int32. ##~}}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+
+        (void){{ column_view.read_scalar }};
+      }
+{{~ else if column_view.needs_scratch }}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+        int32_t scratch = 0;
+
+        (void){{ column_view.read_scratch }};
+        record->{{ column_view.name }} = ({{ column_view.enum_type }})scratch;
+      }
+{{~ else }}
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        {{ table.record_name }}* record = &table->records[row];
+
+        (void){{ column_view.read_scalar }};
+      }
+{{~ end ~}}
+{{~ if column_view.is_nullable }}
+      /* A pass of its own rather than a line inside each read shape, so the row index is
+       * worked out once. The block carries a value for every row, so an absent one has
+       * just been given whatever was there. */
+      for (row = 0; row < table->count; ++row) {
+        table->records[row].{{ column_view.presence_member }} = tb_is_present(presence, row);
+
+        if (!table->records[row].{{ column_view.presence_member }})
+          {{ column_view.empty_assignment }}
+      }
+{{~ end ~}}
+      break;
+{{~ end }}
+    default:
+      /* A column this build has no member for: added to the schema after the code
+       * was generated, or removed from the code while the data still carries it.
+       * The block's declared length is the whole of what skipping needs to know. */
+      (void)tb_skip(reader, column->byte_length);
+      break;
+    }
+
+    if (!tb_check_block_end(reader, column, block_end))
+      return false;
+  }
+
+  if (tb_failed(reader))
+    return false;
+
+  /* The keys can only be gathered once every column has been read: the column that
+   * carries one arrives wherever the file happens to put it. */
+  for (row = 0; row < table->count; ++row) {
+{{~ for index in table.indexes ~}}
+    table->{{ index.array_name }}[row].key = table->records[row].{{ index.member }};
+    table->{{ index.array_name }}[row].position = row;
+{{~ end ~}}
+  }
+
+{{~ for index in table.indexes ~}}
+  {{ index.sort_call }}(table->{{ index.array_name }}, table->count);
+{{~ end ~}}
+
+  return true;
+}
+
+bool {{ table.function_prefix }}Load({{ table.table_name }}* table, const char* filename,
+                   char* error, size_t error_size) {
+  uint8_t* bytes = NULL;
+  int32_t length = 0;
+  const uint8_t* opened = NULL;
+  int32_t opened_length = 0;
+  tb_reader reader;
+  bool ok;
+
+  /* Loaded beside whatever the table is already holding, arena and all, and swapped in
+   * only if it worked. That is what makes a reload safe: reading a patched file that
+   * turns out to be truncated - or to carry a column this build cannot read - leaves the
+   * rows the caller has pointers to exactly where they were.
+   *
+   * It also has to be this way round for the memory. The table owns its arena, and
+   * zeroing the table before reading - which is what this did - dropped that arena
+   * without freeing it, so every reload leaked the whole of the previous load. */
+  {{ table.table_name }} loaded;
+
+  memset(&loaded, 0, sizeof loaded);
+
+  if (!tb_read_all_bytes(filename, &bytes, &length)) {
+    tb_copy_error(error, error_size, filename, "cannot be read");
+    return false;
+  }
+
+  /* Opened unconditionally, with whatever {{ accessor.name }}_EncryptionKey and
+   * {{ accessor.name }}_MacKey hold - NULL unless the project set them. A file that is
+   * neither encrypted nor signed comes back from this untouched, so the load path is the
+   * same either way and there is no condition here that could be the wrong way round.
+   * spec/tcb-mac-and-signature.md.
+   *
+   * What comes back is a window onto `bytes` rather than a copy of it, which is why the
+   * buffer is still what tb_free_bytes is given below. */
+  if (!tb_open(bytes, length, {{ accessor.name }}_EncryptionKey,
+        {{ accessor.name }}_EncryptionKeyLength, {{ accessor.name }}_MacKey,
+        {{ accessor.name }}_MacKeyLength, {{ accessor.name }}_VerifyMac,
+        &opened, &opened_length, error, error_size)) {
+    tb_free_bytes(bytes);
+    return false;
+  }
+
+  tb_reader_init(&reader, opened, opened_length, &loaded.arena);
+
+  ok = {{ table.function_prefix }}Parse(&loaded, &reader);
+
+  if (ok) {
+    /* The previous load goes now, and not before: its arena holds the strings and
+     * arrays the caller was reading up to this line. */
+    {{ table.function_prefix }}Free(table);
+    *table = loaded;
+  } else {
+    tb_copy_error(error, error_size, filename, tb_error(&reader));
+
+    /* Nothing half-read is kept, and the table is untouched. */
+    {{ table.function_prefix }}Free(&loaded);
+  }
+
+  /* The strings were copied into the arena, so the file buffer goes either way. */
+  tb_free_bytes(bytes);
+
+  return ok;
+}
+
+void {{ table.function_prefix }}Free({{ table.table_name }}* table) {
+  tb_arena_free(&table->arena);
+
+  memset(table, 0, sizeof *table);
+}
+{{~ for index in table.indexes }}
+const {{ table.record_name }}* {{ table.function_prefix }}FindBy{{ index.suffix }}(
+  const {{ table.table_name }}* table, {{ index.key_type }} key) {
+  int32_t position = {{ index.find_call }}(table->{{ index.array_name }}, table->count, key);
+
+  return position < 0 ? NULL : &table->records[position];
+}
+
+bool {{ table.function_prefix }}Contains{{ index.suffix }}(
+  const {{ table.table_name }}* table, {{ index.key_type }} key) {
+  return {{ index.find_call }}(table->{{ index.array_name }}, table->count, key) >= 0;
+}
+{{~ end ~}}

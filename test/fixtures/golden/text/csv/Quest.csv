@@ -1,0 +1,12 @@
+index,text,table,column
+1,"Lost Cargo",Quest,Title
+2,"Ask at the docks.",Quest,Hint
+3,"Hello",Quest,Lines
+4,"Goodbye",Quest,Lines
+5,"Farewell",Quest,Lines
+6,"The ""Blue"" Whale",Quest,Title
+7,"Head south.",Quest,Hint
+8,"Onward",Quest,Lines
+9,"{0} Enthusiast",Quest,Title
+10,"{0} of {1}",Quest,Lines
+# .Quest: 10

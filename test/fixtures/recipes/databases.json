@@ -1,0 +1,68 @@
+{
+  // Loads the `core.xlsx` fixture into all four database targets at once.
+  //
+  // Every connection string uses a `${...}` placeholder for its password, which the
+  // converter resolves from the environment. That is the whole point of the mechanism:
+  // this file is committed, and a password written here would be in history forever.
+  //
+  // Ports come from the environment too. The compose file lets Docker assign a free
+  // host port for each service rather than fixing one, because a fixed port collides
+  // with whatever else on the machine picked the same number - so the test fixture asks
+  // Docker what it assigned and passes it in here.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Exports": {
+    "Binary": [],
+    "Json": [],
+
+    "MySql": [
+      {
+        "ConnectionString": "Server=127.0.0.1;Port=${TABBIT_TEST_MYSQL_PORT};Database=tabbit_test;Uid=root;Pwd=${TABBIT_TEST_DB_PASSWORD}",
+        "NamePrefix": "tb_"
+      }
+    ],
+
+    "PostgreSql": [
+      {
+        "ConnectionString": "Host=127.0.0.1;Port=${TABBIT_TEST_POSTGRES_PORT};Database=tabbit_test;Username=postgres;Password=${TABBIT_TEST_DB_PASSWORD}",
+        "Schema": "tabbit",
+        "NamePrefix": "tb_"
+      }
+    ],
+
+    "MongoDb": [
+      {
+        "ConnectionString": "mongodb://127.0.0.1:${TABBIT_TEST_MONGO_PORT}/tabbit_test",
+        "NamePrefix": "tb_"
+      }
+    ],
+
+    "Redis": [
+      {
+        "ConnectionString": "127.0.0.1:${TABBIT_TEST_REDIS_PORT}",
+        "Database": 0,
+        "NamePrefix": "tb_"
+      }
+    ]
+  },
+
+  "CodeGenerations": {
+    "Cpp": [],
+    "CSharp": [],
+    "Typescript": [],
+    "Html": []
+  }
+}

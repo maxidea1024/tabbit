@@ -1,0 +1,13 @@
+{{~##
+ One constant set's definitions: the ones a header cannot hold.
+
+ Written only for a set that has at least one, so no empty translation unit is generated -
+ a file holding nothing but an include is one a build system still has to be told about.
+##~}}
+{{ include 'c-source-head.sbn' ~}}
+
+{{~ for constant in set.constants ~}}
+{{~ if constant.is_extern ~}}
+const {{ constant.type }} {{ constant.name }} = {{ constant.value }};
+{{~ end ~}}
+{{~ end ~}}

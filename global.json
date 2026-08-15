@@ -1,0 +1,17 @@
+{
+  "//": [
+    "Pins the SDK band so every machine and CI runner builds with .NET 10.",
+    "rollForward latestFeature accepts any later 10.0.x SDK without this file",
+    "being updated for each patch release.",
+    "",
+    "The version has to be a real, complete SDK version - major.minor.patch with",
+    "the feature band in it. It said 10.0.0, which is not one: SDK patches are",
+    "numbered 10.0.100, 10.0.302 and so on. The .NET SDK itself tolerated that,",
+    "and setup-dotnet stopped doing so, which failed every job in a release with",
+    "'a full SDK version is required'."
+  ],
+  "sdk": {
+    "version": "10.0.100",
+    "rollForward": "latestFeature"
+  }
+}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<textset namespace="Game" group="Item" count="2">
+  <text from="Item.Name">Rope</text>
+  <text from="Item.Name">Lantern</text>
+</textset>

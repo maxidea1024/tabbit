@@ -1,0 +1,55 @@
+{
+  // References to tables keyed by `string`, `bigint` and `uuid`, from one table that holds
+  // all three at once.
+  //
+  // A reference carries the target's primary index, and `int32` used to be written in for
+  // that - in the exporters, in the format's element mapping and in thirteen read switches.
+  // So a table keyed by anything else could be read and generated but not pointed at.
+  //
+  // Two code targets and both file formats. The two build their lookups differently -
+  // `Dictionary<K,V>` against `Map<K,V>` - and a key type is exactly the kind of thing one
+  // of them gets right while the other emits `number` for a uuid. The binary is here so the
+  // element a reference column declares is pinned beside the code that reads it back.
+  //
+  // spec/reference-key-types.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/reference-keys"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/reference-keys/csharp",
+        "Namespace": "Tabbit.Fixtures.ReferenceKeys",
+        "AccessorName": "ReferenceKeysAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/reference-keys/typescript"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/reference-keys/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/reference-keys/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ]
+  }
+}

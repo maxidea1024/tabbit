@@ -1,0 +1,12 @@
+{
+  "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
+
+  "//": [
+    "Test classes share one conversion output directory per scenario, and each run",
+    "deletes that directory before regenerating it. Running classes in parallel lets",
+    "one test wipe the output another is still reading, which shows up as rare,",
+    "confusing failures. These tests are dominated by subprocess time anyway, so",
+    "serializing them costs little."
+  ],
+  "parallelizeTestCollections": false
+}

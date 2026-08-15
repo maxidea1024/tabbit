@@ -1,0 +1,7 @@
+index,text,table,column
+1,"Delivery",Quest,Category
+2,"Hunt",Quest,Category
+3,"Coarse but strong.",Item,Flavour
+4,"Tools",Item,Category
+5,"It burns whale oil.",Item,Flavour
+# Shared.Common: 5

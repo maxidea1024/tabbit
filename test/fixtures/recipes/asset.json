@@ -1,0 +1,41 @@
+{
+  // Columns typed `asset`: a string naming a file that has to exist.
+  //
+  // The default recipe for the fixture, which leaves `OnMissing` at `warn`. Three values
+  // do not resolve and the conversion still succeeds - that is the whole arrangement:
+  // data gets written before the art exists, and a build that refuses to run until every
+  // icon is drawn stops work for a reason that is not the data's.
+  //
+  // `asset-strict.json` and `asset-ci.json` beside this are the same fixture with the two
+  // ways of saying "not this time".
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/asset"
+      }
+    ]
+  },
+
+  // Two kinds in two folders. `Icon_Sword` is in the first and not the second, which is
+  // what makes the kind worth having: the same name is a valid icon and not a valid sound.
+  //
+  // The pattern matters as much as the path. `*` would match `notes.txt` sitting in the
+  // icon folder, and a value naming it would pass a check that means nothing.
+  "Assets": {
+    "Roots": [
+      { "Kind": "icon", "Path": "test/fixtures/assets/icon", "Pattern": "*.uasset" },
+      { "Kind": "sfx", "Path": "test/fixtures/assets/sfx", "Pattern": "*.uasset" }
+    ],
+    "OnMissing": "warn"
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/asset/json-named",
+        "Indented": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  // The same sheets with no `Assets` section at all, which switches the check off.
+  //
+  // Here because that has to keep working: an `asset` column says what it says whether or
+  // not anybody has wired up a content tree, and a project part-way through adopting this
+  // should be able to type its columns before it configures the folders.
+  //
+  // What it must not do is look like a check that ran and found nothing. The run says how
+  // many columns went unchecked.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/asset"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/asset-unconfigured/json-named",
+        "Indented": true
+      }
+    ]
+  }
+}

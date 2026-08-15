@@ -1,0 +1,36 @@
+{
+  // The same generated C# the `core` scenario produces, written as one assembly instead of a
+  // folder of sources.
+  //
+  // What this scenario pins is that the output is still the output: the same accessor, the same
+  // tables, the same reader - compiled. And that the one file an engine has to compile itself is
+  // still written as source beside it, because it names `UnityEngine`.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/csharp-assembly/binary"
+      }
+    ]
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/csharp-assembly/cs",
+        "Namespace": "Tabbit.Fixtures.Assembly",
+        "AccessorName": "CoreAccessor",
+        "Output": "assembly"
+      }
+    ]
+  }
+}

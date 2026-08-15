@@ -1,0 +1,14 @@
+{{~##
+   The pieces every generated file leans on: the exception, the collection helper and the
+   ToString helper.
+
+   Their own file, because they belong to no table. In one big file they were a `#region` at
+   the bottom that moved every time a table was added or removed, so a diff of a generated
+   file showed them as changed for no reason.
+##~}}
+{{ include 'csharp-file-head.sbn' ~}}
+{{ include 'csharp-exception.sbn' ~}}
+
+{{ include 'csharp-collections-helper.sbn' ~}}
+{{ include 'csharp-tostring-helper.sbn' ~}}
+{{ include 'csharp-file-foot.sbn' ~}}

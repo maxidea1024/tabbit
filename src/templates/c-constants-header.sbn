@@ -1,0 +1,30 @@
+{{~##
+ One constant set's declarations.
+
+ C has nothing to nest a set in, so each constant carries its set's name and they end up
+ flat - but they still get a file per set, because that is the unit the sheets add and
+ remove.
+
+ A value the preprocessor can hold is a `#define`. One that cannot - a uuid, which is a
+ struct - is declared `extern const` here and defined once in the matching source file,
+ because a struct defined in a header would be a separate object in every translation unit
+ that included it.
+##~}}
+{{ include 'c-header-head.sbn' ~}}
+/* Generated from {{ set.location }}
+{{~ for line in set.comment ~}}
+ *
+ * {{ line }}
+{{~ end ~}}
+ */
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+/* {{ line }} */
+{{~ end ~}}
+{{~ if constant.is_extern ~}}
+extern const {{ constant.type }} {{ constant.name }};
+{{~ else ~}}
+#define {{ constant.name }} {{ constant.value }}
+{{~ end ~}}
+{{~ end ~}}
+{{ include 'c-header-foot.sbn' ~}}

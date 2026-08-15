@@ -1,0 +1,45 @@
+# Keeps the two things this repository depends on from going quietly stale: the NuGet
+# packages the tool is built from, and the actions the workflows call.
+#
+# Weekly rather than daily, and grouped rather than one pull request per package. Every
+# update runs the full suite - thirteen language toolchains, four databases in containers,
+# a real UnrealHeaderTool - so a dozen separate pull requests would spend an afternoon of
+# runner time to tell us the same thing once.
+
+version: 2
+
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # The database drivers move together and are checked together: the exporter tests
+      # bring up all four engines whichever one changed.
+      databases:
+        patterns:
+          - MySqlConnector
+          - Npgsql
+          - MongoDB.Driver
+          - StackExchange.Redis
+      serilog:
+        patterns:
+          - Serilog
+          - Serilog.*
+      # Everything else, split by how much a bump is allowed to change. A major version
+      # of NPOI or Scriban is a change to what the tool reads and writes, and deserves to
+      # arrive on its own rather than inside a batch of patches.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - '*'

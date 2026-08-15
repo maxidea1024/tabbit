@@ -1,0 +1,71 @@
+{{~##
+ Every record type as an incomplete type, in one header.
+
+ This is where C's answer to the cross-reference problem lives. A record holding a whole-row
+ reference has a member of type `const OtherRecord_t*`, and a pointer needs only an
+ incomplete type - so no table header has to include another, and two tables pointing at
+ each other is not an include cycle.
+
+ In one header rather than each table header declaring what it needs, because a repeated
+ `typedef struct X X;` in one translation unit is a constraint violation in C99 - legal in
+ C11 and accepted by every compiler either way, which is exactly the kind of thing that
+ compiles for years and then does not. Declared once here, included by all of them.
+
+ The encryption key is here for a reason that follows from the same layout. It belongs to the
+ model rather than to any one table, and the natural place to say so would be the accessor
+ header - but that one includes the table headers rather than the other way round, so a table
+ source that included it would be reaching back through the whole model for two symbols. This
+ is the one header every generated file already has, so the declaration goes here and the
+ definition beside the accessor's own load.
+##~}}
+{{ include 'c-header-head.sbn' ~}}
+{{~ for line in records ~}}
+typedef struct {{ line }} {{ line }};
+{{~ end ~}}
+
+/* The key the table files were sealed with, and its length - NULL and 0 when they were not
+ * sealed.
+ *
+ * Set once by the consuming project, at start-up, before the first table is read, rather
+ * than passed to every Load: a key threaded through every load signature would be the same
+ * value written out at every call site, and every call site is somewhere it could be wrong.
+ * The bytes are not copied, so whatever they point at has to outlive the loading.
+ *
+ * Thirty-two bytes, the key the converter was given. NULL - the default - is a project that
+ * does not encrypt, and it costs that project nothing: the load path opens the envelope
+ * either way, and a file that is not encrypted comes back from that unchanged. A project
+ * that does encrypt and leaves this NULL gets the reader's own message saying the file is
+ * encrypted and no key was given, rather than a failure somewhere inside the format.
+ *
+ * Where the key comes from is the one thing about this layer worth being careful with. It is
+ * a secret only until it reaches a repository, a build log or an issue, and it cannot be
+ * taken back afterwards - so it is read at start-up from wherever this project keeps
+ * secrets, not written into a source file as an array literal. What the layer is for, and
+ * therefore what is and is not worth defending, is spec/tcb-v104-composed-encodings.md
+ * section 4. */
+extern const uint8_t* {{ accessor.name }}_EncryptionKey;
+extern int32_t {{ accessor.name }}_EncryptionKeyLength;
+
+/* The key the table files were signed with, or NULL when they were not signed.
+ *
+ * A different key from the encryption one and independent of it: a file can be signed
+ * without being encrypted, and encrypted without being signed.
+ *
+ * What it buys is the thing encryption does not. The cipher is a keystream XOR, so a bit
+ * flipped in the file is a bit flipped in the value it decrypts to - no key needed - and
+ * every structural check the format makes still passes, because a four-byte float accepts
+ * any four bytes. With this set, a file altered after export stops loading instead.
+ *
+ * Setting it makes the reader stricter in a second way: a file that carries no MAC is
+ * refused, because otherwise the check could be removed by zeroing sixteen bytes. So the
+ * order to turn this on in is data first, key second. spec/tcb-mac-and-signature.md. */
+extern const uint8_t* {{ accessor.name }}_MacKey;
+extern int32_t {{ accessor.name }}_MacKeyLength;
+
+/* Whether to check the MAC at all. True by default.
+ *
+ * For tools that read exported files without the key, and for measuring what the check costs
+ * at load. It is not a security boundary - anyone who can flip a flag in a shipped binary can
+ * read the key out of the same binary. */
+extern bool {{ accessor.name }}_VerifyMac;
+{{ include 'c-header-foot.sbn' ~}}

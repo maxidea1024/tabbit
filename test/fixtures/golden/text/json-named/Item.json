@@ -1,0 +1,14 @@
+[
+  {
+    "index": 1,
+    "name": "Rope",
+    "category": "Delivery",
+    "flavour": "Coarse but strong."
+  },
+  {
+    "index": 2,
+    "name": "Lantern",
+    "category": "Tools",
+    "flavour": "It burns whale oil."
+  }
+]

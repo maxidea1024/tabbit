@@ -1,0 +1,124 @@
+{{~##
+   The library file: the imports, the part directives and the accessor. Holds no table's own
+   code, so a deleted table is a deleted part rather than a hunk to notice.
+##~}}
+{{ include 'dart-file-head.sbn' ~}}
+/// Every table, loaded together so cross-table references can be resolved.
+class {{ accessor_name }} {
+{{~ for slot in accessor.tables ~}}
+  {{ slot.table_name }} {{ slot.name }} = {{ slot.table_name }}();
+{{~ end ~}}
+
+  /// The key the table files were sealed with, or null when they were not sealed.
+  ///
+  /// Beside [readAll] because it is the same kind of thing: one decision the consuming
+  /// project makes once, at start-up, before the first table is read. A key threaded through
+  /// every read signature would be the same value written out at every call site, and every
+  /// call site is somewhere it could be wrong.
+  ///
+  /// Thirty-two bytes, the key the converter was given. Null - the default - is a project
+  /// that does not encrypt, and it costs that project nothing: the load path opens the
+  /// envelope either way, and a file that is not encrypted comes back from that unchanged. A
+  /// project that does encrypt and leaves this null gets the reader's own message saying the
+  /// file is encrypted and no key was given, rather than a failure somewhere inside the
+  /// format.
+  ///
+  /// Where the key comes from is the one thing about this layer worth being careful with. It
+  /// is a secret only until it reaches a repository, a build log or an issue, and it cannot
+  /// be taken back afterwards - so it is read at start-up from wherever this project keeps
+  /// secrets, not written into a source file and not passed in with --dart-define, which
+  /// ends up in the built artifact. What the layer is for, and therefore what is and is not
+  /// worth defending, is spec/tcb-v104-composed-encodings.md section 4.
+  static Uint8List? encryptionKey;
+
+  /// The key the table files were signed with, or null when they were not signed.
+  ///
+  /// A different key from [encryptionKey] and independent of it: a file can be signed
+  /// without being encrypted, and encrypted without being signed.
+  ///
+  /// What it buys is the thing encryption does not. The cipher is a keystream XOR, so a bit
+  /// flipped in the file is a bit flipped in the value it decrypts to - no key needed - and
+  /// every structural check the format makes still passes, because a four-byte float accepts
+  /// any four bytes. With this set, a file altered after export stops loading instead.
+  ///
+  /// Setting it makes the reader stricter in a second way: a file that carries no MAC is
+  /// refused, because otherwise the check could be removed by zeroing sixteen bytes. So the
+  /// order to turn this on in is data first, key second.
+  /// spec/tcb-mac-and-signature.md.
+  static Uint8List? macKey;
+
+  /// Whether to check the MAC at all. True by default.
+  ///
+  /// For tools that read exported files without the key, and for measuring what the check
+  /// costs at load. It is not a security boundary - anyone who can flip a flag in a shipped
+  /// binary can read [macKey] out of the same binary.
+  static bool verifyMac = true;
+
+  /// Reads every table from basePath, then links the references between them.
+  ///
+  /// Safe to call on a loaded accessor: every file is read into a table of its own and
+  /// the references are linked among those, so a failure part way through leaves every
+  /// table holding the load it already had.
+  void readAll(String basePath,
+      [String fileExtension = '{{ accessor.file_extension }}']) {
+{{~ if accessor.tables | array.size == 0 ~}}
+    // No tables to read.
+{{~ else ~}}
+{{~ for slot in accessor.tables ~}}
+    final loaded{{ slot.table_name }} = {{ slot.table_name }}();
+    loaded{{ slot.table_name }}.read('$basePath${Platform.pathSeparator}{{ slot.data_file_name }}$fileExtension');
+{{~ end ~}}
+
+    _solveCrossReferences({{ for slot in accessor.tables }}{{ if !for.first }}, {{ end }}loaded{{ slot.table_name }}{{ end }});
+
+{{~ for slot in accessor.tables ~}}
+    {{ slot.name }} = loaded{{ slot.table_name }};
+{{~ end ~}}
+{{~ end ~}}
+  }
+
+  /// Turns the stored indices into usable values, once every table is in memory.
+  ///
+  /// The tables arrive as arguments and shadow the fields of the same name, which is how
+  /// this resolves the load being read rather than the one already published.
+  void _solveCrossReferences({{ for slot in accessor.tables }}{{ if !for.first }}, {{ end }}{{ slot.table_name }} {{ slot.name }}{{ end }}) {
+{{~ if accessor.cross_references | array.size == 0 ~}}
+    // No table references another.
+{{~ else ~}}
+{{~ for reference in accessor.cross_references ~}}
+    for (final record in {{ reference.table }}.records) {
+{{~ for field in reference.fields ~}}
+{{~ if field.is_array ~}}
+      for (var i = 0; i < record.{{ field.name }}Index.length; i++) {
+        final target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index[i]);
+        if (target != null) record.{{ field.name }}[i] = {{ field.value }};
+      }
+{{~ else ~}}
+      {
+        final target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index);
+        if (target != null) record.{{ field.name }} = {{ field.value }};
+      }
+{{~ end ~}}
+{{~ end ~}}
+{{~## A reference that is a member of a record resolves inside the element, so the list is
+   walked and each element's own key is looked up. Which list that is - the group's or the
+   member's - the view decided, and a record of one has neither.
+   spec/references-in-records.md. ##~}}
+{{~ for member in reference.record_fields ~}}
+{{~ if member.count != '' ~}}
+      for (var i = 0; i < {{ member.count }}; i++) {
+        final target = {{ member.ref_table }}.{{ member.ref_lookup }}({{ member.key }});
+        if (target != null) {{ member.access }} = target;
+      }
+{{~ else ~}}
+      {
+        final target = {{ member.ref_table }}.{{ member.ref_lookup }}({{ member.key }});
+        if (target != null) {{ member.access }} = target;
+      }
+{{~ end ~}}
+{{~ end ~}}
+    }
+{{~ end ~}}
+{{~ end ~}}
+  }
+}

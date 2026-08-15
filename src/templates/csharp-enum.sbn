@@ -1,0 +1,54 @@
+{{~##
+   One enum and its comparer. `enumm` is the single enum this file is for.
+
+   The comparer is here rather than with the helpers because it is generic over this enum
+   and there is one per enum: keeping it beside its enum means deleting the enum from the
+   sheets deletes both.
+##~}}
+{{ include 'csharp-file-head.sbn' ~}}
+    // Generated from {{ enumm.location }}
+{{~ for line in enumm.comment ~}}
+{{~ if for.first ~}}
+    /// <summary>
+{{~ end ~}}
+    /// {{ line }}
+{{~ if for.last ~}}
+    /// </summary>
+{{~ end ~}}
+{{~ end ~}}
+    public enum {{ enumm.name }}
+    {
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+{{~ if for.first ~}}
+        /// <summary>
+{{~ end ~}}
+        /// {{ line }}
+{{~ if for.last ~}}
+        /// </summary>
+{{~ end ~}}
+{{~ end ~}}
+{{~ if label.is_last ~}}
+        {{ label.name }} = {{ label.value }}
+{{~ else ~}}
+        {{ label.name }} = {{ label.value }},
+{{~ end ~}}
+{{~ end ~}}
+    }
+
+    /// <summary>
+    /// Helper class for avoiding boxing as dictionary key.
+    /// </summary>
+    public struct {{ enumm.name }}Comparer : IEqualityComparer<{{ enumm.name }}>
+    {
+        public bool Equals({{ enumm.name }} x, {{ enumm.name }} y)
+        {
+            return x == y;
+        }
+
+        public int GetHashCode({{ enumm.name }} obj)
+        {
+            return (int)obj;
+        }
+    }
+{{ include 'csharp-file-foot.sbn' ~}}

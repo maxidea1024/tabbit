@@ -1,0 +1,19 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "8a0f630416e2dd1cd2bfb8c9b6b800c8",
+  "TotalSize": 443,
+  "Items": [
+    {
+      "Name": "Quest.tcb",
+      "Size": 298,
+      "Hash": "d9f2af8f2768717a25102d0c3625cac9",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Item.tcb",
+      "Size": 145,
+      "Hash": "d045b9f7aa0e5cb65fec9bb5591a2ecf",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{{~## One enum. `enumm` is the single enum this file is for. ##~}}
+{{ include 'python-file-head.sbn' ~}}
+class {{ enumm.name }}(enum.IntEnum):
+    """Generated from {{ enumm.location }}.
+{{~ for line in enumm.comment }}
+    {{ line }}
+{{~ end ~}}
+    """
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+    # {{ line }}
+{{~ end ~}}
+    {{ label.name }} = {{ label.value }}
+{{~ end ~}}
+
+    @classmethod
+    def _missing_(cls, value):
+        # A value the sheet never declared falls back to the default rather than
+        # raising, matching what the other generated readers do with an unknown label.
+        return cls({{ enumm.default_value }}) if value != {{ enumm.default_value }} else None

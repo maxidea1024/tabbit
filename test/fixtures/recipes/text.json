@@ -1,0 +1,126 @@
+{
+  // Columns typed `text`: a string that is also gathered for translation.
+  //
+  // Two halves, and the second is the reason for the first. The `text` entries write the
+  // gathered files, which is the new output. The JSON and binary exports are here to show
+  // that nothing else moved - a `text` column and a `string` column reach a build as the
+  // same column, and the golden tree is what holds that claim.
+  //
+  // C# as well, because a role must not reach the generated code: the accessor for a
+  // `text` column has to be the one a `string` column gets, and reading the generator to
+  // check that is not the same as compiling it.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/text"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/text/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/text/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ]
+  },
+
+  // Five entries over the same strings. That is the claim being pinned: this target has no
+  // format of its own, and none of these is more native to it than the others. The escaping
+  // differs per entry without any of them saying so, because the extension already did.
+  "Targets": [
+    // A text set. Three parts: a namespace, a key and the source string - and the key
+    // here is the source string itself, which is the keyless convention. A sheet has no
+    // key column to offer and the string identifies itself. A project wanting stable keys
+    // writes them from what the sheet does have: `"{group}_{index}"`.
+    //
+    // `Common` declares its namespace on a column and the rest take this entry's, so the
+    // two files show both answers.
+    {
+      "Type": "text",
+      "Path": "test/fixtures/output/text/textset",
+      "FileExtension": ".textset",
+      "Format": "NSLOCTEXT(\"{namespace}\", \"{text}\", \"{text}\")",
+      "Namespace": "Game"
+    },
+
+    // csv, with a header and a footer. `{text}` doubles the quotation marks here, which is
+    // what a csv field does with one - and it is the extension that decided that.
+    {
+      "Type": "text",
+      "Path": "test/fixtures/output/text/csv",
+      "FileExtension": ".csv",
+      "Header": "index,text,table,column",
+      "Format": "{index},\"{text}\",{table},{field}",
+      "Footer": "# {namespace}.{group}: {count}"
+    },
+
+    // tsv, which quotes nothing at all - so `{text}` escapes the tab and the line breaks
+    // instead, since in this format they separate.
+    {
+      "Type": "text",
+      "Path": "test/fixtures/output/text/tsv",
+      "FileExtension": ".tsv",
+      "Header": "text\ttable\tcolumn",
+      "Format": "{text}\t{table}\t{field}"
+    },
+
+    // xml. A document rather than a list of lines, which the header and the footer make -
+    // and `{text}` writes entities here because the extension says XML.
+    //
+    // The namespace is on the document and not on each entry, which is the shape it has:
+    // a namespace holds groups, a group is one file, and the strings are inside that.
+    {
+      "Type": "text",
+      "Path": "test/fixtures/output/text/xml",
+      "FileExtension": ".xml",
+      "Header": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<textset namespace=\"{namespace}\" group=\"{group}\" count=\"{count}\">",
+      "Format": "  <text from=\"{table}.{field}\">{text}</text>",
+      "Footer": "</textset>",
+      "Namespace": "Game"
+    },
+
+    // json. `Separator` is what a bracketed format needs beyond a header and a footer: the
+    // pattern cannot see which entry is last, and a comma after the last one is what makes
+    // a JSON document invalid.
+    {
+      "Type": "text",
+      "Path": "test/fixtures/output/text/json",
+      "FileExtension": ".json",
+      "Header": "[",
+      "Format": "  {{ \"text\": \"{text}\", \"from\": \"{table}.{field}\" }}",
+      "Separator": ",",
+      "Footer": "]"
+    },
+
+    // The Scriban route, for the shapes a line pattern cannot say. The template that ships
+    // is the first entry's pattern written out, so this tree and the textset tree differ
+    // only where the recipe made them differ - which is nowhere.
+    {
+      "Type": "text",
+      "Path": "test/fixtures/output/text/templated",
+      "FileExtension": ".textset",
+      "Template": "textset-unreal",
+      "Namespace": "Game"
+    }
+  ],
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/text/csharp",
+        "Namespace": "Tabbit.Fixtures.Text",
+        "AccessorName": "TextAccessor"
+      }
+    ]
+  }
+}

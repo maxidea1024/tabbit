@@ -1,0 +1,36 @@
+{
+  // A `pre` rule reading the data, which it runs too early to have.
+  //
+  // Its own folder rather than beside the other wrong-stage rule, because a compile error in `pre`
+  // stops the run before the table stage is reached - so one folder holding both would only ever
+  // report the first.
+  //
+  // Every path is relative to the repository root, which is where the test harness invokes
+  // Tabbit from.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Validation": {
+    "Path": "test/fixtures/validation/wrong-stage-pre",
+
+    // Nothing here is meant to be opened in an editor: the rules do not compile, so a project
+    // pointing at them would be a project full of errors by design.
+    "EmitIdeProject": false
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/validation-wrong-stage-pre/json",
+        "Indented": true
+      }
+    ]
+  }
+}

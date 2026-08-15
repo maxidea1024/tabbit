@@ -1,0 +1,227 @@
+{{~## One table: its record class and its table class. ##~}}
+{{ include 'ruby-file-head.sbn' ~}}
+{{~## The element type of each record group, ahead of the row that holds one. Every generated
+   class sits in this one module, which is why the name carries the table's. ##~}}
+{{~ for field in table.fields ~}}
+{{~## An array of arrays declares no element type: its outer level has no name, so there is
+   nothing for a class to be. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~## One class per level, innermost first - which Ruby requires rather than prefers: the
+   constructor names the level below and resolves it when it runs. The view flattened the
+   nesting so this loop does not have to know how deep it went.
+   spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+  # One element of {{ rt.owner }}.
+{{~ else ~}}
+  # A record inside {{ rt.owner }}.
+{{~ end ~}}
+  class {{ rt.type_name }}
+    attr_accessor {{ rt.accessor_names }}
+
+    def initialize
+{{~ for member in rt.members ~}}
+{{~ for line in member.initializers ~}}
+      {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+    end
+  end
+
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+  # Generated from {{ table.location }}
+{{~ for line in table.comment ~}}
+  # {{ line }}
+{{~ end ~}}
+  class {{ table.record_name }}
+    attr_accessor {{ table.accessor_names }}
+
+    def initialize
+{{~ if table.fields | array.size == 0 ~}}
+      # No fields.
+{{~ end ~}}
+{{~ for field in table.fields ~}}
+{{~ for line in field.initializers ~}}
+      {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+    end
+
+  end
+
+  # Every row of {{ table.raw_name }}.
+  class {{ table.table_name }}
+    attr_accessor :records
+
+    def initialize
+      @records = []
+{{~ for index in table.indexes ~}}
+      {{ index.map_name }} = {}
+{{~ end ~}}
+    end
+{{~ for index in table.indexes }}
+    # The row with this {{ index.field_name }}, or nil when the table has none.
+    #
+    # The lookup to reach for when a missing row is an ordinary answer - an optional
+    # reference, a key that came from user input.
+    def find_by_{{ index.suffix }}(key)
+      {{ index.map_name }}[key]
+    end
+
+    # The row with this {{ index.field_name }}, or a raised error naming what was missing.
+    #
+    # For a key that has to be there - one from another table, or a constant. The name
+    # says it raises, because a caller reading `get_by_{{ index.suffix }}(key).name` at a
+    # glance cannot otherwise tell whether the next line is a check or a rescue.
+    def get_by_{{ index.suffix }}_or_throw(key)
+      record = {{ index.map_name }}[key]
+
+      if record.nil?
+        raise Tabbit::RecordNotFoundError,
+              "there is no record in table `{{ table.raw_name }}` that corresponds to " \
+              "field `{{ index.field_name }}` value #{key.inspect}"
+      end
+
+      record
+    end
+
+    # Whether the table holds a row with this {{ index.field_name }}.
+    def contains_{{ index.suffix }}?(key)
+      {{ index.map_name }}.key?(key)
+    end
+{{~ end ~}}
+
+    # Loads the table from a .tcb file written by Tabbit.
+    # Column by column, matched by tag rather than position: a column this build does
+    # not know is skipped by its block length, and one whose type changed incompatibly
+    # fails naming the field.
+    def read(filename)
+      # Opened unconditionally, and with whatever {{ accessor_name }}.encryption_key and {{ accessor_name }}.mac_key
+      # hold - which is nil unless the project set them. A file that is neither encrypted
+      # nor signed comes back from this untouched, so the load path is the same either way
+      # and there is no condition here that could be the wrong way round.
+      # spec/tcb-mac-and-signature.md.
+      reader = Tabbit::Reader.new(
+        Tabbit.open(Tabbit.read_all_bytes(filename), {{ accessor_name }}.encryption_key,
+                      {{ accessor_name }}.mac_key, verify_mac: {{ accessor_name }}.verify_mac)
+      )
+      count, columns = Tabbit.read_table_header(reader)
+
+      # Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
+      records = Array.new(count) { {{ table.record_name }}.new }
+
+      columns.each do |column|
+        block_end = reader.position + column.byte_length
+
+        case column.tag
+{{~ for column_view in table.columns ~}}
+        when {{ column_view.tag }}
+          {{ column_view.column_check }}
+{{~ if column_view.is_nullable ~}}
+          # The bitmap is at the front of the block, so it is read before the values. The
+          # values are written for every row either way, which is what lets the read shapes
+          # below stay as they are.
+          presence = Tabbit.read_presence(reader, column, count)
+{{~ end ~}}
+{{~## Opened here, ahead of every read shape, because an array's elements read through it
+   as well: its block states an encoding for them and one for the row lengths, and the
+   cursor is what decodes both. After the presence bitmap, which sits in front of the block
+   the cursor is about to start reading. ##~}}
+{{~ if column_view.cursor_open != '' ~}}
+          {{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+      call per row that each re-dispatch on the encoding. An encoding with no run to
+      give answers 1, so this loop is correct over all of them. ##~}}
+          at = 0
+          while at < count
+            n, value = cursor.{{ column_view.run_call }}(count - at)
+            (at...(at + n)).each do |i|
+              {{ column_view.run_spend }}
+            end
+            at += n
+          end
+{{~ else ~}}
+          records.each do |record|
+{{~ if column_view.kind == 'var_array' ~}}
+            {{ column_view.length_read }}
+            record.{{ column_view.name }} = Array.new(element_count) { {{ column_view.read_element }} }
+{{~ else if column_view.kind == 'record_var' ~}}
+            {{ column_view.length_read }}
+{{~ if column_view.is_first_member ~}}
+            # The first member builds the array; the rest check. Building it again would
+            # discard what the members before it wrote, and taking the shorter of two counts
+            # would shift every value after it.
+            record.{{ column_view.name }} = Array.new(element_count) { {{ column_view.record_type_name }}.new }
+{{~ else ~}}
+            if record.{{ column_view.name }}.length != element_count
+              raise Tabbit::TcbError,
+                    '{{ table.raw_name }}.{{ column_view.name }}: the file gives one member of this ' \
+                    'record a different element count than another'
+            end
+{{~ end ~}}
+            element_count.times do |element|
+              record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
+            end
+{{~ else if column_view.kind == 'array_of_arrays_member' ~}}
+{{~## One inner array. Which outer element it is, is which column this is - so that index is
+   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+            {{ column_view.element_count }}.times do |element|
+              record.{{ column_view.name }}[{{ column_view.member_at }}][element] = {{ column_view.read_element }}
+            end
+{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~## The member is the array: the index goes after its name rather than before. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+            {{ column_view.element_count }}.times do |element|
+              record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[element] = {{ column_view.read_element }}
+            end
+{{~ else if column_view.kind == 'record_serial' ~}}
+            {{ column_view.element_count }}.times do |element|
+              record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
+            end
+{{~ else if column_view.kind == 'serial_ref' ~}}
+            record.{{ column_view.name }}_index = Array.new({{ column_view.element_count }}) { {{ column_view.read_element }} }
+            record.{{ column_view.name }} = Array.new({{ column_view.element_count }})
+{{~ else if column_view.kind == 'serial' ~}}
+            record.{{ column_view.name }} = Array.new({{ column_view.element_count }}) { {{ column_view.read_element }} }
+{{~ else if column_view.kind == 'scalar_ref' ~}}
+            record.{{ column_view.name }}_index = {{ column_view.read_scalar }}
+{{~ else ~}}
+            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_scalar }}
+{{~ end ~}}
+          end
+{{~ end ~}}
+{{~ if column_view.is_nullable }}
+          # A pass of its own rather than a line inside each read shape, so the row index is
+          # worked out once. The block carries a value for every row, so an absent one has
+          # just been given whatever was there; putting the empty value back is what makes
+          # this path agree with the JSON one.
+          records.each_with_index do |record, row|
+            record.{{ column_view.presence_member }} = Tabbit.present?(presence, row)
+            record.{{ column_view.name }} = {{ column_view.empty_value }} unless record.{{ column_view.presence_member }}
+          end
+{{~ end ~}}
+{{~ end ~}}
+        else
+          # A column added after this code was generated.
+          reader.skip(column.byte_length)
+        end
+
+        Tabbit.check_block_end(reader, column, block_end)
+      end
+
+{{~ for index in table.indexes ~}}
+      by_{{ index.suffix }} = records.to_h { |record| [record.{{ index.member }}, record] }
+{{~ end ~}}
+
+      # Published, now that every column read.
+      @records = records
+{{~ for index in table.indexes ~}}
+      {{ index.map_name }} = by_{{ index.suffix }}
+{{~ end ~}}
+    end
+  end
+{{ include 'ruby-file-foot.sbn' ~}}

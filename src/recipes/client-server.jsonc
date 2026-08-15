@@ -1,0 +1,64 @@
+// Tabbit recipe — 클라이언트와 서버를 함께
+//
+// 같은 시트에서 두 벌을 뽑습니다. 시트에서 엔티티나 필드에 c / s 를 표시해두면
+// 각 빌드에 자기 몫만 들어갑니다.
+//
+// 중요한 것 하나: 익스포터와 그 파일을 읽는 코드 생성의 TargetSide가 같아야 합니다.
+// 어긋나면 컬럼 집합이 달라져 생성된 리더가 데이터와 맞지 않습니다.
+
+{
+  "ArrayDelimiter": ";",
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "./sheets" }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      // 클라이언트 몫
+      {
+        "Path": "./build/client/data",
+        "FileExtension": ".bytes",
+        "TargetSide": "c"
+      },
+
+      // 서버 몫
+      {
+        "Path": "./build/server/data",
+        "FileExtension": ".tcb",
+        "TargetSide": "s"
+      }
+    ]
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "./client/Assets/Scripts/Generated",
+        "Namespace": "MyGame.Data",
+        "AccessorName": "GameData",
+        "BinaryTableFileExtension": ".bytes",
+        "TargetSide": "c"
+      }
+    ]
+  },
+
+  "Targets": [
+    // 서버는 Go. cpp / rust / java / kotlin / python 등으로 바꿔도 같은 모양입니다.
+    {
+      "Type": "go",
+      "Path": "./server/internal/gamedata",
+      "PackageName": "gamedata",
+
+      // go.mod가 선언할 모듈 경로. Go에는 상대 import가 없어 필요합니다.
+      "ModulePath": "myserver/internal/gamedata",
+
+      // 이미 있는 모듈 안에 넣으므로 go.mod는 쓰지 않습니다.
+      "WriteGoMod": false,
+
+      "TargetSide": "s"
+    }
+  ]
+}

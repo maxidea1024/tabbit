@@ -1,0 +1,43 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "fe1ebcfd64843a74992742a2c556281a",
+  "TotalSize": 1813,
+  "Items": [
+    {
+      "Name": "TestFieldTypes.json",
+      "Size": 505,
+      "Hash": "0df6db5515c57ce25212d2981346b3df",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ItemCategory.json",
+      "Size": 162,
+      "Hash": "7bf0bfa4550d3ac7e52f54cbaea3dcaf",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Item.json",
+      "Size": 315,
+      "Hash": "7c220b0ea20ea93dbe45d908ea8b550b",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Localization.json",
+      "Size": 191,
+      "Hash": "0914e544d0e8a0f2a4c0074c26186ac5",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ArrayTypes.json",
+      "Size": 556,
+      "Hash": "6ff8da1e1d0a7e281b858d187af948b3",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ServerTuning.json",
+      "Size": 84,
+      "Hash": "cc3b89c5843e7dc34cedb671ad60e956",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

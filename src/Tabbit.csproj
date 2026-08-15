@@ -1,0 +1,388 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <!--
+      **No warning survives a build.** The nullable analysis was on from the day the SDK
+      template turned it on and nothing was annotated against it, so a build carried 662 of
+      them - and a number that large is one nobody reads, which makes a new warning
+      invisible. The annotations are now written, so this keeps them written: a warning
+      the compiler raises stops the build rather than joining a list.
+
+      One line is suppressed, at the line itself, with the reason on it - see
+      `SheetGridReader.cs`. That is what an exception should look like: local, and next to
+      what it is about.
+    -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <!--
+      Lower case, because this is what somebody types. The same `tabbit` on every
+      platform, rather than a name whose capitals have to be remembered on the two where
+      the shell cares about them.
+    -->
+    <AssemblyName>tabbit</AssemblyName>
+    <RootNamespace>Tabbit</RootNamespace>
+
+    <!--
+      What the assembly says it is when something other than this repository asks - a
+      file property sheet, a package listing, the copyright line the option parser
+      prints. Written here rather than left to the SDK, which would answer with the
+      assembly name and say nothing about what the program does.
+    -->
+    <Product>Tabbit</Product>
+    <Description>Game Data Authoring &amp; Build Tool. Authors, validates, optimizes and builds static game data into TCB, a runtime binary a game reads without parsing.</Description>
+    <Authors>Tabbit</Authors>
+
+    <!--
+      What a build with no version told to it reports. The release workflow overrides it
+      with the tag, so the version option and the `toolVersion` recorded in every summary
+      and history snapshot name the release a binary came from. A local build says 0.0.0
+      rather than claiming to be 1.0.0, which is what the SDK default did.
+    -->
+    <Version>0.0.0</Version>
+
+    <!--
+      Debug information goes inside the assembly rather than beside it, so a published
+      directory is the program and nothing else.
+    -->
+    <DebugType>embedded</DebugType>
+
+    <!--
+      Stops the .pdb and .xml files that ship inside packages from being copied out.
+
+      What made this urgent is gone: SkiaSharp arrived through NPOI and its debug file was
+      83 MB, more than the rest of a self-contained publish put together, and neither
+      package is a dependency any more. Kept because it costs nothing and the next package
+      to carry one would otherwise put it in the publish unannounced.
+    -->
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(SelfContained)' == 'true'">
+    <!--
+      A self-contained publish is one file that runs on a machine with no .NET at all.
+      That is what makes the ASP.NET Core framework reference below free: the serve mode
+      needs that runtime, and a build machine that only has the base one would otherwise
+      be unable to run Tabbit for any purpose.
+    -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The Tcb readers, embedded so the generators can write them into their
+      output. Each generated target is then self-contained: nothing to install, no
+      include path to configure, and no chance of a consumer pairing generated code
+      with a reader of a different vintage.
+
+      One copy of each source, living under lib/ for anyone reading or editing it
+      directly, so what ships cannot drift from what is committed.
+    -->
+    <EmbeddedResource Include="..\lib\ts\tabbit\tcb_reader.ts"
+                      LogicalName="Tabbit.Runtime.Ts.tcb_reader.ts" />
+    <EmbeddedResource Include="..\lib\ts\tabbit\updater.ts"
+                      LogicalName="Tabbit.Runtime.Ts.updater.ts" />
+    <EmbeddedResource Include="..\lib\cs\tabbit\TcbReader.cs"
+                      LogicalName="Tabbit.Runtime.Cs.TcbReader.cs" />
+    <EmbeddedResource Include="..\lib\cs\tabbit\TabbitUpdater.cs"
+                      LogicalName="Tabbit.Runtime.Cs.TabbitUpdater.cs" />
+    <EmbeddedResource Include="..\lib\cpp\tabbit\tcb_reader.h"
+                      LogicalName="Tabbit.Runtime.Cpp.tcb_reader.h" />
+    <EmbeddedResource Include="..\lib\cpp\tabbit\updater.h"
+                      LogicalName="Tabbit.Runtime.Cpp.updater.h" />
+    <EmbeddedResource Include="..\lib\go\tabbit\tcb_reader.go"
+                      LogicalName="Tabbit.Runtime.Go.tcb_reader.go" />
+    <EmbeddedResource Include="..\lib\go\tabbit\updater.go"
+                      LogicalName="Tabbit.Runtime.Go.updater.go" />
+    <EmbeddedResource Include="..\lib\rust\tabbit\tcb_reader.rs"
+                      LogicalName="Tabbit.Runtime.Rust.tcb_reader.rs" />
+    <EmbeddedResource Include="..\lib\rust\tabbit\updater.rs"
+                      LogicalName="Tabbit.Runtime.Rust.updater.rs" />
+    <EmbeddedResource Include="..\lib\python\tabbit\tcb_reader.py"
+                      LogicalName="Tabbit.Runtime.Python.tcb_reader.py" />
+    <EmbeddedResource Include="..\lib\python\tabbit\updater.py"
+                      LogicalName="Tabbit.Runtime.Python.updater.py" />
+    <EmbeddedResource Include="..\lib\java\tabbit\TcbReader.java"
+                      LogicalName="Tabbit.Runtime.Java.TcbReader.java" />
+    <EmbeddedResource Include="..\lib\java\tabbit\TabbitUpdater.java"
+                      LogicalName="Tabbit.Runtime.Java.TabbitUpdater.java" />
+    <EmbeddedResource Include="..\lib\kotlin\tabbit\TcbReader.kt"
+                      LogicalName="Tabbit.Runtime.Kotlin.TcbReader.kt" />
+    <EmbeddedResource Include="..\lib\kotlin\tabbit\TabbitUpdater.kt"
+                      LogicalName="Tabbit.Runtime.Kotlin.TabbitUpdater.kt" />
+    <EmbeddedResource Include="..\lib\ruby\tabbit\tcb_reader.rb"
+                      LogicalName="Tabbit.Runtime.Ruby.tcb_reader.rb" />
+    <EmbeddedResource Include="..\lib\ruby\tabbit\updater.rb"
+                      LogicalName="Tabbit.Runtime.Ruby.updater.rb" />
+    <EmbeddedResource Include="..\lib\dart\tabbit\tcb_reader.dart"
+                      LogicalName="Tabbit.Runtime.Dart.tcb_reader.dart" />
+    <EmbeddedResource Include="..\lib\dart\tabbit\updater.dart"
+                      LogicalName="Tabbit.Runtime.Dart.updater.dart" />
+    <EmbeddedResource Include="..\lib\c\tabbit\tabbit_tcb_reader.h"
+                      LogicalName="Tabbit.Runtime.C.tabbit_tcb_reader.h" />
+    <EmbeddedResource Include="..\lib\c\tabbit\tabbit_updater.h"
+                      LogicalName="Tabbit.Runtime.C.tabbit_updater.h" />
+    <EmbeddedResource Include="..\lib\php\tabbit\TcbReader.php"
+                      LogicalName="Tabbit.Runtime.Php.TcbReader.php" />
+    <EmbeddedResource Include="..\lib\php\tabbit\TabbitUpdater.php"
+                      LogicalName="Tabbit.Runtime.Php.TabbitUpdater.php" />
+
+    <!--
+      Unreal gets its own rather than the C++ one, because the engine already has every
+      type that reader defines. Going through std::string and a Tabbit Uuid struct
+      cost two allocations per string cell and a text parse per uuid, to build what
+      FString and FGuid already are. And an Unreal module builds with exceptions off, so
+      the throwing reader could not report a malformed file at all - the throw was a
+      termination inside a function whose signature promised a bool.
+    -->
+    <EmbeddedResource Include="..\lib\unreal\tabbit\TabbitTcbReader.h"
+                      LogicalName="Tabbit.Runtime.Unreal.TabbitTcbReader.h" />
+    <EmbeddedResource Include="..\lib\unreal\tabbit\TabbitUpdater.h"
+                      LogicalName="Tabbit.Runtime.Unreal.TabbitUpdater.h" />
+    <EmbeddedResource Include="..\lib\unreal\tabbit\TabbitUpdater.cpp"
+                      LogicalName="Tabbit.Runtime.Unreal.TabbitUpdater.cpp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Starting recipes the `template` option writes, embedded so that `tabbit` produces the
+      same file wherever it was installed from.
+    -->
+    <EmbeddedResource Include="recipes\*.jsonc"
+                      LogicalName="Tabbit.Recipes.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Code generation templates, embedded for the same reason as the readers: what ships
+      cannot drift from what is committed, and a target cannot be pointed at a template of
+      a different vintage.
+
+      One file per generated language, flat, so a resource name has no directory
+      separator in it.
+    -->
+    <EmbeddedResource Include="templates\*.sbn"
+                      LogicalName="Tabbit.Templates.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!--
+    What a validation rule is compiled against, carried inside the tool.
+
+    Rule compilation needs the metadata of every assembly a rule may name, and until now it read
+    those off disk from the running process's own reference list. That works from a framework
+    dependent build and not from a self-contained single-file one, where the assemblies live
+    inside the executable and have no path to open - so validation refused to run there at all.
+
+    Three things go in, and only three: the framework's reference assemblies, the contract, and
+    Newtonsoft - which is in the contract's surface because `Json` answers with a `JToken`. What
+    a rule may use is exactly this list, which is the same narrowing the contract assembly is
+    for. The tool's own dependencies - Roslyn, Serilog, the database drivers - are deliberately
+    not here.
+
+    Reference assemblies are metadata with no code, so they compress to a fraction of their size;
+    zipping them keeps this assembly from growing by the eleven megabytes they occupy on disk.
+
+    spec/validation-usability-and-assembly-output.md section 4.
+  -->
+  <PropertyGroup>
+    <!--
+      `BaseIntermediateOutputPath` rather than `IntermediateOutputPath`, and that is not a
+      preference: this group is evaluated before the SDK has worked the second one out, so it
+      would be empty here and these would land in the source tree. They did, and 170 reference
+      assemblies sat beside the code waiting for somebody to `git add .`.
+    -->
+    <RuleReferenceStaging>$(BaseIntermediateOutputPath)rule-references\</RuleReferenceStaging>
+    <RuleReferenceArchive>$(BaseIntermediateOutputPath)rule-references.zip</RuleReferenceArchive>
+
+    <!--
+      The second set: what generated C# is compiled against when a recipe asks for an assembly
+      instead of sources. netstandard2.1 rather than this tool's own framework, because the
+      consumer is somebody else's project - a game on Unity 6.5, a server on .NET 10 - and
+      netstandard2.1 is the surface both accept.
+
+      Taken from the SDK's targeting packs rather than restored as a package: the pack is part of
+      any SDK that can target netstandard2.1, and a restore would need a network this tool's build
+      does not otherwise want.
+    -->
+    <NetStandardRefDir>$(NetCoreTargetingPackRoot)\NETStandard.Library.Ref\2.1.0\ref\netstandard2.1</NetStandardRefDir>
+    <NetStandardReferenceArchive>$(BaseIntermediateOutputPath)netstandard-references.zip</NetStandardReferenceArchive>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Declared here rather than inside the target that fills it: resources are gathered before
+      a target that could add one has run, so an item added later is an item nothing compiles in.
+      The file is written by `EmbedRuleCompilationReferences` below, which runs first.
+    -->
+    <EmbeddedResource Include="$(RuleReferenceArchive)"
+                      LogicalName="Tabbit.RuleReferences.zip" />
+
+    <EmbeddedResource Include="$(NetStandardReferenceArchive)"
+                      LogicalName="Tabbit.NetStandardReferences.zip" />
+  </ItemGroup>
+
+  <Target Name="EmbedRuleCompilationReferences"
+          BeforeTargets="PrepareResources"
+          DependsOnTargets="ResolveReferences">
+
+    <ItemGroup>
+      <!--
+        The base framework, taken from the targeting pack the compiler itself used - and only
+        that one. ASP.NET Core's pack is beside it and is referenced by this tool for the history
+        server, but a validation rule has no business naming a web framework, and what a rule may
+        use is the decision this list is.
+      -->
+      <RuleReference Include="@(ReferencePathWithRefAssemblies)"
+                     Condition="$([System.String]::Copy('%(Identity)').Contains('Microsoft.NETCore.App.Ref'))" />
+
+      <!--
+        The contract and the one package its surface names, taken from the built assemblies rather
+        than their reference-only counterparts: the contract is written into a project's validation
+        folder as a file, and the summaries an editor shows sit beside the real one.
+      -->
+      <RuleReference Include="@(ReferencePath)"
+                     Condition="'%(Filename)' == 'Tabbit.Validation' or '%(Filename)' == 'Newtonsoft.Json'" />
+
+      <RuleReference Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).xml')"
+                     Condition="'%(Filename)' == 'Tabbit.Validation'" />
+    </ItemGroup>
+
+    <RemoveDir Directories="$(RuleReferenceStaging)" />
+    <Copy SourceFiles="@(RuleReference)" DestinationFolder="$(RuleReferenceStaging)" />
+
+    <ZipDirectory SourceDirectory="$(RuleReferenceStaging)"
+                  DestinationFile="$(RuleReferenceArchive)"
+                  Overwrite="true" />
+
+    <Error Condition="!Exists('$(NetStandardRefDir)')"
+           Text="This SDK has no netstandard2.1 targeting pack at `$(NetStandardRefDir)`, so the tool cannot be built with the references its assembly output compiles against." />
+
+    <ZipDirectory SourceDirectory="$(NetStandardRefDir)"
+                  DestinationFile="$(NetStandardReferenceArchive)"
+                  Overwrite="true" />
+  </Target>
+
+  <ItemGroup>
+    <!--
+      The history page. Embedded for the same reason as everything else here, plus one of
+      its own: the tool is expected to run on closed networks, so a page that fetches a
+      stylesheet or a charting library from anywhere is a page that does not load.
+    -->
+    <EmbeddedResource Include="History\web\*"
+                      LogicalName="Tabbit.Web.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The history's store is internal: it is infrastructure for the targets and the query
+      layer in this assembly, not an API. The suite drives it directly all the same,
+      because what has to be checked is how it behaves against a real MySQL - the
+      migration, the upserts, the concurrent write - and reaching that only through a
+      conversion would make each of those cases a workbook.
+    -->
+    <InternalsVisibleTo Include="Tabbit.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The serve mode puts the history behind an HTTP API and a page. Kestrel rather than
+      HttpListener: on Windows, binding HttpListener to anything but localhost needs a URL
+      reservation or an elevated process, and a team tool that has to run as administrator
+      to be reachable is a team tool nobody reaches.
+
+      A framework reference rather than a package, so nothing new is restored. It does mean
+      a framework-dependent deployment now needs the ASP.NET Core runtime rather than the
+      base one; publish self-contained where that is not wanted.
+    -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The contract is a project of its own that happens to sit under this folder, so the SDK's
+      globs would otherwise compile its sources - and its `obj` - into this assembly as well.
+    -->
+    <Compile Remove="Contract\**" />
+    <EmbeddedResource Remove="Contract\**" />
+    <None Remove="Contract\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      What a validation rule is compiled against. Its own assembly rather than part of this one,
+      for two reasons that arrive together: the surface a rule author sees becomes a declaration
+      rather than "whatever this assembly happens to make public", and rule compilation gets
+      something the tool can carry - a single-file publish has no path to read an assembly from,
+      and this one cannot embed a reference to itself.
+      spec/validation-usability-and-assembly-output.md section 5a.
+    -->
+    <ProjectReference Include="Contract\Tabbit.Validation.Contract.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <!--
+      Roslyn, for compiling the validation rules. The scripting layer on top of this is
+      deliberately not referenced: what it adds - #r, #load, a globals object - is what a
+      host makes unnecessary, since references arrive as MetadataReferences and shared code
+      arrives as another syntax tree. Pinned to the version this SDK's own compiler is, so
+      a rule file accepts exactly the C# the rest of the repository does.
+    -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
+    <!--
+      Scriban rather than Handlebars or Fluid: no dependencies of its own, and its `{{ }}`
+      syntax does not collide with anything in the languages being generated - which
+      matters, because a template for C++ is full of braces.
+    -->
+    <PackageReference Include="Scriban" Version="7.2.6" />
+    <PackageReference Include="Google.Apis.Sheets.v4" Version="1.75.0.4178" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <!--
+      The workbook reader. Streams a sheet a row at a time rather than inflating the
+      workbook into an object model, which is what one 61 MiB workbook of 4.9 million cells
+      costing 6,982 MB and 27.8 seconds bought us before.
+
+      Pinned exactly, and the version matters more than it would for a settled library:
+      this one is pre-1.0. What makes that acceptable is that the reader sits behind one
+      file and the value gate in `XlsxReaderGateTests` can be re-run against any
+      replacement - ExcelDataReader already passes it. Grounds, measurements and the
+      rejected candidates are in `spec/streaming-workbook-reader.md`.
+    -->
+    <PackageReference Include="Sylvan.Data.Excel" Version="0.5.8" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Database export targets. MySqlConnector rather than MySql.Data: it is fully
+         async and MIT licensed. -->
+    <PackageReference Include="MySqlConnector" Version="2.6.1" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <PackageReference Include="MongoDB.Driver" Version="3.10.0" />
+    <PackageReference Include="StackExchange.Redis" Version="3.0.17" />
+  </ItemGroup>
+
+  <!--
+    Native assets arrive with their own debug files, and those are neither reference-
+    related nor ours - AllowedReferenceRelatedFileExtensions does not reach them.
+
+    The one that mattered was SkiaSharp's 83 MB file, which arrived through NPOI, and
+    neither package is a dependency any more. Kept for the same reason as the setting
+    above: a debug file nobody asked for should not reach a publish quietly.
+
+    Safe to drop all of them: this project's own debug information is embedded in the
+    assembly.
+  -->
+  <Target Name="DropNativeDebugFiles" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -1,0 +1,18 @@
+{{~## One module per enum. ##~}}
+{{ include 'ts-head.sbn' ~}}
+// Generated from {{ location }}
+{{~ for line in comment ~}}
+{{ line }}
+{{~ end ~}}
+export enum {{ name }} {
+{{~ for label in labels ~}}
+{{~ for line in label.comment ~}}
+  {{ line }}
+{{~ end ~}}
+{{~ if label.is_last ~}}
+  {{ label.name }} = {{ label.value }}
+{{~ else ~}}
+  {{ label.name }} = {{ label.value }},
+{{~ end ~}}
+{{~ end ~}}
+}

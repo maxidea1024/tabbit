@@ -1,0 +1,36 @@
+{
+  // The passing rules again, with warnings promoted to errors.
+  //
+  // The same folder as validation-pass, so what differs is one recipe line: the warning that
+  // scenario tolerates has to stop this one.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Validation": {
+    "Path": "test/fixtures/validation/pass",
+
+    "Options": {
+      "Locale": "KR"
+    },
+
+    // On, which is what turns the fixture's warning into a stopped run. CI is where this
+    // belongs; the default is off.
+    "TreatWarningsAsErrors": true
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/validation-strict/json",
+        "Indented": true
+      }
+    ]
+  }
+}

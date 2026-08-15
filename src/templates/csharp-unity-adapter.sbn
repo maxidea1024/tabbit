@@ -1,0 +1,104 @@
+{{~##
+   The one generated file that knows what Unity is.
+
+   Everything else the C# target writes is plain netstandard, and that is the point of this
+   file existing: the engine's branches live behind one seam, in one file, rather than inside
+   the accessor where they made every other output engine-shaped too.
+
+   Outside Unity this compiles to nothing - the whole body is behind the symbol Unity itself
+   defines, so a plain .NET project pays a file with no code in it.
+
+   Installed rather than called. `RuntimeInitializeOnLoadMethod` runs before the first scene,
+   which is before anything could ask for a table, so a consuming project has nothing to wire
+   up. Assigning a static field twice is harmless, which is what makes entering play mode
+   again safe.
+
+   Unity 6 is the floor. What that removed is written where it was: the API level is
+   netstandard 2.1 throughout, so `File.ReadAllBytesAsync` is simply there, and
+   `UnityWebRequest.result` is simply there. Two version branches went with it.
+
+   Not guarded with `#error`. The symbol for a Unity minor is `UNITY_6000_5_OR_NEWER` by
+   Unity's own pattern, but an `#error` written against a symbol that turns out to be spelled
+   differently fires for every user rather than for the old ones - and an older Unity already
+   fails to compile the accessor, because netstandard 2.0 has no asynchronous file API. The
+   floor is documented and enforced by that.
+##~}}
+{{ include 'csharp-file-head.sbn' ~}}
+#if UNITY_5_3_OR_NEWER
+    /// <summary>
+    /// Teaches the accessor to read the files Unity puts where the File API cannot reach.
+    /// </summary>
+    /// <remarks>
+    /// Requires Unity 6 or newer, which is the version this generator targets.
+    /// </remarks>
+    internal static class TabbitUnityAdapter
+    {
+        [UnityEngine.RuntimeInitializeOnLoadMethod(
+            UnityEngine.RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Install()
+        {
+            {{ accessor_name }}.ReadAllBytesAsync = ReadAllBytesAsync;
+        }
+
+        private static async Task<byte[]> ReadAllBytesAsync(string filename)
+        {
+            // StreamingAssets is where you put a file you want shipped, and it is shipped on
+            // every platform - but on two of them what you get back is a URL rather than a
+            // path, and the File API cannot read either:
+            //
+            //   Android: StreamingAssets stays inside the APK, so
+            //   Application.streamingAssetsPath is `jar:file:///.../base.apk!/assets`.
+            //
+            //   WebGL: it is served over HTTP, so the path is a URL to the web server.
+            //
+            // Both arrive here holding "://", so one test covers both - and a real path,
+            // which is what every other platform and persistentDataPath everywhere give,
+            // still goes to the File API below.
+            //
+            // This used to be inside the WebGL branch alone, which left Android reading an
+            // APK with File.ReadAllBytesAsync. That fails at runtime on the one platform
+            // where "it worked in the editor" is least helpful.
+            if (filename.Contains("://"))
+                return await ReadViaWebRequestAsync(filename);
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // No threads, so nothing can be moved off the main one. What is left here is
+            // persistentDataPath, a synchronous virtual filesystem over IndexedDB: the read
+            // blocks a frame, and on WebGL that is the platform's answer rather than
+            // something this can improve on.
+            return File.ReadAllBytes(filename);
+#else
+            // Real asynchronous I/O: no thread is held while the disk works.
+            return await File.ReadAllBytesAsync(filename);
+#endif
+        }
+
+        /// <summary>
+        /// Reads something the File API cannot: a file inside the APK on Android, or one the
+        /// browser has to fetch on WebGL.
+        ///
+        /// UnityWebRequest rather than a platform special case, because it is the one API
+        /// that reads all of them - Unity's own documentation points at it for exactly this.
+        /// </summary>
+        private static async Task<byte[]> ReadViaWebRequestAsync(string url)
+        {
+            using (var request = UnityEngine.Networking.UnityWebRequest.Get(url))
+            {
+                var operation = request.SendWebRequest();
+
+                // Yielding rather than blocking. On WebGL there is one thread, so waiting on
+                // a handle would stop the frame the request needs in order to finish and
+                // nothing would ever complete; elsewhere this keeps the main thread moving,
+                // which is the whole point of the method being asynchronous.
+                while (!operation.isDone)
+                    await Task.Yield();
+
+                if (request.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                    throw new TabbitException($"Cannot read '{url}': {request.error}");
+
+                return request.downloadHandler.data;
+            }
+        }
+    }
+#endif
+{{ include 'csharp-file-foot.sbn' ~}}

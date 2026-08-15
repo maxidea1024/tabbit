@@ -1,0 +1,39 @@
+{
+  // Regression recipe for narrowing a run from the command line.
+  //
+  // Same fixture as core.json, and deliberately the opposite of core-server.json:
+  // no entry declares a TargetSide, so every one defaults to "cs". Nothing in this
+  // file asks for a single side, which leaves `--target-side` as the only thing that
+  // can narrow the run - that is what the test checks.
+  //
+  // Its own output tree so a narrowed run cannot overwrite what the golden
+  // comparison for `core` expects to find.
+  //
+  // Only the named JSON export, because the assertions read table and field names
+  // from it. That target-side narrowing reaches every other target is already
+  // covered by the recipe-declared cases.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/core-cli-side/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ]
+  }
+}

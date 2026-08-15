@@ -1,0 +1,67 @@
+// Tabbit recipe — CI (변경 이력을 남기며)
+//
+// 변환할 때마다 셀 단위 스냅샷을 남깁니다. xlsx는 바이너리라 git diff가 안 되는데,
+// 히스토리는 누가 언제 어느 셀을 무엇으로 바꿨는지 기록하고 --serve 로 브라우저에서
+// 보여줍니다.
+//
+// 실행:
+//   tabbit --recipe ci-recipe.json --commit $GITHUB_SHA
+//
+// --commit 을 생략하면 워킹카피에서 git으로 읽습니다.
+
+{
+  "ArrayDelimiter": ";",
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "./sheets" }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "./build/data",
+
+        // 지난 스키마의 기록. 커밋해두면, 이미 배포된 클라이언트가 못 읽을
+        // 스키마 변경을 데이터를 쓰기 전에 잡습니다 — 컬럼 이름과 할 일을 짚어서.
+        // 타입을 바꿨다면 "테이블.컬럼"을 AcceptSchemaChanges에 적으세요.
+        "SchemaBaseline": "./schema-baseline.json",
+        "AcceptSchemaChanges": []
+      }
+    ]
+  },
+
+  "Targets": [
+    // 이번 변환이 무엇을 만들었는지 — 테이블·행·필드 수와 지문.
+    // 두 빌드가 같은 데이터인지 비교할 때 씁니다.
+    {
+      "Type": "summary",
+      "Path": "./build/summary",
+      "FileName": "summary.json"
+    },
+
+    {
+      "Type": "history",
+
+      // 비밀번호는 환경 변수로. 변수가 없으면 오류입니다.
+      "ConnectionString": "Server=${HISTORY_HOST};Database=tabbit;Uid=ci;Pwd=${HISTORY_PASSWORD}",
+
+      // 어느 프로젝트의 히스토리인가. 데이터베이스 하나가 여럿을 담을 수 있습니다.
+      // 이 값을 바꾸면 이어지는 게 아니라 새 히스토리가 시작됩니다.
+      "ProjectKey": "mygame",
+
+      // 커밋되지 않은 변경이 있는 워킹카피의 변환도 기록할 것인가.
+      // 꺼둔 이유는 그런 변환이 어느 커밋에도 없는 작업을 담고 있기 때문입니다.
+      "RecordDirty": false,
+
+      // 브랜치가 이미 도달한 것보다 오래된 커밋도 기록할 것인가.
+      "AllowOutOfOrder": false,
+
+      // 히스토리 데이터베이스에 닿지 못했을 때: "warn" 또는 "fail".
+      // warn 이 기본인 이유는 빌드의 본업이 게임 데이터를 만드는 것이고,
+      // 기록용 데이터베이스가 잠깐 안 된다고 그것을 멈출 이유가 없기 때문입니다.
+      "OnFailure": "warn"
+    }
+  ]
+}

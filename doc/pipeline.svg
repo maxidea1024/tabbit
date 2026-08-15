@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 802" width="440" height="802"
+     role="img" aria-label="Tabbit 파이프라인: 엑셀과 구글 스프레드시트에서 임포트하고, 검증한 뒤, 내보내기와 코드 생성">
+  <title>Tabbit 파이프라인</title>
+  <desc>엑셀 또는 구글 스프레드시트 → 임포트 → 검증 → 내보내기와 코드 생성</desc>
+
+  <style>
+    /*
+      Top to bottom, and 440 wide, because of where this is read. A README image is
+      scaled to the width of its column, and GitHub's column on a phone is around 350 -
+      so a 1030px diagram arrives at a third of its size with 14px labels rendering at
+      about five. Nothing about the content wanted to be horizontal; only the shape did.
+
+      Three weights of surface, so the eye gets the shape before it reads a word: the
+      source is not boxed at all because it is the material rather than a step, the two
+      steps are plain cards, and what you get back is tinted.
+
+      Colours are GitHub's own, since that is the page this sits on, with a dark override.
+      Served as an image, so the query follows the viewer's system theme rather than the
+      site's toggle - the closest a single file gets, and better than a diagram that
+      disappears on one of them.
+    */
+    .card    { fill: #ffffff; stroke: #d1d9e0; }
+    .out     { fill: #eff6fd; stroke: #c3ddf9; }
+    .grid    { fill: #ffffff; stroke: #d1d9e0; }
+    .rule    { stroke: #d8dee4; }
+    .cap     { fill: #0969da; }
+    .step    { fill: #1f2328; font-weight: 600; }
+    .lead    { fill: #1f2328; font-weight: 600; }
+    .detail  { fill: #59636e; }
+    .note    { fill: #818b98; }
+    .flow    { stroke: #9aa4b2; fill: none; }
+    .arrow   { fill: #9aa4b2; }
+
+    @media (prefers-color-scheme: dark) {
+      .card   { fill: #151b23; stroke: #3d444d; }
+      .out    { fill: #121d2e; stroke: #274b73; }
+      .grid   { fill: #0d1117; stroke: #3d444d; }
+      .rule   { stroke: #3d444d; }
+      .cap    { fill: #4493f8; }
+      .step   { fill: #f0f6fc; }
+      .lead   { fill: #f0f6fc; }
+      .detail { fill: #9198a1; }
+      .note   { fill: #7d8590; }
+      .flow   { stroke: #6a7381; }
+      .arrow  { fill: #6a7381; }
+    }
+
+    text {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      text-anchor: middle;
+    }
+    .t18 { font-size: 18px; }
+    .t15 { font-size: 15px; }
+    .t13 { font-size: 13px; }
+    .t12 { font-size: 12px; }
+    .t11 { font-size: 11px; }
+  </style>
+
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0.5 1 L 9 5 L 0.5 9 z" class="arrow"/>
+    </marker>
+  </defs>
+
+  <!-- 1. Sources. Unboxed: it is what you write, not a step the tool runs. -->
+  <g transform="translate(197 18)">
+    <rect x="0" y="0" width="46" height="54" rx="5" class="grid" stroke-width="1.5"/>
+    <path d="M 0 13 L 0 5 A 5 5 0 0 1 5 0 L 41 0 A 5 5 0 0 1 46 5 L 46 13 Z" class="cap"/>
+    <line x1="0" y1="27" x2="46" y2="27" class="rule" stroke-width="1"/>
+    <line x1="0" y1="40" x2="46" y2="40" class="rule" stroke-width="1"/>
+    <line x1="16" y1="13" x2="16" y2="54" class="rule" stroke-width="1"/>
+    <line x1="31" y1="13" x2="31" y2="54" class="rule" stroke-width="1"/>
+  </g>
+
+  <text x="220" y="98" class="t15 lead">엑셀 · 구글 스프레드시트</text>
+  <text x="220" y="120" class="t12 detail">테이블 · enum · 상수를 마커로 선언</text>
+
+  <line x1="220" y1="136" x2="220" y2="158" class="flow" stroke-width="1.5" marker-end="url(#head)"/>
+
+  <!-- 2. Import -->
+  <rect x="24" y="168" width="392" height="112" rx="14" class="card" stroke-width="1.5"/>
+  <text x="220" y="203" class="t18 step">임포트</text>
+  <text x="220" y="234" class="t13 detail">여러 파일과 시트를 하나의 모델로 모으고</text>
+  <text x="220" y="258" class="t13 detail">셀을 타입에 맞는 값으로 읽습니다</text>
+
+  <line x1="220" y1="290" x2="220" y2="312" class="flow" stroke-width="1.5" marker-end="url(#head)"/>
+
+  <!-- 3. Validate -->
+  <rect x="24" y="322" width="392" height="140" rx="14" class="card" stroke-width="1.5"/>
+  <text x="220" y="357" class="t18 step">검증</text>
+  <text x="220" y="388" class="t13 detail">타입 · 중복 인덱스 · 참조 무결성</text>
+  <text x="220" y="412" class="t13 detail">서버 / 클라이언트 경계</text>
+  <text x="220" y="440" class="t12 note">문제가 있으면 여기서 멈춥니다</text>
+
+  <line x1="220" y1="472" x2="220" y2="494" class="flow" stroke-width="1.5" marker-end="url(#head)"/>
+
+  <!-- 4. Output. Tinted rather than fenced: they are what you get, and they come out of
+       the same run - which of them a build produces is a line in the recipe. -->
+  <rect x="24" y="504" width="392" height="112" rx="14" class="out" stroke-width="1.5"/>
+  <text x="220" y="539" class="t18 step">내보내기</text>
+  <text x="220" y="570" class="t13 detail">Binary · JSON 파일</text>
+  <text x="220" y="594" class="t12 detail">MySQL · PostgreSQL · MongoDB · Redis</text>
+
+  <rect x="24" y="628" width="392" height="136" rx="14" class="out" stroke-width="1.5"/>
+  <text x="220" y="663" class="t18 step">코드 생성 · <tspan class="cap">13개 언어</tspan></text>
+  <text x="220" y="694" class="t12 detail">C# (.NET · Unity) · TypeScript · C++ · C · Go</text>
+  <text x="220" y="716" class="t12 detail">Rust · Python · Java · Kotlin · Ruby · PHP · Dart</text>
+  <text x="220" y="738" class="t12 detail">Unreal 모듈 · 사람이 읽는 HTML 문서</text>
+
+  <text x="220" y="786" class="t11 note">recipe에 적은 것만, 한 번에 만들어집니다</text>
+</svg>

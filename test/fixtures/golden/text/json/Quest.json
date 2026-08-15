@@ -1,0 +1,12 @@
+[
+  { "text": "Lost Cargo", "from": "Quest.Title" },
+  { "text": "Ask at the docks.", "from": "Quest.Hint" },
+  { "text": "Hello", "from": "Quest.Lines" },
+  { "text": "Goodbye", "from": "Quest.Lines" },
+  { "text": "Farewell", "from": "Quest.Lines" },
+  { "text": "The \"Blue\" Whale", "from": "Quest.Title" },
+  { "text": "Head south.", "from": "Quest.Hint" },
+  { "text": "Onward", "from": "Quest.Lines" },
+  { "text": "{0} Enthusiast", "from": "Quest.Title" },
+  { "text": "{0} of {1}", "from": "Quest.Lines" }
+]

@@ -1,0 +1,24 @@
+{
+  // An index column marked optional with a trailing `?`.
+  //
+  // Expected to fail during cooking, so the outputs below are never reached. They are
+  // here because a recipe with no output at all is a different thing to test.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/optional-index"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/optional-index/json",
+        "Indented": true
+      }
+    ]
+  }
+}

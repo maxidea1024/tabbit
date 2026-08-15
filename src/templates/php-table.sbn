@@ -1,0 +1,294 @@
+{{~##
+   One table: its record class and its table class. `table` is the single table this file is
+   for, so nothing here loops over the model.
+##~}}
+{{ include 'php-file-head.sbn' ~}}
+{{~## The element type of each record group, ahead of the row that holds one. Every generated
+   class shares one namespace, which is why the name carries the table's. ##~}}
+{{~ for field in table.fields ~}}
+{{~## An array of arrays declares no element type: its outer level has no name, so there is
+   nothing for a class to be. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~## One class per level, innermost first - the view flattened the nesting so this loop does
+   not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+/** One element of {{ rt.owner }}. */
+{{~ else ~}}
+/** A record inside {{ rt.owner }}. */
+{{~ end ~}}
+final class {{ rt.type_name }}
+{
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+    {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ if rt.constructor_lines | array.size > 0 }}
+    /**
+     * The levels below, built.
+     *
+     * They cannot be built at their declarations: a PHP property initializer has to be a
+     * constant expression, and a typed property left unset is an error to read.
+     */
+    public function __construct()
+    {
+{{~ for line in rt.constructor_lines ~}}
+        {{ line }}
+{{~ end ~}}
+    }
+{{~ end ~}}
+}
+
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+/**
+ * Generated from {{ table.location }}
+{{~ for line in table.comment ~}}
+ *
+ * {{ line }}
+{{~ end ~}}
+ */
+final class {{ table.record_name }}
+{
+{{~ for field in table.fields ~}}
+{{~ for line in field.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+{{~ for line in field.declarations ~}}
+    {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ if table.needs_constructor }}
+
+    /**
+     * A row with its record groups built.
+     *
+     * They cannot be built at the declaration: a PHP property initializer has to be a
+     * constant expression, and `new SlotEntry()` is not one.
+     */
+    public function __construct()
+    {
+{{~ for field in table.fields ~}}
+{{~ for line in field.constructor_lines ~}}
+        {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+    }
+{{~ end ~}}
+}
+
+/** Every row of {{ table.raw_name }}. */
+final class {{ table.table_name }}
+{
+    /** @var list<{{ table.record_name }}> */
+    public array $records = [];
+
+{{~ for index in table.indexes ~}}
+    /** @var array<{{ index.key_doc_type }}, {{ table.record_name }}> */
+    private array ${{ index.map_name }} = [];
+
+{{~ end ~}}
+{{~ for index in table.indexes ~}}
+    /**
+     * The row with this {{ index.field_name }}, or null when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    public function findBy{{ index.suffix }}({{ index.key_type }} $key): ?{{ table.record_name }}
+    {
+        return $this->{{ index.map_name }}[{{ index.key_offset }}] ?? null;
+    }
+
+    /**
+     * The row with this {{ index.field_name }}, or a thrown exception naming what was missing.
+     *
+     * For a key that has to be there - one from another table, or a constant. The name says
+     * it throws, because a caller reading getBy{{ index.suffix }}($key)->name at a glance
+     * cannot otherwise tell whether the next line is a null check or a catch.
+     */
+    public function getBy{{ index.suffix }}OrThrow({{ index.key_type }} $key): {{ table.record_name }}
+    {
+        $record = $this->{{ index.map_name }}[{{ index.key_offset }}] ?? null;
+
+        if ($record === null) {
+            throw new RecordNotFoundException(
+                "There is no record in table `{{ table.raw_name }}` that corresponds to " .
+                "field `{{ index.field_name }}` value " . {{ index.key_offset }} . ".");
+        }
+
+        return $record;
+    }
+
+    /** Whether the table holds a row with this {{ index.field_name }}. */
+    public function contains{{ index.suffix }}({{ index.key_type }} $key): bool
+    {
+        return isset($this->{{ index.map_name }}[{{ index.key_offset }}]);
+    }
+
+{{~ end ~}}
+    /** Loads the table from a .tcb file written by Tabbit. */
+    /**
+     * Column by column, matched by tag rather than position: a column this build does not
+     * know is skipped by its block length, and one whose type changed incompatibly fails
+     * naming the field.
+     */
+    public function read(string $filename): void
+    {
+        // The keys go to fromFile because reading and opening are one call here: the
+        // reader's constructor takes the whole file and opens the envelope itself. It does
+        // so unconditionally, and with whatever {{ accessor.name }}::$encryptionKey and
+        // {{ accessor.name }}::$macKey hold - which is null unless the project set them. A
+        // file that is neither encrypted nor signed comes back from that untouched, so the
+        // load path is the same either way and there is no condition here that could be the
+        // wrong way round. spec/tcb-mac-and-signature.md.
+        $reader = TcbReader::fromFile(
+            $filename, {{ accessor.name }}::$encryptionKey,
+            {{ accessor.name }}::$macKey, {{ accessor.name }}::$verifyMac);
+        [$count, $columns] = $reader->readTableHeader();
+
+        // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
+        $records = [];
+{{~ for index in table.indexes ~}}
+        {{ index.local_name }} = [];
+{{~ end ~}}
+
+        for ($i = 0; $i < $count; $i++) {
+            $records[] = new {{ table.record_name }}();
+        }
+
+        foreach ($columns as $column) {
+            $blockEnd = $reader->position() + $column['byteLength'];
+
+            switch ($column['tag']) {
+{{~ for column_view in table.columns ~}}
+                case {{ column_view.tag }}:
+                    {{ column_view.column_check }}
+{{~ if column_view.is_nullable ~}}
+                    // The bitmap is at the front of the block, so it is read before the
+                    // values. The values are written for every row either way, which is what
+                    // lets the read shapes below stay as they are.
+                    $presence = $reader->readPresence($column, $count);
+{{~ end ~}}
+{{~## Opened here, ahead of every read shape, because an array's elements read through it
+      as well: its block states an encoding for them and one for the row lengths, and the
+      cursor is what decodes both. After the presence bitmap, which sits in front of the
+      block the cursor is about to start reading. ##~}}
+{{~ if column_view.cursor_open != '' ~}}
+                    {{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+      call per row that each re-dispatch on the encoding. An encoding with no run to
+      give answers 1, so this loop is correct over all of them. ##~}}
+                    for ($i = 0; $i < $count; ) {
+                        [$n, $value] = $cursor->{{ column_view.run_call }}($count - $i);
+                        for (; $n > 0; $n--, $i++) {
+                            {{ column_view.run_spend }}
+                        }
+                    }
+{{~ else ~}}
+                    foreach ($records as $record) {
+{{~ if column_view.kind == 'var_array' ~}}
+                        {{ column_view.length_read }}
+                        $record->{{ column_view.name }} = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
+                            $record->{{ column_view.name }}[] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'record_var' ~}}
+                        {{ column_view.length_read }}
+{{~ if column_view.is_first_member ~}}
+                        // The first member builds the list; the rest check. Building it
+                        // again would discard what the members before it wrote, and taking
+                        // the shorter of two counts would shift every value after it.
+                        $record->{{ column_view.name }} = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
+                            $record->{{ column_view.name }}[] = new {{ column_view.record_type_name }}();
+                        }
+{{~ else ~}}
+                        if (\count($record->{{ column_view.name }}) !== $elementCount) {
+                            throw new \Tabbit\TcbException(
+                                '{{ table.raw_name }}.{{ column_view.name }}: the file gives one member of '
+                                . 'this record a different element count than another.');
+                        }
+{{~ end ~}}
+                        for ($j = 0; $j < $elementCount; $j++) {
+                            $record->{{ column_view.name }}[$j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'array_of_arrays_member' ~}}
+{{~## One inner list. Which outer element it is, is which column this is - so that index is
+   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
+                            $record->{{ column_view.name }}[{{ column_view.member_at }}][$j] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~## The member is the array: the index goes after its name rather than before. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
+                            $record->{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[$j] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'record_serial' ~}}
+                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
+                            $record->{{ column_view.name }}[$j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'serial_ref' ~}}
+                        $record->{{ column_view.name }}Index = [];
+                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
+                            $record->{{ column_view.name }}Index[] = {{ column_view.read_element }};
+                        }
+                        $record->{{ column_view.name }} = \array_fill(0, {{ column_view.element_count }}, null);
+{{~ else if column_view.kind == 'serial' ~}}
+                        $record->{{ column_view.name }} = [];
+                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
+                            $record->{{ column_view.name }}[] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'scalar_ref' ~}}
+                        $record->{{ column_view.name }}Index = {{ column_view.read_element }};
+{{~ else ~}}
+                        $record->{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+{{~ end ~}}
+                    }
+{{~ end ~}}
+{{~ if column_view.is_nullable }}
+                    // A pass of its own rather than a line inside each read shape, so the row
+                    // index is worked out once. The block carries a value for every row, so
+                    // an absent one has just been given whatever was there; putting the empty
+                    // value back is what makes this path agree with the JSON one.
+                    foreach ($records as $row => $record) {
+                        $record->{{ column_view.presence_member }} = TcbReader::isPresent($presence, $row);
+
+                        if (!$record->{{ column_view.presence_member }}) {
+                            $record->{{ column_view.name }} = {{ column_view.empty_value }};
+                        }
+                    }
+{{~ end ~}}
+                    break;
+
+{{~ end ~}}
+                default:
+                    // A column added after this code was generated.
+                    $reader->skip($column['byteLength']);
+                    break;
+            }
+
+            $reader->checkBlockEnd($column, $blockEnd);
+        }
+
+        foreach ($records as $record) {
+{{~ for index in table.indexes ~}}
+            {{ index.local_name }}[{{ index.member_offset }}] = $record;
+{{~ end ~}}
+        }
+
+        // Published, now that every column read.
+        $this->records = $records;
+{{~ for index in table.indexes ~}}
+        $this->{{ index.map_name }} = {{ index.local_name }};
+{{~ end ~}}
+    }
+}

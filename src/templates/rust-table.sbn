@@ -1,0 +1,299 @@
+{{~## One table: its record struct and its table type. ##~}}
+{{ include 'rust-file-head.sbn' ~}}
+{{~## The element type of each record group, ahead of the row that holds one. The modules
+   are re-exported side by side, which is why the name carries the table's. ##~}}
+{{~ for field in table.fields ~}}
+{{~## An array of arrays declares no element type: its outer level has no name, so there is
+   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~## One struct per level, innermost first - the view flattened the nesting so this loop does
+   not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+/// One element of [`{{ rt.owner }}`].
+{{~ else ~}}
+/// A record inside [`{{ rt.owner }}`].
+{{~ end ~}}
+#[derive(Clone, Debug, Default)]
+pub struct {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+    /// {{ line }}
+{{~ end ~}}
+    pub {{ member.declaration }}
+{{~ end ~}}
+}
+
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+// Generated from {{ table.location }}
+{{~ for line in table.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+#[derive(Clone, Debug, Default)]
+pub struct {{ table.record_name }} {
+{{~ for field in table.fields ~}}
+{{~ for line in field.comment ~}}
+    /// {{ line }}
+{{~ end ~}}
+{{~ for declaration in field.declarations ~}}
+    pub {{ declaration }}
+{{~ end ~}}
+{{~ if field.is_nullable ~}}
+    /// Whether this row has a value for `{{ field.name }}`. The value member keeps its type
+    /// and holds the type's empty value when the row had none; this says which it was.
+    pub {{ field.presence_member }}: bool,
+{{~ end ~}}
+{{~ end ~}}
+}
+
+impl {{ table.record_name }} {
+}
+
+/// Every row of {{ table.raw_name }}.
+#[derive(Clone, Debug, Default)]
+pub struct {{ table.table_name }} {
+    records: Vec<{{ table.record_name }}>,
+{{~ for index in table.indexes ~}}
+    {{ index.map_name }}: HashMap<{{ index.key_type }}, usize>,
+{{~ end ~}}
+}
+
+impl {{ table.table_name }} {
+    /// Every row, in the order the sheet declared them.
+    pub fn records(&self) -> &[{{ table.record_name }}] {
+        &self.records
+    }
+{{~ for index in table.indexes }}
+    /// The row with this {{ index.field_name }}, or None when the table has none.
+    ///
+    /// The lookup to reach for when a missing row is an ordinary answer - an optional
+    /// reference, a key that came from user input.
+    pub fn find_by_{{ index.suffix }}(&self, key: {{ index.key_param }}) -> Option<&{{ table.record_name }}> {
+        self.{{ index.map_name }}.get({{ index.key_borrow }}).map(|position| &self.records[*position])
+    }
+
+    /// The row with this {{ index.field_name }}, or an error naming what was missing.
+    ///
+    /// For a key that has to be there - one from another table, or a constant. Rust has no
+    /// exception to throw, so where the other languages name a throw this one names the
+    /// error it returns.
+    pub fn get_by_{{ index.suffix }}_or_error(&self, key: {{ index.key_param }}) -> tabbit::Result<&{{ table.record_name }}> {
+        self.{{ index.map_name }}
+            .get({{ index.key_borrow }})
+            .map(|position| &self.records[*position])
+            .ok_or_else(|| tabbit::Error::RecordNotFound {
+                table: "{{ table.raw_name }}",
+                field: "{{ index.field_name }}",
+                key: format!("{:?}", key),
+            })
+    }
+
+    /// Whether the table holds a row with this {{ index.field_name }}.
+    pub fn contains_{{ index.suffix }}(&self, key: {{ index.key_param }}) -> bool {
+        self.{{ index.map_name }}.contains_key({{ index.key_borrow }})
+    }
+{{~ end ~}}
+
+    /// Loads the table from a .tcb file written by Tabbit.
+    pub fn read(&mut self, filename: &Path) -> tabbit::Result<()> {
+        // Mutable, and it outlives the reader on purpose: opening the envelope decrypts in
+        // place and hands back a borrow of these same bytes rather than a copy of them.
+        let mut data = tabbit::read_all_bytes(filename)?;
+
+        // Unconditionally, and with whatever `ENCRYPTION_KEY` and `MAC_KEY` hold - which is
+        // unset unless the project set them. A file that is neither encrypted nor signed
+        // comes back from this untouched, so the load path is the same either way and there
+        // is no condition here that could be the wrong way round.
+        // spec/tcb-mac-and-signature.md.
+        let key: &[u8] = crate::ENCRYPTION_KEY.get().map(Vec::as_slice).unwrap_or(&[]);
+        let mac_key: &[u8] = crate::MAC_KEY.get().map(Vec::as_slice).unwrap_or(&[]);
+
+        let mut reader = tabbit::Reader::new(tabbit::open(
+            &mut data,
+            key,
+            mac_key,
+            crate::VERIFY_MAC.load(std::sync::atomic::Ordering::Relaxed),
+        )?);
+
+        // Column by column, matched by tag rather than position: a column this build
+        // does not know is skipped by its block length, and one whose type changed
+        // incompatibly fails naming the field.
+        let header = tabbit::read_table_header(&mut reader)?;
+        let count = header.row_count.max(0) as usize;
+
+        // Read into rows of its own and assigned at the end. Reading a table that is
+        // already loaded is a refresh, and one that turns out to be unreadable has to
+        // leave the rows already there alone - `?` returns before anything is replaced.
+        let mut records = vec![{{ table.record_name }}::default(); count];
+{{~ if table.needs_record_init }}
+        // A record array whose length is the sheet's column count is created with the row
+        // rather than by whichever member column arrives first. `Default` gives an empty
+        // vector, so otherwise a file that no longer carries the first member would leave
+        // the ones after it indexing past the end.
+        for record in records.iter_mut() {
+{{~ for field in table.fields ~}}
+{{~ if field.is_fixed_record_array ~}}
+            record.{{ field.name }} = vec![{{ field.record_type_name }}::default(); {{ field.element_count }}];
+{{~ else if field.members_are_anonymous ~}}
+{{~## An array of arrays: both levels sized here, for the same reason. ##~}}
+            record.{{ field.name }} = vec![vec![<{{ field.element_type_name }}>::default(); {{ field.element_count }}]; {{ field.outer_count }}];
+{{~ else if field.members_are_arrays ~}}
+{{~## One record, and the vectors are its members - so each of them is sized here for the
+   same reason. ##~}}
+{{~ for member in field.members ~}}
+            record.{{ field.name }}.{{ member.name }} = vec![<{{ member.element_type }}>::default(); {{ member.element_count }}];
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+        }
+{{~ end }}
+        for column in &header.columns {
+            let block_end = reader.position() + column.byte_length.max(0) as usize;
+
+            match column.tag {
+{{~ for column_view in table.columns ~}}
+                {{ column_view.tag }} => {
+                    {{ column_view.column_check }}
+{{~ if column_view.is_nullable ~}}
+                    // The bitmap is at the front of the block, so it is read before the
+                    // values. The values are written for every row either way, which is what
+                    // lets the read shapes below stay as they are.
+                    let presence = tabbit::read_presence(&mut reader, column, header.row_count)?;
+{{~ end ~}}
+{{~ if column_view.kind == 'record_var' && column_view.is_first_member ~}}
+{{~## Taken before the cursor borrows the reader, and an upper bound on the row's element
+      count either way - which is all the check below wants it for. ##~}}
+                    let bytes_left = reader.remaining();
+{{~ end ~}}
+{{~## Opened here, ahead of every read shape, because an array's elements read through it
+      as well: its block states an encoding for them and one for the row lengths, and the
+      cursor is what decodes both. After the presence bitmap, which sits in front of the
+      block the cursor is about to start reading - and once the cursor holds the reader,
+      nothing else may touch it until the arm ends. ##~}}
+{{~ if column_view.cursor_open != '' ~}}
+                    {{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+      call per row that each re-dispatch on the encoding. An encoding with no run to
+      give answers 1, so this loop is correct over all of them. ##~}}
+                    let mut at = 0usize;
+                    while at < records.len() {
+                        let (n, value) = cursor.{{ column_view.run_call }}((records.len() - at) as i32)?;
+                        for _ in 0..n {
+                            {{ column_view.run_spend }}
+                            at += 1;
+                        }
+                    }
+{{~ else ~}}
+                    for record in records.iter_mut() {
+{{~ if column_view.kind == 'var_array' ~}}
+                        let element_count = {{ column_view.length_read }}.max(0) as usize;
+                        record.{{ column_view.name }} = Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            record.{{ column_view.name }}.push({{ column_view.read_element }});
+                        }
+{{~ else if column_view.kind == 'record_var' ~}}
+                        let element_count = {{ column_view.length_read }}.max(0) as usize;
+{{~ if column_view.is_first_member ~}}
+                        // The count came off the wire, and one element is at least one byte,
+                        // so this is checked before anything is allocated for it.
+                        if element_count > bytes_left {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "{{ table.raw_name }}.{{ column_view.name }}",
+                                detail: "a record array is longer than the file can hold",
+                            });
+                        }
+
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.{{ column_view.name }} = vec![{{ column_view.record_type_name }}::default(); element_count];
+{{~ else ~}}
+                        if record.{{ column_view.name }}.len() != element_count {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "{{ table.raw_name }}.{{ column_view.name }}",
+                                detail: "the file gives one member of this record a different \
+                                         element count than another",
+                            });
+                        }
+{{~ end ~}}
+                        for element in 0..element_count {
+                            record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'array_of_arrays_member' ~}}
+{{~## One inner vector. Which outer element it is, is which column this is - so that index
+   is fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+                        for element in 0..{{ column_view.element_count }} {
+                            record.{{ column_view.name }}[{{ column_view.member_at }}][element] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~## The member is the vector: the index goes after its name rather than before. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+                        for element in 0..{{ column_view.element_count }} {
+                            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[element] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'record_serial' ~}}
+                        for element in 0..{{ column_view.element_count }} {
+                            record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'serial_ref' ~}}
+                        record.{{ column_view.name }}_index = Vec::with_capacity({{ column_view.element_count }});
+                        for _ in 0..{{ column_view.element_count }} {
+                            record.{{ column_view.name }}_index.push({{ column_view.read_element }});
+                        }
+{{~ else if column_view.kind == 'serial' ~}}
+                        record.{{ column_view.name }} = Vec::with_capacity({{ column_view.element_count }});
+                        for _ in 0..{{ column_view.element_count }} {
+                            record.{{ column_view.name }}.push({{ column_view.read_element }});
+                        }
+{{~ else if column_view.kind == 'scalar_ref' ~}}
+                        record.{{ column_view.name }}_index = {{ column_view.read_scalar }};
+{{~ else ~}}
+                        record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_scalar }};
+{{~ end ~}}
+                    }
+{{~ end ~}}
+{{~ if column_view.is_nullable }}
+                    // A pass of its own rather than a line inside each read shape, so the row
+                    // index is worked out once. The block carries a value for every row, so
+                    // an absent one has just been given whatever was there; putting the empty
+                    // value back is what makes this path agree with the JSON one.
+                    for (row, record) in records.iter_mut().enumerate() {
+                        record.{{ column_view.presence_member }} = tabbit::is_present(&presence, row);
+
+                        if !record.{{ column_view.presence_member }} {
+                            record.{{ column_view.name }} = Default::default();
+                        }
+                    }
+{{~ end ~}}
+                }
+{{~ end ~}}
+                _ => {
+                    // A column added after this code was generated.
+                    reader.skip(column.byte_length)?;
+                }
+            }
+
+            tabbit::check_block_end(&reader, column, block_end)?;
+        }
+
+{{~ for index in table.indexes ~}}
+        let {{ index.map_name }} = records
+            .iter()
+            .enumerate()
+            .map(|(position, record)| (record.{{ index.member }}.clone(), position))
+            .collect();
+
+{{~ end ~}}
+        // Published, now that every column read.
+        self.records = records;
+{{~ for index in table.indexes ~}}
+        self.{{ index.map_name }} = {{ index.map_name }};
+{{~ end ~}}
+
+        Ok(())
+    }
+}

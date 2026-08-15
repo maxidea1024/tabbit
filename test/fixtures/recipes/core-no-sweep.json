@@ -1,0 +1,33 @@
+{
+  // The same TypeScript output as `core`, with sweeping turned off.
+  //
+  // Written into the same directory on purpose: the test converts with `core` first and then
+  // with this, so what is being measured is whether the second run leaves a stale generated
+  // file where the first one's sweep would have taken it.
+  //
+  // TypeScript only. Sweeping is one mechanism shared by every target, so checking the option
+  // on one of them is checking the option; converting eleven more languages to do it again
+  // would add a minute to the suite and no coverage.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "CodeGenerations": {
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/core/typescript",
+        "Sweep": false
+      }
+    ]
+  }
+}

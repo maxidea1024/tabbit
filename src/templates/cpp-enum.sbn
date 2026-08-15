@@ -1,0 +1,15 @@
+{{~## One enum. ##~}}
+{{ include 'cpp-file-head.sbn' ~}}
+// Generated from {{ enumm.location }}
+{{~ for line in enumm.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+enum class {{ enumm.name }} : std::int32_t {
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+  {{ label.name }} = {{ label.value }},
+{{~ end ~}}
+};
+{{ include 'cpp-file-foot.sbn' ~}}

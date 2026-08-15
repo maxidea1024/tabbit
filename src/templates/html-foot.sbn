@@ -1,0 +1,12 @@
+{{~##
+   The closing markup every generated page shares.
+
+   The wrapping <div class="container-fluid"> is gone with Bootstrap - the padding it
+   provided is on the body now - so there is no </div> here to close it.
+
+   The footer used to end with `by {{ user }}`, taken from the machine's account name.
+   Generated pages get committed, so that put whoever ran the conversion into somebody's
+   repository - and made the file churn for every contributor who regenerated it. The
+   timestamp answers what the line was for.
+##~}}
+<h4>This file was created at {{ created_at }}</h4></body></html>

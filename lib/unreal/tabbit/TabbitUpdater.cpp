@@ -1,0 +1,518 @@
+// The updater's implementation. See TabbitUpdater.h for what it promises.
+
+#include "TabbitUpdater.h"
+
+#include "HttpModule.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Misc/SecureHash.h"
+#include "Containers/Ticker.h"
+#include "HAL/PlatformFileManager.h"
+
+// The engine's own version header, and not ENGINE_MAJOR_VERSION on its own: that macro
+// comes from Version.h, which CoreMinimal does not pull into every target - a Program
+// compiles the #if against an undefined name and the engine builds with that as an error.
+#include "Misc/EngineVersionComparison.h"
+
+// FTicker became FTSTicker in UE5. The retry needs a delay that does not block the game
+// thread, and this is the one name that moved.
+#if UE_VERSION_OLDER_THAN(5, 0, 0)
+#define TABBIT_TICKER FTicker
+#else
+#define TABBIT_TICKER FTSTicker
+#endif
+
+namespace
+{
+    /** Joins a base URL and a name. Not FPaths::Combine, which would give a backslash. */
+    FString JoinUrl(const FString& BaseUrl, const FString& Name)
+    {
+        FString Trimmed = BaseUrl;
+
+        while (Trimmed.EndsWith(TEXT("/")))
+        {
+            Trimmed = Trimmed.LeftChop(1);
+        }
+
+        return Trimmed + TEXT("/") + Name.Replace(TEXT("\\"), TEXT("/"));
+    }
+
+    /**
+     * Whether a status code means "try again" rather than "no".
+     *
+     * 408 and 429 are the server asking for another attempt and 5xx is it failing on its
+     * own account. A 404 is deliberately not here: it is an answer, and retrying it costs
+     * three round trips to hear the same thing.
+     */
+    bool IsTransientStatus(int32 Status)
+    {
+        return Status == 408 || Status == 429 || (Status >= 500 && Status <= 599);
+    }
+
+    /** Where a field's value begins, past the name, the colon and any spaces. */
+    int32 ValueStart(const FString& Json, const FString& Field, int32 From)
+    {
+        const int32 Key = Json.Find(TEXT("\"") + Field + TEXT("\""), ESearchCase::CaseSensitive,
+                                    ESearchDir::FromStart, From);
+
+        if (Key == INDEX_NONE)
+        {
+            return INDEX_NONE;
+        }
+
+        const int32 Colon = Json.Find(TEXT(":"), ESearchCase::CaseSensitive, ESearchDir::FromStart, Key);
+
+        if (Colon == INDEX_NONE)
+        {
+            return INDEX_NONE;
+        }
+
+        int32 At = Colon + 1;
+
+        while (At < Json.Len() && FChar::IsWhitespace(Json[At]))
+        {
+            ++At;
+        }
+
+        return At;
+    }
+
+    /** The value of `"field": "..."`, or empty when the field is not there. */
+    FString ReadStringField(const FString& Json, const FString& Field)
+    {
+        const int32 At = ValueStart(Json, Field, 0);
+
+        if (At == INDEX_NONE || At >= Json.Len() || Json[At] != TEXT('"'))
+        {
+            return FString();
+        }
+
+        FString Value;
+
+        for (int32 Index = At + 1; Index < Json.Len(); ++Index)
+        {
+            const TCHAR Character = Json[Index];
+
+            if (Character == TEXT('\\') && Index + 1 < Json.Len())
+            {
+                Value.AppendChar(Json[++Index]);
+                continue;
+            }
+
+            if (Character == TEXT('"'))
+            {
+                return Value;
+            }
+
+            Value.AppendChar(Character);
+        }
+
+        return FString();
+    }
+
+    /** The value of `"field": 123`, or zero when it is not there. */
+    int64 ReadNumberField(const FString& Json, const FString& Field)
+    {
+        const int32 At = ValueStart(Json, Field, 0);
+
+        if (At == INDEX_NONE)
+        {
+            return 0;
+        }
+
+        int32 End = At;
+
+        while (End < Json.Len() && (FChar::IsDigit(Json[End]) || Json[End] == TEXT('-')))
+        {
+            ++End;
+        }
+
+        return FCString::Atoi64(*Json.Mid(At, End - At));
+    }
+}
+
+FString FTabbitUpdater::DefaultCacheDirectory()
+{
+    return FPaths::Combine(FPaths::ProjectPersistentDownloadDir(), TEXT("TabbitData"));
+}
+
+FString FTabbitUpdater::HashOf(const TArray<uint8>& Bytes)
+{
+    uint8 Digest[16];
+
+    FMD5 Md5;
+    Md5.Update(Bytes.GetData(), Bytes.Num());
+    Md5.Final(Digest);
+
+    FString Hex;
+
+    for (int32 Index = 0; Index < 16; ++Index)
+    {
+        Hex += FString::Printf(TEXT("%02x"), Digest[Index]);
+    }
+
+    return Hex;
+}
+
+void FTabbitUpdater::ParseManifest(const FString& Json, TArray<FTabbitManifestEntry>& OutEntries)
+{
+    OutEntries.Reset();
+
+    int32 At = Json.Find(TEXT("\"Items\""), ESearchCase::CaseSensitive);
+
+    if (At == INDEX_NONE)
+    {
+        return;
+    }
+
+    // Every object after "Items" is one file. The manifest has no other array and no nested
+    // objects, so walking braces from here is enough.
+    while (true)
+    {
+        const int32 Open = Json.Find(TEXT("{"), ESearchCase::CaseSensitive, ESearchDir::FromStart, At);
+
+        if (Open == INDEX_NONE)
+        {
+            break;
+        }
+
+        const int32 Close = Json.Find(TEXT("}"), ESearchCase::CaseSensitive, ESearchDir::FromStart, Open);
+
+        if (Close == INDEX_NONE)
+        {
+            break;
+        }
+
+        const FString Body = Json.Mid(Open, Close - Open + 1);
+        const FString Name = ReadStringField(Body, TEXT("Name"));
+
+        if (!Name.IsEmpty())
+        {
+            FTabbitManifestEntry Entry;
+
+            Entry.Name = Name;
+            Entry.Hash = ReadStringField(Body, TEXT("Hash"));
+            Entry.Size = ReadNumberField(Body, TEXT("Size"));
+
+            OutEntries.Add(Entry);
+        }
+
+        At = Close + 1;
+    }
+}
+
+TSharedRef<FTabbitUpdater> FTabbitUpdater::Update(
+    const FString& InBaseUrl,
+    const FString& InCacheDirectory,
+    const FTabbitUpdateOptions& InOptions,
+    FTabbitUpdateComplete InOnComplete)
+{
+    TSharedRef<FTabbitUpdater> Updater = MakeShared<FTabbitUpdater>();
+
+    Updater->BaseUrl = InBaseUrl;
+    Updater->CacheDirectory = InCacheDirectory.IsEmpty() ? DefaultCacheDirectory() : InCacheDirectory;
+    Updater->StagingDirectory = FPaths::Combine(Updater->CacheDirectory, TEXT(".staging"));
+    Updater->Options = InOptions;
+    Updater->OnComplete = InOnComplete;
+    Updater->Result.LocalPath = Updater->CacheDirectory;
+
+    // Held until the delegate fires. HTTP hands the response to a lambda, and nothing else
+    // is keeping this object alive by then.
+    Updater->Self = Updater;
+
+    Updater->FetchManifest();
+
+    return Updater;
+}
+
+void FTabbitUpdater::FetchManifest()
+{
+    bFetchingManifest = true;
+    CurrentUrl = JoinUrl(BaseUrl, Options.ManifestFileName);
+    Attempt = 1;
+    Delay = Options.RetryDelaySeconds;
+
+    Send();
+}
+
+void FTabbitUpdater::OnManifestFetched(const FString& Text)
+{
+    RemoteManifestText = Text;
+
+    TArray<FTabbitManifestEntry> Remote;
+    ParseManifest(Text, Remote);
+
+    TArray<FTabbitManifestEntry> Local;
+    FString LocalText;
+
+    if (FFileHelper::LoadFileToString(LocalText, *FPaths::Combine(CacheDirectory, Options.ManifestFileName)))
+    {
+        ParseManifest(LocalText, Local);
+    }
+
+    IPlatformFile& Files = FPlatformFileManager::Get().GetPlatformFile();
+
+    for (const FTabbitManifestEntry& Entry : Remote)
+    {
+        const FTabbitManifestEntry* Previous = Local.FindByPredicate(
+            [&Entry](const FTabbitManifestEntry& One) { return One.Name == Entry.Name; });
+
+        // The file's presence is checked as well as the manifest's word for it: a cache
+        // somebody cleaned out by hand would otherwise never be refilled.
+        const bool bCurrent = Previous != nullptr
+            && Previous->Hash == Entry.Hash
+            && Files.FileExists(*FPaths::Combine(CacheDirectory, Entry.Name));
+
+        if (!bCurrent)
+        {
+            Wanted.Add(Entry);
+        }
+    }
+
+    for (const FTabbitManifestEntry& Entry : Local)
+    {
+        const bool bStillServed = Remote.ContainsByPredicate(
+            [&Entry](const FTabbitManifestEntry& One) { return One.Name == Entry.Name; });
+
+        if (!bStillServed)
+        {
+            Gone.Add(Entry.Name);
+        }
+    }
+
+    if (Wanted.Num() == 0 && Gone.Num() == 0)
+    {
+        Result.bSucceeded = true;
+        Result.bUpToDate = true;
+
+        UE_LOG(LogTemp, Log, TEXT("TabbitUpdater: already up to date."));
+        Finish();
+        return;
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("TabbitUpdater: %d file(s) to fetch, %d to remove."),
+        Wanted.Num(), Gone.Num());
+
+    // Everything lands here first, so nothing the caller can read is touched until the last
+    // file has arrived and been checked.
+    Files.DeleteDirectoryRecursively(*StagingDirectory);
+    Files.CreateDirectoryTree(*StagingDirectory);
+
+    At = 0;
+    FetchNext();
+}
+
+void FTabbitUpdater::FetchNext()
+{
+    if (At >= Wanted.Num())
+    {
+        Apply();
+        return;
+    }
+
+    bFetchingManifest = false;
+    CurrentUrl = JoinUrl(BaseUrl, Wanted[At].Name);
+    Attempt = 1;
+    Delay = Options.RetryDelaySeconds;
+
+    Send();
+}
+
+void FTabbitUpdater::OnFileFetched(const TArray<uint8>& Bytes)
+{
+    const FTabbitManifestEntry& Entry = Wanted[At];
+
+    if (Options.bVerifyHash && !Entry.Hash.IsEmpty())
+    {
+        const FString Actual = HashOf(Bytes);
+
+        if (!Actual.Equals(Entry.Hash, ESearchCase::IgnoreCase))
+        {
+            Fail(FString::Printf(
+                TEXT("'%s' arrived with hash %s, and the manifest says %s. Nothing was replaced."),
+                *Entry.Name, *Actual, *Entry.Hash));
+
+            return;
+        }
+    }
+
+    const FString Staged = FPaths::Combine(StagingDirectory, Entry.Name);
+
+    if (!FFileHelper::SaveArrayToFile(Bytes, *Staged))
+    {
+        Fail(FString::Printf(TEXT("'%s' could not be written to %s."), *Entry.Name, *Staged));
+        return;
+    }
+
+    Result.DownloadedBytes += Bytes.Num();
+
+    ++At;
+    FetchNext();
+}
+
+void FTabbitUpdater::Apply()
+{
+    // From here on nothing reaches the network: what is left is local moves and then the
+    // manifest, which is written last so an interruption is recoverable.
+    IPlatformFile& Files = FPlatformFileManager::Get().GetPlatformFile();
+
+    for (const FString& Name : Gone)
+    {
+        const FString Target = FPaths::Combine(CacheDirectory, Name);
+
+        if (Files.FileExists(*Target))
+        {
+            Files.DeleteFile(*Target);
+        }
+
+        ++Result.DeletedCount;
+    }
+
+    for (const FTabbitManifestEntry& Entry : Wanted)
+    {
+        const FString Staged = FPaths::Combine(StagingDirectory, Entry.Name);
+        const FString Target = FPaths::Combine(CacheDirectory, Entry.Name);
+
+        Files.CreateDirectoryTree(*FPaths::GetPath(Target));
+
+        if (Files.FileExists(*Target))
+        {
+            Files.DeleteFile(*Target);
+        }
+
+        if (!Files.MoveFile(*Target, *Staged))
+        {
+            Fail(FString::Printf(TEXT("'%s' could not be moved into place."), *Entry.Name));
+            return;
+        }
+
+        ++Result.DownloadedCount;
+    }
+
+    // Last of all, and that ordering is the recovery story: a run killed before this point
+    // leaves a manifest describing the data still on disk, so the next run fetches the same
+    // files again rather than believing it has them.
+    if (!FFileHelper::SaveStringToFile(RemoteManifestText,
+            *FPaths::Combine(CacheDirectory, Options.ManifestFileName)))
+    {
+        Fail(TEXT("The manifest could not be written to the cache."));
+        return;
+    }
+
+    Files.DeleteDirectoryRecursively(*StagingDirectory);
+
+    UE_LOG(LogTemp, Log, TEXT("TabbitUpdater: updated. %d fetched, %d removed."),
+        Result.DownloadedCount, Result.DeletedCount);
+
+    Result.bSucceeded = true;
+    Finish();
+}
+
+void FTabbitUpdater::Send()
+{
+    TSharedRef<FTabbitUpdater> This = AsShared();
+
+    TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+
+    Request->SetURL(CurrentUrl);
+    Request->SetVerb(TEXT("GET"));
+    Request->SetTimeout(Options.RequestTimeoutSeconds);
+
+    Request->OnProcessRequestComplete().BindLambda(
+        [This](FHttpRequestPtr, FHttpResponsePtr Response, bool bConnected)
+        {
+            // A connection that never arrived is worth another attempt; a status code is the
+            // server's answer, and only some of those mean "later".
+            if (!bConnected || !Response.IsValid())
+            {
+                This->Retry();
+                return;
+            }
+
+            const int32 Status = Response->GetResponseCode();
+
+            if (Status < 200 || Status > 299)
+            {
+                if (IsTransientStatus(Status))
+                {
+                    This->Retry();
+                    return;
+                }
+
+                This->Fail(FString::Printf(TEXT("'%s' answered %d."), *This->CurrentUrl, Status));
+                return;
+            }
+
+            if (This->bFetchingManifest)
+            {
+                FString Text;
+                const TArray<uint8>& Content = Response->GetContent();
+
+                FFileHelper::BufferToString(Text, Content.GetData(), Content.Num());
+                This->OnManifestFetched(Text);
+            }
+            else
+            {
+                This->OnFileFetched(Response->GetContent());
+            }
+        });
+
+    if (!Request->ProcessRequest())
+    {
+        Fail(FString::Printf(TEXT("'%s' could not be requested."), *CurrentUrl));
+    }
+}
+
+void FTabbitUpdater::Retry()
+{
+    if (Attempt >= Options.MaxAttempts)
+    {
+        Fail(FString::Printf(TEXT("'%s' could not be fetched in %d attempt(s)."),
+            *CurrentUrl, Options.MaxAttempts));
+
+        return;
+    }
+
+    ++Attempt;
+
+    UE_LOG(LogTemp, Warning, TEXT("TabbitUpdater: '%s' failed. Retrying in %.1fs (%d of %d)."),
+        *CurrentUrl, Delay, Attempt, Options.MaxAttempts);
+
+    TSharedRef<FTabbitUpdater> This = AsShared();
+    const float ThisDelay = Delay;
+
+    // Doubling rather than a fixed wait: a server refusing because it is overloaded is not
+    // helped by every client coming back at the same interval.
+    Delay *= 2.0f;
+
+    // A ticker rather than a sleep, because the game thread has frames to render while the
+    // server gets a moment.
+    TABBIT_TICKER::GetCoreTicker().AddTicker(
+        FTickerDelegate::CreateLambda([This](float) -> bool
+        {
+            This->Send();
+            return false;
+        }),
+        ThisDelay);
+}
+
+void FTabbitUpdater::Fail(const FString& InError)
+{
+    // The previous data is untouched, so the caller can carry on with it.
+    UE_LOG(LogTemp, Error, TEXT("TabbitUpdater: %s"), *InError);
+
+    Result.bSucceeded = false;
+    Result.Error = InError;
+
+    Finish();
+}
+
+void FTabbitUpdater::Finish()
+{
+    OnComplete.ExecuteIfBound(Result);
+
+    // Nothing else is holding this, so letting go of the handle is what ends it.
+    Self.Reset();
+}

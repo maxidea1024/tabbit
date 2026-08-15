@@ -1,0 +1,67 @@
+# Servers the database export tests run against.
+#
+# Real servers rather than fakes: what these exporters get right or wrong is engine
+# behaviour - MySQL's atomic multi-pair RENAME, PostgreSQL's transactional DDL, Mongo's
+# renameCollection, Redis MULTI/EXEC. A mock would confirm the code makes the calls it
+# makes, which is not the question.
+#
+# Host ports are deliberately left unspecified so Docker assigns a free one to each
+# service. Fixed ports are fragile on a shared development machine: an offset chosen to
+# avoid the defaults still collides with the next project that picked an offset, which
+# is exactly what happened here. The test fixture asks Docker which ports it assigned
+# and passes them to the converter through the environment.
+#
+# Credentials below are throwaway values for a container holding nothing but test
+# fixtures. The exporters read secrets from the environment precisely so real ones need
+# never be written into a file like this.
+
+name: tabbit-test-databases
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: tabbit-test
+      MYSQL_DATABASE: tabbit_test
+    ports:
+      - "3306"
+    # Waiting on the port is not enough: mysqld accepts connections while initialising
+    # and then restarts, so a test would connect and promptly be dropped.
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-ptabbit-test"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: tabbit-test
+      POSTGRES_DB: tabbit_test
+    ports:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tabbit_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+
+  mongo:
+    image: mongo:8
+    ports:
+      - "27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 60

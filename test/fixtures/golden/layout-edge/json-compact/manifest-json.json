@@ -1,0 +1,19 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "da15967c889a99ceffd2d25e5f5af4ee",
+  "TotalSize": 113,
+  "Items": [
+    {
+      "Name": "OffsetTable.json",
+      "Size": 74,
+      "Hash": "4d31d7e964865ed6307f1968193cedb3",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "SecondTable.json",
+      "Size": 39,
+      "Hash": "e8795fbd04474154acd38be8a590906c",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "f0b9b49ebb42e857d993bc1f51da4e79",
+  "TotalSize": 876,
+  "Items": [
+    {
+      "Name": "Asset.json",
+      "Size": 317,
+      "Hash": "b1783d28e66492af61238b000fa0bd49",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Ledger.json",
+      "Size": 325,
+      "Hash": "b2adb9babc71e6f093e0162e0548fcf0",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Slotting.json",
+      "Size": 234,
+      "Hash": "c856b650adbcc3a4f5006e36bb76b2b2",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

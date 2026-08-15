@@ -1,0 +1,28 @@
+{{~## The barrel module: re-exports every generated entity. ##~}}
+{{ include 'ts-head.sbn' ~}}
+{{~ if namespace_open != '' }}
+{{ namespace_open }}
+{{~ end ~}}
+{{~ if enums | array.size > 0 }}
+// Enums
+{{~ for one in enums ~}}
+export { {{ one.name }} } from './enums/{{ one.file }}'
+{{~ end ~}}
+{{~ end ~}}
+{{~ if tables | array.size > 0 }}
+// Tables
+{{~ for one in tables ~}}
+export { {{ one.name }}Record } from './tables/{{ one.file }}'
+export { {{ one.name }}Table } from './tables/{{ one.file }}'
+{{~ end ~}}
+{{~ end ~}}
+{{~ if constant_sets | array.size > 0 }}
+// Constants
+{{~ for one in constant_sets ~}}
+export { {{ one.name }} } from './constants/{{ one.file }}'
+{{~ end ~}}
+{{~ end }}
+export { {{ accessor_name }} } from './{{ accessor_file }}'
+{{~ if namespace_close != '' }}
+{{ namespace_close }}
+{{~ end ~}}

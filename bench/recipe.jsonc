@@ -1,0 +1,125 @@
+{
+  // Data for the format benchmark in bench/: the rescue workbooks, exported three ways
+  // from one conversion so the files can only differ by format, never by content.
+  //
+  // The sheet list is the one samples/rescue/recipe.jsonc explains; it is copied
+  // rather than shared because a recipe has no include mechanism, and the benchmark
+  // wants exports that recipe does not make (compact rows, no indentation).
+  //
+  // Run from the repository root:
+  //
+  //     dotnet run --project src/Tabbit.csproj -- --recipe bench/recipe.jsonc
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "samples/rescue",
+        "Layout": "rescue",
+        "OnDuplicateIndex": "keep-first",
+
+        "IncludeSheets": [
+          "TableEnums",
+
+          // ItemData.xlsx
+          "CurrencyTable",
+          "PackageTable",
+          "EquipTable",
+          "EquipItemLevelTable",
+          "EquipItemClassTable",
+          "EquipItemGradeTable",
+          "MaterialTable",
+          "ClassUpCurrencyListTable",
+
+          // MasterData.xlsx
+          "CharacterTable",
+          "SkillTable",
+          "CharacterLevelTable",
+          "CharacterTranscendenceTable",
+          "ArtifactTable",
+          "ArtifactLevelTable",
+          "ArtifactTranscendenceTable",
+          "StageTable",
+          "BuffTable",
+          "BuffSelectTable",
+          "ConfigTable",
+          "DropGroupTable",
+          "AttributeTable",
+          "ShortCutTable",
+
+          // SD_Contens.xlsx
+          "SDContensInfoTable",
+          "SDAgencyTable",
+          "SDAgencyInfoTable",
+          "SDPubInfoTable",
+          "SDTrainingInfoTable",
+          "SDTrainingLevelTable",
+          "SDDungeonInfoTable",
+          "SDDungeonCardTable",
+          "SDDungeonRewardTable",
+          "SDAlchemyInfoTable",
+          "SDAlchemyStepTable",
+          "SDAlchemyLevelTable",
+
+          // DailyDungeon.xlsx
+          "DailyDungeonInfoTable",
+          "GoldDungeonStageTable",
+          "GoldDungeonRewardTable",
+          "ExpDungeonStageTable",
+          "ExpDungeonRewardTable",
+          "TraitDungeonStageTable",
+          "TraitDungeonRewardTable",
+          "RelicDungeonStageTable",
+          "RelicDungeonRewardTable",
+          "OopartsDungeonStageTable",
+          "OopartsDungeonRewardTable",
+
+          // StageGrowth.xlsx
+          "InfoGrowthTable",
+          "StatGrowthTable",
+          "TraitTable",
+          "RelicTable",
+          "StarNodeTable",
+          "CostCurveTable",
+          "CostCurveRangeTable",
+
+          // CollectionData.xlsx
+          "CollectionGroupTable",
+          "CollectionTable",
+
+          // ConditionData.xlsx
+          "ConditionTable",
+
+          // SoundData.xlsx
+          "BGMSoundTable",
+          "SFXSoundTable",
+
+          // ShopData.xlsx
+          "ShopInfoTable",
+          "MainShopTable",
+          "PackageShopTable",
+          "SeasonShopTable",
+          "CashShopTable",
+
+          // GachaData.xlsx
+          "GachaInfoTable",
+          "GachaRateTable",
+          "GachaCharacterListTable",
+          "GachaArtifactListTable",
+          "GachaArtifactInfoTable"
+        ]
+      }
+    ]
+  },
+
+  "Exports": {
+    // Neither JSON export is indented: shipping JSON is minified, and indentation
+    // would charge JSON for whitespace it does not have to carry.
+    "Json": [
+      { "Path": "bench/data/json", "UseCompactRowFormat": false, "Indented": false },
+      { "Path": "bench/data/json-compact", "UseCompactRowFormat": true, "Indented": false }
+    ],
+    "Binary": [
+      { "Path": "bench/data/binary" }
+    ]
+  }
+}

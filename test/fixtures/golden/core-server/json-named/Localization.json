@@ -1,0 +1,26 @@
+[
+  {
+    "index": 1,
+    "key": "greeting",
+    "textEnArray": [
+      "Hello",
+      "Hi"
+    ],
+    "textKoArray": [
+      "안녕하세요",
+      "안녕"
+    ]
+  },
+  {
+    "index": 2,
+    "key": "farewell",
+    "textEnArray": [
+      "Goodbye",
+      "Bye"
+    ],
+    "textKoArray": [
+      "안녕히가세요",
+      "잘가"
+    ]
+  }
+]

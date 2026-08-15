@@ -1,0 +1,38 @@
+{
+  // A rule file named after a table that does not exist.
+  //
+  // Every path is relative to the repository root, which is where the test harness invokes
+  // Tabbit from. The rules live in test/fixtures/validation/unknown-table and report at all three
+  // severities without stopping the run, so this scenario must convert successfully and
+  // write its JSON.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Validation": {
+    "Path": "test/fixtures/validation/unknown-table",
+
+    "Options": {
+      "Locale": "KR"
+    },
+
+    // Left off, so the warning the fixture reports does not stop the run. The test that
+    // covers promotion passes the recipe with it on.
+    "TreatWarningsAsErrors": false
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/validation-unknown-table/json",
+        "Indented": true
+      }
+    ]
+  }
+}

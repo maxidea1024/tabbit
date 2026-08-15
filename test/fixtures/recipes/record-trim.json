@@ -1,0 +1,142 @@
+{
+  // A record array whose length is each row's rather than the sheet's column count.
+  //
+  // Both JSON row formats, because a variable length reaches them differently: the named one
+  // simply writes a shorter array, while the compact one is positional and has to give the
+  // group one nested entry per member - a reader walking with a running offset cannot advance
+  // past a count nobody told it. That mirrors what the binary does, which is the point.
+  //
+  // Binary, because a trimmed member becomes a `KindVarArray` column where a fixed one is
+  // `KindFixedArray`. The golden holds the bytes, so the descriptors say it.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/record-trim",
+
+        // The whole point of this fixture. Off is the default: a shorter array is a different
+        // API and nothing in a sheet says an empty tail was meant as elements.
+        "TrimTrailingArrayElements": true,
+
+        // So `Tag1`/`Tag2`/`Tag3` fold into one array beside the record groups. Trimming
+        // answers for both array kinds and this fixture had only records in it.
+        "FoldSerialFields": true,
+
+        // Row 3 leaves an element empty between two filled ones, which is refused by
+        // default. It is here on purpose - it is what says the middle is kept rather than
+        // closed up - so this entry says the gap was meant. `record-trim-strict` reads the
+        // same workbook without this line and is refused, which is the other half.
+        "AllowArrayGaps": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/record-trim/csharp",
+        "Namespace": "Tabbit.Fixtures.RecordTrim",
+        "AccessorName": "RecordTrimAccessor"
+      }
+    ],
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/record-trim/cpp",
+        "AccessorName": "RecordTrimAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/record-trim/typescript"
+      }
+    ]
+  },
+
+  // The Unreal target is reached through `Targets` - it has no recipe section of its own.
+  // Here so UHT sees the generated USTRUCTs: what a golden tree cannot answer is whether
+  // the header tool accepts them, and that is the whole question for a record group.
+  "Targets": [
+    {
+      // Go has no recipe section either - the targets added since the `Targets` list
+      // exists are reached only through it.
+      "Type": "go",
+      "Path": "test/fixtures/output/record-trim/go",
+      "PackageName": "recordtrim",
+      "ModulePath": "recordtrim"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/record-trim/ruby",
+      "ModuleName": "RecordTrim"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/record-trim/php",
+      "Namespace": "Tabbit\\Fixtures\\RecordTrim",
+      "AccessorName": "RecordTrimAccessor"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/record-trim/dart"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/record-trim/python",
+      "PackageName": "record_trim_data"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/record-trim/kotlin",
+      "PackageName": "tabbit.fixtures.recordtrim",
+      "AccessorName": "RecordTrimAccessor"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/record-trim/java",
+      "PackageName": "tabbit.fixtures.recordtrim",
+      "AccessorName": "RecordTrimAccessor"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/record-trim/rust",
+      "CrateName": "record_trim"
+    },
+    {
+      // C has no recipe section either - both it and unreal are reached by type.
+      "Type": "c",
+      "Path": "test/fixtures/output/record-trim/c",
+      "AccessorName": "RecordTrim"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/record-trim/unreal/Source",
+      "ModuleName": "RecordTrim",
+      "AccessorName": "FRecordTrim",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ],
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/record-trim/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/record-trim/json-compact",
+        "UseCompactRowFormat": true,
+        "Indented": true
+      },
+      {
+        "Path": "test/fixtures/output/record-trim/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ],
+    "MongoDb": [],
+    "MySql": []
+  }
+}

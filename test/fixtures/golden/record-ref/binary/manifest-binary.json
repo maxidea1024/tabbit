@@ -1,0 +1,67 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "235f7ab21dd281e0ec3d960d2ae9e076",
+  "TotalSize": 1010,
+  "Items": [
+    {
+      "Name": "Item.tcb",
+      "Size": 105,
+      "Hash": "2c1eea9bdee102983c47f775ba4c0906",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Loadout.tcb",
+      "Size": 93,
+      "Hash": "8a194873ea1d03a1a284a9f1651e4d61",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Holder.tcb",
+      "Size": 94,
+      "Hash": "1068003b160797327c1624e7a34c7b19",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Bag.tcb",
+      "Size": 80,
+      "Hash": "b8a882d1ea030d2e0d1d14337e1db158",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Mount.tcb",
+      "Size": 80,
+      "Hash": "b8a882d1ea030d2e0d1d14337e1db158",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Clip.tcb",
+      "Size": 107,
+      "Hash": "8980af8c1825e2663b4c054bc270c5ce",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Pose.tcb",
+      "Size": 97,
+      "Hash": "babd2d6d6bb300addb7765c8e21eb173",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Seal.tcb",
+      "Size": 133,
+      "Hash": "a4ebb69dd88da512d8e442d725fcb20a",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Badge.tcb",
+      "Size": 133,
+      "Hash": "271fb680d7533c4ea22d6a2bf52326b6",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Kit.tcb",
+      "Size": 88,
+      "Hash": "32f6450defd46f99c4c180259b5715b3",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

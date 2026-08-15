@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Tabbit.Bench</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <!-- Workstation GC, as a game client would run. Server GC trades memory for
+         throughput and would flatter every format's numbers equally, but the doc
+         quotes these as client-side costs. -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The committed rescue code generation: the same generated reader a consumer
+         project would compile. The benchmark's data comes from bench/recipe.jsonc,
+         which converts the same workbooks with the same checkout of the tool, so
+         the two cannot disagree about the schema. -->
+    <Compile Include="..\samples\rescue\out\cs\**\*.cs" LinkBase="rescue-generated" />
+  </ItemGroup>
+
+</Project>

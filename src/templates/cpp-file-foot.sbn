@@ -1,0 +1,9 @@
+{{~## How every generated C++ header ends: the namespace close and the guard. ##~}}
+{{~ if namespace_close | array.size > 0 ~}}
+
+{{~ for line in namespace_close ~}}
+{{ line }}
+{{~ end ~}}
+{{~ end ~}}
+
+#endif  // {{ include_guard }}

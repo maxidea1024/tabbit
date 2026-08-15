@@ -1,0 +1,50 @@
+[
+  {
+    "index": 1,
+    "hp": 100,
+    "bonus": 5,
+    "weight": 1.5,
+    "ratio": 0.25,
+    "count": "9000000000",
+    "openAt": "2026-01-02T03:04:05",
+    "cooldown": "01:02:03",
+    "batch": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    "grade": 2,
+    "costs": [
+      10,
+      20
+    ],
+    "label": "first",
+    "hidden": true
+  },
+  {
+    "index": 2,
+    "hp": 100,
+    "bonus": null,
+    "weight": null,
+    "ratio": null,
+    "count": null,
+    "openAt": null,
+    "cooldown": null,
+    "batch": null,
+    "grade": null,
+    "costs": null,
+    "label": null,
+    "hidden": null
+  },
+  {
+    "index": 3,
+    "hp": 100,
+    "bonus": null,
+    "weight": null,
+    "ratio": null,
+    "count": null,
+    "openAt": null,
+    "cooldown": null,
+    "batch": null,
+    "grade": null,
+    "costs": null,
+    "label": null,
+    "hidden": null
+  }
+]

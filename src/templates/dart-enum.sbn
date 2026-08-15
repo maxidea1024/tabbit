@@ -1,0 +1,28 @@
+{{~## One enum. `enumm` is the single enum this file is for. ##~}}
+{{ include 'dart-part-head.sbn' ~}}
+// Generated from {{ enumm.location }}
+{{~ for line in enumm.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+enum {{ enumm.name }} {
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+  {{ label.name }}({{ label.value }}){{ label.separator }}
+{{~ end ~}}
+
+  const {{ enumm.name }}(this.value);
+
+  /// The declared value, which is what travels on the wire.
+  final int value;
+
+  /// The label with this value, or the default when the sheet declared no such label.
+  static {{ enumm.name }} of(int value) {
+    for (final candidate in {{ enumm.name }}.values) {
+      if (candidate.value == value) return candidate;
+    }
+
+    return {{ enumm.name }}.{{ enumm.default_label }};
+  }
+}

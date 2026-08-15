@@ -1,0 +1,7 @@
+[
+  { "text": "Delivery", "from": "Quest.Category" },
+  { "text": "Hunt", "from": "Quest.Category" },
+  { "text": "Coarse but strong.", "from": "Item.Flavour" },
+  { "text": "Tools", "from": "Item.Category" },
+  { "text": "It burns whale oil.", "from": "Item.Flavour" }
+]

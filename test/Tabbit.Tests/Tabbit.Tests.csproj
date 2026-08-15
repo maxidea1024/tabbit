@@ -1,0 +1,87 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Tabbit.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lets the suite unit-test pure helpers directly instead of only observing
+         them through a full conversion. -->
+    <ProjectReference Include="..\..\src\Tabbit.csproj" />
+
+    <!--
+      Referenced for its build rather than its types - it has none to use. It compiles the emitted
+      reader against netstandard2.1, which is the ceiling a Unity project imposes, and referencing
+      it is what makes `dotnet test` build it.
+
+      Without this the check ran only where the whole solution was built, which is CI. That gap
+      let a reader that Unity cannot compile sit in the repository: the MAC work reached for an
+      overload netstandard2.1 does not have, every test passed, and the suite had nothing to say.
+    -->
+    <ProjectReference Include="..\EmittedCodeLanguageCheck\EmittedCodeLanguageCheck.csproj"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The shipped updater, compiled into the suite and exercised directly against a local
+      HTTP server. It is a fixed runtime file rather than generated output - it reads only
+      the manifest and knows nothing of the schema - so testing the file itself tests what
+      consumers get, without a harness process in between.
+    -->
+    <Compile Include="..\..\lib\cs\tabbit\TabbitUpdater.cs"
+             Link="Shipped\TabbitUpdater.cs" />
+
+    <!--
+      The shipped reader, for the same reason and one more: the converter seals a file and
+      this is what has to open it. Compiling both into one suite is what lets a test assert
+      that against each other rather than against a second copy of the cipher written to
+      agree with the first.
+    -->
+    <Compile Include="..\..\lib\cs\tabbit\TcbReader.cs"
+             Link="Shipped\TcbReader.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The database tests query the servers directly to confirm what the exporters
+         actually wrote, rather than trusting the exporters' own reports. -->
+    <PackageReference Include="MySqlConnector" Version="2.6.1" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <PackageReference Include="MongoDB.Driver" Version="3.10.0" />
+    <PackageReference Include="StackExchange.Redis" Version="3.0.17" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Lifts NPOI's transitive System.Security.Cryptography.Xml 8.0.2, which carries eight
+      high-severity advisories, onto a patched version.
+
+      src/Tabbit.csproj needs no such reference: its ASP.NET Core framework reference
+      supplies that assembly from the shared framework. This project has no framework
+      reference, so NuGet resolves the package instead - which is how the vulnerable version
+      came back after the pull-up was removed from src as redundant. It was redundant there
+      and load-bearing here, and nothing said so.
+
+      Not shipped either way. What it costs while it is wrong is sixteen build warnings, and
+      a build nobody reads the warnings of is a build that hides the next real one - the
+      warning noise had already pushed a test into slicing JSON out of stdout by hand.
+    -->
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
+  </ItemGroup>
+
+</Project>

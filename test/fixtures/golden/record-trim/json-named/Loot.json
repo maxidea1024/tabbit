@@ -1,0 +1,126 @@
+[
+  {
+    "index": 1,
+    "name": "full",
+    "slot": [
+      {
+        "id": 10,
+        "count": 1,
+        "label": "sword"
+      },
+      {
+        "id": 20,
+        "count": 2,
+        "label": "shield"
+      },
+      {
+        "id": 30,
+        "count": 3,
+        "label": "bow"
+      }
+    ],
+    "pos": {
+      "x": 5,
+      "y": 6
+    },
+    "tagArray": [
+      "a",
+      "b",
+      "c"
+    ]
+  },
+  {
+    "index": 2,
+    "name": "two",
+    "slot": [
+      {
+        "id": 10,
+        "count": 1,
+        "label": "sword"
+      },
+      {
+        "id": 20,
+        "count": 2,
+        "label": "shield"
+      }
+    ],
+    "pos": {
+      "x": 5,
+      "y": 6
+    },
+    "tagArray": [
+      "a",
+      "b",
+      ""
+    ]
+  },
+  {
+    "index": 3,
+    "name": "gap",
+    "slot": [
+      {
+        "id": 10,
+        "count": 1,
+        "label": "sword"
+      },
+      {
+        "id": 0,
+        "count": 0,
+        "label": ""
+      },
+      {
+        "id": 30,
+        "count": 3,
+        "label": "bow"
+      }
+    ],
+    "pos": {
+      "x": 5,
+      "y": 6
+    },
+    "tagArray": [
+      "a",
+      "",
+      "c"
+    ]
+  },
+  {
+    "index": 4,
+    "name": "none",
+    "slot": [],
+    "pos": {
+      "x": 0,
+      "y": 0
+    },
+    "tagArray": [
+      "a",
+      "",
+      ""
+    ]
+  },
+  {
+    "index": 5,
+    "name": "zeroes",
+    "slot": [
+      {
+        "id": 10,
+        "count": 1,
+        "label": "sword"
+      },
+      {
+        "id": 0,
+        "count": 0,
+        "label": ""
+      }
+    ],
+    "pos": {
+      "x": 0,
+      "y": 0
+    },
+    "tagArray": [
+      "a",
+      "z",
+      ""
+    ]
+  }
+]

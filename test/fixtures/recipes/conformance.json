@@ -1,0 +1,148 @@
+{
+  // The conformance corpus.
+  //
+  // One table holding every type at the values that break a reader, exported both ways.
+  // The binary file is what a reader under test consumes; the named JSON is what it has
+  // to agree with, field for field.
+  //
+  // Every language whose reader is checked also gets its accessor generated here, so a
+  // harness is a few lines over the generated code rather than a parser of its own.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/conformance"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/conformance/binary",
+        "FileExtension": ".tcb",
+
+        // Signed, so that every harness walks the MAC path over a file the converter
+        // actually wrote rather than one a test built. The key is committed beside the
+        // fixtures and protects nothing - what it buys is that the thirteen readers can
+        // be handed the same signed corpus without a variable to remember.
+        // test/fixtures/keys/readme.md · spec/tcb-mac-and-signature.md.
+        "MacKeyFile": "test/fixtures/keys/conformance-mac.key"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/conformance/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ]
+  },
+
+  // Go is reached through the dynamic target list rather than a section of its own,
+  // which is what that list is for: a language added after it costs its own files and
+  // touches nothing existing.
+  "Targets": [
+    // Not for the corpus's own sake: it is what CorpusCoverageTests reads to ask whether every
+    // value type a field can hold is actually in here. A type nobody put in the corpus is a
+    // type no language's reader is ever run against.
+    {
+      "Type": "summary",
+      "Path": "test/fixtures/output/conformance/summary"
+    },
+
+    {
+      "Type": "go",
+      "Path": "test/fixtures/output/conformance/go",
+      "WriteUpdater": true,
+      "PackageName": "conformance",
+      "ModulePath": "conformance",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/conformance/rust",
+      "CrateName": "conformance",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/conformance/python",
+      "WriteUpdater": true,
+      "PackageName": "conformance",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/conformance/java",
+      "PackageName": "conformance",
+      "AccessorName": "ConformanceData",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/conformance/kotlin",
+      "PackageName": "conformance",
+      "AccessorName": "ConformanceData",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/conformance/ruby",
+      "ModuleName": "Conformance",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/conformance/dart",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "c",
+      "Path": "test/fixtures/output/conformance/c",
+      "AccessorName": "ConformanceData",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/conformance/php",
+      "Namespace": "Conformance",
+      "AccessorName": "ConformanceData",
+      "BinaryTableFileExtension": ".tcb"
+    },
+
+    // Read off-engine, against the stubs in tools/unreal-stubs. The engine is not something a
+    // test machine has, and until this the Unreal target was the one output whose values
+    // nobody checked - only that it compiled and used the right types.
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/conformance/unreal",
+      "ModuleName": "Conformance",
+      "AccessorName": "ConformanceData",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ],
+
+  "CodeGenerations": {
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/conformance/cpp",
+        "Namespace": "tabbit_conformance",
+        "AccessorName": "ConformanceAccessor",
+        "BinaryTableFileExtension": ".tcb"
+      }
+    ],
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/conformance/csharp",
+        "Namespace": "Tabbit.Conformance",
+        "AccessorName": "ConformanceAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/conformance/typescript"
+      }
+    ]
+  }
+}

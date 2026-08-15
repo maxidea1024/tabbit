@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Compiles a scenario's generated C# and nothing else.
+
+    cs-check beside this one links a Program that reads the `core` fixture's tables by
+    name, so it can only be pointed at that scenario. This project has no source of its
+    own, which makes it usable for any scenario where the question is only whether the
+    emitted code is valid C#.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>cs-compile-check</AssemblyName>
+    <RootNamespace>Tabbit.CsCompileCheck</RootNamespace>
+
+    <!--
+      Nothing is defined by default any more, which is the point: the generated code used
+      to need NO_UNITY set by hand or it expected UniTask, and now the plain branch is the
+      one a plain .NET project gets for free.
+
+      The caller passes UnitySymbols to compile the branches Unity would take. Those
+      branches were never compiled by anything before, so they could have been broken for as
+      long as they had existed.
+    -->
+    <DefineConstants Condition="'$(UnitySymbols)' != ''">$(DefineConstants);$(UnitySymbols)</DefineConstants>
+
+    <!--
+      The language Unity 6.5's compiler accepts. The Unity branches are compiled against this
+      framework rather than a Unity install: what is being checked is that the code the
+      preprocessor selects is valid and that the members it names exist.
+    -->
+    <LangVersion Condition="'$(UnitySymbols)' != ''">9</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(GeneratedDir)\**\*.cs" />
+  </ItemGroup>
+
+  <!--
+    UnityStubs.cs sits beside this file and the SDK picks it up on its own - listing it here
+    as well is a duplicate item and an error. It is just enough of UnityEngine to resolve
+    what the Unity branches name, and its own #if keeps it out of a plain build, so the
+    default check still compiles the generated code and nothing else.
+  -->
+
+</Project>

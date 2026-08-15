@@ -1,0 +1,38 @@
+[
+  {
+    "index": 1,
+    "stringField": "first",
+    "intField": 1024,
+    "bigIntField": "9007199254740993",
+    "floatField": 1.5,
+    "doubleField": 2.25,
+    "datetimeField": "2022-01-24T10:30:00",
+    "timespanField": "1.02:03:04",
+    "uuidField": "7b7d9f6a-1e2c-4c1a-9a5f-2b6d0c3e4f51",
+    "valueTypeField": 1
+  },
+  {
+    "index": 2,
+    "stringField": "second",
+    "intField": -20,
+    "bigIntField": "-9007199254740993",
+    "floatField": -0.5,
+    "doubleField": 1E-08,
+    "datetimeField": "1999-12-31T23:59:59",
+    "timespanField": "00:00:01",
+    "uuidField": "0f8fad5b-d9cb-469f-a165-70867728950e",
+    "valueTypeField": 3
+  },
+  {
+    "index": 3,
+    "stringField": "",
+    "intField": 0,
+    "bigIntField": "0",
+    "floatField": 0,
+    "doubleField": 0,
+    "datetimeField": "2000-01-01T00:00:00",
+    "timespanField": "00:00:00",
+    "uuidField": "00000000-0000-0000-0000-000000000000",
+    "valueTypeField": 0
+  }
+]

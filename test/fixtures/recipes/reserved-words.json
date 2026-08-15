@@ -1,0 +1,94 @@
+{
+  // Identifiers that collide with a keyword in one of the output languages.
+  //
+  // All three code generators plus the binary export, because the question - does an
+  // identifier taken from a sheet survive into compilable code - is answered by
+  // compiling, not by reading the generators.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/reserved-words"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/reserved-words/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/reserved-words/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ]
+  },
+
+  // The seven languages that have no section of their own. Every one of them is
+  // compiled from this fixture: what a generator does with a name that collides with a
+  // keyword is a question only a compiler can answer, and the three that were checked
+  // here before were the three whose answer somebody had already guessed at.
+  "Targets": [
+    { "Type": "go", "Path": "test/fixtures/output/reserved-words/go",
+      "PackageName": "reserved", "ModulePath": "reserved" },
+    { "Type": "rust", "Path": "test/fixtures/output/reserved-words/rust",
+      "CrateName": "reserved" },
+    { "Type": "python", "Path": "test/fixtures/output/reserved-words/python",
+      "PackageName": "reserved" },
+    { "Type": "java", "Path": "test/fixtures/output/reserved-words/java",
+      // On here so the emitted updater is compiled by the Java gate as well.
+      "WriteUpdater": true,
+      "PackageName": "reserved", "AccessorName": "ReservedAccessor" },
+    { "Type": "kotlin", "Path": "test/fixtures/output/reserved-words/kotlin",
+      // On here so the emitted updater is compiled by the Kotlin gate as well.
+      "WriteUpdater": true,
+      "PackageName": "reserved", "AccessorName": "ReservedAccessor" },
+    { "Type": "ruby", "Path": "test/fixtures/output/reserved-words/ruby",
+      "ModuleName": "Reserved",
+      // On here so the emitted updater is parsed by the Ruby gate as well.
+      "WriteUpdater": true },
+    { "Type": "dart", "Path": "test/fixtures/output/reserved-words/dart",
+      // On here so the emitted updater is analysed by the Dart gate as well.
+      "WriteUpdater": true },
+    { "Type": "c", "Path": "test/fixtures/output/reserved-words/c",
+      "AccessorName": "ReservedData" },
+    { "Type": "php", "Path": "test/fixtures/output/reserved-words/php",
+      // On here so the emitted updater is linted by the PHP gate as well.
+      "WriteUpdater": true,
+      "Namespace": "Reserved", "AccessorName": "ReservedData" },
+
+    // Not for the names - the documentation escapes nothing, so a keyword is just a word
+    // here. It is here because this model declares no enum and no constant set, and the
+    // index page's empty columns had no test on them. Three golden trees had been recording
+    // the empty list as correct.
+    { "Type": "html", "Path": "test/fixtures/output/reserved-words/html" }
+  ],
+
+  "CodeGenerations": {
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/reserved-words/cpp",
+        "Namespace": "tabbit_fixtures::reserved",
+        "AccessorName": "ReservedAccessor",
+        "BinaryTableFileExtension": ".tcb"
+      }
+    ],
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/reserved-words/csharp",
+        "Namespace": "Tabbit.Fixtures.Reserved",
+        "AccessorName": "ReservedAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/reserved-words/typescript"
+      }
+    ]
+  }
+}

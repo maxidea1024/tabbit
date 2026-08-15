@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "365835f77f52e720965f55e69142a069",
+  "TotalSize": 580,
+  "Items": [
+    {
+      "Name": "Common.csv",
+      "Size": 192,
+      "Hash": "d87de18ed521c7111ed43202d696458b",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Item.csv",
+      "Size": 76,
+      "Hash": "0874010a7f47e42476df175e122bc923",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Quest.csv",
+      "Size": 312,
+      "Hash": "42c7acaf41cc0de6d5233a11ee6afa63",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

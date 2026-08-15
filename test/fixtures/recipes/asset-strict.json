@@ -1,0 +1,32 @@
+{
+  // `asset.json` with `OnMissing` turned up. The same sheets and the same folders; the
+  // conversion stops and names the three cells.
+  //
+  // For a project past the stage where the art is still being drawn - the answer is in the
+  // recipe rather than in a build flag because it is a statement about the project.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/asset"
+      }
+    ]
+  },
+
+  "Assets": {
+    "Roots": [
+      { "Kind": "icon", "Path": "test/fixtures/assets/icon", "Pattern": "*.uasset" },
+      { "Kind": "sfx", "Path": "test/fixtures/assets/sfx", "Pattern": "*.uasset" }
+    ],
+    "OnMissing": "error"
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/asset-strict/json-named",
+        "Indented": true
+      }
+    ]
+  }
+}

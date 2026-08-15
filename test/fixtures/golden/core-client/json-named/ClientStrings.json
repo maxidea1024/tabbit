@@ -1,0 +1,12 @@
+[
+  {
+    "index": 1,
+    "key": "ui.ok",
+    "text": "OK"
+  },
+  {
+    "index": 2,
+    "key": "ui.cancel",
+    "text": "Cancel"
+  }
+]

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<textset namespace="Game" group="Quest" count="10">
+  <text from="Quest.Title">Lost Cargo</text>
+  <text from="Quest.Hint">Ask at the docks.</text>
+  <text from="Quest.Lines">Hello</text>
+  <text from="Quest.Lines">Goodbye</text>
+  <text from="Quest.Lines">Farewell</text>
+  <text from="Quest.Title">The &quot;Blue&quot; Whale</text>
+  <text from="Quest.Hint">Head south.</text>
+  <text from="Quest.Lines">Onward</text>
+  <text from="Quest.Title">{0} Enthusiast</text>
+  <text from="Quest.Lines">{0} of {1}</text>
+</textset>

@@ -1,0 +1,5 @@
+NSLOCTEXT("Shared", "Delivery", "Delivery")
+NSLOCTEXT("Shared", "Hunt", "Hunt")
+NSLOCTEXT("Shared", "Coarse but strong.", "Coarse but strong.")
+NSLOCTEXT("Shared", "Tools", "Tools")
+NSLOCTEXT("Shared", "It burns whale oil.", "It burns whale oil.")

@@ -1,0 +1,15 @@
+{{~## One constant set. ##~}}
+{{ include 'cpp-file-head.sbn' ~}}
+// Generated from {{ set.location }}
+{{~ for line in set.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+struct {{ set.name }} {
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+  static inline const {{ constant.type }} {{ constant.name }} = {{ constant.value }};
+{{~ end ~}}
+};
+{{ include 'cpp-file-foot.sbn' ~}}

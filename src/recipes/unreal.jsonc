@@ -1,0 +1,54 @@
+// Tabbit recipe — 언리얼
+//
+// Source/<ModuleName>/ 에 프로젝트가 그대로 추가할 수 있는 모듈이 생성됩니다.
+//
+// 패키징할 때 한 가지 반드시 할 일이 있습니다:
+//   Project Settings → Packaging → "Additional Non-Asset Directories to Package"
+//   에 아래 Binary의 Path를 등록하세요. .tcb는 애셋이 아니라 언리얼이 무시하므로,
+//   등록하지 않으면 에디터에서는 되고 패키징한 빌드에서만 파일이 없습니다.
+//   (생성된 로더가 실패할 때 그 설정 이름을 로그에 적어줍니다.)
+
+{
+  "ArrayDelimiter": ";",
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "./Sheets" }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        // Content/ 아래일 필요는 없습니다. 애셋이 아니니까요.
+        "Path": "./Content/Data",
+        "FileExtension": ".tcb",
+        "TargetSide": "c"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "unreal",
+
+      // 프로젝트의 Source 폴더. 모듈 폴더가 이 아래에 만들어집니다.
+      "Path": "./Source",
+
+      // 모듈 이름. 디렉터리와 Build.cs와 export 매크로의 이름이고,
+      // .uproject 의 Modules 에 이 이름으로 등록하게 됩니다.
+      "ModuleName": "GameData",
+
+      // 접근자 클래스. 언리얼 관례상 F로 시작합니다.
+      // 코드에서 FGameData::Item().Find(1) 처럼 씁니다.
+      "AccessorName": "FGameData",
+
+      // 모듈의 Build.cs를 함께 쓸 것인가.
+      // 의존성을 직접 관리한다면 false.
+      "WriteBuildFile": true,
+
+      "BinaryTableFileExtension": ".tcb",
+      "TargetSide": "c"
+    }
+  ]
+}

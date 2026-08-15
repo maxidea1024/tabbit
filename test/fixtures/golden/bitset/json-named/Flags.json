@@ -1,0 +1,39 @@
+[
+  {
+    "index": 1,
+    "mask": "31",
+    "same": "31",
+    "set": [
+      "1",
+      "2",
+      "3"
+    ],
+    "label": "hexadecimal"
+  },
+  {
+    "index": 2,
+    "mask": "11",
+    "same": "11",
+    "set": [
+      "0",
+      "0"
+    ],
+    "label": "binary"
+  },
+  {
+    "index": 3,
+    "mask": "123",
+    "same": "123",
+    "set": [
+      "255"
+    ],
+    "label": "decimal"
+  },
+  {
+    "index": 4,
+    "mask": "-1",
+    "same": "-1",
+    "set": [],
+    "label": "every bit"
+  }
+]

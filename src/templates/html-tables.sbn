@@ -1,0 +1,47 @@
+﻿{{~##
+   Every table on one page: four header rows describing the columns, then the data.
+
+   The header shows the sheet's own columns rather than the folded groups, so the page
+   reads like the workbook it documents. A column that folded into a group names that
+   group in a tooltip.
+
+   Two rows here run their cells together on a single line - the type row and each data
+   row - because the printer this replaced used Print rather than PrintLine for them,
+   which also lands the closing tag at the end of that same line. Reproduced rather
+   than tidied, so the golden pages do not move.
+##~}}
+{{~ include 'html-head.sbn' ~}}
+<br>
+{{~ for table in tables ~}}
+<div class="definition">
+<h3 id="table_{{ table.name }}"><i>Table: {{ table.source_link }} - {{ table.record_count }} Record(s)</i></h3>
+{{~ if table.comment != '' ~}}
+<div class="comment">{{ table.comment }}</div>
+{{~ end ~}}
+<table>
+<thead>
+{{~ for cell in table.name_cells ~}}
+{{ cell }}
+{{~ end ~}}
+</thead>
+<thead>
+{{~ for cell in table.comment_cells ~}}
+{{ cell }}
+{{~ end ~}}
+</thead>
+<thead>
+{{ table.type_cells | array.join '' }}</thead>
+<thead>
+{{~ for cell in table.side_cells ~}}
+{{ cell }}
+{{~ end ~}}
+</thead>
+{{~ for row in table.rows ~}}
+<tr>
+{{ row.cells | array.join '' }}</tr>
+{{~ end ~}}
+</table>
+</div>
+<br>
+{{~ end ~}}
+{{ include 'html-foot.sbn' }}

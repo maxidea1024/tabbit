@@ -1,0 +1,382 @@
+/*
+  The history page.
+
+  Both modes are selected rather than one being an automatic inversion of the other:
+  every colour below is a step chosen for the surface it sits on. The OS setting and the
+  page's own toggle both have to win, so the dark values are declared under each - the
+  `:not(...)` guard lets a light stamp beat OS-dark, and `:where()` keeps the media block
+  from outranking the toggle.
+
+  The three change colours ship with a glyph and the word beside them, always. Colour
+  alone would be the only thing separating "added" from "removed" for a reader who cannot
+  tell the two apart, and that is the one distinction this page exists to show.
+*/
+
+:root {
+  color-scheme: light;
+
+  --surface: #fcfcfb;
+  --plane: #f9f9f7;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --hairline: rgba(11, 11, 11, 0.10);
+
+  --series: #2a78d6;
+  --added: #0ca30c;
+  --removed: #d03b3b;
+  --modified: #2a78d6;
+
+  --shadow: 0 1px 2px rgba(11, 11, 11, 0.04);
+
+  --font: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+
+    --surface: #1a1a19;
+    --plane: #0d0d0d;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --hairline: rgba(255, 255, 255, 0.10);
+
+    --series: #3987e5;
+    --added: #0ca30c;
+    --removed: #d03b3b;
+    --modified: #3987e5;
+
+    --shadow: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface: #1a1a19;
+  --plane: #0d0d0d;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --hairline: rgba(255, 255, 255, 0.10);
+
+  --series: #3987e5;
+  --added: #0ca30c;
+  --removed: #d03b3b;
+  --modified: #3987e5;
+
+  --shadow: none;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--plane);
+  color: var(--ink);
+  font: 14px/1.5 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--series); }
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+}
+
+/* ------------------------------------------------------------------ header */
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 20px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sub { color: var(--ink-2); font-size: 13px; }
+
+.spacer { flex: 1 1 auto; }
+
+button, select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+button:hover, select:hover { border-color: var(--axis); }
+
+/* --------------------------------------------------------------- stat tiles */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+}
+
+.tile .label {
+  color: var(--ink-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tile .value {
+  margin-top: 4px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tile .note { color: var(--ink-2); font-size: 12px; }
+
+/* -------------------------------------------------------------------- cards */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.card > h2 {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.card > .caption {
+  margin: 0 0 14px;
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+/* ------------------------------------------------------------------- charts */
+
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.grid-line { stroke: var(--grid); stroke-width: 1; }
+.axis-line { stroke: var(--axis); stroke-width: 1; }
+
+.tick {
+  fill: var(--ink-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.series-line { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; }
+.series-dot { fill: var(--series); stroke: var(--surface); stroke-width: 2; }
+.series-bar { fill: var(--series); }
+
+.hit { fill: transparent; cursor: pointer; }
+
+.crosshair { stroke: var(--axis); stroke-width: 1; stroke-dasharray: 3 3; }
+
+.tooltip {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+  max-width: 320px;
+}
+
+.tooltip .k { color: var(--ink-muted); }
+
+/* -------------------------------------------------------------------- lists */
+
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+table.data th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--hairline);
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
+table.data td {
+  border-bottom: 1px solid var(--grid);
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
+table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.scroll { overflow-x: auto; }
+
+/* ----------------------------------------------------------------- timeline */
+
+.snapshot {
+  border-top: 1px solid var(--grid);
+  padding: 12px 0;
+}
+
+.snapshot:first-child { border-top: none; }
+
+.snapshot .who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.hash {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.when { color: var(--ink-muted); font-size: 12px; }
+
+.subject { color: var(--ink-2); margin: 2px 0 8px; }
+
+.warn {
+  display: inline-block;
+  margin: 4px 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--hairline);
+  background: var(--plane);
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+/* ----------------------------------------------------------- ship verdict */
+
+/*
+  `data` rides the series blue and `code` gets amber: the same change list wearing a
+  different chip is the whole message, so the two must not look like each other. Text
+  and border only - a filled chip at 11px drowns its own label in both themes.
+*/
+
+.ship { display: inline-flex; gap: 4px; align-items: baseline; }
+
+.chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+
+.chip.data { color: var(--series); }
+.chip.code { color: #b06c00; }
+.chip.none { color: var(--ink-muted); }
+
+:root[data-theme="dark"] .chip.code { color: #e5a441; }
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .chip.code { color: #e5a441; }
+}
+
+.ship-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0 0 10px;
+}
+
+.ship-line .ship-label {
+  color: var(--ink-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ship-line .ship-why { color: var(--ink-2); font-size: 12px; }
+
+/* ------------------------------------------------------------------ changes */
+
+.change {
+  display: grid;
+  grid-template-columns: 1.6em 1fr auto;
+  gap: 8px;
+  padding: 3px 0;
+  align-items: baseline;
+}
+
+.change .glyph {
+  font-family: var(--mono);
+  font-weight: 700;
+  text-align: center;
+}
+
+.change.added .glyph { color: var(--added); }
+.change.removed .glyph { color: var(--removed); }
+.change.modified .glyph { color: var(--modified); }
+
+.change .what { font-family: var(--mono); font-size: 12.5px; word-break: break-word; }
+
+.change .kind {
+  color: var(--ink-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.was { color: var(--ink-muted); text-decoration: line-through; }
+.now { color: var(--ink); }
+
+.blank { color: var(--ink-muted); font-style: italic; }
+
+.at { font-size: 11px; white-space: nowrap; }
+
+.empty { color: var(--ink-muted); padding: 12px 0; }
+
+@media print {
+  body { background: #fff; }
+  .card, .tile { break-inside: avoid; box-shadow: none; }
+}

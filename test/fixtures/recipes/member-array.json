@@ -1,0 +1,133 @@
+{
+  // A record whose members are arrays: `Skill.Step1`/`Skill.Step2` is one `Skill` holding
+  // `Step: [..]`, not two `Skill` elements each holding a `Step`.
+  //
+  // The same columns as an array of records and the same wire - a record has always been
+  // stored one column per member - so what this fixture pins is the shape assembled out of
+  // them, in the JSON and in all thirteen generated APIs. spec/nested-multi-level.md.
+  //
+  // Every target, because the difference is entirely in the declaration and there are
+  // thirteen declarations.
+
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/member-array",
+
+        // So `Tag1`/`Tag2` fold into one array beside the record groups, putting both array
+        // kinds in one table.
+        "FoldSerialFields": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/member-array/csharp",
+        "Namespace": "Tabbit.Fixtures.MemberArray",
+        "AccessorName": "MemberArrayAccessor"
+      }
+    ],
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/member-array/cpp",
+        "AccessorName": "MemberArrayAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/member-array/typescript"
+      }
+    ]
+  },
+
+  // The Unreal target is reached through `Targets` - it has no recipe section of its own.
+  // Here so UHT sees the generated USTRUCTs: what a golden tree cannot answer is whether
+  // the header tool accepts them, and that is the whole question for a record group.
+  "Targets": [
+    {
+      // Go has no recipe section either - the targets added since the `Targets` list
+      // exists are reached only through it.
+      "Type": "go",
+      "Path": "test/fixtures/output/member-array/go",
+      "PackageName": "memberarray",
+      "ModulePath": "memberarray"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/member-array/ruby",
+      "ModuleName": "MemberArray"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/member-array/php",
+      "Namespace": "Tabbit\\Fixtures\\MemberArray",
+      "AccessorName": "MemberArrayAccessor"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/member-array/dart"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/member-array/python",
+      "PackageName": "member_array_data"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/member-array/kotlin",
+      "PackageName": "tabbit.fixtures.memberarray",
+      "AccessorName": "MemberArrayAccessor"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/member-array/java",
+      "PackageName": "tabbit.fixtures.memberarray",
+      "AccessorName": "MemberArrayAccessor"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/member-array/rust",
+      "CrateName": "member_array"
+    },
+    {
+      // C has no recipe section either - both it and unreal are reached by type.
+      "Type": "c",
+      "Path": "test/fixtures/output/member-array/c",
+      "AccessorName": "MemberArray"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/member-array/unreal/Source",
+      "ModuleName": "MemberArray",
+      "AccessorName": "FMemberArray",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ],
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/member-array/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/member-array/json-compact",
+        "UseCompactRowFormat": true,
+        "Indented": true
+      },
+      {
+        "Path": "test/fixtures/output/member-array/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ],
+    "MongoDb": [],
+    "MySql": []
+  }
+}

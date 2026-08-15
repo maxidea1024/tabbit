@@ -1,0 +1,18 @@
+{{~## One constant class. `set` is the single set this file is for. ##~}}
+{{ include 'php-file-head.sbn' ~}}
+/**
+ * Generated from {{ set.location }}
+{{~ for line in set.comment ~}}
+ *
+ * {{ line }}
+{{~ end ~}}
+ */
+final class {{ set.name }}
+{
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    public const {{ constant.name }} = {{ constant.value }};
+{{~ end ~}}
+}

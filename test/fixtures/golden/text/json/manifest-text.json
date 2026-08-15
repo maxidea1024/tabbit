@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "34fe828847fcf499400d3107bbad55f6",
+  "TotalSize": 881,
+  "Items": [
+    {
+      "Name": "Common.json",
+      "Size": 272,
+      "Hash": "624bd95c341844c348754c42e37a39bd",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Item.json",
+      "Size": 92,
+      "Hash": "7ce2cb1be99675037ef224dc2359de88",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Quest.json",
+      "Size": 517,
+      "Hash": "f44467867b0195448da5bfa3c64003b0",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

@@ -1,0 +1,226 @@
+{{~## One table's table type. ##~}}
+{{ include 'java-file-head.sbn' ~}}
+/** Every row of {{ table.raw_name }}. */
+public final class {{ table.table_name }} {
+    private List<{{ table.record_name }}> records = new ArrayList<>();
+{{~ for index in table.indexes ~}}
+    private Map<{{ index.key_type }}, {{ table.record_name }}> {{ index.map_name }} = new HashMap<>();
+{{~ end ~}}
+
+    /**
+     * Every row, in the order the sheet declared them.
+     *
+     * The list a read published, not one a read fills. A refresh replaces the reference
+     * rather than the contents, so whoever holds this holds one whole load.
+     */
+    public List<{{ table.record_name }}> records() {
+        return records;
+    }
+{{~ for index in table.indexes }}
+    /**
+     * The row with this {{ index.field_name }}, or null when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    public {{ table.record_name }} findBy{{ index.suffix }}({{ index.key_param }} key) {
+        return {{ index.map_name }}.get(key);
+    }
+
+    /**
+     * The row with this {{ index.field_name }}, or a thrown exception naming what was missing.
+     *
+     * For a key that has to be there - one from another table, or a constant. The name says
+     * it throws, because a caller reading getBy{{ index.suffix }}(key).name() at a glance
+     * cannot otherwise tell whether the next line is a null check or a catch.
+     */
+    public {{ table.record_name }} getBy{{ index.suffix }}OrThrow({{ index.key_param }} key) {
+        {{ table.record_name }} record = {{ index.map_name }}.get(key);
+
+        if (record == null) {
+            throw new TcbReader.RecordNotFoundException(
+                "there is no record in table `{{ table.raw_name }}` that corresponds to field "
+                + "`{{ index.field_name }}` value " + key);
+        }
+
+        return record;
+    }
+
+    /** Whether the table holds a row with this {{ index.field_name }}. */
+    public boolean contains{{ index.suffix }}({{ index.key_param }} key) {
+        return {{ index.map_name }}.containsKey(key);
+    }
+{{~ end ~}}
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    /**
+     * Column by column, matched by tag rather than position: a column this build does not
+     * know is skipped by its block length, and one whose type changed incompatibly fails
+     * naming the field.
+     */
+    public void read(Path filename) {
+        // Opened unconditionally, and with whatever {{ accessor_name }}.encryptionKey and
+        // {{ accessor_name }}.macKey hold - which is null unless the project set them. A
+        // file that is neither encrypted nor signed comes back from this untouched, so the
+        // load path is the same either way and there is no condition here that could be the
+        // wrong way round. spec/tcb-mac-and-signature.md.
+        TcbReader reader = new TcbReader(TcbReader.open(
+            TcbReader.readAllBytes(filename), {{ accessor_name }}.encryptionKey,
+            {{ accessor_name }}.macKey, {{ accessor_name }}.verifyMac));
+        TcbReader.Header header = TcbReader.readTableHeader(reader);
+        int count = header.rowCount;
+{{~ if table.needs_cursor ~}}
+        TcbReader.ColumnCursor cursor;
+{{~ end ~}}
+{{~ if table.needs_presence ~}}
+{{~## Declared once for the whole switch, like the cursor: a `case` is not its own scope in
+      Java, so a declaration inside two of them collides. ##~}}
+        byte[] presence;
+{{~ end ~}}
+
+        // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
+        List<{{ table.record_name }}> loaded = new ArrayList<>(count);
+{{~ for index in table.indexes ~}}
+        Map<{{ index.key_type }}, {{ table.record_name }}> loadedBy{{ index.suffix }} = new HashMap<>(count * 2);
+{{~ end ~}}
+
+        for (int i = 0; i < count; i++) {
+            loaded.add(new {{ table.record_name }}());
+        }
+
+        for (TcbReader.Column column : header.columns) {
+            int blockEnd = reader.position() + column.byteLength;
+
+            switch (column.tag) {
+{{~ for column_view in table.columns ~}}
+                case {{ column_view.tag }}: {
+                    {{ column_view.column_check }}
+{{~ if column_view.is_nullable ~}}
+                    // The bitmap is at the front of the block, so it is read before the
+                    // values. The values are written for every row either way, which is what
+                    // lets the read shapes below stay as they are.
+                    presence = TcbReader.readPresence(reader, column, count);
+{{~ end ~}}
+{{~## Opened here, ahead of every read shape, because an array's elements read through it
+      as well: its block states an encoding for them and one for the row lengths, and the
+      cursor is what decodes both. After the presence bitmap, which sits in front of the
+      block the cursor is about to start reading. ##~}}
+{{~ if column_view.cursor_open != '' ~}}
+                    {{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+      call per row that each re-dispatch on the encoding. An encoding with no run to
+      give answers 1, so this loop is correct over all of them. ##~}}
+                    for (int i = 0; i < count; ) {
+                        int n = cursor.{{ column_view.run_call }}(count - i);
+                        for (; n > 0; n--, i++) {
+                            {{ column_view.run_spend }}
+                        }
+                    }
+{{~ else ~}}
+                    for ({{ table.record_name }} record : loaded) {
+{{~ if column_view.kind == 'var_array' ~}}
+                        int elementCount;
+                        {{ column_view.length_read }}
+                        record.{{ column_view.name }} = new {{ column_view.element_type }}[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
+                            record.{{ column_view.name }}[j] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'record_var' ~}}
+                        int elementCount;
+                        {{ column_view.length_read }}
+{{~ if column_view.is_first_member ~}}
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.{{ column_view.name }} = new {{ column_view.record_type_name }}[elementCount];
+
+                        for (int j = 0; j < elementCount; j++) {
+                            record.{{ column_view.name }}[j] = new {{ column_view.record_type_name }}();
+                            record.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+                        }
+{{~ else ~}}
+                        if (record.{{ column_view.name }}.length != elementCount) {
+                            throw new TcbReader.TcbException(
+                                "{{ table.raw_name }}.{{ column_view.name }}: the file gives one member of "
+                                + "this record a different element count than another");
+                        }
+
+                        for (int j = 0; j < elementCount; j++) {
+                            record.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+                        }
+{{~ end ~}}
+{{~ else if column_view.kind == 'array_of_arrays_member' ~}}
+{{~## One inner array. Which outer element it is, is which column this is - so that index is
+   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
+                            record.{{ column_view.name }}[{{ column_view.member_at }}][j] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~## The member is the array: the index goes after its name rather than before. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
+                            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'record_serial' ~}}
+                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
+                            record.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'serial_ref' ~}}
+                        record.{{ column_view.name }} = new {{ column_view.element_type }}[{{ column_view.element_count }}];
+                        record.{{ column_view.name }}Index = new int[{{ column_view.element_count }}];
+                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
+                            record.{{ column_view.name }}Index[j] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'serial' ~}}
+                        record.{{ column_view.name }} = new {{ column_view.element_type }}[{{ column_view.element_count }}];
+                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
+                            record.{{ column_view.name }}[j] = {{ column_view.read_element }};
+                        }
+{{~ else if column_view.kind == 'scalar_ref' ~}}
+                        record.{{ column_view.name }}Index = {{ column_view.read_element }};
+{{~ else ~}}
+                        record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_scalar }};
+{{~ end ~}}
+                    }
+{{~ end ~}}
+{{~ if column_view.is_nullable }}
+                    // A pass of its own rather than a line inside each read shape, so the row
+                    // index is worked out once. The block carries a value for every row, so
+                    // an absent one has just been given whatever was there; putting the empty
+                    // value back is what makes this path agree with the JSON one.
+                    for (int i = 0; i < count; i++) {
+                        {{ table.record_name }} record = loaded.get(i);
+                        record.{{ column_view.presence_member }} = TcbReader.isPresent(presence, i);
+
+                        if (!record.{{ column_view.presence_member }}) {
+                            record.{{ column_view.name }} = {{ column_view.empty_value }};
+                        }
+                    }
+{{~ end ~}}
+                    break;
+                }
+{{~ end ~}}
+                default:
+                    // A column added after this code was generated.
+                    reader.skip(column.byteLength);
+                    break;
+            }
+
+            TcbReader.checkBlockEnd(reader, column, blockEnd);
+        }
+
+        for ({{ table.record_name }} record : loaded) {
+{{~ for index in table.indexes ~}}
+            loadedBy{{ index.suffix }}.put(record.{{ index.member }}, record);
+{{~ end ~}}
+        }
+
+        // Published, now that every column read.
+        records = loaded;
+{{~ for index in table.indexes ~}}
+        {{ index.map_name }} = loadedBy{{ index.suffix }};
+{{~ end ~}}
+    }
+}

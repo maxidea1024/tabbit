@@ -1,0 +1,296 @@
+# frozen_string_literal: true
+
+# Tabbit's data updater.
+#
+# Brings a local copy of the exported data up to date with a copy served over HTTP - a
+# CDN, a bucket, a patch server - so a running program can take new data without being
+# redeployed. Emitted beside the reader and reads nothing but the manifest, so it knows
+# nothing about the schema and never has to change when one does.
+#
+# The manifest is what the exporter already writes next to the data: one entry per file
+# with its size and MD5. Comparing it with the local copy is the whole of the diff, so a
+# run downloads what changed and nothing else.
+#
+# Three properties, because a patcher that fails badly is worse than one that does not
+# exist:
+#
+#   Nothing is replaced until everything has arrived and been checked. Files land in a
+#   staging directory first and the local manifest is written last, so an update killed
+#   halfway leaves the previous data readable and the next run redoes the difference.
+#
+#   Every file is checked against the hash the manifest gives for it, so a truncated
+#   transfer that a proxy reported as success does not reach the cache.
+#
+#   A transient failure is retried with a doubling backoff, and a permanent one is not.
+#
+# Reading is somebody else's job. This produces a directory, and the generated tables
+# read it.
+#
+# The standard library and nothing else: net/http for the transfer, digest for the check.
+
+require 'digest'
+require 'fileutils'
+require 'json'
+require 'net/http'
+require 'uri'
+
+module Tabbit
+  # What an update is allowed to do. Every value has a working default.
+  class UpdateOptions
+    # The binary exporter writes manifest-binary.json; the JSON exporter writes
+    # manifest-json.json.
+    attr_accessor :manifest_file_name
+
+    # The first attempt is included, so three is two retries.
+    attr_accessor :max_attempts
+
+    # Seconds before the second attempt. Doubled for each attempt after it.
+    attr_accessor :retry_delay
+
+    attr_accessor :request_timeout
+    attr_accessor :verify_hash
+
+    # Called with one line of progress, when given.
+    attr_accessor :log
+
+    def initialize(manifest_file_name: 'manifest-binary.json', max_attempts: 3,
+                   retry_delay: 0.5, request_timeout: 30.0, verify_hash: true, log: nil)
+      @manifest_file_name = manifest_file_name
+      @max_attempts = max_attempts
+      @retry_delay = retry_delay
+      @request_timeout = request_timeout
+      @verify_hash = verify_hash
+      @log = log
+    end
+  end
+
+  # What an update did.
+  class UpdateResult
+    attr_accessor :succeeded, :error, :up_to_date, :downloaded_count,
+                  :downloaded_bytes, :deleted_count
+
+    # The directory holding the data. Hand it to the generated tables' read_all. Set even
+    # on failure, because the previous data is still there and still readable - which is
+    # the point of failing the way this does.
+    attr_reader :local_path
+
+    def initialize(local_path)
+      @succeeded = false
+      @error = nil
+      @up_to_date = false
+      @downloaded_count = 0
+      @downloaded_bytes = 0
+      @deleted_count = 0
+      @local_path = local_path
+    end
+  end
+
+  # One file of the manifest, and the hash to check it by.
+  #
+  # The member is `md5` and not `hash`, which is what the manifest calls it and what the
+  # other languages name it: a Struct member called `hash` overrides Object#hash, so the
+  # entry would return a String where every Hash and Set in Ruby expects an Integer.
+  ManifestEntry = Struct.new(:name, :size, :md5)
+
+  # A failure the same request might survive a moment later.
+  class TransientError < StandardError; end
+
+  # Reads the entries out of a manifest's JSON.
+  def self.parse_manifest(text)
+    manifest = JSON.parse(text)
+    items = manifest['Items']
+
+    raise ArgumentError, 'the manifest has no Items array' unless items.is_a?(Array)
+
+    items.filter_map do |item|
+      name = item['Name']
+      next if name.nil? || name.empty?
+
+      ManifestEntry.new(name, item['Size'].to_i, item['Hash'])
+    end
+  end
+
+  # The MD5 of some bytes, in the lower-case hex the manifest carries.
+  def self.hash_of(data)
+    Digest::MD5.hexdigest(data)
+  end
+
+  # Brings `cache_directory` up to date with the data served under `base_url`.
+  #
+  # Does not raise. Everything that can go wrong here - the network, the disk, a file that
+  # arrived corrupt - is a condition the caller has to handle rather than a defect, and a
+  # patcher that raises into a service's startup is one that gets wrapped in a bare rescue
+  # that swallows the reason.
+  def self.update(base_url, cache_directory, options = UpdateOptions.new)
+    result = UpdateResult.new(cache_directory)
+    log = ->(message) { options.log&.call(message) }
+
+    begin
+      manifest_text = download(join_url(base_url, options.manifest_file_name), options, log)
+                      .force_encoding(Encoding::UTF_8)
+
+      remote = parse_manifest(manifest_text)
+      local = read_local_manifest(File.join(cache_directory, options.manifest_file_name))
+
+      by_name = local.to_h { |entry| [entry.name, entry] }
+
+      wanted = remote.reject do |entry|
+        previous = by_name[entry.name]
+
+        # The file's presence is checked as well as the manifest's word for it: a cache
+        # somebody cleaned out by hand would otherwise never be refilled.
+        !previous.nil? &&
+          previous.md5 == entry.md5 &&
+          File.exist?(File.join(cache_directory, entry.name))
+      end
+
+      served = remote.to_h { |entry| [entry.name, true] }
+      gone = local.map(&:name).reject { |name| served.key?(name) }
+
+      if wanted.empty? && gone.empty?
+        log.call('tabbit: already up to date.')
+
+        result.succeeded = true
+        result.up_to_date = true
+        return result
+      end
+
+      log.call("tabbit: #{wanted.length} file(s) to fetch, #{gone.length} to remove.")
+
+      # Everything lands here first. Nothing the caller can read is touched until the last
+      # file has arrived and been checked.
+      staging = File.join(cache_directory, '.staging')
+
+      FileUtils.mkdir_p(cache_directory)
+      FileUtils.rm_rf(staging)
+      FileUtils.mkdir_p(staging)
+
+      wanted.each do |entry|
+        data = download(join_url(base_url, entry.name), options, log)
+
+        if options.verify_hash && !(entry.md5.nil? || entry.md5.empty?)
+          actual = hash_of(data)
+
+          unless actual.casecmp?(entry.md5)
+            raise "'#{entry.name}' arrived with hash #{actual}, and the manifest says " \
+                  "#{entry.md5}. Nothing was replaced."
+          end
+        end
+
+        staged = File.join(staging, entry.name)
+
+        FileUtils.mkdir_p(File.dirname(staged))
+        File.binwrite(staged, data)
+
+        result.downloaded_bytes += data.bytesize
+      end
+
+      # From here on the update is applied. Nothing below reaches the network.
+      gone.each do |name|
+        target = File.join(cache_directory, name)
+
+        File.delete(target) if File.exist?(target)
+        result.deleted_count += 1
+      end
+
+      wanted.each do |entry|
+        target = File.join(cache_directory, entry.name)
+
+        FileUtils.mkdir_p(File.dirname(target))
+        File.delete(target) if File.exist?(target)
+        File.rename(File.join(staging, entry.name), target)
+
+        result.downloaded_count += 1
+      end
+
+      # Last, and that ordering is the recovery story: a run killed before this point
+      # leaves a manifest describing the data that is still on disk, so the next run
+      # fetches the same files again rather than believing it has them.
+      File.write(File.join(cache_directory, options.manifest_file_name), manifest_text,
+                 encoding: Encoding::UTF_8)
+
+      FileUtils.rm_rf(staging)
+
+      log.call("tabbit: updated. #{result.downloaded_count} fetched, " \
+               "#{result.deleted_count} removed.")
+
+      result.succeeded = true
+      result
+    rescue StandardError => e
+      # The previous data is untouched, so the caller can carry on with it.
+      result.error = e.message
+
+      log.call("tabbit: update failed: #{result.error}")
+      result
+    end
+  end
+
+  # Fetches one URL, retrying what is worth retrying.
+  def self.download(url, options, log)
+    delay = options.retry_delay
+    attempts = [1, options.max_attempts].max
+
+    (1..attempts).each do |attempt|
+      begin
+        return fetch(url, options)
+      rescue TransientError => e
+        raise if attempt >= attempts
+
+        log.call(format('tabbit: %s Retrying in %.1fs (%d of %d).',
+                        e.message, delay, attempt, attempts))
+
+        sleep(delay)
+
+        # Doubling rather than a fixed wait: a server refusing because it is overloaded is
+        # not helped by every client coming back at the same interval.
+        delay *= 2
+      end
+    end
+  end
+
+  def self.fetch(url, options)
+    uri = URI.parse(url)
+
+    response = Net::HTTP.start(uri.host, uri.port,
+                               use_ssl: uri.scheme == 'https',
+                               open_timeout: options.request_timeout,
+                               read_timeout: options.request_timeout) do |http|
+      http.get(uri.request_uri)
+    end
+
+    return response.body.to_s.b if response.is_a?(Net::HTTPSuccess)
+
+    message = "'#{url}' answered #{response.code} #{response.message}."
+
+    # 408 and 429 are the server asking for another attempt, and 5xx is it failing on its
+    # own account. A 404 is an answer: retrying it costs three round trips to hear the
+    # same thing.
+    code = response.code.to_i
+
+    raise TransientError, message if [408, 429].include?(code) || (500..599).cover?(code)
+
+    raise message
+  rescue SystemCallError, IOError, Timeout::Error, SocketError => e
+    # The request never got an answer - DNS, a refused connection, a timeout.
+    raise TransientError, "'#{url}' could not be reached: #{e.message}."
+  end
+
+  # Reads the cached manifest.
+  #
+  # A missing or unreadable one is an empty manifest, which makes the next update fetch
+  # everything - the safe direction to be wrong in.
+  def self.read_local_manifest(filename)
+    parse_manifest(File.read(filename, encoding: Encoding::UTF_8))
+  rescue StandardError
+    []
+  end
+
+  # Joins a base URL and a file name.
+  #
+  # Not File.join, which on Windows produces a backslash and a URL no server will answer.
+  def self.join_url(base_url, name)
+    "#{base_url.chomp('/')}/#{name.tr('\\', '/')}"
+  end
+
+  private_class_method :fetch, :read_local_manifest, :join_url
+end

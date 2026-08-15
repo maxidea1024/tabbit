@@ -1,0 +1,4 @@
+{{~## Closes what csharp-file-head.sbn opened. ##~}}
+{{~ if namespace != '' }}
+} // namespace {{ namespace }}
+{{~ end ~}}

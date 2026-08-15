@@ -1,0 +1,14 @@
+{{~##
+ The one translation unit that carries the reader's implementation.
+
+ The reader is a single header holding both its declarations and its code, behind
+ TABBIT_TCB_IMPLEMENTATION, and that macro has to be defined in exactly one
+ translation unit. It used to be the generated source file, when there was only one.
+
+ Its own file now rather than whichever generated source happens to be first, so no
+ generated .c is quietly special and a consumer who excludes one from their build does not
+ lose the reader with it.
+##~}}
+{{ include 'c-file-head.sbn' }}
+#define TABBIT_TCB_IMPLEMENTATION
+#include "tabbit/tabbit_tcb_reader.h"

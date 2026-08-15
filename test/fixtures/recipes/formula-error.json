@@ -1,0 +1,72 @@
+{
+  // Regression recipe for the `core.xlsx` fixture.
+  //
+  // Every path is relative to the repository root, which is where the test
+  // harness invokes Tabbit from. Output lands in test/fixtures/output/formula-error
+  // (transient, gitignored) and is compared against test/fixtures/golden/core.
+  //
+  // Both JSON row formats are exported because they take different code paths in
+  // JsonExporter, so both need covering. The named form is the one generated readers
+  // consume - it is what the conformance corpus compares against and what the
+  // TypeScript round trip reads.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/formula-error"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/formula-error/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/formula-error/json-compact",
+        "UseCompactRowFormat": true,
+        "Indented": true
+      },
+      {
+        "Path": "test/fixtures/output/formula-error/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ],
+    "MongoDb": [],
+    "MySql": []
+  },
+
+  "CodeGenerations": {
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/formula-error/cpp",
+        "Namespace": "tabbit_fixtures::core",
+        "AccessorName": "XAccessor",
+        "BinaryTableFileExtension": ".tcb"
+      }
+    ],
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/formula-error/csharp",
+        "Namespace": "Tabbit.Fixtures.X",
+        "AccessorName": "XAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/formula-error/typescript"
+      }
+    ],
+    "Html": [
+      {
+        "Path": "test/fixtures/output/formula-error/html"
+      }
+    ]
+  }
+}

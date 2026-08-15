@@ -1,0 +1,20 @@
+[
+  {
+    "index": 1,
+    "mark": {
+      "clipId": "Idle_01",
+      "sealId": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      "rank": 7
+    },
+    "pad": 0
+  },
+  {
+    "index": 2,
+    "mark": {
+      "clipId": "Idle_01",
+      "sealId": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      "rank": 8
+    },
+    "pad": 0
+  }
+]

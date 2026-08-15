@@ -1,0 +1,40 @@
+// ---------------------------------------------------------------------------------------------
+// rules/shared/ - code the rules share. Copy this file, rename it, and delete this header.
+//
+//   Name it after what it holds - `ItemTypes.cs`, `Refs.cs`, `Naming.cs`. **No `Rules` suffix**,
+//   because nothing here is a rule: this folder is compiled into every rule and executed on its
+//   own never.
+//
+//   Rename to `.cs`. A `.template` file is not scanned, which is the only reason this one can sit
+//   here without being compiled into every rule.
+//
+// What it is for   Constants a project keeps in one place, small helpers several rules call, and
+//                  the item-type numbers that would otherwise be repeated in twenty files.
+//
+// No entry point   A file here has no `Validate` method. One that does is still not run - the
+//                  folder decides, not the shape of the file.
+//
+// Taking a context  A helper that reports takes the narrowest context it actually uses, and the
+//                  four nest: IPreContext, then IGlobalContext, then ITableContext and
+//                  IRuntimeContext beside each other. A helper taking IGlobalContext can be
+//                  called from the table, global and runtime stages alike.
+//
+// Unlike the rule folders, **this one is scanned all the way down**: subfolders are somebody
+// organising their helpers rather than a rule with no stage.
+//
+// One thing to know: each rule file is its own compilation, so `static` state declared here is
+// per rule rather than shared between them. That is deliberate - it is what lets the table rules
+// run at the same time without racing each other.
+//
+// Full guide: doc/validation.md
+// ---------------------------------------------------------------------------------------------
+
+using Tabbit.Rules;
+using Tabbit.Validation;
+
+internal static class Example
+{
+    // public const int Weapon = 1;
+    //
+    // public static bool IsEquippable(int type) => type == Weapon;
+}

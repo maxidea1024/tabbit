@@ -1,0 +1,16 @@
+[
+  {
+    "index": 1,
+    "intFromNumeric": 42,
+    "floatFromNumeric": 1.5,
+    "whenFromDateCell": "2022-01-24T10:30:00",
+    "bigFromNumeric": "9007199254740992"
+  },
+  {
+    "index": 2,
+    "intFromNumeric": -7,
+    "floatFromNumeric": 0.1,
+    "whenFromDateCell": "1999-12-31T23:59:59",
+    "bigFromNumeric": "10000000000000000"
+  }
+]

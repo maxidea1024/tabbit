@@ -1,0 +1,12 @@
+[
+  {
+    "index": 1,
+    "name": "Weapon",
+    "description": "things that hit"
+  },
+  {
+    "index": 2,
+    "name": "Armor",
+    "description": "things that absorb"
+  }
+]

@@ -1,0 +1,29 @@
+{
+  // Two global rules in two tiers, the earlier one reporting.
+  //
+  // What this scenario pins is the barrier: the later tier must not run, and the report must say
+  // how many rules did not. The file names are chosen against the tiers - the rule that must not
+  // run sorts first - so a run that passed by collecting them in name order would fail here.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Validation": {
+    "Path": "test/fixtures/validation/tiers"
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/validation-tiers/json",
+        "Indented": true
+      }
+    ]
+  }
+}

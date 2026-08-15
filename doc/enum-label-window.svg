@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 262" width="560" height="262"
+     role="img" aria-label="데이터를 먼저 내보내면 코드가 배포될 때까지 구버전 클라이언트가 이름을 모르는 값을 받는 구간이 생깁니다. 레이블을 먼저 배포하면 그 구간이 없습니다.">
+  <title>enum 레이블을 추가할 때 순서가 만드는 구간</title>
+  <desc>새 레이블을 쓰는 데이터를 먼저 내보내면, 코드가 배포될 때까지 구버전 클라이언트가 이름을 모르는 값을 받습니다. 레이블만 먼저 배포하고 데이터를 나중에 내보내면 아무도 모르는 값을 받지 않습니다.</desc>
+
+  <style>
+    /*
+      두 순서의 차이는 "무엇을 하느냐"가 아니라 "그 사이에 무엇이 열려 있느냐"입니다.
+      열려 있는 구간을 칠해두면 왜 순서가 규율인지가 한눈에 보입니다.
+
+      Colours are GitHub's own, with a dark override - served as an image, so the query
+      follows the viewer's system theme.
+    */
+    .calm { fill: #f6f8fa; stroke: #d1d9e0; }
+    .bad  { fill: #ffebe9; stroke: #ff8182; }
+    .good { fill: #dafbe1; stroke: #4ac26b; }
+    .step { fill: #1f2328; font-weight: 600; }
+    .note { fill: #59636e; }
+    .okx  { fill: #1a7f37; font-weight: 600; }
+    .badx { fill: #cf222e; font-weight: 600; }
+    .tick { stroke: #59636e; }
+    .rule { stroke: #afb8c1; }
+
+    @media (prefers-color-scheme: dark) {
+      .calm { fill: #0d1117; stroke: #3d444d; }
+      .bad  { fill: #3c1618; stroke: #f85149; }
+      .good { fill: #0f2f1a; stroke: #2ea043; }
+      .step { fill: #f0f6fc; }
+      .note { fill: #9198a1; }
+      .okx  { fill: #3fb950; }
+      .badx { fill: #f85149; }
+      .tick { stroke: #9198a1; }
+      .rule { stroke: #545d68; }
+    }
+
+    text {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      text-anchor: middle;
+    }
+    .t13 { font-size: 13px; }
+    .t12 { font-size: 12px; }
+    .t11 { font-size: 11px; }
+    .l   { text-anchor: start; }
+  </style>
+
+  <text x="280" y="20" class="t13 step">enum 레이블 하나를 추가할 때, 순서가 구간을 만듭니다</text>
+
+  <!-- 잘못된 순서 -->
+  <text x="24" y="48" class="t12 badx l">데이터를 먼저 내보내면</text>
+
+  <text x="170" y="66" class="t11 note">① 데이터 패치</text>
+  <text x="390" y="66" class="t11 note">② 코드 배포</text>
+  <line x1="170" y1="72" x2="170" y2="80" class="tick" stroke-width="1"/>
+  <line x1="390" y1="72" x2="390" y2="80" class="tick" stroke-width="1"/>
+
+  <rect x="24" y="80" width="146" height="26" rx="4" class="calm" stroke-width="1.5"/>
+  <rect x="170" y="80" width="220" height="26" rx="4" class="bad" stroke-width="1.5"/>
+  <rect x="390" y="80" width="146" height="26" rx="4" class="good" stroke-width="1.5"/>
+  <text x="97" y="98" class="t11 note">평시</text>
+  <text x="280" y="98" class="t11 badx">이름을 모르는 값이 나가 있는 구간</text>
+  <text x="463" y="98" class="t11 okx">해소</text>
+
+  <text x="280" y="126" class="t11 note">구버전 클라이언트에 값은 도착하는데 그 값을 아는 코드가 없습니다.</text>
+  <text x="280" y="142" class="t11 note">읽기는 성공하므로 예외도 로그도 남지 않습니다 — 문의가 들어와야 압니다.</text>
+
+  <line x1="24" y1="162" x2="536" y2="162" class="rule" stroke-width="1" stroke-dasharray="4 4"/>
+
+  <!-- 권장 순서 -->
+  <text x="24" y="186" class="t12 okx l">레이블부터 배포하면</text>
+
+  <text x="170" y="204" class="t11 note">① 코드 배포</text>
+  <text x="390" y="204" class="t11 note">② 데이터 패치</text>
+  <line x1="170" y1="210" x2="170" y2="218" class="tick" stroke-width="1"/>
+  <line x1="390" y1="210" x2="390" y2="218" class="tick" stroke-width="1"/>
+
+  <rect x="24" y="218" width="146" height="26" rx="4" class="calm" stroke-width="1.5"/>
+  <rect x="170" y="218" width="220" height="26" rx="4" class="good" stroke-width="1.5"/>
+  <rect x="390" y="218" width="146" height="26" rx="4" class="good" stroke-width="1.5"/>
+  <text x="97" y="236" class="t11 note">평시</text>
+  <text x="280" y="236" class="t11 okx">레이블은 있고, 쓰는 행이 아직 없습니다</text>
+  <text x="463" y="236" class="t11 okx">그때 내보냅니다</text>
+</svg>

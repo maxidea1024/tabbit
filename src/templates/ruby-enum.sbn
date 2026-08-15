@@ -1,0 +1,27 @@
+{{~## One enum module. `enumm` is the single enum this file is for. ##~}}
+{{ include 'ruby-file-head.sbn' ~}}
+  # Generated from {{ enumm.location }}
+{{~ for line in enumm.comment ~}}
+  # {{ line }}
+{{~ end ~}}
+  module {{ enumm.name }}
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+    # {{ line }}
+{{~ end ~}}
+    {{ label.name }} = {{ label.value }}
+{{~ end ~}}
+
+    # Every declared label, by value.
+    NAMES = {
+{{~ for label in enumm.labels ~}}
+      {{ label.value }} => :{{ label.symbol }},
+{{~ end ~}}
+    }.freeze
+
+    # The label's name, or nil when the sheet declared no such value.
+    def self.name_of(value)
+      NAMES[value]
+    end
+  end
+{{ include 'ruby-file-foot.sbn' ~}}

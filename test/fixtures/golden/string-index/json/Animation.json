@@ -1,0 +1,17 @@
+[
+  {
+    "index": "Combat_Run_01",
+    "blend": 0.2,
+    "slot": 1
+  },
+  {
+    "index": "Combat_Walk_01",
+    "blend": 0.35,
+    "slot": 2
+  },
+  {
+    "index": "Idle_01",
+    "blend": 0,
+    "slot": 3
+  }
+]

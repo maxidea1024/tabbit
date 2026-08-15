@@ -1,0 +1,28 @@
+{
+  // A `Targets` entry with a misspelled setting.
+  //
+  // `FileExtention` is not a field of the binary target. Taking the default instead
+  // would write `.tcb` files for a recipe that asked for `.bytes` and say nothing,
+  // so the entry is rejected and the field is named.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/targets-unknown-setting/binary",
+      "FileExtention": ".bytes"
+    }
+  ]
+}

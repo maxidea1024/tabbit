@@ -1,0 +1,45 @@
+{
+  // Regression recipe for the validation pipeline, on the `core.xlsx` fixture.
+  //
+  // Every path is relative to the repository root, which is where the test harness invokes
+  // Tabbit from. The rules live in test/fixtures/validation/pass and report at all three
+  // severities without stopping the run, so this scenario must convert successfully and
+  // write its JSON.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Validation": {
+    "Path": "test/fixtures/validation/pass",
+
+    "Options": {
+      "Locale": "KR",
+
+      // A free key the core knows nothing about. The rule that reads assets is what gives it
+      // meaning, which is the whole point of the bag being untyped.
+      "AssetRoot": "test/fixtures/validation-assets"
+    },
+
+    // `EmitIdeProject` is not named here on purpose: the editor's project is written by default,
+    // and this scenario is what covers that. `validation-flood` turns it off.
+
+    // Left off, so the warning the fixture reports does not stop the run. The test that
+    // covers promotion passes the recipe with it on.
+    "TreatWarningsAsErrors": false
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/validation-pass/json",
+        "Indented": true
+      }
+    ]
+  }
+}

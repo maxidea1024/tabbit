@@ -1,0 +1,53 @@
+// ---------------------------------------------------------------------------------------------
+// rules/runtime/ - the model against an external store. Copy this file, rename it, delete this
+// header.
+//
+//   Name it  <Topic>Rules.cs  and name the class the same: LiveRules.cs holds LiveRules.
+//
+//   Rename to `.cs`. A `.template` file is not scanned, which is the only reason this one can sit
+//   here without the run trying to execute it.
+//
+// When it runs   Last, one file at a time in tier order, and only this folder can be skipped -
+//                `--skip-runtime-validation` leaves it out and records that it did.
+//
+// What you get   IRuntimeContext: everything rules/global/ has, plus the two this folder exists
+//                for -
+//
+//                context.Db("name")      read-only SQL. Column<T>(sql), Set<T>(sql),
+//                                        Scalar<T>(sql), Rows(sql)
+//                context.Redis("name")   read-only. Get(key), Field(key, field)
+//
+//                They are on this type and on no other, which is what makes the skip switch mean
+//                something: a rule needing a store cannot be sitting in another folder.
+//
+//                The names come from the recipe's Validation.Connections, which is also where
+//                `${ENV_VAR}` in a connection string is resolved.
+//
+// Read only      Statements that are not queries are refused, but treat that as a convenience
+//                rather than the boundary. **The boundary is a read-only account.**
+//
+//                These rules hold a connection while they run, which is why the folder is
+//                sequential: twenty of them at once is a load test against somebody's database.
+//
+// Priority       [RulePriority(-10)] on the class puts it in an earlier tier - see rules/global/.
+//
+// This folder is flat. A file one level down is not run at all; put shared helpers in
+// rules/shared/.
+//
+// Full guide: doc/validation.md
+// ---------------------------------------------------------------------------------------------
+
+using Tabbit.Rules;
+using Tabbit.Validation;
+
+internal static class ExampleRules
+{
+    public static void Validate(IRuntimeContext context)
+    {
+        // var live = context.Db("live").Set<int>("SELECT id FROM item");
+        //
+        // foreach (var row in context.Tables.Example.Records)
+        //     if (!live.Contains(row.Id))
+        //         context.Error(row, nameof(row.Id), "Not in the live database.");
+    }
+}

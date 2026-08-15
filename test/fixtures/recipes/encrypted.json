@@ -1,0 +1,69 @@
+{
+  // A binary export that is sealed, and the C# that has to open it.
+  //
+  // The same workbook as `string-index`, chosen because one small table is enough: what is
+  // under test is the load path, not the schema. The binary here is encrypted and the JSON
+  // beside it is not, which is what makes the comparison possible - the rows the generated
+  // accessor reads out of the sealed file have to be the rows the plain export holds.
+  //
+  // Both layers at once: the files are encrypted and signed. They are independent settings
+  // and the unit tests cover all four combinations, but the combination a project that cares
+  // about either would actually ship is this one.
+  //
+  // The keys are named, never written. `TABBIT_TEST_TCB_KEY` and `TABBIT_TEST_TCB_MAC_KEY`
+  // are set by the test that runs this, the same way a build server would set them, and a key
+  // written into this file would be a key in the repository's history from then on.
+  // spec/tcb-v104-composed-encodings.md §4 · spec/tcb-mac-and-signature.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/string-index"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/encrypted/csharp",
+        "Namespace": "Tabbit.Fixtures.Encrypted",
+        "AccessorName": "EncryptedAccessor"
+      }
+    ]
+  },
+
+  // A second reader over the same sealed files, because opening the envelope is written
+  // once per language and the two implementations share no code. C# is checked above; this
+  // one is here because its cipher comes from an extension rather than from the runtime,
+  // which is a way of being wrong that a code review does not catch.
+  "Targets": [
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/encrypted/php",
+      "Namespace": "Encrypted",
+      "AccessorName": "EncryptedData",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ],
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/encrypted/binary",
+        "FileExtension": ".tcb",
+        "EncryptionKeyVariable": "TABBIT_TEST_TCB_KEY",
+        "MacKeyVariable": "TABBIT_TEST_TCB_MAC_KEY"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/encrypted/json",
+        "Indented": true
+      }
+    ],
+    "MongoDb": [],
+    "MySql": []
+  }
+}

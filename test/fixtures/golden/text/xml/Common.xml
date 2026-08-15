@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<textset namespace="Shared" group="Common" count="5">
+  <text from="Quest.Category">Delivery</text>
+  <text from="Quest.Category">Hunt</text>
+  <text from="Item.Flavour">Coarse but strong.</text>
+  <text from="Item.Category">Tools</text>
+  <text from="Item.Flavour">It burns whale oil.</text>
+</textset>

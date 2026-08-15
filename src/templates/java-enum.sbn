@@ -1,0 +1,40 @@
+{{~## One enum, as a top level type of its own. ##~}}
+{{ include 'java-file-head.sbn' ~}}
+// Generated from {{ enumm.location }}
+{{~ for line in enumm.comment ~}}
+/** {{ line }} */
+{{~ end ~}}
+public enum {{ enumm.name }} {
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+        {{ label.name }}({{ label.value }}){{ label.separator }}
+{{~ end ~}}
+
+    private final int value;
+
+        {{ enumm.name }}(int value) {
+        this.value = value;
+    }
+
+    /** The declared value, which is what travels on the wire. */
+    public int value() {
+        return value;
+    }
+
+    /**
+     * The label with this value, or the default when the sheet declared no such label.
+     *
+     * <p>A fallback rather than a throw, matching what the other generated readers do.
+     */
+    public static {{ enumm.name }} of(int value) {
+        for ({{ enumm.name }} candidate : values()) {
+            if (candidate.value == value) {
+                return candidate;
+            }
+        }
+
+        return {{ enumm.default_label }};
+    }
+}

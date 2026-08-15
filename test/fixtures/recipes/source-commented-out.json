@@ -1,0 +1,37 @@
+{
+  // A Google Sheets source entry left in the recipe with its contents emptied, which
+  // is how one is commented out in practice.
+  //
+  // This used to fail: the blank ClientSecretFilename went straight into a FileStream,
+  // so a recipe that had switched the source off could not run at all. The Excel source
+  // beside it has always skipped a blank path, and now both do.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ],
+    "GoogleSheets": [
+      {
+        "ClientSecretFilename": "",
+        "SheetsId": ""
+      }
+    ]
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/source-commented-out/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ]
+  }
+}

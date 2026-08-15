@@ -1,0 +1,66 @@
+{
+  // The conformance corpus, one generation on.
+  //
+  // The same table with one column appended, exported as binary only. Nothing is generated
+  // from it: the readers under test are the ones the `conformance` scenario generated, and
+  // the question is whether they read this file - written by a schema they have never seen -
+  // and come back with exactly what they read from their own.
+  //
+  // Appended, so every existing column keeps the tag its position gave it. That is the shape
+  // a real schema change takes when nobody has spelled `@N` out, and it is the one case the
+  // skew harness could only ever ask of C#.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/conformance-skew"
+      }
+    ]
+  },
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/conformance-skew/binary",
+        "FileExtension": ".tcb",
+
+        // The same key the corpus itself is signed with, and for a reason that is the
+        // feature working: the harnesses that read this data carry a MAC key, and a reader
+        // holding one refuses a file that carries no MAC. That refusal is what stops the
+        // check being removed by zeroing sixteen bytes, so the fixture signs its data
+        // rather than the rule making an exception for it.
+        // test/fixtures/keys/readme.md · spec/tcb-mac-and-signature.md.
+        "MacKeyFile": "test/fixtures/keys/conformance-mac.key"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ]
+  },
+  "Targets": [],
+  "CodeGenerations": {
+    "Cpp": [
+      {
+        "Path": "",
+        "Namespace": "tabbit_conformance",
+        "AccessorName": "ConformanceAccessor",
+        "BinaryTableFileExtension": ".tcb"
+      }
+    ],
+    "CSharp": [
+      {
+        "Path": "",
+        "Namespace": "Tabbit.Conformance",
+        "AccessorName": "ConformanceAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": ""
+      }
+    ]
+  }
+}

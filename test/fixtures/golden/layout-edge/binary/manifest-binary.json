@@ -1,0 +1,19 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "7c933ba14fa19a8f705dc7ae3982217d",
+  "TotalSize": 159,
+  "Items": [
+    {
+      "Name": "OffsetTable.tcb",
+      "Size": 83,
+      "Hash": "c56c2a638ab0bce28b6841dc59d5fe95",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "SecondTable.tcb",
+      "Size": 76,
+      "Hash": "ac3bb2073697b8c7db6fb714812246f7",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

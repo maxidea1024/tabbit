@@ -1,0 +1,123 @@
+{
+  // Every type a key may be, in both index positions.
+  //
+  // `int` and `string` were the only two the primary index accepted, while a `*` column
+  // accepted anything that was not a float - two rules for one question. There is one rule
+  // now, and this is what stands behind it: `bigint`, `uuid` and `enum` keying a table, and
+  // each of them also sitting as a secondary index beside a different primary.
+  //
+  // All thirteen languages, unlike `string-index` which pins two. The reason is that nothing
+  // here is new *below* the generators - the wire carries a key column like any other column
+  // of its type - and everything here is new *inside* them: each emits its own dictionary or
+  // sorted array and picks the key's spelling from its own type table. A uuid key is exactly
+  // the kind of thing one language gets right while another names its byte array as the key
+  // type and does not compile. So the goldens are the record that thirteen of them agree.
+  //
+  // `json` and `binary` as well, so the file a key travels in is pinned beside the code that
+  // reads it back.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/key-types"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/key-types/csharp",
+        "Namespace": "Tabbit.Fixtures.KeyTypes",
+        "AccessorName": "KeyTypesAccessor"
+      }
+    ],
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/key-types/cpp",
+        "AccessorName": "KeyTypesAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/key-types/typescript"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "go",
+      "Path": "test/fixtures/output/key-types/go",
+      "PackageName": "keytypes",
+      "ModulePath": "keytypes"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/key-types/ruby",
+      "ModuleName": "KeyTypes"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/key-types/php",
+      "Namespace": "Tabbit\\Fixtures\\KeyTypes",
+      "AccessorName": "KeyTypesAccessor"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/key-types/dart"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/key-types/python",
+      "PackageName": "key_types_data"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/key-types/kotlin",
+      "PackageName": "tabbit.fixtures.keytypes",
+      "AccessorName": "KeyTypesAccessor"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/key-types/java",
+      "PackageName": "tabbit.fixtures.keytypes",
+      "AccessorName": "KeyTypesAccessor"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/key-types/rust",
+      "CrateName": "key_types"
+    },
+    {
+      "Type": "c",
+      "Path": "test/fixtures/output/key-types/c",
+      "AccessorName": "KeyTypes"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/key-types/unreal/Source",
+      "ModuleName": "KeyTypes",
+      "AccessorName": "FKeyTypes",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ],
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/key-types/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/key-types/json",
+        "Indented": true
+      }
+    ],
+    "MongoDb": [],
+    "MySql": []
+  }
+}

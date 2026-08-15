@@ -1,0 +1,18 @@
+{{~## One constant struct. `set` is the single set this file is for. ##~}}
+{{ include 'go-file-head.sbn' ~}}
+// {{ set.name }} was generated from {{ set.location }}.
+{{~ for line in set.comment ~}}
+// {{ line }}
+{{~ end ~}}
+var {{ set.name }} = struct {
+{{~ for constant in set.constants ~}}
+	{{ constant.name }} {{ constant.type }}
+{{~ end ~}}
+}{
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+	// {{ line }}
+{{~ end ~}}
+	{{ constant.name }}: {{ constant.value }},
+{{~ end ~}}
+}

@@ -1,0 +1,53 @@
+{
+  // A primary index that is a string.
+  //
+  // Nothing in the generators had to change for this: the lookup they emit is a dictionary
+  // over the index field's own type, and the secondary indexes have accepted strings all
+  // along. So what the golden is holding is that the generated lookup really is keyed by
+  // `string` - and that the binary carries a string index like any other column.
+  //
+  // Both code targets, because the two build their dictionary differently - `Dictionary<K,V>`
+  // against `Map<K,V>` - and a key type is exactly the kind of thing one of them could get
+  // right while the other emits `number`.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/string-index"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/string-index/csharp",
+        "Namespace": "Tabbit.Fixtures.StringIndex",
+        "AccessorName": "StringIndexAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/string-index/typescript"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/string-index/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/string-index/json",
+        "Indented": true
+      }
+    ],
+    "MongoDb": [],
+    "MySql": []
+  }
+}

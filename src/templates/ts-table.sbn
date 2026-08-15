@@ -1,0 +1,449 @@
+{{~##
+ One module per table: the row interface the JSON is parsed into, the record class, and
+ the table class with both read paths.
+
+ Both a JSON and a binary path are generated so a consumer picks per deployment rather
+ than per build - JSON where the data is inspected by hand or served as text, binary
+ where size and parse time matter. The two produce identical values, which is why the
+ reader formats dates and durations as the strings the JSON export writes.
+
+ Anything needing the model arrives already rendered from TsView.
+##~}}
+{{ include 'ts-head.sbn' ~}}
+import * as fs from 'fs'
+import * as tabbit from '../tabbit/tcb-reader'
+
+// The accessor, for the encryption key it holds. `tables` imports this module back, and
+// that cycle is only ever read from inside a method - by which point both modules have
+// finished evaluating - so neither one is half built when the binding is used.
+import { {{ accessor_name }} } from '../{{ accessor_file }}'
+{{~ if imports | array.size > 0 ~}}
+
+// Automatically import to handle external type references.
+{{~ for line in imports ~}}
+{{ line }}
+{{~ end ~}}
+{{~ end ~}}
+
+{{~## The element type of each record group, and the shape the JSON export carries it
+   in. Two interfaces because a member's exported type is not always its member type -
+   a 64-bit integer travels as a string. See spec/nested-fields.md. ##~}}
+{{~ for field in fields ~}}
+{{~## An array of arrays declares no element interface: its outer level has no name, so
+   there is nothing for one to describe. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~## One interface per level, innermost first - the view flattened the nesting so this loop
+   does not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+/** One element of {{ name }}Record.{{ field.prop_name }}. */
+{{~ else ~}}
+/** A record inside {{ name }}Record.{{ field.prop_name }}. */
+{{~ end ~}}
+export interface {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+  {{ line }}
+{{~ end ~}}
+  {{ member.prop_name }}: {{ member.field_type }}
+{{~ if member.ref_key_type_name != '' ~}}
+{{~## A reference member carries three things: the row it resolved to, the key that came
+   off the wire, and whether the resolution happened. All three inside the element, because
+   a group may hold more than one reference. spec/references-in-records.md. ##~}}
+  {{ member.prop_name }}_index: {{ member.ref_key_type_name }}
+  {{ member.prop_name }}_F: {{ member.ref_flag_type_name }}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+/** {{ rt.type_name }} as the .json export carries it. */
+interface {{ rt.type_name }}Json {
+{{~ for member in rt.members ~}}
+  {{ member.prop_name }}: {{ member.json_wire_type }}
+{{~ end ~}}
+}
+
+{{ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+/** A type for handling rows when parsing .json. */
+interface IDataRow {
+{{~ for field in fields ~}}
+{{~ if field.is_array ~}}
+  {{ field.prop_name }}: {{ field.json_wire_type }}[]
+{{~ else ~}}
+  {{ field.prop_name }}: {{ field.json_wire_type }}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+// Generated from {{ location }}
+{{~ for line in comment ~}}
+{{ line }}
+{{~ end ~}}
+export class {{ name }}Record {
+  /** Default constructor */
+  constructor() {
+  }
+{{~## The readable surface first, and the storage below it. A getter and its
+   backing field on adjacent lines reads as noise where the field is never the
+   thing a consumer wants; grouped, the top of the record is what it holds and
+   the bottom is how. ##~}}
+{{~ for field in fields }}
+{{~ for line in field.comment ~}}
+  {{ line }}
+{{~ end ~}}
+{{~ if field.kind == 'array_of_arrays' ~}}
+{{~## The declared type is already the inner array, so the accessor is that array's array -
+   and `_N` is the outer count with `_M` the inner one. spec/nested-multi-level.md. ##~}}
+  public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
+  public static readonly {{ field.prop_name }}_N: number = {{ field.outer_count }}
+  public static readonly {{ field.prop_name }}_M: number = {{ field.element_count }}
+{{~ else if field.is_array ~}}
+  public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
+{{~ if field.kind == 'array_ref' || field.kind == 'array' || field.kind == 'record_array' ~}}
+  public static readonly {{ field.prop_name }}_N: number = {{ field.element_count }}
+{{~ else if field.kind == 'record_var_array' ~}}
+{{~## No `_N`: the length is the row's. The sheet's column count is still the most it
+   can be, which is the only fixed number there is to say. ##~}}
+  public static readonly {{ field.prop_name }}_MAX_N: number = {{ field.element_count }}
+{{~ end ~}}
+{{~ else ~}}
+  public get {{ field.prop_name }}(): {{ field.field_type }} { return this.{{ field.field_name }} }
+{{~ end ~}}
+{{~ if field.is_nullable ~}}
+{{~## The value accessor keeps its type and yields the type's empty value when the row had
+   none; this says which it was. Same shape as every other language's, deliberately. ##~}}
+  /** Whether this row has a value for `{{ field.prop_name }}`. */
+  public get has{{ field.pascal_name }}(): boolean { return this.{{ field.presence_field }} }
+{{~ end ~}}
+{{~ end ~}}
+{{~## Called by the accessor once every table is read, and by nothing else. Kept away
+   from the getters above because a consumer never calls one. ##~}}
+{{~ if reference_fields | array.size > 0 ~}}
+
+{{~ for field in fields ~}}
+{{~ if field.kind == 'array_ref' ~}}
+  public setReference_{{ field.prop_name }}_INTERNAL(index: number, value: {{ field.reference_setter_type }}): void { this.{{ field.field_name }}[index] = value; }
+{{~ else if field.kind == 'scalar_ref' ~}}
+{{~ if field.reference_is_record ~}}
+  public setReference_{{ field.prop_name }}_INTERNAL(value: {{ field.reference_setter_type }}) { this.{{ field.field_name }} = value; }
+{{~ else ~}}
+  public setReference_{{ field.prop_name }}_INTERNAL(value: {{ field.reference_setter_type }}) { this.{{ field.field_name }} = value }
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~## Public rather than private: the enclosing table writes them as it reads, and
+   the accessor writes the reference members as it resolves them. ##~}}
+
+{{~ for field in fields ~}}
+{{~ if field.kind == 'array_ref' ~}}
+  public {{ field.field_name }}: {{ field.field_type }}[] = []
+  public {{ field.field_name }}_{{ field.ref_table }}_index: {{ field.ref_key_type_name }}[] = []
+  public {{ field.field_name }}_F: boolean[] = []
+{{~ else if field.kind == 'record_array' || field.kind == 'record_var_array' || field.kind == 'array_of_arrays' ~}}
+{{~## Created with the record, not by the read. Each member column fills one property of
+   each element, so there has to be an element there to fill - and a member whose column
+   the file does not carry then holds its empty value rather than undefined.
+
+   A trimmed group is the exception and starts empty: how long this row's array is only
+   becomes known as it is read. ##~}}
+  public {{ field.field_name }}: {{ field.field_type }}[] = {{ field.default_value }}
+{{~ else if field.kind == 'var_array' || field.kind == 'array' ~}}
+  public {{ field.field_name }}: {{ field.field_type }}[] = []
+{{~ else if field.kind == 'scalar_ref' ~}}
+  public {{ field.field_name }}: {{ field.field_type }}
+  public {{ field.field_name }}_{{ field.ref_table }}_index: {{ field.ref_key_type_name }} = {{ field.ref_key_initial }}
+  public {{ field.field_name }}_F: boolean = false
+{{~ else ~}}
+  public {{ field.field_name }}: {{ field.field_type }} = {{ field.default_value }}
+{{~ end ~}}
+{{~ if field.is_nullable ~}}
+{{~## False until a read says otherwise, so a file that does not carry the column leaves
+   the member absent rather than claiming a value it never got. ##~}}
+  public {{ field.presence_field }}: boolean = false
+{{~ end ~}}
+{{~ end ~}}
+
+  /** Populate field values. */
+  public populateFieldValues(dataRow: IDataRow): void {
+{{~ for field in fields ~}}
+    {{ field.from_named_row }}
+{{~ end ~}}
+  }
+
+  /** Populate field values. */
+  public populateFieldValuesCompact(dataRow: any[]): void {
+    let offset = 0
+{{~ for field in fields ~}}
+{{~ for line in field.from_compact_row ~}}
+    {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+
+// Generated from {{ location }}
+{{~ for line in comment ~}}
+{{ line }}
+{{~ end ~}}
+export class {{ name }}Table {
+  /** Default constructor. */
+  constructor() {
+  }
+
+  /** All records. */
+  public get records(): {{ name }}Record[] { return this._records }
+  private _records: {{ name }}Record[] = []
+{{~ for field in indexed_fields }}
+  // Indexing by '{{ field.prop_name }}'
+  public get recordsBy{{ field.pascal_name }}(): Map<{{ field.field_type }}, {{ name }}Record> { return this._recordsBy{{ field.pascal_name }} }
+  private _recordsBy{{ field.pascal_name }}: Map<{{ field.field_type }}, {{ name }}Record> = new Map<{{ field.field_type }}, {{ name }}Record>()
+
+  /**
+   * The row with this {{ field.prop_name }}, or undefined when the table has none.
+   *
+   * The lookup to reach for when a missing row is an ordinary answer.
+   */
+  public findBy{{ field.pascal_name }}(key: {{ field.field_type }}): {{ name }}Record | undefined {
+    return this._recordsBy{{ field.pascal_name }}.get(key)
+  }
+
+  /**
+   * The row with this {{ field.prop_name }}, or a thrown Error naming what was missing.
+   *
+   * For a key that has to be there. The name says it throws, because a caller reading
+   * `getBy{{ field.pascal_name }}(id).name` at a glance cannot otherwise tell whether the
+   * next line is a check or a catch.
+   */
+  public getBy{{ field.pascal_name }}OrThrow(key: {{ field.field_type }}): {{ name }}Record {
+    const found = this._recordsBy{{ field.pascal_name }}.get(key)
+    if (!found)
+      throw new Error(`There is no record in table "{{ name }}" that corresponds to field "{{ field.prop_name }}" value ${key}`)
+
+    return found
+  }
+
+  /** Whether the table holds a row with this {{ field.prop_name }}. */
+  public contains{{ field.pascal_name }}(key: {{ field.field_type }}): boolean {
+    return this._recordsBy{{ field.pascal_name }}.has(key)
+  }
+{{~ end ~}}
+
+  /** Read a table from specified file. */
+  public async read(filename: string): Promise<void> {
+    const json = await fs.promises.readFile(filename, "utf8")
+    this.readFromJson(json)
+  }
+
+  /** Read a table from specified file synchronously. */
+  public readSync(filename: string): void {
+    const json = fs.readFileSync(filename, "utf8")
+    this.readFromJson(json)
+  }
+
+  private readFromJson(json: string): void {
+    const dataRows: any[] = JSON.parse(json)
+    const records: {{ name }}Record[] = []
+
+    if (this.isCompactRowFormatted(dataRows)) {
+      for (const dataRow of dataRows) {
+        const record = new {{ name }}Record()
+        record.populateFieldValuesCompact(dataRow)
+        records.push(record)
+      }
+    } else {
+      for (const dataRow of dataRows as IDataRow[]) {
+        const record = new {{ name }}Record()
+        record.populateFieldValues(dataRow)
+        records.push(record)
+      }
+    }
+
+    this.publish(records)
+  }
+
+  private isCompactRowFormatted(rows: any[]): boolean {
+    return rows.length > 0 && Array.isArray(rows[0])
+  }
+
+  /** Read a table from a binary .tcb file. */
+  public readBinarySync(filename: string): void {
+    // Unconditionally, and with whatever `{{ accessor_name }}.encryptionKey` and `{{ accessor_name }}.macKey` hold -
+    // which is null unless the project set them. A file that is neither encrypted nor signed
+    // comes back from this untouched, so the load path is the same either way and there is
+    // no condition here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+    this.readBinaryFrom(tabbit.open(
+      tabbit.readAllBytes(filename),
+      {{ accessor_name }}.encryptionKey, {{ accessor_name }}.macKey, {{ accessor_name }}.verifyMac))
+  }
+
+  /**
+   * Read a table from binary data already in memory.
+   *
+   * Column by column, matched by tag rather than position: a column this build does not
+   * know is skipped by its block length, and one whose type changed incompatibly fails
+   * naming the field.
+   */
+  public readBinaryFrom(data: Uint8Array): void {
+    const reader = new tabbit.TcbReader(data)
+    const { rowCount, columns } = tabbit.readTableHeader(reader)
+{{~ if needs_cursor ~}}
+    let cursor: tabbit.TcbColumnCursor
+{{~ end ~}}
+{{~ if needs_presence ~}}
+{{~## Declared once for the whole switch, like the cursor: a `case` is not its own scope,
+   so a `const` inside two of them collides. ##~}}
+    let presence: Uint8Array | null
+{{~ end ~}}
+
+    // Built here and published at the end, so a file that turns out to be truncated - or
+    // a column this build cannot read - leaves the rows already loaded exactly as they are.
+    const records: {{ name }}Record[] = []
+    for (let i = 0; i < rowCount; ++i)
+      records.push(new {{ name }}Record())
+
+    for (const column of columns) {
+      const blockEnd = reader.position + column.byteLength
+
+      switch (column.tag) {
+{{~## One case per column of the file, not per declared member. The two are the same
+   for every table without a record group, and a record group is one column per
+   member - so this loops over `columns`. See spec/nested-fields.md. ##~}}
+{{~ for column in columns ~}}
+        case {{ column.tag }}:
+          {{ column.column_check }}
+{{~ if column.is_nullable ~}}
+{{~## The bitmap sits at the front of the block, so it is read before the values. The
+   values are written for every row either way, which is what lets the read shapes below
+   stay exactly as they are. ##~}}
+          presence = tabbit.readPresence(reader, column, rowCount)
+{{~ end ~}}
+{{~## Opened here, ahead of every read shape, because an array's elements read through it
+   as well: its block states an encoding for them and one for the row lengths, and the
+   cursor is what decodes both. After the presence bitmap, which sits in front of the block
+   the cursor is about to start reading. ##~}}
+{{~ if column.cursor_open != '' ~}}
+          {{ column.cursor_open }}
+{{~ end ~}}
+{{~ if column.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+   call per row that each re-dispatch on the encoding. An encoding with no run to give
+   answers 1, so this loop is correct over all of them. ##~}}
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.{{ column.run_call }}(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              {{ column.run_spend }}
+          }
+{{~ else ~}}
+          for (let i = 0; i < rowCount; ++i) {
+            const record = records[i]
+{{~ if column.kind == 'var_array' ~}}
+            const elementCount = {{ column.length_read }}
+            record.{{ column.field_name }} = []
+            for (let j = 0; j < elementCount; ++j)
+              record.{{ column.field_name }}.push({{ column.binary_read }})
+{{~ else if column.kind == 'array_ref' ~}}
+            record.{{ column.field_name }} = []
+            record.{{ column.field_name }}_{{ column.ref_table }}_index = []
+            for (let j = 0; j < {{ column.element_count }}; ++j)
+              record.{{ column.field_name }}_{{ column.ref_table }}_index.push({{ column.binary_read }})
+{{~ else if column.kind == 'array' ~}}
+            record.{{ column.field_name }} = []
+            for (let j = 0; j < {{ column.element_count }}; ++j)
+              record.{{ column.field_name }}.push({{ column.binary_read }})
+{{~ else if column.kind == 'record_var_array_member' ~}}
+{{~## A trimmed record array: the length is written per row, once per member, and every
+   member carries the same one. The first member creates the elements - no declaration
+   could have known how many - and the rest fill a property of each. A later member
+   creating them again would discard what the earlier ones wrote. ##~}}
+            const elementCount = {{ column.length_read }}
+{{~ if column.is_first_member ~}}
+            record.{{ column.field_name }} = Array.from({ length: elementCount }, () => ({{ column.record_literal }}))
+{{~ else ~}}
+            if (record.{{ column.field_name }}.length !== elementCount)
+              throw new Error(`{{ column.qualified_group_name }}: the file gives this row ${elementCount} elements for one member of the record and ${record.{{ column.field_name }}.length} for another. Every member of a record carries the same element count, so the file is damaged.`)
+{{~ end ~}}
+            for (let j = 0; j < elementCount; ++j)
+              record.{{ column.field_name }}[j]{{ column.member_access }}{{ column.member_ref_suffix }} = {{ column.binary_read }}
+{{~ else if column.kind == 'array_of_arrays_member' ~}}
+{{~## One inner array. Which outer element it is, is which column this is - so that index is
+   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+            for (let j = 0; j < {{ column.element_count }}; ++j)
+              record.{{ column.field_name }}[{{ column.member_at }}][j] = {{ column.binary_read }}
+{{~ else if column.kind == 'record_member_array' ~}}
+{{~## The member is the array: the index goes after its name rather than before. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+            for (let j = 0; j < {{ column.element_count }}; ++j)
+              record.{{ column.field_name }}{{ column.member_access }}{{ column.member_ref_suffix }}[j] = {{ column.binary_read }}
+{{~ else if column.kind == 'record_array_member' ~}}
+{{~## One member of an array-valued record. The array and its objects were created
+   with the record, so this fills a field of each rather than pushing. ##~}}
+            for (let j = 0; j < {{ column.element_count }}; ++j)
+              record.{{ column.field_name }}[j]{{ column.member_access }}{{ column.member_ref_suffix }} = {{ column.binary_read }}
+{{~ else if column.kind == 'record_member' ~}}
+            record.{{ column.field_name }}{{ column.member_access }}{{ column.member_ref_suffix }} = {{ column.binary_read }}
+{{~ else if column.kind == 'scalar_ref' ~}}
+            record.{{ column.field_name }}_{{ column.ref_table }}_index = {{ column.binary_read }}
+{{~ else ~}}
+            record.{{ column.field_name }} = {{ column.binary_read }}
+{{~ end ~}}
+          }
+{{~ end ~}}
+{{~ if column.is_nullable ~}}
+{{~## A pass of its own rather than a line inside each read shape, so the row index is
+   worked out once instead of in each of them. ##~}}
+          for (let i = 0; i < rowCount; ++i) {
+            records[i].{{ column.presence_field }} = tabbit.isPresent(presence, i)
+
+            // The block carries a value for every row, so an absent one has just been
+            // given whatever was there. Putting the empty value back is what makes this
+            // path agree with the JSON one.
+            if (!records[i].{{ column.presence_field }})
+              records[i].{{ column.field_name }} = {{ column.empty_value }}
+          }
+{{~ end ~}}
+          break
+{{~ end ~}}
+        default:
+          // A column added after this code was generated.
+          reader.skip(column.byteLength)
+          break
+      }
+
+      tabbit.checkBlockEnd(reader, column, blockEnd)
+    }
+
+    this.publish(records)
+  }
+
+  /** Index mapping. */
+  /**
+   * Publishes one whole load: the rows and the lookups built from them, together.
+   *
+   * Reading a table that is already loaded - a refresh, a patched file - used to mutate what
+   * consumers were holding: the rows were appended to or emptied first, so a read that threw
+   * partway left the table holding some of the new data and none of the old. Everything above
+   * builds its own arrays and gets here only if it finished, and this replaces the references
+   * in one step. Whoever took `records` before still has the previous load, whole.
+   */
+  private publish(records: {{ name }}Record[]): void {
+{{~ for field in indexed_fields ~}}
+    const recordsBy{{ field.pascal_name }} = new Map<{{ field.field_type }}, {{ name }}Record>()
+{{~ end ~}}
+{{~ if indexed_fields | array.size > 0 ~}}
+
+    for (const record of records) {
+{{~ for field in indexed_fields ~}}
+      recordsBy{{ field.pascal_name }}.set(record.{{ field.prop_name }}, record)
+{{~ end ~}}
+    }
+
+{{~ end ~}}
+    this._records = records
+{{~ for field in indexed_fields ~}}
+    this._recordsBy{{ field.pascal_name }} = recordsBy{{ field.pascal_name }}
+{{~ end ~}}
+  }
+}

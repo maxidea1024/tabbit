@@ -1,0 +1,48 @@
+// ---------------------------------------------------------------------------------------------
+// rules/pre/ - before a single sheet is opened. Copy this file, rename it, delete this header.
+//
+//   Name it  <Topic>Rules.cs  and name the class the same: InputsRules.cs holds InputsRules.
+//
+//   Rename to `.cs`. A `.template` file is not scanned, which is the only reason this one can sit
+//   here without the run trying to execute it.
+//
+// When it runs   First, before anything is read. A rule failing here costs nothing, because
+//                nothing has been opened yet - which is the point of the folder: file names,
+//                settings and the environment are checkable without the data.
+//
+// What you get   IPreContext, and it is the smallest of the four:
+//
+//                context.Option(...)   settings from the recipe's Validation.Options
+//                context.Files(...)    a folder scanned, to check what is and is not there
+//                context.Json(...)     a JSON file read
+//                context.Error/Warn/Info(message)
+//
+// Not here       No `Tables` and no `context.Schema` - the sheets have not been read, so the
+//                accessor does not exist yet. The type says so: those names are not on
+//                IPreContext, so reaching for one is a red squiggle rather than a run that gets
+//                this far and stops. **This file has one using line, not two**: a
+//                `using Tabbit.Rules;` here is a compile error.
+//
+//                Reporting cannot point at a cell either, for the same reason. Messages here are
+//                about the run rather than about a row.
+//
+// Priority       [RulePriority(-10)] on the class puts it in an earlier tier - see rules/global/.
+//
+// This folder is flat. A file one level down is not run at all; put shared helpers in
+// rules/shared/.
+//
+// Full guide: doc/validation.md
+// ---------------------------------------------------------------------------------------------
+
+using Tabbit.Validation;
+
+internal static class ExampleRules
+{
+    public static void Validate(IPreContext context)
+    {
+        // var workbooks = context.Files(context.Option("sheets"), "*.xlsx");
+        //
+        // if (!workbooks.Has("Item"))
+        //     context.Error("No `Item` workbook in the sheet folder.");
+    }
+}

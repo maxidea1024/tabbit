@@ -1,0 +1,36 @@
+[
+  {
+    "index": 1,
+    "part": [
+      {
+        "itemId": 1,
+        "count": 10
+      },
+      {
+        "itemId": 2,
+        "count": 20
+      },
+      {
+        "itemId": 1,
+        "count": 30
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "part": [
+      {
+        "itemId": 2,
+        "count": 40
+      },
+      {
+        "itemId": 1,
+        "count": 50
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "part": []
+  }
+]

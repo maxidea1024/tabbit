@@ -1,0 +1,43 @@
+{
+  // The Unreal target, generated from the core fixture.
+  //
+  // The core enums run 0 to 3, which a BlueprintType enum can hold. The conformance
+  // fixture's cannot, and unreal-enum-range.json is the case that checks the generator
+  // says so rather than leaving it to the header tool.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/unreal/binary",
+        "FileExtension": ".tcb"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/unreal/Source",
+      "ModuleName": "TabbitCore",
+      "AccessorName": "FTabbitCore",
+      "BinaryTableFileExtension": ".tcb",
+
+      // On here so the updater is compiled by something. The gate that builds it is the
+      // only thing in this repository that compiles Unreal C++ the way Unreal does.
+      "WriteUpdater": true
+    }
+  ]
+}

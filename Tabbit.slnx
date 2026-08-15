@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/bench/">
+    <Project Path="bench/Tabbit.Bench.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Tabbit.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/EmittedCodeLanguageCheck/EmittedCodeLanguageCheck.csproj" />
+    <Project Path="test/Tabbit.Tests/Tabbit.Tests.csproj" />
+  </Folder>
+  <Folder Name="/test/fixtures/" />
+  <Folder Name="/test/fixtures/tools/">
+    <Project Path="test/fixtures/tools/FixtureGen/FixtureGen.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,29 @@
+{
+  // The same conversion with a rule that reports an error.
+  //
+  // What this scenario pins is the gate: the run must fail, and the JSON export must not
+  // exist afterwards. The validation runs before any target, so nothing was staged and there
+  // is nothing to roll back - which is the property the pipeline exists to give.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Validation": {
+    "Path": "test/fixtures/validation/fail"
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/validation-fail/json",
+        "Indented": true
+      }
+    ]
+  }
+}

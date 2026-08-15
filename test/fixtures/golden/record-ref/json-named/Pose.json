@@ -1,0 +1,28 @@
+[
+  {
+    "index": 1,
+    "step": [
+      {
+        "clipId": "Idle_01",
+        "weight": 1
+      },
+      {
+        "clipId": "Run_01",
+        "weight": 2
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "step": [
+      {
+        "clipId": "Run_01",
+        "weight": 3
+      },
+      {
+        "clipId": "",
+        "weight": 0
+      }
+    ]
+  }
+]

@@ -1,0 +1,666 @@
+package tabbit;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+
+/**
+ * Tabbit's data updater.
+ *
+ * Brings a local copy of the exported data up to date with a copy served over HTTP - a
+ * CDN, a bucket, a patch server - so a running program can take new data without being
+ * redeployed. Emitted beside the reader and reads nothing but the manifest, so it knows
+ * nothing about the schema and never has to change when one does.
+ *
+ * The manifest is what the exporter already writes next to the data: one entry per file
+ * with its size and MD5. Comparing it with the local copy is the whole of the diff, so a
+ * run downloads what changed and nothing else.
+ *
+ * Three properties, because a patcher that fails badly is worse than one that does not
+ * exist:
+ *
+ *   Nothing is replaced until everything has arrived and been checked. Files land in a
+ *   staging directory first and the local manifest is written last, so an update killed
+ *   halfway leaves the previous data readable and the next run redoes the difference.
+ *
+ *   Every file is checked against the hash the manifest gives for it, so a truncated
+ *   transfer that a proxy reported as success does not reach the cache.
+ *
+ *   A transient failure is retried with a doubling backoff, and a permanent one is not.
+ *
+ * Reading is somebody else's job. This produces a directory, and the generated tables
+ * read it.
+ *
+ * The JDK and nothing else: java.net.http for the transfer, MessageDigest for the check,
+ * and the small JSON reader at the bottom because the JDK has none. That reader does the
+ * whole of JSON rather than the shape of a manifest, which is shorter to write correctly
+ * than a special case is to write defensively.
+ */
+public final class TabbitUpdater {
+    private TabbitUpdater() {
+    }
+
+    /** What an update is allowed to do. Every value has a working default. */
+    public static final class Options {
+        /**
+         * The binary exporter writes manifest-binary.json; the JSON exporter writes
+         * manifest-json.json.
+         */
+        public String manifestFileName = "manifest-binary.json";
+
+        /** The first attempt is included, so three is two retries. */
+        public int maxAttempts = 3;
+
+        /** Waited before the second attempt. Doubled for each attempt after it. */
+        public Duration retryDelay = Duration.ofMillis(500);
+
+        public Duration requestTimeout = Duration.ofSeconds(30);
+        public boolean verifyHash = true;
+
+        /** Called with one line of progress, when set. */
+        public Consumer<String> log;
+    }
+
+    /** What an update did. */
+    public static final class Result {
+        public boolean succeeded;
+        public String error;
+        public boolean upToDate;
+        public int downloadedCount;
+        public long downloadedBytes;
+        public int deletedCount;
+
+        /**
+         * The directory holding the data. Hand it to the generated accessor's readAll. Set
+         * even on failure, because the previous data is still there and still readable -
+         * which is the point of failing the way this does.
+         */
+        public final Path localPath;
+
+        Result(Path localPath) {
+            this.localPath = localPath;
+        }
+    }
+
+    /** One file of the manifest, and the hash to check it by. */
+    public static final class ManifestEntry {
+        public final String name;
+        public final long size;
+        public final String hash;
+
+        public ManifestEntry(String name, long size, String hash) {
+            this.name = name;
+            this.size = size;
+            this.hash = hash;
+        }
+    }
+
+    /** A failure the same request might survive a moment later. */
+    static final class TransientException extends RuntimeException {
+        TransientException(String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * Brings {@code cacheDirectory} up to date with the data served under {@code baseUrl}.
+     *
+     * Does not throw. Everything that can go wrong here - the network, the disk, a file
+     * that arrived corrupt - is a condition the caller has to handle rather than a defect,
+     * and a patcher that throws into a service's startup is one that gets wrapped in a
+     * bare catch that swallows the reason.
+     */
+    public static Result update(String baseUrl, Path cacheDirectory, Options options) {
+        if (options == null) {
+            options = new Options();
+        }
+
+        Result result = new Result(cacheDirectory);
+        Options settings = options;
+
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(settings.requestTimeout)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
+
+        try {
+            String manifestText = new String(
+                    download(client, joinUrl(baseUrl, settings.manifestFileName), settings),
+                    StandardCharsets.UTF_8);
+
+            List<ManifestEntry> remote = parseManifest(manifestText);
+            List<ManifestEntry> local =
+                    readLocalManifest(cacheDirectory.resolve(settings.manifestFileName));
+
+            Map<String, ManifestEntry> byName = new HashMap<>();
+            for (ManifestEntry entry : local) {
+                byName.put(entry.name, entry);
+            }
+
+            List<ManifestEntry> wanted = new ArrayList<>();
+
+            for (ManifestEntry entry : remote) {
+                ManifestEntry previous = byName.get(entry.name);
+
+                // The file's presence is checked as well as the manifest's word for it: a
+                // cache somebody cleaned out by hand would otherwise never be refilled.
+                boolean current = previous != null
+                        && previous.hash.equals(entry.hash)
+                        && Files.exists(localPath(cacheDirectory, entry.name));
+
+                if (!current) {
+                    wanted.add(entry);
+                }
+            }
+
+            Set<String> served = new HashSet<>();
+            for (ManifestEntry entry : remote) {
+                served.add(entry.name);
+            }
+
+            List<String> gone = new ArrayList<>();
+            for (ManifestEntry entry : local) {
+                if (!served.contains(entry.name)) {
+                    gone.add(entry.name);
+                }
+            }
+
+            if (wanted.isEmpty() && gone.isEmpty()) {
+                log(settings, "tabbit: already up to date.");
+
+                result.succeeded = true;
+                result.upToDate = true;
+                return result;
+            }
+
+            log(settings, String.format("tabbit: %d file(s) to fetch, %d to remove.",
+                    wanted.size(), gone.size()));
+
+            // Everything lands here first. Nothing the caller can read is touched until the
+            // last file has arrived and been checked.
+            Path staging = cacheDirectory.resolve(".staging");
+
+            Files.createDirectories(cacheDirectory);
+            deleteRecursively(staging);
+            Files.createDirectories(staging);
+
+            for (ManifestEntry entry : wanted) {
+                byte[] data = download(client, joinUrl(baseUrl, entry.name), settings);
+
+                if (settings.verifyHash && !entry.hash.isEmpty()) {
+                    String actual = md5Hex(data);
+
+                    if (!actual.equalsIgnoreCase(entry.hash)) {
+                        throw new IllegalStateException(String.format(
+                                "'%s' arrived with hash %s, and the manifest says %s. "
+                                        + "Nothing was replaced.",
+                                entry.name, actual, entry.hash));
+                    }
+                }
+
+                Path staged = localPath(staging, entry.name);
+
+                Files.createDirectories(staged.getParent());
+                Files.write(staged, data);
+
+                result.downloadedBytes += data.length;
+            }
+
+            // From here on the update is applied. Nothing below reaches the network.
+            for (String name : gone) {
+                Files.deleteIfExists(localPath(cacheDirectory, name));
+                result.deletedCount += 1;
+            }
+
+            for (ManifestEntry entry : wanted) {
+                Path target = localPath(cacheDirectory, entry.name);
+
+                Files.createDirectories(target.getParent());
+                Files.move(localPath(staging, entry.name), target,
+                        StandardCopyOption.REPLACE_EXISTING);
+
+                result.downloadedCount += 1;
+            }
+
+            // Last, and that ordering is the recovery story: a run killed before this point
+            // leaves a manifest describing the data that is still on disk, so the next run
+            // fetches the same files again rather than believing it has them.
+            Files.write(cacheDirectory.resolve(settings.manifestFileName),
+                    manifestText.getBytes(StandardCharsets.UTF_8));
+
+            deleteRecursively(staging);
+
+            log(settings, String.format("tabbit: updated. %d fetched, %d removed.",
+                    result.downloadedCount, result.deletedCount));
+
+            result.succeeded = true;
+            return result;
+        } catch (Exception error) {
+            // The previous data is untouched, so the caller can carry on with it.
+            result.error = error.getMessage() == null ? error.toString() : error.getMessage();
+
+            log(settings, "tabbit: update failed: " + result.error);
+            return result;
+        }
+    }
+
+    /** The same, with the defaults. */
+    public static Result update(String baseUrl, Path cacheDirectory) {
+        return update(baseUrl, cacheDirectory, new Options());
+    }
+
+    /** Reads the entries out of a manifest's JSON. */
+    public static List<ManifestEntry> parseManifest(String text) {
+        Object manifest = Json.parse(text);
+
+        if (!(manifest instanceof Map)) {
+            throw new IllegalArgumentException("the manifest is not an object");
+        }
+
+        Object items = ((Map<?, ?>) manifest).get("Items");
+
+        if (!(items instanceof List)) {
+            throw new IllegalArgumentException("the manifest has no Items array");
+        }
+
+        List<ManifestEntry> entries = new ArrayList<>();
+
+        for (Object item : (List<?>) items) {
+            if (!(item instanceof Map)) {
+                continue;
+            }
+
+            Map<?, ?> fields = (Map<?, ?>) item;
+            Object name = fields.get("Name");
+
+            if (!(name instanceof String) || ((String) name).isEmpty()) {
+                continue;
+            }
+
+            Object size = fields.get("Size");
+            Object hash = fields.get("Hash");
+
+            entries.add(new ManifestEntry((String) name,
+                    size instanceof Number ? ((Number) size).longValue() : 0L,
+                    hash instanceof String ? (String) hash : ""));
+        }
+
+        return entries;
+    }
+
+    /** The MD5 of some bytes, in the lower-case hex the manifest carries. */
+    public static String md5Hex(byte[] data) {
+        try {
+            byte[] digest = MessageDigest.getInstance("MD5").digest(data);
+            StringBuilder hex = new StringBuilder(digest.length * 2);
+
+            for (byte b : digest) {
+                hex.append(Character.forDigit((b >> 4) & 0xF, 16));
+                hex.append(Character.forDigit(b & 0xF, 16));
+            }
+
+            return hex.toString();
+        } catch (NoSuchAlgorithmException error) {
+            // Every JRE has MD5; the checked exception is the API's, not a real condition.
+            throw new IllegalStateException("this JRE has no MD5.", error);
+        }
+    }
+
+    // ------------------------------------------------------------------ transfer
+
+    /** Fetches one URL, retrying what is worth retrying. */
+    private static byte[] download(HttpClient client, String url, Options options)
+            throws IOException, InterruptedException {
+        long delay = Math.max(0, options.retryDelay.toMillis());
+        int attempts = Math.max(1, options.maxAttempts);
+
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return fetch(client, url, options);
+            } catch (TransientException error) {
+                if (attempt >= attempts) {
+                    throw error;
+                }
+
+                log(options, String.format("tabbit: %s Retrying in %.1fs (%d of %d).",
+                        error.getMessage(), delay / 1000.0, attempt, attempts));
+
+                Thread.sleep(delay);
+
+                // Doubling rather than a fixed wait: a server refusing because it is
+                // overloaded is not helped by every client coming back at the same interval.
+                delay *= 2;
+            }
+        }
+    }
+
+    private static byte[] fetch(HttpClient client, String url, Options options)
+            throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                .timeout(options.requestTimeout)
+                .GET()
+                .build();
+
+        HttpResponse<byte[]> response;
+
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        } catch (IOException error) {
+            // The request never got an answer - DNS, a refused connection, a timeout.
+            throw new TransientException(
+                    String.format("'%s' could not be reached: %s.", url, error.getMessage()));
+        }
+
+        int status = response.statusCode();
+
+        if (status >= 200 && status < 300) {
+            return response.body();
+        }
+
+        String message = String.format("'%s' answered %d.", url, status);
+
+        // 408 and 429 are the server asking for another attempt, and 5xx is it failing on
+        // its own account. A 404 is an answer: retrying it costs three round trips to hear
+        // the same thing.
+        if (status == 408 || status == 429 || (status >= 500 && status <= 599)) {
+            throw new TransientException(message);
+        }
+
+        throw new IOException(message);
+    }
+
+    // --------------------------------------------------------------------- disk
+
+    /**
+     * Reads the cached manifest.
+     *
+     * A missing or unreadable one is an empty manifest, which makes the next update fetch
+     * everything - the safe direction to be wrong in.
+     */
+    private static List<ManifestEntry> readLocalManifest(Path file) {
+        try {
+            return parseManifest(Files.readString(file, StandardCharsets.UTF_8));
+        } catch (Exception error) {
+            return new ArrayList<>();
+        }
+    }
+
+    /** A manifest name resolved under a directory, with its forward slashes honoured. */
+    private static Path localPath(Path directory, String name) {
+        Path resolved = directory;
+
+        for (String part : name.split("/")) {
+            if (!part.isEmpty()) {
+                resolved = resolved.resolve(part);
+            }
+        }
+
+        return resolved;
+    }
+
+    private static void deleteRecursively(Path directory) throws IOException {
+        if (!Files.exists(directory)) {
+            return;
+        }
+
+        try (Stream<Path> paths = Files.walk(directory)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(path);
+            }
+        }
+    }
+
+    /**
+     * Joins a base URL and a file name.
+     *
+     * Not a path join, which on Windows produces a backslash and a URL no server will
+     * answer.
+     */
+    private static String joinUrl(String baseUrl, String name) {
+        String base = baseUrl.endsWith("/")
+                ? baseUrl.substring(0, baseUrl.length() - 1)
+                : baseUrl;
+
+        return base + "/" + name.replace('\\', '/');
+    }
+
+    private static void log(Options options, String message) {
+        if (options.log != null) {
+            options.log.accept(message);
+        }
+    }
+
+    // --------------------------------------------------------------------- JSON
+
+    /**
+     * As much of JSON as reading a manifest needs, which turns out to be all of it.
+     *
+     * The JDK has no JSON reader and the generated output takes no dependencies, so one
+     * lives here. Whole rather than special-cased: a parser that understands the grammar
+     * is shorter than one that guesses at a shape and has to defend against every way the
+     * guess can be wrong.
+     *
+     * Values come back as Map, List, String, Double, Boolean and null.
+     */
+    static final class Json {
+        private final String text;
+        private int at;
+
+        private Json(String text) {
+            this.text = text;
+        }
+
+        static Object parse(String text) {
+            Json reader = new Json(text);
+
+            reader.skipWhitespace();
+            Object value = reader.readValue();
+            reader.skipWhitespace();
+
+            if (reader.at != text.length()) {
+                throw new IllegalArgumentException(
+                        "trailing text at offset " + reader.at + " in the manifest.");
+            }
+
+            return value;
+        }
+
+        private Object readValue() {
+            if (at >= text.length()) {
+                throw new IllegalArgumentException("the manifest ended early.");
+            }
+
+            char c = text.charAt(at);
+
+            switch (c) {
+                case '{': return readObject();
+                case '[': return readArray();
+                case '"': return readString();
+                case 't': return readLiteral("true", Boolean.TRUE);
+                case 'f': return readLiteral("false", Boolean.FALSE);
+                case 'n': return readLiteral("null", null);
+                default: return readNumber();
+            }
+        }
+
+        private Map<String, Object> readObject() {
+            Map<String, Object> fields = new HashMap<>();
+
+            at++;
+            skipWhitespace();
+
+            if (peek() == '}') {
+                at++;
+                return fields;
+            }
+
+            while (true) {
+                skipWhitespace();
+
+                String key = readString();
+
+                skipWhitespace();
+                expect(':');
+                skipWhitespace();
+
+                fields.put(key, readValue());
+
+                skipWhitespace();
+
+                char c = next();
+
+                if (c == '}') {
+                    return fields;
+                }
+
+                if (c != ',') {
+                    throw new IllegalArgumentException(
+                            "expected ',' or '}' at offset " + (at - 1) + " in the manifest.");
+                }
+            }
+        }
+
+        private List<Object> readArray() {
+            List<Object> values = new ArrayList<>();
+
+            at++;
+            skipWhitespace();
+
+            if (peek() == ']') {
+                at++;
+                return values;
+            }
+
+            while (true) {
+                skipWhitespace();
+
+                values.add(readValue());
+
+                skipWhitespace();
+
+                char c = next();
+
+                if (c == ']') {
+                    return values;
+                }
+
+                if (c != ',') {
+                    throw new IllegalArgumentException(
+                            "expected ',' or ']' at offset " + (at - 1) + " in the manifest.");
+                }
+            }
+        }
+
+        private String readString() {
+            expect('"');
+
+            StringBuilder value = new StringBuilder();
+
+            while (true) {
+                char c = next();
+
+                if (c == '"') {
+                    return value.toString();
+                }
+
+                if (c != '\\') {
+                    value.append(c);
+                    continue;
+                }
+
+                char escape = next();
+
+                switch (escape) {
+                    case '"': value.append('"'); break;
+                    case '\\': value.append('\\'); break;
+                    case '/': value.append('/'); break;
+                    case 'b': value.append('\b'); break;
+                    case 'f': value.append('\f'); break;
+                    case 'n': value.append('\n'); break;
+                    case 'r': value.append('\r'); break;
+                    case 't': value.append('\t'); break;
+                    case 'u':
+                        if (at + 4 > text.length()) {
+                            throw new IllegalArgumentException(
+                                    "a \\u escape ran off the end of the manifest.");
+                        }
+
+                        value.append((char) Integer.parseInt(text.substring(at, at + 4), 16));
+                        at += 4;
+                        break;
+                    default:
+                        throw new IllegalArgumentException(
+                                "unknown escape '\\" + escape + "' in the manifest.");
+                }
+            }
+        }
+
+        private Double readNumber() {
+            int start = at;
+
+            while (at < text.length() && "+-.eE0123456789".indexOf(text.charAt(at)) >= 0) {
+                at++;
+            }
+
+            if (start == at) {
+                throw new IllegalArgumentException(
+                        "expected a value at offset " + at + " in the manifest.");
+            }
+
+            return Double.valueOf(text.substring(start, at));
+        }
+
+        private Object readLiteral(String literal, Object value) {
+            if (!text.startsWith(literal, at)) {
+                throw new IllegalArgumentException(
+                        "expected " + literal + " at offset " + at + " in the manifest.");
+            }
+
+            at += literal.length();
+            return value;
+        }
+
+        private void skipWhitespace() {
+            while (at < text.length() && Character.isWhitespace(text.charAt(at))) {
+                at++;
+            }
+        }
+
+        private char peek() {
+            return at < text.length() ? text.charAt(at) : '\0';
+        }
+
+        private char next() {
+            if (at >= text.length()) {
+                throw new IllegalArgumentException("the manifest ended early.");
+            }
+
+            return text.charAt(at++);
+        }
+
+        private void expect(char c) {
+            if (next() != c) {
+                throw new IllegalArgumentException(
+                        "expected '" + c + "' at offset " + (at - 1) + " in the manifest.");
+            }
+        }
+    }
+}

@@ -1,0 +1,31 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "98f9398037201d23fd0ef61e2f2ced66",
+  "TotalSize": 857,
+  "Items": [
+    {
+      "Name": "Animation.json",
+      "Size": 167,
+      "Hash": "1b7c012e4d752bb83c5c54994e1c6539",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Ledger.json",
+      "Size": 188,
+      "Hash": "2cb56eca63e1ff160421dd857e1f6611",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Art.json",
+      "Size": 227,
+      "Hash": "2fec82077a6a37881974ba6f95a63f62",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Clip.json",
+      "Size": 275,
+      "Hash": "9870d2280ea3e3abe8ac62ad1ae2f706",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

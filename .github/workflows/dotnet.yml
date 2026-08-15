@@ -1,0 +1,191 @@
+name: .NET
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          # The SDK band is pinned in global.json; this keeps the runner in step
+          # with local builds instead of hardcoding a version in two places.
+          global-json-file: global.json
+
+      # The regression suite type-checks the generated TypeScript with the real
+      # compiler, which is how several long-standing codegen defects surfaced. That
+      # test fails rather than skips when no toolchain is present, so Node is not
+      # optional here.
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      # The tests reach the compiler through `npx tsc`, and npx on a runner with nothing
+      # installed answers "This is not the tsc command you are looking for" rather than
+      # fetching it - so every TypeScript gate failed on the toolchain instead of on the
+      # code. Installed globally and pinned, so a compiler release cannot change what the
+      # gate means without somebody choosing it.
+      - name: Setup TypeScript
+        run: |
+          npm install -g typescript@5.8.3
+          npx tsc --version
+
+      # The suite compiles the generated C++, C and C# and runs all three against
+      # the exported binary tables, which is what checks that each reader still
+      # agrees with the writer about the byte format. ubuntu-latest ships both.
+      #
+      # The generated C header is also compiled as C++, because it declares
+      # `extern "C"` - and a member named `class` is good C and stops a C++
+      # compiler dead, which the C build cannot see.
+      - name: Verify C and C++ toolchains
+        run: |
+          g++ --version
+          gcc --version
+
+      # The C and C++ updaters are the only emitted files that link against anything.
+      # Neither language has an HTTP client, so both use libcurl and both say so - and the
+      # gate that builds them fails rather than skips, like every other language gate here.
+      - name: Setup libcurl
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev
+          curl-config --version
+
+      # The product had another name once, and its binary format had another one too. Both
+      # are gone from every file, and this is what keeps them gone: a name leaks back the way
+      # it leaked out the first time - through a path, a comment, a fixture nobody reads.
+      #
+      # Tracked files only, and contents as well as paths. The workbooks are excluded because
+      # they are zip archives whose deflate output contains three-letter sequences by chance;
+      # every hit inside one so far has been surrounded by binary noise. This file is excluded
+      # because the names it forbids have to be written down somewhere, and this is that place.
+      - name: No trace of the old names
+        run: |
+          # Matched case-insensitively, so one spelling of each covers SheetMan, Sheetman,
+          # SHEETMAN, ScbReader, scb_reader and `.scb` alike.
+          old='sheetman|sheet[ -]man|시트맨|\bscb'
+
+          paths="$(git ls-files | grep -Ei 'sheetman|scb' || true)"
+          if [ -n "$paths" ]; then
+            echo "::error::these paths carry a retired name"; echo "$paths"; exit 1
+          fi
+
+          files="$(git grep -lEIi "$old" -- . ':(exclude)*.xlsx' ':(exclude)*.xlsm' ':(exclude)*.xlsb' ':(exclude).github/workflows/dotnet.yml' || true)"
+          if [ -n "$files" ]; then
+            echo "::error::these files carry a retired name"
+            git grep -nEIi "$old" -- . ':(exclude)*.xlsx' ':(exclude)*.xlsm' ':(exclude)*.xlsb' ':(exclude).github/workflows/dotnet.yml'
+            exit 1
+          fi
+
+          echo "clean"
+
+      - name: Restore
+        run: dotnet restore Tabbit.slnx
+
+      - name: Build
+        run: dotnet build Tabbit.slnx --no-restore -c Release
+
+      # No "fixtures are up to date" check here on purpose. .xlsx files are zip
+      # archives that embed per-entry timestamps, so regenerating them produces
+      # different bytes every time and any such check would fail on every run.
+      #
+      # What matters is covered anyway: the suite converts the committed workbooks
+      # and compares every artifact against the golden tree, so a fixture that no
+      # longer produces the expected output fails here regardless.
+
+      # The database exporters are tested against real engines, which the test fixture
+      # starts itself with docker compose. ubuntu-latest ships a working Docker.
+      # The conformance corpus is read by every language whose reader is checked, and a
+      # missing toolchain fails rather than skips - a gate that turns itself off is worse
+      # than no gate.
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: '1.23'
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Verify Rust toolchain
+        run: cargo --version
+
+      # Ruby ships on ubuntu-latest, so this only records which one the run used.
+      - name: Verify Ruby toolchain
+        run: ruby --version
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.6'
+
+      # PHP 8.1 at least: the generated code uses backed enums and typed properties.
+      # ubuntu-latest ships one, but not a version this can rely on, so it is pinned.
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      # Kotlin has no first-party action. The harness compiles through
+      # lib/kotlin-compiler.jar rather than the launcher script, so unpacking the
+      # release and putting its bin directory on the path is all that is needed - the
+      # runner finds the jar beside whichever launcher it sees.
+      - name: Setup Kotlin
+        run: |
+          curl -sSLo kotlin-compiler.zip \
+            https://github.com/JetBrains/kotlin/releases/download/v2.1.0/kotlin-compiler-2.1.0.zip
+          unzip -q kotlin-compiler.zip -d "$HOME/tools"
+          echo "$HOME/tools/kotlinc/bin" >> "$GITHUB_PATH"
+
+      - name: Verify Kotlin toolchain
+        run: kotlinc -version
+
+      # The history is recorded into and read back from MySQL, and `--serve` is checked
+      # against a real port. Both use the same compose file the exporter tests bring up,
+      # so Docker is what they need and nothing else.
+      - name: Verify Docker
+        run: docker version --format '{{.Server.Version}}'
+
+      - name: Test
+        run: dotnet test Tabbit.slnx --no-build -c Release --verbosity normal
+
+      # The serve mode brings in an ASP.NET Core framework reference, which means a
+      # framework-dependent deployment needs that runtime rather than the base one. The
+      # answer offered in the README is a self-contained publish, so it is built and run
+      # here - an answer nothing exercises is a guess.
+      - name: Publish self-contained
+        run: >
+          dotnet publish src/Tabbit.csproj -c Release -r linux-x64
+          --self-contained true -o published
+
+      - name: Run the published binary
+        run: |
+          ./published/tabbit --recipe test/fixtures/recipes/core.json --silent
+          ./published/tabbit --new-recipe "$RUNNER_TEMP/recipe.json"
+
+          # Validation compiles C# at run time, so it needs the metadata of every assembly a
+          # rule may name - and a single-file publish has no path to read one from. The tool
+          # carries them instead, and this is the only shape in which that is exercised: every
+          # other run in this workflow reads them off disk and would pass either way.
+          ./published/tabbit --recipe test/fixtures/recipes/validation-pass.json --validate-only
+
+          # Nothing beside the executable but its native dependencies: a stray .pdb here
+          # was 83 MB, more than everything else together.
+          echo "published files:"
+          ls -la published

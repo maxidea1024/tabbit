@@ -1,0 +1,182 @@
+{{~## The accessor holding every table, and the calls that load them all. ##~}}
+{{ include 'ts-head.sbn' ~}}
+import * as path from 'path'
+
+{{~ for table in tables ~}}
+import { {{ table.name }}Table } from './tables/{{ table.file }}'
+{{~ end ~}}
+
+/** {{ accessor_name }} */
+export class {{ accessor_name }} {
+  /**
+   * The key the table files were sealed with, or null when they were not sealed.
+   *
+   * Beside the load calls because it is the same kind of thing: one decision the consuming
+   * project makes once, at start-up, before the first table is read. A key threaded through
+   * every read signature would be the same value written out at every call site, and every
+   * call site is somewhere it could be wrong.
+   *
+   * Thirty-two bytes, the key the converter was given. Null - the default - is a project
+   * that does not encrypt, and it costs that project nothing: the load path opens the
+   * envelope either way, and a file that is not encrypted comes back from that unchanged. A
+   * project that does encrypt and leaves this null gets the reader's own message saying the
+   * file is encrypted and no key was given, rather than a failure somewhere inside the
+   * format.
+   *
+   * Where the key comes from is the one thing about this layer worth being careful with. It
+   * is a secret only until it reaches a repository, a build log or an issue, and it cannot
+   * be taken back afterwards - so it is read at start-up from wherever this project keeps
+   * secrets, not written into a source file and not bundled into anything a browser can
+   * fetch. What the layer is for, and therefore what is and is not worth defending, is
+   * spec/tcb-v104-composed-encodings.md section 4.
+   */
+  public static encryptionKey: Uint8Array | null = null
+
+  /**
+   * The key the table files were signed with, or null when they were not signed.
+   *
+   * A different key from `encryptionKey` and independent of it: a file can be signed without
+   * being encrypted, and encrypted without being signed.
+   *
+   * What it buys is the thing encryption does not. The cipher is a keystream XOR, so a bit
+   * flipped in the file is a bit flipped in the value it decrypts to - no key needed - and
+   * every structural check the format makes still passes, because a four-byte float accepts
+   * any four bytes. With this set, a file altered after export stops loading instead.
+   *
+   * Setting it makes the reader stricter in a second way: a file that carries no MAC is
+   * refused, because otherwise the check could be removed by zeroing sixteen bytes. So the
+   * order to turn this on in is data first, key second.
+   * spec/tcb-mac-and-signature.md.
+   */
+  public static macKey: Uint8Array | null = null
+
+  /**
+   * Whether to check the MAC at all. True by default.
+   *
+   * For tools that read exported files without the key, and for measuring what the check
+   * costs at load. It is not a security boundary - anyone who can flip a flag in a shipped
+   * bundle can read `macKey` out of the same bundle.
+   */
+  public static verifyMac = true
+{{~ for table in tables }}
+  /** Peroperty for table {{ table.name }} */
+  public get {{ table.member }}(): {{ table.name }}Table { return this._{{ table.member }} }
+  private _{{ table.member }}: {{ table.name }}Table = new {{ table.name }}Table()
+{{~ end ~}}
+
+  /**
+   * Read all tables asynchronously.
+   *
+   * `fileExtension` defaults to what the JSON exporter writes. Pass a different one when the
+   * data files were renamed after export.
+   */
+  public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
+{{~ for table in tables ~}}
+    const {{ table.local }} = new {{ table.name }}Table()
+    await {{ table.local }}.read(path.join(basePath, `{{ table.name }}${fileExtension}`))
+{{~ end ~}}
+
+    this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
+  }
+
+  /** Read all tables synchronously. */
+  public readAllSync(basePath: string, fileExtension: string = '.json'): void {
+{{~ for table in tables ~}}
+    const {{ table.local }} = new {{ table.name }}Table()
+    {{ table.local }}.readSync(path.join(basePath, `{{ table.name }}${fileExtension}`))
+{{~ end ~}}
+
+    this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
+  }
+
+  /**
+   * Read all tables from the binary export.
+   *
+   * The counterpart of `readAllSync`, and the one to use when the data is binary: reading a
+   * table on its own with `readBinarySync` leaves its references unlinked, because linking
+   * needs every table. Both formats produce the same values.
+   */
+  public readAllBinarySync(basePath: string, fileExtension: string = '{{ binary_file_extension }}'): void {
+{{~ for table in tables ~}}
+    const {{ table.local }} = new {{ table.name }}Table()
+    {{ table.local }}.readBinarySync(path.join(basePath, `{{ table.name }}${fileExtension}`))
+{{~ end ~}}
+
+    this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
+  }
+
+  /**
+   * Publishes one whole load.
+   *
+   * Reading again - a refresh, a downloaded patch - loads into tables of its own and gets
+   * here only once every file has been read. A failure anywhere leaves every table holding
+   * what it held, which is the answer a running program wants: the data it already had, and
+   * an exception saying why the new data was not taken.
+   */
+  private publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}: {{ table.name }}Table{{ end }}): void {
+{{~ for table in tables ~}}
+    this._{{ table.member }} = {{ table.local }}
+{{~ end ~}}
+
+    this.solveCrossReferences()
+  }
+
+  /**
+   * Turns the stored keys into the rows they name, once every table is in memory.
+   *
+   * A `foreign` column travels as the target row's primary key, so a table read on its own
+   * has the key and not the row - which is why this runs from `publish` and not from a
+   * table's own read. A zero means the sheet left the cell empty and is left unresolved.
+   */
+  private solveCrossReferences(): void {
+{{~ if cross_references | array.size == 0 ~}}
+    // No table references another.
+{{~ else ~}}
+{{~ for reference in cross_references ~}}
+{{~ if !for.first }}
+{{ end ~}}
+    for (const record of this._{{ reference.table }}.records) {
+{{~ for field in reference.fields ~}}
+{{~ if field.is_array ~}}
+      for (let i = 0; i < {{ field.element_count }}; i++) {
+        if (record.{{ field.field_name }}_{{ field.ref_table_type }}_index[i] {{ field.ref_is_set }}) {
+          const target = this._{{ field.ref_table }}.{{ field.ref_lookup }}(
+            record.{{ field.field_name }}_{{ field.ref_table_type }}_index[i])
+          record.setReference_{{ field.prop_name }}_INTERNAL(i, {{ field.value }})
+          record.{{ field.field_name }}_F[i] = true
+        }
+      }
+{{~ else ~}}
+      if (record.{{ field.field_name }}_{{ field.ref_table_type }}_index {{ field.ref_is_set }}) {
+        const target = this._{{ field.ref_table }}.{{ field.ref_lookup }}(
+          record.{{ field.field_name }}_{{ field.ref_table_type }}_index)
+        record.setReference_{{ field.prop_name }}_INTERNAL({{ field.value }})
+        record.{{ field.field_name }}_F = true
+      }
+{{~ end ~}}
+{{~ end ~}}
+{{~## A reference that is a member of a record resolves inside the element, so the array is
+   walked and each element's own key is looked up. Which array that is - the group's or the
+   member's - the view decided, and a record of one has neither. Assigned straight into the
+   element, because an element is a plain object with nothing private to go around.
+   spec/references-in-records.md. ##~}}
+{{~ for member in reference.record_fields ~}}
+{{~ if member.count != '' ~}}
+      for (let i = 0; i < {{ member.count }}; i++) {
+        if ({{ member.key }} {{ member.ref_is_set }}) {
+          {{ member.access }} = this._{{ member.ref_table }}.{{ member.ref_lookup }}({{ member.key }})
+          {{ member.flag }} = true
+        }
+      }
+{{~ else ~}}
+      if ({{ member.key }} {{ member.ref_is_set }}) {
+        {{ member.access }} = this._{{ member.ref_table }}.{{ member.ref_lookup }}({{ member.key }})
+        {{ member.flag }} = true
+      }
+{{~ end ~}}
+{{~ end ~}}
+    }
+{{~ end ~}}
+{{~ end ~}}
+  }
+}

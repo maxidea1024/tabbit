@@ -1,0 +1,29 @@
+[
+  {
+    "index": 1,
+    "name": "Short Sword",
+    "categoryId": 1,
+    "gradeField": 1,
+    "skillField": 1,
+    "description": "Sharp & quick; deals <b>bonus</b> damage",
+    "price": 100
+  },
+  {
+    "index": 2,
+    "name": "Leather Armor",
+    "categoryId": 2,
+    "gradeField": 2,
+    "skillField": 2,
+    "description": "Blocks 5% of \"physical\" hits",
+    "price": 250
+  },
+  {
+    "index": 3,
+    "name": "Small Potion",
+    "categoryId": 3,
+    "gradeField": 3,
+    "skillField": 0,
+    "description": "Restores 10 HP <or> 5 MP",
+    "price": 50
+  }
+]

@@ -1,0 +1,78 @@
+{{~##
+   The summary page: one column per kind of entity, each linking into its own page.
+
+   The links arrive already built. They used to be assembled here, from a filename this
+   template guessed at - and the guess was wrong for enums, which the generator writes as
+   one page each under `enums/` rather than into a single `enums.html`.
+
+   A column with nothing in it says so. It used to render an empty `<ul>` under its heading,
+   which reads as a page that failed to fill itself in rather than a model that declares no
+   enum - and a model with no enum is ordinary. The heading stays either way, because the
+   navigation links to it by id.
+##~}}
+{{~ include 'html-head.sbn' ~}}
+<br>
+<table><tr>
+<td valign=top>
+<h2 id="enums">Enumerations</h2>
+{{~ if enums | array.size == 0 ~}}
+<p><em>None declared.</em></p>
+{{~ else ~}}
+<ul>
+{{~ for item in enums ~}}
+{{~ if item.comment != '' ~}}
+<li><a href="{{ item.href }}">{{ item.name }}</a> - {{ item.comment }}</li>
+{{~ else ~}}
+<li><a href="{{ item.href }}">{{ item.name }}</a></li>
+{{~ end ~}}
+{{~ end ~}}
+</ul>
+{{~ end ~}}
+</td>
+<td valign=top>
+<h2 id="tables">Tables</h2>
+{{~ if tables | array.size == 0 ~}}
+<p><em>None declared.</em></p>
+{{~ else ~}}
+<ul>
+{{~ for item in tables ~}}
+{{~ if item.comment != '' ~}}
+<li><a href="{{ item.href }}">{{ item.name }}</a> - {{ item.comment }}</li>
+{{~ else ~}}
+<li><a href="{{ item.href }}">{{ item.name }}</a></li>
+{{~ end ~}}
+{{~ end ~}}
+</ul>
+{{~ end ~}}
+</td>
+<td valign=top>
+<h2 id="constantsets">ConstantSets</h2>
+{{~ if constant_sets | array.size == 0 ~}}
+<p><em>None declared.</em></p>
+{{~ else ~}}
+<ul>
+{{~ for item in constant_sets ~}}
+{{~ if item.comment != '' ~}}
+<li><a href="{{ item.href }}">{{ item.name }}</a> - {{ item.comment }}</li>
+{{~ else ~}}
+<li><a href="{{ item.href }}">{{ item.name }}</a></li>
+{{~ end ~}}
+{{~ end ~}}
+</ul>
+{{~ end ~}}
+</td>
+<td valign=top>
+<h2 id="source-sheets">Source sheets</h2>
+<ul>
+{{~## A workbook on disk has no url, and `href=""` is a link back to this page. ##~}}
+{{~ for sheet in source_sheets ~}}
+{{~ if sheet.url != '' ~}}
+<li><a href="{{ sheet.url }}">{{ sheet.filename }}</a></li>
+{{~ else ~}}
+<li>{{ sheet.filename }}</li>
+{{~ end ~}}
+{{~ end ~}}
+</ul>
+</td>
+</tr></table>
+{{ include 'html-foot.sbn' }}

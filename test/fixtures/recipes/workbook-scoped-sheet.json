@@ -1,0 +1,33 @@
+{
+  // A sheet excluded by a pattern that names the workbook it is in.
+  //
+  // `core.xlsx` holds the `Serial` sheet, and that sheet holds one table - `Localization`. So
+  // the pattern below is the whole scenario: the table is gone from the output, and every
+  // other table of the same workbook is still there.
+  //
+  // The paired scenario is `workbook-scoped-sheet-elsewhere`, which names a workbook that is
+  // not this one and must therefore change nothing. Both are needed: excluding by name alone
+  // would pass the first of them, and the point of the qualifier is that it does not.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true,
+
+        // The bare name rather than `core.xlsx`, so the scenario also covers a workbook named
+        // without its extension.
+        "ExcludeSheets": ["[core]Serial"]
+      }
+    ]
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/workbook-scoped-sheet/json",
+        "Indented": true
+      }
+    ]
+  }
+}

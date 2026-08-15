@@ -1,0 +1,19 @@
+{{~##
+ The one translation unit that carries the updater's implementation.
+
+ Its own file for the same reason the reader's is: the macro has to be defined in exactly
+ one translation unit, and no generated source should be quietly special.
+
+ This is the only file in a C output that links against anything. See the header for the
+ one flag it needs.
+##~}}
+{{ include 'c-file-head.sbn' }}
+/* Before any include. glibc reads this in the first libc header a translation unit pulls
+ * in, so asking later has no effect - and the updater needs nanosleep and strcasecmp,
+ * which are POSIX rather than ISO C and are not declared without it. The header asks for
+ * it too, for whoever includes it first, but a translation unit that includes something
+ * else before it would be past the point where that could work. */
+#define _POSIX_C_SOURCE 200809L
+
+#define TABBIT_UPDATER_IMPLEMENTATION
+#include "tabbit/tabbit_updater.h"

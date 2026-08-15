@@ -1,0 +1,71 @@
+[
+  {
+    "index": 1,
+    "name": "first",
+    "pos": {
+      "x": 1.5,
+      "y": -2.5
+    },
+    "slot": [
+      {
+        "id": 10,
+        "label": "sword"
+      },
+      {
+        "id": 11,
+        "label": "shield"
+      }
+    ],
+    "note": "n1",
+    "tagArray": [
+      "a",
+      "b"
+    ]
+  },
+  {
+    "index": 2,
+    "name": "second",
+    "pos": {
+      "x": 0,
+      "y": 0
+    },
+    "slot": [
+      {
+        "id": 20,
+        "label": "bow"
+      },
+      {
+        "id": 21,
+        "label": "arrow"
+      }
+    ],
+    "note": "n2",
+    "tagArray": [
+      "c",
+      "d"
+    ]
+  },
+  {
+    "index": 3,
+    "name": "third",
+    "pos": {
+      "x": 0,
+      "y": 0
+    },
+    "slot": [
+      {
+        "id": 20,
+        "label": ""
+      },
+      {
+        "id": 21,
+        "label": ""
+      }
+    ],
+    "note": "",
+    "tagArray": [
+      "",
+      ""
+    ]
+  }
+]

@@ -1,0 +1,76 @@
+{
+  // The same outputs as core.json, expressed through the `Targets` list instead of
+  // the named recipe sections.
+  //
+  // Every setting is identical, including the namespaces and accessor names that end
+  // up inside the generated files, and only the output root differs. So this tree has
+  // to match core's golden tree byte for byte - which is what the test asserts, and a
+  // stronger statement than checking that a few fields came through.
+  //
+  // `Type` picks the target by its registered id; the rest of each object is that
+  // target's own settings, the same fields its dedicated section takes.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/core-dynamic/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/core-dynamic/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/core-dynamic/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/core-dynamic/cpp",
+      "Namespace": "tabbit_fixtures::core",
+      "AccessorName": "CoreAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/core-dynamic/csharp",
+      "Namespace": "Tabbit.Fixtures.Core",
+      "AccessorName": "CoreAccessor",
+
+      // Same as core.json's section, because the two are compared tree against tree - and
+      // it is the one place a setting reached through `Targets` is checked to behave the
+      // same as one written in its own section.
+      "WriteUpdater": true
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/core-dynamic/typescript",
+      "WriteUpdater": true
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/core-dynamic/html"
+    },
+    {
+      "Type": "summary",
+      "Path": "test/fixtures/output/core-dynamic/summary"
+    }
+  ]
+}

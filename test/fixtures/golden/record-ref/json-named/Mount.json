@@ -1,0 +1,36 @@
+[
+  {
+    "index": 1,
+    "rig": [
+      {
+        "core": {
+          "itemId": 1,
+          "count": 10
+        }
+      },
+      {
+        "core": {
+          "itemId": 2,
+          "count": 20
+        }
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "rig": [
+      {
+        "core": {
+          "itemId": 2,
+          "count": 30
+        }
+      },
+      {
+        "core": {
+          "itemId": 0,
+          "count": 0
+        }
+      }
+    ]
+  }
+]

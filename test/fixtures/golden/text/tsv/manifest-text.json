@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "0eca7a028aa908a1f6d1ced258c2ed38",
+  "TotalSize": 448,
+  "Items": [
+    {
+      "Name": "Common.tsv",
+      "Size": 147,
+      "Hash": "29a12e981084970b822fdb81636beb8f",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Item.tsv",
+      "Size": 51,
+      "Hash": "f87ab122c5bb186cadb4f50880bc7f4a",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Quest.tsv",
+      "Size": 250,
+      "Hash": "acdbb26dcc7535e039bee81a42fa86b1",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

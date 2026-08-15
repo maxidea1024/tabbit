@@ -1,0 +1,137 @@
+{
+  // The `Group.Member` notation converted end to end, as far as it goes today.
+  //
+  // No code targets yet, deliberately: each one refuses a record until it learns the
+  // shape, which is by design and covered by NestedTargetSupportTests rather than here.
+  // Add them to this recipe as they land.
+  //
+  // Both JSON row formats, because they take different paths: the named one nests, and
+  // the compact one is positional over the columns and therefore stays flat. Both are
+  // correct and the golden holds them to it.
+  //
+  // Binary, because a record group's members are separate columns in the file - one
+  // fixed-array column each - and the descriptors are what say so. The golden holds the
+  // bytes, so a change to how a record is laid out cannot pass unnoticed.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/nested",
+
+        // On, because this fixture carries `Tag1`/`Tag2` beside its record groups to show
+        // that the older rule still folds the way it always did. Off is the default: a
+        // number in a column name does not say whether it means an array.
+        "FoldSerialFields": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/nested/csharp",
+        "Namespace": "Tabbit.Fixtures.Nested",
+        "AccessorName": "NestedAccessor"
+      }
+    ],
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/nested/cpp",
+        "AccessorName": "NestedAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/nested/typescript"
+      }
+    ]
+  },
+
+  // The Unreal target is reached through `Targets` - it has no recipe section of its own.
+  // Here so UHT sees the generated USTRUCTs: what a golden tree cannot answer is whether
+  // the header tool accepts them, and that is the whole question for a record group.
+  "Targets": [
+    {
+      // Go has no recipe section either - the targets added since the `Targets` list
+      // exists are reached only through it.
+      "Type": "go",
+      "Path": "test/fixtures/output/nested/go",
+      "PackageName": "nested",
+      "ModulePath": "nested"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/nested/ruby",
+      "ModuleName": "Nested"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/nested/php",
+      "Namespace": "Tabbit\\Fixtures\\Nested",
+      "AccessorName": "NestedAccessor"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/nested/dart"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/nested/python",
+      "PackageName": "nested_data"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/nested/kotlin",
+      "PackageName": "tabbit.fixtures.nested",
+      "AccessorName": "NestedAccessor"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/nested/java",
+      "PackageName": "tabbit.fixtures.nested",
+      "AccessorName": "NestedAccessor"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/nested/rust",
+      "CrateName": "nested"
+    },
+    {
+      // C has no recipe section either - both it and unreal are reached by type.
+      "Type": "c",
+      "Path": "test/fixtures/output/nested/c",
+      "AccessorName": "Nested"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/nested/unreal/Source",
+      "ModuleName": "Nested",
+      "AccessorName": "FNested",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ],
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/nested/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/nested/json-compact",
+        "UseCompactRowFormat": true,
+        "Indented": true
+      },
+      {
+        "Path": "test/fixtures/output/nested/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ],
+    "MongoDb": [],
+    "MySql": []
+  }
+}

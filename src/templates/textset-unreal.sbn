@@ -1,0 +1,17 @@
+{{~##
+  The line pattern
+
+      NSLOCTEXT("{namespace}", "{text}", "{text}")
+
+  written out as a template, which is what this file is for: a worked example of the
+  Scriban route for the formats a per-line pattern cannot say. A recipe wanting exactly
+  this shape should write the `Format` above instead - it needs no file.
+
+  Three parts: a namespace, a key and the source string. The key here is the source
+  string itself, which is the keyless convention - a sheet has no key column to offer,
+  and the string identifies itself. A project that wants stable keys writes them into
+  the pattern from what the sheet does have: `"{group}_{index}"`.
+##~}}
+{{~ for entry in group.entries ~}}
+NSLOCTEXT("{{ group.namespace }}", "{{ entry.text }}", "{{ entry.text }}")
+{{~ end ~}}

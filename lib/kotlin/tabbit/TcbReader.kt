@@ -1,0 +1,1556 @@
+// Tabbit's binary reader.
+//
+// Copied in beside the generated accessor so the emitted code needs nothing
+// installed. Edit it in the Tabbit repository.
+//
+//
+// Reads the .tcb files Tabbit's binary exporter writes:
+//
+//   fixed8      one byte
+//   fixed32     four bytes, little endian
+//   fixed64     eight bytes, little endian
+//   varint32    seven bits per byte, high bit set while more bytes follow,
+//               at most five bytes
+//   counter32   zig-zag encoded Int written as a varint32
+//   string      counter32 byte length, then that many UTF-8 bytes
+//
+// One of several readers of one format the exporter defines. The conformance corpus is
+// what keeps them agreeing.
+//
+// Kotlin inherits the JVM's signed byte, so the same two traps as the Java reader apply:
+// a byte with its high bit set is negative and must be masked before it is shifted into
+// a varint, and undoing the zig-zag fold needs `ushr` rather than `shr`. Kotlin does have
+// unsigned types, but using them here would push UInt through every call site for no gain.
+
+package tabbit
+
+import java.io.File
+import java.nio.charset.StandardCharsets
+import javax.crypto.Cipher
+import javax.crypto.Mac
+import javax.crypto.spec.ChaCha20ParameterSpec
+import javax.crypto.spec.SecretKeySpec
+
+/** Stamped at the head of every table file by the exporter. */
+// The format is column-oriented and self-describing: the header names every column
+// and how long its block is, and a reader that meets a version it does not know stops
+// rather than guessing. 102 replaced 101 outright - a descriptor gained its encoding
+// byte - before any 101 file had shipped. 104 is the current one: four encodings joined
+// the nine, and the flags byte gained a meaning.
+const val FORMAT_VERSION: Int = 105
+
+// The wire element types and kinds, as a column descriptor spells them.
+const val ELEMENT_VARINT = 0
+const val ELEMENT_BOOL = 1
+const val ELEMENT_I32 = 2
+const val ELEMENT_I64 = 3
+const val ELEMENT_F32 = 4
+const val ELEMENT_F64 = 5
+const val ELEMENT_STRING = 6
+const val ELEMENT_UUID = 7
+
+const val KIND_SCALAR = 0
+const val KIND_FIXED_ARRAY = 1
+const val KIND_VAR_ARRAY = 2
+
+// How a block's values are laid out. Raw is the layout 101 had; the others compress
+// a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+const val ENCODING_RAW = 0
+const val ENCODING_VARINT = 1
+const val ENCODING_DELTA = 2
+const val ENCODING_RLE = 3
+const val ENCODING_DELTA_RLE = 4
+const val ENCODING_DICT = 5
+const val ENCODING_DICT_RLE = 6
+const val ENCODING_DICT_FRONT = 7
+const val ENCODING_DICT_FRONT_RLE = 8
+
+// Composition rather than layout. An array block names an encoding for its elements and
+// one for its rows' lengths, and a whole-number float block names the integer encoding
+// its values travel under - so both are decoded by the cursors that already exist, one
+// level down, and neither adds a decode step anywhere.
+const val ENCODING_ARRAY = 9
+const val ENCODING_WHOLE = 10
+
+// A dictionary whose entries are built from a shared table of the pieces they are made
+// of, which reaches what two values share in the middle and at the end where front
+// coding can only reach what they share at the front.
+const val ENCODING_DICT_SEGMENT = 11
+const val ENCODING_DICT_SEGMENT_RLE = 12
+
+/** An integer stream at the width its own range needs, over a base. */
+const val ENCODING_BITPACK = 13
+
+/** Bit 0 of the flags byte: what follows the envelope header is ciphertext. */
+// The file header, at fixed offsets whether or not the file is encrypted and whether or not
+// it carries a MAC. spec/tcb-mac-and-signature.md.
+const val MAGIC_OFFSET = 0
+const val VERSION_OFFSET = 4
+const val FLAGS_OFFSET = 8
+const val CIPHER_OFFSET = 9
+const val NONCE_OFFSET = 10
+const val MAC_OFFSET = 22
+const val KEY_CHECK_OFFSET = 38
+
+/** Where the body begins. The header before it is always this long. */
+const val HEADER_SIZE = 42
+
+const val NONCE_SIZE = 12
+const val MAC_SIZE = 16
+
+/**
+ * The signature, as the fixed32 it is on disk: 'S' 'C' 'B' 0, little endian.
+ *
+ * The same four bytes serve twice. At offset zero they are the file format signature, in the
+ * clear whether or not the file is encrypted. At the key check they are under the key, so a
+ * file that decrypts to something else was written with a different key - which is the one
+ * thing no structural check can tell from damage.
+ */
+const val MAGIC = 0x00424354
+
+/** The cipher byte of a file that is not encrypted. */
+const val CIPHER_NONE = 0
+
+const val FLAG_ENCRYPTED = 0x01
+
+/** The only cipher the format defines. */
+const val CIPHER_CHACHA20 = 1
+
+/** One column as the file describes it. */
+class Column(
+    /** What identifies the column, instead of its position. */
+    val tag: Int,
+    val element: Int,
+    val kind: Int,
+    /** How the block's values are laid out: one of the ENCODING_* constants. */
+    val encoding: Int,
+    /** Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
+    val count: Int,
+    /** Total bytes of the column block - what a skip advances by. */
+    val byteLength: Int,
+    /**
+     * Whether the block begins with one presence bit per row, low bit first.
+     *
+     * Part of the column's shape rather than a detail of its contents: a reader that does
+     * not expect the bitmap reads it as values, so checkColumn refuses a disagreement the
+     * same way it refuses a changed kind.
+     */
+    val nullable: Boolean,
+)
+
+/** A parsed header: the row count and the column descriptors that follow it. */
+class Header(val rowCount: Int, val columns: List<Column>)
+
+/** A table file is truncated, malformed, or not a table file. */
+class TcbException(message: String) : RuntimeException(message)
+
+/**
+ * A lookup for a key no row carries.
+ *
+ * Thrown by the generated getBy*OrThrow lookups, which is where a caller has said the key
+ * has to be there. findBy* answers the same question with null.
+ *
+ * Its own type rather than TcbException: nothing is wrong with the file, and a
+ * caller catching one of these is not catching the other.
+ */
+class RecordNotFoundException(message: String) : RuntimeException(message)
+
+/**
+ * A 128 bit identifier, stored in .NET Guid byte order.
+ *
+ * That order is not plain big-endian: the first three components are little endian and
+ * the trailing eight bytes are not, which is what toString has to account for.
+ */
+class Uuid(bytes: ByteArray = ByteArray(16)) {
+
+    val bytes: ByteArray = bytes.copyOf()
+
+    override fun toString(): String {
+        val out = StringBuilder(36)
+
+        for ((position, index) in ORDER.withIndex()) {
+            if (position == 4 || position == 6 || position == 8 || position == 10) {
+                out.append('-')
+            }
+
+            // Masked: a Byte is signed and the high half would sign-extend.
+            val value = bytes[index].toInt() and 0xFF
+            out.append(HEX[value shr 4]).append(HEX[value and 0x0F])
+        }
+
+        return out.toString()
+    }
+
+    override fun equals(other: Any?): Boolean = other is Uuid && bytes.contentEquals(other.bytes)
+
+    override fun hashCode(): Int = bytes.contentHashCode()
+
+    private companion object {
+        // Component order matching .NET's Guid.ToString("D").
+        val ORDER = intArrayOf(3, 2, 1, 0, 5, 4, 7, 6, 8, 9, 10, 11, 12, 13, 14, 15)
+        val HEX = "0123456789abcdef".toCharArray()
+    }
+}
+
+/** Sequential reader over a table file's bytes. */
+class TcbReader(private val data: ByteArray) {
+
+    var position: Int = 0
+        private set
+
+    /**
+     * Advances past bytes without interpreting them: an unknown column whole block.
+     * The column-oriented layout is what makes this one call the entirety of skipping.
+     */
+    fun skip(byteCount: Int) {
+        if (byteCount < 0 || byteCount > data.size - position) {
+            throw TcbException(
+                "cannot skip $byteCount bytes with ${data.size - position} remaining")
+        }
+        position += byteCount
+    }
+
+    // Promotions: a member reading a file element narrower than itself. Only the
+    // mathematically lossless directions exist; checkColumn already refused the rest.
+
+    /** An Int member from i32 or varint. */
+    fun readI32As(element: Int): Int =
+        if (element == ELEMENT_I32) readInt32() else readCounter32()
+
+    /** A Long member from i64, i32 or varint. */
+    fun readI64As(element: Int): Long = when (element) {
+        ELEMENT_I64 -> readInt64()
+        ELEMENT_I32 -> readInt32().toLong()
+        else -> readCounter32().toLong()
+    }
+
+    /** A Double member from f64, f32 or i32 - all exact in a Double. */
+    fun readF64As(element: Int): Double = when (element) {
+        ELEMENT_F64 -> readDouble()
+        ELEMENT_F32 -> readFloat().toDouble()
+        else -> readInt32().toDouble()
+    }
+
+
+    /** Bytes left to read. */
+    val remaining: Int get() = data.size - position
+
+    private fun take(count: Int): Int {
+        if (remaining < count) {
+            throw TcbException(
+                "table data ended after $position of ${data.size} bytes while $count more were expected")
+        }
+
+        val start = position
+        position += count
+
+        return start
+    }
+
+    /** One byte, as an unsigned value in an Int. */
+    fun readUInt8(): Int = data[take(1)].toInt() and 0xFF
+
+    fun readBool(): Boolean = readUInt8() != 0
+
+    fun readInt32(): Int {
+        val at = take(4)
+
+        return (data[at].toInt() and 0xFF) or
+            ((data[at + 1].toInt() and 0xFF) shl 8) or
+            ((data[at + 2].toInt() and 0xFF) shl 16) or
+            ((data[at + 3].toInt() and 0xFF) shl 24)
+    }
+
+    fun readInt64(): Long {
+        val at = take(8)
+
+        var value = 0L
+        for (i in 7 downTo 0) {
+            value = (value shl 8) or (data[at + i].toLong() and 0xFF)
+        }
+
+        return value
+    }
+
+    /**
+     * A single-precision value as its stored bit pattern, so the value survives exactly
+     * rather than through a decimal rendering.
+     */
+    fun readFloat(): Float = Float.fromBits(readInt32())
+
+    fun readDouble(): Double = Double.fromBits(readInt64())
+
+    /**
+     * The next [count] bytes copied into [destination] at [at].
+     *
+     * For the parts of a block that are bytes rather than a value: a fixed-width
+     * dictionary entry the cursor keeps as it stands, and the tail of a front-coded one.
+     */
+    fun readBytesInto(destination: ByteArray, at: Int, count: Int) {
+        val start = take(count)
+        data.copyInto(destination, at, start, start + count)
+    }
+
+    /** A length-prefixed UTF-8 string. */
+    fun readString(): String {
+        val length = readCounter32()
+
+        if (length < 0) throw TcbException("string length is negative")
+        if (length == 0) return ""
+
+        val at = take(length)
+        return String(data, at, length, StandardCharsets.UTF_8)
+    }
+
+    /**
+     * A timestamp as .NET ticks: 100 ns units since 0001-01-01.
+     *
+     * Ticks rather than a java.time type: the conversion is lossy coming back, and a
+     * caller passing the value through should not pay for it.
+     */
+    fun readDateTimeTicks(): Long = readInt64()
+
+    /** A duration as .NET ticks. */
+    fun readDurationTicks(): Long = readInt64()
+
+    fun readUuid(): Uuid {
+        val at = take(16)
+        return Uuid(data.copyOfRange(at, at + 16))
+    }
+
+    /** An Int written in as few bytes as its magnitude needed, either sign. */
+    /**
+     * An int64 written in as few bytes as its magnitude needed, either sign.
+     *
+     * The base of a bit-packed block, which is a value of the column's own element type -
+     * an i64 column's base does not fit in thirty-two bits. One byte when it is zero.
+     */
+    fun readCounter64(): Long {
+        var encoded = 0L
+        var shift = 0
+
+        while (true) {
+            val piece = readUInt8()
+            encoded = encoded or ((piece.toLong() and 0x7F) shl shift)
+
+            if (piece and 0x80 == 0) break
+
+            shift += 7
+
+            if (shift > 63) {
+                throw TcbException("a 64-bit variable length integer runs past ten bytes")
+            }
+        }
+
+        return (encoded ushr 1) xor -(encoded and 1)
+    }
+
+    /**
+     * A stream of bytes under one of the integer encodings, which is what a packed block
+     * and a presence bitmap both end in.
+     *
+     * One reader for both, so a bitmap and a packed value block cannot disagree about the
+     * same bits. The count is known before the call in both cases, so nothing here reads a
+     * length.
+     */
+    fun readByteStream(encoding: Int, count: Int, fieldName: String): ByteArray {
+        val out = ByteArray(count)
+
+        if (encoding == ENCODING_RAW) {
+            for (at in 0 until count) out[at] = readUInt8().toByte()
+
+            return out
+        }
+
+        if (encoding > ENCODING_DELTA_RLE) {
+            throw TcbException(
+                "$fieldName: encoding $encoding cannot carry a packed byte stream")
+        }
+
+        val walking = encoding == ENCODING_DELTA || encoding == ENCODING_DELTA_RLE
+
+        var filled = 0
+        var previous = 0
+
+        // The first value of a delta stream is written outright; the rest are steps from
+        // it. A run in a delta stream repeats the step, not the value, so it walks.
+        if (count > 0 && walking) {
+            previous = asByte(readOptimalInt32(), fieldName)
+            out[filled++] = previous.toByte()
+        }
+
+        while (filled < count) {
+            var run = 1
+            var step = 0
+            var value = 0
+
+            when (encoding) {
+                ENCODING_VARINT -> value = asByte(readOptimalInt32(), fieldName)
+                ENCODING_DELTA -> step = readOptimalInt32()
+                ENCODING_RLE -> {
+                    run = readCounter32()
+                    value = asByte(readOptimalInt32(), fieldName)
+                }
+                else -> {
+                    run = readCounter32()
+                    step = readOptimalInt32()
+                }
+            }
+
+            if (run < 1 || run > count - filled) {
+                throw TcbException(
+                    "$fieldName: a run of $run cannot cover the ${count - filled} bytes left")
+            }
+
+            for (at in 0 until run) {
+                if (walking) {
+                    previous = asByte(previous + step, fieldName)
+                    out[filled++] = previous.toByte()
+                } else {
+                    out[filled++] = value.toByte()
+                }
+            }
+        }
+
+        return out
+    }
+
+    /** A decoded value that has to be a byte, or the block is corrupt. */
+    private fun asByte(value: Int, fieldName: String): Int {
+        if (value < 0 || value > 255) {
+            throw TcbException("$fieldName: $value is not a byte")
+        }
+
+        return value
+    }
+
+    fun readOptimalInt32(): Int {
+        val encoded = readVarint32()
+
+        // Undoes the zig-zag fold: the low bit carried the sign. The shift has to be the
+        // unsigned one - `encoded` is logically unsigned, and an arithmetic shift would
+        // drag the sign bit down through it for any value above 2^31.
+        return (encoded ushr 1) xor -(encoded and 1)
+    }
+
+    /** A count, in the same encoding as readOptimalInt32. */
+    fun readCounter32(): Int = readOptimalInt32()
+
+    /** An enum value, which travels zig-zag encoded rather than fixed width. */
+    fun readEnum(): Int = readOptimalInt32()
+
+    private fun readVarint32(): Int {
+        var value = 0
+
+        var shift = 0
+        while (shift < 35) {
+            val b = readUInt8()
+            value = value or ((b and 0x7F) shl shift)
+
+            if (b and 0x80 == 0) return value
+
+            shift += 7
+        }
+
+        throw TcbException("varint32 is longer than five bytes")
+    }
+}
+
+/**
+ * Reads one scalar column's values in row order, whatever the block's encoding.
+ *
+ * The generated row loop stays a row loop; this is the one place that knows how a delta
+ * accumulates, how long a run has left, or that a dictionary index is a reference into
+ * strings decoded once. That last one matters beyond file size: a hundred-thousand-row
+ * column with three distinct strings allocates three strings, not a hundred thousand.
+ *
+ * checkColumn has already refused any (element, encoding) pair the spec does not define,
+ * so the branches here do not re-litigate that.
+ */
+class ColumnCursor(
+    private val reader: TcbReader,
+    column: Column,
+    rowCount: Int,
+    private val fieldName: String,
+) {
+    private val element: Int = column.element
+
+    // Reassigned by the compositions: an array block, a whole-number block and a segment
+    // dictionary each name the encoding the stream under them is really in, and rewriting
+    // this is what lets every path below go on knowing only the nine layouts.
+    private var encoding: Int = column.encoding
+
+    // A run-length family's current run: what remains of it, and its value - which is a
+    // plain value for RLE, a delta for DELTA_RLE, an index for DICT_RLE.
+    private var runRemaining = 0
+    private var runValue = 0
+
+    // The delta family's accumulator, once started.
+    private var previous = 0
+    private var started = false
+
+    // Values not yet handed out. A run that claims more than this is corrupt, and catching
+    // it here names the field instead of leaving it to the block-end check. For an array
+    // column this counts elements, not rows.
+    private var rowsRemaining = rowCount
+
+    /**
+     * How many elements each row holds, decoded up front for an encoded array column.
+     *
+     * Up front because the element stream follows the length stream in the block, so every
+     * length has been read by the time the first element is. Null for a raw array, whose
+     * lengths are interleaved with its elements and read as they are reached.
+     */
+    private val lengths: IntArray?
+
+    private var lengthAt = 0
+
+    /** Whether a float column's values are travelling as integers. */
+    private val wholeNumbers: Boolean
+
+    /**
+     * A bit-packed column's bytes, decoded up front, and where in them the next value is.
+     *
+     * Up front because the bytes are themselves under an encoding and a value can cross a
+     * byte boundary, so handing values out one at a time would mean carrying a decoder and
+     * a bit offset that disagree about where they are.
+     */
+    private var packed: ByteArray = ByteArray(0)
+    private var packedWidth = 0
+    private var packedBase = 0L
+    private var packedBit = 0L
+
+    /**
+     * The block's dictionary, decoded once and handed out per row.
+     *
+     * One of these is filled when the block has a dictionary at all, chosen by the
+     * element: strings are decoded to instances that rows then share, and a fixed-width
+     * element keeps its raw bytes so the value is reconstructed exactly as the raw
+     * layout would have read it. `valueWidth` being non-zero is what says the block's
+     * dictionary is the second kind.
+     */
+    private val dictionary: Array<String>
+
+    private val valueDictionary: ByteArray
+    private val valueWidth: Int
+
+    init {
+        var rowLengths: IntArray? = null
+        var whole = false
+
+        // An array column's block names an encoding for its elements and, where its rows
+        // differ in length, one for the lengths. Both are encodings that already exist, so
+        // all this does is read them and then go on being the element stream's cursor.
+        if (encoding == ENCODING_ARRAY) {
+            encoding = reader.readUInt8()
+
+            if (column.kind == KIND_VAR_ARRAY) {
+                val lengthEncoding = reader.readUInt8()
+                rowLengths = readLengths(reader, lengthEncoding, rowCount, fieldName)
+
+                var elements = 0L
+                for (length in rowLengths) elements += length
+
+                if (elements > Int.MAX_VALUE) {
+                    throw TcbException(
+                        "$fieldName: the column declares more elements than can be held")
+                }
+
+                rowsRemaining = elements.toInt()
+            } else {
+                rowsRemaining = rowCount * column.count
+            }
+        }
+
+        // A bit-packed column states the width its range needs, the base subtracted from
+        // every value, and which encoding carries the packed bytes. Decoded here so that
+        // handing values out is a shift and an add.
+        if (encoding == ENCODING_BITPACK) {
+            val width = reader.readUInt8()
+            val base = reader.readCounter64()
+            val inner = reader.readUInt8()
+
+            if (width < 1 || width > 64) {
+                throw TcbException(
+                    "$fieldName: a bit width of $width is not between 1 and 64")
+            }
+
+            packedWidth = width
+            packedBase = base
+
+            val bits = rowsRemaining.toLong() * width
+
+            if ((bits + 7) / 8 > Int.MAX_VALUE) {
+                throw TcbException("$fieldName: the packed stream is larger than can be held")
+            }
+
+            packed = reader.readByteStream(inner, ((bits + 7) / 8).toInt(), fieldName)
+
+            // No early exit: the dictionary sections below test for their own encodings and
+            // a packed block matches none of them, so falling through leaves them empty.
+        }
+
+        // A float column whose values are all whole numbers carries them as integers and
+        // says which integer encoding they travel under. From here down it is that
+        // encoding's cursor, and only the handing out converts back.
+        if (encoding == ENCODING_WHOLE) {
+            val inner = reader.readUInt8()
+
+            if (inner < ENCODING_VARINT || inner > ENCODING_DELTA_RLE) {
+                throw TcbException(
+                    "$fieldName: encoding $inner cannot carry a whole-number column's values")
+            }
+
+            encoding = inner
+            whole = true
+        }
+
+        lengths = rowLengths
+        wholeNumbers = whole
+
+        var strings = EMPTY_DICTIONARY
+        var values = EMPTY_VALUES
+        var width = 0
+
+        // A segment dictionary is built once, here, and from then on the block is a
+        // dictionary with an index stream like any other - so the row-by-row paths below
+        // need to know nothing about it.
+        val segmentDictionary =
+            encoding == ENCODING_DICT_SEGMENT || encoding == ENCODING_DICT_SEGMENT_RLE
+
+        if (segmentDictionary) {
+            strings = readSegmentDictionary(reader, fieldName)
+
+            encoding =
+                if (encoding == ENCODING_DICT_SEGMENT) ENCODING_DICT else ENCODING_DICT_RLE
+        }
+
+        val plainDictionary = encoding == ENCODING_DICT || encoding == ENCODING_DICT_RLE
+
+        val frontDictionary =
+            encoding == ENCODING_DICT_FRONT || encoding == ENCODING_DICT_FRONT_RLE
+
+        if (!segmentDictionary && (plainDictionary || frontDictionary)) {
+            val count = reader.readCounter32()
+            if (count < 0) {
+                throw TcbException("$fieldName: the dictionary entry count is negative")
+            }
+
+            if (frontDictionary) {
+                strings = readFrontCodedDictionary(reader, count, fieldName)
+            } else if (element == ELEMENT_STRING) {
+                strings = Array(count) { reader.readString() }
+            } else {
+                // A fixed-width element: the entries are the value's own bytes, so they
+                // are taken as bytes and turned into values only when a row asks for one.
+                width = if (element == ELEMENT_F32) 4 else 8
+                values = ByteArray(count * width)
+
+                for (at in 0 until count) {
+                    reader.readBytesInto(values, at * width, width)
+                }
+            }
+        }
+
+        dictionary = strings
+        valueDictionary = values
+        valueWidth = width
+    }
+
+    /**
+     * How many elements the next row of an array column holds.
+     *
+     * One call whichever way the block is laid out. An encoded array decoded every length
+     * before the first element was read, so this hands out what it already has; a raw one
+     * states each row's length in front of that row's elements, so this reads it where it
+     * stands.
+     */
+    fun nextLength(): Int {
+        val decoded = lengths
+
+        if (decoded != null) {
+            if (lengthAt >= decoded.size) {
+                throw TcbException("$fieldName: the column has no more rows to read")
+            }
+
+            return decoded[lengthAt++]
+        }
+
+        val length = reader.readCounter32()
+
+        if (length < 0) throw TcbException("$fieldName: a row declares $length elements")
+
+        return length
+    }
+
+    /** The next Int - which also serves enums, and reference indexes. */
+    /**
+     * The next value of a bit-packed stream: the packed bits, over the block's base.
+     *
+     * A value may cross a byte boundary, so this walks bits rather than bytes. The
+     * addition wraps, mirroring the writer's wrapping subtraction.
+     */
+    private fun nextPacked(): Long {
+        var slot = 0L
+
+        for (at in 0 until packedWidth) {
+            if ((packed[(packedBit shr 3).toInt()].toInt() shr (packedBit and 7).toInt()) and 1 != 0) {
+                slot = slot or (1L shl at)
+            }
+
+            packedBit++
+        }
+
+        return packedBase + slot
+    }
+
+    fun nextI32(): Int {
+        rowsRemaining--
+
+        if (encoding == ENCODING_BITPACK) return nextPacked().toInt()
+
+        return when (encoding) {
+            ENCODING_RAW ->
+                if (element == ELEMENT_I32) reader.readInt32() else reader.readOptimalInt32()
+
+            ENCODING_VARINT -> reader.readOptimalInt32()
+
+            ENCODING_DELTA -> {
+                // The addition wraps on purpose - Kotlin's Int does - mirroring the
+                // writer's wrapping subtraction; together they are exact for every
+                // Int pair.
+                if (started) {
+                    previous += reader.readOptimalInt32()
+                } else {
+                    previous = reader.readOptimalInt32()
+                    started = true
+                }
+
+                previous
+            }
+
+            ENCODING_RLE -> {
+                if (runRemaining == 0) readRun()
+
+                runRemaining--
+                runValue
+            }
+
+            else -> { // ENCODING_DELTA_RLE; checkColumn refused everything else.
+                if (!started) {
+                    previous = reader.readOptimalInt32()
+                    started = true
+                } else {
+                    if (runRemaining == 0) readRun()
+
+                    runRemaining--
+                    previous += runValue
+                }
+
+                previous
+            }
+        }
+    }
+
+    /**
+     * A Long member: from an i64 column raw or through its dictionary, and from anything
+     * narrower by decoding an Int and widening it.
+     */
+    fun nextI64(): Long {
+        if (element != ELEMENT_I64) return nextI32().toLong()
+
+        if (encoding == ENCODING_BITPACK) {
+            rowsRemaining--
+
+            return nextPacked()
+        }
+
+        if (valueWidth != 0) return int64At(nextValueEntry())
+
+        rowsRemaining--
+
+        return reader.readInt64()
+    }
+
+    /**
+     * A Float member: raw, the dictionary entry's exact bit pattern, or a whole number.
+     */
+    fun nextF32(): Float {
+        if (wholeNumbers) return nextI32().toFloat()
+
+        if (valueWidth != 0) return Float.fromBits(int32At(nextValueEntry()))
+
+        rowsRemaining--
+
+        return reader.readFloat()
+    }
+
+    /**
+     * A Double member: from f64 or f32 - either of them raw or dictionary-encoded - and
+     * from an i32 column by decoding and widening.
+     */
+    fun nextF64(): Double {
+        if (wholeNumbers) return nextI32().toDouble()
+
+        return when (element) {
+            ELEMENT_F64 ->
+                if (valueWidth != 0) {
+                    Double.fromBits(int64At(nextValueEntry()))
+                } else {
+                    rowsRemaining--
+                    reader.readDouble()
+                }
+
+            ELEMENT_F32 -> nextF32().toDouble()
+
+            else -> nextI32().toDouble()
+        }
+    }
+
+    /** A Boolean member: one byte raw, or a run of them. */
+    fun nextBool(): Boolean {
+        if (encoding == ENCODING_RLE || encoding == ENCODING_BITPACK) return nextI32() != 0
+
+        rowsRemaining--
+
+        return reader.readBool()
+    }
+
+    /** The next string - the dictionary's instance where the block has one. */
+    fun nextString(): String {
+        rowsRemaining--
+
+        return when (encoding) {
+            ENCODING_RAW -> reader.readString()
+
+            ENCODING_DICT, ENCODING_DICT_FRONT -> dictionaryEntry(reader.readCounter32())
+
+            else -> { // ENCODING_DICT_RLE and ENCODING_DICT_FRONT_RLE
+                if (runRemaining == 0) readRun()
+
+                runRemaining--
+                dictionaryEntry(runValue)
+            }
+        }
+    }
+
+    /**
+     * Where the next row's dictionary entry starts, for a fixed-width element: an offset
+     * into the raw entries rather than a value, so the caller reads it as its own type.
+     */
+    private fun nextValueEntry(): Int {
+        rowsRemaining--
+
+        val index: Int
+
+        if (encoding == ENCODING_DICT) {
+            index = reader.readCounter32()
+        } else {
+            if (runRemaining == 0) readRun()
+
+            runRemaining--
+            index = runValue
+        }
+
+        val count = valueDictionary.size / valueWidth
+
+        if (index < 0 || index >= count) {
+            throw TcbException(
+                "$fieldName: dictionary index $index is out of range - the " +
+                    "dictionary holds $count entries")
+        }
+
+        return index * valueWidth
+    }
+
+    /** The four bytes of a dictionary entry, little endian, as the raw layout has them. */
+    private fun int32At(at: Int): Int =
+        (valueDictionary[at].toInt() and 0xFF) or
+            ((valueDictionary[at + 1].toInt() and 0xFF) shl 8) or
+            ((valueDictionary[at + 2].toInt() and 0xFF) shl 16) or
+            ((valueDictionary[at + 3].toInt() and 0xFF) shl 24)
+
+    /** The eight bytes of a dictionary entry, little endian. */
+    private fun int64At(at: Int): Long {
+        var value = 0L
+
+        for (i in 7 downTo 0) {
+            value = (value shl 8) or (valueDictionary[at + i].toLong() and 0xFF)
+        }
+
+        return value
+    }
+
+    /**
+     * Up to [limit] rows that all hold the next value. The count is returned and the
+     * value is left in [runSameValue]; the count is always at least 1.
+     *
+     * This is what makes a run cost one call instead of one per row: the generated loop
+     * asks once, then assigns the value that many times. An encoding that cannot promise
+     * sameness cheaply answers 1, so the caller's loop is correct over every encoding and
+     * only faster over runs.
+     *
+     * The value comes back in a property rather than a Pair, because a Pair would be one
+     * allocation per run - and a run-length encoded column is mostly runs.
+     */
+    fun nextSameI32(limit: Int): Int {
+        if (encoding == ENCODING_RLE) {
+            rowsRemaining--
+            if (runRemaining == 0) readRun()
+
+            val n = if (runRemaining < limit) runRemaining else limit
+            runRemaining -= n
+            rowsRemaining -= n - 1
+            runSameValue = runValue
+
+            return n
+        }
+
+        if (encoding == ENCODING_DELTA_RLE && started) {
+            rowsRemaining--
+            if (runRemaining == 0) readRun()
+
+            if (runValue == 0) {
+                // A zero-delta run is a run of one value.
+                val n = if (runRemaining < limit) runRemaining else limit
+                runRemaining -= n
+                rowsRemaining -= n - 1
+                runSameValue = previous
+
+                return n
+            }
+
+            runRemaining--
+            previous += runValue
+            runSameValue = previous
+
+            return 1
+        }
+
+        runSameValue = nextI32()
+        return 1
+    }
+
+    /** The string counterpart of [nextSameI32], leaving its value in [runSameText]. */
+    fun nextSameString(limit: Int): Int {
+        if (encoding == ENCODING_DICT_RLE || encoding == ENCODING_DICT_FRONT_RLE) {
+            rowsRemaining--
+            if (runRemaining == 0) readRun()
+
+            val n = if (runRemaining < limit) runRemaining else limit
+            runRemaining -= n
+            rowsRemaining -= n - 1
+            runSameText = dictionaryEntry(runValue)
+
+            return n
+        }
+
+        runSameText = nextString()
+        return 1
+    }
+
+    /** The value the last [nextSameI32] decoded. */
+    @JvmField
+    var runSameValue: Int = 0
+
+    /** The string the last [nextSameString] decoded. */
+    @JvmField
+    var runSameText: String = ""
+
+    private fun readRun() {
+        val length = reader.readCounter32()
+
+        // + 1 because the row this run was read for is already counted out of
+        // rowsRemaining by its next* call.
+        if (length < 1 || length > rowsRemaining + 1) {
+            throw TcbException(
+                "$fieldName: a run of $length values cannot cover the " +
+                    "${rowsRemaining + 1} rows left in the column")
+        }
+
+        runRemaining = length
+        runValue = reader.readOptimalInt32()
+    }
+
+    private fun dictionaryEntry(index: Int): String {
+        if (index < 0 || index >= dictionary.size) {
+            throw TcbException(
+                "$fieldName: dictionary index $index is out of range - the " +
+                    "dictionary holds ${dictionary.size} entries")
+        }
+
+        return dictionary[index]
+    }
+
+    private companion object {
+        // One shared empty array for the encodings that carry no dictionary, so the
+        // properties can stay non-nullable without an allocation per cursor.
+        val EMPTY_DICTIONARY = emptyArray<String>()
+        val EMPTY_VALUES = ByteArray(0)
+
+        /**
+         * A sorted dictionary whose entries state only what they do not share with the
+         * entry before them.
+         *
+         * Decoded into whole strings here rather than kept folded, because a row wants a
+         * string and the folding was only ever about the bytes on disk. The scratch
+         * buffer grows to the longest entry and is reused, so the allocations are the
+         * strings themselves - one per distinct value, which is the point.
+         */
+        fun readFrontCodedDictionary(
+            reader: TcbReader,
+            count: Int,
+            fieldName: String,
+        ): Array<String> {
+            var scratch = ByteArray(64)
+            var previousLength = 0
+
+            return Array(count) { at ->
+                val shared = reader.readCounter32()
+                val rest = reader.readCounter32()
+
+                if (shared < 0 || rest < 0 || shared > previousLength) {
+                    throw TcbException(
+                        "$fieldName: dictionary entry $at shares $shared bytes with an " +
+                            "entry of $previousLength")
+                }
+
+                val length = shared + rest
+
+                if (length > scratch.size) {
+                    var capacity = scratch.size
+                    while (capacity < length) capacity *= 2
+
+                    // Copied rather than replaced: the shared bytes of this entry are
+                    // already in there, left by the entry before it.
+                    scratch = scratch.copyOf(capacity)
+                }
+
+                if (rest > 0) reader.readBytesInto(scratch, shared, rest)
+
+                previousLength = length
+
+                if (length == 0) "" else String(scratch, 0, length, StandardCharsets.UTF_8)
+            }
+        }
+
+        /**
+         * The lengths of an array column's rows, as their own encoded stream.
+         *
+         * A varint stream, so what may be chosen for it is what may be chosen for any
+         * varint column - each length as a counter32, or runs of them. Most columns have
+         * rows that are all the same length, which is one run.
+         */
+        fun readLengths(
+            reader: TcbReader,
+            encoding: Int,
+            rowCount: Int,
+            fieldName: String,
+        ): IntArray {
+            val lengths = IntArray(rowCount)
+
+            if (encoding == ENCODING_RAW) {
+                for (at in 0 until rowCount) {
+                    lengths[at] = reader.readCounter32()
+
+                    if (lengths[at] < 0) {
+                        throw TcbException(
+                            "$fieldName: row $at declares ${lengths[at]} elements")
+                    }
+                }
+
+                return lengths
+            }
+
+            if (encoding != ENCODING_RLE) {
+                throw TcbException(
+                    "$fieldName: encoding $encoding cannot carry an array column's row lengths")
+            }
+
+            var filled = 0
+
+            while (filled < rowCount) {
+                val run = reader.readCounter32()
+                val value = reader.readOptimalInt32()
+
+                if (run < 1 || run > rowCount - filled) {
+                    throw TcbException(
+                        "$fieldName: a run of $run lengths cannot cover the " +
+                            "${rowCount - filled} rows left in the column")
+                }
+
+                if (value < 0) throw TcbException("$fieldName: a row declares $value elements")
+
+                for (at in 0 until run) lengths[filled++] = value
+            }
+
+            return lengths
+        }
+
+        /**
+         * A dictionary whose entries are lists of references into a table of the pieces
+         * they are built from.
+         *
+         * Two reads and a concatenation: the table, which is front coded because its own
+         * entries share their fronts, and then each value as the pieces it is made of. The
+         * result is the same array of whole strings every other dictionary produces, so
+         * nothing downstream of here knows which kind it came from.
+         */
+        fun readSegmentDictionary(reader: TcbReader, fieldName: String): Array<String> {
+            val segmentCount = reader.readCounter32()
+
+            if (segmentCount < 0) {
+                throw TcbException("$fieldName: the segment count is negative")
+            }
+
+            if (segmentCount > reader.remaining) {
+                throw TcbException(
+                    "$fieldName: a segment table of $segmentCount entries is larger than " +
+                        "the file can hold")
+            }
+
+            val segments = arrayOfNulls<ByteArray>(segmentCount)
+            var previousLength = 0
+
+            for (at in 0 until segmentCount) {
+                val shared = reader.readCounter32()
+                val rest = reader.readCounter32()
+
+                if (shared < 0 || rest < 0 || shared > previousLength) {
+                    throw TcbException(
+                        "$fieldName: segment $at shares $shared bytes with an entry of " +
+                            "$previousLength")
+                }
+
+                val segment = ByteArray(shared + rest)
+
+                if (shared > 0) segments[at - 1]!!.copyInto(segment, 0, 0, shared)
+                if (rest > 0) reader.readBytesInto(segment, shared, rest)
+
+                segments[at] = segment
+                previousLength = segment.size
+            }
+
+            val count = reader.readCounter32()
+
+            if (count < 0) {
+                throw TcbException("$fieldName: the dictionary entry count is negative")
+            }
+
+            if (count > reader.remaining) {
+                throw TcbException(
+                    "$fieldName: a dictionary of $count entries is larger than the file can hold")
+            }
+
+            var scratch = ByteArray(64)
+
+            return Array(count) { at ->
+                val pieces = reader.readCounter32()
+
+                if (pieces < 0) {
+                    throw TcbException("$fieldName: dictionary entry $at declares $pieces pieces")
+                }
+
+                var length = 0
+
+                for (piece in 0 until pieces) {
+                    val index = reader.readCounter32()
+
+                    if (index < 0 || index >= segmentCount) {
+                        throw TcbException(
+                            "$fieldName: segment index $index is out of range - the table " +
+                                "holds $segmentCount entries")
+                    }
+
+                    val segment = segments[index]!!
+
+                    if (length + segment.size > scratch.size) {
+                        var capacity = scratch.size
+                        while (capacity < length + segment.size) capacity *= 2
+
+                        scratch = scratch.copyOf(capacity)
+                    }
+
+                    segment.copyInto(scratch, length, 0, segment.size)
+                    length += segment.size
+                }
+
+                if (length == 0) "" else String(scratch, 0, length, StandardCharsets.UTF_8)
+            }
+        }
+    }
+}
+
+/**
+ * A file's plaintext bytes, checked against its MAC on the way.
+ *
+ * Call this on the bytes before handing them to a reader. A file that is neither encrypted
+ * nor authenticated comes back untouched, so the call belongs in the load path whether or
+ * not the project uses either.
+ *
+ * The order is verify, then decrypt. The tag covers the file as it is stored, so an altered
+ * file is refused before the key is used on it, and the header - the flags, the cipher byte,
+ * the nonce - is covered along with the body.
+ *
+ * An encrypted file is decrypted into one new array of the same length rather than in place,
+ * because a ByteArray cannot be a window onto part of another and the header has to survive
+ * the decryption. The fields the envelope wrote are returned to what a plain file holds in
+ * them.
+ *
+ * What the two layers are and are not for: both keys ship inside the client that reads the
+ * file. Encryption stops a data file being read in an editor; the MAC stops an edited one
+ * loading. Neither stops anyone who can take the keys out of the client, and no format does.
+ *
+ * [macKey] is null when the project does not sign its files. A reader that has one refuses a
+ * file that carries no MAC: the field being zero is how a file says it is unauthenticated,
+ * so accepting that from a project that signs its files would put the check sixteen zero
+ * bytes away from being removed.
+ *
+ * [verifyMac] false skips the check. For tools and for measuring load time - and no weaker
+ * than it looks, because anyone who can flip this flag in a shipped binary can read the key
+ * out of the same binary.
+ */
+fun open(
+    data: ByteArray,
+    key: ByteArray?,
+    macKey: ByteArray? = null,
+    verifyMac: Boolean = true,
+): ByteArray {
+    if (data.size < HEADER_SIZE) throw TcbException("the file is too short to be a table")
+
+    if (readMagic(data, MAGIC_OFFSET) != MAGIC) {
+        throw TcbException("the file does not begin with the table file signature")
+    }
+
+    if (verifyMac) checkMac(data, macKey)
+
+    if (data[FLAGS_OFFSET].toInt() and FLAG_ENCRYPTED == 0) return data
+
+    val cipher = data[CIPHER_OFFSET].toInt() and 0xFF
+
+    if (cipher != CIPHER_CHACHA20) {
+        throw TcbException("the file uses cipher $cipher, which this reader does not know")
+    }
+
+    if (key == null || key.size != 32) {
+        throw TcbException(
+            "the file is encrypted and no key, or a key that is not 32 bytes, was given")
+    }
+
+    // The JDK's own ChaCha20, which is the plain stream cipher rather than the
+    // authenticated construction - so applying it leaves every byte count as it was and the
+    // structural checks hold over the ciphertext unchanged. Standard library since 11, so
+    // reading a sealed file costs a Kotlin project no dependency.
+    val chacha = Cipher.getInstance("ChaCha20")
+
+    chacha.init(
+        Cipher.DECRYPT_MODE,
+        SecretKeySpec(key, "ChaCha20"),
+        ChaCha20ParameterSpec(data.copyOfRange(NONCE_OFFSET, NONCE_OFFSET + NONCE_SIZE), 0))
+
+    val plain = ByteArray(data.size)
+
+    data.copyInto(plain, 0, 0, KEY_CHECK_OFFSET)
+
+    chacha.doFinal(
+        data, KEY_CHECK_OFFSET, data.size - KEY_CHECK_OFFSET, plain, KEY_CHECK_OFFSET)
+
+    if (readMagic(plain, KEY_CHECK_OFFSET) != MAGIC) {
+        throw TcbException(
+            "the file did not decrypt to a table - the key is not the one it was written with")
+    }
+
+    // Back to what a plain file holds in these bytes, so that a second call over what this
+    // returns passes it through instead of decrypting it again.
+    plain[FLAGS_OFFSET] = (plain[FLAGS_OFFSET].toInt() and FLAG_ENCRYPTED.inv()).toByte()
+    plain[CIPHER_OFFSET] = CIPHER_NONE.toByte()
+
+    plain.fill(0, NONCE_OFFSET, NONCE_OFFSET + NONCE_SIZE)
+
+    return plain
+}
+
+/** Four bytes as the fixed32 the signature and the key check are compared as. */
+private fun readMagic(data: ByteArray, at: Int): Int =
+    (data[at].toInt() and 0xFF) or
+        ((data[at + 1].toInt() and 0xFF) shl 8) or
+        ((data[at + 2].toInt() and 0xFF) shl 16) or
+        ((data[at + 3].toInt() and 0xFF) shl 24)
+
+/**
+ * The MAC field against the file's own bytes, and against whether a key was given.
+ *
+ * The tag is HMAC-SHA-256 over every byte but the sixteen it lives in, truncated to those
+ * sixteen. From the platform, like the cipher.
+ *
+ * What it catches is what the structural checks cannot. A block length that does not add up
+ * is a malformed file and the reader says so; four other bytes in an f32 column is a
+ * well-formed file holding a different number, and no check over a file's shape can tell
+ * that from data that was always there.
+ */
+private fun checkMac(data: ByteArray, macKey: ByteArray?) {
+    // Nothing to check with. A file that carries a tag is read anyway rather than refused:
+    // this reader has no way to tell whether the tag is good, and a client built before the
+    // project turned MACs on is one this format has promised can still read what it is sent.
+    if (macKey == null || macKey.isEmpty()) return
+
+    if (macKey.size != 32) throw TcbException("the MAC key given is not 32 bytes")
+
+    var present = false
+
+    for (at in 0 until MAC_SIZE) {
+        if (data[MAC_OFFSET + at] != 0.toByte()) {
+            present = true
+            break
+        }
+    }
+
+    if (!present) {
+        throw TcbException(
+            "the file carries no MAC and this build expects one - it was exported without a " +
+                "MAC key, or the field was cleared after it was written")
+    }
+
+    val tag = Mac.getInstance("HmacSHA256")
+    tag.init(SecretKeySpec(macKey, "HmacSHA256"))
+
+    // Two updates: the sixteen bytes the tag lives in cannot be part of what produces it.
+    // Skipping them is zeroing them without copying the file.
+    tag.update(data, 0, MAC_OFFSET)
+    tag.update(data, KEY_CHECK_OFFSET, data.size - KEY_CHECK_OFFSET)
+
+    val expected = tag.doFinal()
+
+    // Every byte, always: a comparison that returns early tells the caller how far it got.
+    var difference = 0
+
+    for (at in 0 until MAC_SIZE) {
+        difference = difference or (expected[at].toInt() xor data[MAC_OFFSET + at].toInt())
+    }
+
+    if (difference != 0) {
+        throw TcbException(
+            "the file does not match its MAC - it was altered after it was exported, or it " +
+                "was signed with a different key")
+    }
+}
+
+/**
+ * Reads and checks a table file's header, returning the row count that follows it.
+ *
+ * Every bit of the flags byte is refused, the sealed one included: [open] clears it on the
+ * plaintext it hands back, so a reader still meeting it was given the ciphertext without the
+ * key, and saying that beats letting the block lengths make what they can of it. Any other
+ * bit means the file needs handling this build does not have.
+ */
+fun readTableHeader(reader: TcbReader): Header {
+    // Checked again here rather than only in open, because a reader can be handed bytes that
+    // never went through it.
+    if (reader.readInt32() != MAGIC) {
+        throw TcbException("the file does not begin with the table file signature")
+    }
+
+    val version = reader.readInt32()
+
+    if (version != FORMAT_VERSION) {
+        throw TcbException(
+            "table format version ${version.toUInt()} is not supported (expected $FORMAT_VERSION)")
+    }
+
+    val flags = reader.readUInt8()
+
+    if (flags and FLAG_ENCRYPTED != 0) {
+        throw TcbException(
+            "the table is encrypted and was not decrypted - pass the key through open first")
+    }
+
+    if (flags != 0) {
+        throw TcbException("table declares unsupported features")
+    }
+
+    // The cipher byte, the nonce, the MAC and the key check. open has dealt with all four by
+    // now; what is left is to be standing at the body.
+    reader.skip(HEADER_SIZE - CIPHER_OFFSET)
+
+    val count = reader.readCounter32()
+    if (count < 0) throw TcbException("table row count is negative")
+
+    val columnCount = reader.readCounter32()
+    if (columnCount < 0) throw TcbException("table column count is negative")
+
+    val columns = ArrayList<Column>(columnCount)
+
+    repeat(columnCount) {
+        val tag = reader.readCounter32()
+        val wire = reader.readUInt8()
+        val encoding = reader.readUInt8()
+        val elementCount = reader.readCounter32()
+        val byteLength = reader.readInt32()
+        columns.add(
+            Column(
+                tag, wire and 0x0F, (wire shr 4) and 0x03, encoding, elementCount, byteLength,
+                (wire and 0x40) != 0))
+    }
+
+    // What the descriptors say about the file, checked before anybody allocates for the
+    // row count. The blocks are all that follows the header, so their declared lengths have
+    // to add up to the bytes left. A raw block also costs at least one byte per row - a
+    // varint's shortest form, an empty string's length prefix, a variable array's counter -
+    // so a larger row count is one the exporter could not have written. An encoded block
+    // has no such floor; its decode checks run sums and dictionary bounds instead.
+
+    val available = reader.remaining
+    var declared = 0
+
+    for (column in columns) {
+        if (column.byteLength < 0 || column.byteLength > available - declared) {
+            throw TcbException(
+                "column tag ${column.tag} declares ${column.byteLength} bytes, which the file " +
+                    "cannot hold")
+        }
+
+        declared += column.byteLength
+
+        if (column.encoding == ENCODING_RAW && count > column.byteLength) {
+            throw TcbException(
+                "the row count $count is larger than column tag ${column.tag} can hold in its " +
+                    "${column.byteLength} bytes")
+        }
+    }
+
+    if (declared != available) {
+        throw TcbException(
+            "the columns declare $declared bytes but $available follow the header")
+    }
+
+    return Header(count, columns)
+}
+
+/**
+ * A nullable column's presence bitmap, which sits at the front of its block.
+ *
+ * Empty for a column that is not optional, which is what lets the generated code call
+ * [isPresent] without testing first.
+ */
+fun readPresence(reader: TcbReader, column: Column, rowCount: Int): ByteArray {
+    if (!column.nullable) {
+        return ByteArray(0)
+    }
+
+    // The bitmap is a bit-packed boolean column of width one, so it carries an encoding
+    // byte and is laid out by the same choice a packed value block uses. Its width and
+    // base are known in advance, which is why it does not carry them.
+    val encoding = reader.readUInt8()
+
+    return reader.readByteStream(encoding, (rowCount + 7) / 8, "a presence bitmap")
+}
+
+/**
+ * Whether a row has a value, for a column that says which do.
+ *
+ * An empty bitmap means the column is not optional, and then every row has one.
+ */
+fun isPresent(presence: ByteArray, row: Int): Boolean =
+    presence.isEmpty() || (presence[row shr 3].toInt() and (1 shl (row and 7))) != 0
+
+/**
+ * That a column is what the generated member expects, or a lossless promotion of it.
+ * Refusal is by name and both types, never by reading anyway.
+ */
+fun checkColumn(
+    column: Column, fieldName: String, kind: Int, count: Int, nullable: Boolean,
+    vararg accepted: Int,
+) {
+    // Nullability is part of the shape: a file that says optional puts a presence bitmap in
+    // front of the block, and code not expecting one would read the bitmap as values. So
+    // adding or removing a `?` is a schema change like any other, caught here rather than in
+    // whatever the misread bytes happened to mean.
+    if (column.nullable != nullable) {
+        throw TcbException(
+            "$fieldName: the file and the generated member disagree about whether this column " +
+                "is optional. The schema changed; regenerate the code or rebuild the data.")
+    }
+
+    if (column.kind != kind || (kind != KIND_VAR_ARRAY && column.count != count)) {
+        throw TcbException(
+            "$fieldName: the file column (kind ${column.kind}, count ${column.count}) does not " +
+                "match the generated member (kind $kind, count $count). The schema changed shape; " +
+                "regenerate the code or rebuild the data.")
+    }
+
+    // An encoding this build cannot decode - or one the spec does not define for this
+    // element - is refused by name, exactly like an element it cannot read. An unknown
+    // column's encoding never gets here - a skip is a skip whatever the block's layout.
+    if (!encodingSupported(column)) {
+        throw TcbException(
+            "$fieldName: the file's column uses encoding ${column.encoding}, which this " +
+                "reader cannot decode for its element type. Regenerate the code or rebuild " +
+                "the data.")
+    }
+
+    if (column.element !in accepted) {
+        throw TcbException(
+            "$fieldName: the file carries element type ${column.element}, which this member " +
+                "cannot read (accepts ${accepted.joinToString()}). The column changed type " +
+                "incompatibly; regenerate the code or rebuild the data.")
+    }
+}
+
+/**
+ * The (element, encoding) pairs the spec defines. Integers take the integer encodings,
+ * strings the dictionary ones, and an array takes the composition that applies all of
+ * those to its elements.
+ */
+private fun encodingSupported(column: Column): Boolean {
+    if (column.encoding == ENCODING_RAW) return true
+
+    // An array's block says what its elements use, and the element encoding is checked as
+    // it is read rather than here - the descriptor carries only the outer one, so this is
+    // as far as the descriptor can be checked.
+    if (column.kind != KIND_SCALAR) return column.encoding == ENCODING_ARRAY
+
+    return when (column.element) {
+        ELEMENT_BOOL, ELEMENT_VARINT ->
+            column.encoding == ENCODING_RLE || column.encoding == ENCODING_BITPACK
+
+        ELEMENT_I32 ->
+            column.encoding in ENCODING_VARINT..ENCODING_DELTA_RLE ||
+                column.encoding == ENCODING_BITPACK
+
+        // The dictionary is parameterized by element, so this reaches it with entries
+        // that are simply their own raw bytes.
+        ELEMENT_I64 ->
+            column.encoding == ENCODING_DICT || column.encoding == ENCODING_DICT_RLE ||
+                column.encoding == ENCODING_BITPACK
+
+        // A float column additionally reaches the integer encodings, through the block
+        // that says its values are whole numbers.
+        ELEMENT_F32, ELEMENT_F64 ->
+            column.encoding == ENCODING_DICT || column.encoding == ENCODING_DICT_RLE ||
+                column.encoding == ENCODING_WHOLE
+
+        // And a string dictionary can be front coded or built from segments, both of
+        // which are meaningless for a fixed-width element and refused for one.
+        ELEMENT_STRING ->
+            column.encoding in ENCODING_DICT..ENCODING_DICT_FRONT_RLE ||
+                column.encoding == ENCODING_DICT_SEGMENT ||
+                column.encoding == ENCODING_DICT_SEGMENT_RLE
+
+        else -> false
+    }
+}
+
+/**
+ * That a block was consumed exactly: a mismatch is a format disagreement, and stopping
+ * here names the column instead of corrupting the next.
+ */
+fun checkBlockEnd(reader: TcbReader, column: Column, expectedEnd: Int) {
+    if (reader.position != expectedEnd) {
+        throw TcbException(
+            "column tag ${column.tag}: its block declared ${column.byteLength} bytes but the " +
+                "read ended ${expectedEnd - reader.position} bytes short of its boundary")
+    }
+}
+
+/** Reads a whole file into memory. */
+fun readAllBytes(filename: String): ByteArray = File(filename).readBytes()

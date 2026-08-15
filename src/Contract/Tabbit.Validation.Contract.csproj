@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    What a validation rule is compiled against, and nothing else.
+
+    Two things come from having it be its own assembly rather than part of the tool.
+
+    **The surface a rule author sees is declared rather than inferred.** Before this, rules were
+    compiled against `tabbit.dll`, so every internal type the tool happens to make public was in
+    scope while somebody typed. What is in here is what a rule may use, and that is now a decision
+    with a file rather than an accident with a reference.
+
+    **And the tool can carry it.** Rule compilation needs the assembly a rule references, and a
+    self-contained single-file publish has no path to read one from - which is why validation
+    refuses to run in that build today. A separate assembly can be embedded as a resource; the tool
+    cannot embed a reference to itself in one build, which is the circle this breaks.
+
+    spec/validation-usability-and-assembly-output.md section 5a.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Tabbit.Validation</AssemblyName>
+    <RootNamespace>Tabbit.Validation</RootNamespace>
+
+    <!--
+      The namespace a rule file opens is unchanged by the split - `using Tabbit.Validation;` is
+      still the line, and it now names this assembly instead of the tool. No rule file, template or
+      sample had to move because of where these types live.
+    -->
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
+
+    <!-- Read by an editor completing a rule file, so the summaries have to travel with it. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
+
+    <!--
+      Byte-for-byte reproducible, because this assembly is written into a project's validation
+      folder and committed. Without it every build of the tool would be a diff in somebody's
+      repository that says nothing.
+    -->
+    <Deterministic>true</Deterministic>
+
+    <!--
+      And free of where it was built. `Deterministic` settles the content; it does not touch
+      the paths, so the debug directory carried the absolute path of whoever's machine ran the
+      build - which is both a diff that says nothing and a way for a directory name to reach a
+      committed binary. It did: a rebranding found the old product name in this assembly, in a
+      path, months after the name had gone from every source file.
+    -->
+    <PathMap>$(MSBuildProjectDirectory)=/_/</PathMap>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The one dependency, and it is in the surface rather than under it: `Json` answers with a
+      `JToken`. Replacing it with a type of our own would mean rewriting an indexer, LINQ and the
+      explicit conversions that rules already use - spec section 5a-2.
+    -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+</Project>

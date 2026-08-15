@@ -1,0 +1,45 @@
+{
+  // A rule outside `runtime/` reaching for a store, which the run must refuse.
+  //
+  // Ports and the password arrive through the environment, which is how a connection secret is
+  // meant to reach the converter - one written into a recipe would be committed. The table the
+  // rule reads is created by the test that runs this.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Validation": {
+    "Path": "test/fixtures/validation/misplaced-store",
+
+    "Options": {
+      "Locale": "KR",
+      "ProbeTheStore": "no"
+    },
+
+    // The scheme says which store it is. An ADO connection string and a Redis configuration
+    // string are not distinguishable by shape, so guessing is not on offer.
+    "Connections": {
+      "Live": "mysql:Server=127.0.0.1;Port=${TABBIT_TEST_MYSQL_PORT};Database=tabbit_test;Uid=root;Pwd=${TABBIT_TEST_DB_PASSWORD}",
+      "Cache": "redis://127.0.0.1:${TABBIT_TEST_REDIS_PORT}/0"
+    },
+
+    // Left off, so the warning the fixture reports does not stop the run. The test that
+    // covers promotion passes the recipe with it on.
+    "TreatWarningsAsErrors": false
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/validation-misplaced-store/json",
+        "Indented": true
+      }
+    ]
+  }
+}

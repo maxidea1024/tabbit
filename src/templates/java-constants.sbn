@@ -1,0 +1,16 @@
+{{~## One constant set. ##~}}
+{{ include 'java-file-head.sbn' ~}}
+// Generated from {{ set.location }}
+{{~ for line in set.comment ~}}
+/** {{ line }} */
+{{~ end ~}}
+public final class {{ set.name }} {
+    private {{ set.name }}() {
+    }
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    public static final {{ constant.type }} {{ constant.name }} = {{ constant.value }};
+{{~ end ~}}
+}

@@ -1,0 +1,92 @@
+{{~## One table: its record struct, its table struct and its functions. ##~}}
+{{ include 'c-header-head.sbn' ~}}
+/* Generated from {{ table.location }}
+{{~ for line in table.comment ~}}
+ *
+ * {{ line }}
+{{~ end ~}}
+ */
+{{~## The element type of each record group, ahead of the row that holds one. C has one
+   namespace for struct tags, which is why the name carries the record's. ##~}}
+{{~ for field in table.fields ~}}
+{{~## An array of arrays declares no element type: its outer level has no name, so there is
+   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~## One struct per level, innermost first - which C requires rather than prefers: a struct has
+   to be complete before another declares a member of it. The view flattened the nesting so this
+   loop does not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+/* One element of {{ rt.owner }}. */
+{{~ else ~}}
+/* A record inside {{ rt.owner }}. */
+{{~ end ~}}
+struct {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+  /* {{ line }} */
+{{~ end ~}}
+  {{ member.declaration }}
+{{~ end ~}}
+};
+
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+struct {{ table.record_name }} {
+{{~ if table.fields | array.size == 0 ~}}
+  char unused; /* C has no empty struct. */
+{{~ end ~}}
+{{~ for field in table.fields ~}}
+{{~ for line in field.comment ~}}
+  /* {{ line }} */
+{{~ end ~}}
+{{~ for line in field.declarations ~}}
+  {{ line }}
+{{~ end ~}}
+{{~ if field.is_nullable ~}}
+  /* Whether this row has a value for {{ field.name }}. The value member keeps its type and
+   * holds the type's empty value when the row had none; this says which it was. */
+  bool {{ field.presence_member }};
+{{~ end ~}}
+{{~ end ~}}
+};
+
+/* Every row of {{ table.raw_name }}.
+ *
+ * The arena owns every string and every array the records point into, so the
+ * whole table is released in one call and no record's pointer outlives it. */
+typedef struct {{ table.table_name }} {
+  {{ table.record_name }}* records;
+  int32_t count;
+
+{{~ for index in table.indexes ~}}
+  {{ index.entry_type }}* {{ index.array_name }};
+{{~ end ~}}
+  tb_arena arena;
+} {{ table.table_name }};
+
+/* Loads the table from a .tcb file written by Tabbit.
+ *
+ * Returns false and leaves the table empty when the file is missing, truncated
+ * or malformed; the reason goes to `error` when one is passed. */
+bool {{ table.function_prefix }}Load({{ table.table_name }}* table, const char* filename,
+                   char* error, size_t error_size);
+
+/* Releases everything the table owns. Safe on a zeroed table, and safe twice. */
+void {{ table.function_prefix }}Free({{ table.table_name }}* table);
+
+{{~ for index in table.indexes ~}}
+/* The row with the given {{ index.field_name }}, or NULL when the table has none.
+ *
+ * The lookup to reach for when a missing row is an ordinary answer - an optional
+ * reference, a key that came from user input. C has nothing to throw, so a caller
+ * that needs the row to be there checks this NULL and says so itself. */
+const {{ table.record_name }}* {{ table.function_prefix }}FindBy{{ index.suffix }}(
+  const {{ table.table_name }}* table, {{ index.key_type }} key);
+
+/* Whether the table holds a row with this {{ index.field_name }}. */
+bool {{ table.function_prefix }}Contains{{ index.suffix }}(
+  const {{ table.table_name }}* table, {{ index.key_type }} key);
+{{~ end ~}}
+{{ include 'c-header-foot.sbn' ~}}

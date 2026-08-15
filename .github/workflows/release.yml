@@ -1,0 +1,210 @@
+# Builds a release when a `v*` tag is pushed, and attaches one archive per platform.
+#
+# Six binaries, each built and smoke-tested on the operating system and architecture it is
+# for. Cross-publishing all six from one Linux runner would work - this is not a native-AOT
+# build - but then nothing would ever have run five of them, and "it compiled" is not the
+# question a release answers. arm64 runners are generally available for public repositories,
+# which is what makes that affordable.
+#
+# The notes come from CHANGELOG.md. See the `notes` step for what happens when the version
+# has no section there.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+  # So the whole thing can be rehearsed against an existing tag without cutting a release.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build. Uploads nothing; artifacts only.'
+        required: true
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+
+    # A runner label that no longer exists does not fail - it queues, and `release` waits
+    # on it forever. That is how the first attempt at v0.1.0 sat for half an hour with five
+    # binaries built and nothing published: it asked for macos-13, which has been retired.
+    timeout-minutes: 30
+
+    strategy:
+      # One platform failing should not hide whether the other five are fine.
+      fail-fast: false
+      matrix:
+        include:
+          - { rid: linux-x64,   os: ubuntu-latest,     archive: tar.gz }
+          - { rid: linux-arm64, os: ubuntu-24.04-arm,  archive: tar.gz }
+          - { rid: win-x64,     os: windows-latest,    archive: zip }
+          - { rid: win-arm64,   os: windows-11-arm,    archive: zip }
+          - { rid: osx-x64,     os: macos-15-intel,    archive: tar.gz }
+          - { rid: osx-arm64,   os: macos-latest,      archive: tar.gz }
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          # The SDK band is pinned in global.json, so a release builds with the same
+          # compiler the suite ran against.
+          global-json-file: global.json
+
+      - name: Work out the version
+        id: version
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          version="${tag#v}"
+
+          # AssemblyVersion has to be numeric, so a prerelease tag keeps its suffix only in
+          # the informational version. `v1.2.0-rc1` is assembly 1.2.0, informational 1.2.0-rc1.
+          numeric="${version%%-*}"
+
+          echo "tag=$tag"         >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "numeric=$numeric" >> "$GITHUB_OUTPUT"
+
+      - name: Publish
+        run: >
+          dotnet publish src/Tabbit.csproj
+          -c Release
+          -r ${{ matrix.rid }}
+          --self-contained true
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:AssemblyVersion=${{ steps.version.outputs.numeric }}
+          -p:FileVersion=${{ steps.version.outputs.numeric }}
+          -o published
+
+      # A binary nothing has run is a guess. Both of these are what a first-time user does,
+      # and both have broken before: the self-contained publish is the only shape in which
+      # the ASP.NET Core framework reference is satisfied without a separate runtime, and
+      # `--new-recipe` writes an embedded template, which is the part that a trimmed or
+      # mis-packed single file loses.
+      - name: Run it
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            exe="./published/tabbit.exe"
+          else
+            exe="./published/tabbit"
+            chmod +x "$exe"
+          fi
+
+          "$exe" --new-recipe "$RUNNER_TEMP/recipe.json"
+          "$exe" --recipe test/fixtures/recipes/core.json --silent
+
+      - name: Archive
+        id: archive
+        run: |
+          name="tabbit-${{ steps.version.outputs.version }}-${{ matrix.rid }}"
+          mkdir -p dist
+
+          # The licence and the readme travel with the binary: somebody who downloads one
+          # archive and nothing else should still have both.
+          cp LICENSE readme.md published/
+
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            (cd published && 7z a -tzip "../dist/$name.zip" .) > /dev/null
+          else
+            tar -czf "dist/$name.tar.gz" -C published .
+          fi
+
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.archive.outputs.name }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: build
+
+    # A rehearsal run stops after the six builds. Everything above it has happened by then,
+    # which is the part worth rehearsing.
+    if: github.event_name == 'push'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      # So somebody who downloads one archive over an unknown network can tell whether they
+      # got what was published.
+      - name: Checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Release notes
+        id: notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+
+          # The section for this version out of CHANGELOG.md: everything between its
+          # heading and the next one. A release whose notes are written by hand and
+          # reviewed in the pull request that made it says more than a list of commit
+          # subjects can.
+          #
+          # The heading is compared as text rather than matched as a pattern built from
+          # the version. Building one put the version's dots into a regex, and its
+          # brackets into a character class - `9.9.9` then matched the first heading in
+          # the file, so a version with no section got somebody else's notes.
+          notes="$(awk -v v="$version" '
+            /^## / {
+              if (found) exit
+              heading = $0
+              sub(/^## +/, "", heading)     # drop the marker
+              gsub(/[][]/, "", heading)     # drop the link brackets, if any
+              sub(/ .*$/, "", heading)      # drop a trailing date
+              if (heading == v) found = 1
+              next
+            }
+            found { print }
+          ' CHANGELOG.md)"
+
+          if [ -z "$(echo "$notes" | tr -d '[:space:]')" ]; then
+            # Rather than fail the release. A tag that got ahead of the changelog should
+            # still ship, and GitHub's generated notes are a reasonable stand-in - but the
+            # file is the intended source, so the gap says so out loud.
+            echo "::warning::CHANGELOG.md has no section for $version. Falling back to generated notes."
+            echo "generate=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "generate=false" >> "$GITHUB_OUTPUT"
+            {
+              echo 'body<<TABBIT_NOTES_EOF'
+              echo "$notes"
+              echo 'TABBIT_NOTES_EOF'
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*
+          body: ${{ steps.notes.outputs.body }}
+          generate_release_notes: ${{ steps.notes.outputs.generate == 'true' }}
+
+          # Anything with a suffix - v1.2.0-rc1, v1.2.0-beta.2 - is not the release people
+          # get by default.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true

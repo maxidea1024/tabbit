@@ -1,0 +1,18 @@
+{{~##
+   The usings every generated C# file shares.
+
+   No UniTask. There used to be a `using Cysharp.Threading.Tasks;` behind `#if !NO_UNITY`,
+   and nothing in the generated code referenced it - so it bought a hard dependency on a
+   third-party package, or a compile error for anyone without it, in exchange for nothing.
+   The generated code awaits `Task`, which every platform has.
+##~}}
+using System;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+
+// Tabbit's binary reader, written into this directory beside the accessor.
+// Nothing has to be installed for the generated code to compile.
+using Tabbit.Binary;

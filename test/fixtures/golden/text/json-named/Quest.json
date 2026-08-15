@@ -1,0 +1,44 @@
+[
+  {
+    "index": 1,
+    "title": "Lost Cargo",
+    "category": "Delivery",
+    "scriptId": "quest_lost_cargo",
+    "hint": "Ask at the docks.",
+    "lines": [
+      "Hello",
+      "Goodbye"
+    ]
+  },
+  {
+    "index": 2,
+    "title": "Lost Cargo",
+    "category": "Delivery",
+    "scriptId": "quest_lost_cargo_2",
+    "hint": null,
+    "lines": [
+      "Hello",
+      "Farewell"
+    ]
+  },
+  {
+    "index": 3,
+    "title": "The \"Blue\" Whale",
+    "category": "Hunt",
+    "scriptId": "quest_blue_whale",
+    "hint": "Head south.",
+    "lines": [
+      "Onward"
+    ]
+  },
+  {
+    "index": 4,
+    "title": "{0} Enthusiast",
+    "category": "Hunt",
+    "scriptId": "quest_enthusiast",
+    "hint": null,
+    "lines": [
+      "{0} of {1}"
+    ]
+  }
+]

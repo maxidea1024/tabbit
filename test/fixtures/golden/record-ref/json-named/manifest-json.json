@@ -1,0 +1,67 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "6ce4554cb3d7d1be3508b49c0d8c08fb",
+  "TotalSize": 3077,
+  "Items": [
+    {
+      "Name": "Item.json",
+      "Size": 182,
+      "Hash": "23918c3927622174fd14ddb2017846d1",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Loadout.json",
+      "Size": 406,
+      "Hash": "b688926148042467e24edf9ca1259f71",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Holder.json",
+      "Size": 223,
+      "Hash": "cb1e61a60f7a0e5bfc0b9781448f00c7",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Bag.json",
+      "Size": 286,
+      "Hash": "34396a5abb57e021e068ceba7b0d73e8",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Mount.json",
+      "Size": 448,
+      "Hash": "a5be21e60505d68132d616684f892f50",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Clip.json",
+      "Size": 190,
+      "Hash": "ae91fb39970ee61582b4ceaefe3f268d",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Pose.json",
+      "Size": 346,
+      "Hash": "dc2740b98fc291e7defbeff3b47a001b",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Seal.json",
+      "Size": 256,
+      "Hash": "f3cef796a24ae3815520290ebbf1d252",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Badge.json",
+      "Size": 319,
+      "Hash": "633caae84b87d40d4b4506ed5824961f",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Kit.json",
+      "Size": 421,
+      "Hash": "7875f04c48eec0426b19a9c8bb8d2947",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

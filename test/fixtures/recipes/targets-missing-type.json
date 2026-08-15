@@ -1,0 +1,22 @@
+{
+  // A `Targets` entry with no `Type`, so nothing says which target it configures.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Path": "test/fixtures/output/targets-missing-type/data"
+    }
+  ]
+}

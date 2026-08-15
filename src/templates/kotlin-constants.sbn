@@ -1,0 +1,17 @@
+{{~##
+   One constant object. `set` is the single set this file is for.
+##~}}
+{{ include 'kotlin-file-head.sbn' ~}}
+
+// Generated from {{ set.location }}
+{{~ for line in set.comment ~}}
+/** {{ line }} */
+{{~ end ~}}
+object {{ set.name }} {
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    val {{ constant.name }}: {{ constant.type }} = {{ constant.value }}
+{{~ end ~}}
+}

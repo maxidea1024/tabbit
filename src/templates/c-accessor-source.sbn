@@ -1,0 +1,138 @@
+{{~## The accessor's implementation, including the cross-reference resolution. ##~}}
+{{ include 'c-source-head.sbn' ~}}
+
+/* The definitions for the declarations in the forward header. Beside the accessor's own
+ * load because that is where a project answers the questions the generated code cannot. */
+const uint8_t* {{ accessor.name }}_EncryptionKey = NULL;
+int32_t {{ accessor.name }}_EncryptionKeyLength = 0;
+const uint8_t* {{ accessor.name }}_MacKey = NULL;
+int32_t {{ accessor.name }}_MacKeyLength = 0;
+bool {{ accessor.name }}_VerifyMac = true;
+{{~ if accessor.cross_references | array.size > 0 }}
+/* Turns the stored indices into usable pointers, once every table is in memory.
+ *
+ * A reference into a row that is not there stays NULL rather than inventing one. */
+static void {{ accessor.name }}_SolveCrossReferences({{ accessor.type_name }}* data) {
+  int32_t row;
+{{~ for reference in accessor.cross_references }}
+  for (row = 0; row < data->{{ reference.table }}.count; ++row) {
+    {{ reference.record_name }}* record = &data->{{ reference.table }}.records[row];
+{{~ for field in reference.fields }}
+{{~ if field.is_array ~}}
+    {
+      int32_t element;
+
+      for (element = 0; element < {{ field.count_expression }}; ++element) {
+        const {{ field.ref_record_name }}* target = {{ field.ref_lookup }}(
+          &data->{{ field.ref_table }}, record->{{ field.name }}_index[element]);
+
+        if (target != NULL)
+          record->{{ field.name }}[element] = {{ field.value }};
+      }
+    }
+{{~ else ~}}
+    {
+      const {{ field.ref_record_name }}* target = {{ field.ref_lookup }}(
+        &data->{{ field.ref_table }}, record->{{ field.name }}_index);
+
+      if (target != NULL)
+        record->{{ field.name }} = {{ field.value }};
+    }
+{{~ end ~}}
+{{~ end ~}}
+{{~## A reference that is a member of a record resolves inside the element, so the array is
+   walked and each element's own key is looked up. Which array that is - the group's or the
+   member's - the view decided, and a record of one has neither.
+   spec/references-in-records.md. ##~}}
+{{~ for member in reference.record_fields }}
+{{~ if member.count != '' ~}}
+    {
+      int32_t element;
+
+      for (element = 0; element < {{ member.count }}; ++element) {
+        const {{ member.ref_record_name }}* target = {{ member.ref_lookup }}(
+          &data->{{ member.ref_table }}, {{ member.key }});
+
+        if (target != NULL)
+          {{ member.access }} = target;
+      }
+    }
+{{~ else ~}}
+    {
+      const {{ member.ref_record_name }}* target = {{ member.ref_lookup }}(
+        &data->{{ member.ref_table }}, {{ member.key }});
+
+      if (target != NULL)
+        {{ member.access }} = target;
+    }
+{{~ end ~}}
+{{~ end ~}}
+  }
+{{~ end ~}}
+}
+{{~ end ~}}
+
+bool {{ accessor.name }}_LoadAll({{ accessor.type_name }}* data, const char* base_path,
+                 char* error, size_t error_size) {
+  return {{ accessor.name }}_LoadAllWithExtension(
+    data, base_path, "{{ accessor.file_extension }}", error, error_size);
+}
+
+bool {{ accessor.name }}_LoadAllWithExtension({{ accessor.type_name }}* data, const char* base_path,
+                 const char* file_extension, char* error, size_t error_size) {
+{{~ if accessor.tables | array.size == 0 ~}}
+  (void)base_path;
+  (void)file_extension;
+  (void)error;
+  (void)error_size;
+
+  memset(data, 0, sizeof *data);
+
+  return true;
+{{~ else ~}}
+  char path[1024];
+
+  /* Loaded beside whatever `data` is already holding and swapped in at the end. Reading
+   * again is a reload, and one that fails has to leave the caller's pointers valid: they
+   * point into the arenas of the previous load, which is why this cannot start by zeroing
+   * `data` - doing that dropped those arenas without freeing them. */
+  {{ accessor.type_name }} loaded;
+
+  memset(&loaded, 0, sizeof loaded);
+{{~ for slot in accessor.tables }}
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "{{ slot.data_file_name }}", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    {{ accessor.name }}_Free(&loaded);
+    return false;
+  }
+
+  if (!{{ slot.function_prefix }}Load(&loaded.{{ slot.name }}, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    {{ accessor.name }}_Free(&loaded);
+    return false;
+  }
+{{~ end ~}}
+{{~ if accessor.cross_references | array.size > 0 }}
+  /* Linked among the tables of this load, so no row points into the previous one. */
+  {{ accessor.name }}_SolveCrossReferences(&loaded);
+{{~ end ~}}
+
+  /* The previous load goes now, and not before. */
+  {{ accessor.name }}_Free(data);
+  *data = loaded;
+
+  return true;
+{{~ end ~}}
+}
+
+void {{ accessor.name }}_Free({{ accessor.type_name }}* data) {
+{{~ if accessor.tables | array.size == 0 ~}}
+  memset(data, 0, sizeof *data);
+{{~ else ~}}
+{{~ for slot in accessor.tables ~}}
+  {{ slot.function_prefix }}Free(&data->{{ slot.name }});
+{{~ end ~}}
+{{~ end ~}}
+}

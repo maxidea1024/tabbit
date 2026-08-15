@@ -1,0 +1,17 @@
+    /// <summary>
+    /// Exception about Tabbit.
+    /// </summary>
+    public class TabbitException : System.Exception
+    {
+        public TabbitException()
+        {
+        }
+
+        public TabbitException(string message) : base(message)
+        {
+        }
+
+        public TabbitException(string message, System.Exception inner) : base(message, inner)
+        {
+        }
+    }

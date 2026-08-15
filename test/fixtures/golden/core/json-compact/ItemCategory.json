@@ -1,0 +1,17 @@
+[
+  [
+    1,
+    "Weapon",
+    "things that hit"
+  ],
+  [
+    2,
+    "Armor",
+    "things that absorb"
+  ],
+  [
+    3,
+    "Potion",
+    "things that heal"
+  ]
+]

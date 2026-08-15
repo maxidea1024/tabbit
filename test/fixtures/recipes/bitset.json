@@ -1,0 +1,61 @@
+{
+  // A `bitset` column beside a `bigint` one holding the same values.
+  //
+  // What this tree pins is an absence. `bitset` exists for as long as parsing lasts - the
+  // notation it accepts is what makes it a type - and the cooker folds it to a 64-bit
+  // integer once every cell has been read. So no artifact here may be able to tell the two
+  // columns apart, and a fold that did not happen shows up as a diff in a file that has
+  // nothing to do with the feature.
+  //
+  // Three languages rather than thirteen: what is worth pinning is that each picks its own
+  // spelling for the width, and C#, TypeScript and C++ spell it three different ways
+  // (`long`, `bigint`, `int64_t`). Nothing below the generators is new, because the wire
+  // carries an i64 either way.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/bitset"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/bitset/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/bitset/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ]
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/bitset/csharp",
+        "Namespace": "Tabbit.Fixtures.Bitset",
+        "AccessorName": "BitsetAccessor"
+      }
+    ],
+    "Typescript": [
+      {
+        "Path": "test/fixtures/output/bitset/typescript"
+      }
+    ],
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/bitset/cpp",
+        "Namespace": "tabbit_fixtures::bitset",
+        "AccessorName": "BitsetAccessor",
+        "BinaryTableFileExtension": ".tcb"
+      }
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  // A table rule asking for a store, which only the runtime stage's context carries.
+  //
+  // It does not compile, which is the point: the stages hand over different types, so a rule in
+  // the wrong folder is a red squiggle while it is being typed rather than a run that gets as far
+  // as executing it. What this fixture checks is the message - the compiler names a member, and
+  // Tabbit names the folder that has it.
+  //
+  // Every path is relative to the repository root, which is where the test harness invokes
+  // Tabbit from.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Validation": {
+    "Path": "test/fixtures/validation/wrong-stage",
+
+    // Nothing here is meant to be opened in an editor: the rules do not compile, so a project
+    // pointing at them would be a project full of errors by design.
+    "EmitIdeProject": false
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/validation-wrong-stage/json",
+        "Indented": true
+      }
+    ]
+  }
+}

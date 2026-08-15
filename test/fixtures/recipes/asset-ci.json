@@ -1,0 +1,38 @@
+{
+  // The other way of saying "not this time", and the one this feature was shaped around.
+  //
+  // `OnMissing` stays at `warn` - the sheets and the folders are exactly `asset.json`'s -
+  // and `Validation.TreatWarningsAsErrors` promotes it. So one recipe serves the people
+  // writing data, who need the warning, and the build that ships, which does not get to
+  // ignore it. The switch was already there for the validation rules; the asset check is
+  // a warning like any other and is reached by the same line.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/asset"
+      }
+    ]
+  },
+
+  "Assets": {
+    "Roots": [
+      { "Kind": "icon", "Path": "test/fixtures/assets/icon", "Pattern": "*.uasset" },
+      { "Kind": "sfx", "Path": "test/fixtures/assets/sfx", "Pattern": "*.uasset" }
+    ],
+    "OnMissing": "warn"
+  },
+
+  "Validation": {
+    "TreatWarningsAsErrors": true
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/asset-ci/json-named",
+        "Indented": true
+      }
+    ]
+  }
+}

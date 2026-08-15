@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--
+      This project builds nothing anyone ships. It exists so the compiler enforces the
+      language ceiling on the reader that Tabbit emits into its C# output.
+
+      That reader ends up in Unity projects, and the oldest Unity this supports is 6.5,
+      whose compiler accepts C# 9. Anything newer fails here rather than in somebody's game
+      project - which is where it would otherwise surface, since nothing in this repository
+      compiles the emitted file otherwise.
+
+      netstandard2.1 defaults to C# 8, so the ceiling is set rather than inherited. Raising
+      it is a floor being raised, not a feature being adopted: what a language version allows
+      still has to compile against netstandard2.1, and some of C# 9 does not without help.
+
+      It used to serve the same purpose for the Tcb runtime that the exporter and
+      the generated code both borrowed from the Unity plugin. That sharing is gone - the
+      exporter carries its own writer and the generated code carries its own reader - so
+      only the emitted reader still needs guarding, and the project moved here from
+      ../runtime because a folder by that name suggests something ships from it.
+    -->
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>Tabbit.Binary</RootNamespace>
+    <AssemblyName>EmittedCodeLanguageCheck</AssemblyName>
+
+    <!-- Nothing consumes the assembly; only the compile has to succeed. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The same file the generator embeds and writes into its output, compiled from where
+      it lives rather than copied, so the check cannot go stale.
+    -->
+    <Compile Include="..\..\lib\cs\tabbit\TcbReader.cs"
+             Link="TcbReader.cs" />
+  </ItemGroup>
+
+</Project>

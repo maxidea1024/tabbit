@@ -1,0 +1,42 @@
+{
+  // The schema-skew corpus, generation v2 of two.
+  //
+  // The pair exists to be read across: this generation's code against the other's data.
+  // Only the binary export and the C# target are produced, because that is what the
+  // cross-read gate consumes - the question here is what a reader does with a file its
+  // own schema no longer describes, not whether every target renders it.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/evolution-v2"
+      }
+    ]
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/evolution-v2/binary",
+        "FileExtension": ".tcb"
+      }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/evolution-v2/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      }
+    ]
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/evolution-v2/csharp",
+        "Namespace": "Tabbit.Evolution",
+        "AccessorName": "EvolutionAccessor"
+      }
+    ]
+  }
+}

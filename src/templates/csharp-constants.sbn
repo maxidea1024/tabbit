@@ -1,0 +1,38 @@
+{{~## One constant set. `set` is the single set this file is for. ##~}}
+{{ include 'csharp-file-head.sbn' ~}}
+    // Generated from {{ set.location }}
+{{~ for line in set.comment ~}}
+{{~ if for.first ~}}
+    /// <summary>
+{{~ end ~}}
+    /// {{ line }}
+{{~ if for.last ~}}
+    /// </summary>
+{{~ end ~}}
+{{~ end ~}}
+    public static class {{ set.name }}
+    {
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+{{~ if for.first ~}}
+        /// <summary>
+{{~ end ~}}
+        /// {{ line }}
+{{~ if for.last ~}}
+        /// </summary>
+{{~ end ~}}
+{{~ end ~}}
+        public static {{ constant.type }} {{ constant.name }} { get; }
+{{~ end ~}}
+
+        /// <summary>
+        /// Static constructor for initialize static variables.
+        /// </summary>
+        static {{ set.name }}()
+        {
+{{~ for constant in set.constants ~}}
+            {{ constant.name }} = {{ constant.value }};
+{{~ end ~}}
+        }
+    }
+{{ include 'csharp-file-foot.sbn' ~}}

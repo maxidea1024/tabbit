@@ -1,0 +1,29 @@
+{{~##
+ One module per constant set, mirroring what the C# generator emits as a static class.
+
+ index.ts had always re-exported these, but nothing ever wrote them, so any sheet
+ defining a `const` entity produced TypeScript that could not resolve its own imports.
+##~}}
+{{ include 'ts-head.sbn' ~}}
+{{~ if imports | array.size > 0 ~}}
+
+// Automatically import to handle external type references.
+{{~ for line in imports ~}}
+{{ line }}
+{{~ end ~}}
+{{~ end ~}}
+
+// Generated from {{ location }}
+{{~ for line in comment ~}}
+{{ line }}
+{{~ end ~}}
+export class {{ name }} {
+{{~ for constant in constants ~}}
+{{~ if !for.first }}
+{{ end ~}}
+{{~ for line in constant.comment ~}}
+  {{ line }}
+{{~ end ~}}
+  public static readonly {{ constant.name }}: {{ constant.type }} = {{ constant.value }}
+{{~ end ~}}
+}

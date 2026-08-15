@@ -1,0 +1,27 @@
+{{~##
+   One enum and its lookup. `enumm` is the single enum this file is for.
+##~}}
+{{ include 'kotlin-file-head.sbn' ~}}
+
+// Generated from {{ enumm.location }}
+{{~ for line in enumm.comment ~}}
+/** {{ line }} */
+{{~ end ~}}
+enum class {{ enumm.name }}(val value: Int) {
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    {{ label.name }}({{ label.value }}){{ label.separator }}
+{{~ end ~}}
+
+    companion object {
+        /**
+         * The label with this value, or the default when the sheet declared no such label.
+         *
+         * A fallback rather than a throw, matching the other generated readers.
+         */
+        fun of(value: Int): {{ enumm.name }} =
+            entries.firstOrNull { it.value == value } ?: {{ enumm.name }}.{{ enumm.default_label }}
+    }
+}

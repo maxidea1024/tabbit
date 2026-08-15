@@ -1,0 +1,8 @@
+[package]
+name = "optional"
+version = "0.0.0"
+edition = "2021"
+
+# No dependencies on purpose: the reader is core and std only, so the
+# generated crate builds without registry access.
+[dependencies]

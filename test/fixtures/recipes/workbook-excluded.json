@@ -1,0 +1,26 @@
+{
+  // A workbook excluded by name, which is the case the whole level exists for: a folder holds
+  // a file that is not input - a copy kept for reference, or something that was never tabular.
+  //
+  // Here the excluded workbook is the only one in the folder, so the run reads nothing. That is
+  // the point: the assertion is that the workbook was declined before it was opened and that
+  // the run said so, not that some other table survived.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "ExcludeWorkbooks": ["core.xlsx"]
+      }
+    ]
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/workbook-excluded/json",
+        "Indented": true
+      }
+    ]
+  }
+}

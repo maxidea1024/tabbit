@@ -1,0 +1,340 @@
+// ---------------------------------------------------------------------------
+// Tabbit's data updater.
+//
+// Brings a local copy of the exported data up to date with a copy served over HTTP - a
+// CDN, a bucket, a patch server - so a running program can take new data without being
+// redeployed. Emitted beside the reader and reads nothing but the manifest, so it knows
+// nothing about the schema and never has to change when one does.
+//
+// The manifest is what the exporter already writes next to the data: one entry per file
+// with its size and MD5. Comparing it with the local copy is the whole of the diff, so a
+// run downloads what changed and nothing else.
+//
+// Three properties, because a patcher that fails badly is worse than one that does not
+// exist:
+//
+//   Nothing is replaced until everything has arrived and been checked. Files land in a
+//   staging directory first and the local manifest is written last, so an update killed
+//   halfway leaves the previous data readable and the next run redoes the difference.
+//
+//   Every file is checked against the hash the manifest gives for it, so a truncated
+//   transfer that a proxy reported as success does not reach the cache.
+//
+//   A transient failure is retried with a doubling backoff, and a permanent one is not.
+//
+// Reading is somebody else's job. This produces a directory, and the generated tables
+// read it: `tables.readAllSync(result.localPath, '.tcb')`.
+//
+// Node, because the generated reader is: it opens files. `fetch` is global from Node 18.
+// ---------------------------------------------------------------------------
+
+import * as fs from 'fs'
+import * as path from 'path'
+import * as crypto from 'crypto'
+
+/** What an update is allowed to do. Every value has a working default. */
+export interface UpdateOptions {
+  /**
+   * The manifest's file name at the base URL.
+   *
+   * The binary exporter writes `manifest-binary.json`; the JSON exporter writes
+   * `manifest-json.json`.
+   */
+  manifestFileName?: string
+
+  /**
+   * How many times to try a request that failed for a reason worth retrying.
+   * The first attempt is included, so the default of three is two retries.
+   */
+  maxAttempts?: number
+
+  /** How long to wait before the second attempt, in milliseconds. Doubled after that. */
+  retryDelayMs?: number
+
+  /** How long one request may take before it counts as failed. */
+  requestTimeoutMs?: number
+
+  /** Whether a downloaded file is checked against the manifest's hash. */
+  verifyHash?: boolean
+
+  /** Where progress and outcomes go. */
+  log?: (message: string) => void
+}
+
+/** What an update did. */
+export interface UpdateResult {
+  /** Whether the local copy is now current. */
+  succeeded: boolean
+
+  /** Why it is not, when it is not. */
+  error?: string
+
+  /** True when the served manifest matched what was already here. */
+  upToDate: boolean
+
+  downloadedCount: number
+  downloadedBytes: number
+  deletedCount: number
+
+  /**
+   * The directory holding the data. Hand it to the generated tables' read.
+   *
+   * Set even on failure, because the previous data is still there and still readable -
+   * which is the point of failing the way this does.
+   */
+  localPath: string
+}
+
+/** One entry of the manifest: a file, and the hash to check it by. */
+export interface ManifestEntry {
+  name: string
+  size: number
+  hash: string
+}
+
+/**
+ * Reads the manifest's entries out of its JSON.
+ *
+ * `JSON.parse` and then a shape check, rather than trusting the shape: this is the one
+ * input that comes off the network, and a server answering a login page with 200 would
+ * otherwise turn into an undefined field somewhere further down.
+ */
+export function parseManifest(json: string): ManifestEntry[] {
+  const parsed = JSON.parse(json)
+  const items = parsed && parsed.Items
+
+  if (!Array.isArray(items))
+    throw new Error('the manifest has no Items array')
+
+  return items.map((item: any): ManifestEntry => ({
+    name: String(item.Name ?? ''),
+    size: Number(item.Size ?? 0),
+    hash: String(item.Hash ?? ''),
+  })).filter(entry => entry.name !== '')
+}
+
+/** The MD5 of some bytes, in the lower-case hex the manifest carries. */
+export function hashOf(bytes: Uint8Array): string {
+  return crypto.createHash('md5').update(bytes).digest('hex')
+}
+
+/**
+ * Brings `cacheDirectory` up to date with the data served under `baseUrl`.
+ *
+ * Does not throw. Everything that can go wrong here - the network, the disk, a file that
+ * arrived corrupt - is a condition the caller has to handle rather than a defect, and a
+ * patcher that throws into a server's startup path is one that gets wrapped in a try/catch
+ * that swallows the reason.
+ */
+export async function update(
+  baseUrl: string,
+  cacheDirectory: string,
+  options: UpdateOptions = {}): Promise<UpdateResult> {
+
+  const manifestFileName = options.manifestFileName ?? 'manifest-binary.json'
+  const maxAttempts = options.maxAttempts ?? 3
+  const retryDelayMs = options.retryDelayMs ?? 500
+  const requestTimeoutMs = options.requestTimeoutMs ?? 30000
+  const verifyHash = options.verifyHash ?? true
+  const log = options.log ?? (() => { })
+
+  const result: UpdateResult = {
+    succeeded: false,
+    upToDate: false,
+    downloadedCount: 0,
+    downloadedBytes: 0,
+    deletedCount: 0,
+    localPath: cacheDirectory,
+  }
+
+  try {
+    const manifestText = new TextDecoder().decode(
+      await download(join(baseUrl, manifestFileName)))
+
+    const remote = parseManifest(manifestText)
+    const local = readLocalManifest(path.join(cacheDirectory, manifestFileName))
+
+    const wanted: ManifestEntry[] = []
+
+    for (const entry of remote) {
+      const previous = local.find(one => one.name === entry.name)
+
+      // The file's presence is checked as well as the manifest's word for it: a cache
+      // somebody cleaned out by hand would otherwise never be refilled.
+      const current = previous !== undefined
+        && previous.hash === entry.hash
+        && fs.existsSync(path.join(cacheDirectory, entry.name))
+
+      if (!current)
+        wanted.push(entry)
+    }
+
+    const gone = local
+      .filter(entry => !remote.some(one => one.name === entry.name))
+      .map(entry => entry.name)
+
+    if (wanted.length === 0 && gone.length === 0) {
+      log('[tabbit] Already up to date.')
+
+      result.succeeded = true
+      result.upToDate = true
+      return result
+    }
+
+    log(`[tabbit] ${wanted.length} file(s) to fetch, ${gone.length} to remove.`)
+
+    // Everything lands here first. Nothing the caller can read is touched until the last
+    // file has arrived and been checked.
+    const staging = path.join(cacheDirectory, '.staging')
+
+    fs.mkdirSync(cacheDirectory, { recursive: true })
+    fs.rmSync(staging, { recursive: true, force: true })
+    fs.mkdirSync(staging, { recursive: true })
+
+    for (const entry of wanted) {
+      const bytes = await download(join(baseUrl, entry.name))
+
+      if (verifyHash && entry.hash !== '') {
+        const actual = hashOf(bytes)
+
+        if (actual.toLowerCase() !== entry.hash.toLowerCase()) {
+          throw new Error(
+            `'${entry.name}' arrived with hash ${actual}, and the manifest says ` +
+            `${entry.hash}. Nothing was replaced.`)
+        }
+      }
+
+      const staged = path.join(staging, entry.name)
+
+      fs.mkdirSync(path.dirname(staged), { recursive: true })
+      fs.writeFileSync(staged, bytes)
+
+      result.downloadedBytes += bytes.length
+    }
+
+    // From here on the update is applied. Nothing below reaches the network.
+    for (const name of gone) {
+      fs.rmSync(path.join(cacheDirectory, name), { force: true })
+      result.deletedCount++
+    }
+
+    for (const entry of wanted) {
+      const target = path.join(cacheDirectory, entry.name)
+
+      fs.mkdirSync(path.dirname(target), { recursive: true })
+      fs.rmSync(target, { force: true })
+      fs.renameSync(path.join(staging, entry.name), target)
+
+      result.downloadedCount++
+    }
+
+    // Last, and that ordering is the recovery story: a run killed before this point
+    // leaves a manifest describing the data that is still on disk, so the next run
+    // fetches the same files again rather than believing it has them.
+    fs.writeFileSync(path.join(cacheDirectory, manifestFileName), manifestText)
+    fs.rmSync(staging, { recursive: true, force: true })
+
+    log(`[tabbit] Updated. ${result.downloadedCount} fetched, ${result.deletedCount} removed.`)
+
+    result.succeeded = true
+    return result
+  } catch (e) {
+    // The previous data is untouched, so the caller can carry on with it.
+    result.error = e instanceof Error ? e.message : String(e)
+
+    log(`[tabbit] Update failed: ${result.error}`)
+    return result
+  }
+
+  /** Fetches one URL, retrying what is worth retrying. */
+  async function download(url: string): Promise<Uint8Array> {
+    let delay = retryDelayMs
+
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await fetchOnce(url)
+      } catch (e) {
+        const transient = e instanceof TransientError
+
+        if (!transient || attempt >= maxAttempts)
+          throw e
+
+        log(`[tabbit] ${(e as Error).message} Retrying in ${delay}ms ` +
+          `(${attempt} of ${maxAttempts}).`)
+
+        await new Promise(resolve => setTimeout(resolve, delay))
+
+        // Doubling rather than a fixed wait: a server refusing because it is
+        // overloaded is not helped by every client coming back at the same interval.
+        delay *= 2
+      }
+    }
+  }
+
+  async function fetchOnce(url: string): Promise<Uint8Array> {
+    const abort = new AbortController()
+    const timer = setTimeout(() => abort.abort(), requestTimeoutMs)
+
+    try {
+      const response = await fetch(url, { signal: abort.signal })
+
+      if (!response.ok) {
+        const message = `'${url}' answered ${response.status} ${response.statusText}.`
+
+        // 408 and 429 are the server asking for another attempt, and 5xx is it
+        // failing on its own account. A 404 is an answer: retrying it costs three
+        // round trips to hear the same thing.
+        throw isTransientStatus(response.status)
+          ? new TransientError(message)
+          : new Error(message)
+      }
+
+      return new Uint8Array(await response.arrayBuffer())
+    } catch (e) {
+      if (e instanceof TransientError || e instanceof Error && e.name === 'SyntaxError')
+        throw e
+
+      // A request that never got an answer - DNS, a refused connection, a timeout.
+      if (e instanceof Error && (e.name === 'AbortError' || e.name === 'TypeError'))
+        throw new TransientError(`'${url}' could not be reached: ${e.message}.`)
+
+      throw e
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+}
+
+/** A failure the same request might survive a moment later. */
+class TransientError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'TransientError'
+  }
+}
+
+function isTransientStatus(status: number): boolean {
+  return status === 408 || status === 429 || (status >= 500 && status <= 599)
+}
+
+/**
+ * Reads the cached manifest. A missing or unreadable one is an empty manifest, which makes
+ * the next update fetch everything - the safe direction to be wrong in.
+ */
+function readLocalManifest(filename: string): ManifestEntry[] {
+  try {
+    return fs.existsSync(filename)
+      ? parseManifest(fs.readFileSync(filename, 'utf8'))
+      : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Joins a base URL and a file name. Not path.join, which on Windows produces a backslash
+ * and a URL no server will answer.
+ */
+function join(baseUrl: string, name: string): string {
+  return baseUrl.replace(/\/+$/, '') + '/' + name.replace(/\\/g, '/')
+}

@@ -1,0 +1,34 @@
+{
+  // The `record-trim` workbook read without `AllowArrayGaps`, which is the default.
+  //
+  // Row 3 of it leaves `Slot2` empty while `Slot3` has a value, and that is refused: an
+  // array with a gap reads as one whose middle element holds the type's empty value, and a
+  // consumer indexing into it cannot tell that from a value somebody wrote.
+  //
+  // The same workbook is read with the flag on by `record-trim`, whose golden holds what the
+  // gap becomes when a source says it was meant. Two recipes over one fixture, because the
+  // difference being pinned is the setting and nothing else.
+  //
+  // Binary only. Nothing here reaches an export - the conversion stops in validation - so the
+  // entry exists to give the run somewhere to write if it ever stops failing.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/record-trim",
+        "TrimTrailingArrayElements": true,
+        "FoldSerialFields": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Exports": {
+    "Binary": [
+      {
+        "Path": "test/fixtures/output/record-trim-strict/binary",
+        "FileExtension": ".tcb"
+      }
+    ]
+  }
+}

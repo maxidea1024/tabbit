@@ -1,0 +1,28 @@
+{{~## One enum and its String. `enumm` is the single enum this file is for. ##~}}
+{{ include 'go-file-head.sbn' ~}}
+// {{ enumm.name }} was generated from {{ enumm.location }}.
+{{~ for line in enumm.comment ~}}
+// {{ line }}
+{{~ end ~}}
+type {{ enumm.name }} int32
+
+const (
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+	// {{ line }}
+{{~ end ~}}
+	{{ enumm.name }}{{ label.name }} {{ enumm.name }} = {{ label.value }}
+{{~ end ~}}
+)
+
+// String names the label, or renders the number when the value has none.
+func (v {{ enumm.name }}) String() string {
+	switch v {
+{{~ for label in enumm.labels ~}}
+	case {{ enumm.name }}{{ label.name }}:
+		return "{{ label.name }}"
+{{~ end ~}}
+	}
+
+	return strconv.FormatInt(int64(v), 10)
+}

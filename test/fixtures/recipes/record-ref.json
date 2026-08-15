@@ -1,0 +1,90 @@
+{
+  // A reference that is a member of a record group.
+  //
+  // Refused until now, and the refusal threw rather than reported. What was missing is
+  // generated code: resolution makes a stored key and a setter per field, and neither
+  // reached `[j].Member`.
+  //
+  // spec/references-in-records.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/record-ref"
+      },
+
+      // A second entry rather than a second recipe, because trimming is a property of the
+      // entry and the fixed-length shapes are worth keeping beside the trimmed one. Both feed
+      // one model, so `Kit` points at the `Item` the entry above read.
+      //
+      // The trimmed group is the case the design decision was made for: its elements are
+      // allocated per row, so a key kept beside the group would have to be allocated with
+      // them and at the same length.
+      {
+        "Path": "test/fixtures/xlsx/record-ref-trim",
+        "TrimTrailingArrayElements": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "CodeGenerations": {
+    "CSharp": [
+      {
+        "Path": "test/fixtures/output/record-ref/csharp",
+        "Namespace": "Tabbit.Fixtures.RecordRef",
+        "AccessorName": "RecordRefAccessor"
+      }
+    ],
+    "Typescript": [
+      { "Path": "test/fixtures/output/record-ref/typescript" }
+    ],
+    "Cpp": [
+      {
+        "Path": "test/fixtures/output/record-ref/cpp",
+        "Namespace": "record_ref",
+        "AccessorName": "RecordRefAccessor",
+        "BinaryTableFileExtension": ".tcb"
+      }
+    ]
+  },
+
+  // The rest of the languages. A reference member changes the element type every one of
+  // them declares, so one that gets it wrong emits a struct whose members do not line up
+  // with the read - and only generating them all says which.
+  "Targets": [
+    { "Type": "go", "Path": "test/fixtures/output/record-ref/go", "PackageName": "recordref", "ModulePath": "recordref" },
+    { "Type": "rust", "Path": "test/fixtures/output/record-ref/rust", "CrateName": "record_ref" },
+    { "Type": "python", "Path": "test/fixtures/output/record-ref/python", "PackageName": "record_ref_data" },
+    { "Type": "java", "Path": "test/fixtures/output/record-ref/java", "PackageName": "recordref", "AccessorName": "Tables" },
+    { "Type": "kotlin", "Path": "test/fixtures/output/record-ref/kotlin", "PackageName": "recordref", "AccessorName": "Tables" },
+    { "Type": "ruby", "Path": "test/fixtures/output/record-ref/ruby", "ModuleName": "RecordRef" },
+    { "Type": "dart", "Path": "test/fixtures/output/record-ref/dart" },
+    { "Type": "unreal", "Path": "test/fixtures/output/record-ref/unreal", "ModuleName": "RecordRefData", "AccessorName": "FRecordRefData" },
+    { "Type": "c", "Path": "test/fixtures/output/record-ref/c", "AccessorName": "RecordRef" },
+    { "Type": "php", "Path": "test/fixtures/output/record-ref/php", "Namespace": "Tabbit\\Fixtures\\RecordRef", "AccessorName": "RecordRefAccessor" }
+  ],
+
+  "Exports": {
+    "Binary": [
+      { "Path": "test/fixtures/output/record-ref/binary", "FileExtension": ".tcb" }
+    ],
+    "Json": [
+      {
+        "Path": "test/fixtures/output/record-ref/json-named",
+        "UseCompactRowFormat": false,
+        "Indented": true
+      },
+
+      // The compact row too, because it takes a different path: it is positional over the
+      // wire columns, and a reference member is one. Reading it as the row it resolves to
+      // rather than as the key would take an entry meant for the key and put it where the
+      // linking pass writes.
+      {
+        "Path": "test/fixtures/output/record-ref/json-compact",
+        "UseCompactRowFormat": true,
+        "Indented": true
+      }
+    ]
+  }
+}

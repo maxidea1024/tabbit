@@ -1,0 +1,49 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "c07fb069f6cece77721fbe79f9e52b27",
+  "TotalSize": 1218,
+  "Items": [
+    {
+      "Name": "TestFieldTypes.tcb",
+      "Size": 309,
+      "Hash": "6ffa5b238d0dd278164c6cd23caee391",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ItemCategory.tcb",
+      "Size": 125,
+      "Hash": "3a7fc3a9f602f7d434ee7724e52c3e56",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Item.tcb",
+      "Size": 251,
+      "Hash": "ad781959c72902d70c2dc27cd6bd6308",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Localization.tcb",
+      "Size": 162,
+      "Hash": "50ee93b75c34bc2ae879fc4238f9356e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ArrayTypes.tcb",
+      "Size": 182,
+      "Hash": "dbafcae71717b55e63a51d252be9cf08",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ServerTuning.tcb",
+      "Size": 93,
+      "Hash": "574b17abddc2e9baecb22069188a93cd",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ClientStrings.tcb",
+      "Size": 96,
+      "Hash": "87a6b1b48bae044ddcc25091c539681d",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

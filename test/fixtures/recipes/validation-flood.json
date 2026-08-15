@@ -1,0 +1,34 @@
+{
+  // A rule that reports 150 times, so the cap and its notice can be checked.
+  //
+  // What this scenario pins is the gate: the run must fail, and the JSON export must not
+  // exist afterwards. The validation runs before any target, so nothing was staged and there
+  // is nothing to roll back - which is the property the pipeline exists to give.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+        "FoldSerialFields": true
+      }
+    ]
+  },
+
+  "Validation": {
+    "Path": "test/fixtures/validation/flood",
+
+    // The other half of the default, which `validation-pass` covers: turning it off has to stop
+    // the file being written. This folder is this scenario's alone, so the absence of a project
+    // in it means this recipe's `false` rather than another scenario not having got there yet.
+    "EmitIdeProject": false
+  },
+
+  "Exports": {
+    "Json": [
+      {
+        "Path": "test/fixtures/output/validation-flood/json",
+        "Indented": true
+      }
+    ]
+  }
+}

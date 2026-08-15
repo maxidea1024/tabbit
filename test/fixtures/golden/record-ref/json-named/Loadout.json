@@ -1,0 +1,32 @@
+[
+  {
+    "index": 1,
+    "slot": [
+      {
+        "itemId": 1,
+        "swapId": 2,
+        "count": 10
+      },
+      {
+        "itemId": 2,
+        "swapId": 1,
+        "count": 20
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "slot": [
+      {
+        "itemId": 2,
+        "swapId": 1,
+        "count": 30
+      },
+      {
+        "itemId": 0,
+        "swapId": 0,
+        "count": 0
+      }
+    ]
+  }
+]

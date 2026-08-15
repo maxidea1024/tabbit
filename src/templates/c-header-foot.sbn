@@ -1,0 +1,12 @@
+{{~## How every generated header ends: the `extern "C"` close and the guard.
+
+   A blank line ahead of each close, matching the one the head leaves after each open, so
+   the file's last declaration is not up against the closes the way it would be against a
+   brace. ##~}}
+{{~ if extern_c }}
+#ifdef __cplusplus
+}
+#endif
+{{~ end ~}}
+
+#endif /* {{ guard }} */

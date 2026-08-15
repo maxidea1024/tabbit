@@ -1,0 +1,22 @@
+[
+  {
+    "index": 1,
+    "class": "first",
+    "int": 10,
+    "delete": true,
+    "operator": "plus",
+    "namespace": "alpha",
+    "constructor": "ctor-a",
+    "function": "fn-a"
+  },
+  {
+    "index": 2,
+    "class": "second",
+    "int": 20,
+    "delete": false,
+    "operator": "minus",
+    "namespace": "beta",
+    "constructor": "ctor-b",
+    "function": "fn-b"
+  }
+]

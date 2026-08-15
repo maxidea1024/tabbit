@@ -1,0 +1,11 @@
+text	table	column
+Lost Cargo	Quest	Title
+Ask at the docks.	Quest	Hint
+Hello	Quest	Lines
+Goodbye	Quest	Lines
+Farewell	Quest	Lines
+The "Blue" Whale	Quest	Title
+Head south.	Quest	Hint
+Onward	Quest	Lines
+{0} Enthusiast	Quest	Title
+{0} of {1}	Quest	Lines

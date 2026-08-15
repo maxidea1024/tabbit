@@ -1,0 +1,77 @@
+{{~## One table's record. Its own file, because Java demands a public type be alone in one. ##~}}
+{{ include 'java-file-head.sbn' ~}}
+// Generated from {{ table.location }}
+{{~ for line in table.comment ~}}
+/** {{ line }} */
+{{~ end ~}}
+public final class {{ table.record_name }} {
+{{~ for field in table.fields ~}}
+{{~ for line in field.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+{{~ for declaration in field.declarations ~}}
+    public {{ declaration }}
+{{~ end ~}}
+{{~ if field.is_nullable ~}}
+    /**
+     * Whether this row has a value for {{ field.name }}. The value field keeps its type and
+     * holds the type's empty value when the row had none; this says which it was.
+     */
+    public boolean {{ field.presence_member }};
+{{~ end ~}}
+{{~ end ~}}
+{{~## The element type of each record group. Nested rather than a file of its own, which is
+   what Java would demand of a public top-level type - and nesting scopes the name, so two
+   tables each holding a `Slot` group do not collide. ##~}}
+{{~ for field in table.fields ~}}
+{{~## An array of arrays declares no element type: its outer level has no name, so there is
+   nothing for a class to be. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous }}
+{{~## One class per level, innermost first - the view flattened the nesting so this loop does
+   not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+    /** One element of {{ rt.owner }}. */
+{{~ else ~}}
+    /** A record inside {{ rt.owner }}. */
+{{~ end ~}}
+    public static final class {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+        /** {{ line }} */
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+        public {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for member in rt.members ~}}
+{{~ if member.fill != '' ~}}
+{{~## An instance initializer block: Java fills an array of objects with nulls, and a
+   member array gets the same empty-not-null guarantee a scalar member gets. ##~}}
+        { {{ member.fill }} }
+{{~ end ~}}
+{{~ end ~}}
+    }
+{{~ end ~}}
+{{~ if field.is_fixed_record_array }}
+    /**
+     * A {{ field.record_type_name }} array with its elements constructed.
+     *
+     * Java fills an array of objects with nulls, and the length here is the sheet's column
+     * count - known at generation - so the row can arrive with the elements already there
+     * and each member column simply assigns into them.
+     */
+    private static {{ field.record_type_name }}[] new{{ field.record_type_name }}Array(int length) {
+        {{ field.record_type_name }}[] array = new {{ field.record_type_name }}[length];
+
+        for (int i = 0; i < length; i++) {
+            array[i] = new {{ field.record_type_name }}();
+        }
+
+        return array;
+    }
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+
+}
