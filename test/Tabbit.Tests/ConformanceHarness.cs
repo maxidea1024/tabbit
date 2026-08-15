@@ -1011,6 +1011,28 @@ internal static class ConformanceHarness
     private static string HomeDir => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
     /// <summary>
+    /// The directories a Unix package manager puts a command in.
+    /// </summary>
+    /// <remarks>
+    /// The same reason the Windows fallbacks exist, and it bites harder here: Homebrew on
+    /// Apple Silicon installs under `/opt/homebrew`, which is on the path of a login shell
+    /// and is not on the path of a test host launched from an IDE or a launchd agent. A
+    /// probe that asked only the path would report the language missing and skip its check,
+    /// which is the one answer a conformance suite must not give quietly.
+    ///
+    /// `/opt/homebrew` first, because a Mac that has both has the Intel one under Rosetta.
+    /// </remarks>
+    private static IEnumerable<string> UnixInstalls(string command)
+    {
+        if (OnWindows)
+            yield break;
+
+        yield return "/opt/homebrew/bin/" + command;
+        yield return "/usr/local/bin/" + command;
+        yield return "/usr/bin/" + command;
+    }
+
+    /// <summary>
     /// The PHP interpreter.
     ///
     /// The winget package puts it under Packages and appends a Links directory to the
@@ -1039,8 +1061,9 @@ internal static class ConformanceHarness
         }
 
         yield return @"C:\php\php.exe";
-        yield return "/usr/bin/php";
-        yield return "/usr/local/bin/php";
+
+        foreach (var path in UnixInstalls("php"))
+            yield return path;
     }
 
     private static string RubyExecutable => Resolve("ruby", RubyInstalls().ToArray());
@@ -1049,7 +1072,12 @@ internal static class ConformanceHarness
     private static IEnumerable<string> RubyInstalls()
     {
         if (!OnWindows)
+        {
+            foreach (var path in UnixInstalls("ruby"))
+                yield return path;
+
             yield break;
+        }
 
         string[] roots;
 
@@ -1068,10 +1096,23 @@ internal static class ConformanceHarness
             yield return Path.Combine(roots[i], "bin", "ruby.exe");
     }
 
-    private static string DartExecutable => Resolve("dart",
-        Path.Combine(HomeDir, "tools", "dart-sdk", "bin", "dart.exe"),
-        Path.Combine(HomeDir, "tools", "dart-sdk", "bin", "dart"),
-        @"C:\tools\dart-sdk\bin\dart.exe");
+    private static string DartExecutable => Resolve("dart", DartInstalls().ToArray());
+
+    private static IEnumerable<string> DartInstalls()
+    {
+        yield return Path.Combine(HomeDir, "tools", "dart-sdk", "bin", "dart.exe");
+        yield return Path.Combine(HomeDir, "tools", "dart-sdk", "bin", "dart");
+        yield return @"C:\tools\dart-sdk\bin\dart.exe";
+
+        // Homebrew's `dart-sdk` puts the launcher in bin like any other formula, and its
+        // Flutter counterpart hides one under libexec.
+        foreach (var path in UnixInstalls("dart"))
+            yield return path;
+
+        yield return "/opt/homebrew/opt/dart-sdk/bin/dart";
+        yield return "/usr/local/opt/dart-sdk/bin/dart";
+        yield return "/usr/lib/dart/bin/dart";
+    }
 
     /// <summary>
     /// The Kotlin compiler jar, found beside whichever launcher is here.
@@ -1102,6 +1143,16 @@ internal static class ConformanceHarness
 
         yield return Path.Combine(HomeDir, "tools", "kotlinc");
         yield return @"C:\tools\kotlinc";
+
+        // Homebrew's `kotlin` formula keeps the distribution under libexec and puts only
+        // the launcher in bin, so the grandparent rule above does not reach it.
+        yield return "/opt/homebrew/opt/kotlin/libexec";
+        yield return "/usr/local/opt/kotlin/libexec";
+
+        // SDKMAN, which is how a JVM developer most often has one.
+        yield return Path.Combine(HomeDir, ".sdkman", "candidates", "kotlin", "current");
+
+        yield return "/usr/share/kotlin";
     }
 
     private static string WorkDir(string scenario, string language)

@@ -78,7 +78,7 @@ public static class StagingFiles
     {
         string full = Path.GetFullPath(directory);
 
-        if (!_sweepRoots.Contains(full, StringComparer.OrdinalIgnoreCase))
+        if (!_sweepRoots.Contains(full, PathNames.Comparer))
             _sweepRoots.Add(full);
     }
 
@@ -103,7 +103,7 @@ public static class StagingFiles
     {
         string full = Path.GetFullPath(filename);
 
-        if (!_pruneCandidates.Contains(full, StringComparer.OrdinalIgnoreCase))
+        if (!_pruneCandidates.Contains(full, PathNames.Comparer))
             _pruneCandidates.Add(full);
     }
 
@@ -120,7 +120,17 @@ public static class StagingFiles
     public static string RegisterStagingFile(string filename, out bool alreadyStaged)
     {
         string fullPath = Path.GetFullPath(filename);
-        string md5 = Helper.CalculateMD5HashFromString(fullPath);
+
+        // Hashed the way this platform compares paths, so that one staging file stands for
+        // one real file. Hashing the spelling was right on Linux and wrong on Windows: two
+        // targets asking for `Item.cs` and `item.cs` got two staging files there, which is
+        // one file on NTFS - so the collision check below never fired and whichever
+        // committed last was silently the only one that survived. That is the case this
+        // check exists for, and it was the case it could not see.
+        string md5 = Helper.CalculateMD5HashFromString(
+            PathNames.Comparison == StringComparison.OrdinalIgnoreCase
+                ? fullPath.ToLowerInvariant()
+                : fullPath);
 
         string tempPath = Path.GetTempPath();
         string stagingFilename = Path.Combine(tempPath, md5 + ".staging");
@@ -143,8 +153,12 @@ public static class StagingFiles
     {
         // Taken before the loop below drains the list, because the sweep needs to know
         // everything this run wrote and the loop forgets each entry as it goes.
+        //
+        // Compared the way this platform's filesystem compares paths. Case-insensitively
+        // everywhere - which is what this said - makes a Linux sweep skip a stale `item.cs`
+        // because the run wrote `Item.cs`, and those are two files there.
         var written = new HashSet<string>(
-            _stagingFiles.Select(kv => kv.Item1), StringComparer.OrdinalIgnoreCase);
+            _stagingFiles.Select(kv => kv.Item1), PathNames.Comparer);
 
         while (_stagingFiles.Count > 0)
         {

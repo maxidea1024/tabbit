@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-15T19:16:55.9894854+09:00",
+    "generatedAt": "2026-08-15T20:38:30.9456017+09:00",
     "toolVersion": "0.0.0.0",
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "2ac7b8bb55f9b58c19e7e5408b808e029316a483",
-      "shortHash": "2ac7b8bb55f9",
-      "branch": "rebrand-tabbit",
+      "hash": "763a9744a34f73953aeb5eb273ffdddfff559995",
+      "shortHash": "763a9744a34f",
+      "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-15T19:14:56.0000000+09:00",
-      "subject": "Start the changelog over, because none of what it recorded shipped",
+      "committedAt": "2026-08-15T19:41:08.0000000+09:00",
+      "subject": "Initial commit: Tabbit",
       "origin": "git",
       "dirty": true,
       "attributable": false

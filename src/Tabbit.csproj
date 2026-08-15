@@ -205,13 +205,33 @@
       consumer is somebody else's project - a game on Unity 6.5, a server on .NET 10 - and
       netstandard2.1 is the surface both accept.
 
-      Taken from the SDK's targeting packs rather than restored as a package: the pack is part of
-      any SDK that can target netstandard2.1, and a restore would need a network this tool's build
-      does not otherwise want.
+      Two places are looked at, because the SDK puts them in different ones. The Windows
+      installer lays the targeting pack down under `packs`, and a build there finds it with no
+      network at all - which is what this used to assume for every platform. It is not true off
+      Windows: the Linux and macOS SDKs ship no netstandard2.1 pack and leave it to NuGet, so
+      that assumption failed the build on the first line of the first target that needed it.
+
+      The `PackageDownload` below is what makes the second place a fact rather than a hope. It
+      puts the package in the global cache and adds nothing to this project's own references,
+      so the tool still compiles against what it compiled against before.
     -->
-    <NetStandardRefDir>$(NetCoreTargetingPackRoot)\NETStandard.Library.Ref\2.1.0\ref\netstandard2.1</NetStandardRefDir>
+    <NetStandardRefPackDir>$(NetCoreTargetingPackRoot)/NETStandard.Library.Ref/2.1.0/ref/netstandard2.1</NetStandardRefPackDir>
+    <NetStandardRefCacheDir>$(NuGetPackageRoot)netstandard.library.ref/2.1.0/ref/netstandard2.1</NetStandardRefCacheDir>
+
+    <NetStandardRefDir Condition="Exists('$(NetStandardRefPackDir)')">$(NetStandardRefPackDir)</NetStandardRefDir>
+    <NetStandardRefDir Condition="'$(NetStandardRefDir)' == ''">$(NetStandardRefCacheDir)</NetStandardRefDir>
+
     <NetStandardReferenceArchive>$(BaseIntermediateOutputPath)netstandard-references.zip</NetStandardReferenceArchive>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Downloaded, not referenced: `PackageDownload` populates the global package cache and
+      contributes nothing to the compile, which is the whole of what is wanted here - the
+      directory has to exist so it can be zipped into this assembly.
+    -->
+    <PackageDownload Include="NETStandard.Library.Ref" Version="[2.1.0]" />
+  </ItemGroup>
 
   <ItemGroup>
     <!--
@@ -260,7 +280,7 @@
                   Overwrite="true" />
 
     <Error Condition="!Exists('$(NetStandardRefDir)')"
-           Text="This SDK has no netstandard2.1 targeting pack at `$(NetStandardRefDir)`, so the tool cannot be built with the references its assembly output compiles against." />
+           Text="No netstandard2.1 reference assemblies were found, so the tool cannot be built with the references its assembly output compiles against. Looked in the SDK's targeting packs (`$(NetStandardRefPackDir)`) and then in the package cache (`$(NetStandardRefCacheDir)`); a restore populates the second one." />
 
     <ZipDirectory SourceDirectory="$(NetStandardRefDir)"
                   DestinationFile="$(NetStandardReferenceArchive)"

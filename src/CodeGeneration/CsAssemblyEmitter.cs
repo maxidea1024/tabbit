@@ -36,7 +36,11 @@ internal static class CsAssemblyEmitter
     {
         var trees = new List<SyntaxTree>();
 
-        foreach (string path in Directory.EnumerateFiles(sources, "*.cs", SearchOption.AllDirectories))
+        // Ordered, so the same sources produce the same assembly wherever this runs. The
+        // filesystem's own order is not the same on ext4 as on NTFS, and the order trees go
+        // into a compilation is visible in what comes out of it.
+        foreach (string path in Helpers.PathNames.InOrder(
+                     Directory.EnumerateFiles(sources, "*.cs", SearchOption.AllDirectories)))
         {
             if (skip.Any(name => path.EndsWith(name, StringComparison.OrdinalIgnoreCase)))
                 continue;

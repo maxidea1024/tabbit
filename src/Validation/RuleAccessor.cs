@@ -245,7 +245,11 @@ internal sealed class RuleAccessor
     {
         var trees = new List<SyntaxTree>();
 
-        foreach (string path in Directory.EnumerateFiles(sourcePath, "*.cs", SearchOption.AllDirectories))
+        // Ordered, so the compiler is handed the same sources in the same order wherever this
+        // runs. Roslyn reports diagnostics in tree order, and an unordered scan put them in
+        // filesystem order - which ext4 and NTFS disagree about.
+        foreach (string path in Helpers.PathNames.InOrder(
+                     Directory.EnumerateFiles(sourcePath, "*.cs", SearchOption.AllDirectories)))
         {
             trees.Add(CSharpSyntaxTree.ParseText(
                 SourceText.From(File.ReadAllText(path), Encoding.UTF8),

@@ -32,7 +32,11 @@ public sealed class FileMap : IFileMap
         // an asset: `Ship_Galleon`, not `Ship_Galleon.uasset` in whatever case the artist saved.
         _byName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (string path in paths)
+        // Ordered here rather than by the callers, so "first" below means the same thing on
+        // every platform. The scan hands these over in filesystem order, which ext4 and NTFS
+        // do not agree on - so which of two files of one name a rule saw depended on where
+        // the conversion ran, and so did the order `Names` reports.
+        foreach (string path in Helpers.PathNames.InOrder(paths))
         {
             string name = System.IO.Path.GetFileNameWithoutExtension(path);
 

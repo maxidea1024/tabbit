@@ -1067,7 +1067,6 @@ bool tb_update(const char* base_url, const char* cache_directory,
   char* manifest_text = NULL;
   size_t manifest_length = 0;
   int32_t at;
-  int32_t staged = 0;
   bool failed = false;
 
   if (options == NULL) {
@@ -1246,8 +1245,10 @@ bool tb_update(const char* base_url, const char* cache_directory,
       break;
     }
 
+    /* No count kept here. What the caller is told is `downloaded_count`, and the
+     * apply loop below raises that as it moves each staged file into place - so a
+     * file counted here and then lost to a rename would be reported as delivered. */
     result->downloaded_bytes += (int64_t)body.length;
-    staged++;
   }
 
   if (failed) {

@@ -75,7 +75,13 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                 $"Recipe `{context.Section}` reads workbooks from `{xlsx.Path}`, which does not exist.");
         }
 
-        var files = Directory.GetFiles(xlsx.Path, "*.*", SearchOption.AllDirectories);
+        // Ordered, because this is the order the tables enter the model in and so the order
+        // they leave in. The filesystem's own order is not the same on ext4 as on NTFS, which
+        // made the same directory of workbooks produce different output on Linux than on
+        // Windows - silently, since both are valid outputs of a run that read everything.
+        var files = Helpers.PathNames.InOrder(
+            Directory.GetFiles(xlsx.Path, "*.*", SearchOption.AllDirectories));
+
         foreach (var filename in files)
         {
             if (filename.Contains("/#") || filename.Contains("\\#"))
