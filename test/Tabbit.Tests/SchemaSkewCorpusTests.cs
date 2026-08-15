@@ -174,14 +174,34 @@ public class SchemaSkewCorpusTests
     }
 
     /// <summary>
-    /// Writes the later generation's data. The readers' own scenario is converted by
-    /// <see cref="ConformanceTests.Expected"/>, which every check calls anyway.
+    /// Writes both generations: the one the readers were generated from, and the later one
+    /// whose data they are asked to read.
     /// </summary>
+    /// <remarks>
+    /// The readers' scenario used to be left to <see cref="ConformanceTests.Expected"/> on the
+    /// grounds that every check calls it. Every check does - but it calls it *after* the
+    /// harness has already run, because the harness is the argument being evaluated:
+    ///
+    ///     Check("PHP", ConformanceHarness.RunPhp(Readers, Data))
+    ///
+    /// So the harness copied itself into `output/conformance/php` before anything had created
+    /// that directory, and the only reason it ever worked is that some earlier class had
+    /// converted the scenario and left the tree behind. Which class runs first is not ordered,
+    /// and the order is not the same on every platform: on Windows this class happened to run
+    /// after the conformance tests, and on a Linux runner it did not - so every check here
+    /// failed with a DirectoryNotFoundException naming a path the test never chose.
+    ///
+    /// Converted here instead, like <see cref="ConformanceMacTests"/> does, so this class runs
+    /// on its own and in any order.
+    /// </remarks>
     private static void ConvertTheLaterGeneration()
     {
-        var conversion = TabbitRunner.Convert(Data);
-        Assert.True(conversion.Succeeded,
-            $"Converting `{Data}` failed.{Environment.NewLine}{conversion.Describe()}");
+        foreach (string scenario in new[] { Readers, Data })
+        {
+            var conversion = TabbitRunner.Convert(scenario);
+            Assert.True(conversion.Succeeded,
+                $"Converting `{scenario}` failed.{Environment.NewLine}{conversion.Describe()}");
+        }
     }
 
     /// <summary>
