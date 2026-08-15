@@ -32,6 +32,20 @@ public class HtmlTargetTests
     private static readonly Regex IdPattern =
         new Regex("id\\s*=\\s*\"(?<id>[^\"]*)\"", RegexOptions.Compiled);
 
+    /// <summary>A `data:` url and its payload, so a check can look at the rest of the line.</summary>
+    private static readonly Regex DataUrl =
+        new Regex("data:[^\"']*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    /// <summary>
+    /// A reported line, short enough to read. The favicon's payload is 1.2 KB on one line,
+    /// and a failure message carrying it in full is a failure message nobody reads.
+    /// </summary>
+    private static string Trim(string line)
+    {
+        string collapsed = DataUrl.Replace(line.Trim(), "data:…");
+        return collapsed.Length <= 200 ? collapsed : collapsed.Substring(0, 200) + "…";
+    }
+
     private static IReadOnlyList<string> Pages()
     {
         var result = TabbitRunner.Convert(Scenario);
@@ -71,6 +85,12 @@ public class HtmlTargetTests
                 {
                     continue;
                 }
+
+                // The favicon is carried in the page rather than named beside it, so there is
+                // no file for it to resolve to - the bytes are the href. That is the point of
+                // it: a page stays one file somebody can mail.
+                if (href.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                    continue;
 
                 if (href.Length == 0)
                 {
@@ -139,8 +159,22 @@ public class HtmlTargetTests
                              || lines[i].Contains("@import", StringComparison.OrdinalIgnoreCase)
                              || lines[i].Contains("<img", StringComparison.OrdinalIgnoreCase);
 
-                if (loads && lines[i].Contains("//", StringComparison.Ordinal))
-                    offenders.Add($"  {Path.GetFileName(page)}:{i + 1}  {lines[i].Trim()}");
+                if (!loads)
+                    continue;
+
+                // A `data:` url is the opposite of what this test is about - the bytes are in
+                // the page. Its base64 also contains `//` wherever the payload happens to, so
+                // leaving it in would make every page an offender for a reason that is not one.
+                string line = DataUrl.Replace(lines[i], "data:");
+
+                // `//` after a scheme, or as the whole of one. Not any `//` anywhere: that is
+                // what read the favicon's payload as a url.
+                if (line.Contains("://", StringComparison.Ordinal)
+                    || line.Contains("=\"//", StringComparison.Ordinal)
+                    || line.Contains("='//", StringComparison.Ordinal))
+                {
+                    offenders.Add($"  {Path.GetFileName(page)}:{i + 1}  {Trim(lines[i])}");
+                }
             }
         }
 

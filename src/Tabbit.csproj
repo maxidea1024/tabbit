@@ -45,6 +45,18 @@
     <Version>0.0.0</Version>
 
     <!--
+      The executable's icon - what Explorer, the taskbar and a file property sheet show.
+      Without it the program is the generic console icon, which says nothing about what
+      the file is.
+
+      Committed rather than generated at build time: `brand/build-assets.mjs` cuts it out
+      of the source artwork, and requiring Node to build a .NET program would be a poor
+      trade for one file that changes when the logo does. It carries 16 through 256 so
+      Windows has a size to pick rather than resampling one.
+    -->
+    <ApplicationIcon>..\brand\dist\icons\tabbit.ico</ApplicationIcon>
+
+    <!--
       Debug information goes inside the assembly rather than beside it, so a published
       directory is the program and nothing else.
     -->

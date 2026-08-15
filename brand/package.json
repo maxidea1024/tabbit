@@ -1,0 +1,17 @@
+{
+  "name": "tabbit-brand",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "원본 시안에서 파비콘·실행 파일 아이콘·소셜 카드를 만듭니다.",
+  "scripts": {
+    "build": "node build-assets.mjs",
+    "inspect": "node inspect.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.35.3"
+  },
+  "engines": {
+    "node": ">=20.0"
+  }
+}

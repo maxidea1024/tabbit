@@ -1,4 +1,4 @@
-# The .xlsb workbooks of samples/named-range, saved as .xlsx so NPOI can read them.
+# The .xlsb workbooks of samples/named-range, saved as .xlsx so the workbook reader can read them.
 #
 # Derived, not authored, and about twice the size - 104 MB against the 55 MB of .xlsb
 # they come from. samples/named-range/convert-xlsb.ps1 regenerates them and says why the
@@ -217,3 +217,7 @@ test/fixtures/validation/*/.build/
 # 723 KB each, changed and re-committed whenever that package moves. The samples and side-by-side
 # still carry theirs, which is where the claim is demonstrated.
 test/fixtures/validation/*/lib/
+
+# 브랜드 파생본은 커밋합니다. 위쪽 유니티 템플릿의 `dist/` 규칙에서 되살립니다 —
+# `.csproj`가 실행 파일 아이콘으로 참조하므로, 이것이 없으면 .NET 빌드에 Node가 필요해집니다.
+!brand/dist/
