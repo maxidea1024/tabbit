@@ -16,33 +16,46 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/conformance/binary",
-        "FileExtension": ".tcb",
-
-        // Signed, so that every harness walks the MAC path over a file the converter
-        // actually wrote rather than one a test built. The key is committed beside the
-        // fixtures and protects nothing - what it buys is that the thirteen readers can
-        // be handed the same signed corpus without a variable to remember.
-        // test/fixtures/keys/readme.md · spec/tcb-mac-and-signature.md.
-        "MacKeyFile": "test/fixtures/keys/conformance-mac.key"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/conformance/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ]
-  },
-
-  // Go is reached through the dynamic target list rather than a section of its own,
-  // which is what that list is for: a language added after it costs its own files and
-  // touches nothing existing.
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/conformance/binary",
+      "FileExtension": ".tcb",
+
+      // Signed, so that every harness walks the MAC path over a file the converter
+      // actually wrote rather than one a test built. The key is committed beside the
+      // fixtures and protects nothing - what it buys is that the thirteen readers can
+      // be handed the same signed corpus without a variable to remember.
+      // test/fixtures/keys/readme.md · spec/tcb-mac-and-signature.md.
+      "MacKeyFile": "test/fixtures/keys/conformance-mac.key"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/conformance/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/conformance/cpp",
+      "Namespace": "tabbit_conformance",
+      "AccessorName": "ConformanceAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/conformance/csharp",
+      "Namespace": "Tabbit.Conformance",
+      "AccessorName": "ConformanceAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/conformance/typescript"
+    },
+
+    // Go is reached through the dynamic target list rather than a section of its own,
+    // which is what that list is for: a language added after it costs its own files and
+    // touches nothing existing.
     // Not for the corpus's own sake: it is what CorpusCoverageTests reads to ask whether every
     // value type a field can hold is actually in here. A type nobody put in the corpus is a
     // type no language's reader is ever run against.
@@ -50,7 +63,6 @@
       "Type": "summary",
       "Path": "test/fixtures/output/conformance/summary"
     },
-
     {
       "Type": "go",
       "Path": "test/fixtures/output/conformance/go",
@@ -121,28 +133,5 @@
       "AccessorName": "ConformanceData",
       "BinaryTableFileExtension": ".tcb"
     }
-  ],
-
-  "CodeGenerations": {
-    "Cpp": [
-      {
-        "Path": "test/fixtures/output/conformance/cpp",
-        "Namespace": "tabbit_conformance",
-        "AccessorName": "ConformanceAccessor",
-        "BinaryTableFileExtension": ".tcb"
-      }
-    ],
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/conformance/csharp",
-        "Namespace": "Tabbit.Conformance",
-        "AccessorName": "ConformanceAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/conformance/typescript"
-      }
-    ]
-  }
+  ]
 }

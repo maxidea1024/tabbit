@@ -14,6 +14,98 @@ using Tabbit.Extensions;
 namespace Tabbit.CodeGeneration;
 
 /// <summary>
+/// C# source. Reads the binary export, and is Unity-compatible.
+/// </summary>
+public class CSharpRecipe : IOutputRecipe
+{
+    /// <summary>Output directory. Created if it does not exist.</summary>
+    public string Path { get; set; } = "";
+
+    /// <summary>
+    /// Name of the generated accessor, which also names the file it lands in.
+    ///
+    /// The other generated types are files of their own beside it, named after
+    /// themselves - a table, an enum and a constant set each get one.
+    /// </summary>
+    public string AccessorName { get; set; } = "Tables";
+
+    /// <summary>
+    /// Namespace to wrap the generated code in. Omitting it puts everything
+    /// in the global namespace, where the names may collide with something.
+    /// </summary>
+    public string Namespace { get; set; } = "";
+
+    /// <summary>
+    /// Whether to write the generated C# as sources or as one compiled assembly.
+    /// </summary>
+    /// <remarks>
+    /// `"source"` by default, which is the folder of files a project includes.
+    /// `"assembly"` writes a `.dll` instead - for a project that checks the output in and
+    /// reads it rather than edits it, where a hundred generated files are noise in every
+    /// diff and every search.
+    ///
+    /// The two are exclusive. Reading the code is what any IDE's decompiler does, and
+    /// stepping into it works because the symbols are inside the assembly, so there is
+    /// nothing the pair would give that one does not.
+    ///
+    /// **Unity still gets one source file.** The adapter names `UnityEngine`, which only
+    /// the engine's own compiler resolves, so it is written beside the assembly either
+    /// way - and so is the updater, for the same reason.
+    /// </remarks>
+    public string Output { get; set; } = "source";
+
+    /// <summary>
+    /// Name of the assembly, when <see cref="Output"/> asks for one.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to the namespace, or to the accessor's name when there is none, so the
+    /// file is called after what a consumer types.
+    /// </remarks>
+    public string AssemblyName { get; set; } = "";
+
+    /// <summary>
+    /// Extension the generated reader expects on table files. Must match the
+    /// binary export's FileExtension.
+    /// </summary>
+    public string BinaryTableFileExtension { get; set; } = ".tcb";
+
+    /// <summary>
+    /// Whether to write the data updater beside the reader.
+    ///
+    /// It fetches the manifest and the changed data files over HTTP and keeps a
+    /// local copy current, so a build can take new data without shipping a new
+    /// binary. Off by default: a project that ships its data inside the build has
+    /// no use for it, and a file nobody calls is a file to explain.
+    /// </summary>
+    public bool WriteUpdater { get; set; } = false;
+
+    /// <summary>
+    /// Whether generated files this run did not write are removed from
+    /// <see cref="Path"/>.
+    /// </summary>
+    /// <remarks>
+    /// On, because the output is a file per table: delete a table from the sheets
+    /// and its file stays behind naming types nothing declares any more. Only
+    /// files carrying this tool's own header are removed, so a directory holding
+    /// your own source is safe.
+    ///
+    /// Turn it off if you edit the generated files, which is a decision worth a
+    /// line in a recipe.
+    /// </remarks>
+    public bool Sweep { get; set; } = true;
+
+    /// <summary>
+    /// Which side this output is built for: "c", "s", or "cs"/blank for
+    /// both. Entities and fields marked for the other side are left out.
+    ///
+    /// Declare the same side on the exporter and on the code generator
+    /// that reads its files: the two must agree on the column set or the
+    /// generated reader will not match the data.
+    /// </summary>
+    public string TargetSide { get; set; } = "cs";
+}
+
+/// <summary>
 /// Emits a single self-contained C# file per recipe entry, plus the binary reader.
 ///
 /// The file's shape lives in templates/csharp.sbn. This file works out the values that
@@ -24,13 +116,13 @@ namespace Tabbit.CodeGeneration;
 /// verbatim string constants in a Snippets file, indented at run time by the printer's
 /// scope, which is why they carried their own escaping for `$` and `"`.
 /// </summary>
-[TabbitTarget("csharp", TargetKind.CodeGeneration, Section = "CodeGenerations.CSharp", Order = 20)]
-public class CsCodeGenerator : CodeGenerator<RecipeModel.CodeGenerationRecipeGroup.CSharpRecipe>
+[TabbitTarget("csharp", TargetKind.CodeGeneration, Order = 20)]
+public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 {
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
-    private RecipeModel.CodeGenerationRecipeGroup.CSharpRecipe _csharpReceipe = null!;
+    private CSharpRecipe _csharpReceipe = null!;
 
     /// <summary>
     /// A record group generates a struct and an array of it; a member column fills one of
@@ -59,7 +151,7 @@ public class CsCodeGenerator : CodeGenerator<RecipeModel.CodeGenerationRecipeGro
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
-    protected override void Run(TargetContext context, RecipeModel.CodeGenerationRecipeGroup.CSharpRecipe csharpRecipe)
+    protected override void Run(TargetContext context, CSharpRecipe csharpRecipe)
     {
         // A blank path means the entry is inert - which is what every list in the
         // skeleton recipe holds. Without this, `Path.Combine("", "GameData.cs")` is a

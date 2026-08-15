@@ -13,27 +13,40 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/reserved-words/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/reserved-words/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ]
-  },
-
-  // The seven languages that have no section of their own. Every one of them is
-  // compiled from this fixture: what a generator does with a name that collides with a
-  // keyword is a question only a compiler can answer, and the three that were checked
-  // here before were the three whose answer somebody had already guessed at.
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/reserved-words/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/reserved-words/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/reserved-words/cpp",
+      "Namespace": "tabbit_fixtures::reserved",
+      "AccessorName": "ReservedAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/reserved-words/csharp",
+      "Namespace": "Tabbit.Fixtures.Reserved",
+      "AccessorName": "ReservedAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/reserved-words/typescript"
+    },
+
+    // The seven languages that have no section of their own. Every one of them is
+    // compiled from this fixture: what a generator does with a name that collides with a
+    // keyword is a question only a compiler can answer, and the three that were checked
+    // here before were the three whose answer somebody had already guessed at.
     { "Type": "go", "Path": "test/fixtures/output/reserved-words/go",
       "PackageName": "reserved", "ModulePath": "reserved" },
     { "Type": "rust", "Path": "test/fixtures/output/reserved-words/rust",
@@ -67,28 +80,5 @@
     // index page's empty columns had no test on them. Three golden trees had been recording
     // the empty list as correct.
     { "Type": "html", "Path": "test/fixtures/output/reserved-words/html" }
-  ],
-
-  "CodeGenerations": {
-    "Cpp": [
-      {
-        "Path": "test/fixtures/output/reserved-words/cpp",
-        "Namespace": "tabbit_fixtures::reserved",
-        "AccessorName": "ReservedAccessor",
-        "BinaryTableFileExtension": ".tcb"
-      }
-    ],
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/reserved-words/csharp",
-        "Namespace": "Tabbit.Fixtures.Reserved",
-        "AccessorName": "ReservedAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/reserved-words/typescript"
-      }
-    ]
-  }
+  ]
 }

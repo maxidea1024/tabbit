@@ -24,45 +24,28 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Binary": [],
-    "Json": [],
-
-    "MySql": [
-      {
-        "ConnectionString": "Server=127.0.0.1;Port=${TABBIT_TEST_MYSQL_PORT};Database=tabbit_test;Uid=root;Pwd=${TABBIT_TEST_DB_PASSWORD}",
-        "NamePrefix": "tb_"
-      }
-    ],
-
-    "PostgreSql": [
-      {
-        "ConnectionString": "Host=127.0.0.1;Port=${TABBIT_TEST_POSTGRES_PORT};Database=tabbit_test;Username=postgres;Password=${TABBIT_TEST_DB_PASSWORD}",
-        "Schema": "tabbit",
-        "NamePrefix": "tb_"
-      }
-    ],
-
-    "MongoDb": [
-      {
-        "ConnectionString": "mongodb://127.0.0.1:${TABBIT_TEST_MONGO_PORT}/tabbit_test",
-        "NamePrefix": "tb_"
-      }
-    ],
-
-    "Redis": [
-      {
-        "ConnectionString": "127.0.0.1:${TABBIT_TEST_REDIS_PORT}",
-        "Database": 0,
-        "NamePrefix": "tb_"
-      }
-    ]
-  },
-
-  "CodeGenerations": {
-    "Cpp": [],
-    "CSharp": [],
-    "Typescript": [],
-    "Html": []
-  }
+  "Targets": [
+    {
+      "Type": "mysql",
+      "ConnectionString": "Server=127.0.0.1;Port=${TABBIT_TEST_MYSQL_PORT};Database=tabbit_test;Uid=root;Pwd=${TABBIT_TEST_DB_PASSWORD}",
+      "NamePrefix": "tb_"
+    },
+    {
+      "Type": "postgresql",
+      "ConnectionString": "Host=127.0.0.1;Port=${TABBIT_TEST_POSTGRES_PORT};Database=tabbit_test;Username=postgres;Password=${TABBIT_TEST_DB_PASSWORD}",
+      "Schema": "tabbit",
+      "NamePrefix": "tb_"
+    },
+    {
+      "Type": "mongodb",
+      "ConnectionString": "mongodb://127.0.0.1:${TABBIT_TEST_MONGO_PORT}/tabbit_test",
+      "NamePrefix": "tb_"
+    },
+    {
+      "Type": "redis",
+      "ConnectionString": "127.0.0.1:${TABBIT_TEST_REDIS_PORT}",
+      "Database": 0,
+      "NamePrefix": "tb_"
+    }
+  ]
 }

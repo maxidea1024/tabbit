@@ -16,17 +16,18 @@ namespace Tabbit.Recipe;
 /// Writes the starting recipe that `--new-recipe` produces.
 ///
 /// It used to serialize a default <see cref="RecipeModel"/>, which meant every list came
-/// out as `[]`. That names the sections but not the settings, so the reader learns that
-/// `Exports.Binary` exists and nothing about what belongs in it - the note left on the
-/// option said as much.
+/// out as `[]`. That names the lists but not the settings, so the reader learns that
+/// sources exist and nothing about what belongs in one - the note left on the option said
+/// as much.
 ///
 /// So each list gets one entry with its defaults filled in, and the file opens with the
 /// registered source and target ids. Every field is then visible with the value it would
 /// take, and an entry left as-is is inert: a blank path or connection string is how a
 /// target is switched off.
 ///
-/// The entries are produced by walking the model rather than from a template, so a
-/// setting added to the model appears here without anyone remembering to add it.
+/// Sources come from walking the model and targets from the registry, so neither a
+/// setting added to a source nor a target added to the assembly needs anyone to remember
+/// this file.
 /// </summary>
 internal static class RecipeSkeleton
 {
@@ -92,10 +93,35 @@ internal static class RecipeSkeleton
         var recipe = new RecipeModel();
 
         FillLists(recipe);
+        FillTargets(recipe);
 
         string json = JsonConvert.SerializeObject(recipe, Formatting.Indented);
 
         File.WriteAllText(filename, Header() + json + Environment.NewLine);
+    }
+
+    /// <summary>
+    /// Gives `Targets` one default entry per registered target, each named by its id.
+    /// </summary>
+    /// <remarks>
+    /// From the registry rather than from the model, because the model no longer names
+    /// any target - which is the point of the `Targets` list, and the reason this had to
+    /// stop being a reflection walk. It is also what makes the skeleton complete: while
+    /// ten targets had a section of their own and thirteen did not, walking the model
+    /// showed the settings of the ten and left the rest to a line of prose in the header.
+    /// </remarks>
+    private static void FillTargets(RecipeModel recipe)
+    {
+        foreach (var descriptor in TargetRegistry.All)
+        {
+            var entry = JObject.FromObject(Activator.CreateInstance(descriptor.EntryType)!);
+
+            // First, because `Type` is what a reader looks for to know which target the
+            // rest of the object belongs to.
+            entry.AddFirst(new JProperty("Type", descriptor.Id));
+
+            recipe.Targets.Add(entry);
+        }
     }
 
     private static string Header()
@@ -106,15 +132,11 @@ internal static class RecipeSkeleton
         header.AppendLine("//");
         header.AppendLine("// `//` comments are allowed anywhere in this file.");
         header.AppendLine("//");
-        header.AppendLine("// Each list below holds one entry with its default settings, so that every option");
-        header.AppendLine("// is visible. Fill in the ones you want and delete the rest - though an entry with");
-        header.AppendLine("// a blank Path or ConnectionString is treated as switched off, so leaving one in");
-        header.AppendLine("// place costs nothing.");
-        header.AppendLine("//");
-        header.AppendLine("// Output can also be listed by target name, which is the only form available to");
-        header.AppendLine("// targets that have no section of their own:");
-        header.AppendLine("//");
-        header.AppendLine("//   \"Targets\": [ { \"Type\": \"csharp\", \"Path\": \"./out/cs\" } ]");
+        header.AppendLine("// `Targets` holds one entry per registered target, with every setting at its");
+        header.AppendLine("// default so that all of them are visible. `Type` names the target and the rest");
+        header.AppendLine("// are that target's own settings. Delete the ones you do not want - though an");
+        header.AppendLine("// entry with a blank Path or ConnectionString is treated as switched off, so");
+        header.AppendLine("// leaving one in place costs nothing.");
         header.AppendLine("//");
         header.AppendLine($"// Sources: {SourceRegistry.KnownIds}");
         header.AppendLine($"// Targets: {TargetRegistry.KnownIds}");
@@ -156,9 +178,9 @@ internal static class RecipeSkeleton
                 var elementType = type.GetGenericArguments()[0];
 
                 // `Targets` holds raw JSON, because its element type is not known until
-                // the entry's `Type` is read. An empty object here would be a `Targets`
-                // entry naming no target, which the registry rejects - so the header
-                // shows the shape instead.
+                // the entry's `Type` is read. A default-constructed JObject would be an
+                // entry naming no target, which the registry rejects - `FillTargets`
+                // fills this list from the registry instead.
                 if (elementType == typeof(JObject))
                     continue;
 
@@ -184,8 +206,8 @@ internal static class RecipeSkeleton
         => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
 
     /// <summary>
-    /// One of the recipe's own grouping objects - `Sources`, `Exports`, `CodeGenerations`
-    /// - as opposed to a setting.
+    /// One of the recipe's own grouping objects - `Sources`, `Assets` - as opposed to a
+    /// setting.
     /// </summary>
     private static bool IsRecipeGroup(Type type)
         => type.IsClass

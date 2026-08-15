@@ -18,16 +18,12 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/unreal/binary",
-        "FileExtension": ".tcb"
-      }
-    ]
-  },
-
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/unreal/binary",
+      "FileExtension": ".tcb"
+    },
     {
       "Type": "unreal",
       "Path": "test/fixtures/output/unreal/Source",

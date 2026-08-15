@@ -30,19 +30,18 @@
 ## recipe 설정
 
 ```jsonc
-"CodeGenerations": {
-  "Cpp": [
-    {
-      "Path": "src/generated",
-      "Namespace": "mygame::data",   // 비우면 전역 네임스페이스
-      "AccessorName": "GameData",
-      "BinaryTableFileExtension": ".tcb",
-      "WriteUpdater": false,          // CDN에서 데이터를 갱신할 거라면 true
-      "Sweep": true,
-      "TargetSide": "s"
-    }
-  ]
-}
+"Targets": [
+  {
+    "Type": "cpp",
+    "Path": "src/generated",
+    "Namespace": "mygame::data",   // 비우면 전역 네임스페이스
+    "AccessorName": "GameData",
+    "BinaryTableFileExtension": ".tcb",
+    "WriteUpdater": false,          // CDN에서 데이터를 갱신할 거라면 true
+    "Sweep": true,
+    "TargetSide": "s"
+  }
+]
 ```
 
 ## 쓰는 법

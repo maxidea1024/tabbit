@@ -27,31 +27,43 @@
     "GoogleSheets": []
   },
 
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/nested/csharp",
-        "Namespace": "Tabbit.Fixtures.Nested",
-        "AccessorName": "NestedAccessor"
-      }
-    ],
-    "Cpp": [
-      {
-        "Path": "test/fixtures/output/nested/cpp",
-        "AccessorName": "NestedAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/nested/typescript"
-      }
-    ]
-  },
-
-  // The Unreal target is reached through `Targets` - it has no recipe section of its own.
-  // Here so UHT sees the generated USTRUCTs: what a golden tree cannot answer is whether
-  // the header tool accepts them, and that is the whole question for a record group.
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/nested/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/nested/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/nested/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/nested/csharp",
+      "Namespace": "Tabbit.Fixtures.Nested",
+      "AccessorName": "NestedAccessor"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/nested/cpp",
+      "AccessorName": "NestedAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/nested/typescript"
+    },
+
+    // The Unreal target is reached through `Targets` - it has no recipe section of its own.
+    // Here so UHT sees the generated USTRUCTs: what a golden tree cannot answer is whether
+    // the header tool accepts them, and that is the whole question for a record group.
     {
       // Go has no recipe section either - the targets added since the `Targets` list
       // exists are reached only through it.
@@ -110,28 +122,5 @@
       "AccessorName": "FNested",
       "BinaryTableFileExtension": ".tcb"
     }
-  ],
-
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/nested/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/nested/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true
-      },
-      {
-        "Path": "test/fixtures/output/nested/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  }
+  ]
 }

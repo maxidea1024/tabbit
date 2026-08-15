@@ -34,20 +34,19 @@
 ## recipe 설정
 
 ```jsonc
-"CodeGenerations": {
-  "CSharp": [
-    {
-      "Path": "Assets/Scripts/Generated",
-      "Namespace": "MyGame.Data",       // 비우면 전역 네임스페이스
-      "AccessorName": "GameData",       // 기본값 Tables. 타입과 파일 이름이 모두 이것입니다
-      "Output": "source",               // "assembly" 로 두면 .dll 하나로 나옵니다
-      "BinaryTableFileExtension": ".bytes",
-      "WriteUpdater": false,            // CDN에서 데이터를 갱신할 거라면 true
-      "Sweep": true,
-      "TargetSide": "c"
-    }
-  ]
-}
+"Targets": [
+  {
+    "Type": "csharp",
+    "Path": "Assets/Scripts/Generated",
+    "Namespace": "MyGame.Data",       // 비우면 전역 네임스페이스
+    "AccessorName": "GameData",       // 기본값 Tables. 타입과 파일 이름이 모두 이것입니다
+    "Output": "source",               // "assembly" 로 두면 .dll 하나로 나옵니다
+    "BinaryTableFileExtension": ".bytes",
+    "WriteUpdater": false,            // CDN에서 데이터를 갱신할 거라면 true
+    "Sweep": true,
+    "TargetSide": "c"
+  }
+]
 ```
 
 ## 프로젝트에 넣기

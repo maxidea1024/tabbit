@@ -25,12 +25,11 @@
     "EmitIdeProject": false
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/validation-wrong-stage-pre/json",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/validation-wrong-stage-pre/json",
+      "Indented": true
+    }
+  ]
 }

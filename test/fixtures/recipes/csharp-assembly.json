@@ -15,22 +15,17 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/csharp-assembly/binary"
-      }
-    ]
-  },
-
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/csharp-assembly/cs",
-        "Namespace": "Tabbit.Fixtures.Assembly",
-        "AccessorName": "CoreAccessor",
-        "Output": "assembly"
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/csharp-assembly/binary"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/csharp-assembly/cs",
+      "Namespace": "Tabbit.Fixtures.Assembly",
+      "AccessorName": "CoreAccessor",
+      "Output": "assembly"
+    }
+  ]
 }

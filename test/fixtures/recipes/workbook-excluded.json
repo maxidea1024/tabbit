@@ -15,12 +15,11 @@
     ]
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/workbook-excluded/json",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/workbook-excluded/json",
+      "Indented": true
+    }
+  ]
 }

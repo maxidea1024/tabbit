@@ -45,13 +45,19 @@
 
   // No binary export here. It is the runtime format and it is covered by the golden
   // tree; what it is not is reviewable - a .tcb in a diff says nothing to anybody.
-  "Exports": {
-    "Json": [
-      { "Path": "side-by-side/json", "UseCompactRowFormat": false, "Indented": true }
-    ]
-  },
-
   "Targets": [
+    { "Type": "json", "Path": "side-by-side/json", "UseCompactRowFormat": false, "Indented": true },
+    {
+      "Type": "cpp",
+      "Path": "side-by-side/cpp",
+      "Namespace": "x",
+      "AccessorName": "A",
+      "BinaryTableFileExtension": ".tcb",
+      "WriteUpdater": true
+    },
+    { "Type": "csharp", "Path": "side-by-side/csharp", "Namespace": "X", "AccessorName": "A", "WriteUpdater": true },
+    { "Type": "typescript", "Path": "side-by-side/ts", "WriteUpdater": true },
+    { "Type": "html", "Path": "side-by-side/html" },
     { "Type": "go", "Path": "side-by-side/go", "PackageName": "x", "ModulePath": "x", "WriteUpdater": true },
     { "Type": "rust", "Path": "side-by-side/rust", "CrateName": "x", "WriteUpdater": true },
     { "Type": "python", "Path": "side-by-side/python", "PackageName": "x", "WriteUpdater": true },
@@ -67,26 +73,5 @@
     // `Author: none` because this file is committed: a name and an e-mail address
     // are personal data, and nothing here needs them.
     { "Type": "summary", "Path": "side-by-side/summary", "Author": "none" }
-  ],
-
-  "CodeGenerations": {
-    "Cpp": [
-      {
-        "Path": "side-by-side/cpp",
-        "Namespace": "x",
-        "AccessorName": "A",
-        "BinaryTableFileExtension": ".tcb",
-        "WriteUpdater": true
-      }
-    ],
-    "CSharp": [
-      { "Path": "side-by-side/csharp", "Namespace": "X", "AccessorName": "A", "WriteUpdater": true }
-    ],
-    "Typescript": [
-      { "Path": "side-by-side/ts", "WriteUpdater": true }
-    ],
-    "Html": [
-      { "Path": "side-by-side/html" }
-    ]
-  }
+  ]
 }

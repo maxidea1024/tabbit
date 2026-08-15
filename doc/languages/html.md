@@ -19,11 +19,9 @@
 ## recipe 설정
 
 ```jsonc
-"CodeGenerations": {
-  "Html": [
-    { "Path": "docs/data", "Sweep": true, "TargetSide": "cs" }
-  ]
-}
+"Targets": [
+  { "Type": "html", "Path": "docs/data", "Sweep": true, "TargetSide": "cs" }
+]
 ```
 
 `TargetSide`를 `"c"`나 `"s"`로 두면 그쪽에만 가는 엔티티와 필드만 문서에 나옵니다.

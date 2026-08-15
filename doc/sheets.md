@@ -788,12 +788,10 @@ Loadout.Record.Slot_N; // 2
 그리고 recipe의 각 출력 항목에 `TargetSide`를 지정하면 그쪽에 맞는 것만 출력됩니다.
 
 ```json
-"CodeGenerations": {
-  "CSharp": [
-    { "Path": "./server/generated", "TargetSide": "s" },
-    { "Path": "./client/generated", "TargetSide": "c" }
-  ]
-}
+"Targets": [
+  { "Type": "csharp", "Path": "./server/generated", "TargetSide": "s" },
+  { "Type": "csharp", "Path": "./client/generated", "TargetSide": "c" }
+]
 ```
 
 기본값이 `cs`(전체)이므로, `TargetSide`를 지정하지 않은 기존 recipe의 출력은 달라지지 않습니다.

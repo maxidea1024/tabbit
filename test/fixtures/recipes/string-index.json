@@ -19,35 +19,26 @@
     "GoogleSheets": []
   },
 
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/string-index/csharp",
-        "Namespace": "Tabbit.Fixtures.StringIndex",
-        "AccessorName": "StringIndexAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/string-index/typescript"
-      }
-    ]
-  },
-
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/string-index/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/string-index/json",
-        "Indented": true
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/string-index/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/string-index/json",
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/string-index/csharp",
+      "Namespace": "Tabbit.Fixtures.StringIndex",
+      "AccessorName": "StringIndexAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/string-index/typescript"
+    }
+  ]
 }

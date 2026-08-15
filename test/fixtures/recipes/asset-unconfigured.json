@@ -16,12 +16,11 @@
     ]
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/asset-unconfigured/json-named",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/asset-unconfigured/json-named",
+      "Indented": true
+    }
+  ]
 }

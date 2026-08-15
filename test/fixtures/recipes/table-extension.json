@@ -19,16 +19,16 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/table-extension/binary",
-        "FileExtension": ".bytes"
-      }
-    ]
-  },
-
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/table-extension/binary",
+      "FileExtension": ".bytes"
+    },
+    { "Type": "cpp", "Path": "test/fixtures/output/table-extension/cpp",
+      "Namespace": "x", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" },
+    { "Type": "csharp", "Path": "test/fixtures/output/table-extension/csharp",
+      "Namespace": "X", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" },
     { "Type": "go", "Path": "test/fixtures/output/table-extension/go",
       "PackageName": "x", "ModulePath": "x", "BinaryTableFileExtension": ".bytes" },
     { "Type": "rust", "Path": "test/fixtures/output/table-extension/rust",
@@ -49,16 +49,5 @@
       "Namespace": "X", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" },
     { "Type": "unreal", "Path": "test/fixtures/output/table-extension/unreal",
       "ModuleName": "X", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" }
-  ],
-
-  "CodeGenerations": {
-    "Cpp": [
-      { "Path": "test/fixtures/output/table-extension/cpp",
-        "Namespace": "x", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" }
-    ],
-    "CSharp": [
-      { "Path": "test/fixtures/output/table-extension/csharp",
-        "Namespace": "X", "AccessorName": "A", "BinaryTableFileExtension": ".bytes" }
-    ]
-  }
+  ]
 }

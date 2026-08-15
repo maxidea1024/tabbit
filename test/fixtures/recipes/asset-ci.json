@@ -27,12 +27,11 @@
     "TreatWarningsAsErrors": true
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/asset-ci/json-named",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/asset-ci/json-named",
+      "Indented": true
+    }
+  ]
 }

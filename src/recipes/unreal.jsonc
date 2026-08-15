@@ -17,18 +17,14 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        // Content/ 아래일 필요는 없습니다. 애셋이 아니니까요.
-        "Path": "./Content/Data",
-        "FileExtension": ".tcb",
-        "TargetSide": "c"
-      }
-    ]
-  },
-
   "Targets": [
+    {
+      "Type": "binary",
+      // Content/ 아래일 필요는 없습니다. 애셋이 아니니까요.
+      "Path": "./Content/Data",
+      "FileExtension": ".tcb",
+      "TargetSide": "c"
+    },
     {
       "Type": "unreal",
 

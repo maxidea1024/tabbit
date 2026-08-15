@@ -11,6 +11,15 @@ using Tabbit.Targets;
 namespace Tabbit.Exporters;
 
 /// <summary>
+/// Redis target. One hash per row, plus an index set per table.
+/// </summary>
+public class RedisRecipe : DatabaseRecipe
+{
+    /// <summary>Database number to select on the server.</summary>
+    public int Database { get; set; } = 0;
+}
+
+/// <summary>
 /// Loads the cooked tables into Redis.
 ///
 /// Layout per table `Item`:
@@ -23,8 +32,8 @@ namespace Tabbit.Exporters;
 /// whole new one. Redis has no notion of a table to swap, so the swap is done key
 /// by key within that one atomic block.
 /// </summary>
-[TabbitTarget("redis", TargetKind.Export, Section = "Exports.Redis", Order = 60)]
-public class RedisExporter : DatabaseExporterBase<RecipeModel.ExportRecipeGroup.RedisRecipe>
+[TabbitTarget("redis", TargetKind.Export, Order = 60)]
+public class RedisExporter : DatabaseExporterBase<RedisRecipe>
 {
     protected override string TargetName => "Redis";
 
@@ -32,9 +41,9 @@ public class RedisExporter : DatabaseExporterBase<RecipeModel.ExportRecipeGroup.
     private const string IndexKeySuffix = ":index";
 
 
-    protected override void ExportTo(RecipeModel.ExportRecipeGroup.DatabaseRecipe recipe, Model model)
+    protected override void ExportTo(DatabaseRecipe recipe, Model model)
     {
-        var redisRecipe = (RecipeModel.ExportRecipeGroup.RedisRecipe)recipe;
+        var redisRecipe = (RedisRecipe)recipe;
 
         string connectionString = ConnectionString.Resolve(recipe.ConnectionString, RecipeSection);
 

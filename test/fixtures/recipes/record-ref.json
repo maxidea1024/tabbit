@@ -28,31 +28,43 @@
     "GoogleSheets": []
   },
 
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/record-ref/csharp",
-        "Namespace": "Tabbit.Fixtures.RecordRef",
-        "AccessorName": "RecordRefAccessor"
-      }
-    ],
-    "Typescript": [
-      { "Path": "test/fixtures/output/record-ref/typescript" }
-    ],
-    "Cpp": [
-      {
-        "Path": "test/fixtures/output/record-ref/cpp",
-        "Namespace": "record_ref",
-        "AccessorName": "RecordRefAccessor",
-        "BinaryTableFileExtension": ".tcb"
-      }
-    ]
-  },
-
-  // The rest of the languages. A reference member changes the element type every one of
-  // them declares, so one that gets it wrong emits a struct whose members do not line up
-  // with the read - and only generating them all says which.
   "Targets": [
+    { "Type": "binary", "Path": "test/fixtures/output/record-ref/binary", "FileExtension": ".tcb" },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/record-ref/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+
+    // The compact row too, because it takes a different path: it is positional over the
+    // wire columns, and a reference member is one. Reading it as the row it resolves to
+    // rather than as the key would take an entry meant for the key and put it where the
+    // linking pass writes.
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/record-ref/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/record-ref/csharp",
+      "Namespace": "Tabbit.Fixtures.RecordRef",
+      "AccessorName": "RecordRefAccessor"
+    },
+    { "Type": "typescript", "Path": "test/fixtures/output/record-ref/typescript" },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/record-ref/cpp",
+      "Namespace": "record_ref",
+      "AccessorName": "RecordRefAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+
+    // The rest of the languages. A reference member changes the element type every one of
+    // them declares, so one that gets it wrong emits a struct whose members do not line up
+    // with the read - and only generating them all says which.
     { "Type": "go", "Path": "test/fixtures/output/record-ref/go", "PackageName": "recordref", "ModulePath": "recordref" },
     { "Type": "rust", "Path": "test/fixtures/output/record-ref/rust", "CrateName": "record_ref" },
     { "Type": "python", "Path": "test/fixtures/output/record-ref/python", "PackageName": "record_ref_data" },
@@ -63,28 +75,5 @@
     { "Type": "unreal", "Path": "test/fixtures/output/record-ref/unreal", "ModuleName": "RecordRefData", "AccessorName": "FRecordRefData" },
     { "Type": "c", "Path": "test/fixtures/output/record-ref/c", "AccessorName": "RecordRef" },
     { "Type": "php", "Path": "test/fixtures/output/record-ref/php", "Namespace": "Tabbit\\Fixtures\\RecordRef", "AccessorName": "RecordRefAccessor" }
-  ],
-
-  "Exports": {
-    "Binary": [
-      { "Path": "test/fixtures/output/record-ref/binary", "FileExtension": ".tcb" }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/record-ref/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      },
-
-      // The compact row too, because it takes a different path: it is positional over the
-      // wire columns, and a reference member is one. Reading it as the row it resolves to
-      // rather than as the key would take an entry meant for the key and put it where the
-      // linking pass writes.
-      {
-        "Path": "test/fixtures/output/record-ref/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true
-      }
-    ]
-  }
+  ]
 }

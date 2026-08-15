@@ -16,12 +16,11 @@
     ]
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/workbook-scoped-sheet-elsewhere/json",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/workbook-scoped-sheet-elsewhere/json",
+      "Indented": true
+    }
+  ]
 }

@@ -24,71 +24,59 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/core/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/core/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true
-      },
-      {
-        "Path": "test/fixtures/output/core/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  },
-
-  // The summary describes the whole model rather than producing anything a build
-  // consumes, so it is the one target that reads the unnarrowed model.
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/core/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/core/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/core/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/core/cpp",
+      "Namespace": "tabbit_fixtures::core",
+      "AccessorName": "CoreAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/core/csharp",
+
+      // On here so the regression suite compiles it - including the Unity branches, which
+      // reach UnityWebRequest and are the ones no plain build ever sees.
+      "WriteUpdater": true,
+      "Namespace": "Tabbit.Fixtures.Core",
+      "AccessorName": "CoreAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/core/typescript",
+
+      // On here so the updater is type-checked and compiled by the TypeScript gates.
+      "WriteUpdater": true
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/core/html"
+    },
+
+    // The summary describes the whole model rather than producing anything a build
+    // consumes, so it is the one target that reads the unnarrowed model.
     {
       "Type": "summary",
       "Path": "test/fixtures/output/core/summary",
       "TargetSide": "cs"
     }
-  ],
-
-  "CodeGenerations": {
-    "Cpp": [
-      {
-        "Path": "test/fixtures/output/core/cpp",
-        "Namespace": "tabbit_fixtures::core",
-        "AccessorName": "CoreAccessor",
-        "BinaryTableFileExtension": ".tcb"
-      }
-    ],
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/core/csharp",
-
-        // On here so the regression suite compiles it - including the Unity branches, which
-        // reach UnityWebRequest and are the ones no plain build ever sees.
-        "WriteUpdater": true,
-        "Namespace": "Tabbit.Fixtures.Core",
-        "AccessorName": "CoreAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/core/typescript",
-
-        // On here so the updater is type-checked and compiled by the TypeScript gates.
-        "WriteUpdater": true
-      }
-    ],
-    "Html": [
-      {
-        "Path": "test/fixtures/output/core/html"
-      }
-    ]
-  }
+  ]
 }

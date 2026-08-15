@@ -62,20 +62,6 @@ public sealed class TabbitTargetAttribute : Attribute
     public TargetKind Kind { get; }
 
     /// <summary>
-    /// Dotted path of the target's own recipe section, such as `Exports.Binary`.
-    ///
-    /// Optional. The targets that predate the `Targets` list have one; a target added
-    /// since is reached only through `Targets` and leaves this unset, which is what
-    /// keeps a new language from having to extend
-    /// <see cref="Recipe.RecipeModel"/>.
-    ///
-    /// The registry reads the section through this rather than asking the target for
-    /// its entries, so a target cannot name one section here and read another. It is
-    /// resolved and type-checked against the target's entry type at startup.
-    /// </summary>
-    public string? Section { get; set; }
-
-    /// <summary>
     /// Sort key within a kind; lower runs first. Ties break on <see cref="Id"/> so the
     /// order is total and a run's log is reproducible.
     ///

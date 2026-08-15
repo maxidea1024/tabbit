@@ -17,9 +17,6 @@ namespace Tabbit.CodeGeneration;
 
 /// <summary>
 /// Settings for the Rust target.
-///
-/// Declared beside its generator and reached through the recipe's `Targets` list, as
-/// the Go one is.
 /// </summary>
 public sealed class RustRecipe : IOutputRecipe
 {

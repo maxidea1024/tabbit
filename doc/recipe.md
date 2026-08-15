@@ -172,21 +172,9 @@
 
 모든 레이아웃에 해당하는 설정은 위의 정식 키로 들어갑니다. 특정 프로젝트의 설정이 이름째로 recipe 스키마에 들어가면 그 레이아웃을 지울 때 스키마와 문서에 흔적이 남기 때문입니다 — [설계 원칙](architecture.md#설계-원칙--코어에-프로젝트-이름-금지).
 
-### 출력 항목 공통 설정
+### `Targets` — 이 변환이 내는 것 전부
 
-모든 출력 항목(`Exports`, `CodeGenerations`)은 아래를 지원합니다.
-
-|키|기본값|설명|
-|--|--|--|
-|`TargetSide`|`"cs"`|이 출력이 어느 쪽을 위한 것인지. `"c"`(클라), `"s"`(서버), `"cs"`(양쪽). 반대쪽으로 지정된 엔티티와 필드가 제외됩니다.|
-
-> 익스포터와 그 파일을 읽는 코드 제너레이터는 **같은 `TargetSide`로 맞춰야** 합니다. 컬럼 집합이 어긋나면 생성된 테이블 리더가 데이터와 맞지 않습니다.
-
-서버/클라 각각을 뽑으려면 항목을 두 개 두고 각기 다른 `TargetSide`와 경로를 지정하면 됩니다.
-
-### `Targets` — 이름으로 지정하는 출력 항목
-
-출력 항목을 섹션에 넣는 대신 `Type`으로 타깃을 지목할 수도 있습니다.
+내보내기든 코드 생성이든 기록이든, 출력은 전부 `Targets`의 항목 하나입니다. `Type`이 타깃을 지목하고 나머지가 그 타깃의 설정입니다.
 
 ```json
 "Targets": [
@@ -195,22 +183,31 @@
 ]
 ```
 
-`Type` 외의 필드는 그 타깃의 설정이며, 전용 섹션에 쓰는 것과 동일합니다. 등록된 타깃은 모두 여기서 쓸 수 있으니 두 방식을 섞어도 됩니다.
-
 |`Type`|종류|
 |--|--|
 |`binary`, `json`|파일 내보내기|
-|`text`|`text` 컬럼의 값을 그룹마다 파일 하나로 수집 (`Targets`로만 지정) — 「[수집된 텍스트](exports.md#수집된-텍스트--text-타깃)」|
+|`text`|`text` 컬럼의 값을 그룹마다 파일 하나로 수집 — 「[수집된 텍스트](exports.md#수집된-텍스트--text-타깃)」|
 |`mysql`, `postgresql`, `mongodb`, `redis`|데이터베이스 내보내기|
-|`cpp`, `csharp`, `typescript`, `html`|코드 생성 — 설정은 [언어별 가이드](languages/readme.md)|
-|`c`, `go`, `rust`, `python`, `java`, `kotlin`, `ruby`, `php`, `dart`|코드 생성 (전용 섹션 없음 — `Targets`로만 지정)|
-|`unreal`|Unreal 모듈 생성 (`Targets`로만 지정)|
-|`summary`, `history`|변환 자체를 기록 (`Targets`로만 지정) — 「[Summary와 히스토리](history.md)」|
-
-두 방식이 있는 이유는 타깃을 추가할 때 recipe 스키마를 고치지 않아도 되게 하기 위함입니다. 위 섹션들은 `Targets`보다 먼저 있었고 기존 recipe를 위해 남아 있습니다.
+|`cpp`, `csharp`, `typescript`, `html`, `c`, `go`, `rust`, `python`, `java`, `kotlin`, `ruby`, `php`, `dart`|코드 생성 — 설정은 [언어별 가이드](languages/readme.md)|
+|`unreal`|Unreal 모듈 생성|
+|`summary`, `history`|변환 자체를 기록 — 「[Summary와 히스토리](history.md)」|
 
 - 없는 `Type`은 **오류**입니다. 출력을 요청했는데 조용히 아무것도 안 나오면, 있어야 할 파일이 빠진 채 빌드가 나갑니다.
 - 그 타깃에 없는 필드도 **오류**입니다. `FileExtention`처럼 오타를 내면 기본값으로 조용히 넘어가고, 증상은 "설정이 안 먹는다"로만 보입니다.
+
+타깃마다 전용 섹션을 두지 않는 것은 타깃을 추가할 때 recipe 스키마를 고치지 않아도 되게 하기 위함입니다. **타깃 하나를 지우는 일이 파일 하나를 지우는 일**이어야 하기 때문이기도 합니다.
+
+> 예전에는 10개 타깃이 `Exports`·`CodeGenerations` 아래에 전용 섹션을 갖고 나머지는 `Targets`에 있었습니다. 그 10개를 가르는 것은 기능이 아니라 도입 시점이었고, recipe를 읽는 사람이 그 배치에서 읽어낼 수 있는 규칙은 없었습니다.
+
+#### 출력 항목 공통 설정
+
+|키|기본값|설명|
+|--|--|--|
+|`TargetSide`|`"cs"`|이 출력이 어느 쪽을 위한 것인지. `"c"`(클라), `"s"`(서버), `"cs"`(양쪽). 반대쪽으로 지정된 엔티티와 필드가 제외됩니다.|
+
+> 익스포터와 그 파일을 읽는 코드 제너레이터는 **같은 `TargetSide`로 맞춰야** 합니다. 컬럼 집합이 어긋나면 생성된 테이블 리더가 데이터와 맞지 않습니다.
+
+서버/클라 각각을 뽑으려면 항목을 두 개 두고 각기 다른 `TargetSide`와 경로를 지정하면 됩니다.
 
 ### `Assets` — 애셋 폴더
 
@@ -402,13 +399,10 @@ tabbit --new-recipe my-recipe.json --template unity
     "Xlsx": [ { "Path": "./sheets", "FileExtensionPatterns": ".xlsx" } ]
   },
 
-  "Exports": {
-    "Binary": [ { "Path": "./generated/data" } ]
-  },
-
-  "CodeGenerations": {
-    "CSharp": [ { "Path": "./generated/cs", "Namespace": "MyGame.Data", "AccessorName": "GameData" } ]
-  }
+  "Targets": [
+    { "Type": "binary", "Path": "./generated/data" },
+    { "Type": "csharp", "Path": "./generated/cs", "Namespace": "MyGame.Data", "AccessorName": "GameData" }
+  ]
 }
 ```
 
@@ -424,28 +418,23 @@ tabbit --new-recipe my-recipe.json --template unity
     "Xlsx": [ { "Path": "./sheets", "FileExtensionPatterns": ".xlsx" } ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        // StreamingAssets는 모든 플랫폼에 배포됩니다.
-        "Path": "./Assets/StreamingAssets/Data",
-        "FileExtension": ".bytes",
-        "TargetSide": "c"
-      }
-    ]
-  },
-
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "./Assets/Scripts/Generated",
-        "Namespace": "MyGame.Data",
-        "AccessorName": "GameData",
-        "BinaryTableFileExtension": ".bytes",   // 익스포터와 짝
-        "TargetSide": "c"                        // 서버 전용 데이터는 클라 빌드에 넣지 않습니다
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      // StreamingAssets는 모든 플랫폼에 배포됩니다.
+      "Path": "./Assets/StreamingAssets/Data",
+      "FileExtension": ".bytes",
+      "TargetSide": "c"
+    },
+    {
+      "Type": "csharp",
+      "Path": "./Assets/Scripts/Generated",
+      "Namespace": "MyGame.Data",
+      "AccessorName": "GameData",
+      "BinaryTableFileExtension": ".bytes",   // 익스포터와 짝
+      "TargetSide": "c"                        // 서버 전용 데이터는 클라 빌드에 넣지 않습니다
+    }
+  ]
 }
 ```
 
@@ -459,24 +448,15 @@ tabbit --new-recipe my-recipe.json --template unity
     "Xlsx": [ { "Path": "./sheets", "FileExtensionPatterns": ".xlsx" } ]
   },
 
-  "Exports": {
-    "Binary": [
-      { "Path": "./build/client/data", "FileExtension": ".bytes", "TargetSide": "c" },
-      { "Path": "./build/server/data", "TargetSide": "s" }
-    ]
-  },
-
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "./client/Assets/Scripts/Generated",
-        "Namespace": "MyGame.Data", "AccessorName": "GameData",
-        "BinaryTableFileExtension": ".bytes", "TargetSide": "c"
-      }
-    ]
-  },
-
   "Targets": [
+    { "Type": "binary", "Path": "./build/client/data", "FileExtension": ".bytes", "TargetSide": "c" },
+    { "Type": "binary", "Path": "./build/server/data", "TargetSide": "s" },
+    {
+      "Type": "csharp",
+      "Path": "./client/Assets/Scripts/Generated",
+      "Namespace": "MyGame.Data", "AccessorName": "GameData",
+      "BinaryTableFileExtension": ".bytes", "TargetSide": "c"
+    },
     {
       "Type": "go",
       "Path": "./server/internal/gamedata",
@@ -504,15 +484,12 @@ TypeScript는 JSON과 바이너리 양쪽을 읽으므로 둘 다 내보냅니�
     ]
   },
 
-  "Exports": {
-    "Json":   [ { "Path": "./public/data", "Indented": false } ],
-    "Binary": [ { "Path": "./public/data" } ]
-  },
-
-  "CodeGenerations": {
-    "Typescript": [ { "Path": "./src/generated", "AccessorName": "Tables" } ],
-    "Html":       [ { "Path": "./docs/data" } ]
-  }
+  "Targets": [
+    { "Type": "json", "Path": "./public/data", "Indented": false },
+    { "Type": "binary", "Path": "./public/data" },
+    { "Type": "typescript", "Path": "./src/generated", "AccessorName": "Tables" },
+    { "Type": "html", "Path": "./docs/data" }
+  ]
 }
 ```
 
@@ -526,23 +503,18 @@ TypeScript는 JSON과 바이너리 양쪽을 읽으므로 둘 다 내보냅니�
     "Xlsx": [ { "Path": "./sheets", "FileExtensionPatterns": ".xlsx" } ]
   },
 
-  "Exports": {
-    "MySql": [
-      {
-        "ConnectionString": "Server=db;Database=game;Uid=tabbit;Pwd=${DB_PASSWORD}",
-        "NamePrefix": "tb_",     // 한 데이터베이스에 여러 세트를 둘 때
-        "TargetSide": "s"
-      }
-    ],
-    "Redis": [
-      {
-        "ConnectionString": "${REDIS_HOST}:6379,password=${REDIS_PASSWORD}",
-        "TargetSide": "s"
-      }
-    ]
-  },
-
   "Targets": [
+    {
+      "Type": "mysql",
+      "ConnectionString": "Server=db;Database=game;Uid=tabbit;Pwd=${DB_PASSWORD}",
+      "NamePrefix": "tb_",     // 한 데이터베이스에 여러 세트를 둘 때
+      "TargetSide": "s"
+    },
+    {
+      "Type": "redis",
+      "ConnectionString": "${REDIS_HOST}:6379,password=${REDIS_PASSWORD}",
+      "TargetSide": "s"
+    },
     { "Type": "cpp", "Path": "./src/generated", "Namespace": "game::data",
       "AccessorName": "GameData", "TargetSide": "s" }
   ]
@@ -559,11 +531,8 @@ TypeScript는 JSON과 바이너리 양쪽을 읽으므로 둘 다 내보냅니�
     "Xlsx": [ { "Path": "./Sheets", "FileExtensionPatterns": ".xlsx" } ]
   },
 
-  "Exports": {
-    "Binary": [ { "Path": "./Content/Data", "TargetSide": "c" } ]
-  },
-
   "Targets": [
+    { "Type": "binary", "Path": "./Content/Data", "TargetSide": "c" },
     {
       "Type": "unreal",
       "Path": "./Source",
@@ -587,17 +556,13 @@ TypeScript는 JSON과 바이너리 양쪽을 읽으므로 둘 다 내보냅니�
     "Xlsx": [ { "Path": "./sheets", "FileExtensionPatterns": ".xlsx" } ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "./build/data",
-        "SchemaBaseline": "./schema-baseline.json",
-        "AcceptSchemaChanges": []
-      }
-    ]
-  },
-
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "./build/data",
+      "SchemaBaseline": "./schema-baseline.json",
+      "AcceptSchemaChanges": []
+    },
     { "Type": "summary", "Path": "./build/summary" },
     {
       "Type": "history",
@@ -710,82 +675,69 @@ dotnet run --project src/Tabbit.csproj -- --recipe side-by-side/side-by-side.jso
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "./generated/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "./generated/json",
-        // true면 이름 없이 값만 배열로 담습니다. 파일이 작아집니다.
-        "UseCompactRowFormat": false,
-        "Indented": false
-      }
-    ],
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "./generated/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "./generated/json",
+      // true면 이름 없이 값만 배열로 담습니다. 파일이 작아집니다.
+      "UseCompactRowFormat": false,
+      "Indented": false
+    },
 
     // 데이터베이스 적재. 비밀값은 ${환경변수}로 빼세요.
-    "MySql": [
-      {
-        "ConnectionString": "Server=db;Database=game;Uid=tabbit;Pwd=${DB_PASSWORD}",
-        "NamePrefix": "tb_"
-      }
-    ],
-    "PostgreSql": [
-      {
-        "ConnectionString": "Host=db;Database=game;Username=tabbit;Password=${DB_PASSWORD}",
-        "Schema": "public",
-        "NamePrefix": "tb_"
-      }
-    ],
-    "MongoDb": [
-      {
-        // 데이터베이스 이름을 반드시 포함해야 합니다.
-        "ConnectionString": "mongodb://db:27017/game",
-        "NamePrefix": "tb_"
-      }
-    ],
-    "Redis": [
-      {
-        "ConnectionString": "db:6379,password=${REDIS_PASSWORD}",
-        "Database": 0,
-        "NamePrefix": "tb_"
-      }
-    ]
-  },
-
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        // 출력 타겟 폴더입니다. 없으면 자동으로 만듭니다.
-        "Path": "./generated/cs",
-        "Namespace": "StaticData",
-        "AccessorName": "SheetAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "./generated/ts",
-        // true면 enum을 숫자 대신 문자열로 생성합니다.
-        "UseStringEnum": false
-      }
-    ],
-    "Cpp": [
-      {
-        "Path": "./generated/cpp",
-        // `.`이나 `::`로 중첩 네임스페이스를 지정할 수 있습니다.
-        "Namespace": "game::data",
-        "AccessorName": "SheetAccessor"
-      }
-    ],
-    "Html": [
-      {
-        "Path": "./generated/html"
-      }
-    ]
-  }
+    {
+      "Type": "mysql",
+      "ConnectionString": "Server=db;Database=game;Uid=tabbit;Pwd=${DB_PASSWORD}",
+      "NamePrefix": "tb_"
+    },
+    {
+      "Type": "postgresql",
+      "ConnectionString": "Host=db;Database=game;Username=tabbit;Password=${DB_PASSWORD}",
+      "Schema": "public",
+      "NamePrefix": "tb_"
+    },
+    {
+      "Type": "mongodb",
+      // 데이터베이스 이름을 반드시 포함해야 합니다.
+      "ConnectionString": "mongodb://db:27017/game",
+      "NamePrefix": "tb_"
+    },
+    {
+      "Type": "redis",
+      "ConnectionString": "db:6379,password=${REDIS_PASSWORD}",
+      "Database": 0,
+      "NamePrefix": "tb_"
+    },
+    {
+      "Type": "csharp",
+      // 출력 타겟 폴더입니다. 없으면 자동으로 만듭니다.
+      "Path": "./generated/cs",
+      "Namespace": "StaticData",
+      "AccessorName": "SheetAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "./generated/ts",
+      // true면 enum을 숫자 대신 문자열로 생성합니다.
+      "UseStringEnum": false
+    },
+    {
+      "Type": "cpp",
+      "Path": "./generated/cpp",
+      // `.`이나 `::`로 중첩 네임스페이스를 지정할 수 있습니다.
+      "Namespace": "game::data",
+      "AccessorName": "SheetAccessor"
+    },
+    {
+      "Type": "html",
+      "Path": "./generated/html"
+    }
+  ]
 }
 ```
 

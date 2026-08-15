@@ -22,34 +22,27 @@
     "GoogleSheets": []
   },
 
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/reference-keys/csharp",
-        "Namespace": "Tabbit.Fixtures.ReferenceKeys",
-        "AccessorName": "ReferenceKeysAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/reference-keys/typescript"
-      }
-    ]
-  },
-
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/reference-keys/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/reference-keys/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/reference-keys/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/reference-keys/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/reference-keys/csharp",
+      "Namespace": "Tabbit.Fixtures.ReferenceKeys",
+      "AccessorName": "ReferenceKeysAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/reference-keys/typescript"
+    }
+  ]
 }

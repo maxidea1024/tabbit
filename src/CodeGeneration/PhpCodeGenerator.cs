@@ -17,8 +17,6 @@ namespace Tabbit.CodeGeneration;
 
 /// <summary>
 /// Settings for the PHP target.
-///
-/// Declared beside its generator and reached through the recipe's `Targets` list.
 /// </summary>
 public sealed class PhpRecipe : IOutputRecipe
 {

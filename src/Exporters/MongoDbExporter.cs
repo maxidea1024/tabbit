@@ -13,6 +13,13 @@ using Tabbit.Targets;
 namespace Tabbit.Exporters;
 
 /// <summary>
+/// MongoDB target. One collection per table, one document per row.
+/// </summary>
+public class MongoDbRecipe : DatabaseRecipe
+{
+}
+
+/// <summary>
 /// Loads the cooked tables into MongoDB, one collection per table.
 ///
 /// Rows go into a shadow collection which is then renamed over the live one.
@@ -20,15 +27,15 @@ namespace Tabbit.Exporters;
 /// and renameCollection works on a standalone server too - so the atomic swap does
 /// not depend on how the deployment is configured.
 /// </summary>
-[TabbitTarget("mongodb", TargetKind.Export, Section = "Exports.MongoDb", Order = 50)]
-public class MongoDbExporter : DatabaseExporterBase<RecipeModel.ExportRecipeGroup.MongoDbRecipe>
+[TabbitTarget("mongodb", TargetKind.Export, Order = 50)]
+public class MongoDbExporter : DatabaseExporterBase<MongoDbRecipe>
 {
     protected override string TargetName => "MongoDB";
 
     private const int InsertBatchRows = 1000;
 
 
-    protected override void ExportTo(RecipeModel.ExportRecipeGroup.DatabaseRecipe recipe, Model model)
+    protected override void ExportTo(DatabaseRecipe recipe, Model model)
     {
         string connectionString = ConnectionString.Resolve(recipe.ConnectionString, RecipeSection);
 
@@ -174,7 +181,7 @@ public class MongoDbExporter : DatabaseExporterBase<RecipeModel.ExportRecipeGrou
     }
 
     private void DropShadowCollections(IMongoDatabase database, Model model,
-                                       RecipeModel.ExportRecipeGroup.DatabaseRecipe recipe)
+                                       DatabaseRecipe recipe)
     {
         // Best effort: the load already failed and that exception is the one worth
         // reporting.

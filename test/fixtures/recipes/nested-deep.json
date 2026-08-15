@@ -17,33 +17,49 @@
   // shape - `SupportsDeepNestedFields` - so the others are added here as they land. Binary
   // beside it because the read-back is the check that matters: the declaration and the file
   // have to agree about which column holds `Position.X`.
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/nested-deep/csharp",
-        "Namespace": "Tabbit.Fixtures.NestedDeep",
-        "AccessorName": "NestedDeepAccessor"
-      }
-    ],
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/nested-deep/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/nested-deep/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+
+    // The compact row too, because it takes a different path: it is positional over the
+    // wire columns, and a leaf is a wire column. Reading it as one entry per *member* would
+    // take the first leaf's run and call it the whole record.
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/nested-deep/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/nested-deep/csharp",
+      "Namespace": "Tabbit.Fixtures.NestedDeep",
+      "AccessorName": "NestedDeepAccessor"
+    },
 
     // TypeScript reads both formats, so it is the one language that can be asked whether the
     // two assemble the same thing at this depth.
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/nested-deep/typescript"
-      }
-    ],
-    "Cpp": [
-      {
-        "Path": "test/fixtures/output/nested-deep/cpp",
-        "AccessorName": "NestedDeepAccessor"
-      }
-    ]
-  },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/nested-deep/typescript"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/nested-deep/cpp",
+      "AccessorName": "NestedDeepAccessor"
+    },
 
-  // Languages reached only through `Targets` - they have no recipe section of their own. Added
-  // here as each learns the shape.
-  "Targets": [
+    // Languages reached only through `Targets` - they have no recipe section of their own. Added
+    // here as each learns the shape.
     {
       "Type": "go",
       "Path": "test/fixtures/output/nested-deep/go",
@@ -103,30 +119,5 @@
       "AccessorName": "FNestedDeep",
       "BinaryTableFileExtension": ".tcb"
     }
-  ],
-
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/nested-deep/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/nested-deep/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      },
-
-      // The compact row too, because it takes a different path: it is positional over the
-      // wire columns, and a leaf is a wire column. Reading it as one entry per *member* would
-      // take the first leaf's run and call it the whole record.
-      {
-        "Path": "test/fixtures/output/nested-deep/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true
-      }
-    ]
-  }
+  ]
 }

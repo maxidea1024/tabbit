@@ -30,12 +30,11 @@
     "OnMissing": "warn"
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/asset/json-named",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/asset/json-named",
+      "Indented": true
+    }
+  ]
 }

@@ -14,6 +14,15 @@ using Tabbit.Targets;
 namespace Tabbit.Exporters;
 
 /// <summary>
+/// PostgreSQL target. One table per table, recreated on each run.
+/// </summary>
+public class PostgreSqlRecipe : DatabaseRecipe
+{
+    /// <summary>Schema the tables are created in.</summary>
+    public string Schema { get; set; } = "public";
+}
+
+/// <summary>
 /// Loads the cooked tables into PostgreSQL.
 ///
 /// PostgreSQL rolls back DDL, so the whole export - creating every shadow table,
@@ -21,17 +30,17 @@ namespace Tabbit.Exporters;
 /// transaction. Either the database ends up with every table updated or with none
 /// of them touched, which is a stronger guarantee than the other targets can offer.
 /// </summary>
-[TabbitTarget("postgresql", TargetKind.Export, Section = "Exports.PostgreSql", Order = 40)]
-public class PostgreSqlExporter : DatabaseExporterBase<RecipeModel.ExportRecipeGroup.PostgreSqlRecipe>
+[TabbitTarget("postgresql", TargetKind.Export, Order = 40)]
+public class PostgreSqlExporter : DatabaseExporterBase<PostgreSqlRecipe>
 {
     protected override string TargetName => "PostgreSQL";
 
     private string _schema = "public";
 
 
-    protected override void ExportTo(RecipeModel.ExportRecipeGroup.DatabaseRecipe recipe, Model model)
+    protected override void ExportTo(DatabaseRecipe recipe, Model model)
     {
-        var postgres = (RecipeModel.ExportRecipeGroup.PostgreSqlRecipe)recipe;
+        var postgres = (PostgreSqlRecipe)recipe;
         _schema = string.IsNullOrWhiteSpace(postgres.Schema) ? "public" : postgres.Schema;
 
         string connectionString = ConnectionString.Resolve(recipe.ConnectionString, RecipeSection);

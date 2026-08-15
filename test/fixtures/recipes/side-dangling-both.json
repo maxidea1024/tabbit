@@ -19,47 +19,37 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/side-dangling-both/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/side-dangling-both/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true
-      },
-      {
-        "Path": "test/fixtures/output/side-dangling-both/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  },
-
-  "CodeGenerations": {
-    "Cpp": [],
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/side-dangling-both/csharp",
-        "Namespace": "Tabbit.Fixtures.X",
-        "AccessorName": "XAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/side-dangling-both/typescript"
-      }
-    ],
-    "Html": [
-      {
-        "Path": "test/fixtures/output/side-dangling-both/html"
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/side-dangling-both/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/side-dangling-both/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/side-dangling-both/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/side-dangling-both/csharp",
+      "Namespace": "Tabbit.Fixtures.X",
+      "AccessorName": "XAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/side-dangling-both/typescript"
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/side-dangling-both/html"
+    }
+  ]
 }

@@ -18,12 +18,11 @@
     "Path": "test/fixtures/validation/fail"
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/validation-fail/json",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/validation-fail/json",
+      "Indented": true
+    }
+  ]
 }

@@ -24,21 +24,30 @@
     "GoogleSheets": []
   },
 
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/encrypted/csharp",
-        "Namespace": "Tabbit.Fixtures.Encrypted",
-        "AccessorName": "EncryptedAccessor"
-      }
-    ]
-  },
-
-  // A second reader over the same sealed files, because opening the envelope is written
-  // once per language and the two implementations share no code. C# is checked above; this
-  // one is here because its cipher comes from an extension rather than from the runtime,
-  // which is a way of being wrong that a code review does not catch.
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/encrypted/binary",
+      "FileExtension": ".tcb",
+      "EncryptionKeyVariable": "TABBIT_TEST_TCB_KEY",
+      "MacKeyVariable": "TABBIT_TEST_TCB_MAC_KEY"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/encrypted/json",
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/encrypted/csharp",
+      "Namespace": "Tabbit.Fixtures.Encrypted",
+      "AccessorName": "EncryptedAccessor"
+    },
+
+    // A second reader over the same sealed files, because opening the envelope is written
+    // once per language and the two implementations share no code. C# is checked above; this
+    // one is here because its cipher comes from an extension rather than from the runtime,
+    // which is a way of being wrong that a code review does not catch.
     {
       "Type": "php",
       "Path": "test/fixtures/output/encrypted/php",
@@ -46,24 +55,5 @@
       "AccessorName": "EncryptedData",
       "BinaryTableFileExtension": ".tcb"
     }
-  ],
-
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/encrypted/binary",
-        "FileExtension": ".tcb",
-        "EncryptionKeyVariable": "TABBIT_TEST_TCB_KEY",
-        "MacKeyVariable": "TABBIT_TEST_TCB_MAC_KEY"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/encrypted/json",
-        "Indented": true
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  }
+  ]
 }

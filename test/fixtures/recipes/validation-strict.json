@@ -25,12 +25,11 @@
     "TreatWarningsAsErrors": true
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/validation-strict/json",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/validation-strict/json",
+      "Indented": true
+    }
+  ]
 }

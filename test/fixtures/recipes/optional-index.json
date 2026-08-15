@@ -13,12 +13,11 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/optional-index/json",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/optional-index/json",
+      "Indented": true
+    }
+  ]
 }

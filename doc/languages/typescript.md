@@ -29,17 +29,16 @@
 ## recipe 설정
 
 ```jsonc
-"CodeGenerations": {
-  "Typescript": [
-    {
-      "Path": "src/generated",
-      "AccessorName": "Tables",
-      "UseStringEnum": false,     // true면 enum이 문자열 값을 갖습니다
-      "Sweep": true,
-      "TargetSide": "c"
-    }
-  ]
-}
+"Targets": [
+  {
+    "Type": "typescript",
+    "Path": "src/generated",
+    "AccessorName": "Tables",
+    "UseStringEnum": false,     // true면 enum이 문자열 값을 갖습니다
+    "Sweep": true,
+    "TargetSide": "c"
+  }
+]
 ```
 
 ## 쓰는 법

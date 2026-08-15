@@ -135,7 +135,7 @@ public static class TcbEnvelope
     /// live, and so that a missing key stops the run before a directory is half written.
     /// </remarks>
     public static void KeysFor(
-        RecipeModel.ExportRecipeGroup.BinaryRecipe recipe, out byte[]? encryption, out byte[]? mac)
+        BinaryRecipe recipe, out byte[]? encryption, out byte[]? mac)
     {
         encryption = KeyFrom(
             recipe.EncryptionKeyVariable, recipe.EncryptionKeyFile,

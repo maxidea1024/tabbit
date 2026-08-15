@@ -25,28 +25,32 @@
     "GoogleSheets": []
   },
 
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/key-types/csharp",
-        "Namespace": "Tabbit.Fixtures.KeyTypes",
-        "AccessorName": "KeyTypesAccessor"
-      }
-    ],
-    "Cpp": [
-      {
-        "Path": "test/fixtures/output/key-types/cpp",
-        "AccessorName": "KeyTypesAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/key-types/typescript"
-      }
-    ]
-  },
-
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/key-types/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/key-types/json",
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/key-types/csharp",
+      "Namespace": "Tabbit.Fixtures.KeyTypes",
+      "AccessorName": "KeyTypesAccessor"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/key-types/cpp",
+      "AccessorName": "KeyTypesAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/key-types/typescript"
+    },
     {
       "Type": "go",
       "Path": "test/fixtures/output/key-types/go",
@@ -102,22 +106,5 @@
       "AccessorName": "FKeyTypes",
       "BinaryTableFileExtension": ".tcb"
     }
-  ],
-
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/key-types/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/key-types/json",
-        "Indented": true
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  }
+  ]
 }

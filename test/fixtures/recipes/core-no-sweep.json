@@ -22,12 +22,11 @@
     ]
   },
 
-  "CodeGenerations": {
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/core/typescript",
-        "Sweep": false
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/core/typescript",
+      "Sweep": false
+    }
+  ]
 }

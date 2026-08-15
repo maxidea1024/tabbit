@@ -12,8 +12,58 @@ using Tabbit.Targets;
 
 namespace Tabbit.Exporters;
 
-[TabbitTarget("json", TargetKind.Export, Section = "Exports.Json", Order = 20)]
-public class JsonExporter : Target<RecipeModel.ExportRecipeGroup.JsonRecipe>
+/// <summary>
+/// One .json file per table.
+///
+/// This is what the generated TypeScript reads.
+/// </summary>
+public class JsonRecipe : IOutputRecipe
+{
+    /// <summary>Output directory. Created if it does not exist.</summary>
+    public string Path { get; set; } = "";
+
+    /// <summary>
+    /// Writes each row as a bare array of values instead of an object with
+    /// field names.
+    ///
+    /// Smaller, at the cost of being unreadable on its own. The generated
+    /// readers handle both, deciding from the shape of the first row.
+    /// </summary>
+    public bool UseCompactRowFormat { get; set; } = false;
+
+    /// <summary>
+    /// Pretty-prints the output. Worth it while inspecting data by hand, not
+    /// for something a program will read.
+    /// </summary>
+    public bool Indented { get; set; } = false;
+
+    /// <summary>
+    /// Which side this output is built for: "c", "s", or "cs"/blank for
+    /// both. Entities and fields marked for the other side are left out.
+    ///
+    /// Declare the same side on the exporter and on the code generator
+    /// that reads its files: the two must agree on the column set or the
+    /// generated reader will not match the data.
+    /// </summary>
+    public string TargetSide { get; set; } = "cs";
+
+    /// <summary>Removes files this run did not write.</summary>
+    /// <remarks>
+    /// On, because the output is a file per table: rename or delete a table and
+    /// its old file stays behind. A stale data file is worse than a stale source
+    /// file - it ships, it costs transfer, and a build still asking for the old
+    /// name reads it, which is old values from a rollback nobody performed.
+    ///
+    /// Only files the manifest already lists are removed. That ledger is this
+    /// tool's own record of what it put here, so a directory holding anything
+    /// else is untouchable - the file has to have been written by a previous run
+    /// to be removable by this one.
+    /// </remarks>
+    public bool Sweep { get; set; } = true;
+}
+
+[TabbitTarget("json", TargetKind.Export, Order = 20)]
+public class JsonExporter : Target<JsonRecipe>
 {
     private Manifest _manifest = null!;
 
@@ -36,7 +86,7 @@ public class JsonExporter : Target<RecipeModel.ExportRecipeGroup.JsonRecipe>
 
     protected override bool SupportsOptionalFields => true;
 
-    protected override void Run(TargetContext context, RecipeModel.ExportRecipeGroup.JsonRecipe recipe)
+    protected override void Run(TargetContext context, JsonRecipe recipe)
     {
         // An entry left in the recipe with a blank path is treated as switched off.
         if (string.IsNullOrEmpty(recipe.Path))
@@ -210,7 +260,7 @@ public class JsonExporter : Target<RecipeModel.ExportRecipeGroup.JsonRecipe>
             : Compose(member.Members, row, element);
     }
 
-    private void ExportTable(RecipeModel.ExportRecipeGroup.JsonRecipe recipe, Table table)
+    private void ExportTable(JsonRecipe recipe, Table table)
     {
         var filename = Path.Combine(recipe.Path, table.Name + ".json");
         filename = Path.GetFullPath(filename);

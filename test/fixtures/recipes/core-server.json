@@ -27,63 +27,51 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/core-server/binary",
-        "FileExtension": ".tcb",
-        "TargetSide": "s"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/core-server/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true,
-        "TargetSide": "s"
-      },
-      {
-        "Path": "test/fixtures/output/core-server/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true,
-        "TargetSide": "s"
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  },
-
-  // As in core-client, and for the same reason: narrowed output, unnarrowed
-  // description.
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/core-server/binary",
+      "FileExtension": ".tcb",
+      "TargetSide": "s"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/core-server/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true,
+      "TargetSide": "s"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/core-server/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true,
+      "TargetSide": "s"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/core-server/csharp",
+      "Namespace": "Tabbit.Fixtures.Core.Server",
+      "AccessorName": "CoreServerAccessor",
+      "TargetSide": "s"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/core-server/typescript",
+      "TargetSide": "s"
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/core-server/html",
+      "TargetSide": "s"
+    },
+
+    // As in core-client, and for the same reason: narrowed output, unnarrowed
+    // description.
     {
       "Type": "summary",
       "Path": "test/fixtures/output/core-server/summary",
       "TargetSide": "s"
     }
-  ],
-
-  "CodeGenerations": {
-    "Cpp": [],
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/core-server/csharp",
-        "Namespace": "Tabbit.Fixtures.Core.Server",
-        "AccessorName": "CoreServerAccessor",
-        "TargetSide": "s"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/core-server/typescript",
-        "TargetSide": "s"
-      }
-    ],
-    "Html": [
-      {
-        "Path": "test/fixtures/output/core-server/html",
-        "TargetSide": "s"
-      }
-    ]
-  }
+  ]
 }

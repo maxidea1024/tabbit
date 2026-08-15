@@ -23,12 +23,11 @@
     "EmitIdeProject": false
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/validation-flood/json",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/validation-flood/json",
+      "Indented": true
+    }
+  ]
 }

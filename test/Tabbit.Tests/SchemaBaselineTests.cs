@@ -48,15 +48,14 @@ public class SchemaBaselineTests
   ""Sources"": {{
 ""Xlsx"": [ {{ ""Path"": ""test/fixtures/xlsx/{xlsxScenario}"" }} ]
   }},
-  ""Exports"": {{
-""Binary"": [
+  ""Targets"": [
   {{
+    ""Type"": ""binary"",
     ""Path"": ""{Escape(Path.Combine(dir, "binary"))}"",
     ""SchemaBaseline"": ""{Escape(Path.Combine(dir, "schema-baseline.json"))}"",
     ""AcceptSchemaChanges"": [ {accept} ]
   }}
-]
-  }}
+  ]
 }}");
 
         return path;
@@ -346,9 +345,7 @@ public class SchemaBaselineTests
   ""Sources"": {{
 ""Xlsx"": [ {{ ""Path"": ""test/fixtures/xlsx/evolution-v1"" }} ]
   }},
-  ""Exports"": {{
-""Binary"": [ {{ ""Path"": ""{Escape(Path.Combine(dir, "binary"))}"" }} ]
-  }}
+  ""Targets"": [ {{ ""Type"": ""binary"", ""Path"": ""{Escape(Path.Combine(dir, "binary"))}"" }} ]
 }}");
 
         Assert.Equal(0, Convert(recipe).ExitCode);

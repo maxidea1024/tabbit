@@ -14,29 +14,23 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/evolution-v1/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/evolution-v1/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ]
-  },
-
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/evolution-v1/csharp",
-        "Namespace": "Tabbit.Evolution",
-        "AccessorName": "EvolutionAccessor"
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/evolution-v1/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/evolution-v1/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/evolution-v1/csharp",
+      "Namespace": "Tabbit.Evolution",
+      "AccessorName": "EvolutionAccessor"
+    }
+  ]
 }

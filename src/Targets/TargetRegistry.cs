@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -15,20 +14,12 @@ namespace Tabbit.Targets;
 /// <summary>One registered target and the metadata its attribute declared.</summary>
 public sealed class TargetDescriptor
 {
-    internal TargetDescriptor(
-        string id,
-        TargetKind kind,
-        string? section,
-        int order,
-        ITarget target,
-        Func<RecipeModel, IEnumerable>? sectionEntries)
+    internal TargetDescriptor(string id, TargetKind kind, int order, ITarget target)
     {
         Id = id;
         Kind = kind;
-        Section = section;
         Order = order;
         Target = target;
-        SectionEntries = sectionEntries;
     }
 
     /// <summary>Stable short name, such as `binary` or `csharp`.</summary>
@@ -36,12 +27,6 @@ public sealed class TargetDescriptor
 
     /// <summary>What the target produces.</summary>
     public TargetKind Kind { get; }
-
-    /// <summary>
-    /// Dotted recipe path of this target's own section, or null when it has none and is
-    /// reached only through the recipe's `Targets` list.
-    /// </summary>
-    public string? Section { get; }
 
     /// <summary>Sort key within a kind.</summary>
     public int Order { get; }
@@ -52,16 +37,7 @@ public sealed class TargetDescriptor
     /// <summary>The entry type this target's settings deserialize into.</summary>
     public Type EntryType => Target.EntryType;
 
-    /// <summary>
-    /// Reads <see cref="Section"/> out of a recipe. Null when there is no section.
-    ///
-    /// Resolved once at startup so the reflection is not repeated per run, and so a
-    /// section that does not exist or holds the wrong element type is a startup failure
-    /// rather than a surprise later.
-    /// </summary>
-    internal Func<RecipeModel, IEnumerable>? SectionEntries { get; }
-
-    public override string ToString() => Section is null ? Id : $"{Id} ({Section})";
+    public override string ToString() => Id;
 }
 
 /// <summary>
@@ -82,9 +58,9 @@ public readonly struct PlannedTarget
     public IOutputRecipe Entry { get; }
 
     /// <summary>
-    /// Where in the recipe this entry came from, including its index - `Exports.Json[1]`
-    /// or `Targets[0]`. Quoted in diagnostics, so a message points at one entry rather
-    /// than at a section that may hold several.
+    /// Where in the recipe this entry came from, including its index - `Targets[0]`.
+    /// Quoted in diagnostics, so a message points at the one entry that caused it rather
+    /// than at the list holding all of them.
     /// </summary>
     public string? Section { get; }
 
@@ -105,13 +81,11 @@ public readonly struct PlannedTarget
 /// output was a database export had its cross-side references left unchecked. Deriving
 /// both from one registry is what stops that from recurring.
 ///
-/// A target's entries come from two places, and it reads neither itself:
-///
-///   - its own recipe section, for the targets that have one
-///   - the recipe's `Targets` list, for entries naming it by id
-///
-/// The second is what lets a target be added without extending
-/// <see cref="RecipeModel"/>.
+/// A target's entries all come from the recipe's `Targets` list, and it reads them not
+/// at all: the registry collects the entries naming its id and hands them over one at a
+/// time. That is what lets a target be added without extending
+/// <see cref="RecipeModel"/> - the recipe schema does not grow a section per target, and
+/// so a target can be deleted by deleting its file.
 /// </summary>
 public static class TargetRegistry
 {
@@ -206,26 +180,12 @@ public static class TargetRegistry
     // ------------------------------------------------------------ entries
 
     /// <summary>
-    /// One target's entries: its own section first, then the ones the `Targets` list
-    /// names, each paired with where in the recipe it came from.
+    /// One target's entries: the `Targets` entries naming it, each paired with where in
+    /// the recipe it came from.
     /// </summary>
     private static IEnumerable<(IOutputRecipe Entry, string Section)> EntriesOf(
         TargetDescriptor descriptor, RecipeModel recipe)
     {
-        if (descriptor.SectionEntries is not null)
-        {
-            int index = 0;
-            foreach (var entry in descriptor.SectionEntries(recipe))
-            {
-                // A null in the list means the recipe had a stray comma or a bare
-                // `null`; skipping it beats a NullReferenceException from the target.
-                if (entry is IOutputRecipe typed)
-                    yield return (typed, $"{descriptor.Section}[{index}]");
-
-                index++;
-            }
-        }
-
         var dynamicEntries = recipe.Targets;
         if (dynamicEntries is null)
             yield break;
@@ -338,15 +298,7 @@ public static class TargetRegistry
 
             var target = (ITarget)Activator.CreateInstance(type)!;
 
-            descriptors.Add(new TargetDescriptor(
-                attribute.Id,
-                attribute.Kind,
-                attribute.Section!,
-                attribute.Order,
-                target,
-                attribute.Section is null
-                    ? null
-                    : RecipeSectionReader.Build(attribute.Section!, target.EntryType, type)));
+            descriptors.Add(new TargetDescriptor(attribute.Id, attribute.Kind, attribute.Order, target));
         }
 
         var duplicate = descriptors.GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)

@@ -209,7 +209,7 @@ internal sealed class RuleAccessor
         if (Directory.Exists(sourcePath))
             Directory.Delete(sourcePath, recursive: true);
 
-        var entry = new RecipeModel.CodeGenerationRecipeGroup.CSharpRecipe
+        var entry = new CSharpRecipe
         {
             Path = sourcePath,
             Namespace = Namespace,

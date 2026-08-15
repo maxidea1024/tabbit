@@ -27,66 +27,54 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/core-client/binary",
-        "FileExtension": ".tcb",
-        "TargetSide": "c"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/core-client/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true,
-        "TargetSide": "c"
-      },
-      {
-        "Path": "test/fixtures/output/core-client/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true,
-        "TargetSide": "c"
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  },
-
-  // Declared for the client, like every other entry here - but a summary describes
-  // what the sheets declared, not the cut this entry is built for. The golden tree
-  // therefore lists the server-only tables that the binary and code outputs beside
-  // it correctly leave out. That is the point: a history taken from a client build
-  // must not read as the server's tables having been deleted.
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/core-client/binary",
+      "FileExtension": ".tcb",
+      "TargetSide": "c"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/core-client/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true,
+      "TargetSide": "c"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/core-client/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true,
+      "TargetSide": "c"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/core-client/csharp",
+      "Namespace": "Tabbit.Fixtures.Core.Client",
+      "AccessorName": "CoreClientAccessor",
+      "TargetSide": "c"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/core-client/typescript",
+      "TargetSide": "c"
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/core-client/html",
+      "TargetSide": "c"
+    },
+
+    // Declared for the client, like every other entry here - but a summary describes
+    // what the sheets declared, not the cut this entry is built for. The golden tree
+    // therefore lists the server-only tables that the binary and code outputs beside
+    // it correctly leave out. That is the point: a history taken from a client build
+    // must not read as the server's tables having been deleted.
     {
       "Type": "summary",
       "Path": "test/fixtures/output/core-client/summary",
       "TargetSide": "c"
     }
-  ],
-
-  "CodeGenerations": {
-    "Cpp": [],
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/core-client/csharp",
-        "Namespace": "Tabbit.Fixtures.Core.Client",
-        "AccessorName": "CoreClientAccessor",
-        "TargetSide": "c"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/core-client/typescript",
-        "TargetSide": "c"
-      }
-    ],
-    "Html": [
-      {
-        "Path": "test/fixtures/output/core-client/html",
-        "TargetSide": "c"
-      }
-    ]
-  }
+  ]
 }

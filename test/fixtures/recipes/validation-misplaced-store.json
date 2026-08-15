@@ -34,12 +34,11 @@
     "TreatWarningsAsErrors": false
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/validation-misplaced-store/json",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/validation-misplaced-store/json",
+      "Indented": true
+    }
+  ]
 }

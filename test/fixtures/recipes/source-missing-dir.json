@@ -12,11 +12,10 @@
     ]
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/source-missing-dir/json-named"
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/source-missing-dir/json-named"
+    }
+  ]
 }

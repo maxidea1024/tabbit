@@ -23,42 +23,32 @@
     // 엑셀도 함께 읽으려면 Xlsx 항목을 추가하면 됩니다. 둘은 배타적이지 않습니다.
   },
 
-  "Exports": {
+  "Targets": [
     // 사람이 보거나 다른 도구가 가져다 쓸 용도. 브라우저에서 fetch해도 됩니다.
-    "Json": [
-      {
-        "Path": "./public/data",
+    {
+      "Type": "json",
+      "Path": "./public/data",
 
-        // true면 각 행을 필드 이름 없이 값 배열로만 씁니다. 작아지지만 읽기 어렵습니다.
-        "UseCompactRowFormat": false,
+      // true면 각 행을 필드 이름 없이 값 배열로만 씁니다. 작아지지만 읽기 어렵습니다.
+      "UseCompactRowFormat": false,
 
-        // 사람이 들여다볼 때만 켜세요.
-        "Indented": false
-      }
-    ],
+      // 사람이 들여다볼 때만 켜세요.
+      "Indented": false
+    },
 
     // 크기와 파싱 시간이 중요할 때. 이름 있는 JSON의 3분의 1 안팎입니다.
-    "Binary": [
-      { "Path": "./public/data", "FileExtension": ".tcb" }
-    ]
-  },
+    { "Type": "binary", "Path": "./public/data", "FileExtension": ".tcb" },
+    {
+      "Type": "typescript",
+      "Path": "./src/generated",
+      "AccessorName": "Tables",
 
-  "CodeGenerations": {
-    "Typescript": [
-      {
-        "Path": "./src/generated",
-        "AccessorName": "Tables",
+      // true면 enum이 숫자 대신 문자열 유니온이 됩니다.
+      // 디버거와 로그에서 읽히지만 파일에 저장된 정수와는 어긋납니다.
+      "UseStringEnum": false,
 
-        // true면 enum이 숫자 대신 문자열 유니온이 됩니다.
-        // 디버거와 로그에서 읽히지만 파일에 저장된 정수와는 어긋납니다.
-        "UseStringEnum": false,
-
-        "BinaryTableFileExtension": ".tcb"
-      }
-    ],
-
-    "Html": [
-      { "Path": "./docs/data" }
-    ]
-  }
+      "BinaryTableFileExtension": ".tcb"
+    },
+    { "Type": "html", "Path": "./docs/data" }
+  ]
 }

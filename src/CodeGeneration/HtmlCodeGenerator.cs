@@ -14,6 +14,43 @@ using Tabbit.Extensions;
 namespace Tabbit.CodeGeneration;
 
 /// <summary>
+/// Browsable documentation of the converted data.
+///
+/// Not consumed by any program: it exists so the data that reached a build can
+/// be checked by eye, with links back to the cell each value came from.
+/// </summary>
+public class HtmlRecipe : IOutputRecipe
+{
+    /// <summary>Output directory. Created if it does not exist.</summary>
+    public string Path { get; set; } = "";
+
+    /// <summary>
+    /// Whether generated files this run did not write are removed from
+    /// <see cref="Path"/>.
+    /// </summary>
+    /// <remarks>
+    /// On, because the output is a file per table: delete a table from the sheets
+    /// and its file stays behind naming types nothing declares any more. Only
+    /// files carrying this tool's own header are removed, so a directory holding
+    /// your own source is safe.
+    ///
+    /// Turn it off if you edit the generated files, which is a decision worth a
+    /// line in a recipe.
+    /// </remarks>
+    public bool Sweep { get; set; } = true;
+
+    /// <summary>
+    /// Which side this output is built for: "c", "s", or "cs"/blank for
+    /// both. Entities and fields marked for the other side are left out.
+    ///
+    /// Declare the same side on the exporter and on the code generator
+    /// that reads its files: the two must agree on the column set or the
+    /// generated reader will not match the data.
+    /// </summary>
+    public string TargetSide { get; set; } = "cs";
+}
+
+/// <summary>
 /// Emits human-readable documentation of the converted data.
 ///
 /// One summary page, one page per enum, and a page each for the constant sets and the
@@ -23,15 +60,15 @@ namespace Tabbit.CodeGeneration;
 /// The markup lives in templates/html-*.sbn. This file works out the cell contents,
 /// which is where the type-dependent decisions are.
 /// </summary>
-[TabbitTarget("html", TargetKind.CodeGeneration, Section = "CodeGenerations.Html", Order = 40)]
-public partial class HtmlCodeGenerator : CodeGenerator<RecipeModel.CodeGenerationRecipeGroup.HtmlRecipe>
+[TabbitTarget("html", TargetKind.CodeGeneration, Order = 40)]
+public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 {
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
-    private RecipeModel.CodeGenerationRecipeGroup.HtmlRecipe _htmlRecipe = null!;
+    private HtmlRecipe _htmlRecipe = null!;
 
-    protected override void Run(TargetContext context, RecipeModel.CodeGenerationRecipeGroup.HtmlRecipe htmlRecipe)
+    protected override void Run(TargetContext context, HtmlRecipe htmlRecipe)
     {
         // A blank Path means the entry is switched off, as it does for every other
         // target. This one was missing it, and Path.Combine("", "index.html") is

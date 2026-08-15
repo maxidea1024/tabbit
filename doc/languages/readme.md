@@ -10,22 +10,24 @@
 
 ## 문서 선택 안내
 
-|언어|recipe 지정 위치|
+전부 recipe의 `Targets`에 항목 하나로 적고, `Type`이 어느 것인지를 정합니다.
+
+|언어|`Type`|
 |--|--|
-|[C# / Unity](csharp.md)|`CodeGenerations.CSharp`|
-|[TypeScript](typescript.md)|`CodeGenerations.Typescript`|
-|[C++](cpp.md)|`CodeGenerations.Cpp`|
-|[C](c.md)|`Targets` (`"Type": "c"`)|
-|[Unreal](unreal.md)|`Targets` (`"Type": "unreal"`)|
-|[Go](go.md)|`Targets` (`"Type": "go"`)|
-|[Rust](rust.md)|`Targets` (`"Type": "rust"`)|
-|[Python](python.md)|`Targets` (`"Type": "python"`)|
-|[Java](java.md)|`Targets` (`"Type": "java"`)|
-|[Kotlin](kotlin.md)|`Targets` (`"Type": "kotlin"`)|
-|[Ruby](ruby.md)|`Targets` (`"Type": "ruby"`)|
-|[PHP](php.md)|`Targets` (`"Type": "php"`)|
-|[Dart](dart.md)|`Targets` (`"Type": "dart"`)|
-|[HTML 문서](html.md)|`CodeGenerations.Html`|
+|[C# / Unity](csharp.md)|`csharp`|
+|[TypeScript](typescript.md)|`typescript`|
+|[C++](cpp.md)|`cpp`|
+|[C](c.md)|`c`|
+|[Unreal](unreal.md)|`unreal`|
+|[Go](go.md)|`go`|
+|[Rust](rust.md)|`rust`|
+|[Python](python.md)|`python`|
+|[Java](java.md)|`java`|
+|[Kotlin](kotlin.md)|`kotlin`|
+|[Ruby](ruby.md)|`ruby`|
+|[PHP](php.md)|`php`|
+|[Dart](dart.md)|`dart`|
+|[HTML 문서](html.md)|`html`|
 
 ---
 
@@ -175,7 +177,7 @@ recipe에 `SchemaBaseline`을 켜두면 이미 배포된 빌드가 못 읽을 **
 
 같은 시트에서 Go 서버와 C# 클라이언트가 각각 코드를 생성한다면, enum 레이블 하나를 추가했을 때 **다시 배포해야 하는 곳이 둘**입니다. 서버만 먼저 나가고 클라이언트가 다음 주에 나간다면, 그 사이 서버가 새 레이블을 값으로 내려보내는 순간부터 클라이언트는 1번 상태입니다.
 
-> **대처.** enum을 고쳤을 때 배포 목록에 무엇이 오르는지는 **recipe의 `CodeGenerations`·`Targets`에 적힌 수만큼**입니다. 데이터 하나만 올리면 되던 습관이 여기서 어긋납니다.
+> **대처.** enum을 고쳤을 때 배포 목록에 무엇이 오르는지는 **recipe의 `Targets`에 적힌 코드 생성 항목의 수만큼**입니다. 데이터 하나만 올리면 되던 습관이 여기서 어긋납니다.
 
 ---
 

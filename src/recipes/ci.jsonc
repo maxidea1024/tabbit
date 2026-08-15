@@ -18,21 +18,18 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "./build/data",
-
-        // 지난 스키마의 기록. 커밋해두면, 이미 배포된 클라이언트가 못 읽을
-        // 스키마 변경을 데이터를 쓰기 전에 잡습니다 — 컬럼 이름과 할 일을 짚어서.
-        // 타입을 바꿨다면 "테이블.컬럼"을 AcceptSchemaChanges에 적으세요.
-        "SchemaBaseline": "./schema-baseline.json",
-        "AcceptSchemaChanges": []
-      }
-    ]
-  },
-
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "./build/data",
+
+      // 지난 스키마의 기록. 커밋해두면, 이미 배포된 클라이언트가 못 읽을
+      // 스키마 변경을 데이터를 쓰기 전에 잡습니다 — 컬럼 이름과 할 일을 짚어서.
+      // 타입을 바꿨다면 "테이블.컬럼"을 AcceptSchemaChanges에 적으세요.
+      "SchemaBaseline": "./schema-baseline.json",
+      "AcceptSchemaChanges": []
+    },
+
     // 이번 변환이 무엇을 만들었는지 — 테이블·행·필드 수와 지문.
     // 두 빌드가 같은 데이터인지 비교할 때 씁니다.
     {
@@ -40,7 +37,6 @@
       "Path": "./build/summary",
       "FileName": "summary.json"
     },
-
     {
       "Type": "history",
 

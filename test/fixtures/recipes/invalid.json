@@ -19,47 +19,37 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/invalid/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/invalid/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true
-      },
-      {
-        "Path": "test/fixtures/output/invalid/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  },
-
-  "CodeGenerations": {
-    "Cpp": [],
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/invalid/csharp",
-        "Namespace": "Tabbit.Fixtures.X",
-        "AccessorName": "XAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/invalid/typescript"
-      }
-    ],
-    "Html": [
-      {
-        "Path": "test/fixtures/output/invalid/html"
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/invalid/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/invalid/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/invalid/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/invalid/csharp",
+      "Namespace": "Tabbit.Fixtures.X",
+      "AccessorName": "XAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/invalid/typescript"
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/invalid/html"
+    }
+  ]
 }

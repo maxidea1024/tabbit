@@ -12,8 +12,144 @@ using Tabbit.Targets;
 
 namespace Tabbit.Exporters;
 
-[TabbitTarget("binary", TargetKind.Export, Section = "Exports.Binary", Order = 10)]
-public class BinaryExporter : Target<RecipeModel.ExportRecipeGroup.BinaryRecipe>
+/// <summary>
+/// One binary file per table, in Tabbit's own Tcb format.
+///
+/// This is what the generated C# and C++ readers consume.
+/// </summary>
+public class BinaryRecipe : IOutputRecipe
+{
+    /// <summary>Output directory. Created if it does not exist.</summary>
+    public string Path { get; set; } = "";
+
+    /// <summary>
+    /// Extension of each table file. Must match the extension the code
+    /// generators are told to expect.
+    /// </summary>
+    public string FileExtension { get; set; } = ".tcb";
+
+    /// <summary>
+    /// Reserved. Not implemented: the format writes a reserved byte where a
+    /// compression flag would go, but nothing sets or reads it, and the
+    /// generated readers reject a non-zero value.
+    /// </summary>
+    public bool Compress { get; set; } = false;
+
+    /// <summary>
+    /// Which side this output is built for: "c", "s", or "cs"/blank for
+    /// both. Entities and fields marked for the other side are left out.
+    ///
+    /// Declare the same side on the exporter and on the code generator
+    /// that reads its files: the two must agree on the column set or the
+    /// generated reader will not match the data.
+    /// </summary>
+    public string TargetSide { get; set; } = "cs";
+
+    /// <summary>Removes files this run did not write.</summary>
+    /// <remarks>
+    /// On, because the output is a file per table: rename or delete a table and
+    /// its old file stays behind. A stale data file is worse than a stale source
+    /// file - it ships, it costs transfer, and a build still asking for the old
+    /// name reads it, which is old values from a rollback nobody performed.
+    ///
+    /// Only files the manifest already lists are removed. That ledger is this
+    /// tool's own record of what it put here, so a directory holding anything
+    /// else is untouchable - the file has to have been written by a previous run
+    /// to be removable by this one.
+    /// </remarks>
+    public bool Sweep { get; set; } = true;
+
+    /// <summary>
+    /// Where to keep the record of the columns data was last written with.
+    ///
+    /// Commit the file. Every run compares the schema against it and refuses a
+    /// change that a reader already built from the previous schema would not
+    /// survive - a deleted column whose tag is left free, a type that changed,
+    /// a fixed array that grew. Blank switches the check off, which leaves the
+    /// generated readers' own refusals as the only guard, and those fire in the
+    /// client rather than here.
+    /// </summary>
+    public string SchemaBaseline { get; set; } = "";
+
+    /// <summary>
+    /// Columns whose changed shape is deliberate, as `Table.Column`.
+    ///
+    /// A type change is not a thing the baseline can wave through on its own:
+    /// an already-deployed reader refuses the column rather than reading it
+    /// wrongly, so the change only works if regenerated code ships with the
+    /// data. Naming the column here says that it does.
+    ///
+    /// An acknowledgment is spent once. The next run compares against a baseline
+    /// that already has the new shape, so the entry can be taken back out.
+    /// </summary>
+    public List<string> AcceptSchemaChanges { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Where to write a report of what every column measured. Blank switches it off.
+    /// </summary>
+    /// <remarks>
+    /// The exporter already encodes every applicable candidate in full and keeps the
+    /// smallest, so the sizes are measurements rather than estimates - the report
+    /// states the same numbers the choice was made on, plus what the alternatives
+    /// would have come to.
+    ///
+    /// It also measures layouts the format does not have, over the distinct values of
+    /// each string column, so that adding one can be argued from a number. Doing that
+    /// costs real time on a large export, which is why it happens only when a path is
+    /// named here.
+    /// </remarks>
+    public string EncodingReport { get; set; } = "";
+
+    /// <summary>
+    /// The environment variable holding the encryption key, as 64 hexadecimal
+    /// characters. Blank leaves the files unencrypted.
+    /// </summary>
+    /// <remarks>
+    /// The name of the variable, never the key. A recipe is committed and handed
+    /// around, and a key written into one is in a repository's history from then on.
+    ///
+    /// What the encryption is for is stated in the format's own documentation, and
+    /// the short of it is that it stops a data file from opening as plain text and
+    /// from accepting an edit, not from being read by someone who can take the key
+    /// out of the client that carries it.
+    /// </remarks>
+    public string EncryptionKeyVariable { get; set; } = "";
+
+    /// <summary>
+    /// A file holding the encryption key, as 64 hexadecimal characters. An
+    /// alternative to <see cref="EncryptionKeyVariable"/>; naming both is refused.
+    /// </summary>
+    public string EncryptionKeyFile { get; set; } = "";
+
+    /// <summary>
+    /// The environment variable holding the MAC key, as 64 hexadecimal characters.
+    /// Blank leaves the files without a MAC, and a reader without a key to check.
+    /// </summary>
+    /// <remarks>
+    /// The name of the variable, never the key, for the same reason as the encryption
+    /// key - and a different key from that one, because a file can be authenticated
+    /// without being encrypted and the other way round.
+    ///
+    /// What it adds is the one thing encryption does not: a file that was edited after
+    /// it was written stops loading. The structural checks cannot do this, because a
+    /// fixed-width value accepts every bit pattern, and neither can the cipher, whose
+    /// keystream XOR lets a bit be flipped through the ciphertext without a key.
+    ///
+    /// Turning it on has an order to it. Export the data with a MAC first, then ship
+    /// the key in the client - a client that holds a MAC key refuses files that carry
+    /// no MAC, which is what stops the check being removed by zeroing sixteen bytes.
+    /// </remarks>
+    public string MacKeyVariable { get; set; } = "";
+
+    /// <summary>
+    /// A file holding the MAC key, as 64 hexadecimal characters. An alternative to
+    /// <see cref="MacKeyVariable"/>; naming both is refused.
+    /// </summary>
+    public string MacKeyFile { get; set; } = "";
+}
+
+[TabbitTarget("binary", TargetKind.Export, Order = 10)]
+public class BinaryExporter : Target<BinaryRecipe>
 {
     private Manifest _manifest = null!;
 
@@ -46,7 +182,7 @@ public class BinaryExporter : Target<RecipeModel.ExportRecipeGroup.BinaryRecipe>
 
     protected override bool SupportsOptionalFields => true;
 
-    protected override void Run(TargetContext context, RecipeModel.ExportRecipeGroup.BinaryRecipe binaryRecipe)
+    protected override void Run(TargetContext context, BinaryRecipe binaryRecipe)
     {
         // An entry left in the recipe with a blank path is treated as switched off.
         if (string.IsNullOrEmpty(binaryRecipe.Path))
@@ -99,7 +235,7 @@ public class BinaryExporter : Target<RecipeModel.ExportRecipeGroup.BinaryRecipe>
     /// should hold next, so it is written where it was asked for and left alone afterwards.
     /// </remarks>
     private static void WriteEncodingReport(
-        RecipeModel.ExportRecipeGroup.BinaryRecipe recipe, TcbEncodingReport report)
+        BinaryRecipe recipe, TcbEncodingReport report)
     {
         string filename = Path.GetFullPath(recipe.EncodingReport);
 
@@ -113,7 +249,7 @@ public class BinaryExporter : Target<RecipeModel.ExportRecipeGroup.BinaryRecipe>
     }
 
     private void ExportTable(
-        RecipeModel.ExportRecipeGroup.BinaryRecipe recipe, Table table, TcbEncodingReport report)
+        BinaryRecipe recipe, Table table, TcbEncodingReport report)
     {
         var writer = Encode(table, report);
 

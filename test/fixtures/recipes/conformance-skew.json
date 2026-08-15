@@ -17,50 +17,42 @@
       }
     ]
   },
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/conformance-skew/binary",
-        "FileExtension": ".tcb",
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/conformance-skew/binary",
+      "FileExtension": ".tcb",
 
-        // The same key the corpus itself is signed with, and for a reason that is the
-        // feature working: the harnesses that read this data carry a MAC key, and a reader
-        // holding one refuses a file that carries no MAC. That refusal is what stops the
-        // check being removed by zeroing sixteen bytes, so the fixture signs its data
-        // rather than the rule making an exception for it.
-        // test/fixtures/keys/readme.md · spec/tcb-mac-and-signature.md.
-        "MacKeyFile": "test/fixtures/keys/conformance-mac.key"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ]
-  },
-  "Targets": [],
-  "CodeGenerations": {
-    "Cpp": [
-      {
-        "Path": "",
-        "Namespace": "tabbit_conformance",
-        "AccessorName": "ConformanceAccessor",
-        "BinaryTableFileExtension": ".tcb"
-      }
-    ],
-    "CSharp": [
-      {
-        "Path": "",
-        "Namespace": "Tabbit.Conformance",
-        "AccessorName": "ConformanceAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": ""
-      }
-    ]
-  }
+      // The same key the corpus itself is signed with, and for a reason that is the
+      // feature working: the harnesses that read this data carry a MAC key, and a reader
+      // holding one refuses a file that carries no MAC. That refusal is what stops the
+      // check being removed by zeroing sixteen bytes, so the fixture signs its data
+      // rather than the rule making an exception for it.
+      // test/fixtures/keys/readme.md · spec/tcb-mac-and-signature.md.
+      "MacKeyFile": "test/fixtures/keys/conformance-mac.key"
+    },
+    {
+      "Type": "json",
+      "Path": "",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "cpp",
+      "Path": "",
+      "Namespace": "tabbit_conformance",
+      "AccessorName": "ConformanceAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "csharp",
+      "Path": "",
+      "Namespace": "Tabbit.Conformance",
+      "AccessorName": "ConformanceAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": ""
+    }
+  ]
 }

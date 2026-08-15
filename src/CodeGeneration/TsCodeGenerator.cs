@@ -18,6 +18,78 @@ using ValueType = Tabbit.Models.ValueType;
 namespace Tabbit.CodeGeneration;
 
 /// <summary>
+/// TypeScript modules. Read the JSON export.
+/// </summary>
+public class TypescriptRecipe : IOutputRecipe
+{
+    /// <summary>Output directory. Created if it does not exist.</summary>
+    public string Path { get; set; } = "";
+
+    /// <summary>
+    /// Name of the generated accessor, which also names the file it lands in.
+    ///
+    /// The other generated types are files of their own beside it, named after
+    /// themselves - a table, an enum and a constant set each get one.
+    /// </summary>
+    public string AccessorName { get; set; } = "Tables";
+
+    /// <summary>
+    /// Namespace to wrap the generated code in. Omitting it puts everything
+    /// in the global namespace, where the names may collide with something.
+    /// </summary>
+    public string Namespace { get; set; } = "";
+
+    /// <summary>
+    /// Extension the generated reader expects on table files. Must match the
+    /// binary export's FileExtension.
+    /// </summary>
+    public string BinaryTableFileExtension { get; set; } = ".tcb";
+
+    /// <summary>
+    /// Whether to write the data updater beside the reader.
+    ///
+    /// It fetches the manifest and the changed data files over HTTP and keeps a
+    /// local copy current, so a build can take new data without shipping a new
+    /// one. Off by default: a project that ships its data alongside its code has
+    /// no use for it, and a file nobody calls is a file to explain.
+    /// </summary>
+    public bool WriteUpdater { get; set; } = false;
+
+    /// <summary>
+    /// Whether generated files this run did not write are removed from
+    /// <see cref="Path"/>.
+    /// </summary>
+    /// <remarks>
+    /// On, because the output is a file per table: delete a table from the sheets
+    /// and its file stays behind naming types nothing declares any more. Only
+    /// files carrying this tool's own header are removed, so a directory holding
+    /// your own source is safe.
+    ///
+    /// Turn it off if you edit the generated files, which is a decision worth a
+    /// line in a recipe.
+    /// </remarks>
+    public bool Sweep { get; set; } = true;
+
+    /// <summary>
+    /// Which side this output is built for: "c", "s", or "cs"/blank for
+    /// both. Entities and fields marked for the other side are left out.
+    ///
+    /// Declare the same side on the exporter and on the code generator
+    /// that reads its files: the two must agree on the column set or the
+    /// generated reader will not match the data.
+    /// </summary>
+    public string TargetSide { get; set; } = "cs";
+    
+    /// <summary>
+    /// Emits enums as string unions rather than numeric enums.
+    ///
+    /// Readable in a debugger and in logs, at the cost of not matching the
+    /// integers the exported data actually carries.
+    /// </summary>
+    public bool UseStringEnum { get; set; }
+}
+
+/// <summary>
 /// Emits a TypeScript module per entity, plus a barrel index and the binary reader.
 ///
 /// A module per entity rather than one file, unlike the C# and C++ generators:
@@ -27,13 +99,13 @@ namespace Tabbit.CodeGeneration;
 /// The shapes live in templates/ts-*.sbn. This file works out the values they need -
 /// type names, read calls, the JSON conversions - and nothing else.
 /// </summary>
-[TabbitTarget("typescript", TargetKind.CodeGeneration, Section = "CodeGenerations.Typescript", Order = 30)]
-public class TsCodeGenerator : CodeGenerator<RecipeModel.CodeGenerationRecipeGroup.TypescriptRecipe>
+[TabbitTarget("typescript", TargetKind.CodeGeneration, Order = 30)]
+public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 {
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
-    private RecipeModel.CodeGenerationRecipeGroup.TypescriptRecipe _typescriptRecipe = null!;
+    private TypescriptRecipe _typescriptRecipe = null!;
 
     /// <summary>
     /// A record group generates an element interface and a member of it, in both read
@@ -64,7 +136,7 @@ public class TsCodeGenerator : CodeGenerator<RecipeModel.CodeGenerationRecipeGro
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
-    protected override void Run(TargetContext context, RecipeModel.CodeGenerationRecipeGroup.TypescriptRecipe typescriptRecipe)
+    protected override void Run(TargetContext context, TypescriptRecipe typescriptRecipe)
     {
         // A blank path means the entry is inert, as it is in the skeleton recipe.
         // Without this the index and the reader land in the working directory - the

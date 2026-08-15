@@ -198,11 +198,12 @@ index@1    Name@2    Price@3    #OldColor@4
 
 ### 바이너리 익스포트의 recipe 옵션
 
-`Exports.Binary` 항목이 받는 것은 경로만이 아닙니다. 전체 목록은 [설정](recipe.md#내보내기)에 있고, 여기서는 설명이 필요한 셋을 적습니다.
+`binary` 타깃 항목이 받는 것은 경로만이 아닙니다. 전체 목록은 [설정](recipe.md#내보내기)에 있고, 여기서는 설명이 필요한 셋을 적습니다.
 
 ```jsonc
-"Binary": [
+"Targets": [
   {
+    "Type": "binary",
     "Path": "./build/data",
     "SchemaBaseline": "./schema-baseline.json",
     "EncodingReport": "./build/encoding-report.txt",

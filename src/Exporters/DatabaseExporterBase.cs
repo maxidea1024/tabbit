@@ -14,6 +14,38 @@ using Tabbit.Targets;
 namespace Tabbit.Exporters;
 
 /// <summary>
+/// Shared settings for the database export targets.
+///
+/// Each target loads into shadow tables and then swaps them in, so a run
+/// that fails partway leaves the live data untouched. Atomicity is per
+/// store: files and four databases cannot be committed as one transaction
+/// without a distributed coordinator, so each is made atomic on its own
+/// rather than pretending otherwise.
+/// </summary>
+public abstract class DatabaseRecipe : IOutputRecipe
+{
+    /// <summary>
+    /// Connection string. Supports `${NAME}` placeholders filled from the
+    /// environment, so a recipe holding no secrets can be committed:
+    ///
+    ///     "Server=db;Database=game;Uid=tabbit;Pwd=${DB_PASSWORD}"
+    /// </summary>
+    public string ConnectionString { get; set; } = "";
+
+    /// <summary>
+    /// Prefix applied to every table, collection or key name written.
+    /// Lets one database hold several independent sets of exported data.
+    /// </summary>
+    public string NamePrefix { get; set; } = "";
+
+    /// <summary>
+    /// Which side this output is built for: "c", "s", or "cs"/blank for
+    /// both. Entities and fields marked for the other side are left out.
+    /// </summary>
+    public string TargetSide { get; set; } = "cs";
+}
+
+/// <summary>
 /// Shared scaffolding for the database export targets.
 ///
 /// Every one of them follows the same shape: narrow the model to the requested
@@ -27,7 +59,7 @@ namespace Tabbit.Exporters;
 /// atomic is achievable and is what this does.
 /// </summary>
 public abstract class DatabaseExporterBase<TEntry> : Target<TEntry>
-    where TEntry : RecipeModel.ExportRecipeGroup.DatabaseRecipe
+    where TEntry : DatabaseRecipe
 {
     /// <summary>
     /// Suffix of the shadow table, collection or key namespace that a run loads
@@ -50,7 +82,7 @@ public abstract class DatabaseExporterBase<TEntry> : Target<TEntry>
     /// <summary>
     /// Runs one recipe entry: connect, load every table into shadow storage, swap.
     /// </summary>
-    protected abstract void ExportTo(RecipeModel.ExportRecipeGroup.DatabaseRecipe recipe, Model model);
+    protected abstract void ExportTo(DatabaseRecipe recipe, Model model);
 
     protected override void Run(TargetContext context, TEntry recipe)
     {
@@ -73,7 +105,7 @@ public abstract class DatabaseExporterBase<TEntry> : Target<TEntry>
     /// <summary>
     /// Storage name for a table, including the recipe's prefix.
     /// </summary>
-    protected static string StorageName(RecipeModel.ExportRecipeGroup.DatabaseRecipe recipe, Table table)
+    protected static string StorageName(DatabaseRecipe recipe, Table table)
         => (recipe.NamePrefix ?? "") + table.Name;
 
     /// <summary>

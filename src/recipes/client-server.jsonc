@@ -15,37 +15,31 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      // 클라이언트 몫
-      {
-        "Path": "./build/client/data",
-        "FileExtension": ".bytes",
-        "TargetSide": "c"
-      },
-
-      // 서버 몫
-      {
-        "Path": "./build/server/data",
-        "FileExtension": ".tcb",
-        "TargetSide": "s"
-      }
-    ]
-  },
-
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "./client/Assets/Scripts/Generated",
-        "Namespace": "MyGame.Data",
-        "AccessorName": "GameData",
-        "BinaryTableFileExtension": ".bytes",
-        "TargetSide": "c"
-      }
-    ]
-  },
-
   "Targets": [
+    // 클라이언트 몫
+    {
+      "Type": "binary",
+      "Path": "./build/client/data",
+      "FileExtension": ".bytes",
+      "TargetSide": "c"
+    },
+
+    // 서버 몫
+    {
+      "Type": "binary",
+      "Path": "./build/server/data",
+      "FileExtension": ".tcb",
+      "TargetSide": "s"
+    },
+    {
+      "Type": "csharp",
+      "Path": "./client/Assets/Scripts/Generated",
+      "Namespace": "MyGame.Data",
+      "AccessorName": "GameData",
+      "BinaryTableFileExtension": ".bytes",
+      "TargetSide": "c"
+    },
+
     // 서버는 Go. cpp / rust / java / kotlin / python 등으로 바꿔도 같은 모양입니다.
     {
       "Type": "go",

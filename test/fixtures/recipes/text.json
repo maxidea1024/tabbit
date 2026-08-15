@@ -18,26 +18,28 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/text/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/text/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ]
-  },
-
-  // Five entries over the same strings. That is the claim being pinned: this target has no
-  // format of its own, and none of these is more native to it than the others. The escaping
-  // differs per entry without any of them saying so, because the extension already did.
   "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/text/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/text/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/text/csharp",
+      "Namespace": "Tabbit.Fixtures.Text",
+      "AccessorName": "TextAccessor"
+    },
+
+    // Five entries over the same strings. That is the claim being pinned: this target has no
+    // format of its own, and none of these is more native to it than the others. The escaping
+    // differs per entry without any of them saying so, because the extension already did.
     // A text set. Three parts: a namespace, a key and the source string - and the key
     // here is the source string itself, which is the keyless convention. A sheet has no
     // key column to offer and the string identifies itself. A project wanting stable keys
@@ -112,15 +114,5 @@
       "Template": "textset-unreal",
       "Namespace": "Game"
     }
-  ],
-
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/text/csharp",
-        "Namespace": "Tabbit.Fixtures.Text",
-        "AccessorName": "TextAccessor"
-      }
-    ]
-  }
+  ]
 }

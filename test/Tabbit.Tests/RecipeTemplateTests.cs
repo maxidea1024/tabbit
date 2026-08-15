@@ -102,27 +102,6 @@ public class RecipeTemplateTests
         recipe["Sources"] = JObject.Parse(
             @"{ ""Xlsx"": [ { ""Path"": ""test/fixtures/xlsx/core"" } ] }");
 
-        foreach (var group in new[] { "Exports", "CodeGenerations" })
-        {
-            if (recipe[group] is not JObject section)
-                continue;
-
-            foreach (var kind in section.Properties().ToList())
-            {
-                var kept = ((JArray)kind.Value)
-                    .Where(entry => entry["ConnectionString"] == null)
-                    .ToList();
-
-                for (int index = 0; index < kept.Count; index++)
-                    Repath(kept[index], outputRoot, kind.Name, index);
-
-                if (kept.Count == 0)
-                    kind.Remove();
-                else
-                    kind.Value = new JArray(kept);
-            }
-        }
-
         if (recipe["Targets"] is JArray targets)
         {
             var kept = targets

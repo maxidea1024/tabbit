@@ -13,8 +13,6 @@ namespace Tabbit.Exporters;
 
 /// <summary>
 /// Settings for the gathered-text target.
-///
-/// Declared beside its exporter and reached through the recipe's `Targets` list.
 /// </summary>
 public sealed class TextRecipe : IOutputRecipe
 {

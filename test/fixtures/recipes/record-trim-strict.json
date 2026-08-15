@@ -23,12 +23,11 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/record-trim-strict/binary",
-        "FileExtension": ".tcb"
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/record-trim-strict/binary",
+      "FileExtension": ".tcb"
+    }
+  ]
 }

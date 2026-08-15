@@ -19,53 +19,43 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/side-dangling/binary",
-        "FileExtension": ".tcb",
-        "TargetSide": "c"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/side-dangling/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true,
-        "TargetSide": "c"
-      },
-      {
-        "Path": "test/fixtures/output/side-dangling/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true,
-        "TargetSide": "c"
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  },
-
-  "CodeGenerations": {
-    "Cpp": [],
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/side-dangling/csharp",
-        "Namespace": "Tabbit.Fixtures.X",
-        "AccessorName": "XAccessor",
-        "TargetSide": "c"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/side-dangling/typescript",
-        "TargetSide": "c"
-      }
-    ],
-    "Html": [
-      {
-        "Path": "test/fixtures/output/side-dangling/html",
-        "TargetSide": "c"
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/side-dangling/binary",
+      "FileExtension": ".tcb",
+      "TargetSide": "c"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/side-dangling/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true,
+      "TargetSide": "c"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/side-dangling/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true,
+      "TargetSide": "c"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/side-dangling/csharp",
+      "Namespace": "Tabbit.Fixtures.X",
+      "AccessorName": "XAccessor",
+      "TargetSide": "c"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/side-dangling/typescript",
+      "TargetSide": "c"
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/side-dangling/html",
+      "TargetSide": "c"
+    }
+  ]
 }

@@ -13,6 +13,13 @@ using Tabbit.Targets;
 namespace Tabbit.Exporters;
 
 /// <summary>
+/// MySQL target. One table per table, recreated on each run.
+/// </summary>
+public class MySqlRecipe : DatabaseRecipe
+{
+}
+
+/// <summary>
 /// Loads the cooked tables into MySQL.
 ///
 /// Each table is written to a shadow table and only then renamed over the live one.
@@ -20,15 +27,15 @@ namespace Tabbit.Exporters;
 /// the database with no table at all if the load failed halfway; a multi-pair
 /// `RENAME TABLE` is atomic and gives readers the same guarantee.
 /// </summary>
-[TabbitTarget("mysql", TargetKind.Export, Section = "Exports.MySql", Order = 30)]
-public class MySqlExporter : DatabaseExporterBase<RecipeModel.ExportRecipeGroup.MySqlRecipe>
+[TabbitTarget("mysql", TargetKind.Export, Order = 30)]
+public class MySqlExporter : DatabaseExporterBase<MySqlRecipe>
 {
     protected override string TargetName => "MySQL";
 
     private const int InsertBatchRows = 500;
 
 
-    protected override void ExportTo(RecipeModel.ExportRecipeGroup.DatabaseRecipe recipe, Model model)
+    protected override void ExportTo(DatabaseRecipe recipe, Model model)
     {
         string connectionString = ConnectionString.Resolve(recipe.ConnectionString, RecipeSection);
 
@@ -159,7 +166,7 @@ public class MySqlExporter : DatabaseExporterBase<RecipeModel.ExportRecipeGroup.
     }
 
     private void DropShadowTables(MySqlConnection connection, Model model,
-                                  RecipeModel.ExportRecipeGroup.DatabaseRecipe recipe)
+                                  DatabaseRecipe recipe)
     {
         // Best effort. The load already failed and that exception is the one worth
         // reporting, so a cleanup problem must not replace it.

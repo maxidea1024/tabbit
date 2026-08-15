@@ -6,13 +6,17 @@ using System.Reflection;
 namespace Tabbit.Recipe;
 
 /// <summary>
-/// Resolves a dotted recipe path such as `Exports.Binary` into a reader for that list.
+/// Resolves a dotted recipe path such as `Sources.Xlsx` into a reader for that list.
 ///
-/// Shared by the source and target registries, which both let a component declare its
-/// recipe section in an attribute and read it on the component's behalf. Doing the
-/// reading here rather than in the component is what stops one from naming a section in
-/// its attribute and reading a different one - which compiled fine and showed up only
-/// as an error message pointing where the entry was not.
+/// Used by the source registry, which lets a source declare its recipe section in an
+/// attribute and reads it on the source's behalf. Doing the reading here rather than in
+/// the source is what stops one from naming a section in its attribute and reading a
+/// different one - which compiled fine and showed up only as an error message pointing
+/// where the entry was not.
+///
+/// Targets used to be read this way too. They are not any more: a target's entries all
+/// come from the recipe's `Targets` list, which needs no path because the entry names
+/// its own target.
 /// </summary>
 internal static class RecipeSectionReader
 {
@@ -37,10 +41,8 @@ internal static class RecipeSectionReader
 
         foreach (var part in section.Split('.'))
         {
-            // Fields as well as properties, because the recipe model has held both -
-            // `CodeGenerations` was a public field while every other group was a
-            // property, and Newtonsoft serializes either, so nothing had ever forced
-            // the two into agreement.
+            // Fields as well as properties, because the recipe model has held both and
+            // Newtonsoft serializes either, so nothing forces the two into agreement.
             MemberInfo? member = current!.GetProperty(part, MemberFlags);
             Type? next = (member as PropertyInfo)?.PropertyType;
 

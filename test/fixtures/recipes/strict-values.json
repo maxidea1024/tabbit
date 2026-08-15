@@ -19,54 +19,44 @@
     "GoogleSheets": []
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/strict-values/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/strict-values/json-compact",
-        "UseCompactRowFormat": true,
-        "Indented": true
-      },
-      {
-        "Path": "test/fixtures/output/strict-values/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ],
-    "MongoDb": [],
-    "MySql": []
-  },
-
-  "CodeGenerations": {
-    "Cpp": [
-      {
-        "Path": "test/fixtures/output/strict-values/cpp",
-        "Namespace": "tabbit_fixtures::core",
-        "AccessorName": "XAccessor",
-        "BinaryTableFileExtension": ".tcb"
-      }
-    ],
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/strict-values/csharp",
-        "Namespace": "Tabbit.Fixtures.X",
-        "AccessorName": "XAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/strict-values/typescript"
-      }
-    ],
-    "Html": [
-      {
-        "Path": "test/fixtures/output/strict-values/html"
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/strict-values/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/strict-values/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/strict-values/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/strict-values/cpp",
+      "Namespace": "tabbit_fixtures::core",
+      "AccessorName": "XAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/strict-values/csharp",
+      "Namespace": "Tabbit.Fixtures.X",
+      "AccessorName": "XAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/strict-values/typescript"
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/strict-values/html"
+    }
+  ]
 }

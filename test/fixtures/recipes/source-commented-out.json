@@ -25,13 +25,12 @@
     ]
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/source-commented-out/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/source-commented-out/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
 }

@@ -16,6 +16,75 @@ using ValueType = Tabbit.Models.ValueType;
 namespace Tabbit.CodeGeneration;
 
 /// <summary>
+/// C++17 header. Reads the binary export.
+/// </summary>
+public class CppRecipe : IOutputRecipe
+{
+    /// <summary>Output directory. Created if it does not exist.</summary>
+    public string Path { get; set; } = "";
+
+    /// <summary>
+    /// Name of the generated accessor, which also names the file it lands in.
+    ///
+    /// The other generated types are files of their own beside it, named after
+    /// themselves - a table, an enum and a constant set each get one.
+    /// </summary>
+    public string AccessorName { get; set; } = "Tables";
+
+    /// <summary>
+    /// Namespace to wrap the generated code in. Omitting it puts everything
+    /// in the global namespace, where the names may collide with something.
+    /// </summary>
+    public string Namespace { get; set; } = "";
+
+    /// <summary>
+    /// Extension the generated reader expects on table files. Must match the
+    /// binary export's FileExtension.
+    /// </summary>
+    public string BinaryTableFileExtension { get; set; } = ".tcb";
+
+    /// <summary>
+    /// Whether to write the data updater beside the reader.
+    /// </summary>
+    /// <remarks>
+    /// It fetches the manifest and the changed data files over HTTP and keeps
+    /// a local copy current, so a program can take new data without being
+    /// redeployed.
+    ///
+    /// Off by default, and here that means more than elsewhere: C++ has no
+    /// HTTP client in its standard library, so this is the only emitted file
+    /// that links against anything - libcurl, and nothing else. Leave it off
+    /// and the generated C++ depends on the standard library alone.
+    /// </remarks>
+    public bool WriteUpdater { get; set; } = false;
+
+    /// <summary>
+    /// Whether generated files this run did not write are removed from
+    /// <see cref="Path"/>.
+    /// </summary>
+    /// <remarks>
+    /// On, because the output is a file per table: delete a table from the sheets
+    /// and its file stays behind naming types nothing declares any more. Only
+    /// files carrying this tool's own header are removed, so a directory holding
+    /// your own source is safe.
+    ///
+    /// Turn it off if you edit the generated files, which is a decision worth a
+    /// line in a recipe.
+    /// </remarks>
+    public bool Sweep { get; set; } = true;
+
+    /// <summary>
+    /// Which side this output is built for: "c", "s", or "cs"/blank for
+    /// both. Entities and fields marked for the other side are left out.
+    ///
+    /// Declare the same side on the exporter and on the code generator
+    /// that reads its files: the two must agree on the column set or the
+    /// generated reader will not match the data.
+    /// </summary>
+    public string TargetSide { get; set; } = "cs";
+}
+
+/// <summary>
 /// Emits a header per generated type, plus an umbrella header a consumer includes.
 ///
 /// Splitting a C++ target used to be the thing not worth doing, on the grounds that it would
@@ -41,8 +110,8 @@ namespace Tabbit.CodeGeneration;
 /// header includes. That reader is the C++ half of the format the binary exporter
 /// writes, so the two have to change together.
 /// </summary>
-[TabbitTarget("cpp", TargetKind.CodeGeneration, Section = "CodeGenerations.Cpp", Order = 10)]
-public class CppCodeGenerator : CodeGenerator<RecipeModel.CodeGenerationRecipeGroup.CppRecipe>
+[TabbitTarget("cpp", TargetKind.CodeGeneration, Order = 10)]
+public class CppCodeGenerator : CodeGenerator<CppRecipe>
 {
 
     /// <summary>
@@ -80,9 +149,9 @@ public class CppCodeGenerator : CodeGenerator<RecipeModel.CodeGenerationRecipeGr
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
-    private RecipeModel.CodeGenerationRecipeGroup.CppRecipe _cppRecipe = null!;
+    private CppRecipe _cppRecipe = null!;
 
-    protected override void Run(TargetContext context, RecipeModel.CodeGenerationRecipeGroup.CppRecipe cppRecipe)
+    protected override void Run(TargetContext context, CppRecipe cppRecipe)
     {
         if (string.IsNullOrEmpty(cppRecipe.Path))
             return;

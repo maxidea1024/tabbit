@@ -18,10 +18,9 @@ namespace Tabbit.CodeGeneration;
 /// <summary>
 /// Settings for the Go target.
 ///
-/// Declared here rather than in <see cref="RecipeModel"/>, and reached through the
-/// recipe's `Targets` list rather than a section of its own. That is what the dynamic
-/// target list is for: a language added after it costs its own files and touches
-/// nothing existing.
+/// Declared here rather than in <see cref="RecipeModel"/>, as every target's settings
+/// are: the recipe schema does not grow a member per target, so a language added later
+/// costs its own files and touches nothing existing.
 /// </summary>
 public sealed class GoRecipe : IOutputRecipe
 {

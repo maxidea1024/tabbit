@@ -92,15 +92,15 @@ public class TargetSideTests
 
     /// <summary>
     /// An unrecognized side in a recipe is a configuration mistake, and the error
-    /// has to name the section rather than a cell, because there is no cell.
+    /// has to name the entry rather than a cell, because there is no cell.
     /// </summary>
     [Fact]
     public void Unrecognized_recipe_target_side_is_rejected()
     {
         var ex = Assert.Throws<TabbitException>(
-            () => Tabbit.Recipe.RecipeTargetSide.Of("both", "Exports.Json"));
+            () => Tabbit.Recipe.RecipeTargetSide.Of("both", "Targets[1]"));
 
-        Assert.Contains("Exports.Json", ex.Message);
+        Assert.Contains("Targets[1]", ex.Message);
         Assert.Contains("both", ex.Message);
     }
 

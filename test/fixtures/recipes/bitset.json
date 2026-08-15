@@ -20,42 +20,34 @@
     ]
   },
 
-  "Exports": {
-    "Binary": [
-      {
-        "Path": "test/fixtures/output/bitset/binary",
-        "FileExtension": ".tcb"
-      }
-    ],
-    "Json": [
-      {
-        "Path": "test/fixtures/output/bitset/json-named",
-        "UseCompactRowFormat": false,
-        "Indented": true
-      }
-    ]
-  },
-
-  "CodeGenerations": {
-    "CSharp": [
-      {
-        "Path": "test/fixtures/output/bitset/csharp",
-        "Namespace": "Tabbit.Fixtures.Bitset",
-        "AccessorName": "BitsetAccessor"
-      }
-    ],
-    "Typescript": [
-      {
-        "Path": "test/fixtures/output/bitset/typescript"
-      }
-    ],
-    "Cpp": [
-      {
-        "Path": "test/fixtures/output/bitset/cpp",
-        "Namespace": "tabbit_fixtures::bitset",
-        "AccessorName": "BitsetAccessor",
-        "BinaryTableFileExtension": ".tcb"
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/bitset/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/bitset/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/bitset/csharp",
+      "Namespace": "Tabbit.Fixtures.Bitset",
+      "AccessorName": "BitsetAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/bitset/typescript"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/bitset/cpp",
+      "Namespace": "tabbit_fixtures::bitset",
+      "AccessorName": "BitsetAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ]
 }

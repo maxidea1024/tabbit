@@ -21,12 +21,11 @@
     "OnMissing": "error"
   },
 
-  "Exports": {
-    "Json": [
-      {
-        "Path": "test/fixtures/output/asset-strict/json-named",
-        "Indented": true
-      }
-    ]
-  }
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/asset-strict/json-named",
+      "Indented": true
+    }
+  ]
 }
