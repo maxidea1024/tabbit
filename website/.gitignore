@@ -1,0 +1,11 @@
+# sync-docs.mjs 가 저장소의 문서를 복사해 넣는 자리입니다. 원본은 doc/ · spec/ · samples/ 입니다.
+/docs/
+
+/node_modules/
+/build/
+/.docusaurus/
+/.cache-loader/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

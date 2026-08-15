@@ -1,0 +1,73 @@
+name: Docs
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'doc/**'
+      - 'spec/**'
+      - 'samples/*/doc/**'
+      - 'website/**'
+      - 'readme.md'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'doc/**'
+      - 'spec/**'
+      - 'samples/*/doc/**'
+      - 'website/**'
+      - 'readme.md'
+      - '.github/workflows/docs.yml'
+  # Pages 설정을 바꾼 뒤 문서를 고치지 않고 다시 올릴 때.
+  workflow_dispatch:
+
+# 같은 브랜치에서 연달아 푸시하면 앞의 배포를 취소합니다. 배포는 마지막 것만 의미가 있습니다.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  # 빌드는 PR에서도 돕니다. 이것이 문서의 게이트입니다 — 깨진 링크·없는 파일·이름이 바뀐
+  # 섹션을 가리키는 앵커가 여기서 빌드를 세웁니다(website/readme.md).
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install
+        working-directory: website
+        run: npm ci
+
+      # sync-docs.mjs 가 doc/ · spec/ · samples 를 복사해 넣은 다음 빌드합니다.
+      - name: Build
+        working-directory: website
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/build
+
+  # 배포는 main 에서만. PR 은 위 build 까지입니다.
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,44 @@
+/*
+ * 브랜드 색은 원본 이미지에서 뽑아 4단계에서 확정합니다. 지금 값은 그 이미지를 눈으로 읽은
+ * 근사치이고, 파생 스크립트가 원본에서 추출한 값으로 교체합니다.
+ */
+
+:root {
+  --ifm-color-primary: #6d4aef;
+  --ifm-color-primary-dark: #5a33ec;
+  --ifm-color-primary-darker: #5029eb;
+  --ifm-color-primary-darkest: #3f1cc9;
+  --ifm-color-primary-light: #8061f2;
+  --ifm-color-primary-lighter: #8a6ef3;
+  --ifm-color-primary-lightest: #a892f7;
+
+  --ifm-code-font-size: 92%;
+  --docusaurus-highlighted-code-line-bg: rgba(109, 74, 239, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #a892f7;
+  --ifm-color-primary-dark: #8f74f5;
+  --ifm-color-primary-light: #c1b0f9;
+  --ifm-background-color: #1b1236;
+  --ifm-background-surface-color: #241a45;
+  --docusaurus-highlighted-code-line-bg: rgba(168, 146, 247, 0.2);
+}
+
+/*
+ * 문서가 표를 많이 씁니다. 좁은 화면에서 표 때문에 본문이 가로로 밀리지 않도록 표만 스크롤합니다.
+ */
+.markdown table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* 한국어 본문은 기본 줄간격이 좁게 읽힙니다. */
+.markdown {
+  line-height: 1.75;
+}
+
+.markdown h2 {
+  margin-top: 2.4rem;
+}
