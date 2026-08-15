@@ -1,6 +1,6 @@
 # 다중 중첩 — 두 모양과 그 값의 차이
 
-> [문서 목록으로](../readme.md)
+> [문서 목록으로](../doc/readme.md)
 
 [중첩 필드](nested-fields.md)가 깊이 1로 그은 선 밖에 있던 모양들의 설계입니다.
 
@@ -123,7 +123,7 @@ voiceTagForAdd[1][0]  voiceTagForAdd[1][1]  voiceTagForAdd[1][2]  voiceTagForAdd
 ### 모델
 
 `RecordMember.Fields`가 컬럼을 담듯, 바깥 원소마다 컬럼 묶음이 하나입니다. `Members`가
-`SerialField`를 담게 넓히는 방향([중첩 필드](nested-fields.md#5-지원하지-않는-모양)가
+`SerialField`를 담게 넓히는 방향([중첩 필드](nested-fields.md#5-깊이의-제약과-남은-제약)가
 적어둔 그것)이 정공법이지만, **안쪽에 이름이 없으므로 `RecordMember`를 쓸 수 없습니다** —
 이름 없는 멤버를 만들면 생성기가 그것으로 프로퍼티 이름을 짓습니다.
 

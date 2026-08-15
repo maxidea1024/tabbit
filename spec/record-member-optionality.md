@@ -1,6 +1,6 @@
 # 레코드 멤버별 옵셔널 — `:requiredInObject`
 
-> [문서 목록으로](../readme.md)
+> [문서 목록으로](../doc/readme.md)
 >
 > 상태: **구현 완료**
 
