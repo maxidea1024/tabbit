@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-15T20:38:30.9456017+09:00",
+    "generatedAt": "2026-08-16T01:29:39.0988710+09:00",
     "toolVersion": "0.0.0.0",
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "763a9744a34f73953aeb5eb273ffdddfff559995",
-      "shortHash": "763a9744a34f",
+      "hash": "bc552029141af65b4869c83f33323b98005391a5",
+      "shortHash": "bc552029141a",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-15T19:41:08.0000000+09:00",
-      "subject": "Initial commit: Tabbit",
+      "committedAt": "2026-08-16T00:34:31.0000000+09:00",
+      "subject": "Write PowerShell rather than batch files to drive MSVC",
       "origin": "git",
       "dirty": true,
       "attributable": false
