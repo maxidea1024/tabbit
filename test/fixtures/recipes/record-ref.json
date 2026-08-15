@@ -72,7 +72,7 @@
     { "Type": "kotlin", "Path": "test/fixtures/output/record-ref/kotlin", "PackageName": "recordref", "AccessorName": "Tables" },
     { "Type": "ruby", "Path": "test/fixtures/output/record-ref/ruby", "ModuleName": "RecordRef" },
     { "Type": "dart", "Path": "test/fixtures/output/record-ref/dart" },
-    { "Type": "unreal", "Path": "test/fixtures/output/record-ref/unreal", "ModuleName": "RecordRefData", "AccessorName": "FRecordRefData" },
+    { "Type": "unreal", "Path": "test/fixtures/output/record-ref/unreal/Source", "ModuleName": "RecordRefData", "AccessorName": "FRecordRefData" },
     { "Type": "c", "Path": "test/fixtures/output/record-ref/c", "AccessorName": "RecordRef" },
     { "Type": "php", "Path": "test/fixtures/output/record-ref/php", "Namespace": "Tabbit\\Fixtures\\RecordRef", "AccessorName": "RecordRefAccessor" }
   ]
