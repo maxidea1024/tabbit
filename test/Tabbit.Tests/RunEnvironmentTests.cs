@@ -143,6 +143,41 @@ public class RunEnvironmentTests
     }
 
     /// <summary>
+    /// The word goes into paths, so a name that would leave the output tree is refused
+    /// where it is written rather than where the files land.
+    /// </summary>
+    [Theory]
+    [InlineData("../live")]
+    [InlineData("a/b")]
+    [InlineData(@"a\b")]
+    public void An_environment_name_that_is_a_path_is_refused(string environment)
+    {
+        string outputRoot = Path.Combine(RepoLayout.OutputDir(Scenario), "out-rejected");
+
+        var run = TabbitRunner.Invoke("--recipe", Recipe(outputRoot), "--env", environment);
+
+        Assert.False(run.Succeeded, $"`{environment}` was accepted as an environment name.");
+        Assert.Contains("is not an environment name", run.StdOut + run.StdErr);
+    }
+
+    /// <summary>
+    /// The same check on the variable, because a shell profile that exports one reaches
+    /// exactly the same paths.
+    /// </summary>
+    [Fact]
+    public void A_variable_that_is_a_path_is_refused_too()
+    {
+        string outputRoot = Path.Combine(RepoLayout.OutputDir(Scenario), "out-rejected-variable");
+
+        var environment = new Dictionary<string, string> { { "TABBIT_ENV", "../live" } };
+
+        var run = TabbitRunner.Invoke(environment, "--recipe", Recipe(outputRoot));
+
+        Assert.False(run.Succeeded, "A path was accepted through the variable.");
+        Assert.Contains("is not an environment name", run.StdOut + run.StdErr);
+    }
+
+    /// <summary>
     /// And the variable alone still works, which is what a recipe using `${TABBIT_ENV}`
     /// does on a machine that exports it once.
     /// </summary>

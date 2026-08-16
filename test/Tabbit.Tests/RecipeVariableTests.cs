@@ -172,6 +172,22 @@ public class RecipeVariableTests : IDisposable
         Assert.Contains("TABBIT_TEST_TWO", ex.Message);
     }
 
+    /// <summary>
+    /// The environment variable is the one worth naming a remedy for. Somebody meeting it
+    /// for the first time is usually running a colleague's recipe rather than their own,
+    /// so the useful sentence is which flag says which environment - and that a recipe
+    /// used by one person does not need the placeholder at all.
+    /// </summary>
+    [Fact]
+    public void A_missing_environment_says_which_flag_supplies_it()
+    {
+        var ex = Assert.Throws<TabbitException>(() => RecipeModel.LoadFromFile(Write(
+            @"{ ""Sources"": { ""Xlsx"": [ { ""Path"": ""./sheets/${TABBIT_ENV}"" } ] } }")));
+
+        Assert.Contains("--env", ex.Message);
+        Assert.Contains("one person", ex.Message);
+    }
+
     // -------------------------------------------------- what is left for later
 
     /// <summary>

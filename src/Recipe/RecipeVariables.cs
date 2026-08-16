@@ -59,6 +59,19 @@ internal static class RecipeVariables
             "and so that one recipe can describe more than one environment. An unset variable " +
             "is an error rather than an empty substitution, which would fail later and less clearly.");
 
+        // The one variable worth naming a remedy for. A recipe carrying it is a recipe
+        // written for more than one environment, and somebody meeting it for the first
+        // time is usually running a colleague's recipe rather than their own - so the
+        // useful sentence is which flag says which environment, not what a variable is.
+        if (missing.Exists(entry => entry.Name == RunEnvironment.Variable))
+        {
+            message.Append(Environment.NewLine);
+            message.Append(
+                $"This recipe is written for more than one environment: pass `--env <name>` to " +
+                $"say which. A recipe used by one person on one machine does not need " +
+                $"`${{{RunEnvironment.Variable}}}` at all - writing the paths out is simpler.");
+        }
+
         throw new TabbitException(message.ToString());
     }
 
