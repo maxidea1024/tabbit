@@ -138,7 +138,7 @@ sword.GradeField;           // Common`}
               </strong>{' '}
               파일에는 인덱스로 실리고, 읽은 뒤에 연결됩니다. 그래서{' '}
               <code>sword.CategoryId.Name</code>은 조회가 아니라 필드 접근입니다 — 같은 값을 여러
-              시트에 베껴 적을 이유가 없어집니다.
+              시트에 옮겨 적을 이유가 없어집니다.
             </p>
 
             <div className={styles.targets}>
