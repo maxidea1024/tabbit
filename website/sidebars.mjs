@@ -13,6 +13,7 @@ const sidebars = {
       items: [
         'guide/install',
         'guide/concepts',
+        'guide/glossary',
         'guide/sheets',
         'guide/cli',
         'guide/recipe',
