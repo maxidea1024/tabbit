@@ -37,7 +37,7 @@
 
 `Targets` 항목은 `MissingMemberHandling.Error`로 역직렬화되므로 그 타깃에 없는 필드가 오류로
 보고됩니다(`TargetRegistry.cs:129`). 섹션 항목은 `LoadFromFile`의 기본 `JsonConvert`를 그대로
-지나므로(`RecipeModel.cs:743`) **같은 오타가 조용히 무시됩니다.**
+지나므로(`RecipeModel.cs:743`) **같은 오타가 말없이 무시됩니다.**
 
 `FileExtention`처럼 한 글자를 틀리면 섹션 쪽에서는 기본값으로 넘어가고, 증상은 「설정이 적용되지
 않는다」로만 나타납니다. 이것은 통일의 부수 효과가 아니라 **주된 이득**입니다 — 두 경로의 엄격함이

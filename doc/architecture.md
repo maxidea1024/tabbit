@@ -129,7 +129,7 @@ LF로 못박습니다.
 
 Homebrew 경로를 함께 보는 이유는 편의가 아닙니다. 애플 실리콘의 `/opt/homebrew`는 로그인
 셸의 PATH에는 있고 IDE가 띄운 테스트 호스트의 PATH에는 없습니다. PATH만 보면 그 언어를
-**없는 것으로 판정하고 건너뛰는데**, 적합성 스위트가 조용히 내놓아서는 안 되는 답이 그것입니다.
+**없는 것으로 판정하고 건너뛰는데**, 적합성 스위트가 말없이 내놓아서는 안 되는 답이 그것입니다.
 
 **언리얼 게이트만 엔진이 필요합니다**(`TABBIT_UE_ROOT`). 엔진 트리는 플랫폼마다 디렉터리
 이름이 다르므로 — Windows는 `Build.bat`과 `Binaries/Win64`, 나머지는
@@ -204,7 +204,7 @@ dotnet run --project test/fixtures/tools/FixtureGen
 cd test/fixtures/databases && docker compose down -v
 ```
 
-언어별 검증과 데이터베이스 검증은 툴체인이 없으면 **건너뛰지 않고 실패**합니다. 조용히 꺼지는 게이트는 없는 게이트보다 나쁘기 때문입니다. 로컬에서 전부 돌리려면 g++/gcc 또는 MSVC(C와 C++ 양쪽), Node, Go, Rust, Python, JDK, Kotlin, Ruby, PHP, Dart, 그리고 Docker가 필요합니다. C·C++ 업데이터 게이트는 **libcurl**도 봅니다 — 리눅스에선 `libcurl4-openssl-dev`, 윈도우에선 `vcpkg install curl:x64-windows`이고, 그 외의 곳에 있으면 `TABBIT_LIBCURL_ROOT`로 알려줍니다. CI가 그 전부를 설치하므로, 로컬에서는 건드린 부분만 골라 돌리고 나머지는 CI에 맡겨도 됩니다.
+언어별 검증과 데이터베이스 검증은 툴체인이 없으면 **건너뛰지 않고 실패**합니다. 스스로 꺼지는 게이트는 없는 게이트보다 나쁘기 때문입니다. 로컬에서 전부 돌리려면 g++/gcc 또는 MSVC(C와 C++ 양쪽), Node, Go, Rust, Python, JDK, Kotlin, Ruby, PHP, Dart, 그리고 Docker가 필요합니다. C·C++ 업데이터 게이트는 **libcurl**도 봅니다 — 리눅스에선 `libcurl4-openssl-dev`, 윈도우에선 `vcpkg install curl:x64-windows`이고, 그 외의 곳에 있으면 `TABBIT_LIBCURL_ROOT`로 알려줍니다. CI가 그 전부를 설치하므로, 로컬에서는 건드린 부분만 골라 돌리고 나머지는 CI에 맡겨도 됩니다.
 
 ```
 dotnet test --filter "FullyQualifiedName~Conformance"    # 언어별 리더

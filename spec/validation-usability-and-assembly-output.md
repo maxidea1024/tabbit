@@ -65,7 +65,7 @@
 - `pre/`·`global/`·`shared/`·`runtime/`은 도구가 만들지 않습니다. 도구가 만드는 것은
   `tables/<테이블>.cs`(`--new-validator`), `.generated/`, `Validation.csproj` 세 가지입니다
   (`RuleScaffold.cs:63-73`, `RuleAccessor.cs:88-95`).
-- 폴더가 없으면 조용히 건너뜁니다(`RuleFolders.cs:193-194`). 이름이 정해진 6개 밖이면
+- 폴더가 없으면 말없이 건너뜁니다(`RuleFolders.cs:193-194`). 이름이 정해진 6개 밖이면
   에러입니다(`#` 접두 폴더는 면제, `RuleFolders.cs:160-185`).
 - 스테이지 폴더의 `*.cs`는 전부 규칙으로 컴파일되고, 엔트리 메서드가 정확히 1개 없으면
   에러입니다(`RuleCompiler.cs:255-276`). `shared/`만 재귀 스캔이고 나머지는 평평하게만

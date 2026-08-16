@@ -85,7 +85,7 @@ secondary index는 `*` **하나**입니다.
 ### `Target 'html' does not support optional fields yet`
 
 그 타깃이 「값이 없음」을 표현하지 못합니다. 없음을 잃은 채로 내보내면 「비었다」와 「0」이
-같아 보이는데, 그게 바로 `?`가 없애려는 것이라 조용히 내보내는 대신 그 이름과 함께 멈춥니다.
+같아 보이는데, 그게 바로 `?`가 없애려는 것이라 말없이 내보내는 대신 그 이름과 함께 멈춥니다.
 recipe에서 그 타깃을 빼거나, 컬럼에서 `?`를 떼세요. **13개 언어 전부와 `json`·`binary`가
 지원하고**, 남은 것은 `html`·데이터베이스·`summary`·`history`입니다.
 
@@ -275,7 +275,7 @@ table format version 103 is not supported (expected 104)
 
 ### `Recipe '...' sets up target 'csharp', but could not be read`
 
-그 타깃에 없는 설정을 적었습니다. `FileExtention` 같은 오타가 **조용히 기본값으로 넘어가지 않도록** 오류입니다 — 조용히 넘어가면 증상이 "설정이 안 먹는다"로만 보입니다.
+그 타깃에 없는 설정을 적었습니다. `FileExtention` 같은 오타가 **말없이 기본값으로 넘어가지 않도록** 오류입니다 — 그냥 넘어가면 증상이 "설정이 안 먹는다"로만 보입니다.
 
 ### `Recipe section '...' has TargetSide 'client-only', which is not recognized`
 
@@ -297,7 +297,7 @@ table format version 103 is not supported (expected 104)
 
 ### `The recipe's 'Validation.Path' is '...', and there is no folder there`
 
-지정했는데 없는 폴더입니다. **오류인 이유**는 오타 하나로 검증 전체가 조용히 통과하기 때문입니다. 검증 없이 돌리려면 `Path`를 비웁니다.
+지정했는데 없는 폴더입니다. **오류인 이유**는 오타 하나로 검증 전체가 걸리는 것 없이 통과하기 때문입니다. 검증 없이 돌리려면 `Path`를 비웁니다.
 
 ### `The validation folder '...' has a subfolder 'X', which is not one this layout runs`
 
@@ -305,7 +305,7 @@ table format version 103 is not supported (expected 104)
 
 ### `'rules/tables/X.cs' is a rule for table 'X', which this model does not have`
 
-테이블 이름이 바뀌었거나 파일 이름에 오타가 있습니다. **오류인 이유**는 규칙이 조용히 안 도는 것이 더 나쁘기 때문입니다 — 비슷한 이름이 있으면 메시지가 함께 적어줍니다. 한 테이블에 대한 규칙이 아니라면 `rules/global/`로 옮깁니다.
+테이블 이름이 바뀌었거나 파일 이름에 오타가 있습니다. **오류인 이유**는 규칙이 말없이 안 도는 것이 더 나쁘기 때문입니다 — 비슷한 이름이 있으면 메시지가 함께 적어줍니다. 한 테이블에 대한 규칙이 아니라면 `rules/global/`로 옮깁니다.
 
 ### `'...' has nothing to run`
 
@@ -313,7 +313,7 @@ table format version 103 is not supported (expected 104)
 
 ### `This rule reads the validation option 'X', which the recipe does not set`
 
-recipe의 `Validation.Options`에 넣거나, 없어도 되는 값이면 `Option("X", 기본값)`을 씁니다. **빈 문자열로 조용히 대신하지 않는 이유**는 로케일 비교가 아무것과도 맞지 않아 **아무것도 검사하지 않는 규칙**이 되기 때문입니다.
+recipe의 `Validation.Options`에 넣거나, 없어도 되는 값이면 `Option("X", 기본값)`을 씁니다. **빈 문자열로 말없이 대신하지 않는 이유**는 로케일 비교가 아무것과도 맞지 않아 **아무것도 검사하지 않는 규칙**이 되기 때문입니다.
 
 ### `This rule opens an external store, which only the 'rules/runtime/' rules may do`
 
@@ -325,7 +325,7 @@ recipe의 `Validation.Options`에 넣거나, 없어도 되는 값이면 `Option(
 
 ### 규칙 파일의 컴파일 오류
 
-검증 오류와 같은 경로로, 파일·줄·열과 함께 보고합니다. 한 파일이 깨져도 나머지는 전부 컴파일하므로 한 번에 전부 나옵니다. **이것이 타입을 쓰는 이유입니다** — 없는 컬럼이나 없는 enum 값은 실행 중의 조용한 미스가 아니라 여기서 걸립니다.
+검증 오류와 같은 경로로, 파일·줄·열과 함께 보고합니다. 한 파일이 깨져도 나머지는 전부 컴파일하므로 한 번에 전부 나옵니다. **이것이 타입을 쓰는 이유입니다** — 없는 컬럼이나 없는 enum 값은 실행 중의 드러나지 않는 미스가 아니라 여기서 걸립니다.
 
 ---
 
@@ -361,7 +361,7 @@ recipe의 `Validation.Options`에 넣거나, 없어도 되는 값이면 `Option(
 Server=db;Database=game;Uid=tabbit;Pwd=${DB_PASSWORD}
 ```
 
-변수가 설정되어 있지 않으면 **오류이고, 어느 변수인지 이름으로 출력합니다.** 빈 문자열로 조용히 치환하지 않습니다 — 그러면 인증 실패가 "비밀번호가 틀렸다"로 보이고, 진짜 원인인 "변수를 안 넣었다"는 어디에도 안 나옵니다.
+변수가 설정되어 있지 않으면 **오류이고, 어느 변수인지 이름으로 출력합니다.** 빈 문자열로 말없이 치환하지 않습니다 — 그러면 인증 실패가 "비밀번호가 틀렸다"로 보이고, 진짜 원인인 "변수를 안 넣었다"는 어디에도 안 나옵니다.
 
 ### `MySQL exporter cannot map type '...' of column '...'`
 
