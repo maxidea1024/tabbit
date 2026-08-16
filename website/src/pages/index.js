@@ -72,8 +72,9 @@ export default function Home() {
                 파싱이 필요 없는 바이너리와 그것을 읽는 코드로 냅니다.
               </p>
               <div className={styles.buttons}>
+                {/* 링크가 닿는 곳이 예제 하나를 끝까지 도는 문서이므로, 그렇게 적습니다. */}
                 <Link className="button button--primary button--lg" to="/docs/guide/concepts">
-                  5분이면 감이 옵니다
+                  예제로 시작하기
                 </Link>
                 {/*
                   테마의 `secondary` 를 쓰지 않습니다. 그 색은 밝은 배경을 전제로 고른 것이라
