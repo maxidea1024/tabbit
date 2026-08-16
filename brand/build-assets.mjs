@@ -199,6 +199,13 @@ await save('app-icon-panel.png', await sharp(src('brand-sheet.png')).extract(BOX
 await save('lockup.png', await sharp(src('lockup-sheet.png')).extract(BOX.lockup).png().toBuffer())
 await save('app-icon.png', await sharp(src('app-icon.png')).png().toBuffer())
 
+// mabbit — 병합 도구의 것. 잘라낼 것이 없는 완성된 한 장이라 크기만 줄입니다.
+// 문서가 읽는 크기이고, 원본 1024는 문서 한 장에 넣기에 큽니다.
+await save(
+  'mabbit-icon.png',
+  await sharp(src('mabbit-icon.png')).resize(480, 480).png({ compressionLevel: 9 }).toBuffer(),
+)
+
 // 2. 배경을 뺀 것들 — 어느 바탕에도 얹을 수 있어야 합니다.
 const mark = await cutout('lockup-sheet.png', BOX.mark)
 const wordmark = await cutout('lockup-sheet.png', BOX.wordmark)

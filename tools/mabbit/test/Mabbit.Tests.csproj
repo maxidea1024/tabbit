@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Mabbit.Tests</RootNamespace>
+    <AssemblyName>Mabbit.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\Mabbit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Its own workbooks rather than a path into the rest of the repository. Two files, both
+      small, and copied beside the tests so that this suite runs from its own folder - which
+      is the whole point of the program being its own program.
+
+      One of each format that matters: the zip-and-XML one and the binary one. They are read
+      by different code inside the reader, and a gate that only ever opens the first would
+      not notice the second breaking.
+    -->
+    <None Include="fixtures\**" CopyToOutputDirectory="PreserveNewest" LinkBase="fixtures" />
+  </ItemGroup>
+
+</Project>

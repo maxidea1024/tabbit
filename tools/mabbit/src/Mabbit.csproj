@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Mabbit</RootNamespace>
+
+    <!--
+      Lower case, and the same name as the folder: this is what somebody types, and what a
+      version control configuration names as its merge driver.
+    -->
+    <AssemblyName>mabbit</AssemblyName>
+
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <Product>Mabbit</Product>
+    <Description>Three-way merge and comparison for spreadsheet workbooks, by table and row key rather than by cell position.</Description>
+    <Version>0.0.0</Version>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Mabbit.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      **One package, and nothing else.** No reference to the main tool.
+
+      A merge driver is run once per conflicted file, by a person waiting at a prompt, and
+      what it needs is a spreadsheet reader. Referencing `tabbit` for that would have brought
+      its whole dependency set - a Google API client, four database drivers, a C# compiler -
+      into a program that calls none of them: 29 assemblies and 39 MB to read a grid of cells.
+
+      Sharing the reader would have bought consistency with a conversion about what a cell
+      holds, and that turns out not to be worth anything here: a merge compares three files
+      that this program reads itself, in one run, with one reader. Nothing it produces is
+      compared against what a conversion read.
+    -->
+    <PackageReference Include="Sylvan.Data.Excel" Version="0.5.8" />
+  </ItemGroup>
+
+</Project>

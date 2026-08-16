@@ -119,6 +119,13 @@ src/**/obj/
 test/**/bin/
 test/**/obj/
 
+# Build output under `tools/`. The same lesson as `src/` above, written down before it is
+# learned again: a sibling program referencing the main tool copies its whole dependency set
+# next to itself, so what lands here is hundreds of files and every satellite resource
+# assembly they ship.
+tools/**/bin/
+tools/**/obj/
+
 # Conversion output produced by the regression suite, plus the scratch areas the
 # TypeScript and C++ gates build in. Regenerated on every run and compared against
 # test/fixtures/golden, which *is* committed.
