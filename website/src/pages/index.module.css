@@ -66,6 +66,22 @@
   margin-bottom: 2.5rem;
 }
 
+/*
+ * 히어로는 어두운데 테마의 secondary 는 밝은 회색을 전제로 한 색이라, outline 으로 두면
+ * 글자가 배경에 묻힙니다. 이 자리에서만 흰색으로 고정합니다.
+ */
+.buttons :global(.button--secondary) {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+}
+
+.buttons :global(.button--secondary:hover) {
+  color: var(--ink);
+  background: #fff;
+  border-color: #fff;
+}
+
 .heroArt {
   display: block;
   width: 100%;

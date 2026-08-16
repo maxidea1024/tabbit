@@ -22,6 +22,9 @@ const sidebars = {
     {
       type: 'category',
       label: '쓰는 법',
+      // 접어 두면 트러블슈팅이 사이드바에서 보이지 않습니다 — 실제로 「문서에 없다」는
+      // 말을 들은 자리이고, 없었던 것이 아니라 두 단계 아래 접혀 있던 것입니다.
+      collapsed: false,
       items: [
         'guide/features',
         {
