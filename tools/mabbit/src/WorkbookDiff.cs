@@ -20,7 +20,12 @@ internal sealed record RowChange(
 internal sealed record ColumnChange(ChangeKind Kind, string Name);
 
 /// <summary>Something about a table that the comparison could not follow, said rather than dropped.</summary>
-internal sealed record TableNote(string Table, string Text);
+/// <param name="Side">
+/// Which file it is about. Empty for a comparison, where there is only one file it could be;
+/// set for a merge, where the same sentence about two different files is otherwise printed
+/// twice with nothing to tell them apart.
+/// </param>
+internal sealed record TableNote(string Table, string Text, string Side = "");
 
 internal sealed class TableChange
 {

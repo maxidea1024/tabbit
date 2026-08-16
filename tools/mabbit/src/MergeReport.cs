@@ -16,7 +16,7 @@ namespace Mabbit;
 /// </remarks>
 internal static class MergeReport
 {
-    public static string Text(MergePlan plan)
+    public static string Text(MergePlan plan, MergeWriter.WritePlan? write = null)
     {
         ArgumentNullException.ThrowIfNull(plan);
 
@@ -54,13 +54,36 @@ internal static class MergeReport
         text.Append(Count(plan.ActionCount)).Append(" change(s) to take from theirs, ")
             .Append(Count(plan.ConflictCount)).AppendLine(" conflict(s).");
 
-        // Said every time, not only when it matters. A tool that writes sometimes and not
-        // others is one nobody can predict, and this build never writes.
-        text.AppendLine("Nothing was written: this build judges only.");
-
+        // Said every time, not only when it matters. Whether a workbook came out of this run
+        // is the first thing somebody needs to know, and a tool that mentions it only
+        // sometimes is one whose silence has to be interpreted.
+        AppendOutcome(text, plan, write);
         AppendNotes(text, plan);
 
         return text.ToString();
+    }
+
+    private static void AppendOutcome(StringBuilder text, MergePlan plan, MergeWriter.WritePlan? write)
+    {
+        if (write is null)
+        {
+            text.AppendLine("Nothing was written: no `--result` was asked for.");
+            return;
+        }
+
+        if (write.CanWrite)
+        {
+            text.Append("Writing ").Append(Count(write.Edits.Count))
+                .AppendLine(" cell(s) into a copy of mine. Everything else is its bytes unchanged.");
+
+            return;
+        }
+
+        text.AppendLine();
+        text.AppendLine("Nothing was written, because:");
+
+        foreach (var refusal in write.Refusals)
+            text.Append("  - ").AppendLine(refusal.Reason);
     }
 
     public static string Json(MergePlan plan)
@@ -156,7 +179,10 @@ internal static class MergeReport
         text.AppendLine("Rows this merge could not follow:");
 
         foreach (var note in plan.Notes)
-            text.Append("  ! ").Append(note.Table).Append(": ").AppendLine(note.Text);
+        {
+            text.Append("  ! ").Append(note.Side).Append("  ").Append(note.Table).Append(": ")
+                .AppendLine(note.Text);
+        }
     }
 
     private static string Shown(string value) => value.Length == 0 ? "(empty)" : value;

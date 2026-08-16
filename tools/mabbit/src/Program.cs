@@ -190,17 +190,6 @@ public static class Program
 
     private static int Merge(Options options)
     {
-        // Refused rather than ignored. Somebody who passes it is wiring this up as a merge
-        // driver, and a driver that reports success without writing the result is how a
-        // day's work disappears.
-        if (!string.IsNullOrEmpty(options.Result))
-        {
-            throw new MabbitException(
-                "`--result` asks for a merged workbook to be written, and this build does not "
-                + "write one. Leave it out to get the judgement, and do not register mabbit as "
-                + "a merge driver until it does.");
-        }
-
         string ancestor = Required(options.Base, "--base");
         string here = Required(options.Mine, "--mine");
         string there = Required(options.Theirs, "--theirs");
@@ -211,26 +200,42 @@ public static class Program
         var mine = WorkbookGrid.Read(here, options.Path, reportAs: Shown(here, options.Path));
         var theirs = WorkbookGrid.Read(there, options.Path, reportAs: Shown(there, options.Path));
 
-        var plan = WorkbookMerge.Judge(
+        var mineTables = TableViews.Of(mine, schema);
+
+        var judged = WorkbookMerge.Judge(
             inBase.Name, TableViews.Of(inBase, schema),
-            mine.Name, TableViews.Of(mine, schema),
+            mine.Name, mineTables,
             theirs.Name, TableViews.Of(theirs, schema));
 
-        plan = new MergePlan
+        var plan = new MergePlan
         {
-            BaseName = plan.BaseName,
-            MineName = plan.MineName,
-            TheirsName = plan.TheirsName,
-            Tables = plan.Tables,
-            Notes = plan.Notes,
+            BaseName = judged.BaseName,
+            MineName = judged.MineName,
+            TheirsName = judged.TheirsName,
+            Tables = judged.Tables,
+            Notes = judged.Notes,
             Outside = WorkbookMerge.OutsideTables(inBase, mine, theirs, schema),
         };
 
+        var write = string.IsNullOrEmpty(options.Result)
+            ? null
+            : MergeWriter.Prepare(plan, mineTables);
+
         Write(options, string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase)
             ? MergeReport.Json(plan)
-            : MergeReport.Text(plan));
+            : MergeReport.Text(plan, write));
 
-        return plan.HasConflicts ? Conflicted : Ran;
+        if (write is null)
+            return plan.HasConflicts ? Conflicted : Ran;
+
+        if (!write.CanWrite)
+            return Conflicted;
+
+        // The result is written from this side's file, so everything neither side touched
+        // survives as the bytes it already was.
+        XlsxPatcher.Apply(here, options.Result!, write.Edits);
+
+        return Ran;
     }
 
     private static void Write(Options options, string report)

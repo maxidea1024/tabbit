@@ -140,11 +140,12 @@ internal static class WorkbookMerge
             MineName = mineName,
             TheirsName = theirsName,
             Tables = tables,
-            Notes = mine.SelectMany(WorkbookDiff.NotesOf)
-                .Concat(theirs.SelectMany(WorkbookDiff.NotesOf))
-                .ToList(),
+            Notes = Sided(mine, "mine").Concat(Sided(theirs, "theirs")).ToList(),
         };
     }
+
+    private static IEnumerable<TableNote> Sided(IReadOnlyList<TableView> views, string side)
+        => views.SelectMany(WorkbookDiff.NotesOf).Select(note => note with { Side = side });
 
     /// <summary>Null when there is nothing to say about the table.</summary>
     private static TableMerge? JudgeTable(
