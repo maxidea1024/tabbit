@@ -179,10 +179,30 @@ public class RecipeModel
     /// Reads a recipe. Comments are permitted, which is why recipes can explain
     /// themselves in place.
     /// </summary>
+    /// <remarks>
+    /// Parsed to a document first so that <see cref="RecipeVariables"/> can fill the
+    /// `${NAME}` placeholders before anything is bound to a property. Substituting into
+    /// the text instead would mean escaping each value back into JSON, and a value
+    /// holding a quote would then produce a file that no longer parses rather than a
+    /// wrong setting.
+    /// </remarks>
     public static RecipeModel? LoadFromFile(string filename)
     {
         string json = File.ReadAllText(filename);
-        return JsonConvert.DeserializeObject<RecipeModel>(json);
+
+        if (string.IsNullOrWhiteSpace(json))
+            return null;
+
+        // Comments dropped rather than kept as tokens: they are here to explain the
+        // recipe to whoever opens it, and nothing downstream reads them.
+        var document = JObject.Parse(json, new JsonLoadSettings
+        {
+            CommentHandling = CommentHandling.Ignore,
+        });
+
+        RecipeVariables.Expand(document, filename);
+
+        return document.ToObject<RecipeModel>();
     }
 
     /// <summary>
