@@ -1,78 +1,280 @@
+/* 브랜드 팔레트. brand/build-assets.mjs 가 원본에서 뽑은 값과 같습니다. */
+.page {
+  --ink: #24186c;
+  --ink-deep: #180c60;
+  --violet: #846cf0;
+  --pink: #fc8490;
+  --amber: #fcc024;
+}
+
+/* ---------------------------------------------------------------- 히어로 */
+
 .hero {
-  background: linear-gradient(160deg, #24186c 0%, #180c60 100%);
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(120% 130% at 15% 0%, #3a2a90 0%, var(--ink) 45%, var(--ink-deep) 100%);
   color: #fff;
-  padding: 4rem 1rem 3.5rem;
-  text-align: center;
+  padding: 4.5rem 1rem 0;
+}
+
+.heroInner {
+  max-width: 68rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c1b0f9;
+  border: 1px solid rgba(193, 176, 249, 0.35);
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  margin-bottom: 1.4rem;
 }
 
 .title {
-  font-size: 3.2rem;
-  line-height: 1.1;
-  margin: 0 0 0.6rem;
-  letter-spacing: -0.02em;
+  font-size: 3.4rem;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  margin: 0 0 1rem;
 }
 
-.tagline {
-  font-size: 1.25rem;
-  font-weight: 600;
+.title em {
+  font-style: normal;
   color: #c1b0f9;
-  margin: 0 0 1.2rem;
 }
 
 .lede {
-  max-width: 46rem;
-  margin: 0 auto 2rem;
-  font-size: 1.05rem;
-  line-height: 1.8;
-  color: rgba(255, 255, 255, 0.82);
+  font-size: 1.08rem;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 2rem;
+  max-width: 34rem;
 }
 
 .buttons {
   display: flex;
   gap: 0.75rem;
-  justify-content: center;
   flex-wrap: wrap;
+  margin-bottom: 2.5rem;
 }
 
-.banner {
+.heroArt {
   display: block;
-  width: min(760px, 100%);
-  margin: 3rem auto 0;
-  border-radius: 18px;
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
-.strip {
+/* ---------------------------------------------------------------- 변환 */
+
+.flow {
+  padding: 4.5rem 1rem;
+  background: var(--ifm-background-color);
+}
+
+.section {
+  max-width: 68rem;
+  margin: 0 auto;
+}
+
+.sectionHead {
+  margin-bottom: 2.2rem;
+}
+
+.sectionHead h2 {
+  font-size: 1.9rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+}
+
+.sectionHead p {
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.8;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.panel {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+  min-width: 0;
+}
+
+.panelHead {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-600);
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.panel pre {
+  margin: 0;
+  padding: 1rem;
+  background: none;
+  font-size: 0.78rem;
+  line-height: 1.75;
+  overflow-x: auto;
+}
+
+.arrow {
+  align-self: center;
+  font-size: 1.6rem;
+  color: var(--violet);
+  font-weight: 700;
+}
+
+.mark {
+  background: linear-gradient(transparent 62%, rgba(132, 108, 240, 0.28) 62%);
+  font-weight: 700;
+}
+
+.note {
+  margin-top: 1.4rem;
+  padding: 1rem 1.2rem;
+  border-left: 3px solid var(--violet);
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 0 8px 8px 0;
+  line-height: 1.8;
+}
+
+.note code {
+  font-size: 0.86em;
+}
+
+/* ---------------------------------------------------------------- 숫자 */
+
+.figures {
   padding: 3.5rem 1rem;
+  background: var(--ifm-color-emphasis-100);
+}
+
+.figureGrid {
+  max-width: 68rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.figure strong {
+  display: block;
+  font-size: 1.9rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ifm-color-primary);
+}
+
+.figure span {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.65;
+  font-size: 0.92rem;
+}
+
+/* ---------------------------------------------------------------- 이유 */
+
+.reasons {
+  padding: 4.5rem 1rem;
 }
 
 .cards {
   display: grid;
   gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  max-width: 62rem;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
 }
 
 .card {
   border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 12px;
-  padding: 1.25rem 1.4rem;
+  border-radius: 14px;
+  padding: 1.4rem 1.5rem;
 }
 
 .card h3 {
-  margin: 0 0 0.4rem;
-  font-size: 1.05rem;
+  margin: 0 0 0.5rem;
+  font-size: 1.02rem;
+  line-height: 1.5;
 }
 
 .card p {
   margin: 0;
   color: var(--ifm-color-emphasis-700);
-  line-height: 1.7;
-  font-size: 0.94rem;
+  line-height: 1.8;
+  font-size: 0.93rem;
 }
 
-@media (max-width: 600px) {
+/* ---------------------------------------------------------------- 산출물 */
+
+.targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.chip {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  color: var(--ifm-color-emphasis-800);
+}
+
+/* ---------------------------------------------------------------- 마무리 */
+
+.closing {
+  padding: 4rem 1rem 5rem;
+  text-align: center;
+  background: var(--ifm-color-emphasis-100);
+}
+
+.closing h2 {
+  font-size: 1.7rem;
+  margin: 0 0 0.6rem;
+}
+
+.closing p {
+  color: var(--ifm-color-emphasis-700);
+  margin: 0 0 1.8rem;
+  line-height: 1.8;
+}
+
+@media (max-width: 996px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .pair {
+    grid-template-columns: 1fr;
+  }
+
+  .arrow {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+
   .title {
-    font-size: 2.4rem;
+    font-size: 2.5rem;
   }
 }

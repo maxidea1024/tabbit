@@ -1,4 +1,6 @@
-<img src="brand/dist/readme-header.jpg" alt="Tabbit — Game Data Authoring & Build Tool" width="100%">
+<a href="https://maxidea1024.github.io/tabbit/">
+  <img src="brand/dist/readme-header.jpg" alt="Tabbit — Game Data Authoring & Build Tool" width="100%">
+</a>
 
 # Tabbit
 
@@ -8,10 +10,6 @@
 [![docs](https://github.com/maxidea1024/tabbit/actions/workflows/docs.yml/badge.svg)](https://maxidea1024.github.io/tabbit/)
 [![release](https://img.shields.io/github/v/release/maxidea1024/tabbit?sort=semver)](https://github.com/maxidea1024/tabbit/releases)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
-### **[maxidea1024.github.io/tabbit →](https://maxidea1024.github.io/tabbit/)**
-
-소개와 전체 문서가 있습니다. 검색이 되고, 사이드바로 옮겨 다닐 수 있습니다.
 
 게임 시스템의 근간은 정적 데이터입니다. 아이템·스테이지·밸런스·설정 — 코드보다 자주 바뀌고,
 손이 더 많이 타고, 틀렸을 때 가장 늦게 드러납니다.
@@ -54,8 +52,8 @@ await GameData.ReadAllAsync("./data");
 var sword = GameData.Item.FindByIndex(1);
 ```
 
-다음 세 문서면 시작할 수 있습니다 — [시트에 무엇을 적을 수 있나](doc/concepts.md) ·
-[CLI](doc/cli.md) · [Recipe 파일](doc/recipe.md).
+시트 한 장이 어떻게 코드가 되는지는 [시트에 무엇을 적을 수 있나](doc/concepts.md)에서 예제
+하나를 끝까지 따라갑니다. 그다음은 [CLI](doc/cli.md)와 [Recipe 파일](doc/recipe.md)입니다.
 
 ## 무엇이 나오나
 
@@ -86,8 +84,9 @@ var sword = GameData.Item.FindByIndex(1);
 
 ## 문서
 
-**[문서 사이트](https://maxidea1024.github.io/tabbit/docs/guide)** — 검색과 사이드바가 있는 쪽입니다.
-저장소 안에서 읽는다면 [문서 목록](doc/readme.md)이 같은 내용입니다. 자주 찾는 것만 옮기면,
+같은 문서가 두 곳에 있습니다. 검색하고 사이드바로 옮겨 다니려면
+[**maxidea1024.github.io/tabbit**](https://maxidea1024.github.io/tabbit/) 쪽이 편하고, 저장소
+안에서 읽는다면 [문서 목록](doc/readme.md)이 시작점입니다. 자주 찾는 것만 옮기면,
 
 |문서|내용|
 |--|--|
