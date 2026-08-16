@@ -166,6 +166,11 @@ class Program
         {
             try
             {
+                // Before the recipe is read, because the recipe may name it: `--env` is
+                // what `${TABBIT_ENV}` resolves to, so the run is labelled and pointed at
+                // its sheets by the same word.
+                RunEnvironment.Establish(options);
+
                 recipe = RecipeModel.LoadFromFile(options.RecipeFilename);
             }
             catch (Exception ex)

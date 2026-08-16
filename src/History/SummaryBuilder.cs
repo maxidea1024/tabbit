@@ -56,6 +56,12 @@ public static class SummaryBuilder
             GeneratedAt = DateTimeOffset.Now.ToString("o", CultureInfo.InvariantCulture),
             ToolVersion = typeof(SummaryBuilder).Assembly.GetName().Version?.ToString(),
 
+            // From the environment rather than from the options, so it is the same word
+            // the recipe's `${TABBIT_ENV}` resolved to - one of them steering the paths
+            // while the other labelled the file is the failure this records against.
+            Environment = System.Environment.GetEnvironmentVariable(RunEnvironment.Variable) is { } name
+                && !string.IsNullOrWhiteSpace(name) ? name : null,
+
             // The name, not the path: where a machine keeps its checkout says nothing
             // about the data, and putting it in makes two identical conversions differ.
             Recipe = context?.Options?.RecipeFilename is null

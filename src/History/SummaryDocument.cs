@@ -38,6 +38,18 @@ public sealed class SummaryRun
     public required string? ToolVersion { get; set; }
 
     /// <summary>
+    /// Which environment this run was for, when it said.
+    /// </summary>
+    /// <remarks>
+    /// Null when nothing named one, which is honest: a run that did not say is not a run
+    /// that was for the default. Recorded because the output otherwise carries no answer
+    /// to the first question asked of a build that went somewhere unexpected - and the
+    /// same word decided the paths, so it is not a claim about the run but a record of
+    /// what steered it.
+    /// </remarks>
+    public required string? Environment { get; set; }
+
+    /// <summary>
     /// Name of the recipe, without its directory: the full path is where one machine
     /// keeps its checkout and says nothing about the data.
     /// </summary>

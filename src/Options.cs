@@ -48,6 +48,25 @@ public class Options
     public string? TargetSide { get; set; }
 
     /// <summary>
+    /// Which environment this run is for.
+    /// </summary>
+    /// <remarks>
+    /// Two things at once, and on purpose. It is recorded in the summary, so a build can
+    /// be told from its output rather than from whoever remembers launching it; and it
+    /// becomes `TABBIT_ENV` for the recipe's `${NAME}` substitution, so the paths a run
+    /// reads and writes come from the same word that labels it.
+    ///
+    /// Splitting those - a flag for the label and a variable for the paths - is a pair
+    /// that can disagree, and the disagreement is the failure worth preventing: output
+    /// stamped `live` that was built from the development sheets says the opposite of
+    /// what happened. A `TABBIT_ENV` already set to something else is refused rather
+    /// than overwritten.
+    /// </remarks>
+    [Option("env", HelpText =
+        "Environment this run is for. Recorded in the summary, and available as ${TABBIT_ENV}.")]
+    public string? EnvironmentName { get; set; }
+
+    /// <summary>
     /// The commit this conversion is of.
     ///
     /// What the history files a snapshot under, and what a range query names. Left out,

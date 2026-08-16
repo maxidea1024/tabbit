@@ -34,7 +34,7 @@ public class HistoryViewTests
                 // would be a shape production never produces.
                 Run = new SummaryRun
                 {
-                    GeneratedAt = "", ToolVersion = "", Recipe = "",
+                    GeneratedAt = "", ToolVersion = "", Recipe = "", Environment = null,
                     Commit = new SummaryCommit { Origin = "none" }, RequestedTargetSide = "cs",
                 },
                 Data = new SummaryData { Hash = "", Totals = new SummaryTotals() },
