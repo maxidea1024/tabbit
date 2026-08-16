@@ -8,7 +8,7 @@
 
 ## 이름 — LiteBinary에서 Tcb로
 
-이 작업과 함께 런타임·변환기의 `LiteBinary*` 이름을 전부 `Tcb*`로 바꿉니다. 형식의 이름이 TCB(Tabbit Binary)인데 코드가 다른 이름을 쓰는 것은 역사적 우연일 뿐입니다.
+이 작업과 함께 런타임·변환기의 `LiteBinary*` 이름을 전부 `Tcb*`로 바꿉니다. 형식의 이름이 TCB(Tabbit Compiled Binary)인데 코드가 다른 이름을 쓰는 것은 역사적 우연일 뿐입니다.
 
 |지금|바뀐 뒤|
 |--|--|

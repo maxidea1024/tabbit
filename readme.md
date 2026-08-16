@@ -5,8 +5,13 @@
 **Game Data Authoring & Build Tool**
 
 [![build](https://github.com/maxidea1024/tabbit/actions/workflows/dotnet.yml/badge.svg)](https://github.com/maxidea1024/tabbit/actions/workflows/dotnet.yml)
+[![docs](https://github.com/maxidea1024/tabbit/actions/workflows/docs.yml/badge.svg)](https://maxidea1024.github.io/tabbit/)
 [![release](https://img.shields.io/github/v/release/maxidea1024/tabbit?sort=semver)](https://github.com/maxidea1024/tabbit/releases)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+### **[maxidea1024.github.io/tabbit →](https://maxidea1024.github.io/tabbit/)**
+
+소개와 전체 문서가 있습니다. 검색이 되고, 사이드바로 옮겨 다닐 수 있습니다.
 
 게임 시스템의 근간은 정적 데이터입니다. 아이템·스테이지·밸런스·설정 — 코드보다 자주 바뀌고,
 손이 더 많이 타고, 틀렸을 때 가장 늦게 드러납니다.
@@ -65,7 +70,7 @@ var sword = GameData.Item.FindByIndex(1);
 **따로 설치할 것이 없습니다.** 바이너리를 읽는 코드까지 출력 폴더에 같이 나오므로, 플러그인을
 깔거나 include 경로를 잡을 일이 없습니다.
 
-**TCB — Tabbit Binary.** 빌드의 결과물입니다. 파싱이 없고, 인코딩이 값의 크기에 맞고,
+**TCB — Tabbit Compiled Binary.** 빌드의 결과물입니다. 파싱이 없고, 인코딩이 값의 크기에 맞고,
 **스키마가 바뀌어도 감지되지 않는 읽기 오류가 되지 않습니다** — 읽을 수 있으면 정확히 읽고,
 읽을 수 없으면 필드 이름과 양쪽 타입을 대고 멈춥니다. [바이너리 형식](doc/binary-format.md)
 
@@ -81,7 +86,8 @@ var sword = GameData.Item.FindByIndex(1);
 
 ## 문서
 
-**[문서 목록 →](doc/readme.md)** 에 전부 있습니다. 자주 찾는 것만 옮기면,
+**[문서 사이트](https://maxidea1024.github.io/tabbit/docs/guide)** — 검색과 사이드바가 있는 쪽입니다.
+저장소 안에서 읽는다면 [문서 목록](doc/readme.md)이 같은 내용입니다. 자주 찾는 것만 옮기면,
 
 |문서|내용|
 |--|--|
