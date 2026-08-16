@@ -146,7 +146,7 @@ const save = async (rel, buf) => {
 // 알약을 지우면 그것이 앉아 있던 라벤더 띠가 빈 여백으로 남으므로, 평평한 부분을 잘라냅니다 —
 // 컨테이너의 둥근 아래 모서리(y 760부터)는 남깁니다. 이어붙인 자리는 위아래를 보간해 지웁니다.
 const PILL = { top: 717, bottom: 772 }
-const CUT = { from: 726, to: 761 } // 잘라낼 평평한 라벤더 행
+const CUT = { from: 726, to: 743 } // 잘라낼 평평한 라벤더 행
 
 async function erasePill(png) {
   const raw = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
@@ -246,11 +246,23 @@ await save('icons/tabbit.ico', ico(appPngs))
 // 가로 락업으로 만들지 않습니다 — 그 워드마크는 **흰 바탕용**(검은 글자)이라 브랜드 배경에
 // 얹으면 읽히지 않고, 글자 안쪽의 흰 구멍이 얼룩으로 보입니다. 배너가 이미 브랜드 배경 위에
 // 완성된 구성이므로 그것을 씁니다.
-// readme 는 JPEG 입니다. 같은 그림의 PNG 가 1.5 MB 이고, 저장소 첫 화면에서 받는 파일로는
-// 큽니다 — 그라디언트가 많은 일러스트라 PNG 가 잘 줄지 않습니다.
+// readme 헤더는 **기능 패널에서 끊습니다.**
+//
+// 사이트는 이 그림을 어두운 배경 위에 얹고 CSS 로 모서리를 깎아서 아래쪽 라벤더 받침이 배경에
+// 묻힙니다. GitHub 의 readme 는 흰 바탕이고 모서리를 깎을 방법이 없어서, 같은 받침이 잘린 띠로
+// 보입니다. 그래서 이쪽만 그 받침 없이 냅니다.
+//
+// JPEG 인 것은 크기 때문입니다 — 같은 그림의 PNG 가 1.5 MB 이고, 저장소 첫 화면에서 받는
+// 파일로는 큽니다. 그라디언트가 많은 일러스트라 PNG 가 잘 줄지 않습니다.
+const PANEL_BOTTOM = 720
+
 await save(
   'readme-header.jpg',
-  await sharp(banner).resize({ width: 1100 }).jpeg({ quality: 86, mozjpeg: true }).toBuffer(),
+  await sharp(banner)
+    .extract({ left: 0, top: 0, width: 917, height: PANEL_BOTTOM })
+    .resize({ width: 1100 })
+    .jpeg({ quality: 86, mozjpeg: true })
+    .toBuffer(),
 )
 
 await save(
