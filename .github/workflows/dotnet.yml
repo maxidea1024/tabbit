@@ -1,10 +1,43 @@
 name: .NET
 
+# Documentation-only changes do not run this. The suite converts workbooks and compiles
+# thirteen languages; a markdown edit cannot change what it answers, and it used to spend
+# the whole matrix finding that out. `paths-ignore` rather than `paths`, so anything not
+# named here still runs it - a filter that has to be extended for new source is a filter
+# that eventually stops covering something.
+#
+# The list is written twice because GitHub does not resolve YAML anchors in a workflow file.
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - 'spec/**'
+      - 'samples/*/doc/**'
+      - 'website/**'
+      - 'brand/**'
+      - '**/*.md'
+      - '.github/workflows/docs.yml'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - 'spec/**'
+      - 'samples/*/doc/**'
+      - 'website/**'
+      - 'brand/**'
+      - '**/*.md'
+      - '.github/workflows/docs.yml'
+  # For the cross-platform job, which no longer runs on every push - see its comment.
+  schedule:
+    - cron: '0 18 * * 0'
+  workflow_dispatch:
+
+# A push that supersedes another makes the first one's answer worthless, and this suite is
+# expensive enough that paying for both is a decision rather than an accident.
+concurrency:
+  group: dotnet-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -60,33 +93,8 @@ jobs:
           sudo apt-get install -y libcurl4-openssl-dev
           curl-config --version
 
-      # The product had another name once, and its binary format had another one too. Both
-      # are gone from every file, and this is what keeps them gone: a name leaks back the way
-      # it leaked out the first time - through a path, a comment, a fixture nobody reads.
-      #
-      # Tracked files only, and contents as well as paths. The workbooks are excluded because
-      # they are zip archives whose deflate output contains three-letter sequences by chance;
-      # every hit inside one so far has been surrounded by binary noise. This file is excluded
-      # because the names it forbids have to be written down somewhere, and this is that place.
-      - name: No trace of the old names
-        run: |
-          # Matched case-insensitively, so one spelling of each covers SheetMan, Sheetman,
-          # SHEETMAN, ScbReader, scb_reader and `.scb` alike.
-          old='sheetman|sheet[ -]man|시트맨|\bscb'
-
-          paths="$(git ls-files | grep -Ei 'sheetman|scb' || true)"
-          if [ -n "$paths" ]; then
-            echo "::error::these paths carry a retired name"; echo "$paths"; exit 1
-          fi
-
-          files="$(git grep -lEIi "$old" -- . ':(exclude)*.xlsx' ':(exclude)*.xlsm' ':(exclude)*.xlsb' ':(exclude).github/workflows/dotnet.yml' || true)"
-          if [ -n "$files" ]; then
-            echo "::error::these files carry a retired name"
-            git grep -nEIi "$old" -- . ':(exclude)*.xlsx' ':(exclude)*.xlsm' ':(exclude)*.xlsb' ':(exclude).github/workflows/dotnet.yml'
-            exit 1
-          fi
-
-          echo "clean"
+      # The retired-name check moved to its own workflow, so that a documentation-only change
+      # - which this one no longer runs for - is still covered by it.
 
       - name: Restore
         run: dotnet restore Tabbit.slnx
@@ -206,9 +214,20 @@ jobs:
   # It costs the same toolchains the Linux job installs, on two more runners. That is the price
   # of the conformance corpus meaning anything here: a reader is 13 separate implementations of
   # one binary format, and "they agree with the writer on Linux" is not the claim it makes.
+  #
+  # **Not on every push.** GitHub bills a Windows minute as two and a macOS minute as ten, so
+  # this matrix was about 480 of the 520 minutes a push cost - and it exhausted the account,
+  # which stopped the Linux job from running at all. A gate nobody can pay for is not a gate.
+  #
+  # Weekly, on a pull request, and on demand. What that gives up is naming the push that broke
+  # a platform: a Sunday failure covers a week of commits, and finding which one is then a
+  # bisect rather than a glance. That is the trade, and `workflow_dispatch` is how to close it
+  # for a change that looks platform-shaped - anything touching the toolchain harnesses, the
+  # emitted C or C++, or a path.
   cross-platform:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    if: github.event_name != 'push'
 
     # One platform failing should not hide whether the other is fine.
     strategy:

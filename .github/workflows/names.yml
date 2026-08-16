@@ -1,0 +1,48 @@
+name: Names
+
+# The product had another name once, and its binary format had another one too. Both are gone
+# from every file, and this is what keeps them gone: a name leaks back the way it leaked out the
+# first time - through a path, a comment, a fixture nobody reads.
+#
+# Its own workflow rather than a step in the .NET one, because that one no longer runs for a
+# documentation-only change - and prose is exactly where a retired name comes back. This costs
+# a checkout and a grep, so it can afford to run for everything.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: names-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  names:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Tracked files only, and contents as well as paths. The workbooks are excluded because
+      # they are zip archives whose deflate output contains three-letter sequences by chance;
+      # every hit inside one so far has been surrounded by binary noise. This file is excluded
+      # because the names it forbids have to be written down somewhere, and this is that place.
+      - name: No trace of the old names
+        run: |
+          # Matched case-insensitively, so one spelling of each covers SheetMan, Sheetman,
+          # SHEETMAN, ScbReader, scb_reader and `.scb` alike.
+          old='sheetman|sheet[ -]man|시트맨|\bscb'
+
+          paths="$(git ls-files | grep -Ei 'sheetman|scb' || true)"
+          if [ -n "$paths" ]; then
+            echo "::error::these paths carry a retired name"; echo "$paths"; exit 1
+          fi
+
+          files="$(git grep -lEIi "$old" -- . ':(exclude)*.xlsx' ':(exclude)*.xlsm' ':(exclude)*.xlsb' ':(exclude).github/workflows/names.yml' || true)"
+          if [ -n "$files" ]; then
+            echo "::error::these files carry a retired name"
+            git grep -nEIi "$old" -- . ':(exclude)*.xlsx' ':(exclude)*.xlsm' ':(exclude)*.xlsb' ':(exclude).github/workflows/names.yml'
+            exit 1
+          fi
+
+          echo "clean"

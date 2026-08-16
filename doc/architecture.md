@@ -159,12 +159,18 @@ base64로 박혀 있어 **생성 산출물이 바뀌므로**, 그 뒤에는 아�
 set TABBIT_UE_ROOT=C:/path/to/UnrealEngine     # 언리얼 게이트를 돌릴 때만
 
 set TABBIT_UPDATE_GOLDEN=1 && dotnet test      # 1. 골든 다시 기록
-dotnet run --project src/Tabbit.csproj -- --recipe side-by-side/side-by-side.json
+dotnet run -c Release --project src/Tabbit.csproj -- --recipe side-by-side/side-by-side.json
                                                  # 2. 전 언어 비교본 다시 생성 (커밋 대상입니다)
-dotnet run --project src/Tabbit.csproj -- --recipe samples/rescue/recipe.jsonc
+dotnet run -c Release --project src/Tabbit.csproj -- --recipe samples/rescue/recipe.jsonc
                                                  # 3. 샘플 산출물 다시 생성 (커밋 대상입니다)
 dotnet test                                      # 4. 기록 없이 검증
 ```
+
+> **`-c Release`가 2·3단계에 붙어 있는 것은 취향이 아닙니다.** 그 실행은 계약 어셈블리를
+> `validation/lib/`에 함께 씁니다 — 받은 사람이 변환을 돌리지 않고도 편집기를 열 수 있게 하려고
+> 커밋되는 파일입니다. 그런데 Debug와 Release는 같은 소스에서 **다른 바이트**를 냅니다. 구성을
+> 적지 않으면 기여자마다 그 파일이 왔다 갔다 하고, 「바이트가 달라졌을 때만 다시 쓴다」는 장치가
+> 아무것도 막지 못합니다. 빌드 자체는 결정적입니다 — 같은 구성으로 두 번 지으면 해시가 같습니다.
 
 `TABBIT_UPDATE_GOLDEN=1` 실행에서는 `core-dynamic`이 실패합니다 — `core`의 골든을 공유하는 시나리오라 스스로 기록할 수 없다고 거부하는 것이고, 4단계에서 통과하면 정상입니다.
 
