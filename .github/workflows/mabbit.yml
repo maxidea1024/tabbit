@@ -1,0 +1,63 @@
+name: mabbit
+
+# Its own workflow because it is its own program. `tools/mabbit/` has its own solution, its
+# own packages and its own tests, and `dotnet test Tabbit.slnx` does not reach any of them -
+# so without this the gate would only ever run when somebody remembered to run it by hand,
+# which is the gate that goes red unnoticed.
+#
+# Cheap enough to run on every push that touches it: one small program, one package, and a
+# suite that finishes in about a second.
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tools/mabbit/**'
+      - '.github/workflows/mabbit.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'tools/mabbit/**'
+      - '.github/workflows/mabbit.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mabbit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    # Both, and that is the point rather than thoroughness. The merge driver has to run on
+    # the machine of whoever is resolving the conflict and on the one running the build, and
+    # the reference implementation this took its scope from cannot: it needs Windows and an
+    # installed Excel.
+    #
+    # The writer is also where a platform difference would show. It moves a file onto the
+    # path it was reading from, which Windows refuses under conditions Linux does not.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore tools/mabbit/Mabbit.slnx
+
+      - name: Build
+        run: dotnet build tools/mabbit/Mabbit.slnx --no-restore -c Release
+
+      # The driver gate runs a real git against a real repository. It is on every runner
+      # already, and the tests decline rather than fail if it is not - so this says out loud
+      # that it is expected to be there.
+      - name: Verify git
+        run: git --version
+
+      - name: Test
+        run: dotnet test tools/mabbit/Mabbit.slnx --no-build -c Release --verbosity normal

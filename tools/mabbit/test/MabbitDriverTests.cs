@@ -30,10 +30,26 @@ public class MabbitDriverTests : IDisposable
             .Select(directory => Path.Combine(directory, OperatingSystem.IsWindows() ? "git.exe" : "git"))
             .FirstOrDefault(File.Exists);
 
-    private static string Mabbit => Path.GetFullPath(
-        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "src", "bin",
-            OperatingSystem.IsWindows() ? "Debug" : "Debug", "net10.0",
-            OperatingSystem.IsWindows() ? "mabbit.exe" : "mabbit"));
+    /// <summary>
+    /// The program under test, beside this assembly rather than at a written-down path.
+    /// </summary>
+    /// <remarks>
+    /// Worked out from where this assembly is, so the gate runs under whatever configuration
+    /// built it. A path with `Debug` in it passes locally and fails the moment CI builds
+    /// Release - by declining to run, which is worse than failing.
+    /// </remarks>
+    private static string Mabbit
+    {
+        get
+        {
+            var framework = new DirectoryInfo(AppContext.BaseDirectory);
+            string configuration = framework.Parent!.Name;
+            string program = framework.Parent!.Parent!.Parent!.Parent!.FullName;
+
+            return Path.Combine(program, "src", "bin", configuration, framework.Name,
+                OperatingSystem.IsWindows() ? "mabbit.exe" : "mabbit");
+        }
+    }
 
     public void Dispose()
     {

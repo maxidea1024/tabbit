@@ -115,7 +115,9 @@ public static class Program
                             file that arrived under a temporary name is in.
           --key <s>:<c>     Which column identifies a row, as `sheet:heading` or
                             `sheet:letter`. Repeatable. The first column when left out.
-          --format <f>      `text` or `json`. Text when left out.
+          --format <f>      `text`, `json`, or `html` for a page to open in a browser.
+                            Text when left out. A merge report is the one worth opening:
+                            it puts the three values of a conflict side by side.
           --out <file>      Where to write the report. Standard output when left out.
           --help            This.
 
@@ -191,9 +193,11 @@ public static class Program
             before.Name, TableViews.Of(before, schema),
             after.Name, TableViews.Of(after, schema));
 
-        Write(options, string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase)
-            ? DiffReport.Json(result)
-            : DiffReport.Text(result));
+        Write(options, Format(options) switch
+        {
+            "json" => DiffReport.Json(result),
+            _ => DiffReport.Text(result),
+        });
 
         return Ran;
     }
@@ -231,9 +235,12 @@ public static class Program
             ? null
             : MergeWriter.Prepare(plan, mineTables, mine);
 
-        Write(options, string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase)
-            ? MergeReport.Json(plan)
-            : MergeReport.Text(plan, write));
+        Write(options, Format(options) switch
+        {
+            "json" => MergeReport.Json(plan),
+            "html" => HtmlReport.Of(plan, write),
+            _ => MergeReport.Text(plan, write),
+        });
 
         if (write is null)
             return plan.HasConflicts ? Conflicted : Ran;
@@ -246,6 +253,19 @@ public static class Program
         XlsxPatcher.Apply(here, options.Result!, write.Edits);
 
         return Ran;
+    }
+
+    /// <summary>The report format asked for, lower case, `text` when nothing was said.</summary>
+    private static string Format(Options options)
+    {
+        string asked = (options.Format ?? "text").ToLowerInvariant();
+
+        if (asked is "text" or "json" or "html")
+            return asked;
+
+        throw new MabbitException(
+            $"`--format {asked}` is not a format this writes. It writes `text`, `json` and "
+            + "`html`.");
     }
 
     private static void Write(Options options, string report)

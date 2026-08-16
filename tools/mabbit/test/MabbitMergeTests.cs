@@ -368,6 +368,29 @@ public class MabbitMergeTests
     }
 
     [Fact]
+    public void ThePageShowsTheThreeValuesAndFetchesNothing()
+    {
+        var o = Book("o", Header, ["1", "Sword", "100"]);
+        var a = Book("a", Header, ["1", "Sword", "120"]);
+        var b = Book("b", Header, ["1", "<Great> & \"Sword\"", "140"]);
+
+        string page = HtmlReport.Of(Judge(o, a, b));
+
+        Assert.Contains("<!doctype html>", page);
+        Assert.Contains("Item!C2", page);
+
+        // A value carrying markup arrives as text rather than as elements.
+        Assert.Contains("&lt;Great&gt; &amp; &quot;Sword&quot;", page);
+        Assert.DoesNotContain("<Great>", page);
+
+        // Nothing to fetch: a page that reaches for a stylesheet or a font is a page that
+        // does not load on the closed network somebody is resolving a conflict on.
+        Assert.DoesNotContain("http://", page);
+        Assert.DoesNotContain("https://", page);
+        Assert.DoesNotContain("<script", page);
+    }
+
+    [Fact]
     public void TheReportShowsAllThreeValuesAtAConflict()
     {
         var o = Book("o", Header, ["1", "Sword", "100"]);
