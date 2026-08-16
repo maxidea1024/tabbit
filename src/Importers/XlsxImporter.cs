@@ -308,70 +308,41 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
             name => string.Equals(name.SheetName, sheetName, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
-    /// The workbook's defined names that point into this sheet, translated into the grid's
-    /// coordinates.
+    /// The workbook's defined names that point into this sheet, handed to
+    /// <see cref="SheetNamedRanges"/> for translation onto the grid.
     /// </summary>
     /// <remarks>
     /// Attached here because the importer is the only place that knows about names: by the
     /// time the cooker runs there is a cell grid and nothing to ask about names. Only for the
     /// layouts that use them - every other sheet gets an empty list and pays nothing.
     ///
-    /// Translation rather than absolute coordinates, because <see cref="RawSheet.Optimize"/>
-    /// has just trimmed the blank margins and everything downstream indexes the trimmed
-    /// grid. The top-left cell knows where it came from, which is what the offset is.
+    /// What is done here is the part a workbook does differently from any other source:
+    /// picking out the names that point into this sheet, which a workbook says by naming the
+    /// sheet. Everything after that is shared.
     /// </remarks>
     private void AttachNamedRanges(RawSheet rawSheet, string sheetName)
     {
         if (_currentWorkbookNames is null || _currentWorkbookNames.Count == 0)
             return;
 
-        // Where the trimmed grid sits in the sheet, so a name's cells can be found in it.
-        var topLeft = rawSheet.Rows[0][0].Location;
+        var forSheet = new List<SheetNamedRange>();
 
         foreach (var named in _currentWorkbookNames)
         {
             if (!string.Equals(named.SheetName, sheetName, StringComparison.Ordinal))
                 continue;
 
-            // The filter applies to the name as well as to the sheet, because in a layout
-            // that reads defined names the name is what a table is called - and a workbook
-            // holds names that are not tables. A single-column range behind a data-validation
-            // dropdown is the common one; the project this layout serves keeps a list of
-            // exactly those in its own exporter's config, which is the same job.
-            if (!_settings.Filter.Includes(_currentWorkbook, named.Name))
-            {
-                Log.Information(
-                    $"Skipping defined name `{named.Name}` of `{_currentFilename}`: "
-                    + "the recipe does not ask for it.");
-                continue;
-            }
-
-            int row = named.FirstRow - topLeft.Row;
-            int column = named.FirstColumn - topLeft.Column;
-
-            // A name may cover rows or columns the grid no longer has - trailing blanks
-            // are exactly what Optimize removes, and a range drawn generously over them is
-            // ordinary. Clamped rather than refused, so the table is the cells that exist.
-            int height = Math.Min(named.LastRow - named.FirstRow + 1, rawSheet.Rows.Count - row);
-            int width = Math.Min(named.LastColumn - named.FirstColumn + 1, rawSheet.ColumnCount - column);
-
-            if (row < 0 || column < 0 || height <= 0 || width <= 0)
-            {
-                Log.Warning(
-                    $"Defined name `{named.Name}` of `{_currentFilename}` covers "
-                    + $"{named.Reference}, which is outside the cells sheet `{sheetName}` has. Skipped.");
-                continue;
-            }
-
-            rawSheet.NamedRanges.Add(new RawNamedRange
-            {
-                Name = named.Name,
-                Row = row,
-                Column = column,
-                Height = height,
-                Width = width,
-            });
+            forSheet.Add(new SheetNamedRange(
+                Name: named.Name,
+                Reference: named.Reference,
+                FirstRow: named.FirstRow,
+                FirstColumn: named.FirstColumn,
+                LastRow: named.LastRow,
+                LastColumn: named.LastColumn));
         }
+
+        SheetNamedRanges.Attach(
+            rawSheet, forSheet, _settings.Filter, _currentWorkbook, _currentFilename);
     }
 
     /// <summary>

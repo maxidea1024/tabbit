@@ -5,10 +5,12 @@ using Google.Apis.Util.Store;
 
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using Tabbit.Models;
 using Tabbit.Models.Raw;
 using System.Collections.Generic;
+using Tabbit.Cooking.Layouts;
 using Tabbit.Extensions;
 using Tabbit.Recipe;
 using Serilog;
@@ -133,6 +135,13 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
 
         var sheetsSeen = new List<(string Workbook, string Sheet)>();
 
+        // A layout that finds its tables by defined name is the only one that pays for
+        // resolving them. Null for every other layout, and that null is also what says the
+        // "no name covers this sheet" rule does not apply.
+        var namesBySheet = LayoutRegistry.UsesNamedRanges(_settings.Layout.Id)
+            ? ResolveNamedRanges(response, sheetsTitle)
+            : null;
+
         foreach (var sheet in response.Sheets)
         {
             string sheetTitle = sheet.Properties.Title.Trim();
@@ -148,6 +157,19 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
             if (!_settings.Filter.Includes(sheetsTitle, sheetTitle))
             {
                 Log.Information($"Skipping sheet `{sheetsTitle}.{sheetTitle}`: the recipe does not ask for it.");
+                continue;
+            }
+
+            // A layout that finds its tables by defined name reads nothing from a sheet no
+            // name covers, and says so and moves on. Unlike the workbook source this saves
+            // nothing - the cells have already arrived with the response - but the two
+            // sources decide the same thing about the same sheet.
+            List<SheetNamedRange>? sheetNames = null;
+            if (namesBySheet is not null &&
+                !namesBySheet.TryGetValue(sheet.Properties.SheetId ?? 0, out sheetNames))
+            {
+                Log.Information(
+                    $"Skipping sheet `{sheetsTitle}.{sheetTitle}`: no defined name covers it.");
                 continue;
             }
 
@@ -224,12 +246,129 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
                     rowIndex++;
                 }
 
-                if (rawSheet.Optimize())
-                    _model.Sheets.Add(rawSheet);
+                if (!rawSheet.Optimize())
+                    continue;
+
+                // After Optimize, because it trims the blank margins and the translation is
+                // against what is left. A name that points outside this block is reported
+                // and dropped there, which is what happens when a sheet arrives as more
+                // than one block of grid data.
+                if (sheetNames is not null)
+                {
+                    SheetNamedRanges.Attach(
+                        rawSheet, sheetNames, _settings.Filter, sheetsTitle,
+                        rawSheet.Location.Filename);
+                }
+
+                _model.Sheets.Add(rawSheet);
             }
         }
 
         _settings.Filter.ReportUnmatchedIncludes(section, [sheetsTitle], sheetsSeen);
+    }
+
+    /// <summary>
+    /// The document's defined names, grouped by the id of the sheet they point into.
+    /// </summary>
+    /// <remarks>
+    /// Read out of the response the importer already has: `Spreadsheets.Get` returns the
+    /// named ranges beside the grid data, so this costs no request of its own.
+    ///
+    /// Far less work than the same thing on a workbook, because a `GridRange` is one
+    /// rectangle by construction - there is no union to reject and no reference text to
+    /// parse. What is left to check is that all four sides are bounded: a name covering a
+    /// whole column arrives with its row indexes absent, which means "as far as the sheet
+    /// goes" rather than a rectangle of known extent.
+    /// </remarks>
+    internal static Dictionary<int, List<SheetNamedRange>> ResolveNamedRanges(
+        Google.Apis.Sheets.v4.Data.Spreadsheet response, string documentTitle)
+    {
+        var bySheet = new Dictionary<int, List<SheetNamedRange>>();
+
+        if (response.NamedRanges is null)
+            return bySheet;
+
+        foreach (var named in response.NamedRanges)
+        {
+            string name = (named.Name ?? "").Trim();
+            if (name.Length == 0)
+                continue;
+
+            var range = named.Range;
+
+            // Worth saying so rather than dropping in silence: in real documents these are
+            // leftovers, and one of them being a table nobody exports any more is a thing
+            // to know.
+            if (range is null || range.SheetId is null)
+            {
+                Log.Warning(
+                    $"Defined name `{name}` of `{documentTitle}` refers to no range. Skipped.");
+                continue;
+            }
+
+            if (range.StartRowIndex is not int firstRow || range.EndRowIndex is not int endRow ||
+                range.StartColumnIndex is not int firstColumn ||
+                range.EndColumnIndex is not int endColumn)
+            {
+                Log.Warning(
+                    $"Defined name `{name}` of `{documentTitle}` covers {Describe(range)}, "
+                    + "which this importer cannot read as a single rectangle. Skipped.");
+                continue;
+            }
+
+            // The API's end indexes are exclusive. Every coordinate past this point is
+            // inclusive, as a workbook's own reference is.
+            var resolved = new SheetNamedRange(
+                Name: name,
+                Reference: Describe(range),
+                FirstRow: firstRow,
+                FirstColumn: firstColumn,
+                LastRow: endRow - 1,
+                LastColumn: endColumn - 1);
+
+            if (!bySheet.TryGetValue(range.SheetId.Value, out var names))
+                bySheet[range.SheetId.Value] = names = [];
+
+            names.Add(resolved);
+        }
+
+        return bySheet;
+    }
+
+    /// <summary>
+    /// A grid range in A1 notation, for a diagnostic to name what a defined name covers.
+    /// </summary>
+    /// <remarks>
+    /// The API carries a rectangle as numbers and never as text, so the text has to be built
+    /// here - and it is written the way a workbook's reference is written, so the same
+    /// message reads the same whichever source produced it. An absent index is left out,
+    /// which is how a whole column comes out as `A:A` and a whole row as `1:1`.
+    /// </remarks>
+    private static string Describe(Google.Apis.Sheets.v4.Data.GridRange range)
+    {
+        string first = Corner(range.StartRowIndex, range.StartColumnIndex);
+        string last = Corner(
+            range.EndRowIndex is int row ? row - 1 : null,
+            range.EndColumnIndex is int column ? column - 1 : null);
+
+        return first.Length == 0 && last.Length == 0 ? "the whole sheet" : $"{first}:{last}";
+    }
+
+    /// <summary>One corner in A1 notation, with an absent index left out.</summary>
+    private static string Corner(int? row, int? column)
+        => (column is int c ? ColumnName(c) : "") + (row is int r ? (r + 1).ToString() : "");
+
+    /// <summary>A zero-based column index as its letters: 0 is `A`, 26 is `AA`.</summary>
+    private static string ColumnName(int column)
+    {
+        var letters = new StringBuilder();
+
+        // Bijective base 26: there is no zero digit, so each place is 1..26 and the step
+        // down subtracts one before dividing.
+        for (int n = column + 1; n > 0; n = (n - 1) / 26)
+            letters.Insert(0, (char)('A' + (n - 1) % 26));
+
+        return letters.ToString();
     }
 
     //https://webapps.stackexchange.com/questions/44473/link-to-a-cell-in-a-google-sheets-via-url
