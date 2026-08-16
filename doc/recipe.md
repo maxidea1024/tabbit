@@ -37,8 +37,40 @@
 |--|--|--|--|
 |`Path`|Xlsx|—|워크북을 찾을 폴더. 하위 폴더까지 봅니다. 이름이 `#`으로 시작하는 파일·폴더는 건너뜁니다.|
 |`FileExtensionPatterns`|Xlsx|`.xls;.xlsx`|주워올 확장자. `;`로 구분합니다.|
-|`ClientSecretFilename`|GoogleSheets|—|OAuth 클라이언트 비밀 파일 경로. **커밋하지 마세요.**|
+|`ClientSecretFilename`|GoogleSheets|—|OAuth 클라이언트 비밀 파일 경로. **커밋하지 마세요.** [아래](#구글-시트에-무엇으로-접속하는가) 참고.|
+|`ServiceAccountKeyFile`|GoogleSheets|—|서비스 계정 키 파일 경로. **커밋하지 마세요.**|
+|`ServiceAccountKeyVariable`|GoogleSheets|—|서비스 계정 키가 든 **환경 변수의 이름**. 키가 아니라 이름입니다.|
 |`SheetsId`|GoogleSheets|—|워크북(스프레드시트 문서) URL에 들어 있는 긴 식별자.|
+
+#### 구글 시트에 무엇으로 접속하는가
+
+**두 가지이고, 무엇을 고르는지는 누가 변환을 돌리는지에서 결정됩니다.**
+
+|설정|누구로 접속하나|어디에 맞나|
+|--|--|--|
+|`ClientSecretFilename`|**변환을 돌리는 사람**|개발자의 기계. 첫 실행이 브라우저로 동의를 받고 그 계정의 프로필 아래에 토큰을 캐시하므로, 두 번째 실행부터는 대화형이 아닙니다|
+|`ServiceAccountKeyFile` · `ServiceAccountKeyVariable`|**그 잡 자신**|빌드 서버. 대화형 단계가 없고, 문서를 사람에게 공유하듯 서비스 계정의 주소에 공유합니다|
+
+**CI에 클라이언트 비밀을 쓰면 파이프라인의 문서 접근 권한이 한 사람의 계정에 종속됩니다.**
+그 사람이 조직을 떠나거나 권한이 회수되면 빌드가 중단되고, 그 잡이 읽는 모든 것은 그
+사람으로 읽힙니다. 서비스 계정은 그것을 잡의 신원으로 바꿉니다.
+
+```jsonc
+// 개발자의 기계
+{ "ClientSecretFilename": "./secrets/googlesheets-client-secret.json", "SheetsId": "10NXZ..." }
+
+// CI — 키는 시크릿 저장소에 두고 이름만 적습니다
+{ "ServiceAccountKeyVariable": "TABBIT_SHEETS_KEY", "SheetsId": "10NXZ..." }
+```
+
+- **둘을 함께 적으면 거절합니다.** 서로 다른 신원이므로 하나를 말없이 고르면 그 잡이 자기가
+  아닌 사람으로 문서를 읽게 되고, 산출물의 어디에도 그 사실이 남지 않습니다.
+  `ServiceAccountKeyFile`과 `ServiceAccountKeyVariable`을 함께 적는 것도 같습니다.
+- **키 파일 자리에 클라이언트 비밀을 적으면 그 자리에서 거절합니다.** 구글이 내려주는 두 JSON은
+  서로 바꿔 넣기 쉬운데, 그대로 API에 보내면 권한 오류로 돌아와 문서 공유 문제처럼 읽힙니다.
+- 서비스 계정에는 그 문서의 **뷰어** 권한만 있으면 됩니다. 키에 적힌 `client_email`이 공유할
+  주소입니다.
+- 셋 중 아무것도 적지 않은 항목은 `SheetsId`가 빈 것과 같게 **꺼진 것으로 취급**됩니다.
 
 아래는 **두 소스 모두** 같습니다.
 
@@ -667,7 +699,14 @@ dotnet run --project src/Tabbit.csproj -- --recipe side-by-side/side-by-side.jso
     "GoogleSheets": [
       {
         // 이 파일은 커밋하지 마세요. .gitignore에 등록되어 있습니다.
+        // 변환을 돌리는 *사람*으로 접속합니다.
         "ClientSecretFilename": "./googlesheets-client-secret.json",
+
+        // CI라면 이쪽입니다 — 잡 자신으로 접속하므로 개인 계정에 종속되지 않습니다.
+        // 위의 것과 함께 적으면 거절합니다. 셋 다 비우면 이 항목은 꺼집니다.
+        "ServiceAccountKeyFile": "",
+        "ServiceAccountKeyVariable": "",
+
         "SheetsId": "10NXZAeyFaxRFsC8BPVTS9A6DzsM57Z1tizpJMCokJwU"
 
         // 위의 소스 항목 공통 설정은 여기서도 같습니다.

@@ -50,8 +50,34 @@ public class RecipeModel
             /// Do not commit this file. The first run opens a browser for consent and
             /// caches the resulting token under the user's profile, so only the first
             /// run is interactive.
+            ///
+            /// This authenticates as the person running the conversion, which is what a
+            /// developer's machine wants and what a build server does not - see
+            /// <see cref="ServiceAccountKeyVariable"/>.
             /// </summary>
             public string ClientSecretFilename { get; set; } = "";
+
+            /// <summary>
+            /// Path to a service account key file.
+            ///
+            /// Authenticates as the job rather than as a person: nothing is interactive,
+            /// and the document is shared with the service account's address the way it
+            /// would be with a colleague. Do not commit this file.
+            /// </summary>
+            public string ServiceAccountKeyFile { get; set; } = "";
+
+            /// <summary>
+            /// Name of the environment variable holding a service account key.
+            ///
+            /// The name, not the key: recipes are committed. What a CI job wants, since a
+            /// key put in a secret store never becomes a file on the runner.
+            ///
+            /// Naming this and <see cref="ServiceAccountKeyFile"/> together is refused,
+            /// and so is naming either alongside <see cref="ClientSecretFilename"/>:
+            /// those authenticate as different identities, and picking one silently is
+            /// how a job comes to read a document as somebody it is not.
+            /// </summary>
+            public string ServiceAccountKeyVariable { get; set; } = "";
 
             /// <summary>
             /// The document id, which is the long identifier in its URL.

@@ -32,64 +32,39 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
     protected override void Import(
         SourceContext context, RecipeModel.SourceRecipeGroup.GoogleSheetsRecipe googleSheets)
     {
-        // An entry with either field left blank is switched off, matching how the Excel
-        // source treats a blank path - which is how an entry is commented out in
+        // An entry naming no document or no credential is switched off, matching how the
+        // Excel source treats a blank path - which is how an entry is commented out in
         // practice: its contents are removed but the object stays in the list.
         //
         // This check was missing, and its absence was not harmless: a blank
         // ClientSecretFilename went straight into a FileStream, so a recipe with an
         // emptied-out Google Sheets entry failed with an argument exception about a path
         // rather than being skipped.
-        if (string.IsNullOrWhiteSpace(googleSheets.ClientSecretFilename) ||
-            string.IsNullOrWhiteSpace(googleSheets.SheetsId))
+        if (string.IsNullOrWhiteSpace(googleSheets.SheetsId) ||
+            !GoogleSheetsCredentials.IsConfigured(googleSheets))
         {
             Log.Debug($"Skipping Google Sheets source `{context.Section}`: not configured.");
             return;
         }
 
-        if (!File.Exists(googleSheets.ClientSecretFilename))
-        {
-            throw new TabbitException(
-                $"Recipe `{context.Section}` names client secret file " +
-                $"`{googleSheets.ClientSecretFilename}`, which does not exist.");
-        }
-
         _model = context.Model;
         _settings = SheetImportSettings.From(googleSheets, context.Section);
 
-        var sheetsService = AcquireSheetsService(googleSheets);
+        var sheetsService = AcquireSheetsService(googleSheets, context.Section);
         ImportSheets(sheetsService, googleSheets, context.Section);
     }
 
-    private SheetsService AcquireSheetsService(RecipeModel.SourceRecipeGroup.GoogleSheetsRecipe recipe)
+    private SheetsService AcquireSheetsService(
+        RecipeModel.SourceRecipeGroup.GoogleSheetsRecipe recipe, string section)
     {
-        UserCredential credential;
-
-        using (var stream = new FileStream(recipe.ClientSecretFilename, FileMode.Open, FileAccess.Read))
-        {
-            string credentialsPath = Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-            credentialsPath = Path.Combine(credentialsPath, ".credentials/sheets.googleapis.com-tabbit");
-
-            var clientSecrets = GoogleClientSecrets.FromStream(stream);
-
-            credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                clientSecrets.Secrets,
-                Scopes,
-                // If the user name is different, authentication is required again, so the user is fixed.
-                //Environment.UserName,
-                "TabbitUser",
-                CancellationToken.None,
-                new FileDataStore(credentialsPath, true)).Result;
-        }
+        var credential = GoogleSheetsCredentials.Acquire(recipe, section, Scopes, ApplicationName);
 
         // Create Google Sheets API service.
-        var sheetsService = new SheetsService(new BaseClientService.Initializer()
+        return new SheetsService(new BaseClientService.Initializer()
         {
             HttpClientInitializer = credential,
             ApplicationName = ApplicationName,
         });
-
-        return sheetsService;
     }
 
     private void ImportSheets(

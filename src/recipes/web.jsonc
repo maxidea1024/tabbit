@@ -10,10 +10,19 @@
   "Sources": {
     "GoogleSheets": [
       {
+        // 변환을 돌리는 *사람*으로 접속합니다. 첫 실행이 브라우저로 동의를 받습니다.
+        //
         // 이 파일은 절대 커밋하지 마세요.
         // 저장소 히스토리에 한 번 들어가면 지워도 복제된 사본에는 남습니다.
         // 발급 절차는 doc/sheets.md 에 스크린샷과 함께 있습니다.
         "ClientSecretFilename": "./secrets/googlesheets-client-secret.json",
+
+        // CI에서는 위를 지우고 이쪽을 씁니다. 잡 자신으로 접속하므로 파이프라인의
+        // 문서 접근 권한이 한 사람의 계정에 종속되지 않습니다. 적는 것은 키가 아니라
+        // 키가 든 환경 변수의 이름이고, 문서는 그 키의 client_email 에 공유합니다.
+        // 위의 것과 함께 적으면 거절합니다 — 서로 다른 신원이기 때문입니다.
+        //
+        // "ServiceAccountKeyVariable": "TABBIT_SHEETS_KEY",
 
         // 스프레드시트 URL의 /d/ 와 /edit 사이에 있는 문자열입니다.
         "SheetsId": "여기에-스프레드시트-ID"
