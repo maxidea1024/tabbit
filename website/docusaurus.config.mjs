@@ -87,7 +87,12 @@ const config = {
   themeConfig: /** @type {import('@docusaurus/preset-classic').ThemeConfig} */ ({
     // 링크를 공유했을 때 나오는 카드.
     image: 'img/og-card.png',
-    colorMode: { respectPrefersColorScheme: true },
+    // 토글은 라이트와 다크 둘만 오갑니다.
+    //
+    // `respectPrefersColorScheme` 를 켜면 상태가 셋이 됩니다 — 시스템 · 라이트 · 다크. 그러면
+    // OS가 라이트인 사람의 첫 클릭이 「시스템 → 라이트」라서 화면이 그대로이고, 버튼이 한 번은
+    // 먹지 않는 것처럼 보입니다. 그 값과 OS 설정을 따라가는 편의를 맞바꿉니다.
+    colorMode: { defaultMode: 'light', respectPrefersColorScheme: false },
     navbar: {
       title: 'Tabbit',
       // 마스코트 타일 하나로 밝은 바탕과 어두운 바탕을 모두 씁니다 — 배경이 보라라
