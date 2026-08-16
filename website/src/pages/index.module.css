@@ -67,17 +67,21 @@
 }
 
 /*
- * 히어로는 어두운데 테마의 secondary 는 밝은 회색을 전제로 한 색이라, outline 으로 두면
- * 글자가 배경에 묻힙니다. 이 자리에서만 흰색으로 고정합니다.
+ * 히어로 위의 보조 버튼. 테마 색을 하나도 쓰지 않습니다 — `secondary` 는 밝은 배경을 전제로
+ * 고른 색이라 여기서는 글자가 배경에 묻히고, 그 값은 테마가 바뀌면 또 달라집니다.
+ *
+ * 테두리만 있는 유령 버튼도 이 배경에서는 약해 보여서, 옅게 채워 두고 호버에서 반전시킵니다.
  */
-.buttons :global(.button--secondary) {
+.ghostButton,
+.ghostButton:visited {
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.55);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
-.buttons :global(.button--secondary:hover) {
-  color: var(--ink);
+.ghostButton:hover,
+.ghostButton:focus-visible {
+  color: var(--ink-deep);
   background: #fff;
   border-color: #fff;
 }

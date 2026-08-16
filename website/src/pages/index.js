@@ -75,7 +75,12 @@ export default function Home() {
                 <Link className="button button--primary button--lg" to="/docs/guide/concepts">
                   5분이면 감이 옵니다
                 </Link>
-                <Link className="button button--secondary button--outline button--lg" to="/docs/guide/install">
+                {/*
+                  테마의 `secondary` 를 쓰지 않습니다. 그 색은 밝은 배경을 전제로 고른 것이라
+                  어두운 히어로에서는 글자가 배경에 묻힙니다 — 라이트 모드에서 실제로 그렇게
+                  보인다는 보고를 받은 자리입니다. 이 버튼의 색은 전부 여기서 정합니다.
+                */}
+                <Link className={`button button--lg ${styles.ghostButton}`} to="/docs/guide/install">
                   설치
                 </Link>
               </div>
