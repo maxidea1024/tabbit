@@ -84,6 +84,9 @@ internal sealed class MergePlan
     public bool HasConflicts => ConflictCount > 0;
 }
 
+/// <summary>One column, and where it sits in each of the three files. -1 where it is absent.</summary>
+internal readonly record struct Columns(string Name, int Base, int Mine, int Theirs);
+
 /// <summary>
 /// The three-way judgement: what the merged workbook should hold, and where it cannot be
 /// decided.
@@ -302,11 +305,11 @@ internal static class WorkbookMerge
         // column one side lacks reads as an empty cell there, which is what it is.
         var columns = mine.Columns.Concat(theirs.Columns)
             .Distinct(StringComparer.Ordinal)
-            .Select(name => (
-                Name: name,
-                Base: IndexOf(inBase.Columns, name),
-                Mine: IndexOf(mine.Columns, name),
-                Theirs: IndexOf(theirs.Columns, name)))
+            .Select(name => new Columns(
+                name,
+                IndexOf(inBase.Columns, name),
+                IndexOf(mine.Columns, name),
+                IndexOf(theirs.Columns, name)))
             .ToList();
 
         var rows = new List<RowMerge>();
@@ -331,7 +334,7 @@ internal static class WorkbookMerge
 
     private static RowMerge? JudgeRow(
         string key, RowView? was, RowView? here, RowView? there,
-        List<(string Name, int Base, int Mine, int Theirs)> columns,
+        List<Columns> columns,
         TableView mine, TableView theirs)
     {
         if (was is null)
@@ -347,7 +350,7 @@ internal static class WorkbookMerge
 
             // Both added a row under the same key. This is the accident two people appending
             // to the same table produce, and it is exactly what a merge has to catch.
-            return SameRow(here!, there!, columns)
+            return MineAndTheirsAgree(here!, there!, columns)
                 ? null
                 : new RowMerge(key, RowVerdict.Conflict, Where(mine, here!), [],
                     "both sides added a row with this key, holding different values");
@@ -358,7 +361,7 @@ internal static class WorkbookMerge
 
         if (there is null)
         {
-            return SameRow(was, here!, columns, useBaseForTheirs: true)
+            return BaseAndMineAgree(was, here!, columns)
                 ? new RowMerge(key, RowVerdict.RemoveFromMine, Where(mine, here!), [], null)
                 : new RowMerge(key, RowVerdict.Conflict, Where(mine, here!), [],
                     "the other side deleted this row and this side changed it");
@@ -366,7 +369,7 @@ internal static class WorkbookMerge
 
         if (here is null)
         {
-            return SameRow(was, there, columns, useBaseForTheirs: false, theirsIsSecond: true)
+            return BaseAndTheirsAgree(was, there, columns)
                 ? null
                 : new RowMerge(key, RowVerdict.Conflict, Where(theirs, there), [],
                     "this side deleted this row and the other side changed it");
@@ -417,22 +420,37 @@ internal static class WorkbookMerge
     private static string At(RowView row, int column)
         => column >= 0 && column < row.Cells.Length ? row.Cells[column] : "";
 
-    private static bool SameRow(
-        RowView left, RowView right,
-        List<(string Name, int Base, int Mine, int Theirs)> columns,
-        bool useBaseForTheirs = false, bool theirsIsSecond = false)
+    /// <summary>
+    /// Whether two rows hold the same values, each read through its own side's columns.
+    /// </summary>
+    /// <remarks>
+    /// Three named callers rather than one with flags. The same comparison is asked three
+    /// ways here - base against mine, base against theirs, mine against theirs - and a
+    /// parameter that selects which is a parameter that can be passed wrongly, silently, in
+    /// the code that decides whether somebody's deletion conflicts with somebody's edit.
+    /// </remarks>
+    private static bool Agree(
+        RowView left, Func<Columns, int> leftAt,
+        RowView right, Func<Columns, int> rightAt,
+        List<Columns> columns)
     {
-        foreach (var (_, inBase, inMine, inTheirs) in columns)
+        foreach (var column in columns)
         {
-            int leftAt = useBaseForTheirs || theirsIsSecond ? inBase : inMine;
-            int rightAt = theirsIsSecond ? inTheirs : useBaseForTheirs ? inMine : inTheirs;
-
-            if (!string.Equals(At(left, leftAt), At(right, rightAt), StringComparison.Ordinal))
+            if (!string.Equals(At(left, leftAt(column)), At(right, rightAt(column)), StringComparison.Ordinal))
                 return false;
         }
 
         return true;
     }
+
+    private static bool BaseAndMineAgree(RowView was, RowView here, List<Columns> columns)
+        => Agree(was, c => c.Base, here, c => c.Mine, columns);
+
+    private static bool BaseAndTheirsAgree(RowView was, RowView there, List<Columns> columns)
+        => Agree(was, c => c.Base, there, c => c.Theirs, columns);
+
+    private static bool MineAndTheirsAgree(RowView here, RowView there, List<Columns> columns)
+        => Agree(here, c => c.Mine, there, c => c.Theirs, columns);
 
     private static bool SameContent(TableView left, TableView right)
     {

@@ -16,10 +16,13 @@ namespace Mabbit;
 internal sealed class Options
 {
     public bool Diff { get; set; }
+    public bool Merge { get; set; }
     public bool Help { get; set; }
 
     public string? Base { get; set; }
     public string? Mine { get; set; }
+    public string? Theirs { get; set; }
+    public string? Result { get; set; }
     public string? Path { get; set; }
     public string? Format { get; set; }
     public string? Out { get; set; }
@@ -48,6 +51,7 @@ internal sealed class Options
             {
                 case "help": options.Help = true; continue;
                 case "diff": options.Diff = true; continue;
+                case "merge": options.Merge = true; continue;
             }
 
             string value = inline ?? Next(args, ref i, name);
@@ -56,6 +60,8 @@ internal sealed class Options
             {
                 case "base": options.Base = value; break;
                 case "mine": options.Mine = value; break;
+                case "theirs": options.Theirs = value; break;
+                case "result": options.Result = value; break;
                 case "path": options.Path = value; break;
                 case "format": options.Format = value; break;
                 case "out": options.Out = value; break;
@@ -91,16 +97,20 @@ public static class Program
     /// thing it is for.
     /// </remarks>
     private const int Ran = 0;
+    private const int Conflicted = 1;
     private const int CouldNotRun = 2;
 
     private const string Usage = """
         mabbit - compares and merges spreadsheet workbooks by table and row key.
 
-          mabbit --diff --base <file> --mine <file> [options]
+          mabbit --diff  --base <file> --mine <file> [options]
+          mabbit --merge --base <file> --mine <file> --theirs <file> [options]
 
         Options
-          --base <file>     The workbook to compare from.
-          --mine <file>     The workbook to compare to.
+          --base <file>     The common ancestor, for a merge. The workbook to compare
+                            from, for a comparison.
+          --mine <file>     This side.
+          --theirs <file>   The other side. Merge only.
           --path <path>     What the file is called in the repository. Says what format a
                             file that arrived under a temporary name is in.
           --key <s>:<c>     Which column identifies a row, as `sheet:heading` or
@@ -109,7 +119,12 @@ public static class Program
           --out <file>      Where to write the report. Standard output when left out.
           --help            This.
 
-        Reads .xlsx, .xlsm, .xlsb and .xls. Merging is not in this build yet.
+        Reads .xlsx, .xlsm, .xlsb and .xls.
+
+        `--merge` judges and reports. It does not write a workbook, so it must not be
+        registered as a version control merge driver yet.
+
+        Exit codes: 0 done, 1 the merge has conflicts, 2 could not run.
         """;
 
     public static int Main(string[] args)
@@ -124,14 +139,19 @@ public static class Program
                 return options.Help ? Ran : CouldNotRun;
             }
 
+            if (options.Diff && options.Merge)
+            {
+                throw new MabbitException(
+                    "`--diff` and `--merge` are different jobs. Ask for one of them.");
+            }
+
+            if (options.Merge)
+                return Merge(options);
+
             if (!options.Diff)
             {
-                // Merging is section 5 stage 2 of spec/workbook-merge.md and is not written
-                // yet. Saying so beats a usage message that lists an option this build does
-                // not have.
                 Console.Error.WriteLine(
-                    "Nothing to do. This build compares two workbooks: pass `--diff` with "
-                    + "`--base` and `--mine`.");
+                    "Nothing to do. Pass `--diff` or `--merge`. Run `mabbit --help`.");
 
                 return CouldNotRun;
             }
@@ -161,16 +181,64 @@ public static class Program
             before.Name, TableViews.Of(before, schema),
             after.Name, TableViews.Of(after, schema));
 
-        string report = string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase)
+        Write(options, string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase)
             ? DiffReport.Json(result)
-            : DiffReport.Text(result);
+            : DiffReport.Text(result));
 
+        return Ran;
+    }
+
+    private static int Merge(Options options)
+    {
+        // Refused rather than ignored. Somebody who passes it is wiring this up as a merge
+        // driver, and a driver that reports success without writing the result is how a
+        // day's work disappears.
+        if (!string.IsNullOrEmpty(options.Result))
+        {
+            throw new MabbitException(
+                "`--result` asks for a merged workbook to be written, and this build does not "
+                + "write one. Leave it out to get the judgement, and do not register mabbit as "
+                + "a merge driver until it does.");
+        }
+
+        string ancestor = Required(options.Base, "--base");
+        string here = Required(options.Mine, "--mine");
+        string there = Required(options.Theirs, "--theirs");
+
+        var schema = new HeuristicSchema(KeyColumns(options.Key));
+
+        var inBase = WorkbookGrid.Read(ancestor, options.Path, reportAs: Shown(ancestor, options.Path));
+        var mine = WorkbookGrid.Read(here, options.Path, reportAs: Shown(here, options.Path));
+        var theirs = WorkbookGrid.Read(there, options.Path, reportAs: Shown(there, options.Path));
+
+        var plan = WorkbookMerge.Judge(
+            inBase.Name, TableViews.Of(inBase, schema),
+            mine.Name, TableViews.Of(mine, schema),
+            theirs.Name, TableViews.Of(theirs, schema));
+
+        plan = new MergePlan
+        {
+            BaseName = plan.BaseName,
+            MineName = plan.MineName,
+            TheirsName = plan.TheirsName,
+            Tables = plan.Tables,
+            Notes = plan.Notes,
+            Outside = WorkbookMerge.OutsideTables(inBase, mine, theirs, schema),
+        };
+
+        Write(options, string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase)
+            ? MergeReport.Json(plan)
+            : MergeReport.Text(plan));
+
+        return plan.HasConflicts ? Conflicted : Ran;
+    }
+
+    private static void Write(Options options, string report)
+    {
         if (string.IsNullOrEmpty(options.Out))
             Console.Out.Write(report);
         else
             File.WriteAllText(options.Out, report);
-
-        return Ran;
     }
 
     /// <summary>
