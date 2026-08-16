@@ -132,6 +132,15 @@ logs/
 **/googlesheets-client-secret.json
 !**/googlesheets-client-secret.example.json
 
+# And the service account key a build server authenticates with, which is the same
+# kind of file and the same mistake. The conventional name only - a rule broad enough
+# to catch any key would also catch things that are not keys, and the honest position
+# is the one doc/sheets.md takes: this stops the usual name, not every name.
+#
+# Preferred over a key file is naming the environment variable that holds it, which is
+# what `ServiceAccountKeyVariable` is for: there is then no file to commit at all.
+**/googlesheets-service-account.json
+
 # Cargo's build directory, which the Rust conformance harness creates inside the
 # generated crate. test/fixtures/output is already ignored; this covers a crate
 # generated anywhere else.
