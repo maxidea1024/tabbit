@@ -79,7 +79,10 @@ internal sealed class MergePlan
                                                && c.Verdict != ColumnVerdict.Conflict))
         + Tables.Sum(t => t.Rows.Count(r => r.Verdict is RowVerdict.AddFromTheirs
                                                       or RowVerdict.RemoveFromMine))
-        + Tables.Sum(t => t.Rows.Sum(r => r.Cells.Count(c => c.Verdict == CellVerdict.TakeTheirs)));
+        // Only the cells of rows that stay. A row arriving carries a cell for every column,
+        // and counting those as well would report one new row as a dozen changes.
+        + Tables.Sum(t => t.Rows.Where(r => r.Verdict == RowVerdict.UpdateCells)
+            .Sum(r => r.Cells.Count(c => c.Verdict == CellVerdict.TakeTheirs)));
 
     public bool HasConflicts => ConflictCount > 0;
 }
@@ -345,8 +348,18 @@ internal static class WorkbookMerge
 
             if (here is null && there is not null)
             {
+                // The row's values travel with the verdict. A plan that said "this row
+                // arrives" without saying what is in it would need the other side read a
+                // second time to act on, and the two readings could differ.
+                var arriving = columns
+                    .Select(c => new CellMerge(
+                        c.Name, "", "", At(there, c.Theirs), CellVerdict.TakeTheirs,
+                        CellRef.A1(theirs.Region.Sheet, there.RowIndex,
+                            theirs.Region.FirstColumn + Math.Max(c.Theirs, 0))))
+                    .ToList();
+
                 return new RowMerge(
-                    key, RowVerdict.AddFromTheirs, Where(theirs, there), [], null);
+                    key, RowVerdict.AddFromTheirs, Where(theirs, there), arriving, null);
             }
 
             // Both added a row under the same key. This is the accident two people appending

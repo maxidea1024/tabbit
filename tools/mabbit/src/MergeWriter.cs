@@ -28,7 +28,7 @@ internal static class MergeWriter
         public bool CanWrite => Refusals.Count == 0;
     }
 
-    public static WritePlan Prepare(MergePlan plan, IReadOnlyList<TableView> mine)
+    public static WritePlan Prepare(MergePlan plan, IReadOnlyList<TableView> mine, WorkbookGrid? grid = null)
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(mine);
@@ -79,21 +79,55 @@ internal static class MergeWriter
                 continue;
             }
 
+            // Where a row arriving from the other side goes: after the last one the table
+            // holds. Rows are not sorted into place, because the order of a table is the
+            // order somebody put it in and moving a row is not a merge's decision.
+            int appendAt = view.Region.LastDataRow + 1;
+
             foreach (var row in table.Rows)
             {
                 switch (row.Verdict)
                 {
                     case RowVerdict.AddFromTheirs:
-                        refusals.Add(new Refusal(
-                            $"row `{row.Key}` of `{table.Name}` arrives from the other side, "
-                            + "which needs a row to be inserted."));
+                    {
+                        string? why = WhyNoRoom(grid, view);
+
+                        if (why is not null)
+                        {
+                            refusals.Add(new Refusal(
+                                $"row `{row.Key}` of `{table.Name}` arrives from the other side "
+                                + $"and there is no room for it: {why}"));
+
+                            continue;
+                        }
+
+                        edits.AddRange(Arriving(plan, table, row, view, appendAt));
+                        appendAt++;
+
                         continue;
+                    }
 
                     case RowVerdict.RemoveFromMine:
-                        refusals.Add(new Refusal(
-                            $"row `{row.Key}` of `{table.Name}` was deleted on the other side, "
-                            + "which needs a row to be removed."));
+                    {
+                        var going = view.ByKey(row.Key);
+
+                        if (going is null)
+                            continue;
+
+                        // Cleared rather than cut out. Removing the row would move every row
+                        // under it, and with them the merged ranges, the defined names and
+                        // every formula that points at one - which is the cost section 5.4 is
+                        // about. A row left blank inside a table is a row the reader skips,
+                        // so the data is right either way.
+                        for (int column = 0; column < view.Columns.Count; column++)
+                        {
+                            edits.Add(new CellEdit(
+                                view.Region.Sheet, going.RowIndex,
+                                view.Region.FirstColumn + column, ""));
+                        }
+
                         continue;
+                    }
                 }
 
                 var here = view.ByKey(row.Key);
@@ -127,6 +161,60 @@ internal static class MergeWriter
         }
 
         return new WritePlan(edits, refusals);
+    }
+
+    /// <summary>
+    /// Why an arriving row cannot go below the table, or null when it can.
+    /// </summary>
+    /// <remarks>
+    /// A row is only ever appended, never inserted, and appending is safe exactly when the
+    /// space below the table is empty. Anything down there would be written over - and moving
+    /// it out of the way is the expensive half of this, because a shift takes the merged
+    /// ranges, the defined names and the formulas that point at them along with it.
+    /// </remarks>
+    private static string? WhyNoRoom(WorkbookGrid? grid, TableView view)
+    {
+        if (grid is null)
+            return "this side's workbook was not given, so what is below the table is unknown.";
+
+        var sheet = grid.Sheet(view.Region.Sheet);
+
+        if (sheet is null)
+            return $"this side has no sheet `{view.Region.Sheet}`.";
+
+        foreach (var (row, column, _) in sheet.NonEmptyCells())
+        {
+            if (row > view.Region.LastDataRow)
+            {
+                return $"`{CellRef.A1(sheet.Name, row, column)}` sits below the table, and "
+                    + "appending would write over it.";
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>The cells of a row arriving from the other side, in this side's column order.</summary>
+    private static IEnumerable<CellEdit> Arriving(
+        MergePlan plan, TableMerge table, RowMerge row, TableView view, int at)
+    {
+        // The values come from the judgement, which already read them out of the other side
+        // through the columns both sides share.
+        var values = row.Cells.ToDictionary(c => c.Column, c => c.Theirs, StringComparer.Ordinal);
+
+        int keyColumn = view.Region.KeyColumn - view.Region.FirstColumn;
+
+        for (int column = 0; column < view.Columns.Count; column++)
+        {
+            // The key is written from the key rather than looked up, so a row cannot arrive
+            // without the value that identifies it.
+            string value = column == keyColumn
+                ? row.Key
+                : values.GetValueOrDefault(view.Columns[column], "");
+
+            yield return new CellEdit(
+                view.Region.Sheet, at, view.Region.FirstColumn + column, value);
+        }
     }
 
     private static int IndexOf(IReadOnlyList<string> columns, string name)

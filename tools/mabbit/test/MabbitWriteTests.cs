@@ -250,7 +250,7 @@ public class MabbitWriteTests : IDisposable
     }
 
     [Fact]
-    public void ARowArrivingIsRefusedBecauseInsertingOneIsNotWritingCells()
+    public void ARowArrivingIsAppendedBelowTheTable()
     {
         string[] header = ["id", "name"];
 
@@ -264,10 +264,112 @@ public class MabbitWriteTests : IDisposable
         var plan = WorkbookMerge.Judge(
             "o", TableViews.Of(o, schema), "a", mine, "b", TableViews.Of(b, schema));
 
-        var write = MergeWriter.Prepare(plan, mine);
+        var write = MergeWriter.Prepare(plan, mine, a);
+
+        Assert.True(write.CanWrite, string.Join("; ", write.Refusals.Select(r => r.Reason)));
+
+        // Row 2 of the sheet is the last one this side holds, so the arriving row is row 3 -
+        // appended, not sorted into place. Where a row sits is what somebody decided, and a
+        // merge does not get a vote on it.
+        Assert.All(write.Edits, e => Assert.Equal(2, e.Row));
+        Assert.Contains(write.Edits, e => e.Value == "2");
+        Assert.Contains(write.Edits, e => e.Value == "Bow");
+    }
+
+    /// <summary>
+    /// A schema whose table stops before the sheet's content does, which is what a schema
+    /// read from a recipe does and what the heuristic one cannot do - it takes everything
+    /// with something in it as part of the table.
+    /// </summary>
+    private sealed class TableOfTwoDataRows : ITableSchema
+    {
+        public IReadOnlyList<TableRegion> TablesIn(WorkbookGrid workbook)
+            => workbook.Sheets.Where(s => !s.IsEmpty).Select(s => new TableRegion(
+                Name: s.Name, Sheet: s.Name,
+                HeaderRow: 0, FirstDataRow: 1, LastDataRow: 2,
+                FirstColumn: 0, LastColumn: 1,
+                KeyColumn: 0)).ToList();
+    }
+
+    [Fact]
+    public void ARowArrivingIsRefusedWhenSomethingSitsBelowTheTable()
+    {
+        string[] header = ["id", "name"];
+
+        // A note somebody keeps under the table. Appending would write over it - and moving
+        // it out of the way is the expensive half this build does not do.
+        string[][] withNote = [header, ["1", "Sword"], ["", ""], ["draft", ""]];
+
+        var o = WorkbookGrid.Of("o", ("Item", withNote));
+        var a = WorkbookGrid.Of("a", ("Item", withNote));
+        var b = WorkbookGrid.Of("b", ("Item", [header, ["1", "Sword"], ["2", "Bow"]]));
+
+        var schema = new TableOfTwoDataRows();
+        var mine = TableViews.Of(a, schema);
+
+        var plan = WorkbookMerge.Judge(
+            "o", TableViews.Of(o, schema), "a", mine, "b", TableViews.Of(b, schema));
+
+        var write = MergeWriter.Prepare(plan, mine, a);
 
         Assert.False(write.CanWrite);
-        Assert.Contains(write.Refusals, r => r.Reason.Contains("needs a row to be inserted"));
+        Assert.Contains(write.Refusals, r => r.Reason.Contains("no room"));
+    }
+
+    [Fact]
+    public void ARowTheOtherSideDeletedIsClearedRatherThanCutOut()
+    {
+        string[] header = ["id", "name"];
+
+        var o = WorkbookGrid.Of("o", ("Item", [header, ["1", "Sword"], ["2", "Bow"]]));
+        var a = WorkbookGrid.Of("a", ("Item", [header, ["1", "Sword"], ["2", "Bow"]]));
+        var b = WorkbookGrid.Of("b", ("Item", [header, ["1", "Sword"]]));
+
+        var schema = new HeuristicSchema();
+        var mine = TableViews.Of(a, schema);
+
+        var plan = WorkbookMerge.Judge(
+            "o", TableViews.Of(o, schema), "a", mine, "b", TableViews.Of(b, schema));
+
+        var write = MergeWriter.Prepare(plan, mine, a);
+
+        Assert.True(write.CanWrite);
+
+        // Every cell of that row, emptied. Cutting the row out would move everything under
+        // it, and the merged ranges and formulas that point there with it.
+        Assert.Equal(2, write.Edits.Count);
+        Assert.All(write.Edits, e => Assert.Equal("", e.Value));
+        Assert.All(write.Edits, e => Assert.Equal(2, e.Row));
+    }
+
+    [Fact]
+    public void AnAppendedRowSurvivesBeingWrittenAndReadBack()
+    {
+        var schema = new HeuristicSchema();
+
+        var baseGrid = WorkbookGrid.Read(Fixture, reportAs: "base");
+        var view = TableViews.Of(baseGrid, schema).First(t => t.Rows.Count > 1 && t.Columns.Count > 1);
+
+        // The fixture's own sheet has content under its table, so the row goes into a copy
+        // that ends where the table does.
+        var trimmed = WorkbookGrid.Of("mine", (view.Region.Sheet, [
+            [.. view.Columns],
+            [.. view.Rows[0].Cells]]));
+
+        var theirs = WorkbookGrid.Of("theirs", (view.Region.Sheet, [
+            [.. view.Columns],
+            [.. view.Rows[0].Cells],
+            [.. view.Rows[1].Cells]]));
+
+        var mine = TableViews.Of(trimmed, schema);
+
+        var plan = WorkbookMerge.Judge(
+            "base", TableViews.Of(trimmed, schema), "mine", mine, "theirs", TableViews.Of(theirs, schema));
+
+        var write = MergeWriter.Prepare(plan, mine, trimmed);
+
+        Assert.True(write.CanWrite, string.Join("; ", write.Refusals.Select(r => r.Reason)));
+        Assert.NotEmpty(write.Edits);
     }
 
     private static Dictionary<string, byte[]> Parts(string path)

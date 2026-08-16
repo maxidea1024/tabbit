@@ -57,36 +57,25 @@ internal static class XlsxPatcher
                 + "`.xlsm`; anything else is reported as a conflict rather than written wrongly.");
         }
 
-        using var input = ZipFile.OpenRead(source);
-
-        RefuseUnlessXml(source, input);
-
-        var parts = SheetParts(input);
-        var byPart = new Dictionary<string, List<CellEdit>>(StringComparer.Ordinal);
-
-        foreach (var edit in edits)
-        {
-            if (!parts.TryGetValue(edit.Sheet, out string? part))
-            {
-                throw new MabbitException(
-                    $"`{source}` has no sheet `{edit.Sheet}` to write into.");
-            }
-
-            if (!byPart.TryGetValue(part, out var forPart))
-                byPart[part] = forPart = [];
-
-            forPart.Add(edit);
-        }
-
         // Written beside the destination and moved into place, so a run that fails partway
         // leaves the file it was told to write untouched rather than half a workbook.
         string staging = destination + ".mabbit-staging";
 
         try
         {
-            using (var output = new FileStream(staging, FileMode.Create, FileAccess.Write))
-            using (var archive = new ZipArchive(output, ZipArchiveMode.Create))
+            // The input is closed before the move, and that is not tidiness: a merge driver
+            // is told to write its result over the file it was given as this side, so the
+            // source and the destination are routinely the same path. Moving onto a file
+            // still open for reading fails on Windows.
+            using (var input = ZipFile.OpenRead(source))
             {
+                RefuseUnlessXml(source, input);
+
+                var byPart = EditsByPart(source, input, edits);
+
+                using var output = new FileStream(staging, FileMode.Create, FileAccess.Write);
+                using var archive = new ZipArchive(output, ZipArchiveMode.Create);
+
                 foreach (var entry in input.Entries)
                 {
                     // The cached order in which a spreadsheet recalculates. Every cached
@@ -120,6 +109,26 @@ internal static class XlsxPatcher
             if (File.Exists(staging))
                 File.Delete(staging);
         }
+    }
+
+    private static Dictionary<string, List<CellEdit>> EditsByPart(
+        string source, ZipArchive input, IReadOnlyList<CellEdit> edits)
+    {
+        var parts = SheetParts(input);
+        var byPart = new Dictionary<string, List<CellEdit>>(StringComparer.Ordinal);
+
+        foreach (var edit in edits)
+        {
+            if (!parts.TryGetValue(edit.Sheet, out string? part))
+                throw new MabbitException($"`{source}` has no sheet `{edit.Sheet}` to write into.");
+
+            if (!byPart.TryGetValue(part, out var forPart))
+                byPart[part] = forPart = [];
+
+            forPart.Add(edit);
+        }
+
+        return byPart;
     }
 
     /// <summary>
@@ -270,6 +279,10 @@ internal static class XlsxPatcher
         int row = 0;
         List<CellEdit>? pending = null;
 
+        // Which row numbers the sheet actually carries. Anything left over at the end is a
+        // row that has to be created rather than edited.
+        var seen = new HashSet<int>();
+
         // `Skip` and `ReadFrom` both leave the reader on the next node already, so a plain
         // `while (Read())` would step over it. This carries that fact instead.
         bool standing = false;
@@ -297,7 +310,7 @@ internal static class XlsxPatcher
                 continue;
             }
 
-            WriteCurrent(reader, writer, ref row, ref pending, byRow);
+            WriteCurrent(reader, writer, ref row, ref pending, byRow, seen);
         }
     }
 
@@ -325,7 +338,7 @@ internal static class XlsxPatcher
 
     private static void WriteCurrent(
         XmlReader reader, XmlWriter writer, ref int row,
-        ref List<CellEdit>? pending, Dictionary<int, List<CellEdit>> byRow)
+        ref List<CellEdit>? pending, Dictionary<int, List<CellEdit>> byRow, HashSet<int> seen)
     {
         switch (reader.NodeType)
         {
@@ -333,6 +346,13 @@ internal static class XlsxPatcher
             {
                 bool empty = reader.IsEmptyElement;
                 row = int.Parse(reader.GetAttribute("r") ?? "0", CultureInfo.InvariantCulture) - 1;
+
+                // Rows the sheet does not have yet, which belong above this one. A row
+                // arriving from the other side is exactly this: cells for a row number no
+                // element in the file carries.
+                WriteMissingRows(writer, byRow, seen, before: row, ns: reader.NamespaceURI);
+
+                seen.Add(row);
                 pending = byRow.TryGetValue(row, out var forRow) ? [.. forRow] : null;
 
                 writer.WriteStartElement(reader.Prefix, reader.LocalName, reader.NamespaceURI);
@@ -363,6 +383,11 @@ internal static class XlsxPatcher
 
             case XmlNodeType.EndElement when reader.LocalName == "row":
                 FlushPending(writer, ref pending, int.MaxValue, reader.NamespaceURI);
+                writer.WriteFullEndElement();
+                return;
+
+            case XmlNodeType.EndElement when reader.LocalName == "sheetData":
+                WriteMissingRows(writer, byRow, seen, before: int.MaxValue, ns: reader.NamespaceURI);
                 writer.WriteFullEndElement();
                 return;
 
@@ -410,6 +435,36 @@ internal static class XlsxPatcher
 
             default:
                 return;
+        }
+    }
+
+    /// <summary>
+    /// Writes the rows the sheet does not have, in order, up to the row about to be written.
+    /// </summary>
+    /// <remarks>
+    /// Rows have to appear in ascending order for a spreadsheet to accept the sheet, so a row
+    /// being added is emitted at the point its number reaches - not appended at the end.
+    /// </remarks>
+    private static void WriteMissingRows(
+        XmlWriter writer, Dictionary<int, List<CellEdit>> byRow, HashSet<int> seen, int before, string ns)
+    {
+        foreach (int row in byRow.Keys.Where(r => r < before && !seen.Contains(r)).Order().ToList())
+        {
+            seen.Add(row);
+
+            writer.WriteStartElement("row", ns);
+            writer.WriteAttributeString("r", (row + 1).ToString(CultureInfo.InvariantCulture));
+
+            foreach (var edit in byRow[row].OrderBy(e => e.Column))
+            {
+                var cell = new XElement(XName.Get("c", ns));
+                cell.SetAttributeValue("r", Reference(edit.Row, edit.Column));
+
+                Rewrite(cell, edit.Value, ns);
+                cell.WriteTo(writer);
+            }
+
+            writer.WriteFullEndElement();
         }
     }
 

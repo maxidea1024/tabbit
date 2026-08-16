@@ -121,10 +121,20 @@ public static class Program
 
         Reads .xlsx, .xlsm, .xlsb and .xls.
 
-        `--merge` judges and reports. It does not write a workbook, so it must not be
-        registered as a version control merge driver yet.
+        `--merge` with `--result` writes the merged workbook; without one it judges and
+        reports and writes nothing. It writes cell values only: a row arriving is appended
+        below the table when there is room, and anything that would move what sits below or
+        beside a table is refused with its reason.
 
-        Exit codes: 0 done, 1 the merge has conflicts, 2 could not run.
+        As a git merge driver:
+
+          .gitattributes    *.xlsx merge=mabbit
+          .git/config       [merge "mabbit"]
+                                name = Mabbit workbook merge
+                                driver = mabbit --merge --base %O --mine %A \
+                                         --theirs %B --result %A --path %P
+
+        Exit codes: 0 merged, 1 conflicts to settle by hand, 2 could not run.
         """;
 
     public static int Main(string[] args)
@@ -219,7 +229,7 @@ public static class Program
 
         var write = string.IsNullOrEmpty(options.Result)
             ? null
-            : MergeWriter.Prepare(plan, mineTables);
+            : MergeWriter.Prepare(plan, mineTables, mine);
 
         Write(options, string.Equals(options.Format, "json", StringComparison.OrdinalIgnoreCase)
             ? MergeReport.Json(plan)
