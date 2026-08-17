@@ -323,6 +323,17 @@ class Program
             var cooker = new ModelCooker();
             var model = cooker.Cook(options, recipeModel, rawModel);
 
+            // Before validation on purpose. What this writes is where the tables are, and a
+            // workbook with a broken value still has its tables in the same places - so a
+            // merge waiting on this answer is not held up by a problem it is not about.
+            if (!string.IsNullOrEmpty(options.DumpSchema))
+            {
+                SheetSchema.Write(
+                    model, options.DumpSchema,
+                    typeof(SheetSchema).Assembly.GetName().Version?.ToString() ?? "");
+                return 0;
+            }
+
 
             // Validation
 

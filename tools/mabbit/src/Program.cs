@@ -24,6 +24,7 @@ internal sealed class Options
     public string? Theirs { get; set; }
     public string? Result { get; set; }
     public string? Path { get; set; }
+    public string? Schema { get; set; }
     public string? Format { get; set; }
     public string? Out { get; set; }
 
@@ -63,6 +64,7 @@ internal sealed class Options
                 case "theirs": options.Theirs = value; break;
                 case "result": options.Result = value; break;
                 case "path": options.Path = value; break;
+                case "schema": options.Schema = value; break;
                 case "format": options.Format = value; break;
                 case "out": options.Out = value; break;
                 case "key": options.Key.Add(value); break;
@@ -113,8 +115,11 @@ public static class Program
           --theirs <file>   The other side. Merge only.
           --path <path>     What the file is called in the repository. Says what format a
                             file that arrived under a temporary name is in.
+          --schema <file>   Where the tables are, as written by `tabbit --dump-schema`.
+                            Without one, each sheet is taken as one table whose first
+                            column identifies a row - a guess, and a loud one when wrong.
           --key <s>:<c>     Which column identifies a row, as `sheet:heading` or
-                            `sheet:letter`. Repeatable. The first column when left out.
+                            `sheet:letter`. Repeatable. Ignored when --schema is given.
           --format <f>      `text`, `json`, or `html` for a page to open in a browser.
                             Text when left out. A merge report is the one worth opening:
                             it puts the three values of a conflict side by side.
@@ -177,12 +182,25 @@ public static class Program
         }
     }
 
+    /// <summary>
+    /// Where the tables are: from the file that says so, or guessed.
+    /// </summary>
+    /// <remarks>
+    /// The guess is right for a sheet that is nothing but a table, which is most of them, and
+    /// wrong loudly rather than quietly when it is not - every row reports as changed. The
+    /// file is right always, and costs a conversion having been run.
+    /// </remarks>
+    private static ITableSchema Schema(Options options, string workbook)
+        => string.IsNullOrEmpty(options.Schema)
+            ? new HeuristicSchema(KeyColumns(options.Key))
+            : SchemaFile.Read(options.Schema, options.Path ?? workbook);
+
     private static int Diff(Options options)
     {
         string first = Required(options.Base, "--base");
         string second = Required(options.Mine, "--mine");
 
-        var schema = new HeuristicSchema(KeyColumns(options.Key));
+        var schema = Schema(options, second);
 
         // The repository path names the format for both sides. A conflict hands its tools two
         // temporary files of the same tracked path, so one answer covers both.
@@ -208,7 +226,7 @@ public static class Program
         string here = Required(options.Mine, "--mine");
         string there = Required(options.Theirs, "--theirs");
 
-        var schema = new HeuristicSchema(KeyColumns(options.Key));
+        var schema = Schema(options, here);
 
         var inBase = WorkbookGrid.Read(ancestor, options.Path, reportAs: Shown(ancestor, options.Path));
         var mine = WorkbookGrid.Read(here, options.Path, reportAs: Shown(here, options.Path));

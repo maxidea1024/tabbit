@@ -238,6 +238,23 @@ public class Options
     [Option("bind", HelpText = "Address to serve on. 127.0.0.1 when left out.")]
     public string? Bind { get; set; }
 
+    /// <summary>
+    /// Writes where each table sits in its sheet, and stops.
+    /// </summary>
+    /// <remarks>
+    /// For the tools that read the same workbooks this does but have no business cooking
+    /// them - a comparison, a merge. What they need is the geometry: which rectangle of which
+    /// sheet is a table, and which of its columns identifies a row. Working that out needs
+    /// every workbook of the source open at once, because a column's type may name an enum
+    /// declared in another one, so it cannot be worked out from the one file being looked at.
+    ///
+    /// A file rather than a library, so nothing has to link against this program to use it.
+    /// </remarks>
+    [Option("dump-schema", HelpText =
+        "Write where each table sits in its sheet as JSON, and exit. For tools that read the "
+        + "same workbooks without cooking them.")]
+    public string? DumpSchema { get; set; }
+
     // ----------------------------------------------------------- validation
 
     /// <summary>

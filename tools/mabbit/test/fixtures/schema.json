@@ -1,0 +1,27 @@
+{
+  "tool": "fixture",
+  "tables": [
+    {
+      "name": "Enums",
+      "workbook": "data/workbook.xlsx",
+      "sheet": "TableEnums",
+      "headerRow": 0,
+      "firstDataRow": 1,
+      "lastDataRow": 6,
+      "firstColumn": 0,
+      "lastColumn": 2,
+      "keyColumn": 0
+    },
+    {
+      "name": "Collection",
+      "workbook": "samples/rescue/CollectionData.xlsx",
+      "sheet": "CollectionTable",
+      "headerRow": 1,
+      "firstDataRow": 3,
+      "lastDataRow": 2081,
+      "firstColumn": 0,
+      "lastColumn": 12,
+      "keyColumn": 0
+    }
+  ]
+}
