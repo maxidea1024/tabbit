@@ -65,12 +65,19 @@ public class CorpusCoverageTests
     /// What does hold it is a different gate - the `bitset` golden exports the same values as
     /// a `bigint` column beside it and every artifact has to agree, which is the fold itself
     /// being checked rather than a reader's switch. spec/bitset.md.
+    ///
+    /// The composites are the same argument one step further. A `vec3f` column becomes three
+    /// `float` columns before any generator runs, so a corpus column of one would be reading
+    /// the `float` path three more times. What holds them is `CompositeExpansionTests`, where
+    /// the same table written both ways has to produce the same bytes.
+    /// spec/composite-value-types.md.
     /// </remarks>
-    private static readonly HashSet<ValueType> FoldedBeforeGeneration = new HashSet<ValueType>
-    {
-        ValueType.Bitset,
-        ValueType.BitsetArray,
-    };
+    private static readonly HashSet<ValueType> FoldedBeforeGeneration =
+        new HashSet<ValueType>(Tabbit.Models.CompositeTypes.All.Select(entry => entry.Type))
+        {
+            ValueType.Bitset,
+            ValueType.BitsetArray,
+        };
 
     /// <summary>
     /// Array forms deliberately left out, and why.

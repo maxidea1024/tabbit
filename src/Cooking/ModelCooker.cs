@@ -28,9 +28,6 @@ public partial class ModelCooker
 
         ParseRawModel(context, rawModel);
 
-        // Every cell has been read, so the one type that existed for the reading is done.
-        FoldBitsetIntoInt64(result);
-
         // Resolution and validation share one collector, so a workbook comes back
         // with everything wrong with it rather than one problem per run.
         //
@@ -42,6 +39,11 @@ public partial class ModelCooker
         {
             PromoteWarnings = recipeModel.Validation?.TreatWarningsAsErrors ?? false,
         };
+
+        // Every cell has been read, so the two type kinds that existed for the reading are
+        // done. Both are folds and neither is visible below this line.
+        ExpandCompositeColumns(context, result, diagnostics);
+        FoldBitsetIntoInt64(result);
 
         // A column whose sheet named the tables its value belongs to is a reference, and
         // this is where it becomes one. Before resolution, because resolution is what it is

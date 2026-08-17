@@ -471,6 +471,13 @@ index@1    Name@2    Price@3    #OldColor@4    *Grade@5
 |uuid|Represents a globally unique identifier (GUID).|[MSDN 참고](https://docs.microsoft.com/en-us/dotnet/api/system.guid?view=net-6.0)|
 |enum|자체적으로 선언된 엔티티 enum| |
 |foreign|외부 테이블 참조| |
+|`vec2i`·`vec3i`·`vec4i`|정수 성분 2~4개. `(111, 222)`|성분마다 `int`. [아래](#합성-값-타입--벡터--회전--색)|
+|`vec2f`·`vec3f`·`vec4f`|실수 성분 2~4개|성분마다 `float`|
+|`euler`|축마다 각도 하나씩 3개(도)|성분마다 `float`|
+|`quat`|회전. `(x, y, z, w)` 또는 `identity`|성분마다 `float`|
+|`axisangle`|축과 각도(도). `(0, 1, 0, 90)`|성분마다 `float`|
+|`color`|실수 RGBA. HDR 값도 담습니다|성분마다 `float`, 범위 제한 없음|
+|`color32`|8비트 RGBA. `#3366CC`·`red`|성분마다 0~255|
 |`T[]`|구분자로 구분된 배열. 예: `int[]`, `string[]`, `enum[]`|로우마다 길이가 다를 수 있음|
 
 ### 배열 타입
@@ -508,6 +515,41 @@ index@1    Name@2    Price@3    #OldColor@4    *Grade@5
 - `bitset[]`과 `bitset?`을 쓸 수 있습니다. 빈 칸은 플래그가 하나도 없는 것(`0`)입니다.
 
 > 설계와 근거는 [비트셋](../spec/bitset.md)에 있습니다.
+
+### 합성 값 타입 — 벡터 · 회전 · 색
+
+성분이 여러 개인 값을 **셀 하나**에 적습니다. 컬럼 3개로 적던 좌표가 컬럼 하나가 되고, 타입 행에
+그것이 좌표라고 적힙니다.
+
+|index|Pos|Cell|Rot|Tint|Glow|
+|--|--|--|--|--|--|
+|`int`|`vec3f`|`vec2i`|`quat`|`color32`|`color`|
+|1|`(1.5, -2.5, 0)`|`(3, 4)`|`identity`|`#3399CC`|`#33CCFF`|
+|2|`one`|`zero`|`(0, 1, 0, 0)`|`cornflowerblue`|`transparent`|
+|3|`0,0,0`|`Vector2i.one`|`(1,0,0,0)`|`(255, 0, 0, 128)`|`#FF00FF`|
+
+**생성되는 코드에서는 레코드입니다.** 위의 `Pos`는 `Pos.X`·`Pos.Y`·`Pos.Z`라고 적은 컬럼 3개와
+**완전히 같은 것**이 됩니다 — 같은 JSON, 같은 바이트, 같은 구조체.
+
+- **튜플** — 구분자는 쉼표이고 괄호는 생략할 수 있습니다. 성분 개수는 정확히 맞아야 합니다.
+- **기호** — `zero`·`one`(벡터), `identity`(`quat`·`axisangle`). `vec2i.one`이나 `Vector2i.one`처럼
+  타입 이름을 앞에 붙여도 됩니다. 다른 타입 이름을 붙이면 오류입니다.
+- **색** — `#RGB`·`#RRGGBB`·`#RRGGBBAA`·`0xRRGGBB`, CSS 색 이름 148개, `transparent`. 알파를
+  생략하면 불투명입니다.
+- **팔레트** — recipe의 `Palettes`에 파일을 등록하면 `material.blue.500`처럼 씁니다. 접두 없는
+  이름은 언제나 내장 `css`이므로 팔레트를 추가해도 기존 시트의 색이 달라지지 않습니다.
+- **`color`와 `color32`** — 표기는 같고 성분이 다릅니다. `color32`는 정수 0~255이고 소수점을
+  거절합니다(`(1.0, 1.0, 1.0)`이 흰색인지 3/255인지 갈리기 때문입니다). `color`는 실수이고 1을
+  넘는 HDR 값을 받습니다.
+- **`?`를 쓸 수 있습니다.** 빈 칸은 성분이 전부 0이고, `quat`은 `(0,0,0,1)`, `axisangle`은
+  `(0,0,1,0)`입니다.
+- **`up`·`forward`는 없습니다.** 위쪽과 앞쪽이 엔진마다 다르므로(Unity는 `+Y`·`+Z`, Unreal은
+  `+Z`·`+X`) 이 도구가 고르지 않습니다. 튜플로 적습니다.
+- **쓸 수 없는 자리 셋** — 인덱스(`*`), `@N` 태그, 컬럼 제약. 셋 다 타입 이름과 함께 거절됩니다.
+- **엑셀 서식 주의.** 일반 서식 셀에 `(1,234)`를 입력하면 엑셀이 -1234로 바꿉니다. 그런 셀은
+  성분이 하나가 되어 오류로 걸리고, 메시지가 서식을 지목합니다. 컬럼 서식을 텍스트로 두세요.
+
+> 설계와 근거는 [합성 값 타입](../spec/composite-value-types.md)에 있습니다.
 
 ### 진법 리터럴 — `0x`와 `0b`
 

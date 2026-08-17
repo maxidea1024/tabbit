@@ -59,6 +59,38 @@ public enum ValueType
     /// </summary>
     Bitset = 13,
 
+    // The composite types: one cell, several named components. Like `bitset` these exist for
+    // as long as parsing lasts - what makes each one a type is the notation it accepts - and
+    // the cooker expands a column of one into a record before anything downstream sees it.
+    // There is deliberately no array counterpart: `ArrayOf` answers None for all of them, so
+    // `vec2f[]` is refused by the check every other unbracketable type is refused by.
+    // spec/composite-value-types.md.
+
+    /// <summary>`vec2i` - two `int` components, `X` and `Y`.</summary>
+    Vec2i = 14,
+    /// <summary>`vec3i` - three `int` components.</summary>
+    Vec3i = 15,
+    /// <summary>`vec4i` - four `int` components.</summary>
+    Vec4i = 16,
+    /// <summary>`vec2f` - two `float` components.</summary>
+    Vec2f = 17,
+    /// <summary>`vec3f` - three `float` components.</summary>
+    Vec3f = 18,
+    /// <summary>`vec4f` - four `float` components.</summary>
+    Vec4f = 19,
+
+    /// <summary>`euler` - three angles in degrees. The order they compose in is the consumer's.</summary>
+    Euler = 20,
+    /// <summary>`quat` - a rotation as `X` `Y` `Z` `W`.</summary>
+    Quat = 21,
+    /// <summary>`axisangle` - a unit axis and an angle in degrees.</summary>
+    AxisAngle = 22,
+
+    /// <summary>`color` - `float` RGBA in sRGB, unbounded so an HDR colour fits.</summary>
+    Color = 23,
+    /// <summary>`color32` - 8-bit RGBA in sRGB, each component 0 to 255.</summary>
+    Color32 = 24,
+
     /// <summary>`string[]`</summary>
     StringArray = 32,
     /// <summary>`bool[]`</summary>
@@ -171,6 +203,16 @@ public static class ValueTypes
         if (IsArray(type))
         {
             why = "and an array cell holds several values where a key is one.";
+            return false;
+        }
+
+        // Asked before the switch so the answer names the composite rather than one of its
+        // components. The expansion would refuse it anyway - a record is not a key - but by
+        // then the column is `Pos.X` and a report about it would not say `vec3f`, which is
+        // the word the sheet used and the one an author can act on.
+        if (CompositeTypes.IsComposite(type))
+        {
+            why = "and a value with several components is not one value to look a row up by.";
             return false;
         }
 

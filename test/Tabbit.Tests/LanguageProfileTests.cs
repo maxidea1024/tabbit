@@ -61,7 +61,14 @@ public class LanguageProfileTests
                            && type != ValueType.Unresolved
                            && type != ValueType.Enum
                            && type != ValueType.ForeignRecord
-                           && type != ValueType.Bitset);
+                           && type != ValueType.Bitset)
+
+               // The composites, for the same reason as `Bitset` above: they are types for as
+               // long as parsing lasts and the cooker folds them away, so no generator ever
+               // sees one. A language that named `vec3f` would be naming a type that cannot
+               // reach it - and the fold, not a per-language entry, is what makes that true.
+               // spec/composite-value-types.md.
+               .Where(type => !Tabbit.Models.CompositeTypes.IsComposite(type));
 
     [Fact]
     public void The_profiles_are_all_found()
