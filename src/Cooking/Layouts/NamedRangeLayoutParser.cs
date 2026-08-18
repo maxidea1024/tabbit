@@ -600,10 +600,21 @@ public sealed class UwoLayoutParser : ILayoutParser
             if (key.StartsWith(':'))
                 continue;
 
-            // The end of the table. The range is often drawn over blank rows below the
-            // data, and the original exporter stops the same way.
             if (key.Length == 0)
+            {
+                // A row holding nothing at all is a row the original exporter never saw: its
+                // OLE DB path does not surface fully empty rows, so its stop-at-empty-key
+                // rule cannot fire on one. The largest table of the sample set holds four
+                // such rows in the middle of its data, and its deployed export carries every
+                // row below them - so an empty row is a skip, measured rather than assumed.
+                if (RowIsEmpty(sheet, named, row))
+                    continue;
+
+                // The end of the table: a key left blank on a row that holds something. The
+                // original exporter is handed that row and stops on the blank key the same
+                // way.
                 break;
+            }
 
             // A commented-out row, the same convention the column names use.
             if (key.StartsWith('#'))
@@ -619,6 +630,23 @@ public sealed class UwoLayoutParser : ILayoutParser
 
             table.Data.Add(cells);
         }
+    }
+
+    /// <summary>Whether a row of the rectangle holds no value in any of its columns.</summary>
+    /// <remarks>
+    /// The whole rectangle rather than the columns being read, because what is being decided
+    /// is what the original exporter's row enumeration would have been handed - and that
+    /// enumeration knows nothing about which columns the header keeps.
+    /// </remarks>
+    private static bool RowIsEmpty(RawSheet sheet, RawNamedRange named, int row)
+    {
+        for (int column = 0; column < named.Width; column++)
+        {
+            if (CellAt(sheet, named, row, column).Value.Trim().Length > 0)
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>
