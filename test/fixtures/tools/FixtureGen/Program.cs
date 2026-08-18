@@ -64,6 +64,7 @@ internal static class Program
         WriteReferenceRequiredBlank(
             Prepare(outputDir, "reference-required-blank", "reference-required-blank.xlsx"));
         WriteAsset(Prepare(outputDir, "asset", "asset.xlsx"));
+        WriteRowSets(Prepare(outputDir, "row-sets", "row-sets.xlsx"));
         // The corpus and the corpus one generation later, from one description. The skew
         // scenario is the same tables with a column appended, and the only thing the gate
         // asks of it is that nothing else differs - so nothing else may be maintained
@@ -876,6 +877,101 @@ internal static class Program
             .Row("Idle_01", "0", "3");
 
         b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// A table whose rows are given twice, and the shapes the fold has to answer for.
+    /// </summary>
+    /// <remarks>
+    /// The tail `_alt` rather than anything a real project uses: the pattern that recognizes
+    /// it is the recipe's, so a fixture written around one project's spelling would be
+    /// testing that spelling instead of the mechanism.
+    ///
+    /// Four tables, and each is one of the questions in spec/table-row-sets.md:
+    ///
+    ///   Colour, Colour_alt      the base case - one type, two files
+    ///   Paint,  Paint_alt       a reference; the `_alt` rows point at ids only `Colour_alt`
+    ///                           has, so a set resolving against the base would fail
+    ///   Brush,  (none)          a table with one set, referenced from `Paint_alt` - the
+    ///                           fallback, which is the common case rather than a leniency
+    ///   Narrow, Narrow_alt      the set that holds fewer columns, which is allowed: the
+    ///                           cells it does not have read as absent
+    ///
+    /// A set holding a column the table does not is refused, and that is a unit test rather
+    /// than a fixture - it is about the message, and a workbook that cannot be converted has
+    /// no golden to compare.
+    /// </remarks>
+    private static void WriteRowSets(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Tables"));
+
+        // The ids differ between the two sets on purpose: 1..2 in one and 11..12 in the
+        // other, so a reference resolved against the wrong set finds nothing.
+        // The ids differ between the two sets on purpose: 1..2 in one and 11..12 in the
+        // other, so a reference resolved against the wrong set finds nothing.
+        var colour = new TableSpec { Name = "Colour", Comment = "Given its rows twice." };
+        colour
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "what it is called"))
+            .Field(FieldSpec.Of("Ordinal", "int", "anything"));
+        colour.Row("1", "red", "1").Row("2", "green", "2");
+
+        var colourAlt = new TableSpec { Name = "Colour_alt", Comment = "Given its rows twice." };
+        colourAlt
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "what it is called"))
+            .Field(FieldSpec.Of("Ordinal", "int", "anything"));
+        colourAlt.Row("11", "crimson", "1").Row("12", "jade", "2");
+
+        var brush = new TableSpec { Name = "Brush", Comment = "One set of rows only." };
+        brush
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Width", "int", "anything"))
+            .Field(FieldSpec.Of("Bristles", "int", "anything"));
+        brush.Row("1", "4", "40").Row("2", "8", "80");
+
+        var paint = new TableSpec { Name = "Paint", Comment = "Points at both kinds." };
+        paint
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("ColourId", "foreign", "the same set first", detailType: "Colour"))
+            .Field(FieldSpec.Of("BrushId", "foreign", "falls back to the one set", detailType: "Brush"));
+        paint.Row("1", "1", "1").Row("2", "2", "2");
+
+        var paintAlt = new TableSpec { Name = "Paint_alt", Comment = "Points at both kinds." };
+        paintAlt
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("ColourId", "foreign", "the same set first", detailType: "Colour"))
+            .Field(FieldSpec.Of("BrushId", "foreign", "falls back to the one set", detailType: "Brush"));
+
+        // 11 and 12 exist only in `Colour_alt`, and 1 and 2 only in `Brush`.
+        paintAlt.Row("1", "11", "1").Row("2", "12", "2");
+
+        var narrow = new TableSpec { Name = "Narrow", Comment = "One set holds fewer columns." };
+        narrow
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Kept", "int", "in both sets"))
+            .Field(FieldSpec.Of("Also", "int", "in both sets"))
+            .Field(FieldSpec.Of("Dropped", "int?", "in this set only"));
+        narrow.Row("1", "10", "1", "100").Row("2", "20", "2", "200");
+
+        var narrowAlt = new TableSpec { Name = "Narrow_alt", Comment = "One set holds fewer columns." };
+        narrowAlt
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Kept", "int", "in both sets"))
+            .Field(FieldSpec.Of("Also", "int", "in both sets"));
+        narrowAlt.Row("1", "11", "1").Row("2", "21", "2");
+
+        // Side by side rather than stacked, which is how the other multi-table fixtures do
+        // it: these tables are not all the same width, and a narrower one above a wider one
+        // leaves the grid holding a blank cell where its field row ends.
+        int column = 1;
+        // The widest table last: a table at the right edge needs room for the marker row
+        // beside its columns, and a two-column one there does not have it.
+        foreach (var spec in new[] { colour, colourAlt, brush, narrowAlt, narrow, paint, paintAlt })
+            column = b.Table(column, 1, spec) is var _ ? column + spec.Fields.Count + 1 : column;
 
         Save(workbook, path);
     }

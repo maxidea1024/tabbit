@@ -63,7 +63,7 @@ public class ColumnConstraintTests
     private static IReadOnlyList<string> Check(Table table)
     {
         var diagnostics = new Diagnostics();
-        new ModelCooker().ValidateColumnConstraints(table, diagnostics);
+        new ModelCooker().ValidateColumnConstraints(table, table.RowSets.First(), diagnostics);
 
         // The collector holds them; the message is what a reader sees, so that is what
         // these assert on.

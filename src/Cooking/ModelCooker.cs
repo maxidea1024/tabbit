@@ -43,6 +43,17 @@ public partial class ModelCooker
             PromoteWarnings = recipeModel.Validation?.TreatWarningsAsErrors ?? false,
         };
 
+        // Tables that are really another set of some table's rows become that, before
+        // anything downstream can take them for tables of their own.
+        //
+        // After every layout, because a table and the extra sets of its rows can be read
+        // under different ones and arrive in whatever order the sheets are in. And here
+        // rather than at the end of parsing so that every mismatched pair is reported
+        // together: a project turning this on wants the list, not the first one.
+        //
+        // spec/table-row-sets.md.
+        TableRowSets.Fold(context, rawModel.Sheets, diagnostics);
+
         // A column whose sheet named the tables its value belongs to is a reference, and
         // this is where it becomes one. Before resolution, because resolution is what it is
         // being handed to.
@@ -218,7 +229,11 @@ public partial class ModelCooker
                 if (!resolved)
                     continue;
 
-                foreach (var row in table.Data)
+                // Every set of rows the table has, not only its own: a reference cell that
+                // was not converted keeps the text the sheet wrote, and then matches nothing
+                // the target holds. spec/table-row-sets.md.
+                foreach (var rowSet in table.RowSets)
+                foreach (var row in rowSet.Rows)
                 {
                     if (field.Index >= row.Count)
                         continue;

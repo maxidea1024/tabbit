@@ -91,7 +91,7 @@
 |[`.xlsb`의 정의된 이름](../spec/xlsb-defined-names.md)|이진 워크북에서 이름을 직접 읽어 **사전 변환 단계를 없애는** 설계 — `BrtName`과 XTI 테이블, 그리고 이름 253개 대조|
 |[구글 시트의 정의된 이름](../spec/google-sheets-named-ranges.md)|임포터 2개 중 하나만 이름을 읽고 있던 것 — **조용히 테이블 0개가 되는 조합**과, 좌표 변환을 한 곳에 두는 설계|
 |[행 키 레이아웃](../spec/keyed-layout.md)|이름이 가리키는 사각형을 그대로 격자로 쓰는 레이아웃|
-|[지역 변종](../spec/regional-variants.md)|같은 테이블의 데이터 두 벌 — **타입은 하나**. 지금 별개 테이블로 읽고 있어 생기는 가짜 참조 오류 93건과, 꼬리표를 코어가 모르게 두는 설계|
+|[테이블의 행 벌](../spec/table-row-sets.md)|한 테이블에 데이터 여러 벌 — **타입은 하나**. 별개 테이블로 읽어서 생기던 가짜 참조 오류 111건과, 표기를 recipe가 정규식으로 적어 코어가 꼬리표의 뜻을 모르게 두는 설계|
 |[생성 코드의 이름 체계](../spec/generated-naming.md)|`AccessorName` 하나가 13개 언어의 타입 이름과 파일 이름을 정하는 방법|
 |[접근자 객체화](../spec/accessor-instances.md)|전역 정적 말고 인스턴스로 — 테스트 격리, 두 버전 동시 열기, 핫 리로드|
 |[출력 항목을 `Targets` 하나로](../spec/target-section-unification.md)|recipe의 출력 선언을 한 목록으로 모은 기록|

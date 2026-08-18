@@ -53,7 +53,8 @@ public sealed class SheetImportSettings
 
                 recipe.FoldSerialFields,
                 recipe.TrimTrailingArrayElements,
-                recipe.AllowArrayGaps));
+                recipe.AllowArrayGaps,
+                (recipe.TableRowSets ?? "").Trim()));
     }
 
     private static FormulaErrorPolicy ParseFormulaErrorPolicy(string value, string section)

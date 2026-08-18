@@ -248,12 +248,29 @@ public class BinaryExporter : Target<BinaryRecipe>
         Log.Information($"Wrote the encoding report for {report.ColumnCount} columns to '{filename}'");
     }
 
+    /// <summary>
+    /// One file per set of rows the table has.
+    /// </summary>
+    /// <remarks>
+    /// A table with one set - which is nearly all of them - yields one file, so this is the
+    /// ordinary path rather than a branch around it. The schema is the table's and is written
+    /// into each file identically; only the rows differ. spec/table-row-sets.md.
+    /// </remarks>
     private void ExportTable(
         BinaryRecipe recipe, Table table, TcbEncodingReport report)
     {
-        var writer = Encode(table, report);
+        foreach (var rowSet in table.RowSets)
+            ExportRowSet(recipe, table, rowSet, report);
+    }
 
-        var filename = Path.Combine(recipe.Path, table.Name + recipe.FileExtension);
+    private void ExportRowSet(
+        BinaryRecipe recipe, Table table, RowSet rowSet, TcbEncodingReport report)
+    {
+        var writer = Encode(table, rowSet.Rows, report);
+
+        string name = table.Name + rowSet.Name;
+
+        var filename = Path.Combine(recipe.Path, name + recipe.FileExtension);
         filename = Path.GetFullPath(filename);
 
         // Encryption and the MAC are the outermost layers, so they happen here rather than
@@ -276,7 +293,7 @@ public class BinaryExporter : Target<BinaryRecipe>
         Log.Information($"Exporting binary file '{filename}' ({bytes.Length} bytes)");
         string stagingFilename = StagingFiles.WriteAllBytesToFile(filename, bytes);
 
-        _manifest.Add(table.Name + recipe.FileExtension, stagingFilename);
+        _manifest.Add(name + recipe.FileExtension, stagingFilename);
     }
 
     /// <summary>
@@ -289,12 +306,12 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// encoder written for validation could differ from this one, and the difference would show
     /// up as a rule passing on data the game reads differently.
     /// </remarks>
-    internal static TcbWriter Encode(Table table) => Encode(table, null);
+    internal static TcbWriter Encode(Table table) => Encode(table, table.Data, null);
 
     /// <summary>
     /// The same, recording what every candidate measured into <paramref name="report"/>.
     /// </summary>
-    internal static TcbWriter Encode(Table table, TcbEncodingReport? report)
+    internal static TcbWriter Encode(Table table, List<List<Cell>> rows, TcbEncodingReport? report)
     {
         TcbWriter writer = new TcbWriter();
 
@@ -310,13 +327,13 @@ public class BinaryExporter : Target<BinaryRecipe>
         var blocks = new ColumnBlock[columns.Count];
 
         for (int at = 0; at < columns.Count; at++)
-            blocks[at] = EncodeColumn(table, columns[at], report!);
+            blocks[at] = EncodeColumn(table, rows, columns[at], report!);
 
         // The signature, the version, and the fields the envelope and the MAC fill in later -
         // reserved here so that applying either of those layers moves nothing.
         TcbFormat.WriteHeader(writer);
 
-        writer.WriteCounter32(table.Data.Count);
+        writer.WriteCounter32(rows.Count);
 
         // The descriptors: one per logical column, so the file says what it holds. A
         // reader matches columns by tag rather than position, skips a tag it does not
@@ -370,11 +387,12 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// measured byte count is the one selector that is never wrong. The candidates
     /// and their layouts are spec/tcb-v102-column-encoding.md.
     /// </summary>
-    private static ColumnBlock EncodeColumn(Table table, WireColumn column, TcbEncodingReport report)
+    private static ColumnBlock EncodeColumn(
+        Table table, List<List<Cell>> rows, WireColumn column, TcbEncodingReport report)
     {
         var raw = new TcbWriter();
 
-        foreach (var row in table.Data)
+        foreach (var row in rows)
         {
             // A group whose length the row decides: a record member in a trimming table, or
             // a serial array in one. The count comes from how many of the group's columns the
@@ -408,7 +426,7 @@ public class BinaryExporter : Target<BinaryRecipe>
                 ExportValue(raw, row[field.Index].Value!, field);
         }
 
-        var (lengths, values) = CollectElements(table, column);
+        var (lengths, values) = CollectElements(table, rows, column);
 
         var stream = BuildStream(column, values);
         var kind = TcbFormat.KindFor(column);
@@ -440,7 +458,7 @@ public class BinaryExporter : Target<BinaryRecipe>
             }
         }
 
-        var chosen = WithPresence(table, column,
+        var chosen = WithPresence(table, rows, column,
             new ColumnBlock(selection.Best.Encoding, selection.Best.Payload));
 
         report?.Add(new TcbEncodingReport.ColumnEntry
@@ -450,7 +468,7 @@ public class BinaryExporter : Target<BinaryRecipe>
             Element = TcbFormat.ElementFor(column),
             Kind = TcbFormat.KindFor(column),
             Nullable = TcbFormat.NullableFor(column),
-            Rows = table.Data.Count,
+            Rows = rows.Count,
             Encoding = chosen.Encoding,
             Bytes = chosen.Payload.Length,
             Candidates = selection.Measured,
@@ -469,13 +487,13 @@ public class BinaryExporter : Target<BinaryRecipe>
             Structure = stream.Strings == null
                 ? null
                 : TcbStringStructure.Measure(Distinct(stream.Strings!)),
-            Layers = report == null ? null : MeasureLayers(table, column),
+            Layers = report == null ? null : MeasureLayers(table, rows, column),
 
             // What the presence bitmap would come to if it were encoded rather than left
             // raw. v103 decided to leave it raw and said the bitmap of a column whose
             // presence varies is close to incompressible - which was a judgement, never a
             // measurement. This is the measurement.
-            PresenceEncodedBytes = report == null ? 0 : MeasurePresence(table, column),
+            PresenceEncodedBytes = report == null ? 0 : MeasurePresence(table, rows, column),
         });
 
         return chosen;
@@ -501,9 +519,10 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// because a spreadsheet has no other number, and eight bytes for a value of 3 is the
     /// largest single thing a measurement can find.
     /// </remarks>
-    private static TcbEncodingReport.LayerEntry MeasureLayers(Table table, WireColumn column)
+    private static TcbEncodingReport.LayerEntry MeasureLayers(
+        Table table, List<List<Cell>> rows, WireColumn column)
     {
-        var (lengths, values) = CollectElements(table, column);
+        var (lengths, values) = CollectElements(table, rows, column);
 
         byte element = TcbFormat.ElementFor(column);
         bool varying = TcbFormat.KindFor(column) == TcbFormat.KindVarArray;
@@ -698,13 +717,13 @@ public class BinaryExporter : Target<BinaryRecipe>
     ///
     /// Zero for a required column, which has no bitmap to encode.
     /// </remarks>
-    private static int MeasurePresence(Table table, WireColumn column)
+    private static int MeasurePresence(Table table, List<List<Cell>> rows, WireColumn column)
     {
         if (!TcbFormat.NullableFor(column))
             return 0;
 
         // The encoding byte and the bitmap, which is what the block now holds.
-        return 1 + TcbColumnEncoder.EncodeByteStream(PresenceBits(table, column)).Payload.Length;
+        return 1 + TcbColumnEncoder.EncodeByteStream(PresenceBits(table, rows, column)).Payload.Length;
     }
 
     /// <summary>
@@ -760,12 +779,13 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// The same three cases the raw block is written from, so the flattening cannot disagree
     /// with what the file holds about which values belong to which row.
     /// </remarks>
-    private static (List<int> Lengths, List<object> Values) CollectElements(Table table, WireColumn column)
+    private static (List<int> Lengths, List<object> Values) CollectElements(
+        Table table, List<List<Cell>> rows, WireColumn column)
     {
-        var lengths = new List<int>(table.Data.Count);
+        var lengths = new List<int>(rows.Count);
         var values = new List<object>();
 
-        foreach (var row in table.Data)
+        foreach (var row in rows)
         {
             if (column.IsVariableLengthArray && !column.Group.IsVariableLengthArray)
             {
@@ -935,12 +955,13 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// where presence varies is close to incompressible and the bitmap of one where it does
     /// not should not have been written at all.
     /// </remarks>
-    private static ColumnBlock WithPresence(Table table, WireColumn column, ColumnBlock block)
+    private static ColumnBlock WithPresence(
+        Table table, List<List<Cell>> rows, WireColumn column, ColumnBlock block)
     {
         if (!TcbFormat.NullableFor(column))
             return block;
 
-        var (encoding, bitmap) = TcbColumnEncoder.EncodeByteStream(PresenceBits(table, column));
+        var (encoding, bitmap) = TcbColumnEncoder.EncodeByteStream(PresenceBits(table, rows, column));
 
         var payload = new TcbWriter();
 
@@ -952,14 +973,14 @@ public class BinaryExporter : Target<BinaryRecipe>
     }
 
     /// <summary>One bit per row saying whether that row has a value, low bit first.</summary>
-    private static byte[] PresenceBits(Table table, WireColumn column)
+    private static byte[] PresenceBits(Table table, List<List<Cell>> rows, WireColumn column)
     {
-        int rows = table.Data.Count;
-        var bitmap = new byte[(rows + 7) / 8];
+        int rowCount = rows.Count;
+        var bitmap = new byte[(rowCount + 7) / 8];
 
-        for (int at = 0; at < rows; at++)
+        for (int at = 0; at < rowCount; at++)
         {
-            if (table.Data[at][column.TagCarrier.Index].HasValue)
+            if (rows[at][column.TagCarrier.Index].HasValue)
                 bitmap[at >> 3] |= (byte)(1 << (at & 7));
         }
 

@@ -59,12 +59,19 @@ public partial class ModelCooker
 
         foreach (var table in model.Tables)
         {
-            ValidateIndexUniqueness(table, diagnostics);
-            ValidateReferences(model, table, diagnostics);
-            ValidateReferencedTables(model, table, diagnostics);
-            ValidateColumnConstraints(table, diagnostics);
-            ValidateArrayGaps(table, diagnostics);
-            ValidateRequiredInRecord(table, diagnostics);
+            // Once per set of rows the table has. A table with one set - nearly all of them -
+            // runs this once, and every rule below asks its questions of the set rather than
+            // of the table, because a second set is data the first knows nothing about.
+            // spec/table-row-sets.md.
+            foreach (var rowSet in table.RowSets)
+            {
+                ValidateIndexUniqueness(table, rowSet, diagnostics);
+                ValidateReferences(model, table, rowSet, diagnostics);
+                ValidateReferencedTables(model, table, rowSet, diagnostics);
+                ValidateColumnConstraints(table, rowSet, diagnostics);
+                ValidateArrayGaps(table, rowSet, diagnostics);
+                ValidateRequiredInRecord(table, rowSet, diagnostics);
+            }
         }
 
         ReportReferencedTableCoverage();
@@ -113,7 +120,7 @@ public partial class ModelCooker
     ///
     /// spec/variable-length-record-arrays.md has the rule and `AllowArrayGaps`.
     /// </remarks>
-    private static void ValidateArrayGaps(Table table, Diagnostics diagnostics)
+    private static void ValidateArrayGaps(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         if (table.AllowArrayGaps)
             return;
@@ -123,7 +130,7 @@ public partial class ModelCooker
             if (!group.IsArray || group.IsVariableLengthArray)
                 continue;
 
-            foreach (var row in table.Data)
+            foreach (var row in rowSet.Rows)
             {
                 int count = table.ElementCountIn(group, row);
 
@@ -172,7 +179,7 @@ public partial class ModelCooker
     /// worth pinning is the rule reading a sheet, and running the whole cooker to reach it
     /// would test the cooker instead.
     /// </remarks>
-    internal static void ValidateRequiredInRecord(Table table, Diagnostics diagnostics)
+    internal static void ValidateRequiredInRecord(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         foreach (var group in table.SerialFields)
         {
@@ -200,7 +207,7 @@ public partial class ModelCooker
                 if (!member.Leaves.Any(leaf => leaf.Fields.Any(f => f.Constraints.RequiredInRecord)))
                     continue;
 
-                foreach (var row in table.Data)
+                foreach (var row in rowSet.Rows)
                 {
                     int count = table.ElementCountIn(group, row);
 
@@ -273,7 +280,7 @@ public partial class ModelCooker
     /// `field.Indexing` was set, the exact inverse of what it wanted, so it only
     /// ever examined the columns where duplicates are perfectly legal.
     /// </summary>
-    private void ValidateIndexUniqueness(Table table, Diagnostics diagnostics)
+    private void ValidateIndexUniqueness(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         foreach (var field in table.Fields)
         {
@@ -304,7 +311,7 @@ public partial class ModelCooker
             // the slowest thing the converter does.
             var seen = new Dictionary<object, Location>();
 
-            foreach (var row in table.Data)
+            foreach (var row in rowSet.Rows)
             {
                 var cell = row[field.Index];
 
@@ -328,7 +335,7 @@ public partial class ModelCooker
     /// Checks that every foreign reference points at something that exists: the
     /// table, the field within it, and a row carrying the referenced key.
     /// </summary>
-    private void ValidateReferences(Model model, Table table, Diagnostics diagnostics)
+    private void ValidateReferences(Model model, Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         // Which array element each column is, for the same reason the constraint walk goes
         // by group: in a table that trims, the columns past a row's last value are not empty
@@ -380,7 +387,7 @@ public partial class ModelCooker
                 continue;
             }
 
-            ValidateReferencedKeysExist(table, field, field.ResolvedRefTable, arrayElements, diagnostics);
+            ValidateReferencedKeysExist(table, rowSet, field, field.ResolvedRefTable, arrayElements, diagnostics);
         }
     }
 
@@ -390,7 +397,7 @@ public partial class ModelCooker
     /// something has to have been filled in.
     /// </summary>
     private void ValidateReferencedKeysExist(
-        Table table, Field field, Table foreignTable,
+        Table table, RowSet rowSet, Field field, Table foreignTable,
         Dictionary<Field, (SerialField Group, int Element)> arrayElements, Diagnostics diagnostics)
     {
         // Whether a row filled the cell in at all is a question about this column and
@@ -402,7 +409,7 @@ public partial class ModelCooker
         {
             bool isArrayElement = arrayElements.TryGetValue(field, out var place);
 
-            foreach (var row in table.Data)
+            foreach (var row in rowSet.Rows)
             {
                 var cell = row[field.Index];
                 if (cell.HasValue)
@@ -432,10 +439,10 @@ public partial class ModelCooker
         // Whichever form a reference takes, the cell stores the target's primary
         // index, so the keys to match against all live in its first column.
         var foreignKeys = new HashSet<object>();
-        foreach (var foreignRow in foreignTable.Data)
+        foreach (var foreignRow in RowsToMatchAgainst(foreignTable, rowSet))
             foreignKeys.Add(foreignRow[foreignTable.Fields[0].Index].Value!);
 
-        foreach (var row in table.Data)
+        foreach (var row in rowSet.Rows)
         {
             var cell = row[field.Index];
 
@@ -461,6 +468,37 @@ public partial class ModelCooker
     }
 
     /// <summary>
+    /// Which of a referenced table's rows a reference in this set of rows points into.
+    /// </summary>
+    /// <remarks>
+    /// The set with the same name when the target has one, and the target's own set
+    /// otherwise. A second set of rows is a second world: a row written for one build refers
+    /// to the rows that build loads, so checking it against the first set's ids answers a
+    /// question nobody asked.
+    ///
+    /// The fallback is not a leniency but the common case. Only a handful of tables have
+    /// more than one set, so a row in one nearly always points at a table that has just the
+    /// one - measured on the sample project: 81 tables with a second set out of 537.
+    ///
+    /// **What this asks of whoever loads the files**: a build reading one set has to read
+    /// that set of every table that has one. That condition is the whole of what makes this
+    /// check match what happens at runtime, and it is stated in spec/table-row-sets.md.
+    /// </remarks>
+    private static List<List<Cell>> RowsToMatchAgainst(Table foreignTable, RowSet rowSet)
+    {
+        if (rowSet.Name.Length == 0)
+            return foreignTable.Data;
+
+        foreach (var theirs in foreignTable.ExtraRowSets)
+        {
+            if (string.Equals(theirs.Name, rowSet.Name, System.StringComparison.Ordinal))
+                return theirs.Rows;
+        }
+
+        return foreignTable.Data;
+    }
+
+    /// <summary>
     /// Checks the columns whose sheet named the tables their value has to exist in.
     /// </summary>
     /// <remarks>
@@ -477,7 +515,7 @@ public partial class ModelCooker
     /// worth pinning is the rule reading a sheet, and running the whole cooker to reach it
     /// would test the cooker instead.
     /// </remarks>
-    internal void ValidateReferencedTables(Model model, Table table, Diagnostics diagnostics)
+    internal void ValidateReferencedTables(Model model, Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         foreach (var field in table.Fields)
         {
@@ -529,10 +567,10 @@ public partial class ModelCooker
                 continue;
 
             _checkedReferencedTables++;
-            _rowsAgainstReferencedTables += table.Data.Count;
+            _rowsAgainstReferencedTables += rowSet.Rows.Count;
 
             CheckKeyBandsDoNotOverlap(table, field, targets, diagnostics);
-            CheckValuesExistIn(table, field, targets, diagnostics);
+            CheckValuesExistIn(table, rowSet, field, targets, diagnostics);
         }
     }
 
@@ -597,7 +635,7 @@ public partial class ModelCooker
     /// reason: the alternative walks every target table once per row.
     /// </remarks>
     private void CheckValuesExistIn(
-        Table table, Field field, List<Table> targets, Diagnostics diagnostics)
+        Table table, RowSet rowSet, Field field, List<Table> targets, Diagnostics diagnostics)
     {
         // One set for all of them. Which table an id came from is not being asked - it is
         // in one of them or it is in none.
@@ -607,13 +645,14 @@ public partial class ModelCooker
             if (target.Fields.Count == 0)
                 continue;
 
-            foreach (var targetRow in target.Data)
+            // The same set-first rule the resolved reference follows, for the same reason.
+            foreach (var targetRow in RowsToMatchAgainst(target, rowSet))
                 keys.Add(ComparableKey(targetRow[target.Fields[0].Index].Value)!);
         }
 
         string names = string.Join("`, `", targets.Select(t => t.Name));
 
-        foreach (var row in table.Data)
+        foreach (var row in rowSet.Rows)
         {
             var cell = row[field.Index];
 
@@ -762,7 +801,7 @@ public partial class ModelCooker
     ///
     /// spec/column-constraints.md.
     /// </remarks>
-    internal void ValidateColumnConstraints(Table table, Diagnostics diagnostics)
+    internal void ValidateColumnConstraints(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         // Walked by group rather than by column, because "is a value missing" is a question
         // about the group. An array that ends where its values end has no missing tail - the
@@ -770,7 +809,7 @@ public partial class ModelCooker
         // one by one reports the length of every short row as a fault.
         foreach (var group in table.SerialFields)
         {
-            foreach (var row in table.Data)
+            foreach (var row in rowSet.Rows)
             {
                 int elements = table.ElementCountIn(group, row);
 

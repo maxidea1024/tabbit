@@ -427,7 +427,7 @@ public class UwoLayoutTests
             new[] { "2", "10", "-" });
 
         var diagnostics = new Diagnostics();
-        Tabbit.Cooking.ModelCooker.ValidateRequiredInRecord(table, diagnostics);
+        Tabbit.Cooking.ModelCooker.ValidateRequiredInRecord(table, table.RowSets.First(), diagnostics);
 
         var reported = Assert.Single(diagnostics.Entries);
 
@@ -452,7 +452,7 @@ public class UwoLayoutTests
             new[] { "1", "-", "-" });
 
         var diagnostics = new Diagnostics();
-        Tabbit.Cooking.ModelCooker.ValidateRequiredInRecord(table, diagnostics);
+        Tabbit.Cooking.ModelCooker.ValidateRequiredInRecord(table, table.RowSets.First(), diagnostics);
 
         Assert.Empty(diagnostics.Entries);
     }

@@ -130,7 +130,7 @@ public class ReferencedTableTests
         var diagnostics = new Diagnostics();
         var holder = model.FindTable("Holder");
 
-        new ModelCooker().ValidateReferencedTables(model, holder, diagnostics);
+        new ModelCooker().ValidateReferencedTables(model, holder, holder.RowSets.First(), diagnostics);
 
         return diagnostics.Entries.ToList();
     }

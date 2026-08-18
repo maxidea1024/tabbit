@@ -54,7 +54,8 @@ public sealed class SheetLayout
         IReadOnlyDictionary<string, string>? options = null,
         bool foldSerialFields = false,
         bool trimTrailingArrayElements = false,
-        bool allowArrayGaps = false)
+        bool allowArrayGaps = false,
+        string tableRowSets = "")
     {
         Id = id;
         OnDuplicateIndex = onDuplicateIndex;
@@ -63,8 +64,20 @@ public sealed class SheetLayout
         FoldSerialFields = foldSerialFields;
         TrimTrailingArrayElements = trimTrailingArrayElements;
         AllowArrayGaps = allowArrayGaps;
+        TableRowSets = tableRowSets;
         _options = options ?? new Dictionary<string, string>();
     }
+
+    /// <summary>
+    /// The pattern that recognizes a table name as another set of some table's rows, or
+    /// blank when this source has no such names.
+    /// </summary>
+    /// <remarks>
+    /// Carried as the recipe wrote it. It is applied after every layout has parsed, because
+    /// the names it pairs up can be read in either order, so nothing here interprets it -
+    /// see <see cref="Tabbit.Cooking.TableRowSets"/>.
+    /// </remarks>
+    public string TableRowSets { get; }
 
     /// <summary>
     /// Whether a record array drops the elements at its end that a row left empty.

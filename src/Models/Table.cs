@@ -76,6 +76,45 @@ public class Table
     /// </summary>
     public List<List<Cell>> Data { get; set; } = new List<List<Cell>>();
 
+    /// <summary>
+    /// Further sets of rows for this same table, beyond <see cref="Data"/>.
+    /// </summary>
+    /// <remarks>
+    /// Empty for almost every table. A source whose sheets fill the same columns in more than
+    /// once - so that a build can be made with one set of rows or another - says so by naming
+    /// the extra sets after the table, and the pattern that recognizes those names is the
+    /// source entry's to declare.
+    ///
+    /// They are one table. The schema is shared, the generated type is one, and what differs
+    /// is the rows and the file they are written to. <see cref="Data"/> is the set with no
+    /// tail on its name, so everything that reads rows without asking about sets reads that
+    /// one - which is what keeps this from reaching the generators at all.
+    ///
+    /// spec/table-row-sets.md.
+    /// </remarks>
+    [JsonIgnore]
+    public List<RowSet> ExtraRowSets { get; set; } = new List<RowSet>();
+
+    /// <summary>
+    /// Every set of rows this table has, the untailed one first.
+    /// </summary>
+    /// <remarks>
+    /// What an output target walks: one file per entry, the same schema behind each. A table
+    /// with no extra sets yields exactly one, so a target written against this needs no
+    /// special case for the ordinary table.
+    /// </remarks>
+    [JsonIgnore]
+    public IEnumerable<RowSet> RowSets
+    {
+        get
+        {
+            yield return new RowSet { Name = "", Rows = Data };
+
+            foreach (var extra in ExtraRowSets)
+                yield return extra;
+        }
+    }
+
     /// <summary>Description from the sheet, emitted as a doc comment.</summary>
     public required string Comment { get; set; }
 

@@ -133,6 +133,34 @@ public abstract class SheetSourceRecipe
     public string OnFormulaError { get; set; } = "error";
 
     /// <summary>
+    /// How a table name says it is another set of some table's rows, as a regular expression
+    /// with a `table` group and a `set` group. Blank, which is the default, means no table
+    /// here has more than one set.
+    /// </summary>
+    /// <remarks>
+    /// Some sheets fill a table's columns in more than once - the same schema with a second
+    /// set of rows, so that a build can be made with one or the other - and say so by naming
+    /// the extra sets after the table. What the tail looks like is the sheets' own convention,
+    /// so it is written here rather than known anywhere in this program:
+    ///
+    ///     "TableRowSets": "^(?&lt;table&gt;.+?)(?&lt;set&gt;_BC[A-Z]+)$"
+    ///
+    /// reads `Admiral_BCCN` as another set of `Admiral`'s rows, named `_BCCN`. The `set` group
+    /// is captured rather than composed, so the separator is whatever the sheets wrote and
+    /// the file comes out spelled the way the rest of that project spells it.
+    ///
+    /// A canonical property rather than a layout option, because "does this project's table
+    /// have more than one set of rows" is a question about the sheets and not about how a
+    /// table is found in them - a marker layout and a defined-name layout can both have it.
+    ///
+    /// **What it is not**: a way to make two tables. A matched name contributes rows to the
+    /// table it points at, and its schema has to be that table's. It produces no type of its
+    /// own, and a name matching this whose table is absent is an error rather than a new
+    /// table - see spec/table-row-sets.md.
+    /// </remarks>
+    public string TableRowSets { get; set; } = "";
+
+    /// <summary>
     /// Whether consecutively numbered columns fold into one array-valued field.
     /// </summary>
     /// <remarks>

@@ -1,0 +1,14 @@
+[
+  {
+    "index": 1,
+    "kept": 11,
+    "also": 1,
+    "dropped": null
+  },
+  {
+    "index": 2,
+    "kept": 21,
+    "also": 2,
+    "dropped": null
+  }
+]

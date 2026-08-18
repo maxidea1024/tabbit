@@ -78,6 +78,9 @@ public class ConversionGoldenTests
     // the two columns apart. Three languages, because each picks its own spelling for the
     // width and `long`, `bigint` and `int64_t` are three of them. spec/bitset.md.
     [InlineData("bitset")]
+    // A table given its rows twice. What the tree has to show is one type for `Colour` and
+    // none for `Colour_alt`, and one data file each - spec/table-row-sets.md.
+    [InlineData("row-sets")]
     // A reference that is a member of a record group, in every shape a record group has: an
     // array of records, one record, one record of arrays, a reference two levels in, a target
     // keyed by a string, and a trimmed array whose length is the row's. All thirteen

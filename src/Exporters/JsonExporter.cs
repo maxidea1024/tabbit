@@ -260,9 +260,25 @@ public class JsonExporter : Target<JsonRecipe>
             : Compose(member.Members, row, element);
     }
 
+    /// <summary>
+    /// One file per set of rows the table has.
+    /// </summary>
+    /// <remarks>
+    /// A table with one set - which is nearly all of them - yields one file, so this is the
+    /// ordinary path rather than a branch around it. spec/table-row-sets.md.
+    /// </remarks>
     private void ExportTable(JsonRecipe recipe, Table table)
     {
-        var filename = Path.Combine(recipe.Path, table.Name + ".json");
+        foreach (var rowSet in table.RowSets)
+            ExportRowSet(recipe, table, rowSet);
+    }
+
+    private void ExportRowSet(JsonRecipe recipe, Table table, RowSet rowSet)
+    {
+        string fileName = table.Name + rowSet.Name;
+        var rows = rowSet.Rows;
+
+        var filename = Path.Combine(recipe.Path, fileName + ".json");
         filename = Path.GetFullPath(filename);
 
         Log.Information($"Exporting json file `{filename}`");
@@ -292,7 +308,7 @@ public class JsonExporter : Target<JsonRecipe>
             // block instead of a fixed run. A positional format has no other way to say it:
             // a reader walking with a running offset cannot advance past a count it was never
             // told, so the count has to be the array's own length.
-            foreach (var row in table.Data)
+            foreach (var row in rows)
             {
                 var rawData = new List<object?>();
 
@@ -322,7 +338,7 @@ public class JsonExporter : Target<JsonRecipe>
         else
         {
             var writableRows = new List<Dictionary<string, object?>>();
-            foreach (var row in table.Data)
+            foreach (var row in rows)
             {
                 var dataRow = new Dictionary<string, object?>();
 
@@ -396,6 +412,6 @@ public class JsonExporter : Target<JsonRecipe>
         }
 
         string stagingFilename = StagingFiles.WriteToJsonFile(filename, sourceRows, recipe.Indented);
-        _manifest.Add(table.Name + ".json", stagingFilename);
+        _manifest.Add(fileName + ".json", stagingFilename);
     }
 }
