@@ -691,6 +691,20 @@ public sealed class UwoLayoutParser : ILayoutParser
         if (column.IsBinaryText && text.Length > 0 && text != "-")
             text = "0b" + text;
 
+        // A leading `#` on a localizable string is a mark on the sheet rather than part of
+        // the text, and the original exporter drops every one of them before writing the
+        // value out. Kept, they travel into the game as part of the string: measured against
+        // that exporter's own output, this is around 15,000 values of the sample project.
+        //
+        // `@` marks the same intent but is not dropped - which is the exporter's behaviour
+        // and not an oversight here.
+        //
+        // **The other half of this rule is not implemented.** A value marked either way is
+        // also held back from the gathered text, and that decision has to be made here,
+        // before the mark is removed - there is nowhere downstream that can still see it.
+        if (column.Field.Role == StringRole.Text)
+            text = text.TrimStart('#');
+
         return new Cell
         {
             RawCell = rawCell,

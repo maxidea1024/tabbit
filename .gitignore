@@ -158,6 +158,12 @@ target/
 # one is a measurement, and the numbers taken from it are in the document instead.
 samples/named-range/out/main/
 
+# The whole project converted - 252 MB across seven targets, from
+# samples/named-range/recipe-all.jsonc. Derived and regenerable in under two minutes; what is
+# worth keeping from it is the comparison against the deployed export, and that is
+# written down in samples/named-range/doc/레이아웃-분석-20260808.md.
+samples/named-range/out/all/
+
 # Byte-compiled Python, which the language gate produces inside whatever package it
 # just checked - including side-by-side/, which is a committed directory.
 __pycache__/
