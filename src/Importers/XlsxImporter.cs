@@ -259,6 +259,16 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
         // per cell for the lookup.
         bool hasNotes = package.HasNotes;
 
+        // Where this sheet's tables are, when the layout says a table is a defined name. A
+        // cell outside all of them is never read as data, so it is not this run's to report:
+        // it is a working cell of a sheet that also carries a table. In the sample set that
+        // is most of them - 14,199 of 24,457 formula errors, and 13,555 in one workbook.
+        var rectangles = _currentWorkbookNames is null
+            ? null
+            : _currentWorkbookNames
+                .Where(name => string.Equals(name.SheetName, sheetName, StringComparison.Ordinal))
+                .ToList();
+
         bool firstRow = true;
 
         while (reader.ReadRow())
@@ -286,9 +296,17 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                     Row = rowIndex
                 };
 
-                string value = reader.IsFormulaError(colIndex, out string excelText)
-                    ? OnFormulaError(location, $"Cell contains the formula error `{excelText}`.")
-                    : reader.Text(colIndex);
+                string value;
+                if (reader.IsFormulaError(colIndex, out string excelText))
+                {
+                    value = InsideATable(rectangles, rowIndex, colIndex)
+                        ? OnFormulaError(location, $"Cell contains the formula error `{excelText}`.")
+                        : "";
+                }
+                else
+                {
+                    value = reader.Text(colIndex);
+                }
 
                 rawRow.Add(new RawCell
                 {
@@ -308,6 +326,31 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
         AttachNamedRanges(rawSheet, sheetName);
 
         _model.Sheets.Add(rawSheet);
+    }
+
+    /// <summary>
+    /// Whether a cell is inside one of the rectangles this sheet's tables occupy.
+    /// </summary>
+    /// <remarks>
+    /// True for every cell when the layout does not read defined names, because then the
+    /// whole sheet is what a table is found in and there is no outside to be in.
+    /// </remarks>
+    private static bool InsideATable(
+        List<WorkbookPackage.DefinedName>? rectangles, int row, int column)
+    {
+        if (rectangles is null)
+            return true;
+
+        foreach (var rectangle in rectangles)
+        {
+            if (row >= rectangle.FirstRow && row <= rectangle.LastRow
+                && column >= rectangle.FirstColumn && column <= rectangle.LastColumn)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>Whether any of the workbook's defined names points into this sheet.</summary>
