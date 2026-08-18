@@ -319,6 +319,8 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
             rawSheet.Rows.Add(rawRow);
         }
 
+        FillRecoveredCells(reader, rawSheet, filename, sheetName);
+
         if (!rawSheet.Optimize())
             return;
 
@@ -326,6 +328,54 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
         AttachNamedRanges(rawSheet, sheetName);
 
         _model.Sheets.Add(rawSheet);
+    }
+
+    /// <summary>
+    /// Puts back the cells the workbook reader dropped, once the sheet has been read.
+    /// </summary>
+    /// <remarks>
+    /// The reader hands some rows of a binary workbook shorter than the file says they are,
+    /// and asking for the missing columns returns an empty value rather than an error - so
+    /// without this the cells are lost in a way nothing downstream can see. Which rows were
+    /// short is only known once the last of them has arrived, which is why this runs here
+    /// rather than per cell.
+    ///
+    /// Said aloud when it happens. A silent correction would take the fact that the reader
+    /// has this defect out of the run, and that fact is what decides whether a workbook can
+    /// be trusted to convert. spec/xlsb-short-row-repair.md.
+    /// </remarks>
+    private void FillRecoveredCells(
+        SheetGridReader reader, RawSheet rawSheet, string filename, string sheetName)
+    {
+        var recovered = reader.RecoveredCells();
+        if (recovered.Count == 0)
+            return;
+
+        var rows = new HashSet<int>();
+
+        foreach (var row in rawSheet.Rows)
+        {
+            foreach (var cell in row)
+            {
+                if (cell.Value.Length > 0)
+                    continue;
+
+                if (!recovered.TryGetValue((cell.Location.Row, cell.Location.Column), out string? text))
+                    continue;
+
+                cell.Value = text;
+                rows.Add(cell.Location.Row);
+            }
+        }
+
+        if (rows.Count == 0)
+            return;
+
+        Log.Warning(
+            $"`{filename}` sheet `{sheetName}`: the workbook reader gave {rows.Count} row(s) "
+            + $"fewer cells than the file holds, and {recovered.Count} cell(s) were read back "
+            + $"from it. This is a defect in that reader rather than in the sheet - the cells "
+            + $"are there and Excel shows them.");
     }
 
     /// <summary>
