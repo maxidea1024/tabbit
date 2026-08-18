@@ -50,11 +50,13 @@ internal sealed class WorkbookPackage
     private WorkbookPackage(
         List<DefinedName> definedNames,
         List<SkippedName> skippedNames,
-        Dictionary<(string, int, int), string> notes)
+        Dictionary<(string, int, int), string> notes,
+        bool hasUnreadNotes = false)
     {
         DefinedNames = definedNames;
         SkippedNames = skippedNames;
         _notes = notes;
+        HasUnreadNotes = hasUnreadNotes;
     }
 
     /// <summary>Workbook-scoped defined names that resolve to one rectangle. Empty when not asked for.</summary>
@@ -65,6 +67,13 @@ internal sealed class WorkbookPackage
 
     /// <summary>Whether any note was found, so a caller can skip the per-cell lookup entirely.</summary>
     public bool HasNotes => _notes.Count > 0;
+
+    /// <summary>
+    /// Whether the workbook holds notes this reader does not read - a binary workbook's,
+    /// which live in binary parts of their own. True so the caller can say so, rather than
+    /// letting them come back as zero notes indistinguishable from a workbook that has none.
+    /// </summary>
+    public bool HasUnreadNotes { get; }
 
     /// <summary>The note on a cell, or an empty string when it has none.</summary>
     public string Note(string sheetName, int row, int column)
@@ -93,7 +102,7 @@ internal sealed class WorkbookPackage
 
         var workbook = Part(zip, "xl/workbook.xml");
         if (workbook is null)
-            return new WorkbookPackage(definedNames, skippedNames, notes);
+            return ReadBinary(zip, acceptName, definedNames, skippedNames, notes);
 
         if (acceptName is not null)
             ReadDefinedNames(workbook, acceptName, definedNames, skippedNames);
@@ -101,6 +110,36 @@ internal sealed class WorkbookPackage
         ReadNotes(zip, workbook, notes);
 
         return new WorkbookPackage(definedNames, skippedNames, notes);
+    }
+
+    /// <summary>
+    /// The `.xlsb` half of <see cref="Read"/>: the same names out of `xl/workbook.bin`.
+    /// </summary>
+    /// <remarks>
+    /// Notes are not read from a binary workbook - no consumer of a note reads one from
+    /// these - but their presence is noticed, so the caller can say they were left behind
+    /// instead of them coming back as silently zero.
+    /// </remarks>
+    private static WorkbookPackage ReadBinary(
+        ZipArchive zip, Func<string, bool>? acceptName,
+        List<DefinedName> definedNames, List<SkippedName> skippedNames,
+        Dictionary<(string, int, int), string> notes)
+    {
+        var entry = zip.GetEntry("xl/workbook.bin");
+        if (entry is null)
+            return new WorkbookPackage(definedNames, skippedNames, notes);
+
+        if (acceptName is not null)
+        {
+            using var stream = entry.Open();
+            BinaryDefinedNames.Read(stream, acceptName, definedNames, skippedNames);
+        }
+
+        bool hasUnreadNotes = zip.Entries.Any(e =>
+            e.FullName.StartsWith("xl/comments", StringComparison.Ordinal)
+            && e.FullName.EndsWith(".bin", StringComparison.Ordinal));
+
+        return new WorkbookPackage(definedNames, skippedNames, notes, hasUnreadNotes);
     }
 
     private static void ReadDefinedNames(

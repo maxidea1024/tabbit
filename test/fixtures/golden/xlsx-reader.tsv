@@ -1,6 +1,9 @@
 array-foreign/array-foreign.xlsx	sheets=1 rows=9 cells=35 chars=224 names=0 skipped-names=0 notes=0 hash=f95edb288743e62a
 asset/asset.xlsx	sheets=1 rows=11 cells=44 chars=475 names=0 skipped-names=0 notes=0 hash=0c0967a921971d40
+binary-names/binary-names.xlsx	sheets=2 rows=14 cells=39 chars=117 names=3 skipped-names=3 notes=0 hash=5fc6a5d31f61c070
 bitset/bitset.xlsx	sheets=1 rows=12 cells=41 chars=361 names=0 skipped-names=0 notes=0 hash=9ed0328eed36fab1
+composite-expanded/composite-expanded.xlsx	sheets=1 rows=11 cells=128 chars=603 names=0 skipped-names=0 notes=0 hash=89e3f879d0e7789f
+composite/composite.xlsx	sheets=1 rows=11 cells=44 chars=359 names=0 skipped-names=0 notes=0 hash=183b58373b84174c
 conformance-skew/conformance-skew.xlsx	sheets=1 rows=69 cells=843 chars=9282 names=0 skipped-names=0 notes=0 hash=b3851d10fc5b8893
 conformance/conformance.xlsx	sheets=1 rows=69 cells=803 chars=9065 names=0 skipped-names=0 notes=0 hash=98fdf93d2457873d
 core/core.xlsx	sheets=7 rows=74 cells=380 chars=3273 names=0 skipped-names=0 notes=0 hash=3a658ed65d8a73d8

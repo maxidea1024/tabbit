@@ -192,6 +192,14 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                     : "which this importer cannot read as a single rectangle. Skipped."));
         }
 
+        if (package.HasUnreadNotes)
+        {
+            // Cell notes are not read out of a binary workbook. Said aloud because the
+            // notes become doc comments, and a workbook converted to `.xlsb` would lose
+            // them with nothing else changing.
+            Log.Warning($"`{filename}` is a binary workbook, whose cell notes are not read.");
+        }
+
         using var reader = SheetGridReader.Open(path);
 
         while (reader.MoveToNextSheet())
