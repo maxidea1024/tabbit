@@ -330,6 +330,23 @@ public partial class ModelCooker
     /// </summary>
     private void ValidateReferences(Model model, Table table, Diagnostics diagnostics)
     {
+        // Which array element each column is, for the same reason the constraint walk goes
+        // by group: in a table that trims, the columns past a row's last value are not empty
+        // cells but absent elements, and a check that walks the flat columns would hold every
+        // short row's tail against rules meant for values.
+        var arrayElements = new Dictionary<Field, (SerialField Group, int Element)>();
+        foreach (var group in table.SerialFields)
+        {
+            if (!group.IsArray)
+                continue;
+
+            foreach (var member in Columns(group))
+            {
+                for (int at = 0; at < member.Count; at++)
+                    arrayElements[member[at]] = (group, at);
+            }
+        }
+
         foreach (var field in table.Fields)
         {
             if (!field.IsRef)
@@ -363,7 +380,7 @@ public partial class ModelCooker
                 continue;
             }
 
-            ValidateReferencedKeysExist(table, field, field.ResolvedRefTable, diagnostics);
+            ValidateReferencedKeysExist(table, field, field.ResolvedRefTable, arrayElements, diagnostics);
         }
     }
 
@@ -372,7 +389,9 @@ public partial class ModelCooker
     /// has to match a row in the target table, and a column that says it must hold
     /// something has to have been filled in.
     /// </summary>
-    private void ValidateReferencedKeysExist(Table table, Field field, Table foreignTable, Diagnostics diagnostics)
+    private void ValidateReferencedKeysExist(
+        Table table, Field field, Table foreignTable,
+        Dictionary<Field, (SerialField Group, int Element)> arrayElements, Diagnostics diagnostics)
     {
         // Whether a row filled the cell in at all is a question about this column and
         // nothing else, so it is asked before the target is read. Asked after, a target
@@ -381,10 +400,18 @@ public partial class ModelCooker
         // would be a refusal quietly lost. spec/reference-optionality.md.
         if (field.IsRequired)
         {
+            bool isArrayElement = arrayElements.TryGetValue(field, out var place);
+
             foreach (var row in table.Data)
             {
                 var cell = row[field.Index];
                 if (cell.HasValue)
+                    continue;
+
+                // Past the row's last value in a table that trims, this column is not an
+                // empty cell but an element the row does not have - the same answer the
+                // constraint checks and the exporters give.
+                if (isArrayElement && place.Element >= table.ElementCountIn(place.Group, row))
                     continue;
 
                 // A cell nobody filled in. It parses to zero like a written zero does, so
