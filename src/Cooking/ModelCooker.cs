@@ -24,24 +24,19 @@ public partial class ModelCooker
     {
         var result = new Model();
 
-        var context = new CookingContext(result, recipeModel);
+        // Made before parsing rather than after it: a table a layout cannot read is a
+        // finding about that table, and stopping there would hide every finding behind it.
+        var diagnostics = new Diagnostics
+        {
+            PromoteWarnings = recipeModel.Validation?.TreatWarningsAsErrors ?? false,
+        };
+
+        var context = new CookingContext(result, recipeModel, diagnostics);
 
         ParseRawModel(context, rawModel);
 
         // Every cell has been read, so the one type that existed for the reading is done.
         FoldBitsetIntoInt64(result);
-
-        // Resolution and validation share one collector, so a workbook comes back
-        // with everything wrong with it rather than one problem per run.
-        //
-        // Warnings are promoted here on the same switch the validation pipeline reads. The
-        // two stages report different things but they are the same judgement - "not this
-        // time" - and a build that says it in one place and not the other has a gate with a
-        // hole in it.
-        var diagnostics = new Diagnostics
-        {
-            PromoteWarnings = recipeModel.Validation?.TreatWarningsAsErrors ?? false,
-        };
 
         // Tables that are really another set of some table's rows become that, before
         // anything downstream can take them for tables of their own.

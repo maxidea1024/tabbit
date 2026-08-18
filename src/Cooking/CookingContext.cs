@@ -26,12 +26,23 @@ public sealed class CookingContext
     /// <summary>Number formats accepted in a float or double cell.</summary>
     private const NumberStyles DecimalStyles = NumberStyles.Float | NumberStyles.AllowThousands;
 
-    public CookingContext(Model model, RecipeModel recipe)
+    public CookingContext(Model model, RecipeModel recipe, Diagnostics diagnostics)
     {
         Model = model;
+        Diagnostics = diagnostics;
         ArrayDelimiter = ResolveArrayDelimiter(recipe);
         AutoInsertEnumNoneLabel = recipe.AutoInsertEnumNoneLabel;
     }
+
+    /// <summary>
+    /// Where a parser puts a table it could not read, so the rest of them still get read.
+    /// </summary>
+    /// <remarks>
+    /// A refusal that stops the run answers one question and hides every other - the corpus
+    /// this exists for has six hundred tables, and the author of a sheet wants the list of
+    /// what is wrong rather than whichever one the reader met first.
+    /// </remarks>
+    public Diagnostics Diagnostics { get; }
 
     /// <summary>The model every parser adds to.</summary>
     public Model Model { get; }

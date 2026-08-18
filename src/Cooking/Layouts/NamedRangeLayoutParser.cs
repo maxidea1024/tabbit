@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Serilog;
 using Tabbit.Extensions;
 using Tabbit.Helpers;
@@ -78,7 +79,22 @@ public sealed class UwoLayoutParser : ILayoutParser
 
             foreach (var named in sheet.NamedRanges)
             {
-                var table = ParseTable(sheet, named);
+                // A table this layout cannot read is reported and left out, rather than
+                // ending the run. These workbooks hold six hundred tables and the author of
+                // one wants the list of what is wrong with the sheets - a refusal that stops
+                // at the first hides every table after it, which is how one shape mistake
+                // used to cut a corpus of 540 tables down to 78.
+                Models.Table? table;
+                try
+                {
+                    table = ParseTable(sheet, named);
+                }
+                catch (TabbitException refusal)
+                {
+                    context.Diagnostics.Error(refusal.Location, refusal.Message);
+                    continue;
+                }
+
                 if (table is not null)
                     context.Model.Tables.Add(table);
             }
@@ -834,13 +850,7 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         if (allowed is not null)
         {
-            // Written as a list in one cell. The delimiter is the source entry's, the same
-            // one an array cell uses - there is only one list separator in these sheets.
-            var values = allowed.Value
-                .Split(sheet.Layout?.ArrayDelimiter ?? ';')
-                .Select(value => value.Trim())
-                .Where(value => value.Length > 0)
-                .ToList();
+            var values = AllowedValues(field, allowed.Value);
 
             if (values.Count > 0)
             {
@@ -850,6 +860,40 @@ public sealed class UwoLayoutParser : ILayoutParser
         }
 
         ReadReferencedTables(field, sheet, named, col);
+    }
+
+    /// <summary>
+    /// The values a `:enum` cell lists, read the way the sheets' own checker reads them.
+    /// </summary>
+    /// <remarks>
+    /// **A text column's list is quoted, and anything unquoted is not a list at all.** The
+    /// original exporter pulls the quoted runs out of the cell and, finding none, writes no
+    /// list - so a cell holding a bare `1` on a `string` column declares nothing, and the
+    /// checker downstream never sees it.
+    ///
+    /// Read any other way, that cell says "the only value allowed here is `1`" and every row
+    /// of the column breaks it. One sheet does hold such a cell, and reading it as a list of
+    /// one produced 1,980 findings about a column nobody had constrained.
+    ///
+    /// A column of any other type carries a single value rather than a list, which is the
+    /// same exporter's other arm - `[value]`, whatever the value is.
+    /// </remarks>
+    private static List<string> AllowedValues(Field field, string cell)
+    {
+        string text = cell.Trim();
+
+        if (text.Length == 0 || text == "-")
+            return new List<string>();
+
+        if (field.Type is Models.ValueType.String or Models.ValueType.StringArray)
+        {
+            return Regex.Matches(text, "\"(.*?)\"")
+                .Select(match => match.Groups[1].Value)
+                .Where(value => value.Length > 0)
+                .ToList();
+        }
+
+        return new List<string> { text };
     }
 
     /// <summary>

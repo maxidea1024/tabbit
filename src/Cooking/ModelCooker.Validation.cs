@@ -185,17 +185,31 @@ public partial class ModelCooker
         {
             if (!group.IsRecord)
             {
-                // Nothing to be inside of. A sheet that marks a flat column this way meant
-                // `:required`, and saying so beats letting the mark do nothing - which is
-                // what it did before anything read the row at all.
+                // A column outside any record, marked required inside one. There is no object
+                // for it to be inside, so what the mark can mean is the one thing left: the
+                // column must hold a value.
+                //
+                // **Read that way rather than refused.** It was refused, on the grounds that
+                // the mark belonged on the `required` row instead - but the checker these
+                // sheets are written for does not draw that line. Its helper takes the row as
+                // the object and reports a column of it that holds nothing, so a flat column
+                // marked this way is checked there exactly as `required` would be. Refusing
+                // it here made 105 marks across 22 tables an error in a corpus where they are
+                // not one, and those tables export without complaint today.
                 foreach (var field in group.Fields)
                 {
-                    if (field.Constraints.RequiredInRecord)
+                    if (!field.Constraints.RequiredInRecord)
+                        continue;
+
+                    foreach (var row in rowSet.Rows)
                     {
-                        diagnostics.Error(field.Constraints.RequiredInRecordLocation,
-                            $"`{table.Name}.{field.Name}` is marked required inside its object, "
-                            + $"but it is not a member of one. A column that is not part of a "
-                            + $"record has no object to be inside; mark it required instead.");
+                        if (field.Index < row.Count && !row[field.Index].HasValue)
+                        {
+                            diagnostics.Error(row[field.Index].RawCell?.Location,
+                                $"`{table.Name}.{field.Name}` has no value, and the sheet marks "
+                                + $"the column as required. It is marked required inside an "
+                                + $"object and is not part of one, which reads as required.");
+                        }
                     }
                 }
 

@@ -501,7 +501,7 @@ public class TextRoleTests
     }
 
     private static CookingContext Context()
-        => new CookingContext(new Model(), new Tabbit.Recipe.RecipeModel());
+        => new CookingContext(new Model(), new Tabbit.Recipe.RecipeModel(), new Diagnostics());
 
     private static Location Somewhere()
         => new Location { Filename = "test", Sheet = "Sheet1", Column = 0, Row = 0 };

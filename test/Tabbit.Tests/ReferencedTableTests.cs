@@ -92,7 +92,7 @@ public class ReferencedTableTests
         foreach (var range in ranges)
             sheet.NamedRanges.Add(range);
 
-        var context = new CookingContext(new Model(), new RecipeModel());
+        var context = new CookingContext(new Model(), new RecipeModel(), new Diagnostics());
         var parser = new UwoLayoutParser();
 
         parser.ParseDeclarations(context, new[] { sheet });

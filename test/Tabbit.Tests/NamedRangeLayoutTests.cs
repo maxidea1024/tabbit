@@ -65,7 +65,9 @@ public class UwoLayoutTests
             },
         };
 
-        var context = new CookingContext(new Model(), new RecipeModel());
+        _refusals = new Diagnostics();
+
+        var context = new CookingContext(new Model(), new RecipeModel(), _refusals);
         var parser = new UwoLayoutParser();
 
         parser.ParseDeclarations(context, new[] { sheet });
@@ -73,6 +75,20 @@ public class UwoLayoutTests
 
         return context.Model;
     }
+
+    /// <summary>
+    /// What the parser refused about the sheet just read.
+    /// </summary>
+    /// <remarks>
+    /// A table this layout cannot read is reported and left out rather than ending the run,
+    /// so a refusal is a diagnostic and not an exception - which is what lets one bad shape
+    /// among six hundred tables be a line in a list.
+    /// </remarks>
+    private static Diagnostics _refusals = new Diagnostics();
+
+    /// <summary>The single refusal the sheet produced, which is what these tests assert on.</summary>
+    private static string Refusal()
+        => Assert.Single(_refusals.Entries).Detail.Message;
 
     /// <summary>The cell of a row that has a value, by field name.</summary>
     private static object ValueOf(Table table, int row, string field)
@@ -271,12 +287,12 @@ public class UwoLayoutTests
     [Fact]
     public void A_grid_whose_columns_disagree_on_type_is_refused()
     {
-        var thrown = Assert.Throws<TabbitException>(() => ParseModel(
+        ParseModel(
             new[] { "id", "700", "701" },
             new[] { "key", "number", "string" },
-            new[] { "1", "10", "x" }));
+            new[] { "1", "10", "x" });
 
-        Assert.Contains("not all one type", thrown.Message);
+        Assert.Contains("not all one type", Refusal());
     }
 
     /// <summary>
@@ -333,12 +349,12 @@ public class UwoLayoutTests
     [Fact]
     public void A_group_that_names_one_outer_level_and_numbers_another_is_refused()
     {
-        var thrown = Assert.Throws<TabbitException>(() => Parse(
+        ParseModel(
             new[] { "id", "tag[0][0]", "tag[\"M\"][0]" },
             new[] { "key", "string", "string" },
-            new[] { "1", "a", "b" }));
+            new[] { "1", "a", "b" });
 
-        Assert.Contains("element number", thrown.Message);
+        Assert.Contains("element number", Refusal());
     }
 
     /// <summary>
@@ -357,7 +373,7 @@ public class UwoLayoutTests
             new[] { "key", "number", "string" },
             new[] { ":min", "1", "-" },
             new[] { ":max", "99", "-" },
-            new[] { ":enum", "-", "a;b" },
+            new[] { ":enum", "-", "\"a\",\"b\"" },
             new[] { "1", "5", "a" });
 
         var level = table.Fields.Single(f => f.Name == "Level");
@@ -366,6 +382,42 @@ public class UwoLayoutTests
 
         var kind = table.Fields.Single(f => f.Name == "Kind");
         Assert.Equal(new[] { "a", "b" }, kind.Constraints.AllowedValues);
+    }
+
+    /// <summary>
+    /// An unquoted `:enum` cell on a text column declares nothing.
+    /// </summary>
+    /// <remarks>
+    /// The rule the sheets' own exporter follows: it pulls the quoted runs out of the cell,
+    /// and a cell with none contributes no list. Read any other way, a cell holding a bare
+    /// `1` says the only value allowed is `1` - which one real sheet has, and which turned
+    /// every row of that column into a finding.
+    /// </remarks>
+    [Fact]
+    public void An_unquoted_enum_cell_on_a_text_column_declares_nothing()
+    {
+        var table = Parse(
+            new[] { "id", "Kind" },
+            new[] { "key", "string" },
+            new[] { ":enum", "1" },
+            new[] { "1", "a" });
+
+        Assert.Null(table.Fields.Single(f => f.Name == "Kind").Constraints.AllowedValues);
+    }
+
+    /// <summary>
+    /// A column of any other type carries one value rather than a quoted list.
+    /// </summary>
+    [Fact]
+    public void An_enum_cell_on_a_number_column_is_the_one_value_it_holds()
+    {
+        var table = Parse(
+            new[] { "id", "Level" },
+            new[] { "key", "number" },
+            new[] { ":enum", "7" },
+            new[] { "1", "7" });
+
+        Assert.Equal(new[] { "7" }, table.Fields.Single(f => f.Name == "Level").Constraints.AllowedValues);
     }
 
     /// <summary>
