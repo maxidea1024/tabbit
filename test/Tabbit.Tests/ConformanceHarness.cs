@@ -263,6 +263,51 @@ internal static class ConformanceHarness
         return Execute(PythonExecutable, root, environment, "harness.py", BinaryDir(dataScenario ?? scenario));
     }
 
+    /// <summary>
+    /// Whether the Lua host can be built - which is the C toolchain question: nothing
+    /// Lua is looked for on PATH. The suite compiles the vendored interpreter, the
+    /// embedder and the generated native module into one executable, the way a game
+    /// engine embeds Lua. spec/lua-language-support.md.
+    /// </summary>
+    public static bool LuaIsAvailable(out string reason) => LuaToolchain.IsAvailable(out reason);
+
+    public static ToolResult RunLua(
+        string scenario, string dataScenario = null,
+        IReadOnlyDictionary<string, string> environment = null)
+    {
+        // From the generated output directory, so `require("tables")` resolves through
+        // the default package.path; the harness file itself stays where it is.
+        string root = Path.Combine(RepoLayout.OutputDir(scenario), "lua");
+
+        return Execute(LuaToolchain.HostExecutable, root, environment,
+                       Path.Combine(HarnessDir("lua"), "harness.lua"),
+                       BinaryDir(dataScenario ?? scenario));
+    }
+
+    /// <summary>
+    /// Where a LuaJIT executable is, when one is here to run the FFI backend under.
+    /// </summary>
+    /// <remarks>
+    /// An opt-in gate like the Unreal one: machines without the variable skip it, and
+    /// CI that wants it sets `TABBIT_LUAJIT` to a `luajit` executable. The run is
+    /// keyless - a keyed run needs the native module built against that LuaJIT's own
+    /// import library, which is a consumer's build system's job rather than this
+    /// suite's - and a keyless reader reading a signed corpus is a legal path of its
+    /// own, so the values still have to match.
+    /// </remarks>
+    public static string LuaJitExecutable => Environment.GetEnvironmentVariable("TABBIT_LUAJIT");
+
+    public static ToolResult RunLuaJit(string scenario, string dataScenario = null)
+    {
+        string root = Path.Combine(RepoLayout.OutputDir(scenario), "lua");
+
+        var environment = new Dictionary<string, string> { [MacKeyVariable] = "" };
+
+        return Execute(LuaJitExecutable, root, environment,
+                       Path.Combine(HarnessDir("lua"), "harness.lua"),
+                       BinaryDir(dataScenario ?? scenario));
+    }
+
     /// <summary>Whether a JDK is on the path.</summary>
     public static bool JavaIsAvailable(out string reason)
     {
@@ -1074,6 +1119,26 @@ internal static class ConformanceHarness
     public static ToolResult RunPythonSnippet(string scenario, string snippet, params string[] arguments)
         => Execute(PythonExecutable, Generated(scenario, "python"),
                    new[] { "-c", snippet }.Concat(arguments).ToArray());
+
+    /// <summary>
+    /// Runs a Lua snippet from a scenario's generated output directory, under the same
+    /// host the conformance run builds.
+    /// </summary>
+    /// <remarks>
+    /// Written to a file rather than passed inline - the host takes a script path - and
+    /// beside the generated modules so the default package.path resolves them, the way
+    /// the Python snippet runs from the generated package's parent.
+    /// </remarks>
+    public static ToolResult RunLuaSnippet(string scenario, string snippet, params string[] arguments)
+    {
+        string root = Generated(scenario, "lua");
+        string script = Path.Combine(root, "snippet.lua");
+
+        File.WriteAllText(script, snippet);
+
+        return Execute(LuaToolchain.HostExecutable, root,
+                       new[] { script }.Concat(arguments).ToArray());
+    }
 
     public static ToolResult CompileJava(string scenario)
     {

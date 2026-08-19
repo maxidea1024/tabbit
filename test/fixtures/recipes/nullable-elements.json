@@ -65,6 +65,10 @@
       "AccessorName": "NullableElementsAccessor"
     },
     {
+      "Type": "lua",
+      "Path": "test/fixtures/output/nullable-elements/lua"
+    },
+    {
       "Type": "python",
       "Path": "test/fixtures/output/nullable-elements/python",
       "PackageName": "nullable_elements_data"

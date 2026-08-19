@@ -89,6 +89,10 @@
       "AccessorName": "KeyTypesAccessor"
     },
     {
+      "Type": "lua",
+      "Path": "test/fixtures/output/key-types/lua"
+    },
+    {
       "Type": "java",
       "Path": "test/fixtures/output/key-types/java",
       "PackageName": "tabbit.fixtures.keytypes",

@@ -56,6 +56,7 @@
     { "Type": "java", "Path": "test/fixtures/output/serial-ref/java", "PackageName": "serialref", "AccessorName": "Tables" },
     { "Type": "kotlin", "Path": "test/fixtures/output/serial-ref/kotlin", "PackageName": "serialref", "AccessorName": "Tables" },
     { "Type": "swift", "Path": "test/fixtures/output/serial-ref/swift", "AccessorName": "Tables" },
+    { "Type": "lua", "Path": "test/fixtures/output/serial-ref/lua" },
     { "Type": "ruby", "Path": "test/fixtures/output/serial-ref/ruby", "ModuleName": "SerialRef" },
     { "Type": "dart", "Path": "test/fixtures/output/serial-ref/dart" },
     { "Type": "unreal", "Path": "test/fixtures/output/serial-ref/unreal/Source", "ModuleName": "SerialRefData", "AccessorName": "FSerialRefData" },

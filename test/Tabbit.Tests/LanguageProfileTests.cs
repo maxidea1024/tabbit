@@ -73,8 +73,8 @@ public class LanguageProfileTests
         Assert.Equal(
             new[]
             {
-                "c", "cpp", "csharp", "dart", "go", "java", "kotlin", "php", "python",
-                "ruby", "rust", "swift", "typescript", "unreal",
+                "c", "cpp", "csharp", "dart", "go", "java", "kotlin", "lua", "php",
+                "python", "ruby", "rust", "swift", "typescript", "unreal",
             },
             ids);
     }

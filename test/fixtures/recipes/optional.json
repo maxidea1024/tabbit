@@ -90,6 +90,10 @@
       "AccessorName": "OptionalAccessor"
     },
     {
+      "Type": "lua",
+      "Path": "test/fixtures/output/optional/lua"
+    },
+    {
       "Type": "java",
       "Path": "test/fixtures/output/optional/java",
       "PackageName": "tabbit.fixtures.optional",

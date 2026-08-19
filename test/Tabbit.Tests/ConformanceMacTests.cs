@@ -125,6 +125,15 @@ public class ConformanceMacTests
     }
 
     [Fact]
+    public void Lua_refuses_an_altered_file()
+    {
+        Assert.True(ConformanceHarness.LuaIsAvailable(out string why),
+            $"A C toolchain is required to build the Lua host. {why}");
+
+        Refuses("Lua", () => ConformanceHarness.RunLua(Scenario, Tampered));
+    }
+
+    [Fact]
     public void Ruby_refuses_an_altered_file()
     {
         Assert.True(ConformanceHarness.RubyIsAvailable(out string why),

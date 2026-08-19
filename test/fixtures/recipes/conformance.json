@@ -105,6 +105,11 @@
       "BinaryTableFileExtension": ".tcb"
     },
     {
+      "Type": "lua",
+      "Path": "test/fixtures/output/conformance/lua",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
       "Type": "ruby",
       "Path": "test/fixtures/output/conformance/ruby",
       "ModuleName": "Conformance",
