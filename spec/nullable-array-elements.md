@@ -124,6 +124,10 @@ if (rows[at][column.TagCarrier.Index].HasValue)   // TagCarrier == Cells[0]
 
 ## 5. 와이어 — 비트 7과 원소 비트맵
 
+> **형식의 정본은 [TCB v106](tcb-v106-element-presence.md)입니다.** 바이트 배치와 실제 파일
+> 하나의 바이트 walk, 그리고 105 파일을 거부하는 이유가 거기 있습니다. 이 절은 그 결정의
+> 근거만 적습니다.
+
 와이어 바이트의 **비트 7**을 원소 nullability로 씁니다. [v103](tcb-v103-presence-bitmap.md)이
 비트 6을 쓰면서 예약해 둔 마지막 비트입니다.
 
