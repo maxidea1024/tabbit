@@ -53,6 +53,7 @@
 |C · C++|libcurl|`WriteUpdater`를 켤 때|링크 플래그|
 |Swift|[swift-crypto](https://github.com/apple/swift-crypto)|**MAC을 검증할 때, 애플 플랫폼이 아닐 때**|생성되는 `Package.swift`(`WriteManifest`) 또는 소비자의 매니페스트. 애플 플랫폼에서는 OS의 CryptoKit이 대신하므로 받지 않고, 없는 빌드에서도 **리더는 컴파일되고 파일도 읽힙니다** — 안 되는 것은 검증 하나이고 그때 무엇을 넣어야 하는지 말합니다 ([설치 절차](languages/swift.md#mac-검증과-swift-crypto))|
 |Python|`cryptography`|**암호화된 파일을 읽을 때**|`pip install cryptography`. import가 그 함수 안에 있어서 암호화를 쓰지 않는 프로젝트는 도달하지 않고, 없으면 **무엇을 설치해야 하는지 말하면서** 실패합니다|
+|Lua|동봉된 C 소스 (`tabbit/native/tabbit_native.c`)|**암호화·MAC·업데이터를 쓸 때**|패키지가 아니라 **산출물에 함께 나오는 소스 한 파일**입니다 — 호스트의 빌드에 넣거나 공유 라이브러리로 컴파일합니다. require가 암호 경로 안에 있어서 평문만 읽는 프로젝트는 도달하지 않고, 없으면 **무엇을 빌드해야 하는지 말하면서** 실패합니다 ([빌드 절차](languages/lua.md#네이티브-모듈--암호화mac매니페스트-해시))|
 
 표준 라이브러리로 해결되는 자리는 의존이 아니므로 위에 없습니다 — Java·Kotlin의
 `javax.crypto`, Ruby의 `openssl`, PHP의 ext-openssl이 그렇습니다

@@ -64,6 +64,7 @@
     { "Type": "java", "Path": "side-by-side/java", "PackageName": "x", "AccessorName": "A", "WriteUpdater": true },
     { "Type": "kotlin", "Path": "side-by-side/kotlin", "PackageName": "x", "AccessorName": "A", "WriteUpdater": true },
     { "Type": "swift", "Path": "side-by-side/swift", "AccessorName": "A", "WriteUpdater": true, "WriteManifest": true, "ModuleName": "X" },
+    { "Type": "lua", "Path": "side-by-side/lua", "WriteUpdater": true },
     { "Type": "ruby", "Path": "side-by-side/ruby", "ModuleName": "X", "AccessorName": "a", "WriteUpdater": true },
     { "Type": "dart", "Path": "side-by-side/dart", "AccessorName": "a", "WriteUpdater": true },
     { "Type": "unreal", "Path": "side-by-side/unreal", "ModuleName": "X", "AccessorName": "A", "WriteUpdater": true },

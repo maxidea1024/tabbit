@@ -25,6 +25,7 @@
 |[Java](java.md)|`java`|
 |[Kotlin](kotlin.md)|`kotlin`|
 |[Swift](swift.md)|`swift`|
+|[Lua](lua.md)|`lua`|
 |[Ruby](ruby.md)|`ruby`|
 |[PHP](php.md)|`php`|
 |[Dart](dart.md)|`dart`|
@@ -47,6 +48,7 @@
 |Java|21로 검증|테이블 리더에 특별한 문법은 없지만 그 아래는 확인하지 않았습니다|
 |Kotlin|2.1로 검증||
 |Swift|6.1·6.3으로 검증. 5.9 이상|**언어 모드 5와 6 둘 다**로 확인합니다. MAC을 검증할 때만 swift-crypto가 필요하고, 애플 플랫폼은 CryptoKit이 대신합니다 ([자세히](swift.md#mac-검증과-swift-crypto))|
+|Lua|LuaJIT 2.1 또는 5.3 이상. 5.4로 검증|순수 5.1·5.2는 숫자가 double이라 지원하지 않습니다. 암호화·MAC·업데이터를 쓸 때만 동봉된 C 소스 한 파일을 컴파일합니다 ([자세히](lua.md#네이티브-모듈--암호화mac매니페스트-해시))|
 |Ruby|3.2로 검증||
 |PHP|8.1 이상|`enum`을 씁니다|
 |Dart|3.6 이상|null safety 필요|

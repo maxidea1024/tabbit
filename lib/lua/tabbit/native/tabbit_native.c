@@ -31,16 +31,25 @@
  *     package.preload["tabbit.native"] instead.)
  */
 
+/* Before any libc header, for nanosleep: glibc reads the macro in the first one a
+ * translation unit pulls in. */
+#if !defined(_WIN32) && !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <direct.h>
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 #endif
 
 #include "lua.h"
@@ -609,8 +618,32 @@ static int tbn_mkdir(lua_State* L) {
 #define TBN_EXPORT
 #endif
 
+/* sleepMs(milliseconds) - the updater's retry backoff. Not in Lua's os library, and a
+ * busy loop would be the alternative. */
+static int tbn_sleep_ms(lua_State* L) {
+  lua_Integer milliseconds = luaL_checkinteger(L, 1);
+
+  if (milliseconds < 0)
+    milliseconds = 0;
+
+#ifdef _WIN32
+  Sleep((DWORD)milliseconds);
+#else
+  {
+    struct timespec wait;
+
+    wait.tv_sec = (time_t)(milliseconds / 1000);
+    wait.tv_nsec = (long)(milliseconds % 1000) * 1000000L;
+
+    nanosleep(&wait, NULL);
+  }
+#endif
+
+  return 0;
+}
+
 /* Assembled by hand rather than with luaL_register / luaL_setfuncs, which differ
- * between 5.1 and 5.3+; pushing three functions is the part they agree on. */
+ * between 5.1 and 5.3+; pushing four functions is the part they agree on. */
 TBN_EXPORT int luaopen_tabbit_native(lua_State* L) {
   lua_newtable(L);
 
@@ -622,6 +655,9 @@ TBN_EXPORT int luaopen_tabbit_native(lua_State* L) {
 
   lua_pushcfunction(L, tbn_mkdir);
   lua_setfield(L, -2, "mkdir");
+
+  lua_pushcfunction(L, tbn_sleep_ms);
+  lua_setfield(L, -2, "sleepMs");
 
   return 1;
 }

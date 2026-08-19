@@ -161,6 +161,8 @@
                       LogicalName="Tabbit.Runtime.Lua.tcb_ops_53.lua" />
     <EmbeddedResource Include="..\lib\lua\tabbit\native\tabbit_native.c"
                       LogicalName="Tabbit.Runtime.Lua.tabbit_native.c" />
+    <EmbeddedResource Include="..\lib\lua\tabbit\updater.lua"
+                      LogicalName="Tabbit.Runtime.Lua.updater.lua" />
 
     <!--
       Unreal gets its own rather than the C++ one, because the engine already has every

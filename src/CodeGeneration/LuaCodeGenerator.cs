@@ -35,6 +35,17 @@ public sealed class LuaRecipe : IOutputRecipe
     public string BinaryTableFileExtension { get; set; } = ".tcb";
 
     /// <summary>
+    /// Whether to write the data updater beside the reader.
+    ///
+    /// It compares the served manifest with the local copy and fetches what changed, so
+    /// a program can take new data without being redeployed. The HTTP itself is the
+    /// consumer's - the updater takes a fetch function - and the hash, the directories
+    /// and the backoff wait come from tabbit.native. Off by default: one that ships its
+    /// data alongside its code has no use for it.
+    /// </summary>
+    public bool WriteUpdater { get; set; } = false;
+
+    /// <summary>
     /// Whether generated files this run did not write are removed from <see cref="Path"/>.
     /// </summary>
     public bool Sweep { get; set; } = true;
@@ -180,6 +191,16 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         WriteBinaryReaderRuntime(
             "Tabbit.Runtime.Lua.tabbit_native.c",
             System.IO.Path.Combine(runtime, "native", "tabbit_native.c"));
+
+        // Asked for rather than assumed. It reaches the network - through the fetch its
+        // caller hands it - and it is of no use to a program that ships its data
+        // alongside its code.
+        if (_recipe.WriteUpdater)
+        {
+            WriteBinaryReaderRuntime(
+                "Tabbit.Runtime.Lua.updater.lua",
+                System.IO.Path.Combine(runtime, "updater.lua"));
+        }
     }
 
     // --------------------------------------------------------------- view

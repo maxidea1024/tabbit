@@ -208,6 +208,38 @@ assert(t.asset:findByIndex('no-such-key') == nil)
 assert(t.slotting:getByIndexOrThrow(2).capacity == 3)
 ");
 
+    /// <summary>
+    /// A misspelled field, label, constant or method is an error naming the type, not a
+    /// silent nil - on rows, enums, constant sets and table objects alike.
+    /// </summary>
+    /// <remarks>
+    /// The strict metatables are the reader's answer to Lua being the one target where
+    /// a read typo is not even an error, and this is the gate that keeps them on.
+    /// spec/lua-language-support.md.
+    /// </remarks>
+    [Fact]
+    public void Misspelled_fields_are_errors()
+        => AssertReads("conformance", @"
+local t = require('tables').new()
+t:readAll(arg[1])
+local row = t.vectors.records[1]
+
+local ok, err = pcall(function() return row.intval end)
+assert(not ok and tostring(err):find('no field'), tostring(err))
+
+ok, err = pcall(function() row.hp = 1 end)
+assert(not ok and tostring(err):find('no field'), tostring(err))
+
+ok, err = pcall(function() return require('enums.enum_flag').noSuchLabel end)
+assert(not ok and tostring(err):find('no field'), tostring(err))
+
+ok, err = pcall(function() return require('constants.const_limits').noSuchConstant end)
+assert(not ok and tostring(err):find('no field'), tostring(err))
+
+ok, err = pcall(function() return t.vectors:findByIndx(1) end)
+assert(not ok and tostring(err):find('no field or method'), tostring(err))
+");
+
     private static void AssertReads(string scenario, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);

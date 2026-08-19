@@ -65,7 +65,7 @@
       // On here so the emitted updater is type-checked by the Swift gate as well.
       "WriteUpdater": true,
       "AccessorName": "ReservedAccessor" },
-    { "Type": "lua", "Path": "test/fixtures/output/reserved-words/lua" },
+    { "Type": "lua", "Path": "test/fixtures/output/reserved-words/lua", "WriteUpdater": true },
     { "Type": "ruby", "Path": "test/fixtures/output/reserved-words/ruby",
       "ModuleName": "Reserved",
       // On here so the emitted updater is parsed by the Ruby gate as well.

@@ -1140,6 +1140,11 @@ internal static class ConformanceHarness
                        new[] { script }.Concat(arguments).ToArray());
     }
 
+    /// <summary>Runs a Lua script that is already in `workDir`, under the same host.</summary>
+    public static ToolResult RunLuaScript(string workDir, string script, params string[] arguments)
+        => Execute(LuaToolchain.HostExecutable, workDir,
+                   new[] { Path.Combine(workDir, script) }.Concat(arguments).ToArray());
+
     public static ToolResult CompileJava(string scenario)
     {
         string root = Generated(scenario, "java");

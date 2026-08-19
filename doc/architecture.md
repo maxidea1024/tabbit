@@ -41,7 +41,7 @@ recipe 스키마와 문서와 옵션 파싱을 함께 뒤져야 한다면, 그�
 |위치|역할|
 |--|--|
 |`src/Exporters/TcbWriter.cs`|**포맷을 정의하는 writer.** 익스포터 내부에 있고 외부 의존이 없습니다.|
-|`lib/<언어>/tabbit/...`|언어별 리더. `cs` `cpp` `c` `ts` `go` `rust` `python` `java` `kotlin` `swift` `ruby` `php` `dart` `unreal`|
+|`lib/<언어>/tabbit/...`|언어별 리더. `cs` `cpp` `c` `ts` `go` `rust` `python` `java` `kotlin` `swift` `lua` `ruby` `php` `dart` `unreal`|
 
 테이블 리더가 `lib/` 아래에 실제 파일로 존재하는 이유는 편집과 리뷰가 가능해야 하기 때문이고, 임베디드 리소스로 읽어 쓰는 이유는 배포본과 커밋된 소스가 어긋날 수 없게 하기 위함입니다.
 
@@ -125,6 +125,7 @@ LF로 못박습니다.
 |C · C++ · Unreal(오프엔진)|MSVC. PowerShell 스크립트가 `vcvars64.bat`가 내보낸 환경을 가져와 `cl`에 물려줍니다 — `cl`은 그 include·lib 경로 없이는 동작하지 않고, 그 경로는 실행해 본 적 없는 프로세스가 물려받을 수 없기 때문입니다. 옵션은 응답 파일로 넘깁니다|`g++` · `gcc`를 직접 실행합니다|
 |Node 계열(`npx tsc` · `node`)|`cmd` 경유. 둘 다 배치 래퍼로 설치되어 프로세스로 직접 시작할 수 없습니다|직접 실행합니다|
 |libcurl (C · C++ 업데이터)|`TABBIT_LIBCURL_ROOT`가 가리키는 prefix. 기본값은 vcpkg 설치 위치입니다|`-lcurl`. 배포판 패키지가 컴파일러가 보는 자리에 넣습니다|
+|Lua|**아무것도 찾지 않습니다.** 벤더한 Lua 5.4 소스와 임베더, 생성된 네이티브 모듈을 C 툴체인으로 한 번에 컴파일해 호스트를 만듭니다 — 게임 엔진이 Lua를 임베드하는 것과 같은 형태이고, 가용성이 C 게이트와 같아집니다. LuaJIT 모드 게이트만 선택 사항입니다(`TABBIT_LUAJIT`가 가리키는 실행 파일)|왼쪽과 같습니다|
 |나머지 언어|PATH, 그다음 잘 알려진 설치 위치|PATH, 그다음 `/opt/homebrew/bin` · `/usr/local/bin` · `/usr/bin`|
 
 Homebrew 경로를 함께 보는 이유는 편의가 아닙니다. 애플 실리콘의 `/opt/homebrew`는 로그인
