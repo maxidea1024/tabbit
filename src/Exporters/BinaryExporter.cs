@@ -182,6 +182,12 @@ public class BinaryExporter : Target<BinaryRecipe>
 
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// A second bitmap, one bit per element written, in front of a value block no encoding
+    /// had to learn about. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, BinaryRecipe binaryRecipe)
     {
         // An entry left in the recipe with a blank path is treated as switched off.
@@ -347,7 +353,8 @@ public class BinaryExporter : Target<BinaryRecipe>
 
             writer.WriteCounter32(column.TagCarrier.Tag!.Value);
             writer.Write(TcbFormat.Wire(
-                TcbFormat.ElementFor(column), TcbFormat.KindFor(column), TcbFormat.NullableFor(column)));
+                TcbFormat.ElementFor(column), TcbFormat.KindFor(column), TcbFormat.NullableFor(column),
+                TcbFormat.ElementNullableFor(column)));
             writer.Write(blocks[at].Encoding);
             writer.WriteCounter32(TcbFormat.CountFor(column));
             writer.Write((uint)blocks[at].Payload.Length);
@@ -958,15 +965,34 @@ public class BinaryExporter : Target<BinaryRecipe>
     private static ColumnBlock WithPresence(
         Table table, List<List<Cell>> rows, WireColumn column, ColumnBlock block)
     {
-        if (!TcbFormat.NullableFor(column))
-            return block;
+        bool rowBitmap = TcbFormat.NullableFor(column);
+        bool elementBitmap = TcbFormat.ElementNullableFor(column);
 
-        var (encoding, bitmap) = TcbColumnEncoder.EncodeByteStream(PresenceBits(table, rows, column));
+        if (!rowBitmap && !elementBitmap)
+            return block;
 
         var payload = new TcbWriter();
 
-        payload.Write(encoding);
-        payload.Write(bitmap.WrittenSpan);
+        if (rowBitmap)
+        {
+            var (encoding, bitmap) = TcbColumnEncoder.EncodeByteStream(PresenceBits(table, rows, column));
+
+            payload.Write(encoding);
+            payload.Write(bitmap.WrittenSpan);
+        }
+
+        // After the row bitmap and before the values, which is the order a reader meets them
+        // in: whether a row has an array at all, then which of that array's places hold a
+        // value, then the values. spec/nullable-array-elements.md.
+        if (elementBitmap)
+        {
+            var (encoding, bitmap) =
+                TcbColumnEncoder.EncodeByteStream(ElementPresenceBits(table, rows, column));
+
+            payload.Write(encoding);
+            payload.Write(bitmap.WrittenSpan);
+        }
+
         payload.Write(block.Payload.WrittenSpan);
 
         return new ColumnBlock(block.Encoding, payload);
@@ -987,6 +1013,69 @@ public class BinaryExporter : Target<BinaryRecipe>
         return bitmap;
     }
 
+
+    /// <summary>
+    /// One bit per element written, low bit first, in the order the value block wrote them.
+    /// </summary>
+    /// <remarks>
+    /// As long as the elements the block actually holds rather than as long as the columns:
+    /// a variable-length row writes its own count and an absent array writes none, so a
+    /// reader accumulates as it walks the rows it is already walking.
+    ///
+    /// The three branches are the value writer's three, and they are here rather than shared
+    /// with it because the two answer different questions about the same walk - what to write
+    /// and whether the sheet wrote it.
+    /// </remarks>
+    private static byte[] ElementPresenceBits(
+        Table table, List<List<Cell>> rows, WireColumn column)
+    {
+        var bits = new List<bool>();
+
+        foreach (var row in rows)
+        {
+            // A group whose length the row decides. Every element is a column of its own, so
+            // its own cell answers.
+            if (column.IsVariableLengthArray && !column.Group.IsVariableLengthArray)
+            {
+                int elements = table.ElementCountIn(column.Group, row);
+
+                for (int at = 0; at < elements; at++)
+                    bits.Add(row[column.Cells[at].Index].HasValue);
+
+                continue;
+            }
+
+            // A delimited cell, where the elements and their presence are both inside one
+            // cell. A row whose array is absent wrote no elements and therefore no bits.
+            if (column.IsVariableLengthArray)
+            {
+                var cell = row[column.TagCarrier.Index];
+                int length = (cell.Value as System.Array)?.Length ?? 0;
+
+                for (int at = 0; at < length; at++)
+                {
+                    bits.Add(cell.ElementHasValue is not { } present
+                        || at >= present.Length
+                        || present[at]);
+                }
+
+                continue;
+            }
+
+            foreach (var field in column.Cells)
+                bits.Add(row[field.Index].HasValue);
+        }
+
+        var bitmap = new byte[(bits.Count + 7) / 8];
+
+        for (int at = 0; at < bits.Count; at++)
+        {
+            if (bits[at])
+                bitmap[at >> 3] |= (byte)(1 << (at & 7));
+        }
+
+        return bitmap;
+    }
 
     /// <summary>
     /// Writes a delimited array cell: element count first, then the elements.

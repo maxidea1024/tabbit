@@ -36,7 +36,7 @@ import 'dart:typed_data';
 // 102 replaced 101 outright - a descriptor gained its encoding byte - before any
 // 101 file had shipped. 104 is the current one: four encodings joined the nine, and the
 // flags byte gained a meaning.
-const int formatVersion = 105;
+const int formatVersion = 106;
 
 // The wire element types and kinds, as a column descriptor spells them.
 const int elementVarint = 0;

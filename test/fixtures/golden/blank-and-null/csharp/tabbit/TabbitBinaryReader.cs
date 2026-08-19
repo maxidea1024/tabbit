@@ -1286,7 +1286,7 @@ namespace Tabbit.Binary
         /// encoding byte - before any 101 file had shipped. 104 is the current one: four
         /// encodings joined the nine, and the flags byte gained a meaning.
         /// </remarks>
-        public const uint FormatVersion = 105;
+        public const uint FormatVersion = 106;
 
         public const byte ElementVarint = 0;
         public const byte ElementBool = 1;

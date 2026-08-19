@@ -205,11 +205,20 @@ public class TcbMacTests
     /// The file it is taken over is reproducible anywhere: a plain header - the signature,
     /// version 105, then twenty-nine zeros and the signature again at the key check - and a
     /// body of two hundred bytes where byte `i` is `(i * 31) % 253`. The key is 0x40 to 0x5f.
+    ///
+    /// **The version in that header is written here rather than taken from the format.** The
+    /// vector pins the algorithm, the covered bytes and which half of the digest is kept -
+    /// none of which the format version has anything to do with. Taken from the constant, it
+    /// would move every time the format did, and a published constant that moves is one
+    /// nobody can check against.
     /// </remarks>
     [Fact]
     public void The_tag_is_the_published_vector()
     {
         var file = TcbFiles.Plain(200);
+
+        BitConverter.TryWriteBytes(file.AsSpan(TcbFormat.VersionOffset), 105u);
+
         TcbMac.Sign(file, MacKey);
 
         Assert.Equal(

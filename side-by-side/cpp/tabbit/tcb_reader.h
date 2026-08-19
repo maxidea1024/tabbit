@@ -392,7 +392,7 @@ inline std::vector<std::uint8_t> read_all_bytes(const std::string& filename) {
 // rather than guessing. 102 replaced 101 outright - a descriptor gained its encoding
 // byte - before any 101 file had shipped. 104 is the current one: four encodings joined
 // the nine, and the flags byte gained a meaning.
-constexpr std::uint32_t kBinaryFileFormatVersion = 105;
+constexpr std::uint32_t kBinaryFileFormatVersion = 106;
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
 // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.

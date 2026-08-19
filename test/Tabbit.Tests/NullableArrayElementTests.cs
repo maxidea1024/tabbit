@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using Xunit;
 
@@ -14,9 +15,10 @@ namespace Tabbit.Tests;
 /// absence is `-` wherever it is written, and a blank element is whatever its type reads a
 /// blank as.
 ///
-/// JSON only for now. The format carries a presence bit per row and has nowhere to put one per
-/// element, so the binary and the thirteen readers refuse a column of this shape by name until
-/// they learn it. spec/nullable-array-elements.md.
+/// The meaning lands in JSON and in the file first. The thirteen runtimes learn the element
+/// bitmap in the step after this one, so a generator still refuses a column of this shape by
+/// name - which is what keeps a partial rollout from losing the distinction quietly.
+/// spec/nullable-array-elements.md.
 /// </remarks>
 public class NullableArrayElementTests
 {
@@ -115,20 +117,94 @@ public class NullableArrayElementTests
     /// A target that cannot say an element is absent refuses the column rather than losing it.
     /// </summary>
     /// <remarks>
-    /// The staging that makes a partial rollout safe: the meaning lands in JSON first, and
-    /// everything that would have to write a bit per element says so by name until it can.
-    /// The same shape `SupportsOptionalFields` used while thirteen readers learned the row
-    /// bitmap.
+    /// The staging that makes a partial rollout safe: the meaning lands in JSON and in the
+    /// file first, and everything that would have to *read* a bit per element says so by name
+    /// until it can. The same shape `SupportsOptionalFields` used while thirteen readers
+    /// learned the row bitmap.
     /// </remarks>
     [Fact]
     public void A_target_that_cannot_say_it_refuses_the_column()
     {
-        var result = TabbitRunner.Convert("nullable-elements-binary");
+        var result = TabbitRunner.Convert("nullable-elements-csharp");
 
         Assert.False(result.Succeeded, "A target with no element presence accepted the column.");
 
         Assert.Contains("does not support arrays whose elements may be absent yet", result.StdOut);
         Assert.Contains("`Listing` column `Holes` is typed `int?[]`", result.StdOut);
+    }
+
+    /// <summary>
+    /// The file says which columns carry a bitmap, and says the two independently.
+    /// </summary>
+    /// <remarks>
+    /// Bit 6 is the row bitmap and bit 7 the element one, and `int?[]?` sets both - the whole
+    /// claim that the two are orthogonal, read off the bytes rather than off the model that
+    /// wrote them. Nothing reads the bitmap itself yet; the thirteen runtimes learn it in the
+    /// step after this one, and the round trip that compares it against the JSON belongs
+    /// there. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void The_file_declares_the_two_bitmaps_separately()
+    {
+        var result = TabbitRunner.Convert("nullable-elements-binary");
+
+        Assert.True(result.Succeeded, $"Conversion failed.{Environment.NewLine}{result.Describe()}");
+
+        byte[] file = File.ReadAllBytes(Path.Combine(
+            RepoLayout.OutputDir("nullable-elements-binary"), "binary", "Listing.tcb"));
+
+        Assert.Equal(106u, BitConverter.ToUInt32(file, Tabbit.Exporters.TcbFormat.VersionOffset));
+
+        var wires = WireBytes(file);
+
+        // `Maybe` and `Both` may have no array; `Holes`, `Both` and `Words` may have an
+        // element with no value; `Both` is the one that says both.
+        Assert.Equal(2, wires.Count(wire => Tabbit.Exporters.TcbFormat.NullableOf(wire)));
+        Assert.Equal(3, wires.Count(wire => Tabbit.Exporters.TcbFormat.ElementNullableOf(wire)));
+        Assert.Equal(1, wires.Count(wire =>
+            Tabbit.Exporters.TcbFormat.NullableOf(wire)
+            && Tabbit.Exporters.TcbFormat.ElementNullableOf(wire)));
+    }
+
+    /// <summary>The wire byte of every column descriptor, in file order.</summary>
+    private static System.Collections.Generic.List<byte> WireBytes(byte[] file)
+    {
+        int at = 42;                                     // the fixed header, whole
+
+        int ReadCounter32()
+        {
+            int shift = 0;
+            uint value = 0;
+
+            while (true)
+            {
+                byte b = file[at++];
+                value |= (uint)(b & 0x7F) << shift;
+
+                if ((b & 0x80) == 0)
+                    break;
+
+                shift += 7;
+            }
+
+            return (int)((value >> 1) ^ (uint)-(int)(value & 1));
+        }
+
+        ReadCounter32();                                 // row count
+        int columnCount = ReadCounter32();
+
+        var wires = new System.Collections.Generic.List<byte>();
+
+        for (int column = 0; column < columnCount; column++)
+        {
+            ReadCounter32();                             // tag
+            wires.Add(file[at++]);                       // wire
+            at++;                                        // encoding
+            ReadCounter32();                             // elements per row
+            at += 4;                                     // block length
+        }
+
+        return wires;
     }
 
     /// <summary>

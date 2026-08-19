@@ -37,7 +37,7 @@ import javax.crypto.spec.SecretKeySpec
 // rather than guessing. 102 replaced 101 outright - a descriptor gained its encoding
 // byte - before any 101 file had shipped. 104 is the current one: four encodings joined
 // the nine, and the flags byte gained a meaning.
-const val FORMAT_VERSION: Int = 105
+const val FORMAT_VERSION: Int = 106
 
 // The wire element types and kinds, as a column descriptor spells them.
 const val ELEMENT_VARINT = 0

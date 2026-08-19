@@ -1,7 +1,8 @@
 {
-  // The same workbook handed to a target that cannot say an element is absent. Expected to
-  // fail, naming the target and the column - the format carries a presence bit per row and
-  // has nowhere to put one per element until spec/nullable-array-elements.md's third step.
+  // The same workbook written to a file, which is where bit 7 and the element bitmap are.
+  // Nothing reads it yet - the thirteen runtimes learn the bitmap in the step after this
+  // one - so what this exists for is the byte-level gate over what the exporter produced.
+  // spec/nullable-array-elements.md.
 
   "Sources": {
     "Xlsx": [

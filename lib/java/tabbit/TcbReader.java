@@ -40,7 +40,7 @@ public final class TcbReader {
      * byte - before any 101 file had shipped. 104 is the current one: four encodings
      * joined the nine, and the flags byte gained a meaning.
      */
-    public static final int FORMAT_VERSION = 105;
+    public static final int FORMAT_VERSION = 106;
 
     // The wire's element types and kinds, as a column descriptor spells them.
     public static final int ELEMENT_VARINT = 0;

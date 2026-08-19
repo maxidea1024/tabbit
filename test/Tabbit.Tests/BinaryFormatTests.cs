@@ -56,7 +56,7 @@ public class BinaryFormatTests
         // bytes below; what it buys is one header shape for thirteen readers to agree on.
         // spec/tcb-mac-and-signature.md.
         expected.Add("signature", 0x54, 0x43, 0x42, 0x00);   // "TCB\0", at offset zero
-        expected.Add("version", 0x69, 0x00, 0x00, 0x00);     // 105, fixed32
+        expected.Add("version", 0x6a, 0x00, 0x00, 0x00);     // 106, fixed32
         expected.Add("flags", 0x00);                         // no compression, no encryption
         expected.Add("cipher", 0x00);                        // not encrypted
 
@@ -248,7 +248,7 @@ public class BinaryFormatTests
 
             // 'S' 'C' 'B' 0 as a fixed32: every table file starts with it, encrypted or not.
             Assert.Equal(0x00424354u, reader.ReadFixed32());
-            Assert.Equal(105u, reader.ReadFixed32());
+            Assert.Equal(106u, reader.ReadFixed32());
             Assert.Equal(0, reader.ReadByte());
 
             // The cipher byte, the nonce and the MAC - zero in a committed golden, which is

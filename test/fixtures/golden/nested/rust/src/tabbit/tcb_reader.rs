@@ -40,7 +40,7 @@ use std::path::Path;
 /// rather than guessing. 102 replaced 101 outright - a descriptor gained its encoding
 /// byte - before any 101 file had shipped. 104 is the current one: four encodings joined
 /// the nine, and the flags byte gained a meaning.
-pub const FORMAT_VERSION: u32 = 105;
+pub const FORMAT_VERSION: u32 = 106;
 
 // The wire element types and kinds, as a column descriptor spells them.
 pub const ELEMENT_VARINT: u8 = 0;

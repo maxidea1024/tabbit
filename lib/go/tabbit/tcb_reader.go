@@ -41,7 +41,7 @@ import (
 // tool fed anything live. 102 replaced 101 the same way - a descriptor gained its
 // encoding byte - before any 101 file had shipped. 104 is the current one: four
 // encodings joined the nine, and the flags byte gained a meaning.
-const FormatVersion uint32 = 105
+const FormatVersion uint32 = 106
 
 // The wire's element types and kinds, as a column descriptor spells them.
 const (

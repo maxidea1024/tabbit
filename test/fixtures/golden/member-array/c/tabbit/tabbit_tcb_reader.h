@@ -67,7 +67,7 @@ extern "C" {
  * stops rather than guessing. 102 replaced 101 outright - a descriptor gained its
  * encoding byte - before any 101 file had shipped. 104 is the current one: four
  * encodings joined the nine, and the flags byte gained a meaning. */
-#define TABBIT_BINARY_FILE_FORMAT_VERSION 105u
+#define TABBIT_BINARY_FILE_FORMAT_VERSION 106u
 
 /* The wire element types and kinds, as a column descriptor spells them. */
 #define TB_ELEMENT_VARINT 0

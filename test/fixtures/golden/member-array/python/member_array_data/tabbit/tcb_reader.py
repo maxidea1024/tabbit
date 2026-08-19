@@ -46,7 +46,7 @@ import struct
 # The format is column-oriented and self-describing: the header names every column
 # and how long its block is, and a reader that meets a version it does not know stops
 # rather than guessing.
-FORMAT_VERSION = 105
+FORMAT_VERSION = 106
 
 # The wire's element types and kinds, as a column descriptor spells them.
 ELEMENT_VARINT = 0

@@ -122,7 +122,7 @@ final class TcbReader
      */
     // 102 replaced 101 outright - a descriptor gained its encoding byte - before any
     // 101 file had shipped.
-    public const FILE_FORMAT_VERSION = 105;
+    public const FILE_FORMAT_VERSION = 106;
 
     // The wire element types and kinds, as a column descriptor spells them.
     public const ELEMENT_VARINT = 0;

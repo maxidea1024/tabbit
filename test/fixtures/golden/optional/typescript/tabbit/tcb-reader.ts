@@ -55,7 +55,7 @@ export class TcbError extends Error {
  * 104 is the current one: four encodings joined the nine, and the flags byte gained a
  * meaning.
  */
-export const BINARY_FILE_FORMAT_VERSION = 105
+export const BINARY_FILE_FORMAT_VERSION = 106
 
 // The wire's element types and kinds, as a column descriptor spells them.
 export const ELEMENT_VARINT = 0

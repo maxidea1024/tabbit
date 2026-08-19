@@ -59,7 +59,7 @@ namespace Tabbit
      * 104 is the current one: four encodings joined the nine, and the flags byte gained a
      * meaning.
      */
-    static constexpr uint32 BinaryFileFormatVersion = 105;
+    static constexpr uint32 BinaryFileFormatVersion = 106;
 
     // The wire element types and kinds, as a column descriptor spells them.
     static constexpr uint8 ElementVarint = 0;

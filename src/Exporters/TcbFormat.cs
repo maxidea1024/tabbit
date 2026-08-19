@@ -54,8 +54,14 @@ public static class TcbFormat
     /// misread rather than refuse - it would take that byte for the first byte of the
     /// bitmap. Nothing shipped under 104, so the version is a record of the change rather
     /// than a compatibility boundary.
+    ///
+    /// 106 replaces 105. A column can now say which of an array's elements have a value,
+    /// and it says so with the last bit the wire byte had left. A 105 reader ignores bit 7,
+    /// so it would take the element bitmap for the head of the value block and read the
+    /// column wrong rather than refuse it - which is the same reason 103 moved.
+    /// spec/nullable-array-elements.md.
     /// </summary>
-    public const uint Version = 105;
+    public const uint Version = 106;
 
     // -------------------------------------------------------- file header
     //
@@ -370,15 +376,36 @@ public static class TcbFormat
     public const byte WireNullable = 0x40;
 
     /// <summary>
-    /// The wire byte: element in the low four bits, kind in the next two, nullability in
-    /// bit 6.
+    /// Bit 7: the block carries a second bitmap, one bit per element written.
     /// </summary>
-    public static byte Wire(byte element, byte kind, bool nullable = false)
-        => (byte)(element | (kind << 4) | (nullable ? WireNullable : 0));
+    /// <remarks>
+    /// Orthogonal to <see cref="WireNullable"/> and set with it where both are true: an
+    /// array may be absent, its elements may be, and `int?[]?` says both. The bitmap sits
+    /// between the row bitmap and the values, carries its own encoding byte as the row one
+    /// does, and is as long as the elements the block actually wrote - which is
+    /// `rowCount x count` for a fixed array and the sum of the row lengths for a variable
+    /// one.
+    ///
+    /// The last bit of the byte, which is why the kind stayed two bits: nullability of a row
+    /// and of an element are both orthogonal to the kind, and neither would have fitted in
+    /// the one kind value left. spec/nullable-array-elements.md.
+    /// </remarks>
+    public const byte WireElementNullable = 0x80;
+
+    /// <summary>
+    /// The wire byte: element in the low four bits, kind in the next two, nullability of the
+    /// value in bit 6 and of its elements in bit 7.
+    /// </summary>
+    public static byte Wire(
+        byte element, byte kind, bool nullable = false, bool elementNullable = false)
+        => (byte)(element | (kind << 4)
+            | (nullable ? WireNullable : 0)
+            | (elementNullable ? WireElementNullable : 0));
 
     public static byte ElementOf(byte wire) => (byte)(wire & 0x0F);
     public static byte KindOf(byte wire) => (byte)((wire >> 4) & 0x03);
     public static bool NullableOf(byte wire) => (wire & WireNullable) != 0;
+    public static bool ElementNullableOf(byte wire) => (wire & WireElementNullable) != 0;
 
     /// <summary>
     /// Whether a column states which of its rows have a value.
@@ -388,6 +415,16 @@ public static class TcbFormat
     /// definition, so a bitmap of all ones would be a bit per row saying nothing.
     /// </remarks>
     public static bool NullableFor(WireColumn column) => column.IsNullable;
+
+    /// <summary>
+    /// Whether a column states which of an array's elements have a value.
+    /// </summary>
+    /// <remarks>
+    /// Only where the sheet wrote the marker inside the brackets, for the reason the row
+    /// bitmap is only written where the column is optional: an array whose elements are all
+    /// there would spend a bit per element saying so.
+    /// </remarks>
+    public static bool ElementNullableFor(WireColumn column) => column.HasOptionalElements;
 
     // ------------------------------------------------------------- mapping
 

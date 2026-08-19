@@ -1,0 +1,24 @@
+{
+  // The same workbook handed to a target that cannot say an element is absent. Expected to
+  // fail, naming the target and the column: the generated readers learn the element bitmap
+  // in the step after this one, and until then a column of this shape has no reader.
+  // spec/nullable-array-elements.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/nullable-elements"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/nullable-elements-csharp/csharp",
+      "Namespace": "Tabbit.Fixtures.NullableElements",
+      "AccessorName": "NullableElementsAccessor"
+    }
+  ]
+}
