@@ -95,4 +95,9 @@ function ops.i64string(v)
   return string.format("%d", v)
 end
 
+-- Decimal digits as an int64: native integers already parse exactly here.
+function ops.i64parse(s)
+  return (assert(tonumber(s), "not a number: " .. s))
+end
+
 return ops

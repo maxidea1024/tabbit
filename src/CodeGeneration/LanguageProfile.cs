@@ -883,4 +883,57 @@ public sealed class LanguageProfile
         // what the compiler said about the reserved-words fixture, TS1341 - and the
         // other two because they are how an object's own machinery is reached.
         "constructor", "prototype", "__proto__");
+
+    /// <summary>
+    /// Lua - LuaJIT 2.1 and Lua 5.3+.
+    ///
+    /// The scalar names are lua-language-server annotation types rather than
+    /// declarations: Lua declares nothing, and the annotations are where a generated
+    /// field's type is written down. int64 is `integer`, which both supported runtimes
+    /// hold losslessly - 5.3+ natively, LuaJIT as FFI cdata - and which is why plain
+    /// Lua 5.1 is not a target. spec/lua-language-support.md.
+    ///
+    /// The escape does not rename: a keyword-named field keeps its name as a table key
+    /// and the generated code reaches it with bracket syntax, `row["end"]`. The escape
+    /// format spells that bracket form; the generator decides per position whether the
+    /// dotted or the bracketed access applies.
+    /// </summary>
+    public static readonly LanguageProfile Lua = new LanguageProfile(
+        "lua",
+        new Dictionary<ValueType, string>
+        {
+            { ValueType.String, "string" },
+            { ValueType.Bool, "boolean" },
+            { ValueType.Int32, "integer" },
+            { ValueType.Int64, "integer" },
+            { ValueType.Float, "number" },
+            { ValueType.Double, "number" },
+            { ValueType.DateTime, "integer" },
+            { ValueType.TimeSpan, "integer" },
+            { ValueType.Uuid, "string" },
+        },
+        "{0}[]",
+
+        // Bracket-string access, which is Lua's way of keeping a keyword-named key.
+        "[\"{0}\"]",
+
+        new Dictionary<ValueType, string>
+        {
+            { ValueType.String, "reader:readString()" },
+            { ValueType.Bool, "reader:readBool()" },
+            { ValueType.Int32, "reader:readI32As(column.element)" },
+            { ValueType.Int64, "reader:readI64As(column.element)" },
+            { ValueType.Float, "reader:readF32()" },
+            { ValueType.Double, "reader:readF64As(column.element)" },
+            { ValueType.DateTime, "reader:readDateTimeTicks()" },
+            { ValueType.TimeSpan, "reader:readDurationTicks()" },
+            { ValueType.Uuid, "reader:readUuid()" },
+        },
+
+        // https://www.lua.org/manual/5.4/manual.html#3.1 - every keyword is lowercase,
+        // so a camelCase member lands on one exactly when the sheet's name is a single
+        // lowercase word.
+        "and", "break", "do", "else", "elseif", "end", "false", "for", "function",
+        "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then",
+        "true", "until", "while");
 }

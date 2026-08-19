@@ -130,6 +130,113 @@ end
 -- An int64 - cdata on LuaJIT, a native integer on 5.3+ - as decimal digits.
 tcb.int64String = ops.i64string
 
+-- Decimal digits as an int64. What a generated constant beyond 2^53 is spelled with:
+-- a plain literal would parse exactly on 5.3+ and silently round on LuaJIT, whose
+-- literals are doubles.
+tcb.int64FromString = ops.i64parse
+
+-- The canonical form of a uuid no row carried.
+tcb.UUID_EMPTY = "00000000-0000-0000-0000-000000000000"
+
+-- The metatable of a generated type: reading or writing a field the type does not
+-- declare is an error naming the type and the key, instead of the silent nil every
+-- other Lua table answers.
+--
+-- The cost sits only on mistakes. __index and __newindex fire when a key is absent
+-- from the table, and the generated constructors fill every declared field before the
+-- metatable goes on - so correct reads and writes never reach here. The declared list
+-- still matters for the fields whose value is legitimately nil (an unresolved
+-- reference): those are absent from the table, land in __index, and answer nil instead
+-- of the error. spec/lua-language-support.md.
+function tcb.strictType(label, fields)
+  local known = {}
+
+  for i = 1, #fields do
+    known[fields[i]] = true
+  end
+
+  return {
+    __index = function(_, key)
+      if known[key] then
+        return nil
+      end
+
+      error(format("tcb: %s has no field `%s` - check the spelling against the generated file",
+        label, tostring(key)), 2)
+    end,
+
+    __newindex = function(target, key, value)
+      if known[key] then
+        rawset(target, key, value)
+        return
+      end
+
+      error(format("tcb: %s has no field `%s` - check the spelling against the generated file",
+        label, tostring(key)), 2)
+    end,
+  }
+end
+
+-- The same strictness for an instance whose methods live on a class table: the lookup
+-- tries the class first, then the declared fields, then errors.
+function tcb.strictInstance(label, class, fields)
+  local known = {}
+
+  for i = 1, #fields do
+    known[fields[i]] = true
+  end
+
+  return {
+    __index = function(_, key)
+      local member = class[key]
+
+      if member ~= nil then
+        return member
+      end
+
+      if known[key] then
+        return nil
+      end
+
+      error(format("tcb: %s has no field or method `%s` - check the spelling against the " ..
+        "generated file", label, tostring(key)), 2)
+    end,
+
+    __newindex = function(target, key, value)
+      if known[key] then
+        rawset(target, key, value)
+        return
+      end
+
+      error(format("tcb: %s has no field `%s` - check the spelling against the generated file",
+        label, tostring(key)), 2)
+    end,
+  }
+end
+
+-- A 1-based array of `count` fresh values, for a fixed-length record array whose
+-- elements have to exist before the member columns read into them.
+function tcb.filledArray(count, make)
+  local out = {}
+
+  for i = 1, count do
+    out[i] = make()
+  end
+
+  return out
+end
+
+-- A 1-based array of `count` copies of one value.
+function tcb.repeated(count, value)
+  local out = {}
+
+  for i = 1, count do
+    out[i] = value
+  end
+
+  return out
+end
+
 ---------------------------------------------------------------------------------------
 -- Reader: sequential reads over a table file's bytes.
 ---------------------------------------------------------------------------------------

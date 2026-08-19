@@ -122,4 +122,28 @@ function ops.i64string(v)
   return (s:gsub("[UL]+$", ""))
 end
 
+-- Decimal digits as an int64 cdata. Digit by digit rather than tonumber, whose result
+-- here is a double and rounds past 2^53.
+function ops.i64parse(s)
+  local negative = s:sub(1, 1) == "-"
+  local from = negative and 2 or 1
+  local value = int64_t(0)
+
+  for i = from, #s do
+    local digit = s:byte(i) - 48
+
+    if digit < 0 or digit > 9 then
+      error("not a number: " .. s, 0)
+    end
+
+    value = value * 10 + digit
+  end
+
+  if negative then
+    value = -value
+  end
+
+  return value
+end
+
 return ops

@@ -161,7 +161,12 @@ public abstract class CodeGenerator<TRecipe> : Target<TRecipe>
             return contents;
 
         string extension = Path.GetExtension(path).ToLowerInvariant();
-        string comment = extension == ".py" || extension == ".rb" ? "#" : "//";
+        string comment = extension switch
+        {
+            ".py" or ".rb" => "#",
+            ".lua" => "--",
+            _ => "//",
+        };
 
         // Two toolchains read the header rather than merely display it, so the claim is
         // spelled the way each of them recognizes:

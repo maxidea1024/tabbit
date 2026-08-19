@@ -1,0 +1,23 @@
+{{~## One enum: a table of integer values under their label names. `enumm` is the single
+   enum this file is for.
+
+   Values rather than a type - Lua declares none - so a field typed with this enum holds
+   one of these integers and comparisons are plain `==`. The strict metatable turns a
+   misspelled label into an error instead of a nil that would compare false with
+   everything. ##~}}
+{{ include 'lua-file-head.sbn' }}
+-- Generated from {{ enumm.location }}.
+{{~ for line in enumm.comment ~}}
+-- {{ line }}
+{{~ end ~}}
+---@class {{ enumm.name }}
+local {{ enumm.name }} = {
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+  -- {{ line }}
+{{~ end ~}}
+  {{ label.key }} = {{ label.value }},
+{{~ end ~}}
+}
+
+return setmetatable({{ enumm.name }}, tcb.strictType("enum `{{ enumm.name }}`", {}))

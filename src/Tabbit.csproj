@@ -149,6 +149,20 @@
                       LogicalName="Tabbit.Runtime.Php.TabbitUpdater.php" />
 
     <!--
+      Lua ships four files: the reader, its two numeric backends - LuaJIT and 5.3+ spell
+      low-level numeric work in mutually unparsable syntax - and the native C module's
+      source, which is the encryption, MAC and manifest-hash path.
+    -->
+    <EmbeddedResource Include="..\lib\lua\tabbit\tcb_reader.lua"
+                      LogicalName="Tabbit.Runtime.Lua.tcb_reader.lua" />
+    <EmbeddedResource Include="..\lib\lua\tabbit\tcb_ops_jit.lua"
+                      LogicalName="Tabbit.Runtime.Lua.tcb_ops_jit.lua" />
+    <EmbeddedResource Include="..\lib\lua\tabbit\tcb_ops_53.lua"
+                      LogicalName="Tabbit.Runtime.Lua.tcb_ops_53.lua" />
+    <EmbeddedResource Include="..\lib\lua\tabbit\native\tabbit_native.c"
+                      LogicalName="Tabbit.Runtime.Lua.tabbit_native.c" />
+
+    <!--
       Unreal gets its own rather than the C++ one, because the engine already has every
       type that reader defines. Going through std::string and a Tabbit Uuid struct
       cost two allocations per string cell and a text parse per uuid, to build what
