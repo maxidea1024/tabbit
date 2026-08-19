@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-20T00:56:04.2672285+09:00",
+    "generatedAt": "2026-08-20T02:36:04.3823227+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "dc1666b8e3b5c42a23e41bb9388364edc4cd34e1",
-      "shortHash": "dc1666b8e3b5",
+      "hash": "54c0745385cce964bbe3a1acfefc26144e6d4e27",
+      "shortHash": "54c0745385cc",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-19T20:54:58.0000000+09:00",
-      "subject": "Read an array of references, which nothing was reading",
+      "committedAt": "2026-08-20T02:15:51.0000000+09:00",
+      "subject": "Update Lua data without redeploying, over the consumer's own HTTP",
       "origin": "git",
       "dirty": true,
       "attributable": false

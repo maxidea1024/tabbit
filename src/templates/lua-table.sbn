@@ -123,7 +123,8 @@ function {{ table.table_name }}:readBytes(data)
     local column = columns[c]
     local blockEnd = reader.position + column.byteLength
 
-    {{ for column_view in table.columns }}{{ if for.first }}if{{ else }}elseif{{ end }} column.tag == {{ column_view.tag }} then
+{{~ for column_view in table.columns ~}}
+    {{ if for.first }}if{{ else }}elseif{{ end }} column.tag == {{ column_view.tag }} then
       {{ column_view.column_check }}
 {{~ if column_view.is_nullable ~}}
       -- The bitmap is at the front of the block, so it is read before the values. The
@@ -258,7 +259,8 @@ function {{ table.table_name }}:readBytes(data)
         end
       end
 {{~ end ~}}
-    {{ end }}else
+{{~ end ~}}
+    else
       -- A column added after this code was generated.
       reader:skip(column.byteLength)
     end
