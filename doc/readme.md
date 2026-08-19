@@ -63,6 +63,7 @@
 |[비트셋](../spec/bitset.md)|`bitset` 타입과 진법 리터럴 — **엄격함이 의도 선언을 요구하는 이유**|
 |[옵셔널 필드](../spec/optional-fields.md)|타입 끝 `?`의 설계 — 빈 칸을 받는 것과, 존재 여부를 와이어에 담는 것|
 |[빈 칸과 없음](../spec/blank-and-null-cells.md)|`-`는 없음, `\-`는 문자열 `-` — **빈 칸이 값과 없음을 겸하던 것**을 표기 하나로 나누는 설계|
+|[원소가 없을 수 있는 배열](../spec/nullable-array-elements.md)|`T?[]` · `T[]?` · `T?[]?` — **원소의 없음**을 시트가 적고 파일이 담는 설계. 와이어의 마지막 예약 비트와 원소 비트맵|
 |[배열의 옵셔널](../spec/array-optionality.md)|배열 컬럼들의 필수 표시가 엇갈릴 때 — 첫 원소가 전부를 정하는 이유|
 |[레코드 멤버별 옵셔널](../spec/record-member-optionality.md)|`:requiredInObject` — **검증 규칙이지 표현의 요구가 아닌 이유**|
 
