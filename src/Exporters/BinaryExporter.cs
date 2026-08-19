@@ -986,8 +986,14 @@ public class BinaryExporter : Target<BinaryRecipe>
         // value, then the values. spec/nullable-array-elements.md.
         if (elementBitmap)
         {
-            var (encoding, bitmap) =
-                TcbColumnEncoder.EncodeByteStream(ElementPresenceBits(table, rows, column));
+            var bits = ElementPresenceBits(table, rows, column, out int elements);
+            var (encoding, bitmap) = TcbColumnEncoder.EncodeByteStream(bits);
+
+            // How many bits the bitmap holds, ahead of it. A variable-length column's total
+            // is the sum of its row lengths, and those lengths are inside the value block -
+            // behind the bitmap - so a reader that met the bitmap first could not size it.
+            // Five bytes at most, once per column. spec/nullable-array-elements.md.
+            payload.WriteCounter32(elements);
 
             payload.Write(encoding);
             payload.Write(bitmap.WrittenSpan);
@@ -1027,7 +1033,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// and whether the sheet wrote it.
     /// </remarks>
     private static byte[] ElementPresenceBits(
-        Table table, List<List<Cell>> rows, WireColumn column)
+        Table table, List<List<Cell>> rows, WireColumn column, out int elements)
     {
         var bits = new List<bool>();
 
@@ -1037,9 +1043,9 @@ public class BinaryExporter : Target<BinaryRecipe>
             // its own cell answers.
             if (column.IsVariableLengthArray && !column.Group.IsVariableLengthArray)
             {
-                int elements = table.ElementCountIn(column.Group, row);
+                int filled = table.ElementCountIn(column.Group, row);
 
-                for (int at = 0; at < elements; at++)
+                for (int at = 0; at < filled; at++)
                     bits.Add(row[column.Cells[at].Index].HasValue);
 
                 continue;
@@ -1065,6 +1071,8 @@ public class BinaryExporter : Target<BinaryRecipe>
             foreach (var field in column.Cells)
                 bits.Add(row[field.Index].HasValue);
         }
+
+        elements = bits.Count;
 
         var bitmap = new byte[(bits.Count + 7) / 8];
 

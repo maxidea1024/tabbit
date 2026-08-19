@@ -112,6 +112,12 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, PhpRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -415,6 +421,15 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             declarations.Add($"public bool ${PresenceMember(sf)} = false;");
         }
 
+        // And the per-element answer, empty until the read fills it: an index into an empty
+        // array is out of range, and the answer there is that the element has a value.
+        // spec/nullable-array-elements.md.
+        if (!sf.Fields[0].ElementsRequired)
+        {
+            declarations.Add("");
+            declarations.Add($"public array ${ElementPresenceMember(sf)} = [];");
+        }
+
         return new PhpFieldView
         {
             Comment = CommentLines(sf.FirstField!.Comment),
@@ -425,7 +440,9 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             RecordTypeName = "",
             Members = Array.Empty<PhpRecordMemberView>(),
             IsNullable = nullable,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = ElementPresenceMember(sf),
         };
     }
 
@@ -631,7 +648,9 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             ElementCount = wire.Cells.Count,
             ReadElement = ReadElementExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = ElementPresenceMember(wire.Group),
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -653,6 +672,10 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
+    /// <summary>The member holding which of an array's elements have a value.</summary>
+    private static string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase() + "At";
+
     private static string PresenceMember(SerialField sf)
         => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
 
@@ -1043,7 +1066,11 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"TcbReader::checkColumn($column, '{tableName}.{wire.Name}', {kind}, {count}, {nullable}, [{accepted}]);";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"TcbReader::checkColumn($column, '{tableName}.{wire.Name}', {kind}, {count}, "
+            + $"{nullable}, [{accepted}]{elements});";
     }
 
     /// <summary>

@@ -19,6 +19,13 @@ public final class {{ table.record_name }} {
      */
     public boolean {{ field.presence_member }};
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+    /**
+     * Which of {{ field.name }}'s elements have a value. Empty where the file did not carry
+     * the column, and then every index is out of range anyway.
+     */
+    public boolean[] {{ field.element_presence_member }} = new boolean[0];
+{{~ end ~}}
 {{~ end ~}}
 {{~## The element type of each record group. Nested rather than a file of its own, which is
    what Java would demand of a public top-level type - and nesting scopes the name, so two

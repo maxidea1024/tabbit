@@ -127,6 +127,12 @@ pub struct Column {
     /// not expect the bitmap reads it as values, so `check_column` refuses a disagreement
     /// the same way it refuses a changed kind.
     pub nullable: bool,
+
+    /// Whether the block states, per element, which of an array's places hold a value.
+    ///
+    /// Independent of `nullable`: a column may say either, or both.
+    /// spec/nullable-array-elements.md.
+    pub element_nullable: bool,
 }
 
 /// A parsed header: the row count and the column descriptors that follow it.
@@ -1457,6 +1463,7 @@ pub fn read_table_header(reader: &mut Reader<'_>) -> Result<Header> {
             element: wire & 0x0f,
             kind: (wire >> 4) & 0x03,
             nullable: wire & 0x40 != 0,
+            element_nullable: wire & 0x80 != 0,
             encoding,
             count: element_count,
             byte_length,
@@ -1516,6 +1523,27 @@ pub fn read_presence(reader: &mut Reader<'_>, column: &Column, row_count: i32) -
     reader.read_byte_stream(encoding, (row_count.max(0) as usize + 7) / 8, "a presence bitmap")
 }
 
+/// A column's element bitmap, which sits behind the row bitmap and in front of the values.
+///
+/// Empty for a column that does not carry one. Its length is written ahead of it as a
+/// counter32, because a variable-length column's total is the sum of its row lengths and
+/// those live inside the value block - a reader meeting the bitmap first would have nothing
+/// to size it by. spec/nullable-array-elements.md.
+pub fn read_element_presence(reader: &mut Reader<'_>, column: &Column) -> Result<Vec<u8>> {
+    if !column.element_nullable {
+        return Ok(Vec::new());
+    }
+
+    let elements = reader.read_counter32()?;
+    let encoding = reader.read_u8()?;
+
+    reader.read_byte_stream(
+        encoding,
+        (elements.max(0) as usize + 7) / 8,
+        "an element presence bitmap",
+    )
+}
+
 /// Whether a row has a value, for a column that says which do.
 ///
 /// An empty bitmap means the column is not optional, and then every row has one.
@@ -1524,7 +1552,39 @@ pub fn is_present(presence: &[u8], row: usize) -> bool {
 }
 
 /// That a column is what the generated member expects, or a lossless promotion of it.
+/// The same, for a member whose array elements may be absent.
+pub fn check_column_with_elements(
+    column: &Column, field: &'static str, kind: u8, count: i32, nullable: bool,
+    accepted: &[u8],
+) -> Result<()> {
+    check_element_nullable(column, field, true)?;
+    check_column_shape(column, field, kind, count, nullable, accepted)
+}
+
+/// That the file and the generated member agree about the element bitmap.
+///
+/// The same statement `check_column` makes about the row one: code not expecting a bitmap
+/// would read it as values. spec/nullable-array-elements.md.
+fn check_element_nullable(column: &Column, field: &'static str, expected: bool) -> Result<()> {
+    if column.element_nullable != expected {
+        return Err(Error::ColumnMismatch {
+            field,
+            detail: "the file and the generated member disagree about whether this column's                      elements are optional; the schema changed, regenerate the code or                      rebuild the data",
+        });
+    }
+
+    Ok(())
+}
+
 pub fn check_column(
+    column: &Column, field: &'static str, kind: u8, count: i32, nullable: bool,
+    accepted: &[u8],
+) -> Result<()> {
+    check_element_nullable(column, field, false)?;
+    check_column_shape(column, field, kind, count, nullable, accepted)
+}
+
+fn check_column_shape(
     column: &Column, field: &'static str, kind: u8, count: i32, nullable: bool,
     accepted: &[u8],
 ) -> Result<()> {

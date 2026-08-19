@@ -76,6 +76,10 @@ public final class {{ table.table_name }} {
 {{~## Declared once for the whole switch, like the cursor: a `case` is not its own scope in
       Java, so a declaration inside two of them collides. ##~}}
         byte[] presence;
+{{~ if table.needs_element_presence ~}}
+        byte[] elementPresence;
+        int elementAt;
+{{~ end ~}}
 {{~ end ~}}
 
         // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
@@ -101,6 +105,13 @@ public final class {{ table.table_name }} {
                     // lets the read shapes below stay as they are.
                     presence = TcbReader.readPresence(reader, column, count);
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+                    // Behind the row bitmap and in front of the values, walked with a counter
+                    // that steps once per element of every row.
+                    // spec/nullable-array-elements.md.
+                    elementPresence = TcbReader.readElementPresence(reader, column);
+                    elementAt = 0;
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
       as well: its block states an encoding for them and one for the row lengths, and the
       cursor is what decodes both. After the presence bitmap, which sits in front of the
@@ -124,8 +135,15 @@ public final class {{ table.table_name }} {
                         int elementCount;
                         {{ column_view.length_read }}
                         record.{{ column_view.name }} = new {{ column_view.element_type }}[elementCount];
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} = new boolean[elementCount];
+{{~ end ~}}
                         for (int j = 0; j < elementCount; j++) {
                             record.{{ column_view.name }}[j] = {{ column_view.read_element }};
+{{~ if column_view.has_optional_elements ~}}
+                            record.{{ column_view.element_presence_member }}[j] =
+                                TcbReader.isPresent(elementPresence, elementAt++);
+{{~ end ~}}
                         }
 {{~ else if column_view.kind == 'record_var' ~}}
                         int elementCount;

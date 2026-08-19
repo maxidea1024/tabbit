@@ -38,6 +38,24 @@ assert($rows[0]->tagArray === ['a', 'b']);
 ");
 
     /// <summary>
+    /// An array whose elements may be absent: the per-element answer beside the value.
+    /// </summary>
+    /// <remarks>
+    /// Read rather than compiled, which is what this gate is for: the bitmap is walked with a
+    /// counter that steps once per element of every row, and a reader that stepped per row
+    /// would still run. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void Optional_array_elements_read()
+        => AssertReads("nullable-elements", "NullableElementsAccessor", @"
+$rows = $accessor->listing->records;
+assert(count($rows) === 5);
+assert($rows[1]->hasHolesAt === [true, false, true]);
+assert($rows[3]->words === ['a', '', 'c']);
+assert($rows[3]->hasWordsAt === [true, true, true]);
+");
+
+    /// <summary>
     /// A record array whose length is each row's - including the row that filled in none of
     /// it, and the one whose gap is a value rather than an end.
     /// </summary>

@@ -470,8 +470,9 @@ export class DropTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._costs = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._costs.push(cursor.nextI32())
+            }
           }
           for (let i = 0; i < rowCount; ++i) {
             records[i]._costsHasValue = tabbit.isPresent(presence, i)

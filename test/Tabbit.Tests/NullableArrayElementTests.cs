@@ -117,20 +117,20 @@ public class NullableArrayElementTests
     /// A target that cannot say an element is absent refuses the column rather than losing it.
     /// </summary>
     /// <remarks>
-    /// The staging that makes a partial rollout safe: the meaning lands in JSON and in the
-    /// file first, and everything that would have to *read* a bit per element says so by name
-    /// until it can. The same shape `SupportsOptionalFields` used while thirteen readers
-    /// learned the row bitmap.
+    /// `html` is the target here because it will never carry a bit per element - it renders a
+    /// page, and a page has nowhere to put one - so this gate does not move as the thirteen
+    /// readers learn the bitmap one at a time. The fixture has nothing optional at the row
+    /// level, so what the target meets is this refusal rather than the one beside it.
     /// </remarks>
     [Fact]
     public void A_target_that_cannot_say_it_refuses_the_column()
     {
-        var result = TabbitRunner.Convert("nullable-elements-csharp");
+        var result = TabbitRunner.Convert("element-only");
 
         Assert.False(result.Succeeded, "A target with no element presence accepted the column.");
 
         Assert.Contains("does not support arrays whose elements may be absent yet", result.StdOut);
-        Assert.Contains("`Listing` column `Holes` is typed `int?[]`", result.StdOut);
+        Assert.Contains("`Holder` column `Holes` is typed `int?[]`", result.StdOut);
     }
 
     /// <summary>
@@ -205,6 +205,73 @@ public class NullableArrayElementTests
         }
 
         return wires;
+    }
+
+    /// <summary>
+    /// The generated C# reads the bitmap back to the same answers the JSON holds.
+    /// </summary>
+    /// <remarks>
+    /// The question a compile cannot answer and a golden tree cannot either: the file carries
+    /// one bit per element written, the generated code walks it with a counter that steps once
+    /// per element of every row, and whether those are the same walk is settled by reading.
+    ///
+    /// `words` is a `string?[]`, and it is in the comparison on purpose - an absent element and
+    /// an empty string are the same value, so only the bit tells them apart.
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void The_generated_reader_agrees_with_the_json()
+    {
+        var converted = TabbitRunner.Convert("nullable-elements");
+        Assert.True(converted.Succeeded,
+            $"Conversion failed.{Environment.NewLine}{converted.Describe()}");
+
+        var run = CsToolchain.ReadBack("nullable-elements", "cs-check-nullable-elements");
+
+        Assert.True(run.Succeeded, run.Output);
+
+        var read = JsonDocument.Parse(run.StdOut).RootElement;
+        var written = Rows();
+
+        Assert.Equal(written.GetArrayLength(), read.GetArrayLength());
+
+        for (int row = 0; row < written.GetArrayLength(); row++)
+        {
+            foreach (string column in new[] { "holes", "both", "words" })
+            {
+                // Serialized rather than compared as raw text: one side was written indented
+                // and the other by a harness that had no reason to be.
+                Assert.Equal(
+                    JsonSerializer.Serialize(written[row].GetProperty(column)),
+                    JsonSerializer.Serialize(read[row].GetProperty(column)));
+            }
+        }
+    }
+
+    /// <summary>
+    /// The TypeScript reader walks the bitmap to the same answers the JSON holds.
+    /// </summary>
+    /// <remarks>
+    /// A second reader, because the walk is the part a single implementation can get
+    /// consistently wrong: the counter steps once per element of every row, and a reader
+    /// that stepped per row instead would still be self-consistent. The JSON side is read
+    /// from the file rather than through the generated JSON path, so both sides do not go
+    /// through one reader. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void The_typescript_reader_agrees_with_the_json()
+    {
+        var converted = TabbitRunner.Convert("nullable-elements");
+        Assert.True(converted.Succeeded,
+            $"Conversion failed.{Environment.NewLine}{converted.Describe()}");
+
+        Assert.True(TypescriptToolchain.IsAvailable(out string why),
+            $"Node toolchain required to run the TypeScript round trip. {why}");
+
+        var result = TypescriptRoundTrip.Run("nullable-elements", driver: "ts-check-nullable-elements");
+
+        Assert.True(result.Succeeded,
+            $"JSON and binary read paths disagree.{Environment.NewLine}{result.Output}");
     }
 
     /// <summary>

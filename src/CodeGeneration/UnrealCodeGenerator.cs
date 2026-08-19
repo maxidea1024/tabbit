@@ -143,6 +143,12 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// beside `X` in FPostProcessSettings. spec/optional-fields.md has the reasoning.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
+
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
@@ -377,6 +383,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             NeedsCursor = table.WireColumns.Any(UsesCursor),
             Columns = table.WireColumns.Select(wire => BuildColumn(table, wire, members)).ToList(),
             NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+            NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
         };
     }
 
@@ -443,7 +450,9 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             IsFirstMember = wire.IsFirstMember,
             RecordTypeName = wire.Group.IsRecord ? RecordEntryName(table, wire.Group) : "",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = "bHas" + name,
+            ElementPresenceMember = "bHas" + name + "At",
             EmptyValue = EmptyValueOf(wire),
         };
     }
@@ -573,7 +582,9 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             // A record group has no presence of its own: absence inside one is the array's
             // length, not a bit per member.
             IsNullable = !sf.IsRecord && !sf.Fields[0].IsRequired,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = "bHas" + name,
+            ElementPresenceMember = "bHas" + name + "At",
 
             // Two reasons a member is written without a UPROPERTY, and it is written either
             // way: the value is read and usable from C++, and only Blueprint cannot see it.

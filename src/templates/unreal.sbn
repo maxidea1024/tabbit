@@ -124,6 +124,12 @@ struct {{ api_macro }} {{ table.record_name }}
     /** Whether this row has a value for {{ field.name }}. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "{{ table.raw_name }}")
     bool {{ field.presence_member }} = false;
+{{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+    /** Which of {{ field.name }}'s elements have a value. Empty where the file did not carry
+     * the column, and then every index is out of range anyway.
+     * spec/nullable-array-elements.md. */
+    TArray<bool> {{ field.element_presence_member }};
 
 {{~ end ~}}
 {{~ end ~}}};

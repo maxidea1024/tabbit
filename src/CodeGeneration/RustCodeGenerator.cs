@@ -150,6 +150,12 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// `has_x_at(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, RustRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -580,7 +586,9 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             IsFixedRecordArray = false,
             ElementCount = 0,
             IsNullable = !sf.Fields[0].IsRequired,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = PresenceMember(sf) + "_at",
         };
     }
 
@@ -766,7 +774,9 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             // a scalar's row does, one level down.
             ReadElement = ScalarReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = PresenceMember(wire.Group) + "_at",
         };
     }
 
@@ -863,7 +873,12 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"tabbit::check_column(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, &[{accepted}])?;";
+        // And the other bitmap, by the same argument as the row one. A function of its own
+        // because Rust has no default arguments.
+        string check = wire.HasOptionalElements ? "check_column_with_elements" : "check_column";
+
+        return $"tabbit::{check}(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+            + $"{nullable}, &[{accepted}])?;";
     }
 
     /// <summary>

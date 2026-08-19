@@ -214,8 +214,9 @@ export class ArrayTypesTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._tags = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._tags.push(cursor.nextString())
+            }
           }
           break
         case 3:
@@ -225,8 +226,9 @@ export class ArrayTypesTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._costs = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._costs.push(cursor.nextI32())
+            }
           }
           break
         case 4:
@@ -236,8 +238,9 @@ export class ArrayTypesTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._weights = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._weights.push(cursor.nextF32())
+            }
           }
           break
         case 5:
@@ -247,8 +250,9 @@ export class ArrayTypesTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._grades = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._grades.push(cursor.nextI32() as Grade)
+            }
           }
           break
         case 6:

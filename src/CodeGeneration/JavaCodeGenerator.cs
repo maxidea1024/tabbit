@@ -116,6 +116,12 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, JavaRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -336,6 +342,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         NeedsCursor = table.WireColumns.Any(UsesCursor),
 
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+        NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
 
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
@@ -407,7 +414,9 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             IsFixedRecordArray = false,
             ElementCount = 0,
             IsNullable = !sf.Fields[0].IsRequired,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = PresenceMember(sf) + "At",
         };
     }
 
@@ -620,7 +629,9 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             ReadScalar = ScalarReadExpression(wire),
             ReadElement = ReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = PresenceMember(wire.Group) + "At",
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -801,7 +812,12 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"TcbReader.checkColumn(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {accepted});";
+        // And the other bitmap, by the same argument as the row one. A method of its own
+        // because the accepted elements are varargs and Java has no default parameters.
+        string check = wire.HasOptionalElements ? "checkColumnWithElements" : "checkColumn";
+
+        return $"TcbReader.{check}(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+            + $"{nullable}, {accepted});";
     }
 
     /// <summary>

@@ -150,6 +150,9 @@ internal sealed class CsTableView
     /// </remarks>
     public required bool NeedsPresence { get; set; }
 
+    /// <summary>Whether any column of this table carries an element bitmap.</summary>
+    public bool NeedsElementPresence { get; set; }
+
     /// <summary>`"A", "B"` - the field-name array literal's contents.</summary>
     public required string FieldNameLiterals { get; set; }
 
@@ -206,6 +209,12 @@ internal sealed class CsColumnView
     /// loop, and each row records what it said.
     /// </remarks>
     public required bool IsNullable { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The field holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceField { get; set; } = "";
 
     /// <summary>The backing field the presence flag lands in, for a nullable column.</summary>
     public required string PresenceField { get; set; }
@@ -411,6 +420,12 @@ internal sealed class CsFieldView
     /// and reads the type's empty value where a row had none.
     /// </remarks>
     public required bool IsNullable { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The field holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceField { get; set; } = "";
 
     /// <summary>The backing field the presence flag lands in. Empty when not optional.</summary>
     public required string PresenceField { get; set; }

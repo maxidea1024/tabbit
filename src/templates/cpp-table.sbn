@@ -50,6 +50,17 @@ struct {{ table.record_name }} {
   /// Whether this row has a value for `{{ field.name }}`.
   bool {{ field.presence_member }} = false;
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+{{~## The same answer one level in. Empty where the file did not carry the column, and then
+   every index is out of range anyway. ##~}}
+  std::vector<bool> {{ field.element_presence_member }};
+
+  /// Whether element `index` of `{{ field.name }}` has a value.
+  bool has_{{ field.name }}_at(std::size_t index) const {
+    return index >= {{ field.element_presence_member }}.size()
+        || {{ field.element_presence_member }}[index];
+  }
+{{~ end ~}}
 {{~ end ~}}
 };
 
@@ -124,6 +135,10 @@ class {{ table.table_name }} {
    declaration inside two of them collides. ##~}}
     std::vector<std::uint8_t> presence;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+    std::vector<std::uint8_t> element_presence;
+    std::size_t element_at = 0;
+{{~ end ~}}
 
     for (const tabbit::Column& column : header.columns) {
       const std::size_t block_end = reader.position() + static_cast<std::size_t>(column.byte_length);
@@ -139,6 +154,12 @@ class {{ table.table_name }} {
    are written for every row either way, which is what lets the read shapes below stay as
    they are. ##~}}
           presence = tabbit::read_presence(reader, column, row_count);
+{{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+{{~## Behind the row bitmap and in front of the values, walked with a counter that steps
+   once per element of every row. spec/nullable-array-elements.md. ##~}}
+          element_presence = tabbit::read_element_presence(reader, column);
+          element_at = 0;
 {{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
    as well: its block states an encoding for them and one for the row lengths, and the
@@ -165,8 +186,16 @@ class {{ table.table_name }} {
 {{~ if column_view.kind == "var_array" ~}}
             {{ column_view.length_read }}
             record.{{ column_view.name }}.resize(static_cast<std::size_t>(element_count));
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }}.assign(
+                static_cast<std::size_t>(element_count), true);
+{{~ end ~}}
             for (std::int32_t j = 0; j < element_count; ++j) {
               {{ column_view.read_var_element }};
+{{~ if column_view.has_optional_elements ~}}
+              record.{{ column_view.element_presence_member }}[static_cast<std::size_t>(j)] =
+                  tabbit::is_present(element_presence, element_at++);
+{{~ end ~}}
             }
 {{~ else if column_view.kind == "record_var" ~}}
 {{~## A trimmed record array: the length is written per row, once per member, and every

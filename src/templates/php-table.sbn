@@ -175,6 +175,13 @@ final class {{ table.table_name }}
                     // lets the read shapes below stay as they are.
                     $presence = $reader->readPresence($column, $count);
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+                    // Behind the row bitmap and in front of the values, walked with a counter
+                    // that steps once per element of every row.
+                    // spec/nullable-array-elements.md.
+                    $elementPresence = $reader->readElementPresence($column);
+                    $elementAt = 0;
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
       as well: its block states an encoding for them and one for the row lengths, and the
       cursor is what decodes both. After the presence bitmap, which sits in front of the
@@ -197,8 +204,15 @@ final class {{ table.table_name }}
 {{~ if column_view.kind == 'var_array' ~}}
                         {{ column_view.length_read }}
                         $record->{{ column_view.name }} = [];
+{{~ if column_view.has_optional_elements ~}}
+                        $record->{{ column_view.element_presence_member }} = [];
+{{~ end ~}}
                         for ($j = 0; $j < $elementCount; $j++) {
                             $record->{{ column_view.name }}[] = {{ column_view.read_element }};
+{{~ if column_view.has_optional_elements ~}}
+                            $record->{{ column_view.element_presence_member }}[] =
+                                TcbReader::isPresent($elementPresence, $elementAt++);
+{{~ end ~}}
                         }
 {{~ else if column_view.kind == 'record_var' ~}}
                         {{ column_view.length_read }}

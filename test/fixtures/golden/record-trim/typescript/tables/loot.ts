@@ -300,8 +300,9 @@ export class LootTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._tagArray = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._tagArray.push(cursor.nextString())
+            }
           }
           break
         default:

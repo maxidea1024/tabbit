@@ -108,6 +108,12 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, RubyRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -284,6 +290,11 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
             if (!sf.IsRecord && !sf.Fields[0].IsRequired)
                 accessors.Add(PresenceMember(sf));
+
+            // And the per-element answer, which is an array rather than a flag.
+            // spec/nullable-array-elements.md.
+            if (!sf.IsRecord && !sf.Fields[0].ElementsRequired)
+                accessors.Add(ElementPresenceMember(sf));
         }
 
         return new RubyTableView
@@ -343,6 +354,11 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         if (nullable)
             initializers.Add($"@{PresenceMember(sf)} = false");
 
+        // Empty until the read fills it: an index into an empty array is out of range, and
+        // the answer there is that the element has a value.
+        if (!sf.Fields[0].ElementsRequired)
+            initializers.Add($"@{ElementPresenceMember(sf)} = []");
+
         return new RubyFieldView
         {
             Comment = CommentLines(sf.FirstField!.Comment),
@@ -353,7 +369,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             RecordAccessorNames = "",
             Members = Array.Empty<RubyRecordMemberView>(),
             IsNullable = nullable,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = ElementPresenceMember(sf),
         };
     }
 
@@ -517,7 +535,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             ReadScalar = ScalarReadExpression(wire),
             ReadElement = ElementReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = ElementPresenceMember(wire.Group),
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -539,6 +559,10 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
+    /// <summary>The member holding which of an array's elements have a value.</summary>
+    private static string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase() + "_at";
+
     private static string PresenceMember(SerialField sf)
         => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase();
 
@@ -785,7 +809,11 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"Tabbit.check_column(column, '{tableName}.{wire.Name}', {kind}, {count}, {nullable}, [{accepted}])";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"Tabbit.check_column(column, '{tableName}.{wire.Name}', {kind}, {count}, "
+            + $"{nullable}, [{accepted}]{elements})";
     }
 
     /// <summary>

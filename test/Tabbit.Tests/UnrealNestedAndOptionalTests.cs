@@ -32,6 +32,18 @@ public class UnrealNestedAndOptionalTests
         => AssertHeaderToolAccepts("record-trim", "RecordTrim", "FRecordTrim.h");
 
     /// <summary>
+    /// An array whose elements may be absent, which adds a `TArray&lt;bool&gt;` per column.
+    /// </summary>
+    /// <remarks>
+    /// The header tool is the question here: the per-element answer is a member like any
+    /// other, and whether UHT accepts it beside a reflected value is not something a golden
+    /// tree can say. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void Optional_array_elements_are_types_the_header_tool_accepts()
+        => AssertHeaderToolAccepts("nullable-elements", "NullableElements", "FNullableElements.h");
+
+    /// <summary>
     /// A record whose member is itself a record, which declares a USTRUCT per level.
     /// </summary>
     /// <remarks>

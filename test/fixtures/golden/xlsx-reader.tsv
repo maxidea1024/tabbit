@@ -10,6 +10,7 @@ conformance-skew/conformance-skew.xlsx	sheets=1 rows=69 cells=843 chars=9282 nam
 conformance/conformance.xlsx	sheets=1 rows=69 cells=803 chars=9065 names=0 skipped-names=0 notes=0 hash=98fdf93d2457873d
 core/core.xlsx	sheets=7 rows=74 cells=380 chars=3273 names=0 skipped-names=0 notes=0 hash=3a658ed65d8a73d8
 double-star/double-star.xlsx	sheets=1 rows=9 cells=17 chars=130 names=0 skipped-names=0 notes=0 hash=25fdf4db492df0d8
+element-only/element-only.xlsx	sheets=1 rows=10 cells=20 chars=196 names=0 skipped-names=0 notes=0 hash=3c6e3ffbe8653408
 enum-by-value/enum-by-value.xlsx	sheets=1 rows=10 cells=35 chars=234 names=0 skipped-names=0 notes=0 hash=ac207e36b779d30f
 evolution-v1/evolution-v1.xlsx	sheets=3 rows=30 cells=66 chars=570 names=0 skipped-names=0 notes=0 hash=19d36dca7470fb43
 evolution-v2/evolution-v2.xlsx	sheets=3 rows=30 cells=70 chars=591 names=0 skipped-names=0 notes=0 hash=d17888ca2e984e90

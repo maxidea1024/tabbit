@@ -109,6 +109,12 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, DartRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -283,6 +289,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         NeedsCursor = table.WireColumns.Any(UsesCursor),
 
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+        NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
     };
 
     /// <summary>
@@ -326,6 +333,12 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         if (nullable)
             declarations.Add($"bool {PresenceMember(sf)} = false;");
 
+        // And the per-element answer, empty until the read fills it: an index into an empty
+        // list is out of range, and the answer there is that the element has a value.
+        // spec/nullable-array-elements.md.
+        if (!sf.Fields[0].ElementsRequired)
+            declarations.Add($"List<bool> {ElementPresenceMember(sf)} = const <bool>[];");
+
         return new DartFieldView
         {
             Comment = CommentLines(sf.FirstField!.Comment),
@@ -335,7 +348,9 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             RecordTypeName = "",
             Members = Array.Empty<DartRecordMemberView>(),
             IsNullable = nullable,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = ElementPresenceMember(sf),
         };
     }
 
@@ -535,7 +550,9 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             ReadElement = ElementReadExpression(wire),
             LengthRead = UsesCursor(wire) ? "cursor.nextLength()" : "reader.readCounter32()",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = ElementPresenceMember(wire.Group),
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -559,6 +576,10 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// </remarks>
     private static string PresenceMember(SerialField sf)
         => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+
+    /// <summary>The member holding which of an array's elements have a value.</summary>
+    private static string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase() + "At";
 
     /// <summary>What one record member starts at, for the same reason an ordinary one does.</summary>
     /// <summary>What a stored key holds before a row is read.</summary>
@@ -867,7 +888,11 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"checkColumn(column, '{tableName}.{wire.Name}', {kind}, {count}, {nullable}, [{accepted}]);";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"checkColumn(column, '{tableName}.{wire.Name}', {kind}, {count}, "
+            + $"{nullable}, [{accepted}]{elements});";
     }
 
     /// <summary>

@@ -68,6 +68,18 @@ public class JavaNestedAndOptionalTests
     [Fact]
     public void A_reference_inside_a_record_compiles() => AssertCompiles("record-ref");
 
+    /// <summary>
+    /// An array whose elements may be absent, which reads a second bitmap per column.
+    /// </summary>
+    /// <remarks>
+    /// The read walks the bitmap with a counter that steps once per element of every row, and
+    /// the per-element answer beside the value is a shape the page did not have before.
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void Optional_array_elements_compile()
+        => AssertCompiles("nullable-elements");
+
     private static void AssertCompiles(string scenario)
     {
         var conversion = TabbitRunner.Convert(scenario);

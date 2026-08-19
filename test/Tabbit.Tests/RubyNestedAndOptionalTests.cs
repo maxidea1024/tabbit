@@ -38,6 +38,24 @@ raise 'tags' unless rows[0].tag_array == %w[a b]
 ");
 
     /// <summary>
+    /// An array whose elements may be absent: the per-element answer beside the value.
+    /// </summary>
+    /// <remarks>
+    /// Read rather than compiled, which is what this gate is for: the bitmap is walked with a
+    /// counter that steps once per element of every row, and a reader that stepped per row
+    /// would still run. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void Optional_array_elements_read()
+        => AssertReads("nullable-elements", "NullableElements", @"
+rows = accessor.listing.records
+raise 'row count' unless rows.length == 5
+raise 'holes' unless rows[1].has_holes_at == [true, false, true]
+raise 'words' unless rows[3].words == ['a', '', 'c']
+raise 'words presence' unless rows[3].has_words_at == [true, true, true]
+");
+
+    /// <summary>
     /// A record array whose length is each row's - including the row that filled in none of
     /// it, and the one whose gap is a value rather than an end.
     /// </summary>

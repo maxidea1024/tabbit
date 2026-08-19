@@ -133,6 +133,13 @@ class {{ table.table_name }}:
                 # read shapes below stay as they are.
                 presence = tabbit.read_presence(reader, column, count)
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+                # Behind the row bitmap and in front of the values, walked with a counter
+                # that steps once per element of every row.
+                # spec/nullable-array-elements.md.
+                element_presence = tabbit.read_element_presence(reader, column)
+                element_at = 0
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
       as well: its block states an encoding for them and one for the row lengths, and the
       cursor is what decodes both. After the presence bitmap, which sits in front of the
@@ -155,6 +162,12 @@ class {{ table.table_name }}:
 {{~ if column_view.kind == 'var_array' ~}}
                     {{ column_view.length_read }}
                     record.{{ column_view.name }} = [{{ column_view.read_element }} for _ in range(element_count)]
+{{~ if column_view.has_optional_elements ~}}
+                    record.{{ column_view.element_presence_member }} = [
+                        tabbit.is_present(element_presence, element_at + at)
+                        for at in range(element_count)]
+                    element_at += element_count
+{{~ end ~}}
 {{~ else if column_view.kind == 'record_var' ~}}
                     {{ column_view.length_read }}
 {{~ if column_view.is_first_member ~}}

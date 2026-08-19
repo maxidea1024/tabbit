@@ -146,6 +146,12 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// spec/optional-fields.md has the reasoning.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
+
+    /// <summary>
+    /// `has_x_at(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
@@ -438,6 +444,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+        NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
     };
 
     /// <summary>
@@ -661,7 +668,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // A record group has no presence of its own: absence inside one is the array's
             // length, not a bit per member.
             IsNullable = !sf.IsRecord && !sf.Fields[0].IsRequired,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = "has_" + name,
+            ElementPresenceMember = "has_" + name + "_at_",
         };
     }
 
@@ -726,7 +735,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             IsFirstMember = wire.IsFirstMember,
             RecordTypeName = wire.Group.IsRecord ? RecordEntryName(table, wire.Group) : "",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = "has_" + name,
+            ElementPresenceMember = "has_" + name + "_at_",
             EmptyValue = EmptyValueOf(wire),
         };
     }
@@ -1225,7 +1236,11 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         // expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"tabbit::check_column(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {{{accepted}}});";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"tabbit::check_column(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+            + $"{nullable}, {{{accepted}}}{elements});";
     }
 
     /// <summary>

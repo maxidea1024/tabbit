@@ -139,6 +139,12 @@ export interface TcbColumn {
    * which of those to believe and nothing about the layout after it.
    */
   nullable: boolean
+  /**
+   * Whether the block states, per element, which of an array's places hold a value.
+   * Independent of `nullable`: a column may say either, or both.
+   * spec/nullable-array-elements.md.
+   */
+  elementNullable: boolean
   /** How the block's values are laid out: one of the ENCODING_* constants. */
   encoding: number
   /** Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
@@ -1259,6 +1265,7 @@ export function readTableHeader(reader: TcbReader): { rowCount: number, columns:
       element: wire & 0x0f,
       kind: (wire >> 4) & 0x03,
       nullable: (wire & 0x40) !== 0,
+      elementNullable: (wire & 0x80) !== 0,
       encoding,
       count,
       byteLength,
@@ -1304,7 +1311,16 @@ export function readTableHeader(reader: TcbReader): { rowCount: number, columns:
  */
 export function checkColumn(
   column: TcbColumn, fieldName: string, kind: number, count: number, nullable: boolean,
-  accepted: number[]): void {
+  accepted: number[], elementNullable = false): void {
+  // The same statement about the other bitmap: generated code not expecting one would read
+  // it as values. spec/nullable-array-elements.md.
+  if (column.elementNullable !== elementNullable) {
+    throw new TcbError(
+      `${fieldName}: the file and the generated member disagree about whether this column's elements are optional` +
+      ` (file: ${column.elementNullable ? 'optional' : 'required'}, ` +
+      `member: ${elementNullable ? 'optional' : 'required'}). ` +
+      'The schema changed; regenerate the code or rebuild the data.')
+  }
   // Nullability is part of the shape: a file that says optional puts a presence bitmap at
   // the front of the block, and generated code not expecting one would read the bitmap as
   // values. Adding or removing a `?` is a schema change like any other.
@@ -1361,6 +1377,24 @@ export function readPresence(
   const encoding = reader.readFixed8()
 
   return reader.readByteStream(encoding, (rowCount + 7) >> 3, 'a presence bitmap')
+}
+
+/**
+ * A column's element bitmap, or null for a column that has none.
+ *
+ * Behind the row bitmap and in front of the values. Its length is written ahead of it as a
+ * counter32, because a variable-length column's total is the sum of row lengths and those
+ * live inside the value block - a reader meeting the bitmap first would have nothing to
+ * size it by. One bit per element written, in the order the block wrote them.
+ */
+export function readElementPresence(
+  reader: TcbReader, column: TcbColumn): Uint8Array | null {
+  if (!column.elementNullable) return null
+
+  const elements = reader.readCounter32()
+  const encoding = reader.readFixed8()
+
+  return reader.readByteStream(encoding, (elements + 7) >> 3, 'an element presence bitmap')
 }
 
 /**

@@ -111,7 +111,11 @@ module Tabbit
   # the column's shape rather than a detail of its contents: a reader that does not expect
   # the bitmap reads it as values, so check_column refuses a disagreement the same way it
   # refuses a changed kind.
-  Column = Struct.new(:tag, :element, :kind, :encoding, :count, :byte_length, :nullable)
+  # `element_nullable` says the block states, per element, which of an array's places hold
+  # a value. Independent of `nullable`: a column may say either, or both.
+  # spec/nullable-array-elements.md.
+  Column = Struct.new(:tag, :element, :kind, :encoding, :count, :byte_length, :nullable,
+                      :element_nullable)
 
   # A table file is truncated, malformed, or not a table file.
   class TcbError < StandardError; end
@@ -1029,7 +1033,7 @@ module Tabbit
       element_count = reader.read_counter32
       byte_length = reader.read_uint32
       Column.new(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, element_count, byte_length,
-                 (wire & 0x40) != 0)
+                 (wire & 0x40) != 0, (wire & 0x80) != 0)
     end
 
     # What the descriptors say about the file, checked before anybody allocates for the
@@ -1082,6 +1086,21 @@ module Tabbit
     reader.read_byte_stream(encoding, (row_count + 7) / 8, 'a presence bitmap')
   end
 
+  # A column's element bitmap, behind the row bitmap and in front of the values.
+  #
+  # Empty for a column that does not carry one. Its length is written ahead of it as a
+  # counter32, because a variable-length column's total is the sum of its row lengths and
+  # those live inside the value block - a reader meeting the bitmap first would have nothing
+  # to size it by. spec/nullable-array-elements.md.
+  def self.read_element_presence(reader, column)
+    return [] unless column.element_nullable
+
+    elements = reader.read_counter32
+    encoding = reader.read_uint8
+
+    reader.read_byte_stream(encoding, (elements + 7) / 8, 'an element presence bitmap')
+  end
+
   # Whether a row has a value, for a column that says which do.
   #
   # An empty bitmap means the column is not optional, and then every row has one.
@@ -1091,7 +1110,17 @@ module Tabbit
 
   # That a column is what the generated member expects, or a lossless promotion of it.
   # Refusal is by name and both types, never by reading anyway.
-  def self.check_column(column, field_name, kind, count, nullable, accepted)
+  def self.check_column(column, field_name, kind, count, nullable, accepted,
+                        element_nullable = false)
+    # The same statement about the other bitmap: code not expecting one would read it as
+    # values. spec/nullable-array-elements.md.
+    if column.element_nullable != element_nullable
+      raise TcbError,
+            "#{field_name}: the file and the generated member disagree about whether this " \
+            "column's elements are optional. The schema changed; regenerate the code or " \
+            'rebuild the data.'
+    end
+
     # Nullability is part of the shape: a file that says optional puts a presence bitmap in
     # front of the block, and code not expecting one would read the bitmap as values. So
     # adding or removing a `?` is a schema change like any other, caught here rather than in

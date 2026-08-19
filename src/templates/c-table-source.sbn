@@ -22,6 +22,10 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
    * switch's cases share its scope either way. */
   const uint8_t* presence = NULL;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+  const uint8_t* element_presence = NULL;
+  int32_t element_at = 0;
+{{~ end ~}}
 
   if (!tb_read_table_header(reader, &table->count, &columns, &column_count))
     return false;
@@ -84,6 +88,12 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
        * below stay as they are. */
       (void)tb_read_presence(reader, column, table->count, &presence);
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+      /* Behind the row bitmap and in front of the values, walked with a counter that steps
+       * once per element of every row. spec/nullable-array-elements.md. */
+      (void)tb_read_element_presence(reader, column, &element_presence);
+      element_at = 0;
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
    as well: its block states an encoding for them and one for the row lengths, and the
    cursor is what decodes both. After the presence bitmap, which sits in front of the
@@ -113,6 +123,25 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
         if (element_count > 0 && record->{{ column_view.name }} == NULL)
           return tb_fail_with(reader, "out of memory allocating an array");
 
+{{~ if column_view.has_optional_elements ~}}
+{{~## One bool per element, in the arena beside the values: the record hands out a pointer,
+      and a pointer into the arena lives exactly as long as the table does. ##~}}
+        {
+          bool* element_presence_out = (bool*)tb_arena_alloc(
+            &table->arena, (size_t)element_count * sizeof(bool));
+
+          if (element_count > 0 && element_presence_out == NULL)
+            return tb_fail_with(reader, "out of memory allocating an element presence array");
+
+          record->{{ column_view.element_presence_member }} = element_presence_out;
+
+          for (element = 0; element < element_count; ++element)
+            element_presence_out[element] = tb_is_present(element_presence, element_at + element);
+        }
+
+        element_at += element_count;
+
+{{~ end ~}}
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
 {{~ if column_view.needs_scratch ~}}
         {

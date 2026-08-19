@@ -155,6 +155,14 @@ namespace Tabbit
          */
         bool bNullable = false;
 
+        /**
+         * Whether the block states, per element, which of an array's places hold a value.
+         *
+         * Independent of bNullable: a column may say either, or both.
+         * spec/nullable-array-elements.md.
+         */
+        bool bElementNullable = false;
+
         /** How the block's values are laid out: one of the Encoding* constants. */
         uint8 Encoding = 0;
 
@@ -1396,6 +1404,7 @@ namespace Tabbit
             Reader.Read(Wire);
             Column.Element = static_cast<uint8>(Wire & 0x0F);
             Column.bNullable = (Wire & 0x40) != 0;
+            Column.bElementNullable = (Wire & 0x80) != 0;
             Column.Kind = static_cast<uint8>((Wire >> 4) & 0x03);
 
             Reader.Read(Column.Encoding);
@@ -1539,6 +1548,39 @@ namespace Tabbit
     }
 
     /**
+     * A column's element bitmap, behind the row bitmap and in front of the values.
+     *
+     * Empty for a column that does not carry one. Its length is written ahead of it as a
+     * counter32, because a variable-length column's total is the sum of its row lengths and
+     * those live inside the value block - a reader meeting the bitmap first would have
+     * nothing to size it by. spec/nullable-array-elements.md.
+     */
+    inline void ReadElementPresence(FTabbitBinaryReader& Reader, const FTabbitColumn& Column,
+        TArray<uint8>& OutPresence)
+    {
+        OutPresence.Reset();
+
+        if (!Column.bElementNullable)
+        {
+            return;
+        }
+
+        int32 Elements = 0;
+        if (!Reader.ReadCounter32(Elements))
+        {
+            return;
+        }
+
+        uint8 Encoding = 0;
+        if (!Reader.Read(Encoding))
+        {
+            return;
+        }
+
+        Reader.ReadByteStream(Encoding, (Elements + 7) / 8, OutPresence);
+    }
+
+    /**
      * Whether a row has a value, for a column that says which do.
      *
      * An empty bitmap means the column is not optional and every row has one, so the
@@ -1550,11 +1592,23 @@ namespace Tabbit
     }
 
     inline bool CheckColumn(FTabbitBinaryReader& Reader, const FTabbitColumn& Column,
-        const TCHAR* FieldName, uint8 Kind, int32 Count, bool bNullable, uint32 Accepted)
+        const TCHAR* FieldName, uint8 Kind, int32 Count, bool bNullable, uint32 Accepted,
+        bool bElementNullable = false)
     {
         if (Reader.HasFailed())
         {
             return false;
+        }
+
+        // The same statement about the other bitmap: generated code not expecting one would
+        // read it as values. spec/nullable-array-elements.md.
+        if (Column.bElementNullable != bElementNullable)
+        {
+            return Reader.FailWith(FString::Printf(
+                TEXT("%s: the file and the generated member disagree about whether this column's")
+                TEXT(" elements are optional. The schema changed; regenerate the code or rebuild")
+                TEXT(" the data."),
+                FieldName));
         }
 
         // Nullability is part of the shape: a file that says optional puts a presence bitmap

@@ -123,6 +123,12 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, PythonRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -401,6 +407,11 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
             if (!sf.IsRecord && !sf.Fields[0].IsRequired)
                 slots.Add(PresenceMember(sf));
+
+            // And the per-element answer, which is a list rather than a flag.
+            // spec/nullable-array-elements.md.
+            if (!sf.IsRecord && !sf.Fields[0].ElementsRequired)
+                slots.Add(ElementPresenceMember(sf));
         }
 
         return new PythonTableView
@@ -465,6 +476,11 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         if (nullable)
             initializers.Add($"self.{PresenceMember(sf)} = False");
 
+        // Empty until the read fills it, for the same reason. An index into an empty list is
+        // out of range, and `has_x_at` answers true there.
+        if (!sf.Fields[0].ElementsRequired)
+            initializers.Add($"self.{ElementPresenceMember(sf)} = []");
+
         return new PythonFieldView
         {
             Comment = CommentLines(sf.FirstField!.Comment),
@@ -477,7 +493,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             RecordReprFormat = "",
             RecordReprValues = "",
             IsNullable = nullable,
+            HasOptionalElements = !sf.Fields[0].ElementsRequired,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = ElementPresenceMember(sf),
         };
     }
 
@@ -652,7 +670,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 ? "element_count = cursor.next_length()"
                 : "element_count = reader.read_counter32()",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = ElementPresenceMember(wire.Group),
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -676,6 +696,10 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// </remarks>
     private static string PresenceMember(SerialField sf)
         => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase();
+
+    /// <summary>The attribute holding which of an array's elements have a value.</summary>
+    private static string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase() + "_at";
 
     /// <summary>What one record member starts at, for the same reason an ordinary one does.</summary>
     /// <summary>
@@ -1100,7 +1124,11 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "True" : "False";
 
-        return $"tabbit.check_column(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, ({accepted}))";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", True" : "";
+
+        return $"tabbit.check_column(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+            + $"{nullable}, ({accepted}){elements})";
     }
 
     /// <summary>

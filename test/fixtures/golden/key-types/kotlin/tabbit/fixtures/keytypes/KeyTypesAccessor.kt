@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor

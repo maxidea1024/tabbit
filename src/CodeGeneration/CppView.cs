@@ -136,6 +136,9 @@ internal sealed class CppTableView
 
     /// <summary>Whether the read declares the presence buffer: true when any column is optional.</summary>
     public required bool NeedsPresence { get; set; }
+
+    /// <summary>Whether any column of this table carries an element bitmap.</summary>
+    public bool NeedsElementPresence { get; set; }
 }
 
 /// <summary>
@@ -224,6 +227,12 @@ internal sealed class CppFieldView
 
     /// <summary>The member the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 
     /// <summary>The member's name, escaped for C++.</summary>
     public required string Name { get; set; }
@@ -464,6 +473,12 @@ internal sealed class CppColumnView
 
     /// <summary>The member the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 
     /// <summary>What an absent row's value is set to, so both read paths agree.</summary>
     public required string EmptyValue { get; set; }

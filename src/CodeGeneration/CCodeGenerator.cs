@@ -124,6 +124,12 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
     /// <summary>An optional column becomes a `has_{name}` member beside the value.</summary>
     protected override bool SupportsOptionalFields => true;
+
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
@@ -464,6 +470,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         NeedsCursor = table.WireColumns.Any(UsesCursor),
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+        NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
 
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
     };
@@ -630,7 +637,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // A record group has no presence of its own: absence inside one is the array's
             // length, not a bit per member.
             IsNullable = !sf.IsRecord && !sf.Fields[0].IsRequired,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = "has_" + name,
+            ElementPresenceMember = "has_" + name + "_at",
         };
     }
 
@@ -685,7 +694,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 ? "tb_cursor_next_i32(&cursor, &scratch)"
                 : "tb_read_enum(reader, &scratch)",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = "has_" + name,
+            ElementPresenceMember = "has_" + name + "_at",
             EmptyAssignment = EmptyAssignmentOf(wire, $"table->records[row].{name}"),
         };
     }
@@ -778,6 +789,14 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         // Nullability rides with kind and count: a file that says optional puts a presence
         // bitmap in front of the block, and code not expecting one reads it as values.
         string nullable = wire.IsNullable ? "true" : "false";
+
+        // And the other bitmap, by the same argument. A function of its own because C has
+        // no default arguments. spec/nullable-array-elements.md.
+        if (wire.HasOptionalElements)
+        {
+            return $"(void)tb_check_column_elements(reader, column, \"{tableName}.{wire.Name}\", " +
+                   $"{kind}, {count}, {nullable}, {mask}, true);";
+        }
 
         return $"(void)tb_check_column(reader, column, \"{tableName}.{wire.Name}\", " +
                $"{kind}, {count}, {nullable}, {mask});";

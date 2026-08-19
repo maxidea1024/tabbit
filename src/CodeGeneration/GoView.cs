@@ -211,6 +211,12 @@ internal sealed class GoFieldView
 
     /// <summary>The member the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 }
 
 /// <summary>One member of a record group's generated struct.</summary>
@@ -367,6 +373,12 @@ internal sealed class GoColumnView
 
     /// <summary>The member the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 
     /// <summary>What an absent row's value is put back to, so both read paths agree.</summary>
     public required string EmptyValue { get; set; }

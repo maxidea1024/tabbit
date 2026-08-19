@@ -116,7 +116,7 @@ const int cipherChaCha20 = 1;
 /// One column as the file describes it.
 class Column {
   Column(this.tag, this.element, this.kind, this.encoding, this.count, this.byteLength,
-      this.nullable);
+      this.nullable, this.elementNullable);
 
   /// What identifies the column, instead of its position.
   final int tag;
@@ -138,6 +138,12 @@ class Column {
   /// not expect the bitmap reads it as values, so checkColumn refuses a disagreement the
   /// same way it refuses a changed kind.
   final bool nullable;
+
+  /// Whether the block states, per element, which of an array's places hold a value.
+  ///
+  /// Independent of [nullable]: a column may say either, or both.
+  /// spec/nullable-array-elements.md.
+  final bool elementNullable;
 }
 
 /// A parsed header: the row count and the column descriptors that follow it.
@@ -1329,7 +1335,7 @@ Header readTableHeader(TcbReader reader) {
     final byteLength = reader.readUint32();
     columns.add(
         Column(tag, wire & 0x0f, (wire >> 4) & 0x03, encoding, elementCount, byteLength,
-            (wire & 0x40) != 0));
+            (wire & 0x40) != 0, (wire & 0x80) != 0));
   }
 
   // What the descriptors say about the file, checked before anybody allocates for the
@@ -1383,6 +1389,24 @@ List<int> readPresence(TcbReader reader, Column column, int rowCount) {
   return reader.readByteStream(encoding, (rowCount + 7) ~/ 8, 'a presence bitmap');
 }
 
+/// A column's element bitmap, behind the row bitmap and in front of the values.
+///
+/// Empty for a column that does not carry one. Its length is written ahead of it as a
+/// counter32, because a variable-length column's total is the sum of its row lengths and
+/// those live inside the value block - a reader meeting the bitmap first would have nothing
+/// to size it by. spec/nullable-array-elements.md.
+List<int> readElementPresence(TcbReader reader, Column column) {
+  if (!column.elementNullable) {
+    return const <int>[];
+  }
+
+  final elements = reader.readCounter32();
+  final encoding = reader.readUint8();
+
+  return reader.readByteStream(
+      encoding, (elements + 7) ~/ 8, 'an element presence bitmap');
+}
+
 /// Whether a row has a value, for a column that says which do.
 ///
 /// An empty bitmap means the column is not optional, and then every row has one.
@@ -1392,7 +1416,15 @@ bool isPresent(List<int> presence, int row) =>
 /// That a column is what the generated member expects, or a lossless promotion of it.
 /// Refusal is by name and both types, never by reading anyway.
 void checkColumn(Column column, String fieldName, int kind, int count, bool nullable,
-    List<int> accepted) {
+    List<int> accepted, [bool elementNullable = false]) {
+  // The same statement about the other bitmap: code not expecting one would read it as
+  // values. spec/nullable-array-elements.md.
+  if (column.elementNullable != elementNullable) {
+    throw TcbException(
+        "$fieldName: the file and the generated member disagree about whether this column's "
+        'elements are optional. The schema changed; regenerate the code or rebuild the data.');
+  }
+
   // Nullability is part of the shape: a file that says optional puts a presence bitmap in
   // front of the block, and code not expecting one would read the bitmap as values. So
   // adding or removing a `?` is a schema change like any other, caught here rather than in

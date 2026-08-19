@@ -218,8 +218,9 @@ export class FlagsTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._set = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._set.push(cursor.nextI64())
+            }
           }
           break
         case 5:

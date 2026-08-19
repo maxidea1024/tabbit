@@ -127,9 +127,11 @@ CIPHER_CHACHA20 = 1
 class Column:
     """One column as the file describes it."""
 
-    __slots__ = ("tag", "element", "kind", "encoding", "count", "byte_length", "nullable")
+    __slots__ = ("tag", "element", "kind", "encoding", "count", "byte_length", "nullable",
+                 "element_nullable")
 
-    def __init__(self, tag, element, kind, encoding, count, byte_length, nullable):
+    def __init__(self, tag, element, kind, encoding, count, byte_length, nullable,
+                 element_nullable=False):
         self.tag = tag
         self.element = element
         self.kind = kind
@@ -142,6 +144,11 @@ class Column:
         # expect the bitmap reads it as values, so check_column refuses a disagreement the
         # same way it refuses a changed kind.
         self.nullable = nullable
+
+        # Whether the block states, per element, which of an array's places hold a value.
+        # Independent of `nullable`: a column may say either, or both.
+        # spec/nullable-array-elements.md.
+        self.element_nullable = element_nullable
 
 
 class TcbError(Exception):
@@ -1066,7 +1073,7 @@ def read_table_header(reader):
         byte_length = reader.read_uint32()
         columns.append(
             Column(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, element_count, byte_length,
-                   (wire & 0x40) != 0))
+                   (wire & 0x40) != 0, (wire & 0x80) != 0))
 
     # What the descriptors say about the file, checked before anybody allocates for the
     # row count. The blocks are all that follows the header, so their declared lengths have
@@ -1117,6 +1124,24 @@ def read_presence(reader, column, row_count):
         encoding, (row_count + 7) // 8, "a presence bitmap")
 
 
+def read_element_presence(reader, column):
+    """A column's element bitmap, behind the row bitmap and in front of the values.
+
+    Empty for a column that does not carry one. Its length is written ahead of it as a
+    counter32, because a variable-length column's total is the sum of its row lengths and
+    those live inside the value block - a reader meeting the bitmap first would have nothing
+    to size it by. spec/nullable-array-elements.md.
+    """
+    if not column.element_nullable:
+        return b""
+
+    elements = reader.read_counter32()
+    encoding = reader.read_uint8()
+
+    return reader.read_byte_stream(
+        encoding, (elements + 7) // 8, "an element presence bitmap")
+
+
 def is_present(presence, row):
     """Whether a row has a value, for a column that says which do.
 
@@ -1125,11 +1150,20 @@ def is_present(presence, row):
     return not presence or (presence[row >> 3] & (1 << (row & 7))) != 0
 
 
-def check_column(column, field_name, kind, count, nullable, accepted):
+def check_column(column, field_name, kind, count, nullable, accepted,
+                 element_nullable=False):
     """That a column is what the generated member expects, or a lossless promotion.
 
     Refusal is by name and both types, never by reading anyway.
     """
+    # The same statement about the other bitmap: code not expecting one would read it as
+    # values. spec/nullable-array-elements.md.
+    if column.element_nullable != element_nullable:
+        raise TcbError(
+            "%s: the file and the generated member disagree about whether this column's "
+            "elements are optional. The schema changed; regenerate the code or rebuild the "
+            "data." % (field_name,))
+
     # Nullability is part of the shape: a file that says optional puts a presence bitmap in
     # front of the block, and code not expecting one would read the bitmap as values. So
     # adding or removing a `?` is a schema change like any other, caught here rather than in

@@ -175,6 +175,12 @@ internal sealed class RubyFieldView
 
     /// <summary>The attribute the presence flag lands in, without its `@`.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 }
 
 /// <summary>One attribute of a record group's generated class.</summary>
@@ -308,6 +314,12 @@ internal sealed class RubyColumnView
 
     /// <summary>The attribute the presence flag lands in, without its `@`.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 
     /// <summary>What an absent row's value is put back to, so both read paths agree.</summary>
     public required string EmptyValue { get; set; }

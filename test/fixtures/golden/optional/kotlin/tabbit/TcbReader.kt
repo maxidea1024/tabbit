@@ -145,6 +145,12 @@ class Column(
      * same way it refuses a changed kind.
      */
     val nullable: Boolean,
+    /**
+     * Whether the block states, per element, which of an array's places hold a value.
+     * Independent of [nullable]: a column may say either, or both.
+     * spec/nullable-array-elements.md.
+     */
+    val elementNullable: Boolean,
 )
 
 /** A parsed header: the row count and the column descriptors that follow it. */
@@ -1398,7 +1404,7 @@ fun readTableHeader(reader: TcbReader): Header {
         columns.add(
             Column(
                 tag, wire and 0x0F, (wire shr 4) and 0x03, encoding, elementCount, byteLength,
-                (wire and 0x40) != 0))
+                (wire and 0x40) != 0, (wire and 0x80) != 0))
     }
 
     // What the descriptors say about the file, checked before anybody allocates for the
@@ -1436,6 +1442,25 @@ fun readTableHeader(reader: TcbReader): Header {
 }
 
 /**
+ * A column's element bitmap, which sits behind the row bitmap and in front of the values.
+ *
+ * Empty for a column that does not carry one. Its length is written ahead of it as a
+ * counter32, because a variable-length column's total is the sum of its row lengths and
+ * those live inside the value block - a reader meeting the bitmap first would have nothing
+ * to size it by. spec/nullable-array-elements.md.
+ */
+fun readElementPresence(reader: TcbReader, column: Column): ByteArray {
+    if (!column.elementNullable) {
+        return ByteArray(0)
+    }
+
+    val elements = reader.readCounter32()
+    val encoding = reader.readUInt8()
+
+    return reader.readByteStream(encoding, (elements + 7) / 8, "an element presence bitmap")
+}
+
+/**
  * A nullable column's presence bitmap, which sits at the front of its block.
  *
  * Empty for a column that is not optional, which is what lets the generated code call
@@ -1469,7 +1494,27 @@ fun isPresent(presence: ByteArray, row: Int): Boolean =
 fun checkColumn(
     column: Column, fieldName: String, kind: Int, count: Int, nullable: Boolean,
     vararg accepted: Int,
+) = checkColumn(column, fieldName, kind, count, nullable, false, *accepted)
+
+/** The same, for a member whose array elements may be absent. */
+fun checkColumnWithElements(
+    column: Column, fieldName: String, kind: Int, count: Int, nullable: Boolean,
+    vararg accepted: Int,
+) = checkColumn(column, fieldName, kind, count, nullable, true, *accepted)
+
+private fun checkColumn(
+    column: Column, fieldName: String, kind: Int, count: Int, nullable: Boolean,
+    elementNullable: Boolean, vararg accepted: Int,
 ) {
+    // The same statement about the other bitmap: code not expecting one would read it as
+    // values. spec/nullable-array-elements.md.
+    if (column.elementNullable != elementNullable) {
+        throw TcbException(
+            "$fieldName: the file and the generated member disagree about whether this " +
+                "column's elements are optional. The schema changed; regenerate the code or " +
+                "rebuild the data.")
+    }
+
     // Nullability is part of the shape: a file that says optional puts a presence bitmap in
     // front of the block, and code not expecting one would read the bitmap as values. So
     // adding or removing a `?` is a schema change like any other, caught here rather than in

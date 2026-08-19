@@ -136,6 +136,12 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// `hasXAt(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, TypescriptRecipe typescriptRecipe)
     {
         // A blank path means the entry is inert, as it is in the skeleton recipe.
@@ -490,6 +496,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             // its own.
             NeedsCursor = table.WireColumns.Any(UsesCursor),
             NeedsPresence = table.WireColumns.Any(c => c.IsNullable),
+            NeedsElementPresence = table.WireColumns.Any(c => c.HasOptionalElements),
         };
     }
 
@@ -527,7 +534,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             RefTable = wire.TagCarrier.RefTableName.ToPascalCase() ?? "",
             IsFirstMember = wire.IsFirstMember,
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceField = "_" + TsName(wire.Group.Name) + "HasValue",
+            ElementPresenceField = "_" + TsName(wire.Group.Name) + "HasValueAt",
             EmptyValue = wire.Group.IsArray ? "[]" : DefaultValue(wire.Group),
             QualifiedGroupName = $"{table.Name.ToPascalCase()}.{wire.Group.Name.ToPascalCase()}",
 
@@ -635,7 +644,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         {
             IsRecord = false,
             IsNullable = !sf.Fields[0].IsRequired,
+            HasOptionalElements = !sf.Fields[0].ElementsRequired,
             PresenceField = "_" + prop + "HasValue",
+            ElementPresenceField = "_" + prop + "HasValueAt",
             RecordTypeName = "",
             Members = Array.Empty<TsRecordMemberView>(),
             Comment = CommentLines(sf.FirstField!.Comment),
@@ -1428,7 +1439,11 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // bitmap in front of the block, and code not expecting one reads it as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"tabbit.checkColumn(column, '{tableName}.{wire.Name}', {kind}, {count}, {nullable}, [{accepted}])";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"tabbit.checkColumn(column, '{tableName}.{wire.Name}', {kind}, {count}, "
+            + $"{nullable}, [{accepted}]{elements})";
     }
 
     /// <summary>

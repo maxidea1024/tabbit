@@ -107,6 +107,10 @@ class {{ table.table_name }} {
       Dart, so a declaration inside two of them collides. ##~}}
     late List<int> presence;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+    late List<int> elementPresence;
+    var elementAt = 0;
+{{~ end ~}}
 
     // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
     final loaded = <{{ table.record_name }}>[];
@@ -131,6 +135,12 @@ class {{ table.table_name }} {
           // below stay as they are.
           presence = readPresence(reader, column, count);
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+          // Behind the row bitmap and in front of the values, walked with a counter that
+          // steps once per element of every row. spec/nullable-array-elements.md.
+          elementPresence = readElementPresence(reader, column);
+          elementAt = 0;
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it as
    well: its block states an encoding for them and one for the row lengths, and the cursor
    is what decodes both. After the presence bitmap, which sits in front of the block the
@@ -153,6 +163,11 @@ class {{ table.table_name }} {
 {{~ if column_view.kind == 'var_array' ~}}
             final elementCount = {{ column_view.length_read }};
             record.{{ column_view.name }} = List.generate(elementCount, (_) => {{ column_view.read_element }});
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }} =
+                List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
+            elementAt += elementCount;
+{{~ end ~}}
 {{~ else if column_view.kind == 'record_var' ~}}
             final elementCount = {{ column_view.length_read }};
 {{~ if column_view.is_first_member ~}}

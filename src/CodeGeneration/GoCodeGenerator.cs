@@ -134,6 +134,12 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// `HasXAt(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, GoRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -438,7 +444,9 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             ArrayType = "",
             ElementCount = 0,
             IsNullable = !sf.Fields[0].IsRequired,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = PresenceMember(sf) + "At",
         };
     }
 
@@ -643,7 +651,9 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             IsFirstMember = wire.IsFirstMember,
             ReadValue = ValueReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = PresenceMember(wire.Group) + "At",
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -776,7 +786,12 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"tabbit.CheckColumn(reader, column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {accepted})";
+        // And the other bitmap, by the same argument as the row one. A call of its own
+        // because Go has no optional parameters and the accepted elements are variadic.
+        string check = wire.HasOptionalElements ? "CheckColumnWithElements" : "CheckColumn";
+
+        return $"tabbit.{check}(reader, column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+            + $"{nullable}, {accepted})";
     }
 
     /// <summary>

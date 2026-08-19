@@ -45,6 +45,11 @@ type {{ table.record_name }} struct {
 	// and holds the type's empty value when the row had none; this says which it was.
 	{{ field.presence_member }} bool
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+	// Which of {{ field.name }}'s elements have a value. Empty where the file did not carry
+	// the column, and then every index is out of range anyway.
+	{{ field.element_presence_member }} []bool
+{{~ end ~}}
 {{~ end ~}}
 }
 
@@ -168,6 +173,13 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 				// read shapes below stay as they are.
 				presence := tabbit.ReadPresence(reader, column, count)
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+				// Behind the row bitmap and in front of the values, walked with a counter
+				// that steps once per element of every row.
+				// spec/nullable-array-elements.md.
+				elementPresence := tabbit.ReadElementPresence(reader, column)
+				elementAt := int32(0)
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
    as well: its block states an encoding for them and one for the row lengths, and the
    cursor is what decodes both. After the presence bitmap, which sits in front of the
@@ -192,8 +204,16 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~ if column_view.kind == 'var_array' ~}}
 					{{ column_view.length_read }}
 					r.{{ column_view.name }} = make({{ column_view.array_type }}, elementCount)
+{{~ if column_view.has_optional_elements ~}}
+					r.{{ column_view.element_presence_member }} = make([]bool, elementCount)
+{{~ end ~}}
 					for j := 0; j < elementCount; j++ {
 						r.{{ column_view.name }}[j] = {{ column_view.read_value }}
+{{~ if column_view.has_optional_elements ~}}
+						r.{{ column_view.element_presence_member }}[j] =
+							tabbit.IsPresent(elementPresence, elementAt)
+						elementAt++
+{{~ end ~}}
 					}
 {{~ else if column_view.kind == 'record_var' ~}}
 					{{ column_view.length_read }}

@@ -125,6 +125,9 @@ internal sealed class DartTableView
     /// <summary>Whether any column is optional, and so the read declares the presence buffer.</summary>
     public required bool NeedsPresence { get; set; }
 
+    /// <summary>Whether any column of this table carries an element bitmap.</summary>
+    public bool NeedsElementPresence { get; set; }
+
     /// <summary>Whether any field reads through a column cursor.</summary>
     public required bool NeedsCursor { get; set; }
 }
@@ -196,6 +199,12 @@ internal sealed class DartFieldView
 
     /// <summary>The property the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 }
 
 /// <summary>One property of a record group's generated class.</summary>
@@ -322,6 +331,12 @@ internal sealed class DartColumnView
 
     /// <summary>The property the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 
     /// <summary>What an absent row's value is put back to, so both read paths agree.</summary>
     public required string EmptyValue { get; set; }

@@ -822,6 +822,11 @@ final class TcbReader
                 // a disagreement the same way it refuses a changed kind.
                 'nullable' => ($wire & 0x40) !== 0,
 
+                // Whether the block states, per element, which of an array's places hold a
+                // value. Independent of the above: a column may say either, or both.
+                // spec/nullable-array-elements.md.
+                'elementNullable' => ($wire & 0x80) !== 0,
+
                 'encoding' => $encoding,
                 'count' => $count,
                 'byteLength' => $byteLength,
@@ -892,6 +897,29 @@ final class TcbReader
      *
      * @param list<int> $presence
      */
+    /**
+     * A column's element bitmap, behind the row bitmap and in front of the values.
+     *
+     * Empty for a column that does not carry one. Its length is written ahead of it as a
+     * counter32, because a variable-length column's total is the sum of its row lengths and
+     * those live inside the value block - a reader meeting the bitmap first would have
+     * nothing to size it by. spec/nullable-array-elements.md.
+     *
+     * @return int[]
+     */
+    public function readElementPresence(array $column): array
+    {
+        if (!$column['elementNullable']) {
+            return [];
+        }
+
+        $elements = $this->readCounter32();
+        $encoding = $this->readFixed8();
+
+        return $this->readByteStream($encoding, intdiv($elements + 7, 8),
+                                     'an element presence bitmap');
+    }
+
     public static function isPresent(array $presence, int $row): bool
     {
         return $presence === [] || ($presence[$row >> 3] & (1 << ($row & 7))) !== 0;
@@ -901,8 +929,17 @@ final class TcbReader
      * That a column is what the generated member expects, or a lossless promotion of it.
      * Refusal is by name and both types, never by reading anyway.
      */
-    public static function checkColumn(array $column, string $fieldName, int $kind, int $count, bool $nullable, array $accepted): void
+    public static function checkColumn(array $column, string $fieldName, int $kind, int $count, bool $nullable, array $accepted, bool $elementNullable = false): void
     {
+        // The same statement about the other bitmap: code not expecting one would read it as
+        // values. spec/nullable-array-elements.md.
+        if ($column['elementNullable'] !== $elementNullable) {
+            throw new TcbException(
+                $fieldName . ": the file and the generated member disagree about whether this "
+                . "column's elements are optional. The schema changed; regenerate the code or "
+                . 'rebuild the data.');
+        }
+
         // Nullability is part of the shape: a file that says optional puts a presence bitmap
         // in front of the block, and code not expecting one would read the bitmap as values.
         // So adding or removing a `?` is a schema change like any other, caught here rather

@@ -139,6 +139,14 @@ public final class TcbReader {
          * disagreement the same way it refuses a changed kind.
          */
         public boolean nullable;
+
+        /**
+         * Whether the block states, per element, which of an array's places hold a value.
+         *
+         * <p>Independent of {@code nullable}: a column may say either, or both.
+         * spec/nullable-array-elements.md.
+         */
+        public boolean elementNullable;
     }
 
     /**
@@ -1526,6 +1534,7 @@ public final class TcbReader {
             column.element = wire & 0x0F;
             column.kind = (wire >> 4) & 0x03;
             column.nullable = (wire & 0x40) != 0;
+            column.elementNullable = (wire & 0x80) != 0;
 
             column.encoding = reader.readUInt8();
 
@@ -1595,6 +1604,25 @@ public final class TcbReader {
     }
 
     /**
+     * A column's element bitmap, which sits behind the row bitmap and in front of the values.
+     *
+     * <p>Null for a column that does not carry one. Its length is written ahead of it as a
+     * counter32, because a variable-length column's total is the sum of its row lengths and
+     * those live inside the value block - a reader meeting the bitmap first would have
+     * nothing to size it by. spec/nullable-array-elements.md.
+     */
+    public static byte[] readElementPresence(TcbReader reader, Column column) {
+        if (!column.elementNullable) {
+            return null;
+        }
+
+        int elements = reader.readCounter32();
+        int encoding = reader.readUInt8();
+
+        return reader.readByteStream(encoding, (elements + 7) / 8, "an element presence bitmap");
+    }
+
+    /**
      * Whether a row has a value, for a column that says which do.
      *
      * <p>A null bitmap means the column is not optional, and then every row has one.
@@ -1610,6 +1638,28 @@ public final class TcbReader {
     public static void checkColumn(
             Column column, String fieldName, int kind, int count, boolean nullable,
             int... accepted) {
+        checkColumn(column, fieldName, kind, count, nullable, false, accepted);
+    }
+
+    /** The same, for a member whose array elements may be absent. */
+    public static void checkColumnWithElements(
+            Column column, String fieldName, int kind, int count, boolean nullable,
+            int... accepted) {
+        checkColumn(column, fieldName, kind, count, nullable, true, accepted);
+    }
+
+    private static void checkColumn(
+            Column column, String fieldName, int kind, int count, boolean nullable,
+            boolean elementNullable, int... accepted) {
+        // The same statement about the other bitmap: code not expecting one would read it as
+        // values. spec/nullable-array-elements.md.
+        if (column.elementNullable != elementNullable) {
+            throw new TcbException(
+                fieldName + ": the file and the generated member disagree about whether this "
+                    + "column's elements are optional. The schema changed; regenerate the code "
+                    + "or rebuild the data.");
+        }
+
         // Nullability is part of the shape: a file that says optional puts a presence bitmap
         // in front of the block, and code not expecting one would read the bitmap as values.
         // So adding or removing a `?` is a schema change like any other, caught here rather

@@ -23,6 +23,13 @@ class {{ table.record_name }} {
      */
     var {{ field.presence_member }}: Boolean = false
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+    /**
+     * Which of {{ field.name }}'s elements have a value. Empty where the file did not carry
+     * the column, and then every index is out of range anyway.
+     */
+    var {{ field.element_presence_member }}: MutableList<Boolean> = mutableListOf()
+{{~ end ~}}
 {{~ end ~}}
 {{~## The element type of each record group. Nested rather than a second top-level class,
    which Kotlin would allow in this file - nesting scopes the name, so two tables each
@@ -134,6 +141,13 @@ class {{ table.table_name }} {
                     // lets the read shapes below stay as they are.
                     val presence = readPresence(reader, column, count)
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+                    // Behind the row bitmap and in front of the values, walked with a counter
+                    // that steps once per element of every row.
+                    // spec/nullable-array-elements.md.
+                    val elementPresence = readElementPresence(reader, column)
+                    var elementAt = 0
+{{~ end ~}}
 {{~## Constructed after the check and before the rows: a dictionary encoding decodes
       its dictionary here, at the head of the block. Opened ahead of every read shape,
       because an array's elements read through it as well - its block states an encoding
@@ -163,7 +177,18 @@ class {{ table.table_name }} {
 {{~ if column_view.kind == 'var_array' ~}}
                         val elementCount = {{ column_view.length_read }}
                         record.{{ column_view.name }} = ArrayList(elementCount.coerceAtLeast(0))
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) {
+                            record.{{ column_view.name }}.add({{ column_view.read_element }})
+                            record.{{ column_view.element_presence_member }}
+                                .add(isPresent(elementPresence, elementAt))
+                            elementAt++
+                        }
+{{~ else ~}}
                         repeat(elementCount) { record.{{ column_view.name }}.add({{ column_view.read_element }}) }
+{{~ end ~}}
 {{~ else if column_view.kind == 'record_var' ~}}
                         val elementCount = {{ column_view.length_read }}
 {{~ if column_view.is_first_member ~}}

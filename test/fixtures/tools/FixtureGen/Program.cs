@@ -58,6 +58,7 @@ internal static class Program
         WriteNoValueRefused(Prepare(outputDir, "no-value-refused", "no-value-refused.xlsx"));
         WriteNoValueElement(Prepare(outputDir, "no-value-element", "no-value-element.xlsx"));
         WriteNullableElements(Prepare(outputDir, "nullable-elements", "nullable-elements.xlsx"));
+        WriteElementOnly(Prepare(outputDir, "element-only", "element-only.xlsx"));
         WriteOptionalIndex(Prepare(outputDir, "optional-index", "optional-index.xlsx"));
         WriteFormulaError(Prepare(outputDir, "formula-error", "formula-error.xlsx"));
         WriteEnumByValue(Prepare(outputDir, "enum-by-value", "enum-by-value.xlsx"));
@@ -1780,6 +1781,38 @@ internal static class Program
             .Row("4", "blank element", "1;2;3", "1;2;3", "1;2;3", "1;2;3", "a;;c")
             // And the escape, so `-` can still be a value of a string element.
             .Row("5", "escaped", "1;2;3", "1;2;3", "1;2;3", "1;2;3", "a;\\-;c");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// One column whose elements may be absent, and nothing else that is optional.
+    /// </summary>
+    /// <remarks>
+    /// For the targets that will never carry a bit per element - `html` and the databases,
+    /// which refuse an optional column for the same reason. Nothing here is optional at the
+    /// row level, so what such a target meets first is the element refusal rather than the
+    /// one beside it. spec/nullable-array-elements.md.
+    /// </remarks>
+    private static void WriteElementOnly(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Arrays"));
+
+        var spec = new TableSpec
+        {
+            Name = "Holder",
+            Comment = "Its one array may have an element with no value.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Holes", "int?[]", "an element may be absent"))
+            .Field(FieldSpec.Of("Name", "string", "a third column, which an entity needs"));
+        spec
+            .Row("1", "1;2;3", "first")
+            .Row("2", "1;-;3", "second");
 
         b.Table(1, 1, spec);
 

@@ -21,6 +21,26 @@ namespace Tabbit.Tests;
 public class PythonNestedAndOptionalTests
 {
     /// <summary>
+    /// An array whose elements may be absent: the per-element answer beside the value.
+    /// </summary>
+    /// <remarks>
+    /// Read rather than compiled, which is what this gate is for: the bitmap is walked with a
+    /// counter that steps once per element of every row, and a reader that stepped per row
+    /// would still run. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void Optional_array_elements_read()
+        => AssertReads("nullable-elements", "nullable_elements_data", @"
+t = Tables()
+t.read_all(sys.argv[1])
+rows = t.listing.records
+assert len(rows) == 5, rows
+assert rows[1].has_holes_at == [True, False, True], rows[1].has_holes_at
+assert rows[3].has_words_at == [True, True, True], rows[3].has_words_at
+assert rows[3].words == ['a', '', 'c'], rows[3].words
+");
+
+    /// <summary>
     /// A record, an array of records whose members are of different types, and a scalar
     /// serial field beside them.
     /// </summary>

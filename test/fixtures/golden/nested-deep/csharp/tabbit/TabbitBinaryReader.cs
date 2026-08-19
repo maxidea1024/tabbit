@@ -486,6 +486,15 @@ namespace Tabbit.Binary
         /// </remarks>
         public bool Nullable;
 
+        /// <summary>
+        /// Whether the block states, per element, which of an array's places hold a value.
+        /// </summary>
+        /// <remarks>
+        /// Independent of <see cref="Nullable"/>: a column may say a row has no array, that
+        /// an element of one has no value, or both. spec/nullable-array-elements.md.
+        /// </remarks>
+        public bool ElementNullable;
+
         /// <summary>Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one.</summary>
         public int Count;
 
@@ -1549,6 +1558,7 @@ namespace Tabbit.Binary
                 columns[at].Element = (byte)(wire & 0x0F);
                 columns[at].Kind = (byte)((wire >> 4) & 0x03);
                 columns[at].Nullable = (wire & 0x40) != 0;
+                columns[at].ElementNullable = (wire & 0x80) != 0;
 
                 reader.Read(out columns[at].Encoding);
 
@@ -1613,9 +1623,10 @@ namespace Tabbit.Binary
         /// for a list that is never longer than three and is known at generation time.
         /// </remarks>
         public static void CheckColumn(
-            in TcbColumn column, string fieldName, byte kind, int count, bool nullable, byte accepted)
+            in TcbColumn column, string fieldName, byte kind, int count, bool nullable, byte accepted,
+            bool elementNullable = false)
         {
-            CheckShape(column, fieldName, kind, count, nullable);
+            CheckShape(column, fieldName, kind, count, nullable, elementNullable);
 
             if (column.Element != accepted)
                 throw ElementMismatch(column, fieldName);
@@ -1623,9 +1634,9 @@ namespace Tabbit.Binary
 
         public static void CheckColumn(
             in TcbColumn column, string fieldName, byte kind, int count, bool nullable,
-            byte accepted, byte alsoAccepted)
+            byte accepted, byte alsoAccepted, bool elementNullable = false)
         {
-            CheckShape(column, fieldName, kind, count, nullable);
+            CheckShape(column, fieldName, kind, count, nullable, elementNullable);
 
             if (column.Element != accepted && column.Element != alsoAccepted)
                 throw ElementMismatch(column, fieldName);
@@ -1633,9 +1644,9 @@ namespace Tabbit.Binary
 
         public static void CheckColumn(
             in TcbColumn column, string fieldName, byte kind, int count, bool nullable,
-            byte accepted, byte alsoAccepted, byte andAccepted)
+            byte accepted, byte alsoAccepted, byte andAccepted, bool elementNullable = false)
         {
-            CheckShape(column, fieldName, kind, count, nullable);
+            CheckShape(column, fieldName, kind, count, nullable, elementNullable);
 
             if (column.Element != accepted && column.Element != alsoAccepted
                 && column.Element != andAccepted)
@@ -1669,6 +1680,30 @@ namespace Tabbit.Binary
             return reader.ReadByteStream(encoding, (rowCount + 7) / 8, "a presence bitmap");
         }
 
+        /// <summary>
+        /// The element bitmap at the front of a block, or null where there is none.
+        /// </summary>
+        /// <remarks>
+        /// Behind the row bitmap and in front of the values. Its length is written ahead of
+        /// it as a counter32, because a variable-length column's total is the sum of row
+        /// lengths and those live inside the value block - a reader meeting the bitmap first
+        /// would have nothing to size it by.
+        ///
+        /// One bit per element written, in the order the block wrote them, so a reader walks
+        /// it with a counter that steps once per element of every row.
+        /// </remarks>
+        public static byte[] ReadElementPresence(TcbReader reader, in TcbColumn column)
+        {
+            if (!column.ElementNullable)
+                return null;
+
+            int elements = reader.ReadCounter32();
+
+            reader.Read(out byte encoding);
+
+            return reader.ReadByteStream(encoding, (elements + 7) / 8, "an element presence bitmap");
+        }
+
         /// <summary>Whether a row has a value, for a column that says which do.</summary>
         /// <remarks>
         /// A null bitmap means the column is not optional, and then every row has one - so
@@ -1678,8 +1713,20 @@ namespace Tabbit.Binary
             => presence is null || (presence[row >> 3] & (1 << (row & 7))) != 0;
 
         private static void CheckShape(
-            in TcbColumn column, string fieldName, byte kind, int count, bool nullable)
+            in TcbColumn column, string fieldName, byte kind, int count, bool nullable,
+            bool elementNullable = false)
         {
+            // The same statement the nullability check below makes, about the other bitmap:
+            // generated code that was not expecting one would read it as values.
+            if (column.ElementNullable != elementNullable)
+            {
+                throw new TcbException(
+                    $"{fieldName}: the file and the generated member disagree about whether this column's elements are optional" +
+                    $" (file: {(column.ElementNullable ? "optional" : "required")}, " +
+                    $"member: {(elementNullable ? "optional" : "required")}). " +
+                    "The schema changed; regenerate the code or rebuild the data.");
+            }
+
             // Nullability is part of the shape: a file that says a column is optional puts a
             // presence bitmap at the front of its block, and generated code that was not
             // expecting one would read the bitmap as values. Adding or removing a `?` is

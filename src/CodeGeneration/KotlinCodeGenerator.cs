@@ -108,6 +108,12 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, KotlinRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -306,7 +312,9 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             RecordTypeName = "",
             Members = Array.Empty<KotlinRecordMemberView>(),
             IsNullable = !sf.Fields[0].IsRequired,
+            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = PresenceMember(sf) + "At",
         };
     }
 
@@ -524,7 +532,9 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             ReadScalar = ValueReadExpression(wire),
             ReadElement = ValueReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = PresenceMember(wire.Group) + "At",
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -709,7 +719,12 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"checkColumn(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {accepted})";
+        // And the other bitmap, by the same argument as the row one. A function of its own
+        // because the accepted elements are varargs.
+        string check = wire.HasOptionalElements ? "checkColumnWithElements" : "checkColumn";
+
+        return $"{check}(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+            + $"{nullable}, {accepted})";
     }
 
     /// <summary>

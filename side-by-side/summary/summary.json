@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-19T14:38:30.4274477+09:00",
+    "generatedAt": "2026-08-19T16:18:54.2055198+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "1d50a5cf328ea740a1261a2103fd04fc12c27525",
-      "shortHash": "1d50a5cf328e",
+      "hash": "efc663de8544d8556d2482a0e48206bcc19393e7",
+      "shortHash": "efc663de8544",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-19T14:11:07.0000000+09:00",
-      "subject": "Let an array say which of its elements have no value",
+      "committedAt": "2026-08-19T14:54:15.0000000+09:00",
+      "subject": "Carry element presence in the file, as format v106",
       "origin": "git",
       "dirty": true,
       "attributable": false

@@ -248,6 +248,9 @@ internal sealed class TsTableView
     /// Whether the read declares the presence buffer: true when any column is optional.
     /// </summary>
     public required bool NeedsPresence { get; set; }
+
+    /// <summary>Whether any column of this table carries an element bitmap.</summary>
+    public bool NeedsElementPresence { get; set; }
 }
 
 /// <summary>
@@ -362,6 +365,12 @@ internal sealed class TsColumnView
     /// <summary>The member the presence flag lands in, for a nullable column.</summary>
     public required string PresenceField { get; set; }
 
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The property holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceField { get; set; } = "";
+
     /// <summary>
     /// What an absent row's value is set to, so both read paths land on the same thing.
     /// </summary>
@@ -462,6 +471,12 @@ internal sealed class TsFieldView
 
     /// <summary>The member the presence flag lands in. Empty when not optional.</summary>
     public required string PresenceField { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The property holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceField { get; set; } = "";
 
     /// <summary>
     /// Whether this field is a record group, so the module declares an element interface

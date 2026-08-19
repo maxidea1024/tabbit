@@ -1,0 +1,23 @@
+{
+  // One column whose elements may be absent, handed to a target that will never carry a bit
+  // per element. Expected to fail during generation, naming the target and the column.
+  //
+  // Nothing here is optional at the row level, so what `html` meets is the element refusal
+  // rather than the one beside it. spec/nullable-array-elements.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/element-only"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/element-only/html"
+    }
+  ]
+}

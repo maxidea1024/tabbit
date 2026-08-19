@@ -143,6 +143,11 @@ type Column struct {
 	// does not expect the bitmap reads it as values, so CheckColumn refuses a
 	// disagreement the same way it refuses a changed kind.
 	Nullable bool
+
+	// ElementNullable says the block states, per element, which of an array's places hold
+	// a value. Independent of Nullable: a column may say either, or both.
+	// spec/nullable-array-elements.md.
+	ElementNullable bool
 }
 
 // ticksPerSecond is the .NET tick, 100 nanoseconds.
@@ -751,6 +756,7 @@ func ReadTableHeader(r *Reader) (int32, []Column) {
 		columns[at].Element = wire & 0x0f
 		columns[at].Kind = (wire >> 4) & 0x03
 		columns[at].Nullable = wire&0x40 != 0
+		columns[at].ElementNullable = wire&0x80 != 0
 		columns[at].Encoding = r.ReadUint8()
 		columns[at].Count = r.ReadCounter32()
 		columns[at].ByteLength = int32(r.ReadUint32())
@@ -815,6 +821,24 @@ func ReadPresence(r *Reader, col Column, rowCount int32) []byte {
 	return r.ReadByteStream(encoding, int((rowCount+7)/8), "a presence bitmap")
 }
 
+// ReadElementPresence reads a column's element bitmap, which sits behind the row bitmap
+// and in front of the values. It returns nil for a column that does not carry one.
+//
+// Its length is written ahead of it as a counter32: a variable-length column's total is the
+// sum of its row lengths, and those live inside the value block - a reader meeting the
+// bitmap first would have nothing to size it by. One bit per element written, in the order
+// the block wrote them. spec/nullable-array-elements.md.
+func ReadElementPresence(r *Reader, col Column) []byte {
+	if !col.ElementNullable || r.err != nil {
+		return nil
+	}
+
+	elements := r.ReadCounter32()
+	encoding := r.ReadUint8()
+
+	return r.ReadByteStream(encoding, int((elements+7)/8), "an element presence bitmap")
+}
+
 // IsPresent reports whether a row has a value, for a column that says which do.
 //
 // A nil bitmap means the column is not optional, and then every row has one.
@@ -825,7 +849,26 @@ func IsPresent(presence []byte, row int32) bool {
 // CheckColumn verifies a column is what the generated member expects, or a lossless
 // promotion of it. Refusal is by name and both types, never by reading anyway.
 func CheckColumn(r *Reader, col Column, fieldName string, kind uint8, count int32, nullable bool, accepted ...uint8) bool {
+	return checkColumn(r, col, fieldName, kind, count, nullable, false, accepted...)
+}
+
+// CheckColumnWithElements is CheckColumn for a member whose array elements may be absent.
+func CheckColumnWithElements(r *Reader, col Column, fieldName string, kind uint8, count int32, nullable bool, accepted ...uint8) bool {
+	return checkColumn(r, col, fieldName, kind, count, nullable, true, accepted...)
+}
+
+func checkColumn(r *Reader, col Column, fieldName string, kind uint8, count int32, nullable bool, elementNullable bool, accepted ...uint8) bool {
 	if r.err != nil {
+		return false
+	}
+
+	// The same statement about the other bitmap: code not expecting one would read it as
+	// values. spec/nullable-array-elements.md.
+	if col.ElementNullable != elementNullable {
+		r.err = fmt.Errorf(
+			"tabbit: %s: the file and the generated member disagree about whether this "+
+				"column's elements are optional; the schema changed, regenerate the code or rebuild the data",
+			fieldName)
 		return false
 	}
 

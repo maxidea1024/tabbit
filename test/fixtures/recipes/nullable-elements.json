@@ -21,6 +21,81 @@
       "Path": "test/fixtures/output/nullable-elements/json-named",
       "UseCompactRowFormat": false,
       "Indented": true
+    },
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/nullable-elements/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/nullable-elements/cpp",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "go",
+      "Path": "test/fixtures/output/nullable-elements/go",
+      "PackageName": "nullableelements",
+      "ModulePath": "nullableelements"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/nullable-elements/rust",
+      "CrateName": "nullable_elements"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/nullable-elements/java",
+      "PackageName": "tabbit.fixtures.nullableelements",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/nullable-elements/kotlin",
+      "PackageName": "tabbit.fixtures.nullableelements",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/nullable-elements/python",
+      "PackageName": "nullable_elements_data"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/nullable-elements/ruby",
+      "ModuleName": "NullableElements"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/nullable-elements/php",
+      "Namespace": "Tabbit\\Fixtures\\NullableElements",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/nullable-elements/dart"
+    },
+    {
+      "Type": "c",
+      "Path": "test/fixtures/output/nullable-elements/c",
+      "AccessorName": "NullableElements"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/nullable-elements/unreal/Source",
+      "ModuleName": "NullableElements",
+      "AccessorName": "FNullableElements",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/nullable-elements/typescript"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/nullable-elements/csharp",
+      "Namespace": "Tabbit.Fixtures.NullableElements",
+      "AccessorName": "NullableElementsAccessor"
     }
   ]
 }

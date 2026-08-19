@@ -151,6 +151,12 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// `HasXAt(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, CSharpRecipe csharpRecipe)
     {
         // A blank path means the entry is inert - which is what every list in the
@@ -436,6 +442,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // columns, because that is what the switch has a case for.
             NeedsCursor = table.WireColumns.Any(UsesCursor),
             NeedsPresence = table.WireColumns.Any(c => c.IsNullable),
+            NeedsElementPresence = table.WireColumns.Any(c => c.HasOptionalElements),
 
             // Pascal-casing a folded group's name gives the property it is exposed under
             // - `TextEn_array` becomes `TextEnArray` - so these literals name the very
@@ -528,7 +535,9 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             ReadKind = readKind,
             IsFirstMember = wire.IsFirstMember,
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceField = PresenceField(wire.Group),
+            ElementPresenceField = ElementPresenceField(wire.Group),
             EmptyValue = EmptyValue(wire, fieldType),
             RecordTypeName = wire.Group.Name.ToPascalCase() + "Entry",
             RecordNeedsInit = wire.Group.IsRecord && RecordNeedsFactory(wire.Group),
@@ -558,7 +567,9 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         {
             IsRecord = false,
             IsNullable = !sf.Fields[0].IsRequired,
+            HasOptionalElements = !sf.Fields[0].ElementsRequired,
             PresenceField = PresenceField(sf),
+            ElementPresenceField = ElementPresenceField(sf),
             RecordTypeName = "",
             Members = Array.Empty<CsRecordMemberView>(),
             NeedsElementInit = false,
@@ -884,6 +895,15 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// reads it, and the model has already required its columns to agree about being
     /// optional.
     /// </remarks>
+    /// <summary>The field holding which of an array's elements the sheet gave a value.</summary>
+    /// <remarks>
+    /// A `bool` per element rather than the bitmap the file carries: the row-level answer is
+    /// a `bool` per row for the same reason, and a consumer asking `HasCostsAt(2)` should not
+    /// pay for a shift and a mask it did not ask for. spec/nullable-array-elements.md.
+    /// </remarks>
+    private static string ElementPresenceField(SerialField sf)
+        => "_" + sf.Name.ToCamelCase() + "HasValueAt";
+
     private static string PresenceField(SerialField sf)
         => "_" + sf.Name.ToCamelCase() + "HasValue";
 
@@ -994,7 +1014,12 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"TcbTable.CheckColumn(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {accepted});";
+        // And the other bitmap, by the same argument. Passed by name because it comes after
+        // the accepted elements, of which there may be one, two or three.
+        string elements = wire.HasOptionalElements ? ", elementNullable: true" : "";
+
+        return $"TcbTable.CheckColumn(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+            + $"{nullable}, {accepted}{elements});";
     }
 
     /// <summary>

@@ -54,7 +54,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for Bonus. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasBonus = false;
-
     /** optional double */
     // No UPROPERTY: UE4's header tool does not accept a double property.
     double Weight = 0.0;
@@ -62,7 +61,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for Weight. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasWeight = false;
-
     /** optional float */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     float Ratio = 0.0f;
@@ -70,7 +68,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for Ratio. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasRatio = false;
-
     /** optional bigint */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     int64 Count = 0;
@@ -78,7 +75,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for Count. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasCount = false;
-
     /** optional datetime */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     FDateTime OpenAt;
@@ -86,7 +82,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for OpenAt. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasOpenAt = false;
-
     /** optional timespan */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     FTimespan Cooldown;
@@ -94,7 +89,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for Cooldown. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasCooldown = false;
-
     /** optional uuid */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     FGuid Batch;
@@ -102,7 +96,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for Batch. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasBatch = false;
-
     /** optional enum label */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     ERarity Grade = static_cast<ERarity>(0);
@@ -110,7 +103,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for Grade. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasGrade = false;
-
     /** optional array */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     TArray<int32> Costs;
@@ -118,7 +110,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for Costs. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasCosts = false;
-
     /** optional string */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     FString Label;
@@ -126,7 +117,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for Label. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasLabel = false;
-
     /** optional bool */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHidden = false;
@@ -134,7 +124,6 @@ struct OPTIONAL_API FDropRow
     /** Whether this row has a value for bHidden. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
     bool bHasbHidden = false;
-
 };
 
 

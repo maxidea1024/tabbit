@@ -80,6 +80,16 @@
             /// <summary>Whether this row has a value for <see cref="{{ field.prop_name }}"/>.</summary>
             public bool Has{{ field.prop_name }} => {{ field.presence_field }};
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+{{~## The same answer one level in. `true` where the row never got a bitmap - a column the
+      file does not carry leaves the array empty, and an index into it is out of range
+      whatever this said. ##~}}
+            /// <summary>Whether element <paramref name="index"/> of <see cref="{{ field.prop_name }}"/> has a value.</summary>
+            public bool Has{{ field.prop_name }}At(int index)
+                => {{ field.element_presence_field }} == null
+                    || index < 0 || index >= {{ field.element_presence_field }}.Length
+                    || {{ field.element_presence_field }}[index];
+{{~ end ~}}
 {{~ end ~}}
             #endregion
 {{~## The element type of each record group. A struct, so an array of them needs no
@@ -278,6 +288,9 @@
       the member absent rather than claiming a value it never got. ##~}}
             internal bool {{ field.presence_field }};
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+            internal bool[] {{ field.element_presence_field }};
+{{~ end ~}}
 {{~ end ~}}
             #endregion
 
@@ -406,6 +419,10 @@
       in C#, so a `var` inside two of them collides. ##~}}
             byte[] presence;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+            byte[] elementPresence;
+            int elementAt;
+{{~ end ~}}
 
             // Read into storage of its own and published at the end, which is what makes a
             // refresh atomic: nothing here touches what the table is currently holding, so a
@@ -439,6 +456,13 @@
       type's empty value - which is what lets the read shapes below stay as they are. ##~}}
                         presence = TcbTable.ReadPresence(reader, column, count);
 {{~ end ~}}
+{{~ if column.has_optional_elements ~}}
+{{~## Behind the row bitmap and in front of the values, so it is read here and walked with a
+      counter that steps once per element of every row - the order the block wrote them in.
+      spec/nullable-array-elements.md. ##~}}
+                        elementPresence = TcbTable.ReadElementPresence(reader, column);
+                        elementAt = 0;
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
       as well: its block states an encoding for them and one for the row lengths, and the
       cursor is what decodes both. After the presence bitmap, which sits in front of the
@@ -453,8 +477,15 @@
                             int elementCount;
                             {{ column.length_read }}
                             record.{{ column.field_name }} = new {{ column.field_type }}[elementCount];
+{{~ if column.has_optional_elements ~}}
+                            record.{{ column.element_presence_field }} = new bool[elementCount];
+{{~ end ~}}
                             for (int j = 0; j < elementCount; ++j)
                             {
+{{~ if column.has_optional_elements ~}}
+                                record.{{ column.element_presence_field }}[j] =
+                                    TcbTable.IsPresent(elementPresence, elementAt++);
+{{~ end ~}}
 {{~ for line in column.element_read ~}}
                                 {{ line }}
 {{~ end ~}}
