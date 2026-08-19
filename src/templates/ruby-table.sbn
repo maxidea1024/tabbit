@@ -199,6 +199,12 @@
             record.{{ column_view.name }} = Array.new({{ column_view.element_count }})
 {{~ else if column_view.kind == 'serial' ~}}
             record.{{ column_view.name }} = Array.new({{ column_view.element_count }}) { {{ column_view.read_element }} }
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }} = Array.new({{ column_view.element_count }}) do |at|
+              Tabbit.present?(element_presence, element_at + at)
+            end
+            element_at += {{ column_view.element_count }}
+{{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
             record.{{ column_view.name }}_index = {{ column_view.read_scalar }}
 {{~ else ~}}

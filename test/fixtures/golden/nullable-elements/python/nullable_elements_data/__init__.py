@@ -6,10 +6,13 @@
 # ------------------------------------------------------------------------------
 
 from .listing_table import ListingRecord, ListingTable
+from .folded_table import FoldedRecord, FoldedTable
 from .tables import Tables
 
 __all__ = [
     "ListingRecord",
     "ListingTable",
+    "FoldedRecord",
+    "FoldedTable",
     "Tables",
 ]

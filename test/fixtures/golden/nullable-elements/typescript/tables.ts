@@ -10,6 +10,7 @@
 import * as path from 'path'
 
 import { ListingTable } from './tables/listing'
+import { FoldedTable } from './tables/folded'
 
 /** Tables */
 export class Tables {
@@ -68,6 +69,10 @@ export class Tables {
   public get listing(): ListingTable { return this._listing }
   private _listing: ListingTable = new ListingTable()
 
+  /** Peroperty for table Folded */
+  public get folded(): FoldedTable { return this._folded }
+  private _folded: FoldedTable = new FoldedTable()
+
   /**
    * Read all tables asynchronously.
    *
@@ -77,16 +82,20 @@ export class Tables {
   public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
     const listing = new ListingTable()
     await listing.read(path.join(basePath, `Listing${fileExtension}`))
+    const folded = new FoldedTable()
+    await folded.read(path.join(basePath, `Folded${fileExtension}`))
 
-    this.publish(listing)
+    this.publish(listing, folded)
   }
 
   /** Read all tables synchronously. */
   public readAllSync(basePath: string, fileExtension: string = '.json'): void {
     const listing = new ListingTable()
     listing.readSync(path.join(basePath, `Listing${fileExtension}`))
+    const folded = new FoldedTable()
+    folded.readSync(path.join(basePath, `Folded${fileExtension}`))
 
-    this.publish(listing)
+    this.publish(listing, folded)
   }
 
   /**
@@ -99,8 +108,10 @@ export class Tables {
   public readAllBinarySync(basePath: string, fileExtension: string = '.tcb'): void {
     const listing = new ListingTable()
     listing.readBinarySync(path.join(basePath, `Listing${fileExtension}`))
+    const folded = new FoldedTable()
+    folded.readBinarySync(path.join(basePath, `Folded${fileExtension}`))
 
-    this.publish(listing)
+    this.publish(listing, folded)
   }
 
   /**
@@ -111,8 +122,9 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(listing: ListingTable): void {
+  private publish(listing: ListingTable, folded: FoldedTable): void {
     this._listing = listing
+    this._folded = folded
 
     this.solveCrossReferences()
   }

@@ -261,8 +261,9 @@ export class ArrayTypesTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._slotArray = []
-            for (let j = 0; j < 2; ++j)
+            for (let j = 0; j < 2; ++j) {
               record._slotArray.push(cursor.nextI32())
+            }
           }
           break
         default:

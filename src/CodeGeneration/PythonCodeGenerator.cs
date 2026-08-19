@@ -405,12 +405,12 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             if (sf.IsRef)
                 slots.Add(PythonName(sf.Name) + "_index");
 
-            if (!sf.IsRecord && !sf.Fields[0].IsRequired)
+            if (sf.RowMayBeAbsent)
                 slots.Add(PresenceMember(sf));
 
             // And the per-element answer, which is a list rather than a flag.
             // spec/nullable-array-elements.md.
-            if (!sf.IsRecord && !sf.Fields[0].ElementsRequired)
+            if (sf.ElementMayBeAbsent)
                 slots.Add(ElementPresenceMember(sf));
         }
 
@@ -467,7 +467,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             return BuildRecordField(table, sf);
 
         string name = PythonName(sf.Name);
-        bool nullable = !sf.Fields[0].IsRequired;
+        bool nullable = sf.RowMayBeAbsent;
 
         var initializers = Initializers(sf, name).ToList();
 
@@ -478,7 +478,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         // Empty until the read fills it, for the same reason. An index into an empty list is
         // out of range, and `has_x_at` answers true there.
-        if (!sf.Fields[0].ElementsRequired)
+        if (sf.ElementMayBeAbsent)
             initializers.Add($"self.{ElementPresenceMember(sf)} = []");
 
         return new PythonFieldView
@@ -493,7 +493,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             RecordReprFormat = "",
             RecordReprValues = "",
             IsNullable = nullable,
-            HasOptionalElements = !sf.Fields[0].ElementsRequired,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
             ElementPresenceMember = ElementPresenceMember(sf),
         };

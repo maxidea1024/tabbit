@@ -258,8 +258,15 @@ final class {{ table.table_name }}
                         $record->{{ column_view.name }} = \array_fill(0, {{ column_view.element_count }}, null);
 {{~ else if column_view.kind == 'serial' ~}}
                         $record->{{ column_view.name }} = [];
+{{~ if column_view.has_optional_elements ~}}
+                        $record->{{ column_view.element_presence_member }} = [];
+{{~ end ~}}
                         for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
                             $record->{{ column_view.name }}[] = {{ column_view.read_element }};
+{{~ if column_view.has_optional_elements ~}}
+                            $record->{{ column_view.element_presence_member }}[] =
+                                TcbReader::isPresent($elementPresence, $elementAt++);
+{{~ end ~}}
                         }
 {{~ else if column_view.kind == 'scalar_ref' ~}}
                         $record->{{ column_view.name }}Index = {{ column_view.read_element }};

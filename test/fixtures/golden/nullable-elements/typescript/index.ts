@@ -11,5 +11,7 @@
 // Tables
 export { ListingRecord } from './tables/listing'
 export { ListingTable } from './tables/listing'
+export { FoldedRecord } from './tables/folded'
+export { FoldedTable } from './tables/folded'
 
 export { Tables } from './tables'

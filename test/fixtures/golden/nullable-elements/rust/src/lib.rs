@@ -13,6 +13,8 @@ pub mod tabbit;
 // A record and a table type per table.
 mod listing_table;
 pub use listing_table::{ListingRecord, ListingTable};
+mod folded_table;
+pub use folded_table::{FoldedRecord, FoldedTable};
 
 // The accessor.
 mod tables;

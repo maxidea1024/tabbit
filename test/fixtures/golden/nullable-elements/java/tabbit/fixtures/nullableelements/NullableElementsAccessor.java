@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 /** Every table, loaded together so cross-table references can be resolved. */
 public final class NullableElementsAccessor {
     public ListingTable listing = new ListingTable();
+    public FoldedTable folded = new FoldedTable();
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -81,10 +82,13 @@ public final class NullableElementsAccessor {
     public void readAll(String basePath, String fileExtension) {
         ListingTable loadedListingTable = new ListingTable();
         loadedListingTable.read(Paths.get(basePath, "Listing" + fileExtension));
+        FoldedTable loadedFoldedTable = new FoldedTable();
+        loadedFoldedTable.read(Paths.get(basePath, "Folded" + fileExtension));
 
-        solveCrossReferences(loadedListingTable);
+        solveCrossReferences(loadedListingTable, loadedFoldedTable);
 
         listing = loadedListingTable;
+        folded = loadedFoldedTable;
     }
 
     /**
@@ -93,7 +97,7 @@ public final class NullableElementsAccessor {
      * <p>The tables arrive as arguments and shadow the fields of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private void solveCrossReferences(ListingTable listing) {
+    private void solveCrossReferences(ListingTable listing, FoldedTable folded) {
         // No table references another.
     }
 }

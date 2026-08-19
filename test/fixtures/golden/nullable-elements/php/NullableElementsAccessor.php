@@ -13,6 +13,7 @@ namespace Tabbit\Fixtures\NullableElements;
 
 require_once __DIR__ . '/tabbit/TcbReader.php';
 require_once __DIR__ . '/tables/ListingTable.php';
+require_once __DIR__ . '/tables/FoldedTable.php';
 
 use Tabbit\TcbReader;
 use Tabbit\TcbColumnCursor;
@@ -23,10 +24,12 @@ use Tabbit\Uuid;
 final class NullableElementsAccessor
 {
     public ListingTable $listing;
+    public FoldedTable $folded;
 
     public function __construct()
     {
         $this->listing = new ListingTable();
+        $this->folded = new FoldedTable();
     }
 
     /**
@@ -88,10 +91,13 @@ final class NullableElementsAccessor
     {
         $loadedListingTable = new ListingTable();
         $loadedListingTable->read($basePath . \DIRECTORY_SEPARATOR . 'Listing' . $fileExtension);
+        $loadedFoldedTable = new FoldedTable();
+        $loadedFoldedTable->read($basePath . \DIRECTORY_SEPARATOR . 'Folded' . $fileExtension);
 
-        $this->solveCrossReferences($loadedListingTable);
+        $this->solveCrossReferences($loadedListingTable, $loadedFoldedTable);
 
         $this->listing = $loadedListingTable;
+        $this->folded = $loadedFoldedTable;
     }
 
     /**
@@ -100,7 +106,7 @@ final class NullableElementsAccessor
      * The tables arrive as arguments rather than off $this, which is how this resolves the
      * load being read rather than the one already published.
      */
-    private function solveCrossReferences(ListingTable $listing): void
+    private function solveCrossReferences(ListingTable $listing, FoldedTable $folded): void
     {
         // No table references another.
     }

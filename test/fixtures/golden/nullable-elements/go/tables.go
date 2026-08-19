@@ -14,6 +14,7 @@ import (
 // Tables holds every table, loaded together so cross-table references can be resolved.
 type Tables struct {
 	Listing ListingTable
+	Folded FoldedTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not
@@ -76,6 +77,9 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 	var loaded Tables
 
 	if err := loaded.Listing.Read(filepath.Join(basePath, "Listing"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Folded.Read(filepath.Join(basePath, "Folded"+fileExtension)); err != nil {
 		return err
 	}
 

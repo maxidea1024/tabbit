@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <vector>
 struct ListingRecord;
+struct FoldedRecord;
 
 /// The key the table files were sealed with, or empty when they were not sealed.
 ///

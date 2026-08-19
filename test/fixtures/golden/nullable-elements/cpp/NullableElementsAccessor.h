@@ -14,10 +14,12 @@
 #include <string>
 
 #include "tables/NullableElementsAccessor_listing.h"
+#include "tables/NullableElementsAccessor_folded.h"
 /// Every table, loaded together so cross-table references can be resolved.
 class NullableElementsAccessor {
  public:
   const ListingTable& listing() const { return listing_; }
+  const FoldedTable& folded() const { return folded_; }
 
   /// Reads every table from `base_path`, then links the references between them.
   ///
@@ -27,10 +29,13 @@ class NullableElementsAccessor {
   void read_all(const std::string& base_path, const std::string& file_extension = ".tcb") {
     ListingTable loaded_listing;
     loaded_listing.read(base_path + "/Listing" + file_extension);
+    FoldedTable loaded_folded;
+    loaded_folded.read(base_path + "/Folded" + file_extension);
 
-    solve_cross_references(loaded_listing);
+    solve_cross_references(loaded_listing, loaded_folded);
 
     listing_ = std::move(loaded_listing);
+    folded_ = std::move(loaded_folded);
   }
 
  private:
@@ -42,11 +47,12 @@ class NullableElementsAccessor {
   /// compiler: the gate builds with `-Wextra -Werror`, and a model where nothing
   /// references anything - which is most of them - otherwise fails to compile on the
   /// unused parameters.
-  void solve_cross_references([[maybe_unused]] ListingTable& loaded_listing) {
+  void solve_cross_references([[maybe_unused]] ListingTable& loaded_listing, [[maybe_unused]] FoldedTable& loaded_folded) {
     // No table references another.
   }
 
   ListingTable listing_;
+  FoldedTable folded_;
 };
 
 #endif  // TABBIT_GENERATED_NULLABLEELEMENTSACCESSOR_H

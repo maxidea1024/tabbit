@@ -130,6 +130,13 @@ public partial class ModelCooker
             if (!group.IsArray || group.IsVariableLengthArray)
                 continue;
 
+            // A column that says its elements may be absent has said what a hole means, and
+            // it is not a mistake. What this check exists for is the array whose elements are
+            // required, where a hole reads as the type's empty value and nothing in the sheet
+            // asked for it. spec/nullable-array-elements.md.
+            if (group.ElementMayBeAbsent)
+                continue;
+
             foreach (var row in rowSet.Rows)
             {
                 int count = table.ElementCountIn(group, row);

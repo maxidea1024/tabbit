@@ -123,6 +123,7 @@ namespace Tabbit.Fixtures.NullableElements
         public sealed class Snapshot
         {
             public ListingTable Listing = new ListingTable();
+            public FoldedTable Folded = new FoldedTable();
         }
 
         /// <summary>
@@ -139,6 +140,11 @@ namespace Tabbit.Fixtures.NullableElements
         /// </summary>
         public static ListingTable Listing => Current.Listing;
 
+        /// <summary>
+        /// Property for Folded table.
+        /// </summary>
+        public static FoldedTable Folded => Current.Folded;
+
 
         /// <summary>
         /// Reads every table and links them, and hands the result back without publishing it.
@@ -154,6 +160,7 @@ namespace Tabbit.Fixtures.NullableElements
             var snapshot = new Snapshot();
             var tasks = new List<Task>();
             tasks.Add(snapshot.Listing.ReadAsync(System.IO.Path.Combine(basePath, $"Listing{fileExtension}")));
+            tasks.Add(snapshot.Folded.ReadAsync(System.IO.Path.Combine(basePath, $"Folded{fileExtension}")));
 
             await Task.WhenAll(tasks);
 

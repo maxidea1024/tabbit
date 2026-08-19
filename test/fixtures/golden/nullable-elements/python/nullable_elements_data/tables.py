@@ -10,12 +10,13 @@ import os
 
 from . import tabbit
 from .listing_table import ListingTable
+from .folded_table import FoldedTable
 
 
 class Tables:
     """Every table, loaded together so cross-table references can be resolved."""
 
-    __slots__ = ("listing",)
+    __slots__ = ("listing", "folded")
 
     #: The key the table files were sealed with, or None when they were not sealed.
     #:
@@ -63,6 +64,7 @@ class Tables:
 
     def __init__(self):
         self.listing = ListingTable()
+        self.folded = FoldedTable()
 
     def read_all(self, base_path, file_extension=".tcb"):
         """Reads every table from base_path, then links the references between them.
@@ -76,12 +78,15 @@ class Tables:
         """
         loaded_listing = ListingTable()
         loaded_listing.read(os.path.join(base_path, "Listing" + file_extension))
+        loaded_folded = FoldedTable()
+        loaded_folded.read(os.path.join(base_path, "Folded" + file_extension))
 
-        self._solve_cross_references(loaded_listing)
+        self._solve_cross_references(loaded_listing, loaded_folded)
 
         self.listing = loaded_listing
+        self.folded = loaded_folded
 
-    def _solve_cross_references(self, listing):
+    def _solve_cross_references(self, listing, folded):
         """Turns the stored indices into usable values, once every table is in memory.
 
         The tables arrive as arguments rather than off self, which is how this resolves the

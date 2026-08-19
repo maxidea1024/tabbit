@@ -254,8 +254,15 @@ class {{ table.table_name }} {
             }
 {{~ else if column_view.kind == "serial" ~}}
             record.{{ column_view.name }}.resize({{ column_view.element_count }});
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }}.assign({{ column_view.element_count }}, true);
+{{~ end ~}}
             for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
               {{ column_view.read_element }};
+{{~ if column_view.has_optional_elements ~}}
+              record.{{ column_view.element_presence_member }}[j] =
+                  tabbit::is_present(element_presence, element_at++);
+{{~ end ~}}
             }
 {{~ else ~}}
             {{ column_view.read_scalar }};

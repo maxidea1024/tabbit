@@ -39,6 +39,8 @@ import tabbit.KIND_VAR_ARRAY
 object NullableElementsAccessor {
     var listing: ListingTable = ListingTable()
         private set
+    var folded: FoldedTable = FoldedTable()
+        private set
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -98,10 +100,13 @@ object NullableElementsAccessor {
     fun readAll(basePath: String, fileExtension: String = ".tcb") {
         val loadedListingTable = ListingTable()
         loadedListingTable.read(File(basePath, "Listing$fileExtension").path)
+        val loadedFoldedTable = FoldedTable()
+        loadedFoldedTable.read(File(basePath, "Folded$fileExtension").path)
 
-        solveCrossReferences(loadedListingTable)
+        solveCrossReferences(loadedListingTable, loadedFoldedTable)
 
         listing = loadedListingTable
+        folded = loadedFoldedTable
     }
 
     /**
@@ -110,7 +115,7 @@ object NullableElementsAccessor {
      * The tables arrive as arguments and shadow the properties of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private fun solveCrossReferences(listing: ListingTable) {
+    private fun solveCrossReferences(listing: ListingTable, folded: FoldedTable) {
         // No table references another.
     }
 }

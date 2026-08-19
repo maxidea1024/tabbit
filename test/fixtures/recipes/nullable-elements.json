@@ -9,7 +9,11 @@
   "Sources": {
     "Xlsx": [
       {
-        "Path": "test/fixtures/xlsx/nullable-elements"
+        "Path": "test/fixtures/xlsx/nullable-elements",
+
+        // `Tag1`..`Tag3` fold into one array. Their `?` is the element's answer, which is
+        // what a folded group's type cells can say - spec/nullable-array-elements.md.
+        "FoldSerialFields": true
       }
     ],
     "GoogleSheets": []

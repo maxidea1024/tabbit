@@ -51,6 +51,20 @@ bool NullableElements_LoadAllWithExtension(NullableElements_t* data, const char*
     return false;
   }
 
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Folded", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    NullableElements_Free(&loaded);
+    return false;
+  }
+
+  if (!NullableElements_FoldedLoad(&loaded.folded, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    NullableElements_Free(&loaded);
+    return false;
+  }
+
   /* The previous load goes now, and not before. */
   NullableElements_Free(data);
   *data = loaded;
@@ -60,4 +74,5 @@ bool NullableElements_LoadAllWithExtension(NullableElements_t* data, const char*
 
 void NullableElements_Free(NullableElements_t* data) {
   NullableElements_ListingFree(&data->listing);
+  NullableElements_FoldedFree(&data->folded);
 }

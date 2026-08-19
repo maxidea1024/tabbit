@@ -409,7 +409,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             return BuildRecordField(table, sf);
 
         string name = PhpName(sf.Name);
-        bool nullable = !sf.Fields[0].IsRequired;
+        bool nullable = sf.RowMayBeAbsent;
 
         var declarations = Declarations(sf, name).ToList();
 
@@ -424,7 +424,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         // And the per-element answer, empty until the read fills it: an index into an empty
         // array is out of range, and the answer there is that the element has a value.
         // spec/nullable-array-elements.md.
-        if (!sf.Fields[0].ElementsRequired)
+        if (sf.ElementMayBeAbsent)
         {
             declarations.Add("");
             declarations.Add($"public array ${ElementPresenceMember(sf)} = [];");
@@ -440,7 +440,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             RecordTypeName = "",
             Members = Array.Empty<PhpRecordMemberView>(),
             IsNullable = nullable,
-            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
             ElementPresenceMember = ElementPresenceMember(sf),
         };

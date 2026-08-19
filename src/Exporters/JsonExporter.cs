@@ -419,9 +419,14 @@ public class JsonExporter : Target<JsonRecipe>
                         // the columns its author left empty at the end.
                         int elements = table.ElementCountIn(sf, row);
 
-                        dataRow.Add(name, sf.Fields[0].IsRequired || row[sf.FirstField!.Index].HasValue
-                            ? sf.Fields.Take(elements).Select(f => ForJson(row, f)).ToArray()
-                            : null);
+                        // Every element answers for itself. A folded array has no cell that
+                        // stands for the array, so there is nothing here that could say the
+                        // array as a whole is absent - and the reading that did say it took
+                        // element 0's cell for the array's, losing elements 1..N with it.
+                        // spec/nullable-array-elements.md.
+                        dataRow.Add(name, sf.Fields.Take(elements)
+                            .Select(f => ForJson(row, f))
+                            .ToArray());
                     }
                     else
                     {

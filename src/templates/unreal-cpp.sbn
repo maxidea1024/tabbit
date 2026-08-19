@@ -274,6 +274,17 @@ bool {{ table.table_name }}::Read(const FString& Filename)
                 {
                     {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}.AddDefaulted_GetRef());
                 }
+{{~ if column_view.has_optional_elements ~}}
+                Record.{{ column_view.element_presence_member }}.Empty({{ column_view.element_count }});
+
+                for (int32 ElementIndex = 0; ElementIndex < {{ column_view.element_count }}; ++ElementIndex)
+                {
+                    Record.{{ column_view.element_presence_member }}.Add(
+                        Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
+                }
+
+                ElementAt += {{ column_view.element_count }};
+{{~ end ~}}
 {{~ else if column_view.cursor_read != '' ~}}
                 {{ column_view.cursor_read }}
 {{~ else if column_view.kind == 'scalar_ref' ~}}

@@ -496,8 +496,15 @@
                         {
                             var record = records[i];
                             record.{{ column.field_name }} = new {{ column.field_type }}[Record.{{ column.prop_name }}_N];
+{{~ if column.has_optional_elements ~}}
+                            record.{{ column.element_presence_field }} = new bool[Record.{{ column.prop_name }}_N];
+{{~ end ~}}
                             for (int j = 0; j < Record.{{ column.prop_name }}_N; ++j)
                             {
+{{~ if column.has_optional_elements ~}}
+                                record.{{ column.element_presence_field }}[j] =
+                                    TcbTable.IsPresent(elementPresence, elementAt++);
+{{~ end ~}}
 {{~ for line in column.element_read ~}}
                                 {{ line }}
 {{~ end ~}}

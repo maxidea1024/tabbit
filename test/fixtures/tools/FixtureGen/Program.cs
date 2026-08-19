@@ -1784,6 +1784,32 @@ internal static class Program
 
         b.Table(1, 1, spec);
 
+        var folded = new TableSpec
+        {
+            Name = "Folded",
+            Comment = "Numbered columns that fold into one array whose elements may be absent.",
+        };
+        folded
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+
+            // The `?` is on the element, because that is what the cell declares: a folded
+            // group has one type cell per element and none for the array.
+            // spec/nullable-array-elements.md.
+            .Field(FieldSpec.Of("Tag1", "string?", "element 1 - and the group's answer"))
+            .Field(FieldSpec.Of("Tag2", "string?", "element 2"))
+            .Field(FieldSpec.Of("Tag3", "string?", "element 3"));
+        folded
+            .Row("1", "a", "b", "c")
+            // The middle element has no value, and the ones around it are untouched - the
+            // reading this replaces reported the whole array absent from element 0's cell.
+            .Row("2", "a", "-", "c")
+            // Element 0 absent, and `b` must survive it.
+            .Row("3", "-", "b", "c")
+            // A blank element is the empty string, as it is in a delimited cell.
+            .Row("4", "a", "", "c");
+
+        b.Table(9, 1, folded);
+
         Save(workbook, path);
     }
 

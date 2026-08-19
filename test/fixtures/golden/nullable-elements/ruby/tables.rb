@@ -9,11 +9,13 @@ require_relative 'tabbit/tcb_reader'
 
 require_relative 'tables/listing_table'
 
+require_relative 'tables/folded_table'
+
 
 module NullableElements
   # Every table, loaded together so cross-table references can be resolved.
   class Tables
-    attr_reader :listing
+    attr_reader :listing, :folded
 
     class << self
       # The key the table files were sealed with, or nil when they were not sealed.
@@ -70,6 +72,7 @@ module NullableElements
 
     def initialize
       @listing = ListingTable.new
+      @folded = FoldedTable.new
     end
 
     # Reads every table from base_path, then links the references between them.
@@ -79,10 +82,13 @@ module NullableElements
     def read_all(base_path, file_extension = '.tcb')
       loaded_listing = ListingTable.new
       loaded_listing.read(File.join(base_path, "Listing#{file_extension}"))
+      loaded_folded = FoldedTable.new
+      loaded_folded.read(File.join(base_path, "Folded#{file_extension}"))
 
-      solve_cross_references(loaded_listing)
+      solve_cross_references(loaded_listing, loaded_folded)
 
       @listing = loaded_listing
+      @folded = loaded_folded
     end
 
     private
@@ -90,7 +96,7 @@ module NullableElements
     # Turns the stored indices into usable values, once every table is in memory.
     # The tables arrive as arguments rather than off the instance, which is how this
     # resolves the load being read rather than the one already published.
-    def solve_cross_references(listing)
+    def solve_cross_references(listing, folded)
       # No table references another.
       nil
     end

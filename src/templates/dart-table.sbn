@@ -206,6 +206,11 @@ class {{ table.table_name }} {
             record.{{ column_view.name }}Index = List.generate({{ column_view.element_count }}, (_) => {{ column_view.read_element }});
 {{~ else if column_view.kind == 'serial' ~}}
             record.{{ column_view.name }} = List.generate({{ column_view.element_count }}, (_) => {{ column_view.read_element }});
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }} = List.generate(
+                {{ column_view.element_count }}, (at) => isPresent(elementPresence, elementAt + at));
+            elementAt += {{ column_view.element_count }};
+{{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
             record.{{ column_view.name }}Index = {{ column_view.read_element }};
 {{~ else ~}}

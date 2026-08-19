@@ -566,8 +566,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         return new CsFieldView
         {
             IsRecord = false,
-            IsNullable = !sf.Fields[0].IsRequired,
-            HasOptionalElements = !sf.Fields[0].ElementsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceField = PresenceField(sf),
             ElementPresenceField = ElementPresenceField(sf),
             RecordTypeName = "",

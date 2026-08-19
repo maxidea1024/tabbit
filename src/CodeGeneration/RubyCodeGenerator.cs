@@ -288,12 +288,12 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             if (sf.IsRef)
                 accessors.Add(RubyName(sf.Name) + "_index");
 
-            if (!sf.IsRecord && !sf.Fields[0].IsRequired)
+            if (sf.RowMayBeAbsent)
                 accessors.Add(PresenceMember(sf));
 
             // And the per-element answer, which is an array rather than a flag.
             // spec/nullable-array-elements.md.
-            if (!sf.IsRecord && !sf.Fields[0].ElementsRequired)
+            if (sf.ElementMayBeAbsent)
                 accessors.Add(ElementPresenceMember(sf));
         }
 
@@ -345,7 +345,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             return BuildRecordField(table, sf);
 
         string name = RubyName(sf.Name);
-        bool nullable = !sf.Fields[0].IsRequired;
+        bool nullable = sf.RowMayBeAbsent;
 
         var initializers = Initializers(sf, name).ToList();
 
@@ -356,7 +356,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         // Empty until the read fills it: an index into an empty array is out of range, and
         // the answer there is that the element has a value.
-        if (!sf.Fields[0].ElementsRequired)
+        if (sf.ElementMayBeAbsent)
             initializers.Add($"@{ElementPresenceMember(sf)} = []");
 
         return new RubyFieldView
@@ -369,7 +369,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             RecordAccessorNames = "",
             Members = Array.Empty<RubyRecordMemberView>(),
             IsNullable = nullable,
-            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
             ElementPresenceMember = ElementPresenceMember(sf),
         };

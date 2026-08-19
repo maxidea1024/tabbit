@@ -285,8 +285,9 @@ export class GuideTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._tagArray = []
-            for (let j = 0; j < 2; ++j)
+            for (let j = 0; j < 2; ++j) {
               record._tagArray.push(cursor.nextString())
+            }
           }
           break
         case 8:

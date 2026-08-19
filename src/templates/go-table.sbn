@@ -255,8 +255,16 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 					}
 {{~ else if column_view.kind == 'serial' ~}}
 					r.{{ column_view.name }} = make({{ column_view.array_type }}, {{ column_view.element_count }})
+{{~ if column_view.has_optional_elements ~}}
+					r.{{ column_view.element_presence_member }} = make([]bool, {{ column_view.element_count }})
+{{~ end ~}}
 					for j := 0; j < {{ column_view.element_count }}; j++ {
 						r.{{ column_view.name }}[j] = {{ column_view.read_value }}
+{{~ if column_view.has_optional_elements ~}}
+						r.{{ column_view.element_presence_member }}[j] =
+							tabbit.IsPresent(elementPresence, elementAt)
+						elementAt++
+{{~ end ~}}
 					}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
 					r.{{ column_view.name }}Index = {{ column_view.read_value }}

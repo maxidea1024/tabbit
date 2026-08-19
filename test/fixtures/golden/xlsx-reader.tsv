@@ -26,7 +26,7 @@ nested-hole/nested-hole.xlsx	sheets=1 rows=9 cells=22 chars=169 names=0 skipped-
 nested/nested.xlsx	sheets=1 rows=11 cells=74 chars=556 names=0 skipped-names=0 notes=0 hash=eb496783965de6bd
 no-value-element/no-value-element.xlsx	sheets=1 rows=10 cells=20 chars=203 names=0 skipped-names=0 notes=0 hash=9d8f3486dcda95a3
 no-value-refused/no-value-refused.xlsx	sheets=1 rows=10 cells=40 chars=384 names=0 skipped-names=0 notes=0 hash=1dfc9eacf70f7605
-nullable-elements/nullable-elements.xlsx	sheets=1 rows=13 cells=65 chars=474 names=0 skipped-names=0 notes=0 hash=684ede19b15e1728
+nullable-elements/nullable-elements.xlsx	sheets=1 rows=13 cells=98 chars=690 names=0 skipped-names=0 notes=0 hash=701446bf7191da83
 optional-index/optional-index.xlsx	sheets=1 rows=9 cells=17 chars=165 names=0 skipped-names=0 notes=0 hash=06dc31a0e3c60c01
 optional/optional.xlsx	sheets=1 rows=11 cells=108 chars=704 names=0 skipped-names=0 notes=0 hash=c5ebd5b58a0ef7b1
 record-ref-trim/record-ref-trim.xlsx	sheets=1 rows=11 cells=54 chars=337 names=0 skipped-names=0 notes=0 hash=902c6b28955acc89

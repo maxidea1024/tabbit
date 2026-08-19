@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-19T16:18:54.2055198+09:00",
+    "generatedAt": "2026-08-19T17:24:19.7713301+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "efc663de8544d8556d2482a0e48206bcc19393e7",
-      "shortHash": "efc663de8544",
+      "hash": "10bbf73f44c78fe3534df59f02783af168825577",
+      "shortHash": "10bbf73f44c7",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-19T14:54:15.0000000+09:00",
-      "subject": "Carry element presence in the file, as format v106",
+      "committedAt": "2026-08-19T16:36:35.0000000+09:00",
+      "subject": "Read the element bitmap in all thirteen languages",
       "origin": "git",
       "dirty": true,
       "attributable": false

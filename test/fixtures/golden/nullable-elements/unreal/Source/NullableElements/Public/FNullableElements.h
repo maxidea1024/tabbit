@@ -77,6 +77,29 @@ struct NULLABLEELEMENTS_API FListingRow
 };
 
 
+// Generated from test/fixtures/xlsx/nullable-elements/nullable-elements.xlsx : Arrays : J2
+/** Numbered columns that fold into one array whose elements may be absent. */
+USTRUCT(BlueprintType)
+struct NULLABLEELEMENTS_API FFoldedRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Folded")
+    int32 Index = 0;
+
+    /** element 1 - and the group's answer */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Folded")
+    TArray<FString> TagArray;
+
+    /** Which of TagArray's elements have a value. Empty where the file did not carry
+     * the column, and then every index is out of range anyway.
+     * spec/nullable-array-elements.md. */
+    TArray<bool> bHasTagArrayAt;
+
+};
+
+
 /** Every row of Listing. */
 class NULLABLEELEMENTS_API FListingTable
 {
@@ -103,6 +126,32 @@ private:
 };
 
 
+/** Every row of Folded. */
+class NULLABLEELEMENTS_API FFoldedTable
+{
+public:
+    const TArray<FFoldedRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FFoldedRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FFoldedRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
 /**
  * Every table, loaded together.
  *
@@ -113,6 +162,7 @@ class NULLABLEELEMENTS_API FNullableElements
 {
 public:
     static const FListingTable& Listing() { return ListingStorage; }
+    static const FFoldedTable& Folded() { return FoldedStorage; }
 
     /**
      * Reads every table from BasePath. Returns false if any of them could not be read.
@@ -176,6 +226,7 @@ public:
 
 private:
     static FListingTable ListingStorage;
+    static FFoldedTable FoldedStorage;
 };
 
 /**
@@ -225,6 +276,34 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|Listing",
               meta = (DisplayName = "Get Listing Row At"))
     static FListingRow GetListingRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Folded row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Folded",
+              meta = (DisplayName = "Get Folded Row"))
+    static FFoldedRow GetFoldedRow(int32 Key, bool& bFound);
+
+    /** How many Folded rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Folded",
+              meta = (DisplayName = "Get Folded Row Count"))
+    static int32 GetFoldedRowCount();
+
+    /**
+     * The Folded row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Folded",
+              meta = (DisplayName = "Get Folded Row At"))
+    static FFoldedRow GetFoldedRowAt(int32 Position, bool& bFound);
 
     /**
      * Reads every table from BasePath, as FNullableElements::ReadAll does.

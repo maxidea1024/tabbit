@@ -207,8 +207,9 @@ export class LocalizationTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._textEnArray = []
-            for (let j = 0; j < 2; ++j)
+            for (let j = 0; j < 2; ++j) {
               record._textEnArray.push(cursor.nextString())
+            }
           }
           break
         case 4:
@@ -217,8 +218,9 @@ export class LocalizationTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._textKoArray = []
-            for (let j = 0; j < 2; ++j)
+            for (let j = 0; j < 2; ++j) {
               record._textKoArray.push(cursor.nextString())
+            }
           }
           break
         default:

@@ -643,8 +643,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         return new TsFieldView
         {
             IsRecord = false,
-            IsNullable = !sf.Fields[0].IsRequired,
-            HasOptionalElements = !sf.Fields[0].ElementsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceField = "_" + prop + "HasValue",
             ElementPresenceField = "_" + prop + "HasValueAt",
             RecordTypeName = "",
@@ -1276,7 +1276,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // keeps the type's empty one - so the two read paths agree about both halves. The
         // conversion is skipped for a null, because a converter given one would produce a
         // value rather than leave the default alone.
-        if (!sf.Fields[0].IsRequired)
+        if (sf.RowMayBeAbsent)
         {
             string present = $"dataRow.{prop} !== null && dataRow.{prop} !== undefined";
 
@@ -1358,7 +1358,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // An optional scalar: the entry is `null` where the row had no value, and the
         // member keeps the type's empty one. Read into a local first, because the offset
         // must advance exactly once whichever branch is taken.
-        if (!sf.Fields[0].IsRequired)
+        if (sf.RowMayBeAbsent)
         {
             string local = $"{field}_raw";
             string converted = NeedsJsonConversion(sf) ? FromJsonExpression(sf, local) : local;

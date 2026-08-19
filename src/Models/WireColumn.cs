@@ -201,11 +201,12 @@ public sealed class WireColumn
                     // columns were elements - the same rule a record group follows.
                     IsVariableLengthArray = table.IsVariableLength(group),
 
-                    IsNullable = NullabilityOf(group.Fields, table, group.Name),
-
-                    // The group's own answer, which is its first field's - the elements of one
-                    // array share a type and share this with it. spec/array-optionality.md.
-                    HasOptionalElements = !group.Fields[0].ElementsRequired,
+                    // Which of the two the group's `?` answers depends on where the array was
+                    // written: a delimited cell has a marker for each, and a folded group has
+                    // one cell per element and none for the array.
+                    // spec/nullable-array-elements.md.
+                    IsNullable = group.RowMayBeAbsent,
+                    HasOptionalElements = group.ElementMayBeAbsent,
                 });
 
                 continue;
@@ -307,6 +308,4 @@ public sealed class WireColumn
     /// says is neither ambiguous nor wrong. spec/array-optionality.md has the reasoning
     /// and the notation it came from.
     /// </remarks>
-    private static bool NullabilityOf(IReadOnlyList<Field> fields, Table table, string name)
-        => !fields[0].IsRequired;
 }

@@ -585,8 +585,8 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             Members = Array.Empty<RustRecordMemberView>(),
             IsFixedRecordArray = false,
             ElementCount = 0,
-            IsNullable = !sf.Fields[0].IsRequired,
-            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
             ElementPresenceMember = PresenceMember(sf) + "_at",
         };

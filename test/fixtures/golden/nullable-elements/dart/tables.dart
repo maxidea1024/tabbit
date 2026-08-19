@@ -13,10 +13,12 @@ import 'dart:typed_data';
 import 'tabbit/tcb_reader.dart';
 
 part 'tables/listing_table.dart';
+part 'tables/folded_table.dart';
 
 /// Every table, loaded together so cross-table references can be resolved.
 class Tables {
   ListingTable listing = ListingTable();
+  FoldedTable folded = FoldedTable();
 
   /// The key the table files were sealed with, or null when they were not sealed.
   ///
@@ -72,17 +74,20 @@ class Tables {
       [String fileExtension = '.tcb']) {
     final loadedListingTable = ListingTable();
     loadedListingTable.read('$basePath${Platform.pathSeparator}Listing$fileExtension');
+    final loadedFoldedTable = FoldedTable();
+    loadedFoldedTable.read('$basePath${Platform.pathSeparator}Folded$fileExtension');
 
-    _solveCrossReferences(loadedListingTable);
+    _solveCrossReferences(loadedListingTable, loadedFoldedTable);
 
     listing = loadedListingTable;
+    folded = loadedFoldedTable;
   }
 
   /// Turns the stored indices into usable values, once every table is in memory.
   ///
   /// The tables arrive as arguments and shadow the fields of the same name, which is how
   /// this resolves the load being read rather than the one already published.
-  void _solveCrossReferences(ListingTable listing) {
+  void _solveCrossReferences(ListingTable listing, FoldedTable folded) {
     // No table references another.
   }
 }

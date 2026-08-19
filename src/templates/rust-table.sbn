@@ -266,8 +266,17 @@ impl {{ table.table_name }} {
                         }
 {{~ else if column_view.kind == 'serial' ~}}
                         record.{{ column_view.name }} = Vec::with_capacity({{ column_view.element_count }});
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} =
+                            Vec::with_capacity({{ column_view.element_count }});
+{{~ end ~}}
                         for _ in 0..{{ column_view.element_count }} {
                             record.{{ column_view.name }}.push({{ column_view.read_element }});
+{{~ if column_view.has_optional_elements ~}}
+                            record.{{ column_view.element_presence_member }}
+                                .push(tabbit::is_present(&element_presence, element_at));
+                            element_at += 1;
+{{~ end ~}}
                         }
 {{~ else if column_view.kind == 'scalar_ref' ~}}
                         record.{{ column_view.name }}_index = {{ column_view.read_scalar }};

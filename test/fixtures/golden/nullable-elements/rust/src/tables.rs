@@ -10,6 +10,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::OnceLock;
 use crate::tabbit;
 use crate::listing_table::ListingTable;
+use crate::folded_table::FoldedTable;
 
 /// The key the table files were sealed with, or unset when they were not sealed.
 ///
@@ -63,6 +64,7 @@ pub static VERIFY_MAC: AtomicBool = AtomicBool::new(true);
 #[derive(Clone, Debug, Default)]
 pub struct Tables {
     pub listing: ListingTable,
+    pub folded: FoldedTable,
 }
 
 impl Tables {
@@ -85,6 +87,8 @@ impl Tables {
 
         loaded.listing.read(
             &base_path.join(format!("Listing{}", file_extension)))?;
+        loaded.folded.read(
+            &base_path.join(format!("Folded{}", file_extension)))?;
 
         *self = loaded;
 

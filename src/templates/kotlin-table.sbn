@@ -228,7 +228,17 @@ class {{ table.table_name }} {
                         repeat({{ column_view.element_count }}) { record.{{ column_view.name }}Index.add({{ column_view.read_element }}) }
 {{~ else if column_view.kind == 'serial' ~}}
                         record.{{ column_view.name }} = ArrayList({{ column_view.element_count }})
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} = ArrayList({{ column_view.element_count }})
+                        repeat({{ column_view.element_count }}) {
+                            record.{{ column_view.name }}.add({{ column_view.read_element }})
+                            record.{{ column_view.element_presence_member }}
+                                .add(isPresent(elementPresence, elementAt))
+                            elementAt++
+                        }
+{{~ else ~}}
                         repeat({{ column_view.element_count }}) { record.{{ column_view.name }}.add({{ column_view.read_element }}) }
+{{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
                         record.{{ column_view.name }}Index = {{ column_view.read_scalar }}
 {{~ else ~}}

@@ -581,8 +581,8 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
             // A record group has no presence of its own: absence inside one is the array's
             // length, not a bit per member.
-            IsNullable = !sf.IsRecord && !sf.Fields[0].IsRequired,
-            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = "bHas" + name,
             ElementPresenceMember = "bHas" + name + "At",
 

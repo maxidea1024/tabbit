@@ -324,7 +324,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             return BuildRecordField(table, sf);
 
         string name = DartName(sf.Name);
-        bool nullable = !sf.Fields[0].IsRequired;
+        bool nullable = sf.RowMayBeAbsent;
 
         var declarations = Declarations(sf, name).ToList();
 
@@ -336,7 +336,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         // And the per-element answer, empty until the read fills it: an index into an empty
         // list is out of range, and the answer there is that the element has a value.
         // spec/nullable-array-elements.md.
-        if (!sf.Fields[0].ElementsRequired)
+        if (sf.ElementMayBeAbsent)
             declarations.Add($"List<bool> {ElementPresenceMember(sf)} = const <bool>[];");
 
         return new DartFieldView
@@ -348,7 +348,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             RecordTypeName = "",
             Members = Array.Empty<DartRecordMemberView>(),
             IsNullable = nullable,
-            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
             ElementPresenceMember = ElementPresenceMember(sf),
         };

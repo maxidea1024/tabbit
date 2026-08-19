@@ -10,6 +10,7 @@
 #define NULLABLE_ELEMENTS_H
 
 #include "tables/NullableElements_Listing.h"
+#include "tables/NullableElements_Folded.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,6 +19,7 @@ extern "C" {
 /* Every table, loaded together so cross-table references can be resolved. */
 typedef struct NullableElements_t {
   NullableElements_ListingTable_t listing;
+  NullableElements_FoldedTable_t folded;
 } NullableElements_t;
 
 /* Reads every table from base_path, then links the references between them.

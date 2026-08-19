@@ -17,6 +17,7 @@ extern "C" {
 #endif
 
 typedef struct NullableElements_ListingRecord_t NullableElements_ListingRecord_t;
+typedef struct NullableElements_FoldedRecord_t NullableElements_FoldedRecord_t;
 
 /* The key the table files were sealed with, and its length - NULL and 0 when they were not
  * sealed.

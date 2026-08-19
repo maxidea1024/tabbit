@@ -667,8 +667,8 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
             // A record group has no presence of its own: absence inside one is the array's
             // length, not a bit per member.
-            IsNullable = !sf.IsRecord && !sf.Fields[0].IsRequired,
-            HasOptionalElements = !sf.IsRecord && !sf.Fields[0].ElementsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = "has_" + name,
             ElementPresenceMember = "has_" + name + "_at_",
         };
