@@ -69,6 +69,18 @@ public class DartNestedAndOptionalTests
     public void A_reference_inside_a_record_compiles() => AssertCompiles("record-ref");
 
     /// <summary>
+    /// An array of references: numbered reference columns folded into one array.
+    /// </summary>
+    /// <remarks>
+    /// The shape `foreign[]`'s refusal points at, and nothing in the corpus held one - so this
+    /// page was generated for thirteen languages and never compiled. Both forms of a reference
+    /// are in the fixture, because they resolve to different types: a whole row and one of that
+    /// row's values. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void An_array_of_references_compiles() => AssertCompiles("serial-ref");
+
+    /// <summary>
     /// An array whose elements may be absent, which reads a second bitmap per column.
     /// </summary>
     /// <remarks>

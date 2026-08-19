@@ -37,6 +37,7 @@ reference-optional/reference-optional.xlsx	sheets=1 rows=11 cells=45 chars=385 n
 reference-required-blank/reference-required-blank.xlsx	sheets=1 rows=11 cells=40 chars=397 names=0 skipped-names=0 notes=0 hash=182e16f42efe4c2f
 reserved-words/reserved-words.xlsx	sheets=1 rows=10 cells=88 chars=897 names=0 skipped-names=0 notes=0 hash=c68cd412ef7c18b4
 row-sets/row-sets.xlsx	sheets=1 rows=10 cells=150 chars=940 names=0 skipped-names=0 notes=0 hash=ac5e80afe28d880a
+serial-ref/serial-ref.xlsx	sheets=1 rows=11 cells=64 chars=450 names=0 skipped-names=0 notes=0 hash=85a5cdd202b10564
 side-dangling/side-dangling.xlsx	sheets=1 rows=10 cells=41 chars=315 names=0 skipped-names=0 notes=0 hash=32c62ce3f464e215
 strict-values/strict-values.xlsx	sheets=1 rows=10 cells=20 chars=163 names=0 skipped-names=0 notes=0 hash=c53c0097a86206b7
 string-index/string-index.xlsx	sheets=1 rows=11 cells=23 chars=197 names=0 skipped-names=0 notes=0 hash=7f373d044fad5a42

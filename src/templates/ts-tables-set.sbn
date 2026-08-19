@@ -138,7 +138,10 @@ export class {{ accessor_name }} {
     for (const record of this._{{ reference.table }}.records) {
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-      for (let i = 0; i < {{ field.element_count }}; i++) {
+{{~## The keys' own length rather than the sheet's column count: the read sized this array from
+   the file, so a number written in here would leave the last element unresolved on a file with
+   one more. spec/nullable-array-elements.md. ##~}}
+      for (let i = 0; i < record.{{ field.field_name }}_{{ field.ref_table_type }}_index.length; i++) {
         if (record.{{ field.field_name }}_{{ field.ref_table_type }}_index[i] {{ field.ref_is_set }}) {
           const target = this._{{ field.ref_table }}.{{ field.ref_lookup }}(
             record.{{ field.field_name }}_{{ field.ref_table_type }}_index[i])

@@ -1268,8 +1268,16 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         {
             string index = $"{field}_{sf.FirstField!.ResolvedRefTable!.Name.ToPascalCase()}_index";
 
-            return $"this.{index} = "
-                 + FromJsonExpressionOf(sf.FirstField!.RefKeyType, $"dataRow.{prop}");
+            string keys = $"this.{index} = "
+                        + FromJsonExpressionOf(sf.FirstField!.RefKeyType, $"dataRow.{prop}");
+
+            // An array of them: the resolved array and the flag are as long as the keys, which
+            // is the length the data states. Left to the linking pass they would hold only the
+            // elements that resolved, and a row whose second reference points at nothing would
+            // have a one-element array. spec/nullable-array-elements.md.
+            return sf.IsArray
+                ? $"{keys}; {SizedFromKeys(field, index)}"
+                : keys;
         }
 
         // An optional column arrives as `null` when the row had no value, and the member
@@ -1286,6 +1294,19 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         return ValueFromNamedRow(sf, field, prop);
     }
+
+    /// <summary>
+    /// The resolved array and its flag, made as long as the keys just read.
+    /// </summary>
+    /// <remarks>
+    /// The values are filled in by the linking pass, and only for the keys that point at
+    /// something - so nothing else gives these two arrays their length. Every other language
+    /// sizes them where it reads, and a shorter array here is a hole a `for ... of` walks past
+    /// without a sign. spec/nullable-array-elements.md.
+    /// </remarks>
+    private static string SizedFromKeys(string field, string index)
+        => $"this.{field} = new Array(this.{index}.length).fill(undefined); "
+         + $"this.{field}_F = new Array(this.{index}.length).fill(false)";
 
     /// <summary>The assignment itself, without the presence handling around it.</summary>
     private string ValueFromNamedRow(SerialField sf, string field, string prop)
@@ -1326,6 +1347,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 ? new[]
                 {
                     $"this.{index} = dataRow.slice(offset, offset + {sf.Fields.Count}){keyConvert}",
+                    SizedFromKeys(field, index),
                     $"offset += {sf.Fields.Count}",
                 }
                 : new[]

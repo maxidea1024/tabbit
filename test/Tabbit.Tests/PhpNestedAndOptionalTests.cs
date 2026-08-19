@@ -164,6 +164,29 @@ assert(array_map(fn($r) => count($r->part), $accessor->kit->records) === [3, 2, 
 assert($accessor->kit->records[1]->part[0]->itemId->name === 'shield');
 ");
 
+    /// <summary>
+    /// An array of references: numbered reference columns folded into one array.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only compiling, because the failure this guards against is code that
+    /// runs and resolves nothing: the keys arrive on the wire and the values are written by the
+    /// linking pass, which walks the array it was given. Element 0 and element 1 point at
+    /// different rows, so a loop that resolved the first and left the rest shows as the wrong
+    /// value. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void An_array_of_references_reads()
+        => AssertReads("serial-ref", "SerialRefAccessor", @"
+$rows = $accessor->kit->records;
+assert(array_map(fn($r) => count($r->slotArray), $rows) === [2, 2, 2]);
+assert($rows[0]->slotArray[0]->name === 'sword');
+assert($rows[0]->slotArray[1]->name === 'shield');
+assert($rows[1]->slotArray[0]->name === 'ring');
+assert($rows[2]->slotArray[1] === null);
+assert($rows[0]->tierArray === [3, 5]);
+assert($rows[2]->tierArray[1] === null);
+");
+
     private static void AssertReads(string scenario, string accessor, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);

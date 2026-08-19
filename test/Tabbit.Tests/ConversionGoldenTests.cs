@@ -100,6 +100,12 @@ public class ConversionGoldenTests
     // feature. `Loadout` carries two references to one table in each element, which is what
     // decided that the key lives inside the element. spec/references-in-records.md.
     [InlineData("record-ref")]
+    // An array of references: numbered reference columns folded into one array, in both forms
+    // a reference takes - a whole row and one of that row's values. All thirteen languages,
+    // because this is the shape `foreign[]`'s refusal points at and no fixture held one: every
+    // generator emitted code for it that nothing ever read, and two of them wrote the sheet's
+    // column count into the linking pass. spec/nullable-array-elements.md.
+    [InlineData("serial-ref")]
     public void Fixture_matches_golden(string scenario)
     {
         var result = TabbitRunner.Convert(scenario);

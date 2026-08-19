@@ -70,6 +70,19 @@ public class UnrealNestedAndOptionalTests
     public void A_reference_inside_a_record_is_a_type_the_header_tool_accepts()
         => AssertHeaderToolAccepts("record-ref", "RecordRefData", "FRecordRefData.h");
 
+    /// <summary>
+    /// An array of references: numbered reference columns folded into one array.
+    /// </summary>
+    /// <remarks>
+    /// The shape `foreign[]`'s refusal points at, and nothing in the corpus held one - so this
+    /// page was generated for thirteen languages and never compiled. Both forms of a reference
+    /// are in the fixture, because they resolve to different types: a whole row and one of that
+    /// row's values. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void An_array_of_references_compiles()
+        => AssertHeaderToolAccepts("serial-ref", "SerialRefData", "FSerialRefData.h");
+
     private static void AssertHeaderToolAccepts(string scenario, string module, string header)
     {
         string engineRoot = Environment.GetEnvironmentVariable("TABBIT_UE_ROOT");

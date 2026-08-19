@@ -50,6 +50,7 @@ internal static class Program
         WriteStringIndex(Prepare(outputDir, "string-index", "string-index.xlsx"));
         WriteReferenceKeys(Prepare(outputDir, "reference-keys", "reference-keys.xlsx"));
         WriteRecordRef(Prepare(outputDir, "record-ref", "record-ref.xlsx"));
+        WriteSerialRef(Prepare(outputDir, "serial-ref", "serial-ref.xlsx"));
         WriteRecordRefTrim(Prepare(outputDir, "record-ref-trim", "record-ref-trim.xlsx"));
         WriteKeyTypes(Prepare(outputDir, "key-types", "key-types.xlsx"));
         WriteOptional(Prepare(outputDir, "optional", "optional.xlsx"));
@@ -1104,6 +1105,73 @@ internal static class Program
     ///
     /// spec/references-in-records.md.
     /// </remarks>
+    /// <summary>
+    /// Numbered reference columns folded into one array of references.
+    /// </summary>
+    /// <remarks>
+    /// The shape `foreign[]`'s refusal points at: a delimited cell would mean a different
+    /// number of targets per row, and this is the fixed-length answer. Nothing in the corpus
+    /// held one, so the code that reads it was only ever compiled.
+    ///
+    /// Both forms of a reference, because they resolve to different types: a whole row and one
+    /// of that row's values. Every generated page declares the resolved array from that type,
+    /// and the read allocates the stored keys beside it - so a page that gets the pair wrong
+    /// either fails to compile or resolves into the wrong array.
+    /// </remarks>
+    private static void WriteSerialRef(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Refs"));
+
+        var piece = new TableSpec
+        {
+            Name = "Piece",
+            Comment = "What the references point at.",
+        };
+        piece
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "the name a whole-row reference reaches"))
+            .Field(FieldSpec.Of("Tier", "int", "the value a field reference borrows"));
+        piece
+            .Row("1", "sword", "3")
+            .Row("2", "shield", "5")
+            .Row("3", "ring", "8");
+
+        b.Table(1, 1, piece);
+
+        var kit = new TableSpec
+        {
+            Name = "Kit",
+            Comment = "Numbered reference columns, folded into arrays.",
+        };
+        kit
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+
+            // A whole row per element. The resolved member is a pointer to the other table's
+            // row, and the key that came off the wire sits in an array beside it.
+            .Field(FieldSpec.Of("Slot1", "foreign", "element 1 - the row it points at",
+                                detailType: "Piece"))
+            .Field(FieldSpec.Of("Slot2", "foreign", "element 2", detailType: "Piece"))
+
+            // One of that row's values per element, which resolves to the value's own type
+            // rather than to a row - the other half of what a reference can be.
+            .Field(FieldSpec.Of("Tier1", "foreign", "element 1 - the target's own value",
+                                detailType: "Piece.Tier"))
+            .Field(FieldSpec.Of("Tier2", "foreign", "element 2", detailType: "Piece.Tier"));
+        kit
+            // The two elements pointing at different rows, so an element index read from the
+            // wrong place shows in the values.
+            .Row("1", "1", "2", "1", "2")
+            .Row("2", "3", "1", "3", "1")
+            // A written zero, which is the convention for "points at nothing" and has to stay
+            // that beside a resolved element.
+            .Row("3", "2", "0", "2", "0");
+
+        b.Table(9, 1, kit);
+
+        Save(workbook, path);
+    }
+
     private static void WriteRecordRef(string path)
     {
         var workbook = new XSSFWorkbook();

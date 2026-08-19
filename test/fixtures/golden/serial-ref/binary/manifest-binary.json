@@ -1,0 +1,19 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "cf3dea9c903da3bc234c8df1a4043e53",
+  "TotalSize": 175,
+  "Items": [
+    {
+      "Name": "Piece.tcb",
+      "Size": 92,
+      "Hash": "41066d37e38b373966140cbad20bad91",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Kit.tcb",
+      "Size": 83,
+      "Hash": "ebb13bce13cc3c9d172fde55063ecf5a",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

@@ -133,7 +133,11 @@
             {
 {{~ for field in table.reference_fields ~}}
 {{~ if field.kind == 'array_ref' ~}}
-                for (int i = 0; i < {{ field.element_count }}; i++)
+{{~## The keys' own length rather than the sheet's column count: the read sized this array
+      from the file, so a number written in here would leave the last element unresolved on a
+      file with one more - and index past the end on a file with one fewer.
+      spec/nullable-array-elements.md. ##~}}
+                for (int i = 0; i < record.{{ field.field_name }}_{{ field.ref_table }}_index.Length; i++)
                 {
 {{~ if field.references_field ~}}
                     if (record.{{ field.field_name }}_{{ field.ref_table }}_index[i] {{ field.ref_is_set }})

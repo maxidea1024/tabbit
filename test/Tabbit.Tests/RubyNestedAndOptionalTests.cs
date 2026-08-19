@@ -161,6 +161,29 @@ raise unless accessor.kit.records.map { |r| r.part.length } == [3, 2, 0]
 raise unless accessor.kit.records[1].part[0].item_id.name == 'shield'
 ");
 
+    /// <summary>
+    /// An array of references: numbered reference columns folded into one array.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only compiling, because the failure this guards against is code that
+    /// runs and resolves nothing: the keys arrive on the wire and the values are written by the
+    /// linking pass, which walks the array it was given. Element 0 and element 1 point at
+    /// different rows, so a loop that resolved the first and left the rest shows as the wrong
+    /// value. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void An_array_of_references_reads()
+        => AssertReads("serial-ref", "SerialRef", @"
+rows = accessor.kit.records
+raise unless rows.map { |r| r.slot_array.length } == [2, 2, 2]
+raise unless rows[0].slot_array[0].name == 'sword'
+raise unless rows[0].slot_array[1].name == 'shield'
+raise unless rows[1].slot_array[0].name == 'ring'
+raise unless rows[2].slot_array[1].nil?
+raise unless rows[0].tier_array == [3, 5]
+raise unless rows[2].tier_array[1].nil?
+");
+
     private static void AssertReads(string scenario, string module, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);

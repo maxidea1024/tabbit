@@ -37,9 +37,10 @@ public class CorpusCoverageTests
     /// </summary>
     /// <remarks>
     /// `None` is the absence of a type. `Unresolved` is what a reference holds between parsing
-    /// and resolution, and never survives into a model. `ForeignRecord` is in the corpus, but
-    /// its array form is not: an array of whole-row references is a shape the sheets do not
-    /// have a syntax for.
+    /// and resolution, and never survives into a model. `ForeignRecordArray` is the reserved
+    /// spelling of `foreign[]`, which the cooker refuses - an array of references is written as
+    /// a folded serial group instead, and that keeps `ForeignRecord` as its element type. The
+    /// `serial-ref` fixture holds one.
     ///
     /// Named individually rather than by a rule, because the next type added should have to
     /// be thought about rather than swept in by a predicate somebody wrote for these.

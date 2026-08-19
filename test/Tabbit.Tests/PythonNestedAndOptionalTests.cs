@@ -174,6 +174,31 @@ assert [len(r.part) for r in t.kit.records] == [3, 2, 0], [len(r.part) for r in 
 assert t.kit.records[1].part[0].item_id.name == 'shield', t.kit.records[1].part[0]
 ");
 
+    /// <summary>
+    /// An array of references: numbered reference columns folded into one array.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only compiling, because the failure this guards against is code that
+    /// runs and resolves nothing: the keys arrive on the wire and the values are written by the
+    /// linking pass, which walks the array it was given. Element 0 and element 1 point at
+    /// different rows, so a loop that resolved the first and left the rest shows as the wrong
+    /// value. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void An_array_of_references_reads()
+        => AssertReads("serial-ref", "serial_ref_data", @"
+t = Tables()
+t.read_all(sys.argv[1])
+rows = t.kit.records
+assert [len(r.slot_array) for r in rows] == [2, 2, 2]
+assert rows[0].slot_array[0].name == 'sword'
+assert rows[0].slot_array[1].name == 'shield'
+assert rows[1].slot_array[0].name == 'ring'
+assert rows[2].slot_array[1] is None
+assert rows[0].tier_array == [3, 5]
+assert rows[2].tier_array[1] is None
+");
+
     private static void AssertReads(string scenario, string package, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);
