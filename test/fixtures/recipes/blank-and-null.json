@@ -1,0 +1,38 @@
+{
+  // What a cell says about having nothing: a blank is the type's own reading of one, `-` is
+  // the row saying it has no value, and `\-` writes the character itself.
+  //
+  // Three targets and no more. JSON is where the three answers are visible as `""`, `null`
+  // and `"-"`; the binary tree is what says the presence bit follows `-` and not a blank;
+  // and C# is one generated page, because the accessors did not change and a diff here
+  // would say they had. spec/blank-and-null-cells.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/blank-and-null"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/blank-and-null/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/blank-and-null/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/blank-and-null/csharp",
+      "Namespace": "Tabbit.Fixtures.BlankAndNull",
+      "AccessorName": "BlankAndNullAccessor"
+    }
+  ]
+}

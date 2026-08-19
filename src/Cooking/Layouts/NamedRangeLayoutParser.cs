@@ -679,11 +679,11 @@ public sealed class UwoLayoutParser : ILayoutParser
     {
         string text = rawCell.Value.Trim();
 
-        // `-` is this layout's "no value", and the original exporter answers it by leaving
-        // the property out of the row altogether. There is no absent here - every field of
-        // every row has a value - so it becomes the type's empty one, which is what a
-        // consumer reading that JSON gets for a missing property anyway.
-        if (text == "-")
+        // `-` is no value, and the original exporter answers it by leaving the property out
+        // of the row altogether. The judgment itself is the core's, so that one spelling
+        // cannot come to mean two things in two layouts - spec/blank-and-null-cells.md - and
+        // what this layout keeps deciding is what a blank means, below.
+        if (CookingContext.SaysNoValue(text))
             return EmptyCell(column, rawCell, arrayDelimiter);
 
         if (text.Length == 0)
@@ -704,7 +704,7 @@ public sealed class UwoLayoutParser : ILayoutParser
         // the value is converted in one place and the core is not asked to guess a base from
         // a column's provenance. A cell that is not base 2 is reported there, against the
         // cell, naming the digit that is not one.
-        if (column.IsBinaryText && text.Length > 0 && text != "-")
+        if (column.IsBinaryText && text.Length > 0 && !CookingContext.SaysNoValue(text))
             text = "0b" + text;
 
         // A leading `#` on a localizable string is a mark on the sheet rather than part of
@@ -721,11 +721,16 @@ public sealed class UwoLayoutParser : ILayoutParser
         if (column.Field.Role == StringRole.Text)
             text = text.TrimStart('#');
 
+        var reading = _context.ReadCell(
+            column.Field.Type, column.Field.EnumOrNull, text, rawCell.Location, arrayDelimiter,
+            required: column.Field.IsRequired,
+            column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}");
+
         return new Cell
         {
             RawCell = rawCell,
-            Value = _context.ParseValue(
-                column.Field.Type, column.Field.EnumOrNull, text, rawCell.Location, arrayDelimiter),
+            Value = reading.Value,
+            HasValue = reading.HasValue,
         };
     }
 

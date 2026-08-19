@@ -35,6 +35,10 @@ public partial class ModelCooker
 
         ParseRawModel(context, rawModel);
 
+        // What was worth saying once per column rather than once per cell, now that every
+        // cell has been read and the counts are final.
+        context.ReportCellNotices();
+
         // Every cell has been read, so the one type that existed for the reading is done.
         FoldBitsetIntoInt64(result);
 

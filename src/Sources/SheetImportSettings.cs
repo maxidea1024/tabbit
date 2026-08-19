@@ -54,7 +54,27 @@ public sealed class SheetImportSettings
                 recipe.FoldSerialFields,
                 recipe.TrimTrailingArrayElements,
                 recipe.AllowArrayGaps,
-                (recipe.TableRowSets ?? "").Trim()));
+                (recipe.TableRowSets ?? "").Trim(),
+                ParseBlankCellPolicy(recipe.OnBlankCell, section)));
+    }
+
+    private static BlankCellPolicy ParseBlankCellPolicy(string value, string section)
+    {
+        // Blank is the strict default rather than an error, as above: an entry written
+        // before this setting existed holds it.
+        string text = (value ?? "").Trim();
+        if (text.Length == 0)
+            return BlankCellPolicy.Error;
+
+        switch (text.ToLowerInvariant())
+        {
+            case "error": return BlankCellPolicy.Error;
+            case "empty": return BlankCellPolicy.Empty;
+        }
+
+        throw new TabbitException(
+            $"Recipe `{section}` sets `OnBlankCell` to `{text}`. " +
+            "It takes `error` or `empty`.");
     }
 
     private static FormulaErrorPolicy ParseFormulaErrorPolicy(string value, string section)

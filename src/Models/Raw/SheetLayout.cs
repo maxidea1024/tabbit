@@ -35,6 +35,29 @@ public enum FormulaErrorPolicy
 }
 
 /// <summary>
+/// What to do about a blank cell in a column whose type has no reading for one.
+/// </summary>
+/// <remarks>
+/// A `string`, a `bool` and an array read a blank as a value they already have - the empty
+/// string, false, no elements - and this does not apply to them. It is about the types where
+/// a blank is nothing at all: the numbers, the dates, a uuid, an enum label.
+///
+/// Saying a row has no value is a different statement, written `-`, and neither setting here
+/// changes that. spec/blank-and-null-cells.md.
+/// </remarks>
+public enum BlankCellPolicy
+{
+    /// <summary>Report it and name the cell, which is what a blank where a number belongs is for.</summary>
+    Error,
+
+    /// <summary>
+    /// Read it as the type's empty value and warn once per column, for workbooks another
+    /// team maintains and this one cannot correct.
+    /// </summary>
+    Empty,
+}
+
+/// <summary>
 /// How a sheet is to be read, carried from the recipe entry that imported it.
 /// </summary>
 /// <remarks>
@@ -55,12 +78,14 @@ public sealed class SheetLayout
         bool foldSerialFields = false,
         bool trimTrailingArrayElements = false,
         bool allowArrayGaps = false,
-        string tableRowSets = "")
+        string tableRowSets = "",
+        BlankCellPolicy onBlankCell = BlankCellPolicy.Error)
     {
         Id = id;
         OnDuplicateIndex = onDuplicateIndex;
         ArrayDelimiter = arrayDelimiter;
         OnFormulaError = onFormulaError;
+        OnBlankCell = onBlankCell;
         FoldSerialFields = foldSerialFields;
         TrimTrailingArrayElements = trimTrailingArrayElements;
         AllowArrayGaps = allowArrayGaps;
@@ -186,6 +211,20 @@ public sealed class SheetLayout
     /// convert the other six hundred tables over it answers a question nobody asked.
     /// </remarks>
     public FormulaErrorPolicy OnFormulaError { get; }
+
+    /// <summary>
+    /// What a blank cell does where the column's type has no reading for one.
+    /// </summary>
+    /// <remarks>
+    /// Per source entry for the reason the two policies above are: it says whether these
+    /// sheets are ours to correct. A workbook this team owns should stop on a blank where a
+    /// number belongs, and one another team maintains cannot be stopped on for the same
+    /// reason its broken formula cannot.
+    ///
+    /// It does not decide what absence is. A row saying it has no value writes `-`, in every
+    /// layout and whatever this holds.
+    /// </remarks>
+    public BlankCellPolicy OnBlankCell { get; }
 
     /// <summary>
     /// Separator for array cells in these sheets, or null to use the recipe-wide one.

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Serilog;
 using Tabbit.Extensions;
 using Tabbit.Models;
+using Tabbit.Models.Raw;
 using Tabbit.Recipe;
 
 namespace Tabbit.Cooking;
@@ -464,6 +466,212 @@ public sealed class CookingContext
         }
     }
 
+    #region Cells
+
+    /// <summary>What a cell writes to say this row has no value here.</summary>
+    /// <remarks>
+    /// One spelling, for every type and every layout, because absence is the same fact
+    /// wherever it is written. **A blank cell is not it.** A blank is what the column's type
+    /// already reads it as - an empty string, false, an array of no elements - and reading a
+    /// blank as absence instead is what left `string?` with no way to hold an empty string.
+    ///
+    /// spec/blank-and-null-cells.md.
+    /// </remarks>
+    public const string NoValueMark = "-";
+
+    /// <summary>How a cell writes the one character <see cref="NoValueMark"/> is, as a value.</summary>
+    /// <remarks>
+    /// The whole of the escape: these two spellings are special and nothing else is. `-5`,
+    /// `A-1` and `\-a` are the text they look like, so a column of ranges or paths does not
+    /// change meaning around this rule.
+    ///
+    /// The cost is that the string `\-` cannot be written, and it is paid deliberately.
+    /// Reading `\\-` as it would make `\` an escape character everywhere, and the corpus
+    /// already holds strings with `\n` in them - a line break the game's own text renderer
+    /// reads - which would then mean something else.
+    /// </remarks>
+    public const string EscapedNoValueMark = @"\-";
+
+    /// <summary>Whether a cell's text says this row has no value.</summary>
+    public static bool SaysNoValue(string? text) => Trimmed(text) == NoValueMark;
+
+    /// <summary>The text a cell holds as a value, with the escape above read.</summary>
+    private static string? ValueTextOf(string? text)
+        => Trimmed(text) == EscapedNoValueMark ? NoValueMark : text;
+
+    /// <summary>
+    /// Whether a blank cell is a value of this type rather than nothing at all.
+    /// </summary>
+    /// <remarks>
+    /// These three have read a blank as a value since before any of this: the empty string,
+    /// false, and an array of no elements. Every other type has no value a blank could be,
+    /// which is why a blank in a number column is an error and why `OnBlankCell` exists.
+    /// </remarks>
+    private static bool ReadsBlankAsValue(Models.ValueType type)
+        => type is Models.ValueType.String or Models.ValueType.Bool
+            || Models.ValueTypes.IsArray(type);
+
+    private static string Trimmed(string? text) => (text ?? "").Trim();
+
+/// <summary>One data cell, read.</summary>
+    public readonly struct CellReading
+    {
+        public CellReading(object? value, bool hasValue)
+        {
+            Value = value;
+            HasValue = hasValue;
+        }
+
+        /// <summary>What the cell holds - the type's empty value when it holds none.</summary>
+        public object? Value { get; }
+
+        /// <summary>Whether the sheet put a value here. False for `-`, and for nothing else.</summary>
+        public bool HasValue { get; }
+    }
+
+    /// <summary>
+    /// Reads one data cell: what it holds, and whether the sheet put anything there.
+    /// </summary>
+    /// <param name="required">
+    /// Whether the column says every row has a value. A `-` in a required column is read as
+    /// absence here and reported by validation, so a workbook full of them is answered in one
+    /// run rather than one cell per run.
+    /// </param>
+    /// <param name="onBlankCell">
+    /// What a blank does where the type has no reading for one. Strict by default.
+    /// </param>
+    /// <param name="isReference">
+    /// Whether the column points at another table's row. A blank one is read as absence for
+    /// the reason spec/reference-optionality.md gives: `int.Parse("")` failing says nothing
+    /// about the reference it was, and validation can say all of it.
+    /// </param>
+    /// <param name="column">
+    /// `Table.Field`, for the two reports a blank cell can be worth. Null says nothing about
+    /// this cell, which is what a caller reading something other than a table's data wants.
+    /// </param>
+    public CellReading ReadCell(
+        Models.ValueType type, Models.Enum? enumm, string? rawValue, Location? location,
+        char? arrayDelimiter = null, bool required = true,
+        BlankCellPolicy onBlankCell = BlankCellPolicy.Error, bool isReference = false,
+        string? column = null)
+    {
+        if (SaysNoValue(rawValue))
+            return new CellReading(NoValueOf(type, enumm, location, arrayDelimiter), hasValue: false);
+
+        bool blank = string.IsNullOrEmpty(rawValue);
+
+        // Before the type is consulted, because a reference is carried as the text the sheet
+        // wrote until the target's key type is known - so its type here is `string`, which
+        // reads a blank as a value. Left to that, a blank reference would become the empty
+        // key and pass as "points at nothing".
+        if (blank && isReference)
+            return new CellReading(NoValueOf(type, enumm, location, arrayDelimiter), hasValue: false);
+
+        if (blank && !ReadsBlankAsValue(type))
+        {
+            if (onBlankCell == BlankCellPolicy.Empty)
+            {
+                // The concession the recipe made, counted per column: a cell nobody filled in
+                // became a zero, and how many of those a run swallowed belongs in the run
+                // rather than only in the recipe.
+                if (column is not null)
+                {
+                    NoteCell($"blank-filled:{column}", location,
+                        $"`{column}` holds cells nobody filled in, read as the type's empty "
+                        + "value because the source entry sets `OnBlankCell: \"empty\"`.");
+                }
+
+                return new CellReading(
+                    NoValueOf(type, enumm, location, arrayDelimiter), hasValue: true);
+            }
+
+            throw new TabbitException(location, BlankRefusal(type, required));
+        }
+
+        // Temporary. A blank in an optional `string`, `bool` or array column used to mean
+        // "no value" and now means the empty string, false, or no elements - the one change in
+        // spec/blank-and-null-cells.md that is quiet, because nothing about it fails. One line
+        // per column for a release, and then it goes.
+        if (blank && !required && column is not null)
+        {
+            NoteCell($"blank-value:{column}", location,
+                $"`{column}` holds blank cells, which are now the type's empty value rather "
+                + "than \"no value\". Write `-` in the rows that have none.");
+        }
+
+        return new CellReading(
+            ParseValue(type, enumm, ValueTextOf(rawValue), location, arrayDelimiter), hasValue: true);
+    }
+
+    /// <summary>The value a cell carries when it says it has none.</summary>
+    /// <remarks>
+    /// An array answers with no elements rather than through the scalar table: the empty
+    /// value of `int[]` is an `int[]`, and handing back a scalar zero there is what made a
+    /// `[number]` column holding `-` reach the binary exporter as a string.
+    /// </remarks>
+    private object NoValueOf(
+        Models.ValueType type, Models.Enum? enumm, Location? location, char? arrayDelimiter)
+    {
+        return Models.ValueTypes.IsArray(type)
+            ? ParseArrayValue(type, enumm!, "", location!, arrayDelimiter)
+            : EmptyValueOf(type);
+    }
+
+    /// <summary>What is wrong with a blank cell, and the ways out of it.</summary>
+    private static string BlankRefusal(Models.ValueType type, bool required)
+    {
+        string absence = required
+            ? "declare the column optional and write `-` to say this row has no value"
+            : "write `-` to say this row has no value";
+
+        return $"This cell is empty, and a value of type `{type}` belongs here. Write one, {absence}, "
+            + "or - for sheets this project cannot correct - read blanks as the type's empty value "
+            + "with the source entry's `OnBlankCell: \"empty\"`.";
+    }
+
+    private sealed class CellNotice
+    {
+        public string Message = "";
+        public Location? First;
+        public int Count;
+    }
+
+    private readonly Dictionary<string, CellNotice> _cellNotices = new Dictionary<string, CellNotice>();
+
+    /// <summary>
+    /// Records something true of a cell that is worth saying once per column.
+    /// </summary>
+    /// <remarks>
+    /// Per column rather than per cell because these are about how a column was written: a
+    /// sheet with four hundred blanks in one column has one thing wrong with it, and saying
+    /// it four hundred times buries every other report of the run.
+    /// </remarks>
+    public void NoteCell(string key, Location? location, string message)
+    {
+        if (!_cellNotices.TryGetValue(key, out var notice))
+        {
+            notice = new CellNotice { Message = message, First = location };
+            _cellNotices[key] = notice;
+        }
+
+        notice.Count++;
+    }
+
+    /// <summary>Reports what those notes added up to, once every sheet has been read.</summary>
+    public void ReportCellNotices()
+    {
+        foreach (var notice in _cellNotices.Values)
+        {
+            Log.Warning(
+                $"{notice.Message} ({notice.Count} {(notice.Count == 1 ? "cell" : "cells")})"
+                + $"\n    at {notice.First}");
+        }
+
+        _cellNotices.Clear();
+    }
+
+    #endregion
+
     /// <param name="arrayDelimiter">
     /// What separates elements of an array cell, when the sheet's own entry named one.
     /// Null takes the recipe-wide delimiter, which is the usual case.
@@ -770,7 +978,25 @@ public sealed class CookingContext
         var result = System.Array.CreateInstance(ElementClrType(elementType, enumm), parts.Length);
 
         for (int i = 0; i < parts.Length; i++)
-            result.SetValue(ParseValue(elementType, enumm, parts[i].Trim(), location), i);
+        {
+            string element = parts[i].Trim();
+
+            // The elements of one cell are all there or all not - which is why `?` goes after
+            // the brackets - so `-` inside a cell has nothing to mean. The cell as a whole
+            // says it, and `\-` writes the character itself here as anywhere else.
+            // spec/blank-and-null-cells.md.
+            if (SaysNoValue(element))
+            {
+                throw new TabbitException(location,
+                    $"Element {i + 1} of this cell is `{NoValueMark}`, which says the row has no "
+                    + "value - and an element cannot say it, because the elements of one cell are "
+                    + $"all there or all not. Write `{EscapedNoValueMark}` for the character "
+                    + $"itself, or `{NoValueMark}` as the whole cell to say the array has no "
+                    + "value.");
+            }
+
+            result.SetValue(ParseValue(elementType, enumm, ValueTextOf(element), location), i);
+        }
 
         return result;
     }

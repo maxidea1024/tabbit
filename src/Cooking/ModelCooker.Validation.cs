@@ -419,7 +419,6 @@ public partial class ModelCooker
         // with no columns takes the empty cells out with it through the return below -
         // and those used to be stopped by the value parser, so letting them past here
         // would be a refusal quietly lost. spec/reference-optionality.md.
-        if (field.IsRequired)
         {
             bool isArrayElement = arrayElements.TryGetValue(field, out var place);
 
@@ -435,15 +434,34 @@ public partial class ModelCooker
                 if (isArrayElement && place.Element >= table.ElementCountIn(place.Group, row))
                     continue;
 
-                // A cell nobody filled in. It parses to zero like a written zero does, so
-                // the value cannot tell the two apart, and the column's own declaration is
-                // what answers instead. Both ways out are named because which one is right
-                // is the author's call - the row may be missing a target, or the column may
-                // have been marked required by habit.
-                diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                    $"Field `{table.Name}.{field.Name}` references `{foreignTable.Name}` and this "
-                    + $"row leaves it empty, but the column is declared required. Give it a row "
-                    + $"to point at, or declare the column optional.");
+                // A blank cell is refused whether or not the column allows absence: it is a
+                // cell nobody filled in, and a row that points at nothing says so with `-`.
+                // The reading is not refused where it happens, because whether an empty cell
+                // is a cell at all is the question the two skips above answer.
+                //
+                // Read off the cell's own text rather than a flag, so that the one absence
+                // nobody wrote - a column another set of this table's rows does not have -
+                // is not reported as a blank the author left. Its cell borrows the row's
+                // first location, which holds the index and is never empty.
+                if (string.IsNullOrEmpty((cell.RawCell?.Value ?? "").Trim()))
+                {
+                    diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
+                        $"Field `{table.Name}.{field.Name}` references `{foreignTable.Name}` and "
+                        + $"this row leaves the cell empty. Write the key of a row to point at, or "
+                        + $"`-` to say this row points at none.");
+                    continue;
+                }
+
+                // `-`, in a column that did not say a row may have none. Both ways out are
+                // named because which one is right is the author's call - the row may be
+                // missing a target, or the column may have been marked required by habit.
+                if (field.IsRequired)
+                {
+                    diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
+                        $"Field `{table.Name}.{field.Name}` references `{foreignTable.Name}` and this "
+                        + $"row says it points at none, but the column is declared required. Give it "
+                        + $"a row to point at, or declare the column optional.");
+                }
             }
         }
 
@@ -864,7 +882,22 @@ public partial class ModelCooker
         // A bound written on an index states the id band it points into rather than a range
         // its own value must sit in.
         if (field.Indexing)
+        {
+            // An index has no absence to express. It is what identifies the row, and every
+            // reference into this table resolves through it, so `-` here would leave the row
+            // unidentifiable - and, since absence parses to the type's empty value, leave
+            // every such row sharing one key. `int?` on an index is refused where the column
+            // is declared; this is the same refusal against a cell.
+            // spec/blank-and-null-cells.md.
+            if (!row[field.Index].HasValue)
+            {
+                diagnostics.Error(row[field.Index].RawCell?.Location ?? field.NameLocation,
+                    $"`{table.Name}.{field.Name}` identifies the row, and this row says it has no "
+                    + $"value there. Write one: an index cannot be absent.");
+            }
+
             return;
+        }
 
         var cell = row[field.Index];
 
@@ -874,7 +907,8 @@ public partial class ModelCooker
             {
                 diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
                     $"`{table.Name}.{field.Name}` has no value, and the sheet declares the "
-                    + $"column required.");
+                    + $"column required. Write one, or type the column `{field.TypeName}?` so "
+                    + $"that a row may say it has none.");
             }
 
             // Nothing there to hold to a bound either: the empty value is the type's rather

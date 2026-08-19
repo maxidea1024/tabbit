@@ -36,7 +36,7 @@
     "title": "{0} Enthusiast",
     "category": "Hunt",
     "scriptId": "quest_enthusiast",
-    "hint": null,
+    "hint": "",
     "lines": [
       "{0} of {1}"
     ]

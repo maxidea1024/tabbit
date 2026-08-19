@@ -189,7 +189,7 @@ float · double · bool · datetime · timespan · uuid · enum · enum[] · for
 
 |행|의미|
 |--|--|
-|`[optional]`|빈 칸을 허용합니다. `tabbit`의 `?`|
+|`[optional]`|값이 없는 로우를 허용합니다 — 셀에는 `-`라고 적습니다. `tabbit`의 `?`|
 |`[index]`|보조 인덱스입니다. `tabbit`의 `*`|
 
 값은 코어의 `bool` 어휘를 그대로 사용합니다 — `Y` · `YES` · `TRUE` · `1`이 참이고 빈 칸이

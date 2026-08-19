@@ -53,6 +53,10 @@ internal static class Program
         WriteRecordRefTrim(Prepare(outputDir, "record-ref-trim", "record-ref-trim.xlsx"));
         WriteKeyTypes(Prepare(outputDir, "key-types", "key-types.xlsx"));
         WriteOptional(Prepare(outputDir, "optional", "optional.xlsx"));
+        WriteBlankAndNull(Prepare(outputDir, "blank-and-null", "blank-and-null.xlsx"));
+        WriteBlankCell(Prepare(outputDir, "blank-cell", "blank-cell.xlsx"));
+        WriteNoValueRefused(Prepare(outputDir, "no-value-refused", "no-value-refused.xlsx"));
+        WriteNoValueElement(Prepare(outputDir, "no-value-element", "no-value-element.xlsx"));
         WriteOptionalIndex(Prepare(outputDir, "optional-index", "optional-index.xlsx"));
         WriteFormulaError(Prepare(outputDir, "formula-error", "formula-error.xlsx"));
         WriteEnumByValue(Prepare(outputDir, "enum-by-value", "enum-by-value.xlsx"));
@@ -700,16 +704,17 @@ internal static class Program
         };
         holder
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Maybe", "foreign?", "optional - a blank is absence",
+            .Field(FieldSpec.Of("Maybe", "foreign?", "optional - `-` is no target",
                                 detailType: "Target"))
             .Field(FieldSpec.Of("Zero", "foreign", "required, and a written zero is a value",
                                 detailType: "Target"));
         holder
             // Both filled, which is the ordinary row.
             .Row("1", "1", "1")
-            // The optional one left empty, and a written zero beside it. Neither is a
-            // finding: one says absence where absence is allowed and the other is a value.
-            .Row("2", "", "0")
+            // The optional one saying it points at none, and a written zero beside it.
+            // Neither is a finding: one says absence where absence is allowed and the other
+            // is a value.
+            .Row("2", "-", "0")
             // A written zero in the optional column too, so that "a zero passes" is pinned
             // on both kinds of column and not only on the required one. It has to keep
             // meaning what it means beside a column that can also say absence.
@@ -721,11 +726,16 @@ internal static class Program
     }
 
     /// <summary>
-    /// The same shape with the empty cell in a column that does not allow it.
+    /// The same shape with the cells a required reference may not hold.
     /// </summary>
     /// <remarks>
     /// A separate workbook rather than a second recipe over the first, because what has to
     /// differ is the column's own declaration and that lives in the sheet.
+    ///
+    /// Two rows, because a required reference has two ways to say nothing and they are not
+    /// the same finding: a blank cell is one nobody filled in, refused whatever the column
+    /// declared, and `-` is a row saying it points at none, refused because this column says
+    /// every row points at something. spec/blank-and-null-cells.md.
     /// </remarks>
     private static void WriteReferenceRequiredBlank(string path)
     {
@@ -752,12 +762,15 @@ internal static class Program
         };
         holder
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Must", "foreign", "required, and row 2 leaves it empty",
+            .Field(FieldSpec.Of("Must", "foreign", "required, and the rows below say nothing",
                                 detailType: "Target"))
             .Field(FieldSpec.Of("Label", "string", "a third column, so both tables are the same width"));
         holder
             .Row("1", "1", "x")
-            .Row("2", "", "y");
+            // Nobody filled this one in.
+            .Row("2", "", "y")
+            // And this one says it points at none, which this column does not allow either.
+            .Row("3", "-", "z");
 
         b.Table(8, 1, holder);
 
@@ -1278,9 +1291,9 @@ internal static class Program
             .Field(FieldSpec.Of("Step2.Weight", "int", "element 2, an ordinary member"));
         rig
             .Row("1", "Idle_01", "1", "Run_01", "2")
-            // An empty cell rather than a zero: a string key has no zero, so this is what
-            // "points at nothing" looks like for one. spec/reference-optionality.md.
-            .Row("2", "Run_01", "3", "", "0");
+            // `-` rather than a zero: a string key has no zero, so this is what "points at
+            // nothing" looks like for one. spec/reference-optionality.md.
+            .Row("2", "Run_01", "3", "-", "0");
 
         b.Table(49, 1, rig);
 
@@ -1327,8 +1340,8 @@ internal static class Program
             // Three, two and none: the lengths a linking loop taking the sheet's column count
             // rather than the row's would walk past.
             .Row("1", "1", "10", "2", "20", "1", "30")
-            .Row("2", "2", "40", "1", "50", "", "")
-            .Row("3", "", "", "", "", "", "");
+            .Row("2", "2", "40", "1", "50", "-", "-")
+            .Row("3", "-", "-", "-", "-", "-", "-");
 
         b.Table(1, 1, kit);
 
@@ -1435,7 +1448,7 @@ internal static class Program
             .Field(FieldSpec.Of("Name", "string", "plain column, must not move"))
 
             // Optional, because that is how a cell says it has no value - which is what the
-            // trim reads. Required members would refuse the blank before it got this far.
+            // trim reads. A required member would refuse the `-` before it got this far.
             .Field(FieldSpec.Of("Slot1.Id", "int?", "element 1"))
             .Field(FieldSpec.Of("Slot1.Count", "int?", "element 1"))
             .Field(FieldSpec.Of("Slot1.Label", "string?",
@@ -1463,19 +1476,23 @@ internal static class Program
         spec
             // All three filled.
             .Row("1", "full",    "10", "1", "sword", "20", "2", "shield", "30", "3", "bow", "5", "6", "a", "b", "c")
-            // The last one empty: two elements.
-            .Row("2", "two",     "10", "1", "sword", "20", "2", "shield", "",   "",  "",    "5", "6", "a", "b", "")
+            // The last one saying it has no value: two elements. `-` and not a blank, because
+            // a blank `string?` is the empty string - a value, which would keep the element.
+            // The `Tag` columns beside them stay blank on purpose: that group's first element
+            // is required, so every element of it is, and a blank there is the empty string
+            // it has always been. spec/blank-and-null-cells.md · spec/array-optionality.md.
+            .Row("2", "two",     "10", "1", "sword", "20", "2", "shield", "-",  "-", "-",   "5", "6", "a", "b", "")
             // A gap in the middle, so this row keeps all three - element 2 stays at index 1
             // holding nothing, because moving it would make the index mean something else on
             // this row than on the row above. The `Tag` array has the same shape of hole.
-            .Row("3", "gap",     "10", "1", "sword", "",   "",  "",       "30", "3", "bow", "5", "6", "a", "",  "c")
+            .Row("3", "gap",     "10", "1", "sword", "-",  "-", "-",      "30", "3", "bow", "5", "6", "a", "",  "c")
             // Nothing at all: an empty record array, which is the case a fixed length cannot
             // say. `Tag` still has its one required element, which is the difference between
             // the two array kinds.
-            .Row("4", "none",    "",   "",  "",      "",   "",  "",       "",   "",  "",    "",  "",  "a", "",  "")
-            // A zero the author wrote, which must survive - it is a value, and only a blank
-            // cell is absence. Without HasValue this row would trim to one element.
-            .Row("5", "zeroes",  "10", "1", "sword", "0",  "0", "",       "",   "",  "",    "0", "0", "a", "z", "");
+            .Row("4", "none",    "-",  "-", "-",     "-",  "-", "-",      "-",  "-", "-",   "-", "-", "a", "",  "")
+            // A zero the author wrote, which must survive - it is a value, and only `-` is
+            // absence. Without HasValue this row would trim to one element.
+            .Row("5", "zeroes",  "10", "1", "sword", "0",  "0", "-",      "-",  "-", "-",   "0", "0", "a", "z", "");
 
         b.Table(1, 1, spec);
 
@@ -1531,13 +1548,190 @@ internal static class Program
         spec
             .Row("1", "100", "5", "1.5", "0.25", "9000000000", "2026-01-02 03:04:05",
                  "01:02:03", "3f2504e0-4f89-11d3-9a0c-0305e82c3301", "Rare", "10;20", "first", "true")
-            // Every optional column blank at once, which is the row the marker exists for.
-            .Row("2", "100", "", "", "", "", "", "", "", "", "", "", "")
+            // Every optional column saying it has no value at once, which is the row the
+            // marker exists for. `-` and not a blank cell: a blank is the type's empty value
+            // and this row is about the absence of one. spec/blank-and-null-cells.md.
+            .Row("2", "100", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-")
             // And a second such row, so each column has a run of equal values for the
             // encodings to find.
-            .Row("3", "100", "", "", "", "", "", "", "", "", "", "", "");
+            .Row("3", "100", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-");
 
         b.Table(5, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// What a cell says about having nothing: a blank, a `-`, and the escape for a literal one.
+    /// </summary>
+    /// <remarks>
+    /// Three answers that used to be two. A blank cell is whatever the column's type reads a
+    /// blank as - the empty string, false, an array of no elements - and `-` is the row saying
+    /// it has no value at all. `\-` writes the one character `-` where a string column needs
+    /// it.
+    ///
+    /// The rows holding `-5`, `A-1` and `--` are the other half of the claim: `-` is special
+    /// as a whole cell and nowhere else, so a column of ranges or negative numbers reads the
+    /// way it always did.
+    ///
+    /// spec/blank-and-null-cells.md.
+    /// </remarks>
+    private static void WriteBlankAndNull(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Cells"));
+
+        var spec = new TableSpec
+        {
+            Name = "Cell",
+            Comment = "A blank, a `-` and a `\\-` in each type that can hold them.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "what the row is about"))
+
+            // The type the whole distinction was invented for: before this, an optional
+            // string column had no way to hold the empty string.
+            .Field(FieldSpec.Of("Text", "string?", "blank is `\"\"`, `-` is no value"))
+            .Field(FieldSpec.Of("Count", "int?", "no reading for a blank, so `-` or a number"))
+            .Field(FieldSpec.Of("Flag", "bool?", "blank is false, `-` is no value"))
+
+            // Both array kinds, because the element rule differs from the cell rule: the cell
+            // as a whole can say `-`, and an element cannot.
+            .Field(FieldSpec.Of("Tags", "string[]?", "blank is no elements, `-` is no array"))
+            .Field(FieldSpec.Of("Costs", "int[]?", "the same for a numeric array"));
+
+        spec
+            // Ordinary values, so the rows below are read against something.
+            .Row("1", "values", "hello", "7", "true", "a;b", "10;20")
+            // Every column saying it has no value.
+            .Row("2", "no value", "-", "-", "-", "-", "-")
+            // Every column that has a reading for a blank, blank. `Count` cannot be one -
+            // there is no number a blank could be - so it holds the zero this row is here to
+            // be told apart from.
+            .Row("3", "blank", "", "0", "", "", "")
+            // The escape, in the cell and in an element. `-5` beside it: a sign is not the
+            // mark, and never was.
+            .Row("4", "escaped", "\\-", "-5", "false", "a;\\-;b", "-1;-2")
+            // Text that merely contains the character, which nothing here touches.
+            .Row("5", "literal", "A-1", "5", "true", "--;-x", "3");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// A blank cell where the column's type has no reading for one.
+    /// </summary>
+    /// <remarks>
+    /// Converted twice: once with the strict default, where it is refused and names the cell,
+    /// and once with `OnBlankCell: "empty"`, where it becomes the type's empty value and is
+    /// warned about. One workbook, because what differs is the recipe rather than the sheet -
+    /// which is the whole of what that setting says.
+    ///
+    /// The column is required on purpose. Optional would answer a different question: `-`
+    /// is how a row says it has none, and this setting is about a cell nobody filled in.
+    /// </remarks>
+    private static void WriteBlankCell(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Sparse"));
+
+        var spec = new TableSpec
+        {
+            Name = "Reading",
+            Comment = "A number column with a cell nobody filled in.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Value", "int", "required, and row 2 is blank"))
+            .Field(FieldSpec.Of("Name", "string", "so the row holds something either way"));
+        spec
+            .Row("1", "10", "first")
+            .Row("2", "", "unfinished");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// `-` in the two places a column does not allow it.
+    /// </summary>
+    /// <remarks>
+    /// Both are reported by validation rather than by the reader, so one workbook holds both
+    /// and one run says both things: a required column has no absence to express, and an
+    /// index has none either - it identifies the row.
+    /// </remarks>
+    private static void WriteNoValueRefused(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Bad"));
+
+        var required = new TableSpec
+        {
+            Name = "Needed",
+            Comment = "A required column with a row saying it has no value.",
+        };
+        required
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Hp", "int", "required, and row 2 says it has none"))
+            .Field(FieldSpec.Of("Name", "string", "a third column, which an entity needs"));
+        required
+            .Row("1", "100", "first")
+            .Row("2", "-", "second");
+
+        b.Table(1, 1, required);
+
+        var keyless = new TableSpec
+        {
+            Name = "Keyless",
+            Comment = "An index saying it has no value.",
+        };
+        keyless
+            .Field(FieldSpec.Of("index", "int", "primary index, and row 2 says it has none"))
+            .Field(FieldSpec.Of("Name", "string", "anything"))
+            .Field(FieldSpec.Of("Note", "string", "a third column, which an entity needs"));
+        keyless
+            .Row("1", "first", "a")
+            .Row("-", "second", "b");
+
+        b.Table(6, 1, keyless);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// `-` as one element of an array cell.
+    /// </summary>
+    /// <remarks>
+    /// A workbook of its own because this one is refused while the cell is being read, and a
+    /// refusal there stops the sheet - so a second table beside it would never be reached.
+    ///
+    /// The elements of one cell are all there or all not, which is why `?` goes after the
+    /// brackets: the array is what can be absent, not an element of it.
+    /// spec/optional-fields.md · spec/blank-and-null-cells.md.
+    /// </remarks>
+    private static void WriteNoValueElement(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Bad"));
+
+        var spec = new TableSpec
+        {
+            Name = "Listing",
+            Comment = "An array cell with `-` between two values.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Tags", "string[]?", "and one element says it has no value"))
+            .Field(FieldSpec.Of("Name", "string", "a third column, which an entity needs"));
+        spec
+            .Row("1", "a;b", "first")
+            .Row("2", "a;-;b", "second");
+
+        b.Table(1, 1, spec);
 
         Save(workbook, path);
     }
@@ -1765,9 +1959,10 @@ internal static class Program
             // Not gathered. Same type on the wire, and the gathered files must not hold it.
             .Field(FieldSpec.Of("ScriptId", "string", "an identifier, not prose"))
 
-            // An optional text column: a blank cell contributes nothing rather than an
-            // empty entry.
-            .Field(FieldSpec.Of("Hint", "text?", "may be blank"))
+            // An optional text column, holding both of the things a cell can say about
+            // having nothing: `-` for no value at all, and a blank cell for the empty string.
+            // Neither contributes an entry to the gathered file.
+            .Field(FieldSpec.Of("Hint", "text?", "`-` or blank"))
 
             // A list of gathered strings. Every element is gathered, not the joined cell.
             .Field(FieldSpec.Of("Lines", "text[]", "several strings in one cell"));
@@ -1775,7 +1970,7 @@ internal static class Program
         quest
             // Row 2 repeats row 1's title on purpose: a gathered file lists it once.
             .Row("1", "Lost Cargo", "Delivery", "quest_lost_cargo", "Ask at the docks.", "Hello;Goodbye")
-            .Row("2", "Lost Cargo", "Delivery", "quest_lost_cargo_2", "", "Hello;Farewell")
+            .Row("2", "Lost Cargo", "Delivery", "quest_lost_cargo_2", "-", "Hello;Farewell")
             .Row("3", "The \"Blue\" Whale", "Hunt", "quest_blue_whale", "Head south.", "Onward")
 
             // Braces in the value. Real display strings are full of them - `{0} 애호가` is an

@@ -52,7 +52,7 @@ namespace Tabbit.Fixtures.Text
             public string ScriptId => _scriptId;
 
             /// <summary>
-            /// may be blank
+            /// `-` or blank
             /// </summary>
             public string Hint => _hint;
             /// <summary>Whether this row has a value for <see cref="Hint"/>.</summary>

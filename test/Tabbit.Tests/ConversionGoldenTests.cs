@@ -40,6 +40,11 @@ public class ConversionGoldenTests
     // The trailing `?`: every type that refuses a blank cell, paired with the same type
     // marked optional, and rows where all of the marked ones are blank at once.
     [InlineData("optional")]
+    // What a cell says about having nothing: a blank read as the type's own empty value, `-`
+    // read as no value at all, and `\-` as the character itself. JSON holds the three side by
+    // side and the binary tree says which of them the presence bit follows.
+    // spec/blank-and-null-cells.md.
+    [InlineData("blank-and-null")]
     // A record array whose length is each row's: trailing empty elements dropped, a gap in
     // the middle kept, and an authored zero left alone.
     [InlineData("record-trim")]

@@ -741,20 +741,22 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
                 var rawCell = def.rawSheet.Rows[rowIdx][dataColumnOffsets[i]];
 
-                // Whether a blank cell here means "no value" or is a fault. Optional columns
-                // say so themselves; reference columns are added because a `foreign` cell
-                // holds the target's index and a blank one therefore reached `int.Parse` and
-                // died as "cannot parse `` as a value of type `Int32`" - true, and useless.
-                // It names neither the reference nor either way out of it. Read as absent
-                // instead, and the rule in spec/reference-optionality.md answers it against
-                // what the column declared, with a message that says how to fix it. Nothing
-                // that converts today changes: a blank in a required reference column is the
-                // parse failure above, so no workbook that passes has one.
-                bool blankIsAbsence = !field.IsRequired || field.IsRef;
-
-                var value = _context.ParseValue(
+                // What the cell says, decided in one place for every layout: `-` is no value,
+                // `\-` is the one character `-`, and a blank is whatever the column's type
+                // reads a blank as. spec/blank-and-null-cells.md.
+                //
+                // A reference's blank is handed on rather than refused here, because a
+                // `foreign` cell holds the target's index and a blank one reached `int.Parse`
+                // and died as "cannot parse `` as a value of type `Int32`" - true, and useless.
+                // It names neither the reference nor a way out of it. Validation answers it
+                // against what the column declared, with a message that says how to fix it.
+                var reading = _context.ReadCell(
                     field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
-                    def.rawSheet.Layout?.ArrayDelimiter, required: !blankIsAbsence);
+                    def.rawSheet.Layout?.ArrayDelimiter,
+                    required: field.IsRequired,
+                    onBlankCell: def.rawSheet.Layout?.OnBlankCell ?? BlankCellPolicy.Error,
+                    isReference: field.IsRef,
+                    column: $"{table.Name}.{field.Name}");
 
                 // Index uniqueness is checked in ValidateModel rather than here.
                 // Doing it inline compared each new value against every row read
@@ -764,13 +766,12 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 row.Add(new Cell
                 {
                     RawCell = rawCell,
-                    Value = value,
+                    Value = reading.Value,
 
-                    // A blank cell in an optional column is the sheet saying it has no value
-                    // here, which is different from saying zero. Not every blank: a blank in a
-                    // required `string` column has always been an empty string, and that is a
-                    // value the author asked for.
-                    HasValue = !blankIsAbsence || !string.IsNullOrEmpty(rawCell.Value),
+                    // Only `-` says a row has no value. A blank cell holds whatever its type
+                    // reads a blank as - an empty string, false, an array of no elements - and
+                    // that is a value the author asked for.
+                    HasValue = reading.HasValue,
                 });
             }
 

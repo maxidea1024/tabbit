@@ -672,12 +672,20 @@ public sealed class RescueLayoutParser : ILayoutParser
                     Note = "",
                 };
 
+            // `-` is no value and `\-` is the one character `-`, read where every layout
+            // reads them. spec/blank-and-null-cells.md.
+            var reading = _context.ReadCell(
+                field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
+                sheet.Layout?.ArrayDelimiter,
+                required: field.IsRequired,
+                onBlankCell: sheet.Layout?.OnBlankCell ?? BlankCellPolicy.Error,
+                column: $"{table.Name}.{field.Name}");
+
             row.Add(new Cell
             {
                 RawCell = rawCell,
-                Value = _context.ParseValue(
-                    field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
-                    sheet.Layout?.ArrayDelimiter),
+                Value = reading.Value,
+                HasValue = reading.HasValue,
             });
         }
 

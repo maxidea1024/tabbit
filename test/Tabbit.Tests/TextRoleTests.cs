@@ -380,9 +380,11 @@ public class TextRoleTests
         Assert.Equal("Lost Cargo", rows[0].GetProperty("title").GetString());
         Assert.Equal(JsonValueKind.String, rows[0].GetProperty("category").ValueKind);
 
-        // The optional one, which is absent rather than empty - the same as any other
-        // optional column, and unaffected by the role.
+        // The optional one, in both of the things a cell can say about having nothing: `-`
+        // is no value at all, and a blank cell is the empty string. The role changes neither
+        // - it is the rule every column follows. spec/blank-and-null-cells.md.
         Assert.Equal(JsonValueKind.Null, rows[1].GetProperty("hint").ValueKind);
+        Assert.Equal("", rows[3].GetProperty("hint").GetString());
     }
 
     /// <summary>

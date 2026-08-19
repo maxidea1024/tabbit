@@ -133,6 +133,27 @@ public abstract class SheetSourceRecipe
     public string OnFormulaError { get; set; } = "error";
 
     /// <summary>
+    /// What to do about a blank cell where the column's type has no reading for one:
+    /// `error` or `empty`.
+    /// </summary>
+    /// <remarks>
+    /// `error` is the default and the strict one. A blank in a number, date, uuid or enum
+    /// column is usually a row somebody stopped filling in, and reading it as zero puts a
+    /// value in the data that cannot be told from a zero somebody typed - the human error
+    /// this tool exists to catch, passing through it.
+    ///
+    /// `empty` reads such a cell as the type's empty value and warns once per column, for
+    /// the case `OnFormulaError: "empty"` exists for: sheets another team maintains, where
+    /// one unfinished cell would otherwise refuse every table in the workbook.
+    ///
+    /// **Neither setting decides what absence is.** A row that has no value writes `-`, and
+    /// that is only allowed where the column's type ends in `?`. This setting answers a
+    /// different question - whether a cell nobody filled in stops the run - and a blank read
+    /// as empty is a cell with a value, presence bit and all. spec/blank-and-null-cells.md.
+    /// </remarks>
+    public string OnBlankCell { get; set; } = "error";
+
+    /// <summary>
     /// How a table name says it is another set of some table's rows, as a regular expression
     /// with a `table` group and a `set` group. Blank, which is the default, means no table
     /// here has more than one set.
