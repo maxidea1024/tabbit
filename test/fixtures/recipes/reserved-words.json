@@ -61,6 +61,10 @@
       // On here so the emitted updater is compiled by the Kotlin gate as well.
       "WriteUpdater": true,
       "PackageName": "reserved", "AccessorName": "ReservedAccessor" },
+    { "Type": "swift", "Path": "test/fixtures/output/reserved-words/swift",
+      // On here so the emitted updater is type-checked by the Swift gate as well.
+      "WriteUpdater": true,
+      "AccessorName": "ReservedAccessor" },
     { "Type": "ruby", "Path": "test/fixtures/output/reserved-words/ruby",
       "ModuleName": "Reserved",
       // On here so the emitted updater is parsed by the Ruby gate as well.

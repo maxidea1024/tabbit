@@ -12,7 +12,7 @@ namespace Tabbit.Tests;
 /// <summary>
 /// Every output language against every type a sheet can hold.
 ///
-/// The thirteen generators each carry their own switch over <see cref="ValueType"/>, and
+/// The the generators each carry their own switch over <see cref="ValueType"/>, and
 /// each ends in a `default:` that throws. That is the right thing at the moment a
 /// conversion asks for a type the generator cannot render - but it means adding a type to
 /// the enum leaves thirteen places that compile perfectly and fail only when somebody's
@@ -23,7 +23,7 @@ namespace Tabbit.Tests;
 /// have not been taught it, rather than reaching a user first.
 ///
 /// The profiles are found by reflection rather than listed, because a list is the other
-/// thing somebody forgets: a fourteenth language whose profile nothing here mentions
+/// thing somebody forgets: a new language whose profile nothing here mentions
 /// would be exactly as unchecked as the types are now.
 /// </summary>
 public class LanguageProfileTests
@@ -74,7 +74,7 @@ public class LanguageProfileTests
             new[]
             {
                 "c", "cpp", "csharp", "dart", "go", "java", "kotlin", "php", "python",
-                "ruby", "rust", "typescript", "unreal",
+                "ruby", "rust", "swift", "typescript", "unreal",
             },
             ids);
     }
@@ -105,7 +105,7 @@ public class LanguageProfileTests
     /// And every language with a read-call table has a call for every scalar type.
     /// </summary>
     /// <remarks>
-    /// This was ten copies of the same switch, one per generator, each ending in a `default:`
+    /// This was a copy of the same switch, one per generator, each ending in a `default:`
     /// that throws. Adding a value type meant ten edits, and forgetting one still compiled -
     /// it surfaced at runtime in whoever's project reached that field first.
     ///

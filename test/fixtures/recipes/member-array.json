@@ -95,6 +95,11 @@
       "AccessorName": "MemberArrayAccessor"
     },
     {
+      "Type": "swift",
+      "Path": "test/fixtures/output/member-array/swift",
+      "AccessorName": "MemberArrayAccessor"
+    },
+    {
       "Type": "java",
       "Path": "test/fixtures/output/member-array/java",
       "PackageName": "tabbit.fixtures.memberarray",

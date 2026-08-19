@@ -1,0 +1,20 @@
+{{~##
+   One constant set. `set` is the single set this file is for.
+
+   An enum with no cases, which is Swift's namespace: it cannot be instantiated, so the
+   constants are reached by the type's name and nothing else can be.
+##~}}
+{{ include 'swift-file-head.sbn' ~}}
+
+// Generated from {{ set.location }}
+{{~ for line in set.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+public enum {{ set.name }} {
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+    /// {{ line }}
+{{~ end ~}}
+    public static let {{ constant.name }}: {{ constant.type }} = {{ constant.value }}
+{{~ end ~}}
+}

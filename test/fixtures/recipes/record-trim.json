@@ -104,6 +104,11 @@
       "AccessorName": "RecordTrimAccessor"
     },
     {
+      "Type": "swift",
+      "Path": "test/fixtures/output/record-trim/swift",
+      "AccessorName": "RecordTrimAccessor"
+    },
+    {
       "Type": "java",
       "Path": "test/fixtures/output/record-trim/java",
       "PackageName": "tabbit.fixtures.recordtrim",

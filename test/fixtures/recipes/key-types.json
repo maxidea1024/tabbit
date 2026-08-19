@@ -6,7 +6,7 @@
   // now, and this is what stands behind it: `bigint`, `uuid` and `enum` keying a table, and
   // each of them also sitting as a secondary index beside a different primary.
   //
-  // All thirteen languages, unlike `string-index` which pins two. The reason is that nothing
+  // Every language, unlike `string-index` which pins two. The reason is that nothing
   // here is new *below* the generators - the wire carries a key column like any other column
   // of its type - and everything here is new *inside* them: each emits its own dictionary or
   // sorted array and picks the key's spelling from its own type table. A uuid key is exactly
@@ -81,6 +81,11 @@
       "Type": "kotlin",
       "Path": "test/fixtures/output/key-types/kotlin",
       "PackageName": "tabbit.fixtures.keytypes",
+      "AccessorName": "KeyTypesAccessor"
+    },
+    {
+      "Type": "swift",
+      "Path": "test/fixtures/output/key-types/swift",
       "AccessorName": "KeyTypesAccessor"
     },
     {

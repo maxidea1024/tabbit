@@ -2,7 +2,7 @@
   // `int[]` · `int[]?` · `int?[]` · `int?[]?` side by side, and a `string?[]` beside them.
   //
   // JSON only. An absent element is `null` in an array and that is the whole of what this
-  // format needs to say it; the binary and the thirteen readers follow in their own step,
+  // format needs to say it; the binary and the readers follow in their own step,
   // and until then they refuse a column of this shape by name.
   // spec/nullable-array-elements.md.
 
@@ -57,6 +57,11 @@
       "Type": "kotlin",
       "Path": "test/fixtures/output/nullable-elements/kotlin",
       "PackageName": "tabbit.fixtures.nullableelements",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "swift",
+      "Path": "test/fixtures/output/nullable-elements/swift",
       "AccessorName": "NullableElementsAccessor"
     },
     {

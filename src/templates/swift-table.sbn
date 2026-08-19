@@ -1,0 +1,320 @@
+{{~##
+   One table: its record class and its table class. `table` is the single table this file
+   is for, so nothing here loops over the model.
+##~}}
+{{ include 'swift-file-head.sbn' ~}}
+
+// Generated from {{ table.location }}
+{{~ for line in table.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+public final class {{ table.record_name }} {
+
+    public init() {}
+{{~ for field in table.fields }}
+{{~ for line in field.comment ~}}
+    /// {{ line }}
+{{~ end ~}}
+{{~ for declaration in field.declarations ~}}
+    {{ declaration }}
+{{~ end ~}}
+{{~ if field.is_nullable ~}}
+    /// Whether this row has a value for {{ field.name }}. The value property keeps its type
+    /// and holds the type's empty value when the row had none; this says which it was.
+    public var {{ field.presence_member }}: Bool = false
+{{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+    /// Which of {{ field.name }}'s elements have a value. Empty where the file did not carry
+    /// the column, and then every index is out of range anyway.
+    public var {{ field.element_presence_member }}: [Bool] = []
+{{~ end ~}}
+{{~ end ~}}
+{{~## The element type of each record group. Nested rather than a second top-level type,
+   which Swift would allow in this file - nesting scopes the name, so two tables each
+   holding a `Slot` group do not collide in the module they share.
+
+   A struct rather than a class: an element has no identity of its own and lives inline in
+   the array, so there is no allocation per element and no reference to keep.
+   spec/swift-language-support.md. ##~}}
+{{~ for field in table.fields ~}}
+{{~## An array of arrays declares no element type: its outer level has no name, so there is
+   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+{{~ if field.is_record && !field.members_are_anonymous }}
+{{~## One struct per level, innermost first - the view flattened the nesting so this loop
+   does not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+{{~ for rt in field.record_types ~}}
+{{~ if rt.is_outermost ~}}
+    /// One element of {{ rt.owner }}.
+{{~ else ~}}
+    /// A record inside {{ rt.owner }}.
+{{~ end ~}}
+    public struct {{ rt.type_name }} {
+
+        public init() {}
+{{~ for member in rt.members }}
+{{~ for line in member.comment ~}}
+        /// {{ line }}
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+        {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+    }
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+/// Every row of {{ table.raw_name }}.
+public final class {{ table.table_name }} {
+
+    public init() {}
+
+    /// Every row, in the order the sheet declared them.
+    ///
+    /// The array a read published, not one a read fills. A refresh replaces the value rather
+    /// than appending to it, so whoever holds this holds one whole load.
+    public private(set) var records: [{{ table.record_name }}] = []
+{{~ for index in table.indexes ~}}
+
+    private var {{ index.map_name }}: [{{ index.key_type }}: {{ table.record_name }}] = [:]
+{{~ end ~}}
+{{~ for index in table.indexes }}
+    /// The row with this {{ index.field_name }}, or nil when the table has none.
+    ///
+    /// The lookup to reach for when a missing row is an ordinary answer - an optional
+    /// reference, a key that came from user input.
+    public func findBy{{ index.suffix }}(_ key: {{ index.key_type }}) -> {{ table.record_name }}? {
+        {{ index.map_name }}[key]
+    }
+
+    /// The row with this {{ index.field_name }}, or a thrown error naming what was missing.
+    ///
+    /// For a key that has to be there - one from another table, or a constant. The name says
+    /// it throws, because a caller reading getBy{{ index.suffix }}OrThrow(key).name at a
+    /// glance cannot otherwise tell whether the next line is a nil check or a catch.
+    public func getBy{{ index.suffix }}OrThrow(_ key: {{ index.key_type }}) throws -> {{ table.record_name }} {
+        guard let record = {{ index.map_name }}[key] else {
+            throw RecordNotFoundError(
+                "there is no record in table `{{ table.raw_name }}` that corresponds to "
+                + "field `{{ index.field_name }}` value \(key)")
+        }
+
+        return record
+    }
+
+    /// Whether the table holds a row with this {{ index.field_name }}.
+    public func contains{{ index.suffix }}(_ key: {{ index.key_type }}) -> Bool {
+        {{ index.map_name }}[key] != nil
+    }
+{{~ end ~}}
+
+    /// Loads the table from a .tcb file written by Tabbit.
+    ///
+    /// Column by column, matched by tag rather than position: a column this build does not
+    /// know is skipped by its block length, and one whose type changed incompatibly throws
+    /// naming the field.
+    ///
+    /// The keys are parameters rather than properties of a shared object, because Swift's
+    /// concurrency checking makes mutable global state an error and because the accessor
+    /// holding them is an instance - which is what lets two loads of two data sets exist at
+    /// once. {{ accessor_name }} passes its own. spec/accessor-instances.md.
+    public func read(
+        _ filename: String,
+        key: [UInt8]? = nil,
+        macKey: [UInt8]? = nil,
+        verifyMac: Bool = true
+    ) throws {
+        // Opened unconditionally, and with whatever the caller holds - which is nil unless
+        // the project set it. A file that is neither encrypted nor signed comes back from
+        // this untouched, so the load path is the same either way and there is no condition
+        // here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+        let bytes = try Tcb.openTable(
+            try Tcb.readAllBytes(filename), key: key, macKey: macKey, verifyMac: verifyMac)
+
+        let reader = Tcb.Reader(bytes)
+        let header = try Tcb.readTableHeader(reader)
+        let count = header.rowCount
+
+        // Read into storage of its own and published at the end: reading a table that is
+        // already loaded is a refresh, and one that turns out to be unreadable has to leave
+        // the rows already there alone.
+        var loaded = [{{ table.record_name }}]()
+        loaded.reserveCapacity(count)
+
+        for _ in 0 ..< count { loaded.append({{ table.record_name }}()) }
+{{~ for index in table.indexes ~}}
+        var loadedBy{{ index.suffix }} = [{{ index.key_type }}: {{ table.record_name }}](
+            minimumCapacity: count)
+{{~ end ~}}
+
+        for column in header.columns {
+            let blockEnd = reader.position + column.byteLength
+
+            switch column.tag {
+{{~ for column_view in table.columns ~}}
+            case {{ column_view.tag }}:
+                {{ column_view.column_check }}
+{{~ if column_view.is_nullable ~}}
+                // The bitmap is at the front of the block, so it is read before the values.
+                // The values are written for every row either way, which is what lets the
+                // read shapes below stay as they are.
+                let presence = try Tcb.readPresence(reader, column, count)
+{{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+                // Behind the row bitmap and in front of the values, walked with a counter
+                // that steps once per element of every row.
+                // spec/nullable-array-elements.md.
+                let elementPresence = try Tcb.readElementPresence(reader, column)
+                var elementAt = 0
+{{~ end ~}}
+{{~## Constructed after the check and before the rows: a dictionary encoding decodes its
+      dictionary here, at the head of the block. Opened ahead of every read shape, because
+      an array's elements read through it as well. After the presence bitmap, which sits in
+      front of the block the cursor is about to start reading. ##~}}
+{{~ if column_view.cursor_open != '' ~}}
+                {{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one call
+      per row that each re-dispatch on the encoding. An encoding with no run to give answers
+      1, so this loop is correct over all of them. ##~}}
+                var at = 0
+                while at < count {
+                    var n = try cursor.{{ column_view.run_call }}(count - at)
+                    while n > 0 {
+                        let i = at
+                        {{ column_view.run_spend }}
+                        at += 1
+                        n -= 1
+                    }
+                }
+{{~ else ~}}
+                for record in loaded {
+{{~ if column_view.kind == 'var_array' ~}}
+                    let elementCount = max(0, {{ column_view.length_read }})
+                    record.{{ column_view.name }} = []
+                    record.{{ column_view.name }}.reserveCapacity(elementCount)
+{{~ if column_view.has_optional_elements ~}}
+                    record.{{ column_view.element_presence_member }} = []
+                    record.{{ column_view.element_presence_member }}.reserveCapacity(elementCount)
+
+                    for _ in 0 ..< elementCount {
+                        record.{{ column_view.name }}.append({{ column_view.read_element }})
+                        record.{{ column_view.element_presence_member }}.append(
+                            Tcb.isPresent(elementPresence, elementAt))
+                        elementAt += 1
+                    }
+{{~ else ~}}
+
+                    for _ in 0 ..< elementCount {
+                        record.{{ column_view.name }}.append({{ column_view.read_element }})
+                    }
+{{~ end ~}}
+{{~ else if column_view.kind == 'record_var' ~}}
+                    let elementCount = max(0, {{ column_view.length_read }})
+{{~ if column_view.is_first_member ~}}
+                    // The first member allocates; the rest check. Allocating again would
+                    // discard what the members before it wrote, and taking the shorter of two
+                    // counts would shift every value after it.
+                    record.{{ column_view.name }} = [{{ column_view.record_type_name }}](
+                        repeating: {{ column_view.record_type_name }}(), count: elementCount)
+{{~ else ~}}
+                    if record.{{ column_view.name }}.count != elementCount {
+                        throw TcbError(
+                            "{{ table.raw_name }}.{{ column_view.name }}: the file gives one "
+                            + "member of this record a different element count than another")
+                    }
+{{~ end ~}}
+
+                    for element in 0 ..< elementCount {
+                        record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
+                    }
+{{~ else if column_view.kind == 'array_of_arrays_member' ~}}
+{{~## One inner array. Which outer element it is, is which column this is - so that index is
+   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+                    for element in 0 ..< {{ column_view.element_count }} {
+                        record.{{ column_view.name }}[{{ column_view.member_at }}][element] = {{ column_view.read_element }}
+                    }
+{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~## The member is the array: the index goes after its name rather than before. Same
+   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+                    for element in 0 ..< {{ column_view.element_count }} {
+                        record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[element] = {{ column_view.read_element }}
+                    }
+{{~ else if column_view.kind == 'record_serial' ~}}
+                    for element in 0 ..< {{ column_view.element_count }} {
+                        record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
+                    }
+{{~ else if column_view.kind == 'serial_ref' ~}}
+                    record.{{ column_view.name }}Index = []
+                    record.{{ column_view.name }}Index.reserveCapacity(column.count)
+
+                    for _ in 0 ..< column.count {
+                        record.{{ column_view.name }}Index.append({{ column_view.read_element }})
+                    }
+{{~ else if column_view.kind == 'serial' ~}}
+{{~## One column owns the whole array, so how many elements a row holds is what the file
+   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
+                    record.{{ column_view.name }} = []
+                    record.{{ column_view.name }}.reserveCapacity(column.count)
+{{~ if column_view.has_optional_elements ~}}
+                    record.{{ column_view.element_presence_member }} = []
+                    record.{{ column_view.element_presence_member }}.reserveCapacity(column.count)
+
+                    for _ in 0 ..< column.count {
+                        record.{{ column_view.name }}.append({{ column_view.read_element }})
+                        record.{{ column_view.element_presence_member }}.append(
+                            Tcb.isPresent(elementPresence, elementAt))
+                        elementAt += 1
+                    }
+{{~ else ~}}
+
+                    for _ in 0 ..< column.count {
+                        record.{{ column_view.name }}.append({{ column_view.read_element }})
+                    }
+{{~ end ~}}
+{{~ else if column_view.kind == 'scalar_ref' ~}}
+                    record.{{ column_view.name }}Index = {{ column_view.read_scalar }}
+{{~ else ~}}
+                    record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_scalar }}
+{{~ end ~}}
+                }
+{{~ end ~}}
+{{~ if column_view.is_nullable }}
+                // A pass of its own rather than a line inside each read shape, so the row
+                // index is worked out once. The block carries a value for every row, so an
+                // absent one has just been given whatever was there; putting the empty value
+                // back is what makes this path agree with the JSON one.
+                for row in 0 ..< count {
+                    let record = loaded[row]
+                    record.{{ column_view.presence_member }} = Tcb.isPresent(presence, row)
+
+                    if !record.{{ column_view.presence_member }} {
+                        record.{{ column_view.name }} = {{ column_view.empty_value }}
+                    }
+                }
+{{~ end ~}}
+{{~ end ~}}
+            default:
+                // A column added after this code was generated.
+                try reader.skip(column.byteLength)
+            }
+
+            try Tcb.checkBlockEnd(reader, column, blockEnd)
+        }
+{{~ if table.indexes | array.size > 0 }}
+        for record in loaded {
+{{~ for index in table.indexes ~}}
+            loadedBy{{ index.suffix }}[record.{{ index.member }}] = record
+{{~ end ~}}
+        }
+{{~ end ~}}
+
+        // Published, now that every column read.
+        records = loaded
+{{~ for index in table.indexes ~}}
+        {{ index.map_name }} = loadedBy{{ index.suffix }}
+{{~ end ~}}
+    }
+}

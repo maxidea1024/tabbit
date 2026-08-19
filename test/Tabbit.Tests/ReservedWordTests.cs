@@ -173,6 +173,28 @@ public class ReservedWordTests
     }
 
     /// <summary>
+    /// Swift escapes with backticks, as Kotlin does, so the generated member really is
+    /// called `class`.
+    /// </summary>
+    /// <remarks>
+    /// This gate carries two more things with it. The recipe turns the updater on, so the
+    /// only check that compiles `Updater.swift` at all is this one. And `CompileSwift`
+    /// type-checks in both language modes with warnings as errors, which is what a keyword
+    /// name would fail loudly rather than subtly.
+    /// </remarks>
+    [Fact]
+    public void Generated_swift_compiles_with_keyword_named_fields()
+    {
+        Assert.True(ConformanceHarness.SwiftIsAvailable(out string why), why);
+
+        Convert();
+
+        var result = ConformanceHarness.CompileSwift(Scenario);
+
+        Assert.True(result.Succeeded, $"Generated Swift does not compile.{Environment.NewLine}{result.Output}");
+    }
+
+    /// <summary>
     /// Ruby members are snake_case and nearly every Ruby keyword is lower case, so this
     /// is the language with the most ways to collide.
     /// </summary>

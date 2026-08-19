@@ -315,7 +315,7 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 |`binary`, `json`|파일 내보내기|
 |`text`|`text` 컬럼의 값을 그룹마다 파일 하나로 수집 — 「[수집된 텍스트](exports.md#수집된-텍스트--text-타깃)」|
 |`mysql`, `postgresql`, `mongodb`, `redis`|데이터베이스 내보내기|
-|`cpp`, `csharp`, `typescript`, `html`, `c`, `go`, `rust`, `python`, `java`, `kotlin`, `ruby`, `php`, `dart`|코드 생성 — 설정은 [언어별 가이드](languages/readme.md)|
+|`cpp`, `csharp`, `typescript`, `html`, `c`, `go`, `rust`, `python`, `java`, `kotlin`, `swift`, `ruby`, `php`, `dart`|코드 생성 — 설정은 [언어별 가이드](languages/readme.md)|
 |`unreal`|Unreal 모듈 생성|
 |`summary`, `history`|변환 자체를 기록 — 「[Summary와 히스토리](history.md)」|
 
@@ -324,7 +324,7 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 
 타깃마다 전용 섹션을 두지 않는 것은 타깃을 추가할 때 recipe 스키마를 고치지 않아도 되게 하기 위함입니다. **타깃 하나를 지우는 일이 파일 하나를 지우는 일**이어야 하기 때문이기도 합니다.
 
-> 예전에는 10개 타깃이 `Exports`·`CodeGenerations` 아래에 전용 섹션을 갖고 나머지는 `Targets`에 있었습니다. 그 10개를 가르는 것은 기능이 아니라 도입 시점이었고, recipe를 읽는 사람이 그 배치에서 읽어낼 수 있는 규칙은 없었습니다.
+> 예전에는 일부 타깃이 `Exports`·`CodeGenerations` 아래에 전용 섹션을 갖고 나머지는 `Targets`에 있었습니다. 그 10개를 가르는 것은 기능이 아니라 도입 시점이었고, recipe를 읽는 사람이 그 배치에서 읽어낼 수 있는 규칙은 없었습니다.
 
 #### 출력 항목 공통 설정
 
@@ -447,7 +447,7 @@ tabbit --new-recipe my-recipe.json --template unity
 
 ### 이름과 관련된 것
 
-**`AccessorName`은 13개 언어 전부에서 「전부 담고 있는 진입점」의 이름입니다.** 기본값은 어디서나
+**`AccessorName`은 모든 언어에서 「전부 담고 있는 진입점」의 이름입니다.** 기본값은 어디서나
 `Tables`이고, 각 생성기가 자기 언어의 표기로 바꿔 씁니다 — **타입은 PascalCase, 파일은 그 언어의
 파일 명명 관례**입니다. 그래서 `Tables`라고 한 번 적으면 C#은 `Tables.cs`의 `Tables`, Go는
 `tables.go`의 `Tables`, Ruby는 `a.rb`의 `A`가 됩니다.
@@ -705,7 +705,7 @@ TypeScript는 JSON과 바이너리 양쪽을 읽으므로 둘 다 내보냅니�
 tabbit --recipe ci-recipe.json --commit $GITHUB_SHA
 ```
 
-### 8. 전부 — 13개 언어를 한 번에
+### 8. 전부 — 지원하는 언어를 한 번에
 
 `side-by-side/side-by-side.json`이 저장소에 있고, 실제로 매번 실행되어 [side-by-side/](../side-by-side/)에 결과가 커밋됩니다. 언어별 출력이 어떻게 생겼는지 나란히 볼 수 있습니다.
 
@@ -721,7 +721,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe side-by-side/side-by-side.jso
 |--|--|
 |`core.json`|엑셀 하나에서 바이너리·JSON·C#·C++·HTML까지|
 |`core-client.json` / `core-server.json`|`TargetSide`로 나눠 뽑기|
-|`conformance.json`|13개 타깃 전부를 한 recipe에|
+|`conformance.json`|타깃 전부를 한 recipe에|
 |`table-extension.json`|`.tcb`가 아닌 확장자로 맞추기|
 |`databases.json`|MySQL / PostgreSQL / MongoDB / Redis|
 |`history.json`|히스토리 기록|

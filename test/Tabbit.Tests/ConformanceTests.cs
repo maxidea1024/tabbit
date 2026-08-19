@@ -247,6 +247,60 @@ public class ConformanceTests
     }
 
     /// <summary>
+    /// Swift, whose reader is the one that has a dependency to be without.
+    /// </summary>
+    /// <remarks>
+    /// The harness builds through SwiftPM with swift-crypto, because the corpus is signed
+    /// and verifying a MAC needs HMAC-SHA-256 - which comes from CryptoKit on Apple
+    /// platforms and from that package everywhere else. That the same output also compiles
+    /// with no package at all is `Generated_swift_compiles_without_a_crypto_package`, and
+    /// the pair is what keeps the reader's three crypto states from quietly becoming two.
+    /// spec/swift-language-support.md.
+    /// </remarks>
+    [Fact]
+    public void Generated_swift_reader_matches_the_corpus()
+    {
+        var expected = Expected();
+
+        Assert.True(ConformanceHarness.SwiftIsAvailable(out string why),
+            $"A Swift toolchain is required to check the generated Swift. {why}");
+
+        var harness = ConformanceHarness.RunSwift(Scenario);
+        Assert.True(harness.Succeeded, $"Swift harness failed.{Environment.NewLine}{harness.Output}");
+
+        Compare("Swift", expected, Parse(harness.StdOut));
+    }
+
+    /// <summary>
+    /// The generated Swift, type-checked with no crypto package and warnings as errors.
+    /// </summary>
+    /// <remarks>
+    /// Not a second conformance run: what this asks is whether the output a project gets
+    /// without adding anything still builds. The reader answers a MAC it cannot verify with
+    /// a message naming the package to add, and that path is only compiled here.
+    ///
+    /// Warnings as errors because this code lands in somebody else's build. It has already
+    /// caught one: a subnormal double literal, which parses to the right value and warns
+    /// that it underflowed.
+    /// </remarks>
+    [Fact]
+    public void Generated_swift_compiles_without_a_crypto_package()
+    {
+        // For the conversion, which is what writes the sources this type-checks. Its rows
+        // are the other gate's business.
+        Expected();
+
+        Assert.True(ConformanceHarness.SwiftIsAvailable(out string why),
+            $"A Swift toolchain is required to check the generated Swift. {why}");
+
+        var check = ConformanceHarness.CompileSwift(Scenario);
+
+        Assert.True(check.Succeeded,
+            $"The generated Swift does not compile without swift-crypto."
+            + $"{Environment.NewLine}{check.Output}");
+    }
+
+    /// <summary>
     /// Ruby, whose Integer is arbitrary precision.
     ///
     /// That removes the 64-bit trap the other dynamic languages have and leaves the

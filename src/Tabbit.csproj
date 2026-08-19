@@ -127,6 +127,10 @@
                       LogicalName="Tabbit.Runtime.Kotlin.TcbReader.kt" />
     <EmbeddedResource Include="..\lib\kotlin\tabbit\TabbitUpdater.kt"
                       LogicalName="Tabbit.Runtime.Kotlin.TabbitUpdater.kt" />
+    <EmbeddedResource Include="..\lib\swift\tabbit\TcbReader.swift"
+                      LogicalName="Tabbit.Runtime.Swift.TcbReader.swift" />
+    <EmbeddedResource Include="..\lib\swift\tabbit\Updater.swift"
+                      LogicalName="Tabbit.Runtime.Swift.Updater.swift" />
     <EmbeddedResource Include="..\lib\ruby\tabbit\tcb_reader.rb"
                       LogicalName="Tabbit.Runtime.Ruby.tcb_reader.rb" />
     <EmbeddedResource Include="..\lib\ruby\tabbit\updater.rb"

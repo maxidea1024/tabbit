@@ -62,7 +62,7 @@ public sealed class LanguageProfile
     /// destination where the language passes one.
     /// </summary>
     /// <remarks>
-    /// This was ten copies of the same switch, one per generator, each with a `default:` that
+    /// This was a copy of the same switch, one per generator, each with a `default:` that
     /// throws. So adding a value type meant ten edits and forgetting one still compiled - it
     /// surfaced at runtime in whoever's project reached that field first.
     ///
@@ -668,6 +668,60 @@ public sealed class LanguageProfile
         "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if",
         "in", "interface", "is", "null", "object", "package", "return", "super", "this",
         "throw", "true", "try", "typealias", "typeof", "val", "var", "when", "while");
+
+    /// <summary>
+    /// Swift.
+    ///
+    /// Widths are spelled out - `Int32` rather than `Int` - because nine of the thirteen
+    /// languages before it do and because a reference key that lost its width is a defect
+    /// this repository has already had once. spec/reference-key-types.md.
+    ///
+    /// The reader's names are all under `Tcb`, so this table carries that prefix where a
+    /// type is named. A file copied into somebody else's module cannot put thirty constants
+    /// called `magic` and `headerSize` at its top level.
+    /// </summary>
+    public static readonly LanguageProfile Swift = new LanguageProfile(
+        "swift",
+        new Dictionary<ValueType, string>
+        {
+            { ValueType.String, "String" },
+            { ValueType.Bool, "Bool" },
+            { ValueType.Int32, "Int32" },
+            { ValueType.Int64, "Int64" },
+            { ValueType.Float, "Float" },
+            { ValueType.Double, "Double" },
+            { ValueType.DateTime, "Int64" },
+            { ValueType.TimeSpan, "Int64" },
+            { ValueType.Uuid, "Tcb.Uuid" },
+        },
+        "[{0}]",
+
+        // Backticks, the same escape Kotlin has: the name stays what the sheet called it.
+        "`{0}`",
+
+        new Dictionary<ValueType, string>
+        {
+            { ValueType.String, "reader.readString()" },
+            { ValueType.Bool, "reader.readBool()" },
+            { ValueType.Int32, "reader.readI32As(column.element)" },
+            { ValueType.Int64, "reader.readI64As(column.element)" },
+            { ValueType.Float, "reader.readFloat()" },
+            { ValueType.Double, "reader.readF64As(column.element)" },
+            { ValueType.DateTime, "reader.readDateTimeTicks()" },
+            { ValueType.TimeSpan, "reader.readDurationTicks()" },
+            { ValueType.Uuid, "reader.readUuid()" },
+        },
+
+        // https://docs.swift.org/swift-book - the keywords used in declarations, in
+        // statements and in expressions. Swift lets a member be named after one of these
+        // in backticks, so the escape above is what this list feeds.
+        "Any", "as", "associatedtype", "await", "break", "case", "catch", "class",
+        "continue", "default", "defer", "deinit", "do", "else", "enum", "extension",
+        "fallthrough", "false", "fileprivate", "for", "func", "guard", "if", "import",
+        "in", "init", "inout", "internal", "is", "let", "nil", "operator", "precedencegroup",
+        "private", "protocol", "public", "repeat", "rethrows", "return", "self", "Self",
+        "static", "struct", "subscript", "super", "switch", "throw", "throws", "true",
+        "try", "typealias", "var", "where", "while");
 
     /// <summary>
     /// Ruby.

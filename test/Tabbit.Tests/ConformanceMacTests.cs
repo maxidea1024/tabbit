@@ -10,7 +10,7 @@ namespace Tabbit.Tests;
 /// pass by accident: give it a file that was altered after it was signed.
 /// </summary>
 /// <remarks>
-/// The corpus is exported signed, so `ConformanceTests` already has all thirteen readers
+/// The corpus is exported signed, so `ConformanceTests` already has all the readers
 /// verifying a real tag on every run - but a reader that skipped the check entirely would
 /// pass that just as well, and so would one whose harness forgot to set the key. Only a file
 /// that must be refused tells those apart.
@@ -113,6 +113,15 @@ public class ConformanceMacTests
             $"A Kotlin compiler is required to check the generated Kotlin. {why}");
 
         Refuses("Kotlin", () => ConformanceHarness.RunKotlin(Scenario, Tampered));
+    }
+
+    [Fact]
+    public void Swift_refuses_an_altered_file()
+    {
+        Assert.True(ConformanceHarness.SwiftIsAvailable(out string why),
+            $"A Swift toolchain is required to check the generated Swift. {why}");
+
+        Refuses("Swift", () => ConformanceHarness.RunSwift(Scenario, Tampered));
     }
 
     [Fact]

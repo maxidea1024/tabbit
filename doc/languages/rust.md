@@ -98,6 +98,25 @@ ureq = "2"
 
 **그 한 줄이 전부입니다.** Rust 표준 라이브러리에는 HTTP 클라이언트가 없어서 전송만 크레이트에 맡기고, 매니페스트 JSON 파서와 MD5는 `updater.rs` 안에 직접 썼습니다 — `serde`와 `md-5`까지 소비자 빌드에 끌어들이는 것보다 문법 하나를 적는 편이 싸기 때문입니다. 끄면 생성물은 다시 의존성 0개가 되고 레지스트리 없이 빌드됩니다.
 
+### 그 한 줄을 어떻게 넣는가
+
+생성되는 `Cargo.toml`을 그대로 쓴다면 **할 일이 없습니다** — 위의 줄이 이미 그 안에 있습니다. 이미 있는 크레이트에 소스만 넣는 경우에만 손으로 적습니다.
+
+|상황|하는 일|
+|--|--|
+|생성물을 그대로 크레이트로 씀|없습니다. `cargo build`가 알아서 받습니다|
+|기존 크레이트에 소스만 넣음|그 크레이트의 `Cargo.toml` `[dependencies]`에 `ureq = "2"`를 추가합니다|
+|워크스페이스|버전을 한곳에서 관리한다면 워크스페이스 루트의 `[workspace.dependencies]`에 두고, 크레이트에서는 `ureq = { workspace = true }`|
+|버전을 바꾸고 싶다|recipe의 `"UreqVersion"`을 적으세요. 소비자의 락파일은 소비자의 것이므로 이 값은 recipe 설정입니다|
+
+확인은 `cargo build`이고, 처음 한 번은 레지스트리에 접근합니다.
+
+|증상|원인과 조치|
+|--|--|
+|`error[E0432]: unresolved import 'ureq'`|`[dependencies]`에 그 줄이 없습니다|
+|`error: no matching package named 'ureq' found`|오프라인이거나 레지스트리에 닿지 못합니다. 사내 미러를 쓰면 `.cargo/config.toml`의 `[source]`로 바꿉니다|
+|받는 것 자체를 원하지 않는다|`"WriteUpdater": false`. 데이터 갱신을 쓰지 않는 프로젝트에는 이 의존이 없습니다|
+
 ```rust
 use gamedata::updater;
 

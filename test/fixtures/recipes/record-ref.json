@@ -70,6 +70,7 @@
     { "Type": "python", "Path": "test/fixtures/output/record-ref/python", "PackageName": "record_ref_data" },
     { "Type": "java", "Path": "test/fixtures/output/record-ref/java", "PackageName": "recordref", "AccessorName": "Tables" },
     { "Type": "kotlin", "Path": "test/fixtures/output/record-ref/kotlin", "PackageName": "recordref", "AccessorName": "Tables" },
+    { "Type": "swift", "Path": "test/fixtures/output/record-ref/swift", "AccessorName": "Tables" },
     { "Type": "ruby", "Path": "test/fixtures/output/record-ref/ruby", "ModuleName": "RecordRef" },
     { "Type": "dart", "Path": "test/fixtures/output/record-ref/dart" },
     { "Type": "unreal", "Path": "test/fixtures/output/record-ref/unreal/Source", "ModuleName": "RecordRefData", "AccessorName": "FRecordRefData" },

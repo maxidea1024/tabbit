@@ -85,6 +85,11 @@
       "AccessorName": "OptionalAccessor"
     },
     {
+      "Type": "swift",
+      "Path": "test/fixtures/output/optional/swift",
+      "AccessorName": "OptionalAccessor"
+    },
+    {
       "Type": "java",
       "Path": "test/fixtures/output/optional/java",
       "PackageName": "tabbit.fixtures.optional",

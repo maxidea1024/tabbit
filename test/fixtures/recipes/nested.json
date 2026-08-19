@@ -99,6 +99,11 @@
       "AccessorName": "NestedAccessor"
     },
     {
+      "Type": "swift",
+      "Path": "test/fixtures/output/nested/swift",
+      "AccessorName": "NestedAccessor"
+    },
+    {
       "Type": "java",
       "Path": "test/fixtures/output/nested/java",
       "PackageName": "tabbit.fixtures.nested",

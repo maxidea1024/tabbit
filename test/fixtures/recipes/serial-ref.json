@@ -3,7 +3,7 @@
   //
   // `foreign[]` is refused and its message names this shape instead, so it is the only way a
   // sheet can point at several rows from one field - and nothing in the corpus held one. The
-  // code for it was generated for thirteen languages and never read a byte, which is how the
+  // code for it was generated for every language and never read a byte, which is how the
   // C# page came to allocate the resolved array and not the keys beside it.
   //
   // Both forms of a reference are here, because they resolve to different types: `Slot` is a
@@ -55,6 +55,7 @@
     { "Type": "python", "Path": "test/fixtures/output/serial-ref/python", "PackageName": "serial_ref_data" },
     { "Type": "java", "Path": "test/fixtures/output/serial-ref/java", "PackageName": "serialref", "AccessorName": "Tables" },
     { "Type": "kotlin", "Path": "test/fixtures/output/serial-ref/kotlin", "PackageName": "serialref", "AccessorName": "Tables" },
+    { "Type": "swift", "Path": "test/fixtures/output/serial-ref/swift", "AccessorName": "Tables" },
     { "Type": "ruby", "Path": "test/fixtures/output/serial-ref/ruby", "ModuleName": "SerialRef" },
     { "Type": "dart", "Path": "test/fixtures/output/serial-ref/dart" },
     { "Type": "unreal", "Path": "test/fixtures/output/serial-ref/unreal/Source", "ModuleName": "SerialRefData", "AccessorName": "FSerialRefData" },

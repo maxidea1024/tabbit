@@ -12,7 +12,7 @@
 |--|--|--|
 |[Sylvan.Data.Excel](https://github.com/MarkPflug/Sylvan)|0.5.8|**엑셀 워크북을 스트리밍으로** 읽습니다. 시트를 행 단위로 흘려 읽으므로 워크북을 객체 모델로 펼치지 않습니다 ([설계와 실측](../spec/streaming-workbook-reader.md))|
 |[Google.Apis.Sheets.v4](https://github.com/googleapis/google-api-dotnet-client)|1.75.0.4178|구글 스프레드시트를 읽습니다|
-|[Scriban](https://github.com/scriban/scriban)|7.2.6|코드 생성 템플릿 엔진. `src/templates/*.sbn`이 13개 언어의 산출물을 만듭니다|
+|[Scriban](https://github.com/scriban/scriban)|7.2.6|코드 생성 템플릿 엔진. `src/templates/*.sbn`이 모든 언어의 산출물을 만듭니다|
 |[Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn)|5.6.0|검증 규칙 `.cs` 파일을 변환 중에 컴파일합니다. `"Output": "assembly"`의 C# 어셈블리 산출도 여기서 나옵니다 ([검증](validation.md))|
 |[Newtonsoft.Json](https://www.newtonsoft.com/json)|13.0.4|recipe 파싱과 JSON 익스포트|
 |[CommandLineParser](https://github.com/commandlineparser/commandline)|2.9.1|명령줄 옵션|
@@ -40,13 +40,23 @@
 
 ## 생성된 코드의 의존
 
-**기본은 없습니다.** 13개 언어의 테이블 리더는 각 언어의 표준 라이브러리만 씁니다. 데이터
-갱신기(`WriteUpdater`)를 켤 때만 세 언어에 외부 의존이 생깁니다.
+**의존은 억제하지만 금지하지 않습니다.** 기본은 각 언어의 표준 라이브러리이고, **직접 구현이
+성능에서 크게 불리한 자리는 플랫폼이나 외부 패키지가 이미 가진 것을 씁니다.** 판단 기준은
+[v104에 적어 둔 것](../spec/tcb-v104-composed-encodings.md#구현-방침--언어마다-다릅니다)과 같습니다 —
+「그 언어에서 바이트 단위 루프가 수 MB를 감당하는가」.
 
-|언어|무엇|어디에 적히나|
-|--|--|--|
-|Rust|`ureq`|생성되는 `Cargo.toml`|
-|C · C++|libcurl|링크 플래그|
+외부 패키지가 필요한 자리는 아래뿐이고, **전부 기본값에서는 만나지 않습니다.**
+
+|언어|무엇|언제|어디에 적히나|
+|--|--|--|--|
+|Rust|`ureq`|`WriteUpdater`를 켤 때|생성되는 `Cargo.toml`|
+|C · C++|libcurl|`WriteUpdater`를 켤 때|링크 플래그|
+|Swift|[swift-crypto](https://github.com/apple/swift-crypto)|**MAC을 검증할 때, 애플 플랫폼이 아닐 때**|생성되는 `Package.swift`(`WriteManifest`) 또는 소비자의 매니페스트. 애플 플랫폼에서는 OS의 CryptoKit이 대신하므로 받지 않고, 없는 빌드에서도 **리더는 컴파일되고 파일도 읽힙니다** — 안 되는 것은 검증 하나이고 그때 무엇을 넣어야 하는지 말합니다 ([설치 절차](languages/swift.md#mac-검증과-swift-crypto))|
+|Python|`cryptography`|**암호화된 파일을 읽을 때**|`pip install cryptography`. import가 그 함수 안에 있어서 암호화를 쓰지 않는 프로젝트는 도달하지 않고, 없으면 **무엇을 설치해야 하는지 말하면서** 실패합니다|
+
+표준 라이브러리로 해결되는 자리는 의존이 아니므로 위에 없습니다 — Java·Kotlin의
+`javax.crypto`, Ruby의 `openssl`, PHP의 ext-openssl이 그렇습니다
+([암호 구현 방침](../spec/tcb-v104-composed-encodings.md#구현-방침--언어마다-다릅니다)).
 
 ## 저장소 안에서만 쓰는 것
 
