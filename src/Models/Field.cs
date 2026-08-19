@@ -71,6 +71,22 @@ public class Field
     public bool IsRequired { get; set; } = true;
 
     /// <summary>
+    /// Whether every element of this column's array has to be a value.
+    /// </summary>
+    /// <remarks>
+    /// True unless the type cell writes the marker inside the brackets: `int[]` and `int[]?`
+    /// want a number in every element, and `int?[]` takes `-` in one of them.
+    ///
+    /// Independent of <see cref="IsRequired"/>, which answers for the array itself, because
+    /// the two are different facts - `int?[]?` says both may be absent and `int?[]` says only
+    /// an element may. A column that is not an array leaves this true; there is nothing for
+    /// it to say.
+    ///
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    public bool ElementsRequired { get; set; } = true;
+
+    /// <summary>
     /// The column's name read as a path into the row, or null for an ordinary column.
     /// </summary>
     /// <remarks>

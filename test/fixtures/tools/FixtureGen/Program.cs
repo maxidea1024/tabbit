@@ -57,6 +57,7 @@ internal static class Program
         WriteBlankCell(Prepare(outputDir, "blank-cell", "blank-cell.xlsx"));
         WriteNoValueRefused(Prepare(outputDir, "no-value-refused", "no-value-refused.xlsx"));
         WriteNoValueElement(Prepare(outputDir, "no-value-element", "no-value-element.xlsx"));
+        WriteNullableElements(Prepare(outputDir, "nullable-elements", "nullable-elements.xlsx"));
         WriteOptionalIndex(Prepare(outputDir, "optional-index", "optional-index.xlsx"));
         WriteFormulaError(Prepare(outputDir, "formula-error", "formula-error.xlsx"));
         WriteEnumByValue(Prepare(outputDir, "enum-by-value", "enum-by-value.xlsx"));
@@ -1730,6 +1731,55 @@ internal static class Program
         spec
             .Row("1", "a;b", "first")
             .Row("2", "a;-;b", "second");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// The four spellings of an array's optionality, side by side.
+    /// </summary>
+    /// <remarks>
+    /// `int[]` requires both, `int[]?` lets the array be absent, `int?[]` lets an element be,
+    /// and `int?[]?` both - the reading C# gives the same four. A `string?[]` beside them,
+    /// because that is where the distinction is invisible to a value comparison: an empty
+    /// string element and an absent one look the same until the presence is read.
+    ///
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    private static void WriteNullableElements(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Arrays"));
+
+        var spec = new TableSpec
+        {
+            Name = "Listing",
+            Comment = "Every combination of an array and its elements being optional.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "what the row is about"))
+            .Field(FieldSpec.Of("Plain", "int[]", "both required"))
+            .Field(FieldSpec.Of("Maybe", "int[]?", "the array may be absent"))
+            .Field(FieldSpec.Of("Holes", "int?[]", "an element may be absent"))
+            .Field(FieldSpec.Of("Both", "int?[]?", "either may be"))
+            .Field(FieldSpec.Of("Words", "string?[]", "where a value comparison cannot see it"));
+
+        spec
+            // Ordinary values, so the rows below are read against something.
+            .Row("1", "values", "1;2;3", "1;2;3", "1;2;3", "1;2;3", "a;b;c")
+            // One element saying it has no value, in each column that allows one to.
+            .Row("2", "holes", "1;2;3", "1;2;3", "1;-;3", "1;-;3", "a;-;c")
+            // The array itself absent, which is the other marker's answer.
+            .Row("3", "no array", "1;2;3", "-", "1;2;3", "-", "a;b;c")
+            // A blank element, which is the empty string and not an absence - the rule the
+            // cell follows, applied to an element. `int` has no reading for one, so the
+            // numeric columns hold values here.
+            .Row("4", "blank element", "1;2;3", "1;2;3", "1;2;3", "1;2;3", "a;;c")
+            // And the escape, so `-` can still be a value of a string element.
+            .Row("5", "escaped", "1;2;3", "1;2;3", "1;2;3", "1;2;3", "a;\\-;c");
 
         b.Table(1, 1, spec);
 

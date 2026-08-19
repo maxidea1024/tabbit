@@ -1,0 +1,139 @@
+[
+  {
+    "index": 1,
+    "name": "values",
+    "plain": [
+      1,
+      2,
+      3
+    ],
+    "maybe": [
+      1,
+      2,
+      3
+    ],
+    "holes": [
+      1,
+      2,
+      3
+    ],
+    "both": [
+      1,
+      2,
+      3
+    ],
+    "words": [
+      "a",
+      "b",
+      "c"
+    ]
+  },
+  {
+    "index": 2,
+    "name": "holes",
+    "plain": [
+      1,
+      2,
+      3
+    ],
+    "maybe": [
+      1,
+      2,
+      3
+    ],
+    "holes": [
+      1,
+      null,
+      3
+    ],
+    "both": [
+      1,
+      null,
+      3
+    ],
+    "words": [
+      "a",
+      null,
+      "c"
+    ]
+  },
+  {
+    "index": 3,
+    "name": "no array",
+    "plain": [
+      1,
+      2,
+      3
+    ],
+    "maybe": null,
+    "holes": [
+      1,
+      2,
+      3
+    ],
+    "both": null,
+    "words": [
+      "a",
+      "b",
+      "c"
+    ]
+  },
+  {
+    "index": 4,
+    "name": "blank element",
+    "plain": [
+      1,
+      2,
+      3
+    ],
+    "maybe": [
+      1,
+      2,
+      3
+    ],
+    "holes": [
+      1,
+      2,
+      3
+    ],
+    "both": [
+      1,
+      2,
+      3
+    ],
+    "words": [
+      "a",
+      "",
+      "c"
+    ]
+  },
+  {
+    "index": 5,
+    "name": "escaped",
+    "plain": [
+      1,
+      2,
+      3
+    ],
+    "maybe": [
+      1,
+      2,
+      3
+    ],
+    "holes": [
+      1,
+      2,
+      3
+    ],
+    "both": [
+      1,
+      2,
+      3
+    ],
+    "words": [
+      "a",
+      "-",
+      "c"
+    ]
+  }
+]

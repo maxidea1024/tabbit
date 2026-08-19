@@ -1006,7 +1006,15 @@ public partial class ModelCooker
         if (cell.Value is System.Array array)
         {
             for (int at = 0; at < array.Length; at++)
+            {
+                // An element the sheet said has no value holds the type's empty one, which is
+                // not a value to hold to a bound - the same answer this check gives a whole
+                // cell with no value. spec/nullable-array-elements.md.
+                if (cell.ElementHasValue is { } present && at < present.Length && !present[at])
+                    continue;
+
                 CheckOneValue(table, field, cell, array.GetValue(at)!, at, diagnostics);
+            }
 
             return;
         }

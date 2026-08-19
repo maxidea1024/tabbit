@@ -99,6 +99,17 @@ public sealed class CookingContext
         if (IsValidTypeName(typeName))
             return;
 
+        // A `?` somewhere the two spellings do not allow. Named as the two, because a name
+        // reported only as unrecognized sends the author looking for a type that does not
+        // exist rather than at the character they put in the wrong place.
+        if ((typeName ?? "").Contains('?'))
+        {
+            throw new TabbitException(location,
+                $"type `{typeName}` is an unrecognized type. A `?` goes after the type or "
+                + "after the brackets: `int?` says a row may have no value, `int?[]` says an "
+                + "element may, and `int?[]?` says both.");
+        }
+
         throw new TabbitException(location, $"type `{typeName}` is an unrecognized type.");
     }
 
@@ -113,20 +124,48 @@ public sealed class CookingContext
     /// been an error. The marker is how a sheet says that a blank is expected there.
     /// </remarks>
     public static string SplitOptionalMarker(string typeName, out bool required)
+        => SplitOptionalMarkers(typeName, out required, out _);
+
+    /// <summary>
+    /// Splits both optional markers off a type name: `int?[]?` is `int[]`, with the array and
+    /// its elements each answering for themselves.
+    /// </summary>
+    /// <remarks>
+    /// Read back to front, which is how the two are told apart. The marker after the brackets
+    /// is the array's - `int[]?` is an array that a row may not have - and the one before them
+    /// is an element's - `int?[]` is an array a row always has, holding elements that may be
+    /// absent. C# reads the same two spellings the same way, which is the reason the marker
+    /// sits on the type at all.
+    ///
+    /// Returns the name with both markers removed, so everything downstream reads the type it
+    /// always read. spec/nullable-array-elements.md.
+    /// </remarks>
+    public static string SplitOptionalMarkers(
+        string typeName, out bool required, out bool elementsRequired)
     {
         string text = (typeName ?? "").Trim();
 
-        // After the array brackets, so `int[]?` is an optional array rather than an array of
-        // optionals - which is not a thing here: the elements of an array cell are all or
-        // nothing together.
+        required = true;
+        elementsRequired = true;
+
         if (text.EndsWith("?", StringComparison.Ordinal))
         {
             required = false;
-            return text.Substring(0, text.Length - 1).Trim();
+            text = text.Substring(0, text.Length - 1).Trim();
         }
 
-        required = true;
-        return text;
+        if (!text.EndsWith("[]", StringComparison.Ordinal))
+            return text;
+
+        string element = text.Substring(0, text.Length - 2).Trim();
+
+        if (element.EndsWith("?", StringComparison.Ordinal))
+        {
+            elementsRequired = false;
+            element = element.Substring(0, element.Length - 1).Trim();
+        }
+
+        return element + "[]";
     }
 
     /// <summary>
@@ -513,13 +552,14 @@ public sealed class CookingContext
 
     private static string Trimmed(string? text) => (text ?? "").Trim();
 
-/// <summary>One data cell, read.</summary>
+    /// <summary>One data cell, read.</summary>
     public readonly struct CellReading
     {
-        public CellReading(object? value, bool hasValue)
+        public CellReading(object? value, bool hasValue, bool[]? elementHasValue = null)
         {
             Value = value;
             HasValue = hasValue;
+            ElementHasValue = elementHasValue;
         }
 
         /// <summary>What the cell holds - the type's empty value when it holds none.</summary>
@@ -527,6 +567,11 @@ public sealed class CookingContext
 
         /// <summary>Whether the sheet put a value here. False for `-`, and for nothing else.</summary>
         public bool HasValue { get; }
+
+        /// <summary>
+        /// Which elements the sheet gave a value, or null where the question does not arise.
+        /// </summary>
+        public bool[]? ElementHasValue { get; }
     }
 
     /// <summary>
@@ -549,11 +594,15 @@ public sealed class CookingContext
     /// `Table.Field`, for the two reports a blank cell can be worth. Null says nothing about
     /// this cell, which is what a caller reading something other than a table's data wants.
     /// </param>
+    /// <param name="elementsRequired">
+    /// Whether every element of an array cell has to be a value. False for a column typed
+    /// `T?[]`, where an element may be `-`.
+    /// </param>
     public CellReading ReadCell(
         Models.ValueType type, Models.Enum? enumm, string? rawValue, Location? location,
         char? arrayDelimiter = null, bool required = true,
         BlankCellPolicy onBlankCell = BlankCellPolicy.Error, bool isReference = false,
-        string? column = null)
+        string? column = null, bool elementsRequired = true)
     {
         if (SaysNoValue(rawValue))
             return new CellReading(NoValueOf(type, enumm, location, arrayDelimiter), hasValue: false);
@@ -597,6 +646,18 @@ public sealed class CookingContext
             NoteCell($"blank-value:{column}", location,
                 $"`{column}` holds blank cells, which are now the type's empty value rather "
                 + "than \"no value\". Write `-` in the rows that have none.");
+        }
+
+        // An array reads its own elements, because the escape and the mark belong to each of
+        // them rather than to the cell: `\-` as a whole cell is a one-element array holding
+        // `-`, and unescaping here would hand the splitter a `-` to refuse.
+        if (Models.ValueTypes.IsArray(type))
+        {
+            var elements = ParseArrayValue(
+                type, enumm!, rawValue ?? "", location!, arrayDelimiter, elementsRequired,
+                out bool[]? elementHasValue);
+
+            return new CellReading(elements, hasValue: true, elementHasValue: elementHasValue);
         }
 
         return new CellReading(
@@ -968,7 +1029,17 @@ public sealed class CookingContext
     private object ParseArrayValue(
         Models.ValueType arrayType, Models.Enum enumm, string rawValue, Location location,
         char? arrayDelimiter)
+        => ParseArrayValue(arrayType, enumm, rawValue, location, arrayDelimiter, true, out _);
+
+    /// <summary>
+    /// The same, answering which elements the sheet gave a value.
+    /// </summary>
+    private object ParseArrayValue(
+        Models.ValueType arrayType, Models.Enum enumm, string rawValue, Location location,
+        char? arrayDelimiter, bool elementsRequired, out bool[]? elementHasValue)
     {
+        elementHasValue = null;
+
         var elementType = Models.ValueTypes.ElementOf(arrayType);
 
         if (string.IsNullOrWhiteSpace(rawValue))
@@ -981,24 +1052,42 @@ public sealed class CookingContext
         {
             string element = parts[i].Trim();
 
-            // The elements of one cell are all there or all not - which is why `?` goes after
-            // the brackets - so `-` inside a cell has nothing to mean. The cell as a whole
-            // says it, and `\-` writes the character itself here as anywhere else.
-            // spec/blank-and-null-cells.md.
+            // `-` says this element has no value, which only a column typed `T?[]` allows.
+            // Refused elsewhere, because in an array of required elements the mark would have
+            // nothing to mean and the cell would quietly hold the type's empty value.
+            // spec/nullable-array-elements.md.
             if (SaysNoValue(element))
             {
-                throw new TabbitException(location,
-                    $"Element {i + 1} of this cell is `{NoValueMark}`, which says the row has no "
-                    + "value - and an element cannot say it, because the elements of one cell are "
-                    + $"all there or all not. Write `{EscapedNoValueMark}` for the character "
-                    + $"itself, or `{NoValueMark}` as the whole cell to say the array has no "
-                    + "value.");
+                if (elementsRequired)
+                {
+                    throw new TabbitException(location,
+                        $"Element {i + 1} of this cell is `{NoValueMark}`, which says it has no "
+                        + "value - and this column's elements are required. Write a value, mark "
+                        + "the elements optional by writing the `?` inside the brackets as in "
+                        + $"`int?[]`, or write `{EscapedNoValueMark}` for the character itself.");
+                }
+
+                elementHasValue ??= AllPresent(parts.Length);
+                elementHasValue[i] = false;
+                result.SetValue(EmptyValueOf(elementType), i);
+                continue;
             }
 
             result.SetValue(ParseValue(elementType, enumm, ValueTextOf(element), location), i);
         }
 
         return result;
+    }
+
+    /// <summary>An answer of "present" for every element, for a cell that is about to say otherwise.</summary>
+    private static bool[] AllPresent(int count)
+    {
+        var present = new bool[count];
+
+        for (int at = 0; at < count; at++)
+            present[at] = true;
+
+        return present;
     }
 
     /// <summary>

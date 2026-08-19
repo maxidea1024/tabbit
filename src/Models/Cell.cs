@@ -25,4 +25,18 @@ public class Cell
     /// True by default. A cell that was parsed from something is a cell that had something.
     /// </remarks>
     public bool HasValue { get; set; } = true;
+
+    /// <summary>
+    /// Which elements of an array cell the sheet gave a value, or null when the question does
+    /// not arise - a scalar column, or an array whose elements are required.
+    /// </summary>
+    /// <remarks>
+    /// Beside <see cref="HasValue"/> rather than folded into it: an array that has no value
+    /// and an array whose elements have none are different facts, and one bool cannot carry
+    /// both. The length is the array's own, so an element and its answer are found at the
+    /// same index.
+    ///
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    public bool[]? ElementHasValue { get; set; }
 }

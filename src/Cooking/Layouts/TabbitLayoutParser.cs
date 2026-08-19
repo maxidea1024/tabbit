@@ -544,11 +544,23 @@ public sealed class TabbitLayoutParser : ILayoutParser
             var fieldType = fieldTypeCell.Value.Trim();
             _context.RequiresValidTypeName(fieldType.ToLowerInvariant(), fieldTypeCell.Location);
 
-            // `int?`: a blank cell is expected in this column. Off the type before anything
-            // reads the name, and after the array brackets - `int[]?` is an optional array,
-            // not an array of optionals, because the elements of one cell are all or nothing.
-            fieldType = CookingContext.SplitOptionalMarker(fieldType, out bool fieldRequired);
+            // `int[]?` is an array a row may not have, and `int?[]` is an array holding
+            // elements that may be absent. Both markers come off before anything reads the
+            // name, and each is answered by the side of the brackets it was written on.
+            // spec/nullable-array-elements.md.
+            fieldType = CookingContext.SplitOptionalMarkers(
+                fieldType, out bool fieldRequired, out bool elementsRequired);
+
             field.IsRequired = fieldRequired;
+            field.ElementsRequired = elementsRequired;
+
+            if (!elementsRequired && !fieldType.EndsWith("[]"))
+            {
+                throw new TabbitException(fieldTypeCell.Location,
+                    $"type `{fieldTypeCell.Value.Trim()}`: the `?` inside the brackets says an "
+                    + "element may have no value, and this column is not an array. Write the "
+                    + "`?` at the end to say the value itself may be absent.");
+            }
 
             // `int[]`, `string[]`, `enum[]`: one cell holding a delimited list.
             // The bracket suffix is peeled off here so the element name goes
@@ -756,7 +768,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     required: field.IsRequired,
                     onBlankCell: def.rawSheet.Layout?.OnBlankCell ?? BlankCellPolicy.Error,
                     isReference: field.IsRef,
-                    column: $"{table.Name}.{field.Name}");
+                    column: $"{table.Name}.{field.Name}",
+                    elementsRequired: field.ElementsRequired);
 
                 // Index uniqueness is checked in ValidateModel rather than here.
                 // Doing it inline compared each new value against every row read
@@ -772,6 +785,11 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     // reads a blank as - an empty string, false, an array of no elements - and
                     // that is a value the author asked for.
                     HasValue = reading.HasValue,
+
+                    // And which of an array's elements said it, where the column allows one
+                    // to. Null everywhere else, which is every column that existed before
+                    // spec/nullable-array-elements.md.
+                    ElementHasValue = reading.ElementHasValue,
                 });
             }
 

@@ -142,9 +142,10 @@ public class BlankAndNullCellTests
     /// One element of an array cell cannot say it has no value.
     /// </summary>
     /// <remarks>
-    /// The elements of one cell are all there or all not, which is why `?` goes after the
-    /// brackets. The message names both ways out, because a cell holding `a;-;b` was written
-    /// by someone who meant one of them.
+    /// Where the column did not say its elements may be absent. A cell holding `a;-;b` was
+    /// written by someone who meant either the mark or the character, so the message names
+    /// both - and the third way out, which is to declare the elements optional.
+    /// spec/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void An_array_element_refuses_no_value()
@@ -154,7 +155,7 @@ public class BlankAndNullCellTests
         Assert.False(result.Succeeded, "`-` as an array element was accepted.");
 
         Assert.Contains("Element 2 of this cell is `-`", result.StdOut);
-        Assert.Contains("all there or all not", result.StdOut);
+        Assert.Contains("this column's elements are required", result.StdOut);
     }
 
     /// <summary>

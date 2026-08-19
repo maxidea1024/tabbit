@@ -183,6 +183,17 @@ public abstract class Target<TEntry> : ITarget
     /// </remarks>
     protected virtual bool SupportsOptionalFields => false;
 
+    /// <summary>
+    /// Whether this target can say that one element of an array has no value.
+    /// </summary>
+    /// <remarks>
+    /// A second flag rather than a widening of <see cref="SupportsOptionalFields"/>, because
+    /// the two are answered by different code: a target that carries a presence bit per row
+    /// still has nowhere to put one per element. Opted into as each learns the shape, which
+    /// is the order spec/nullable-array-elements.md sets out.
+    /// </remarks>
+    protected virtual bool SupportsOptionalElements => false;
+
     Type ITarget.EntryType => typeof(TEntry);
 
     void ITarget.Run(TargetContext context)
@@ -190,6 +201,7 @@ public abstract class Target<TEntry> : ITarget
         RefuseNestedFieldsIfUnsupported(context);
         RefuseDeepNestedFieldsIfUnsupported(context);
         RefuseOptionalFieldsIfUnsupported(context);
+        RefuseOptionalElementsIfUnsupported(context);
 
         Run(context, (TEntry)context.Entry);
     }
@@ -217,6 +229,33 @@ public abstract class Target<TEntry> : ITarget
                     + $"`{wire.TagCarrier.TypeName}?`, so a row may have no value for it.\n"
                     + $"  Remove the target from the recipe, or drop the `?` and let the "
                     + $"column read a blank as the type's empty value.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stops before a target that cannot say an element is absent is handed a column of them.
+    /// </summary>
+    private void RefuseOptionalElementsIfUnsupported(TargetContext context)
+    {
+        if (SupportsOptionalElements)
+            return;
+
+        foreach (var table in context.Model.Tables)
+        {
+            foreach (var wire in table.WireColumns)
+            {
+                if (!wire.HasOptionalElements)
+                    continue;
+
+                string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
+
+                throw new TabbitException(wire.TagCarrier.TypeLocation,
+                    $"Target `{id}` does not support arrays whose elements may be absent yet.\n"
+                    + $"  Table `{table.Name}` column `{wire.Name}` is typed "
+                    + $"`{wire.TagCarrier.TypeName}?[]`, so an element may have no value.\n"
+                    + $"  Remove the target from the recipe, or move the `?` outside the "
+                    + $"brackets and let every element hold a value.");
             }
         }
     }

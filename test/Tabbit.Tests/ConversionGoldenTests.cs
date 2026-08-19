@@ -45,6 +45,11 @@ public class ConversionGoldenTests
     // side and the binary tree says which of them the presence bit follows.
     // spec/blank-and-null-cells.md.
     [InlineData("blank-and-null")]
+    // The four spellings of an array's optionality, in one table: `int[]`, `int[]?`, `int?[]`
+    // and `int?[]?`, with a `string?[]` beside them where an empty element and an absent one
+    // look the same to a value comparison. JSON only - the format cannot say it yet.
+    // spec/nullable-array-elements.md.
+    [InlineData("nullable-elements")]
     // A record array whose length is each row's: trailing empty elements dropped, a gap in
     // the middle kept, and an authored zero left alone.
     [InlineData("record-trim")]

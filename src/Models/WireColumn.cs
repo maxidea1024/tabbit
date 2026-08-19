@@ -108,6 +108,17 @@ public sealed class WireColumn
     /// </remarks>
     public bool IsNullable { get; init; }
 
+    /// <summary>
+    /// Whether the file states, per element, which of an array's places hold a value.
+    /// </summary>
+    /// <remarks>
+    /// True when the sheet wrote the marker inside the brackets. Independent of
+    /// <see cref="IsNullable"/>: `int?[]?` says both, and each is a bit of its own.
+    ///
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    public bool HasOptionalElements { get; init; }
+
     /// <summary>The type of one value.</summary>
     public ValueType ElementType { get; init; }
 
@@ -191,6 +202,10 @@ public sealed class WireColumn
                     IsVariableLengthArray = table.IsVariableLength(group),
 
                     IsNullable = NullabilityOf(group.Fields, table, group.Name),
+
+                    // The group's own answer, which is its first field's - the elements of one
+                    // array share a type and share this with it. spec/array-optionality.md.
+                    HasOptionalElements = !group.Fields[0].ElementsRequired,
                 });
 
                 continue;

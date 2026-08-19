@@ -1,0 +1,22 @@
+{
+  // The same workbook handed to a target that cannot say an element is absent. Expected to
+  // fail, naming the target and the column - the format carries a presence bit per row and
+  // has nowhere to put one per element until spec/nullable-array-elements.md's third step.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/nullable-elements"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/nullable-elements-binary/binary",
+      "FileExtension": ".tcb"
+    }
+  ]
+}

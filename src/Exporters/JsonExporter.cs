@@ -86,6 +86,13 @@ public class JsonExporter : Target<JsonRecipe>
 
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// An absent element is `null` in an array, which is the whole of what this format needs
+    /// to say it. The binary and the thirteen readers follow in their own step -
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, JsonRecipe recipe)
     {
         // An entry left in the recipe with a blank path is treated as switched off.
@@ -127,6 +134,23 @@ public class JsonExporter : Target<JsonRecipe>
         // value - it just does not reach the output as an absence.
         if (!field.IsRequired && !cell.HasValue && !field.IsRecordMember)
             return null;
+
+        // An array whose elements may be absent: the array is there and some of its places
+        // are not, which JSON writes the same way it writes an absent value.
+        // spec/nullable-array-elements.md.
+        if (cell.ElementHasValue is { } present && cell.Value is Array elements)
+        {
+            var items = new object?[elements.Length];
+
+            for (int at = 0; at < elements.Length; at++)
+            {
+                items[at] = at < present.Length && !present[at]
+                    ? null
+                    : ForJson(elements.GetValue(at));
+            }
+
+            return items;
+        }
 
         return ForJson(cell.Value);
     }
