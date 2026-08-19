@@ -52,7 +52,6 @@ export class PoseRecord {
 
   /** element 1, a string key */
   public get step(): StepEntry[] { return this._step }
-  public static readonly step_N: number = 2
 
   public _index: number = 0
   public _step: StepEntry[] = Array.from({ length: 2 }, () => ({ clipId: undefined, clipId_index: "", clipId_F: false, weight: 0 }))

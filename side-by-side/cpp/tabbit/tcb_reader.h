@@ -1058,6 +1058,16 @@ inline Header read_table_header(TcbReader& reader) {
                             " is larger than column tag " + std::to_string(column.tag) +
                             " can hold in its " + std::to_string(column.byte_length) + " bytes");
     }
+
+    // The same floor for the element count, which the read now allocates for: a fixed array's
+    // length is the file's rather than the generated code's. Only with rows to read - an empty
+    // table writes its columns' counts into a block of no bytes, and that is well-formed.
+    if (column.encoding == kEncodingRaw && header.row_count > 0
+        && column.count > column.byte_length) {
+      throw TcbError("column tag " + std::to_string(column.tag) + " says each row holds " +
+                            std::to_string(column.count) + " elements, which its " +
+                            std::to_string(column.byte_length) + " bytes cannot hold");
+    }
   }
 
   if (declared != available) {
@@ -1137,7 +1147,10 @@ inline void check_column(const Column& column, const char* field_name, std::uint
                    "; the schema changed, regenerate the code or rebuild the data");
   }
 
-  if (column.kind != kind || (kind != kKindVarArray && column.count != count)) {
+  // A negative count says the member claims no length: how many elements a row holds is
+  // what the file states. The kind is still the member's claim.
+  // spec/nullable-array-elements.md.
+  if (column.kind != kind || (kind != kKindVarArray && count >= 0 && column.count != count)) {
     throw TcbError(std::string(field_name) +
                           ": the file's column does not match the generated member's shape; "
                           "the schema changed shape, regenerate the code or rebuild the data");

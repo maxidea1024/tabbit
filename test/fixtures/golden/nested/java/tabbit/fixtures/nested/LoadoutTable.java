@@ -165,11 +165,11 @@ public final class LoadoutTable {
                     break;
                 }
                 case 8: {
-                    TcbReader.checkColumn(column, "Loadout.Tag_array", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Loadout.Tag_array", TcbReader.KIND_FIXED_ARRAY, -1, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Tag_array");
                     for (LoadoutRecord record : loaded) {
-                        record.tagArray = new String[2];
-                        for (int j = 0; j < 2; j++) {
+                        record.tagArray = new String[column.count];
+                        for (int j = 0; j < column.count; j++) {
                             record.tagArray[j] = cursor.nextString();
                         }
                     }

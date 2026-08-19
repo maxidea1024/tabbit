@@ -40,7 +40,7 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, the reference
             /// </summary>
             public SlotEntry[] Slot => _slot;
-            public const int Slot_N = 2;
+            internal const int Slot_N = 2;
             #endregion
 
             /// <summary>One element of <see cref="Slot"/>.</summary>

@@ -43,12 +43,6 @@ static bool Nested_LoadoutParse(Nested_LoadoutTable_t* table, tb_reader* reader)
 
     record->name = "";
     record->note = "";
-    {
-      int32_t element;
-
-      for (element = 0; element < 2; ++element)
-        record->tag_array[element] = "";
-    }
   }
 
   /* Column by column, matched by tag rather than by position: a column this build has
@@ -177,7 +171,7 @@ static bool Nested_LoadoutParse(Nested_LoadoutTable_t* table, tb_reader* reader)
       break;
 
     case 8:
-      (void)tb_check_column(reader, column, "Loadout.Tag_array", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Loadout.Tag_array", TB_KIND_FIXED_ARRAY, -1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Loadout.Tag_array");
 
@@ -185,7 +179,14 @@ static bool Nested_LoadoutParse(Nested_LoadoutTable_t* table, tb_reader* reader)
         Nested_LoadoutRecord_t* record = &table->records[row];
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        record->tag_array_count = column->count;
+        record->tag_array = (const char**)tb_arena_alloc(
+          &table->arena, (size_t)column->count * sizeof *record->tag_array);
+
+        if (column->count > 0 && record->tag_array == NULL)
+          return tb_fail_with(reader, "out of memory allocating an array");
+
+        for (element = 0; element < column->count; ++element)
           (void)tb_cursor_next_string(&cursor, &record->tag_array[element]);
       }
       break;

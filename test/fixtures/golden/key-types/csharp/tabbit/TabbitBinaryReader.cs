@@ -1596,6 +1596,20 @@ namespace Tabbit.Binary
                         $"the row count {rowCount} is larger than column tag {column.Tag} can " +
                         $"hold in its {column.ByteLength} bytes");
                 }
+
+                // The same floor for the element count, which the read now allocates for: a
+                // fixed array's length is the file's rather than the generated code's, so a
+                // count no raw block could hold is refused before anybody makes room for it.
+                // Only with rows to read - an empty table writes its columns' counts into a
+                // block of no bytes, and that is well-formed.
+                if (column.Encoding == EncodingRaw
+                    && rowCount > 0
+                    && column.Count > column.ByteLength)
+                {
+                    throw new TcbException(
+                        $"column tag {column.Tag} says each row holds {column.Count} elements, " +
+                        $"which its {column.ByteLength} bytes cannot hold");
+                }
             }
 
             if (declared != available)
@@ -1741,7 +1755,11 @@ namespace Tabbit.Binary
                     "The schema changed; regenerate the code or rebuild the data.");
             }
 
-            if (column.Kind != kind || (kind != KindVarArray && column.Count != count))
+            // A negative count says the member does not claim one: how many elements a row
+            // holds is what the file states, so a column that grew one is read rather than
+            // refused. The kind is still the member's claim - a scalar column that became an
+            // array is a different shape, not a longer one.
+            if (column.Kind != kind || (kind != KindVarArray && count >= 0 && column.Count != count))
             {
                 throw new TcbException(
                     $"{fieldName}: the file's column (kind {column.Kind}, count {column.Count}) does not " +

@@ -93,21 +93,18 @@ export class {{ name }}Record {
 {{~ for line in field.comment ~}}
   {{ line }}
 {{~ end ~}}
+{{~## **No length constant.** A number published here could only be the one the sheet had
+   when this code was generated, and a consumer holding to it would be holding to something
+   the data no longer has to agree with - `length` on the array is the answer and it cannot
+   go stale. Where several columns fill one array the length is still a number this code has
+   to know, and there it is written into the allocation rather than published.
+   spec/nullable-array-elements.md. ##~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
-{{~## The declared type is already the inner array, so the accessor is that array's array -
-   and `_N` is the outer count with `_M` the inner one. spec/nested-multi-level.md. ##~}}
+{{~## The declared type is already the inner array, so the accessor is that array's array.
+   spec/nested-multi-level.md. ##~}}
   public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
-  public static readonly {{ field.prop_name }}_N: number = {{ field.outer_count }}
-  public static readonly {{ field.prop_name }}_M: number = {{ field.element_count }}
 {{~ else if field.is_array ~}}
   public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
-{{~ if field.kind == 'array_ref' || field.kind == 'array' || field.kind == 'record_array' ~}}
-  public static readonly {{ field.prop_name }}_N: number = {{ field.element_count }}
-{{~ else if field.kind == 'record_var_array' ~}}
-{{~## No `_N`: the length is the row's. The sheet's column count is still the most it
-   can be, which is the only fixed number there is to say. ##~}}
-  public static readonly {{ field.prop_name }}_MAX_N: number = {{ field.element_count }}
-{{~ end ~}}
 {{~ else ~}}
   public get {{ field.prop_name }}(): {{ field.field_type }} { return this.{{ field.field_name }} }
 {{~ end ~}}
@@ -379,14 +376,16 @@ export class {{ name }}Table {
 {{~ else if column.kind == 'array_ref' ~}}
             record.{{ column.field_name }} = []
             record.{{ column.field_name }}_{{ column.ref_table }}_index = []
-            for (let j = 0; j < {{ column.element_count }}; ++j)
+            for (let j = 0; j < column.count; ++j)
               record.{{ column.field_name }}_{{ column.ref_table }}_index.push({{ column.binary_read }})
 {{~ else if column.kind == 'array' ~}}
+{{~## One column owns the whole array, so how many elements it holds is what the file states
+   rather than a number written in here. spec/nullable-array-elements.md. ##~}}
             record.{{ column.field_name }} = []
 {{~ if column.has_optional_elements ~}}
             record.{{ column.element_presence_field }} = []
 {{~ end ~}}
-            for (let j = 0; j < {{ column.element_count }}; ++j) {
+            for (let j = 0; j < column.count; ++j) {
               record.{{ column.field_name }}.push({{ column.binary_read }})
 {{~ if column.has_optional_elements ~}}
               record.{{ column.element_presence_field }}.push(

@@ -40,7 +40,7 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, a string key
             /// </summary>
             public StepEntry[] Step => _step;
-            public const int Step_N = 2;
+            internal const int Step_N = 2;
             #endregion
 
             /// <summary>One element of <see cref="Step"/>.</summary>

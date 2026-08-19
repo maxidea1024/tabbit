@@ -42,12 +42,6 @@ static bool MemberArray_GuideParse(MemberArray_GuideTable_t* table, tb_reader* r
     MemberArray_GuideRecord_t* record = &table->records[row];
 
     record->name = "";
-    {
-      int32_t element;
-
-      for (element = 0; element < 2; ++element)
-        record->tag_array[element] = "";
-    }
   }
 
   /* Column by column, matched by tag rather than by position: a column this build has
@@ -155,7 +149,7 @@ static bool MemberArray_GuideParse(MemberArray_GuideTable_t* table, tb_reader* r
       break;
 
     case 7:
-      (void)tb_check_column(reader, column, "Guide.Tag_array", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Guide.Tag_array", TB_KIND_FIXED_ARRAY, -1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Guide.Tag_array");
 
@@ -163,7 +157,14 @@ static bool MemberArray_GuideParse(MemberArray_GuideTable_t* table, tb_reader* r
         MemberArray_GuideRecord_t* record = &table->records[row];
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        record->tag_array_count = column->count;
+        record->tag_array = (const char**)tb_arena_alloc(
+          &table->arena, (size_t)column->count * sizeof *record->tag_array);
+
+        if (column->count > 0 && record->tag_array == NULL)
+          return tb_fail_with(reader, "out of memory allocating an array");
+
+        for (element = 0; element < column->count; ++element)
           (void)tb_cursor_next_string(&cursor, &record->tag_array[element]);
       }
       break;

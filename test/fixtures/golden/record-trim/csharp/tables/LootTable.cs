@@ -45,7 +45,6 @@ namespace Tabbit.Fixtures.RecordTrim
             /// element 1
             /// </summary>
             public SlotEntry[] Slot => _slot;
-            public const int Slot_MAX_N = 3;
 
             /// <summary>
             /// single record, not an array

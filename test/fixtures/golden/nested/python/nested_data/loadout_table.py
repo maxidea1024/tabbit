@@ -170,10 +170,10 @@ class LoadoutTable:
                         records[i].note = value
                     at += n
             elif column.tag == 8:
-                tabbit.check_column(column, "Loadout.Tag_array", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Loadout.Tag_array", tabbit.KIND_FIXED_ARRAY, -1, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Tag_array")
                 for record in records:
-                    record.tag_array = [cursor.next_string() for _ in range(2)]
+                    record.tag_array = [cursor.next_string() for _ in range(column.count)]
             else:
                 # A column added after this code was generated.
                 reader.skip(column.byte_length)

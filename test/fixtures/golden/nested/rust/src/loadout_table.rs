@@ -203,11 +203,12 @@ impl LoadoutTable {
                     }
                 }
                 8 => {
-                    tabbit::check_column(column, "Loadout.Tag_array", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Loadout.Tag_array", tabbit::KIND_FIXED_ARRAY, -1, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Tag_array")?;
                     for record in records.iter_mut() {
-                        record.tag_array = Vec::with_capacity(2);
-                        for _ in 0..2 {
+                        let element_count = column.count.max(0) as usize;
+                        record.tag_array = Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
                             record.tag_array.push(cursor.next_string()?);
                         }
                     }

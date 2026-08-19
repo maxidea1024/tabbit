@@ -40,7 +40,7 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1 of the member
             /// </summary>
             public SlotsEntry Slots => _slots;
-            public const int Slots_N = 2;
+            internal const int Slots_N = 2;
             #endregion
 
             /// <summary>One element of <see cref="Slots"/>.</summary>

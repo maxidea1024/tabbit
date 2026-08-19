@@ -131,7 +131,7 @@ class FoldedTable {
                     }
                 }
                 2 -> {
-                    checkColumnWithElements(column, "Folded.Tag_array", KIND_FIXED_ARRAY, 3, false, ELEMENT_STRING)
+                    checkColumnWithElements(column, "Folded.Tag_array", KIND_FIXED_ARRAY, -1, false, ELEMENT_STRING)
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -139,9 +139,9 @@ class FoldedTable {
                     var elementAt = 0
                     val cursor = ColumnCursor(reader, column, count, "Folded.Tag_array")
                     for (record in loaded) {
-                        record.tagArray = ArrayList(3)
-                        record.hasTagArrayAt = ArrayList(3)
-                        repeat(3) {
+                        record.tagArray = ArrayList(column.count)
+                        record.hasTagArrayAt = ArrayList(column.count)
+                        repeat(column.count) {
                             record.tagArray.add(cursor.nextString())
                             record.hasTagArrayAt
                                 .add(isPresent(elementPresence, elementAt))

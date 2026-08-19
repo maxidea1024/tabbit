@@ -117,15 +117,15 @@ class FoldedTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Folded.Tag_array", tabbit::kKindFixedArray, 3, false, {tabbit::kElementString}, true);
+          tabbit::check_column(column, "Folded.Tag_array", tabbit::kKindFixedArray, -1, false, {tabbit::kElementString}, true);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Folded.Tag_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.tag_array.resize(3);
-            record.has_tag_array_at_.assign(3, true);
-            for (std::size_t j = 0; j < 3; ++j) {
+            record.tag_array.resize(static_cast<std::size_t>(column.count));
+            record.has_tag_array_at_.assign(static_cast<std::size_t>(column.count), true);
+            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
               record.tag_array[j] = cursor.next_string();
               record.has_tag_array_at_[j] =
                   tabbit::is_present(element_presence, element_at++);

@@ -1099,6 +1099,17 @@ def read_table_header(reader):
                 "the row count %d is larger than column tag %d can hold in its %d bytes"
                 % (count, column.tag, column.byte_length))
 
+        # The same floor for the element count, which the read now allocates for: a fixed
+        # array's length is the file's rather than the generated code's. Only with rows to
+        # read - an empty table writes its columns' counts into a block of no bytes, and that
+        # is well-formed.
+        if (column.encoding == ENCODING_RAW
+                and count > 0
+                and column.count > column.byte_length):
+            raise TcbError(
+                "column tag %d says each row holds %d elements, which its %d bytes cannot hold"
+                % (column.tag, column.count, column.byte_length))
+
     if declared != available:
         raise TcbError(
             "the columns declare %d bytes but %d follow the header" % (declared, available))
@@ -1174,7 +1185,10 @@ def check_column(column, field_name, kind, count, nullable, accepted,
             "optional. The schema changed; regenerate the code or rebuild the data."
             % (field_name,))
 
-    if column.kind != kind or (kind != KIND_VAR_ARRAY and column.count != count):
+    # A negative count says the member claims no length: how many elements a row holds is
+    # what the file states. The kind is still the member's claim.
+    # spec/nullable-array-elements.md.
+    if column.kind != kind or (kind != KIND_VAR_ARRAY and count >= 0 and column.count != count):
         raise TcbError(
             "%s: the file's column (kind %d, count %d) does not match the generated member "
             "(kind %d, count %d). The schema changed shape; regenerate the code or rebuild "

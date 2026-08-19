@@ -40,7 +40,6 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, the reference
             /// </summary>
             public PartEntry[] Part => _part;
-            public const int Part_MAX_N = 3;
             #endregion
 
             /// <summary>One element of <see cref="Part"/>.</summary>

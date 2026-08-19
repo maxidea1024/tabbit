@@ -44,30 +44,37 @@
             /// </summary>
 {{~ end ~}}
 {{~ end ~}}
+{{~## **No length in the public API.** A number published here could only be the one the
+      sheet had when this code was generated, and a consumer holding to it would be holding
+      to something the data no longer has to agree with - `Length` on the array is the answer
+      and it cannot go stale.
+
+      Where several columns fill one array - a record group, an array of arrays - the length
+      is still a number this code has to know, because no single column owns the array and
+      the columns have to agree on how long it is. Those keep it as a private constant, used
+      by the allocation and by nothing else. Where one column owns the array, the length is
+      read from that column's descriptor and there is no constant at all.
+      spec/nullable-array-elements.md. ##~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
 {{~## No element type: the outer level has no name to be a property of, so it is an array
       too. `_N` is the outer count and `_M` the inner one. spec/nested-multi-level.md. ##~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            public const int {{ field.prop_name }}_N = {{ field.outer_count }};
-            public const int {{ field.prop_name }}_M = {{ field.element_count }};
+            internal const int {{ field.prop_name }}_N = {{ field.outer_count }};
+            internal const int {{ field.prop_name }}_M = {{ field.element_count }};
 {{~ else if field.kind == 'record_array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            public const int {{ field.prop_name }}_N = {{ field.element_count }};
+            internal const int {{ field.prop_name }}_N = {{ field.element_count }};
 {{~ else if field.kind == 'record_var_array' ~}}
-{{~## No `_N`: the length is this row's, so there is no one number to expose. The sheet's
-      column count is still the most it can be. ##~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            public const int {{ field.prop_name }}_MAX_N = {{ field.element_count }};
 {{~ else if field.kind == 'record' ~}}
             public {{ field.field_type }} {{ field.prop_name }} => {{ field.field_name }};
 {{~ if field.members_are_arrays ~}}
 {{~## One record, and the arrays are its members - so the length belongs to the group all
       the same, because the folding requires every member to agree on it. ##~}}
-            public const int {{ field.prop_name }}_N = {{ field.element_count }};
+            internal const int {{ field.prop_name }}_N = {{ field.element_count }};
 {{~ end ~}}
 {{~ else if field.kind == 'array_ref' || field.kind == 'array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            public const int {{ field.prop_name }}_N = {{ field.element_count }};
 {{~ else if field.kind == 'var_array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
 {{~ else ~}}
@@ -97,8 +104,9 @@
       exactly what a member column's read does. See spec/nested-fields.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.kind == 'array_of_arrays' }}
-{{~## Both levels allocated with the row: nothing else creates them, and a file that no
-      longer carries a column would otherwise leave the read indexing null. ##~}}
+{{~## Both levels allocated with the row: each column fills one element of the outer array,
+      so nothing else can create it - and the number the columns agree on is part of the
+      generated shape rather than something one of them states. spec/nested-multi-level.md. ##~}}
             private static {{ field.field_type }}[] New{{ field.prop_name }}()
             {
                 var result = new {{ field.element_type_name }}[{{ field.prop_name }}_N][];
@@ -253,8 +261,9 @@
 {{~ if field.kind == 'array_of_arrays' ~}}
             internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.prop_name }}();
 {{~ else if field.kind == 'record_array' ~}}
-{{~## Allocated with the record, not by the read. Each member column fills one field of
-      each element, so allocating per column would discard what the previous one wrote. ##~}}
+{{~## Allocated with the record, not by the read. Each member column fills one field of each
+      element, so allocating per column would discard what the previous one wrote - which is
+      also why this length is the group's rather than a column's. ##~}}
 {{~ if field.needs_element_init ~}}
             internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.record_type_name }}Array({{ field.prop_name }}_N);
 {{~ else ~}}
@@ -271,9 +280,9 @@
             internal {{ field.field_type }} {{ field.field_name }};
 {{~ end ~}}
 {{~ else if field.kind == 'array_ref' ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = new {{ field.field_type }}[{{ field.prop_name }}_N];
-            public {{ field.ref_key_type_name }}[] {{ field.field_name }}_{{ field.ref_table }}_index = new {{ field.ref_key_type_name }}[{{ field.prop_name }}_N];
-            public bool[] {{ field.field_name }}_F = new bool[{{ field.prop_name }}_N];
+            internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
+            public {{ field.ref_key_type_name }}[] {{ field.field_name }}_{{ field.ref_table }}_index = System.Array.Empty<{{ field.ref_key_type_name }}>();
+            public bool[] {{ field.field_name }}_F = System.Array.Empty<bool>();
 {{~ else if field.kind == 'var_array' || field.kind == 'array' ~}}
             internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
 {{~ else if field.kind == 'scalar_ref' ~}}
@@ -492,14 +501,20 @@
                             }
                         }
 {{~ else if column.read_kind == 'serial' ~}}
+{{~## `column.Count` rather than a constant: the file states how many elements the block
+      holds for each row, so a sheet that grew a column is read rather than refused.
+      spec/nullable-array-elements.md. ##~}}
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record.{{ column.field_name }} = new {{ column.field_type }}[Record.{{ column.prop_name }}_N];
-{{~ if column.has_optional_elements ~}}
-                            record.{{ column.element_presence_field }} = new bool[Record.{{ column.prop_name }}_N];
+                            record.{{ column.field_name }} = new {{ column.field_type }}[column.Count];
+{{~ for line in column.parallel_arrays ~}}
+                            {{ line }}
 {{~ end ~}}
-                            for (int j = 0; j < Record.{{ column.prop_name }}_N; ++j)
+{{~ if column.has_optional_elements ~}}
+                            record.{{ column.element_presence_field }} = new bool[column.Count];
+{{~ end ~}}
+                            for (int j = 0; j < column.Count; ++j)
                             {
 {{~ if column.has_optional_elements ~}}
                                 record.{{ column.element_presence_field }}[j] =
@@ -546,9 +561,9 @@
                             }
                         }
 {{~ else if column.read_kind == 'array_of_arrays_member' ~}}
-{{~## One inner array of an array of arrays. The outer index is fixed for this column -
-      it is which column this is - and the loop runs over the inner length, which is a
-      different constant from the outer one. spec/nested-multi-level.md. ##~}}
+{{~## One inner array of an array of arrays. The outer index is fixed for this column - it is
+      which column this is - and the loop runs over the inner length, which is a different
+      number from the outer one. spec/nested-multi-level.md. ##~}}
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
@@ -560,8 +575,10 @@
                             }
                         }
 {{~ else if column.read_kind == 'record_serial' ~}}
-{{~## One member of an array-valued record. No allocation: the struct array came with
-      the record, and re-creating it here would discard the members read before this one. ##~}}
+{{~## One member of a record group. No allocation: the array came with the record, and
+      re-creating it here would discard the members read before this one - which is also why
+      its length is the group's rather than this column's. Several columns fill one array, so
+      what they agree on is part of the generated shape. ##~}}
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];

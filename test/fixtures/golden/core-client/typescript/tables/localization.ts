@@ -38,11 +38,9 @@ export class LocalizationRecord {
 
   /** english text 1 */
   public get textEnArray(): string[] { return this._textEnArray }
-  public static readonly textEnArray_N: number = 2
 
   /** korean text 1 */
   public get textKoArray(): string[] { return this._textKoArray }
-  public static readonly textKoArray_N: number = 2
 
   public _index: number = 0
   public _key: string = ''
@@ -202,23 +200,23 @@ export class LocalizationTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Localization.TextEn_array', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Localization.TextEn_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Localization.TextEn_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._textEnArray = []
-            for (let j = 0; j < 2; ++j) {
+            for (let j = 0; j < column.count; ++j) {
               record._textEnArray.push(cursor.nextString())
             }
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Localization.TextKo_array', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Localization.TextKo_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Localization.TextKo_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._textKoArray = []
-            for (let j = 0; j < 2; ++j) {
+            for (let j = 0; j < column.count; ++j) {
               record._textKoArray.push(cursor.nextString())
             }
           }

@@ -536,6 +536,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             IsFirstMember = wire.IsFirstMember,
             IsNullable = wire.IsNullable,
             HasOptionalElements = wire.HasOptionalElements,
+            MemberAt = wire.MemberAt,
             PresenceField = PresenceField(wire.Group),
             ElementPresenceField = ElementPresenceField(wire.Group),
             EmptyValue = EmptyValue(wire, fieldType),
@@ -543,6 +544,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             RecordNeedsInit = wire.Group.IsRecord && RecordNeedsFactory(wire.Group),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),
             ElementRead = ElementReadLines(wire, fieldName, fieldType, refTable, memberAccess),
+            ParallelArrays = ParallelArrayLines(wire, fieldName, refTable),
             LengthRead = UsesCursor(wire)
                 ? "elementCount = cursor.NextLength();"
                 : "reader.TryReadCounter32(out elementCount);",
@@ -651,7 +653,12 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                                  && sf.Members[0].ElementType == Models.ValueType.String
                 ? " = \"\""
                 : "",
-            NeedsElementInit = members.Any(m => m.Initializer.Length > 0),
+            // The same question the read asks through `RecordNeedsInit`: a record array is
+            // allocated by the read now, and if it needs a factory there it has to be
+            // declared here. Asking two different things produced a call to a method that
+            // was never emitted. spec/nullable-array-elements.md.
+            NeedsElementInit = members.Any(m => m.Initializer.Length > 0)
+                || (sf.IsRecord && RecordNeedsFactory(sf)),
 
             // The group's own comment is the first member's column comment - a record has
             // no header cell of its own, so that is the nearest thing the sheet said.
@@ -931,6 +938,28 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             : $"default({fieldType})";
     }
 
+    /// <summary>
+    /// The arrays a reference column fills beside its values, for the read to allocate.
+    /// </summary>
+    /// <remarks>
+    /// Only where one column owns the array: a member of a record group keeps its key and its
+    /// flag inside the element, which the record allocates. spec/references-in-records.md.
+    /// </remarks>
+    private IReadOnlyList<string> ParallelArrayLines(
+        WireColumn wire, string fieldName, string refTable)
+    {
+        if (!wire.IsRef || wire.Member is not null || !wire.IsFixedArray)
+            return Array.Empty<string>();
+
+        string keyType = ToCSharpTypeName(wire.RefKeyType, null, null);
+
+        return new[]
+        {
+            $"record.{fieldName}_{refTable}_index = new {keyType}[column.Count];",
+            $"record.{fieldName}_F = new bool[column.Count];",
+        };
+    }
+
     private static string ReadKind(WireColumn wire)
     {
         if (wire.IsVariableLengthArray)
@@ -959,7 +988,14 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             ? "TcbTable.KindVarArray"
             : (wire.IsFixedArray ? "TcbTable.KindFixedArray" : "TcbTable.KindScalar");
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
+        // -1 where one column owns the whole array: the file states how many elements it
+        // holds and the read takes it from there, so there is no length here to hold it to.
+        // A record member keeps its count - several columns fill one array and the number
+        // they agree on is part of the generated shape, so a disagreement is a schema change
+        // rather than data. spec/nullable-array-elements.md.
+        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
+
+        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
 
         string accepted;
 

@@ -207,13 +207,13 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 7:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Tag_array"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Tag_array"), Tabbit::KindFixedArray, -1, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Tag_array"));
 
             for (FGuideRow& Record : Loaded)
             {
-                Record.TagArray.Empty(2);
-                while (Record.TagArray.Num() < 2)
+                Record.TagArray.Empty(Column.Count);
+                while (Record.TagArray.Num() < Column.Count)
                 {
                     Cursor.NextAs(Column.Element, Record.TagArray.AddDefaulted_GetRef());
                 }

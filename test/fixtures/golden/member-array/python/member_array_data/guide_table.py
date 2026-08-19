@@ -161,10 +161,10 @@ class GuideTable:
                 for record in records:
                     record.pos.y = cursor.next_f32()
             elif column.tag == 7:
-                tabbit.check_column(column, "Guide.Tag_array", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Guide.Tag_array", tabbit.KIND_FIXED_ARRAY, -1, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Tag_array")
                 for record in records:
-                    record.tag_array = [cursor.next_string() for _ in range(2)]
+                    record.tag_array = [cursor.next_string() for _ in range(column.count)]
             elif column.tag == 8:
                 tabbit.check_column(column, "Guide.Grid.1", tabbit.KIND_FIXED_ARRAY, 3, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Grid.1")

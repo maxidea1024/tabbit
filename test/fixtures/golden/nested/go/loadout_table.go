@@ -203,12 +203,12 @@ func (t *LoadoutTable) Read(filename string) error {
 				}
 			}
 		case 8:
-			if tabbit.CheckColumn(reader, column, "Loadout.Tag_array", tabbit.KindFixedArray, 2, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Tag_array", tabbit.KindFixedArray, -1, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Tag_array")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					r.TagArray = make([]string, 2)
-					for j := 0; j < 2; j++ {
+					r.TagArray = make([]string, int(column.Count))
+					for j := 0; j < int(column.Count); j++ {
 						r.TagArray[j] = cursor.NextString()
 					}
 				}

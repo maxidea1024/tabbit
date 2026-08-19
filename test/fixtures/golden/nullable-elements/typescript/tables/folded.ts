@@ -33,7 +33,6 @@ export class FoldedRecord {
 
   /** element 1 - and the group's answer */
   public get tagArray(): string[] { return this._tagArray }
-  public static readonly tagArray_N: number = 3
   /** Whether element `index` of `tagArray` has a value. */
   public hasTagArrayAt(index: number): boolean {
     return this._tagArrayHasValueAt === null
@@ -186,7 +185,7 @@ export class FoldedTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Folded.Tag_array', tabbit.KIND_FIXED_ARRAY, 3, false, [tabbit.ELEMENT_STRING], true)
+          tabbit.checkColumn(column, 'Folded.Tag_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_STRING], true)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Folded.Tag_array')
@@ -194,7 +193,7 @@ export class FoldedTable {
             const record = records[i]
             record._tagArray = []
             record._tagArrayHasValueAt = []
-            for (let j = 0; j < 3; ++j) {
+            for (let j = 0; j < column.count; ++j) {
               record._tagArray.push(cursor.nextString())
               record._tagArrayHasValueAt.push(
                 tabbit.isPresent(elementPresence, elementAt++))

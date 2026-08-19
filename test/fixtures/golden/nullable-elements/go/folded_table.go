@@ -116,7 +116,7 @@ func (t *FoldedTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumnWithElements(reader, column, "Folded.Tag_array", tabbit.KindFixedArray, 3, false, tabbit.ElementString) {
+			if tabbit.CheckColumnWithElements(reader, column, "Folded.Tag_array", tabbit.KindFixedArray, -1, false, tabbit.ElementString) {
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
 				// spec/nullable-array-elements.md.
@@ -125,9 +125,9 @@ func (t *FoldedTable) Read(filename string) error {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Folded.Tag_array")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					r.TagArray = make([]string, 3)
-					r.HasTagArrayAt = make([]bool, 3)
-					for j := 0; j < 3; j++ {
+					r.TagArray = make([]string, int(column.Count))
+					r.HasTagArrayAt = make([]bool, int(column.Count))
+					for j := 0; j < int(column.Count); j++ {
 						r.TagArray[j] = cursor.NextString()
 						r.HasTagArrayAt[j] =
 							tabbit.IsPresent(elementPresence, elementAt)

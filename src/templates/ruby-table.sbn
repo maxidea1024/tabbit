@@ -195,15 +195,17 @@
               record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
             end
 {{~ else if column_view.kind == 'serial_ref' ~}}
-            record.{{ column_view.name }}_index = Array.new({{ column_view.element_count }}) { {{ column_view.read_element }} }
-            record.{{ column_view.name }} = Array.new({{ column_view.element_count }})
+            record.{{ column_view.name }}_index = Array.new(column.count) { {{ column_view.read_element }} }
+            record.{{ column_view.name }} = Array.new(column.count)
 {{~ else if column_view.kind == 'serial' ~}}
-            record.{{ column_view.name }} = Array.new({{ column_view.element_count }}) { {{ column_view.read_element }} }
+{{~## One column owns the whole array, so how many elements a row holds is what the file
+   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
+            record.{{ column_view.name }} = Array.new(column.count) { {{ column_view.read_element }} }
 {{~ if column_view.has_optional_elements ~}}
-            record.{{ column_view.element_presence_member }} = Array.new({{ column_view.element_count }}) do |at|
+            record.{{ column_view.element_presence_member }} = Array.new(column.count) do |at|
               Tabbit.present?(element_presence, element_at + at)
             end
-            element_at += {{ column_view.element_count }}
+            element_at += column.count
 {{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
             record.{{ column_view.name }}_index = {{ column_view.read_scalar }}

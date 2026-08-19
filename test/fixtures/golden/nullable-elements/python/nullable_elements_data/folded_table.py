@@ -101,7 +101,7 @@ class FoldedTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Folded.Tag_array", tabbit.KIND_FIXED_ARRAY, 3, False, (tabbit.ELEMENT_STRING,), True)
+                tabbit.check_column(column, "Folded.Tag_array", tabbit.KIND_FIXED_ARRAY, -1, False, (tabbit.ELEMENT_STRING,), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
                 # spec/nullable-array-elements.md.
@@ -109,11 +109,11 @@ class FoldedTable:
                 element_at = 0
                 cursor = tabbit.ColumnCursor(reader, column, count, "Folded.Tag_array")
                 for record in records:
-                    record.tag_array = [cursor.next_string() for _ in range(3)]
+                    record.tag_array = [cursor.next_string() for _ in range(column.count)]
                     record.has_tag_array_at = [
                         tabbit.is_present(element_presence, element_at + at)
-                        for at in range(3)]
-                    element_at += 3
+                        for at in range(column.count)]
+                    element_at += column.count
             else:
                 # A column added after this code was generated.
                 reader.skip(column.byte_length)

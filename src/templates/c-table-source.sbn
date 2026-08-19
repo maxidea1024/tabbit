@@ -54,17 +54,10 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
     {{ table.record_name }}* record = &table->records[row];
 
 {{~ for field in table.fields ~}}
-{{~ if field.is_string && !field.is_var_array ~}}
-{{~ if field.is_fixed_array ~}}
-    {
-      int32_t element;
-
-      for (element = 0; element < {{ field.element_count }}; ++element)
-        record->{{ field.name }}[element] = "";
-    }
-{{~ else ~}}
+{{~## The scalars only. An array is a pointer, so a column the file does not carry leaves it
+   NULL with a count of zero - an empty array rather than a row of NULL strings. ##~}}
+{{~ if field.is_string && !field.is_fixed_array && !field.is_var_array ~}}
     record->{{ field.name }} = "";
-{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
   }
@@ -248,38 +241,60 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
 {{~ end ~}}
       }
 {{~ else if column_view.kind == 'serial_ref' }}
+{{~## One column owns both arrays - the resolved values and the keys - so their length is the
+   one the file states. The values start NULL and the accessor fills them once every table is
+   in memory. spec/nullable-array-elements.md. ##~}}
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         {{ table.record_name }}* record = &table->records[row];
         int32_t element;
 
-        for (element = 0; element < {{ column_view.element_count }}; ++element)
+        record->{{ column_view.name }}_count = column->count;
+        record->{{ column_view.name }} = ({{ column_view.reference_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)column->count * sizeof *record->{{ column_view.name }});
+        record->{{ column_view.name }}_index = ({{ column_view.key_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)column->count * sizeof *record->{{ column_view.name }}_index);
+
+        if (column->count > 0
+            && (record->{{ column_view.name }} == NULL || record->{{ column_view.name }}_index == NULL))
+          return tb_fail_with(reader, "out of memory allocating an array");
+
+        for (element = 0; element < column->count; ++element)
           (void){{ column_view.read_element }};
       }
 {{~ else if column_view.kind == 'serial' }}
+{{~## One column owns the whole array, so how many elements a row holds is what the file
+   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         {{ table.record_name }}* record = &table->records[row];
         int32_t element;
+
+        record->{{ column_view.name }}_count = column->count;
+        record->{{ column_view.name }} = ({{ column_view.element_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)column->count * sizeof *record->{{ column_view.name }});
+
+        if (column->count > 0 && record->{{ column_view.name }} == NULL)
+          return tb_fail_with(reader, "out of memory allocating an array");
 
 {{~ if column_view.has_optional_elements ~}}
 {{~## One bool per element, in the arena beside the values: the record hands out a pointer,
       and a pointer into the arena lives exactly as long as the table does. ##~}}
         {
           bool* element_presence_out = (bool*)tb_arena_alloc(
-            &table->arena, (size_t){{ column_view.element_count }} * sizeof(bool));
+            &table->arena, (size_t)column->count * sizeof(bool));
 
-          if (element_presence_out == NULL)
+          if (column->count > 0 && element_presence_out == NULL)
             return tb_fail_with(reader, "out of memory allocating an element presence array");
 
           record->{{ column_view.element_presence_member }} = element_presence_out;
 
-          for (element = 0; element < {{ column_view.element_count }}; ++element)
+          for (element = 0; element < column->count; ++element)
             element_presence_out[element] = tb_is_present(element_presence, element_at + element);
         }
 
-        element_at += {{ column_view.element_count }};
+        element_at += column->count;
 
 {{~ end ~}}
-        for (element = 0; element < {{ column_view.element_count }}; ++element)
+        for (element = 0; element < column->count; ++element)
 {{~ if column_view.needs_scratch ~}}
         {
           int32_t scratch = 0;

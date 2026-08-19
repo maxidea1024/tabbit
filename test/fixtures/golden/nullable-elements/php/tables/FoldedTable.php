@@ -125,7 +125,7 @@ final class FoldedTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Folded.Tag_array', TcbReader::KIND_FIXED_ARRAY, 3, false, [TcbReader::ELEMENT_STRING], true);
+                    TcbReader::checkColumn($column, 'Folded.Tag_array', TcbReader::KIND_FIXED_ARRAY, -1, false, [TcbReader::ELEMENT_STRING], true);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -135,7 +135,7 @@ final class FoldedTable
                     foreach ($records as $record) {
                         $record->tagArray = [];
                         $record->hasTagArrayAt = [];
-                        for ($j = 0; $j < 3; $j++) {
+                        for ($j = 0; $j < $column['count']; $j++) {
                             $record->tagArray[] = $cursor->nextString();
                             $record->hasTagArrayAt[] =
                                 TcbReader::isPresent($elementPresence, $elementAt++);

@@ -70,7 +70,6 @@ export class LootRecord {
 
   /** element 1 */
   public get slot(): SlotEntry[] { return this._slot }
-  public static readonly slot_MAX_N: number = 3
 
   /** single record, not an array */
   public get pos(): PosEntry { return this._pos }

@@ -45,13 +45,11 @@ namespace Tabbit.Fixtures.Core.Server
             /// english text 1
             /// </summary>
             public string[] TextEnArray => _textEnArray;
-            public const int TextEnArray_N = 2;
 
             /// <summary>
             /// korean text 1
             /// </summary>
             public string[] TextKoArray => _textKoArray;
-            public const int TextKoArray_N = 2;
             #endregion
 
             #region Storage
@@ -226,13 +224,13 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Localization.TextEn_array", TcbTable.KindFixedArray, 2, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Localization.TextEn_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Localization.TextEn_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._textEnArray = new string[Record.TextEnArray_N];
-                            for (int j = 0; j < Record.TextEnArray_N; ++j)
+                            record._textEnArray = new string[column.Count];
+                            for (int j = 0; j < column.Count; ++j)
                             {
                                 record._textEnArray[j] = cursor.NextString();
                             }
@@ -240,13 +238,13 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Localization.TextKo_array", TcbTable.KindFixedArray, 2, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Localization.TextKo_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Localization.TextKo_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._textKoArray = new string[Record.TextKoArray_N];
-                            for (int j = 0; j < Record.TextKoArray_N; ++j)
+                            record._textKoArray = new string[column.Count];
+                            for (int j = 0; j < column.Count; ++j)
                             {
                                 record._textKoArray[j] = cursor.NextString();
                             }

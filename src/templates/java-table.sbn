@@ -186,17 +186,19 @@ public final class {{ table.table_name }} {
                             record.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
                         }
 {{~ else if column_view.kind == 'serial_ref' ~}}
-                        record.{{ column_view.name }} = new {{ column_view.element_type }}[{{ column_view.element_count }}];
-                        record.{{ column_view.name }}Index = new int[{{ column_view.element_count }}];
-                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
+                        record.{{ column_view.name }} = new {{ column_view.element_type }}[column.count];
+                        record.{{ column_view.name }}Index = new int[column.count];
+                        for (int j = 0; j < column.count; j++) {
                             record.{{ column_view.name }}Index[j] = {{ column_view.read_element }};
                         }
 {{~ else if column_view.kind == 'serial' ~}}
-                        record.{{ column_view.name }} = new {{ column_view.element_type }}[{{ column_view.element_count }}];
+{{~## One column owns the whole array, so how many elements a row holds is what the file
+   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
+                        record.{{ column_view.name }} = new {{ column_view.element_type }}[column.count];
 {{~ if column_view.has_optional_elements ~}}
-                        record.{{ column_view.element_presence_member }} = new boolean[{{ column_view.element_count }}];
+                        record.{{ column_view.element_presence_member }} = new boolean[column.count];
 {{~ end ~}}
-                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
+                        for (int j = 0; j < column.count; j++) {
                             record.{{ column_view.name }}[j] = {{ column_view.read_element }};
 {{~ if column_view.has_optional_elements ~}}
                             record.{{ column_view.element_presence_member }}[j] =

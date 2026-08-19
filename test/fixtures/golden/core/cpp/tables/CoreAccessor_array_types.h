@@ -172,12 +172,12 @@ class ArrayTypesTable {
           break;
         }
         case 6: {
-          tabbit::check_column(column, "ArrayTypes.Slot_array", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "ArrayTypes.Slot_array", tabbit::kKindFixedArray, -1, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ArrayTypes.Slot_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slot_array.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
+            record.slot_array.resize(static_cast<std::size_t>(column.count));
+            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
               record.slot_array[j] = cursor.next_i32();
             }
           }

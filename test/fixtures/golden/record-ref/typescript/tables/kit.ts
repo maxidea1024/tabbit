@@ -52,7 +52,6 @@ export class KitRecord {
 
   /** element 1, the reference */
   public get part(): PartEntry[] { return this._part }
-  public static readonly part_MAX_N: number = 3
 
   public _index: number = 0
   public _part: PartEntry[] = []

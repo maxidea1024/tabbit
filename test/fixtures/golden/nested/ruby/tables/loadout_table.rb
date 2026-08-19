@@ -169,10 +169,10 @@ module Nested
             at += n
           end
         when 8
-          Tabbit.check_column(column, 'Loadout.Tag_array', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Loadout.Tag_array', Tabbit::KIND_FIXED_ARRAY, -1, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Tag_array')
           records.each do |record|
-            record.tag_array = Array.new(2) { cursor.next_string }
+            record.tag_array = Array.new(column.count) { cursor.next_string }
           end
         else
           # A column added after this code was generated.

@@ -71,14 +71,12 @@ export class LoadoutRecord {
 
   /** element 1, first member */
   public get slot(): SlotEntry[] { return this._slot }
-  public static readonly slot_N: number = 2
 
   /** plain column inside the group's span */
   public get note(): string { return this._note }
 
   /** scalar serial field */
   public get tagArray(): string[] { return this._tagArray }
-  public static readonly tagArray_N: number = 2
 
   public _index: number = 0
   public _name: string = ''
@@ -290,12 +288,12 @@ export class LoadoutTable {
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Loadout.Tag_array', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Loadout.Tag_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Tag_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._tagArray = []
-            for (let j = 0; j < 2; ++j) {
+            for (let j = 0; j < column.count; ++j) {
               record._tagArray.push(cursor.nextString())
             }
           }

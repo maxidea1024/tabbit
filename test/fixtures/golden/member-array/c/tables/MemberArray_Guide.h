@@ -47,7 +47,8 @@ struct MemberArray_GuideRecord_t {
   /* a record with no number at all - still one record, members not arrays */
   struct MemberArray_GuideRecord_t_pos_entry pos;
   /* scalar serial array, so both array kinds sit in one table */
-  const char* tag_array[2];
+  const char** tag_array;
+  int32_t tag_array_count;
   /* array of arrays: outer 1, inner 1 - neither level has a name */
   int32_t grid[2][3];
 };

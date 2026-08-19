@@ -210,11 +210,11 @@ class LoadoutTable {
                     }
                 }
                 8 -> {
-                    checkColumn(column, "Loadout.Tag_array", KIND_FIXED_ARRAY, 2, false, ELEMENT_STRING)
+                    checkColumn(column, "Loadout.Tag_array", KIND_FIXED_ARRAY, -1, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Tag_array")
                     for (record in loaded) {
-                        record.tagArray = ArrayList(2)
-                        repeat(2) { record.tagArray.add(cursor.nextString()) }
+                        record.tagArray = ArrayList(column.count)
+                        repeat(column.count) { record.tagArray.add(cursor.nextString()) }
                     }
                 }
                 else ->

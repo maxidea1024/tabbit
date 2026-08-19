@@ -45,7 +45,7 @@ namespace Tabbit.Fixtures.MemberArray
             /// member array, element 1
             /// </summary>
             public SkillEntry Skill => _skill;
-            public const int Skill_N = 2;
+            internal const int Skill_N = 2;
 
             /// <summary>
             /// a record with no number at all - still one record, members not arrays
@@ -56,14 +56,13 @@ namespace Tabbit.Fixtures.MemberArray
             /// scalar serial array, so both array kinds sit in one table
             /// </summary>
             public string[] TagArray => _tagArray;
-            public const int TagArray_N = 2;
 
             /// <summary>
             /// array of arrays: outer 1, inner 1 - neither level has a name
             /// </summary>
             public int[][] Grid => _grid;
-            public const int Grid_N = 2;
-            public const int Grid_M = 3;
+            internal const int Grid_N = 2;
+            internal const int Grid_M = 3;
             #endregion
 
             /// <summary>One element of <see cref="Skill"/>.</summary>
@@ -346,13 +345,13 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Guide.Tag_array", TcbTable.KindFixedArray, 2, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Guide.Tag_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Tag_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._tagArray = new string[Record.TagArray_N];
-                            for (int j = 0; j < Record.TagArray_N; ++j)
+                            record._tagArray = new string[column.Count];
+                            for (int j = 0; j < column.Count; ++j)
                             {
                                 record._tagArray[j] = cursor.NextString();
                             }

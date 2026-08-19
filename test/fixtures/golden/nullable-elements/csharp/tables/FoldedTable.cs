@@ -40,7 +40,6 @@ namespace Tabbit.Fixtures.NullableElements
             /// element 1 - and the group's answer
             /// </summary>
             public string[] TagArray => _tagArray;
-            public const int TagArray_N = 3;
             /// <summary>Whether element <paramref name="index"/> of <see cref="TagArray"/> has a value.</summary>
             public bool HasTagArrayAt(int index)
                 => _tagArrayHasValueAt == null
@@ -203,16 +202,16 @@ namespace Tabbit.Fixtures.NullableElements
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Folded.Tag_array", TcbTable.KindFixedArray, 3, false, TcbTable.ElementString, elementNullable: true);
+                        TcbTable.CheckColumn(column, "Folded.Tag_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString, elementNullable: true);
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
                         cursor = new TcbColumnCursor(reader, column, count, "Folded.Tag_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._tagArray = new string[Record.TagArray_N];
-                            record._tagArrayHasValueAt = new bool[Record.TagArray_N];
-                            for (int j = 0; j < Record.TagArray_N; ++j)
+                            record._tagArray = new string[column.Count];
+                            record._tagArrayHasValueAt = new bool[column.Count];
+                            for (int j = 0; j < column.Count; ++j)
                             {
                                 record._tagArrayHasValueAt[j] =
                                     TcbTable.IsPresent(elementPresence, elementAt++);

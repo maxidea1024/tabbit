@@ -213,6 +213,16 @@ internal sealed class CsColumnView
     /// <summary>Whether the column states which of an array's elements hold a value.</summary>
     public bool HasOptionalElements { get; set; }
 
+    /// <summary>
+    /// Which element of the outer level this column is, for an array of arrays.
+    /// </summary>
+    /// <remarks>
+    /// The outer index is which column this is rather than something read per row, so the
+    /// read fills that one element and the array itself came with the record.
+    /// spec/nested-multi-level.md.
+    /// </remarks>
+    public int MemberAt { get; set; }
+
     /// <summary>The field holding that answer per element, or blank when there is none.</summary>
     public string ElementPresenceField { get; set; } = "";
 
@@ -261,6 +271,17 @@ internal sealed class CsColumnView
     /// opens. Empty exactly when <see cref="RunCall"/> is.
     /// </summary>
     public required IReadOnlyList<string> RunRead { get; set; }
+
+    /// <summary>
+    /// The arrays a reference column fills beside its values, allocated by the read.
+    /// </summary>
+    /// <remarks>
+    /// A reference holds the key that came off the wire and whether it resolved, and an array
+    /// of references holds one of each per element. The declaration cannot size them - how
+    /// many elements a row holds is the file's answer now - so the read allocates them where
+    /// it allocates the values. Empty for every column that is not one.
+    /// </remarks>
+    public IReadOnlyList<string> ParallelArrays { get; set; } = System.Array.Empty<string>();
 
     /// <summary>Backing field this column fills, including its leading underscore.</summary>
     public required string FieldName { get; set; }

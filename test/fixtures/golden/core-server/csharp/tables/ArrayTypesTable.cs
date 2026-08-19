@@ -60,7 +60,6 @@ namespace Tabbit.Fixtures.Core.Server
             /// fixed slot 1
             /// </summary>
             public int[] SlotArray => _slotArray;
-            public const int SlotArray_N = 2;
             #endregion
 
             #region Storage
@@ -288,13 +287,13 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "ArrayTypes.Slot_array", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ArrayTypes.Slot_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ArrayTypes.Slot_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._slotArray = new int[Record.SlotArray_N];
-                            for (int j = 0; j < Record.SlotArray_N; ++j)
+                            record._slotArray = new int[column.Count];
+                            for (int j = 0; j < column.Count; ++j)
                             {
                                 record._slotArray[j] = cursor.NextI32();
                             }

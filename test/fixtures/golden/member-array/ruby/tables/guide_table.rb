@@ -158,10 +158,10 @@ module MemberArray
             record.pos.y = cursor.next_f32
           end
         when 7
-          Tabbit.check_column(column, 'Guide.Tag_array', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Guide.Tag_array', Tabbit::KIND_FIXED_ARRAY, -1, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Tag_array')
           records.each do |record|
-            record.tag_array = Array.new(2) { cursor.next_string }
+            record.tag_array = Array.new(column.count) { cursor.next_string }
           end
         when 8
           Tabbit.check_column(column, 'Guide.Grid.1', Tabbit::KIND_FIXED_ARRAY, 3, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])

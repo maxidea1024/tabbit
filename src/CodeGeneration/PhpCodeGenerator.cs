@@ -1018,7 +1018,14 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             ? "TcbReader::KIND_VAR_ARRAY"
             : (wire.IsFixedArray ? "TcbReader::KIND_FIXED_ARRAY" : "TcbReader::KIND_SCALAR");
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
+        // -1 where one column owns the whole array: the file states how many elements it
+        // holds and the read takes it from there, so there is no length here to hold it to.
+        // A record member keeps its count - several columns fill one array and the number
+        // they agree on is part of the generated shape, so a disagreement is a schema change
+        // rather than data. spec/nullable-array-elements.md.
+        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
+
+        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
 
         string accepted;
 

@@ -514,6 +514,21 @@ internal sealed class CColumnView
     /// <summary>The element's C type.</summary>
     public required string ElementType { get; set; }
 
+    /// <summary>
+    /// What one element of a reference array resolves to, written as it is declared, or
+    /// empty for a column that is not a reference.
+    /// </summary>
+    /// <remarks>
+    /// A whole-row reference resolves to a pointer to const, so this carries the `const` and
+    /// the star; a field reference resolves to that value's own type and carries neither.
+    /// The read allocates the resolved array beside the keys and leaves it NULL, which is
+    /// what says the resolution has not happened yet.
+    /// </remarks>
+    public required string ReferenceType { get; set; }
+
+    /// <summary>The type of the stored key of a reference column, or empty.</summary>
+    public required string KeyType { get; set; }
+
     /// <summary>The struct tag of the record group this column belongs to, or empty.</summary>
     public required string RecordTypeName { get; set; }
 

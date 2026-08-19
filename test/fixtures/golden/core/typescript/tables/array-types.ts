@@ -52,7 +52,6 @@ export class ArrayTypesRecord {
 
   /** fixed slot 1 */
   public get slotArray(): number[] { return this._slotArray }
-  public static readonly slotArray_N: number = 2
 
   public _index: number = 0
   public _tags: string[] = []
@@ -256,12 +255,12 @@ export class ArrayTypesTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'ArrayTypes.Slot_array', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'ArrayTypes.Slot_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'ArrayTypes.Slot_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._slotArray = []
-            for (let j = 0; j < 2; ++j) {
+            for (let j = 0; j < column.count; ++j) {
               record._slotArray.push(cursor.nextI32())
             }
           }

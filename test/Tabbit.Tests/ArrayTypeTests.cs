@@ -142,11 +142,18 @@ public class ArrayTypeTests
         Assert.Contains("elementCount = cursor.NextLength();", cs);
         Assert.Contains("record._tags = new string[elementCount];", cs);
 
-        // Serial: the count is part of the column's shape and baked in as a constant,
-        // so there is no counter on the wire to read.
-        Assert.Contains("SlotArray_N", cs);
+        // Serial: no counter on the wire per row, and no constant in the page either. One
+        // column owns the whole array, so the descriptor's count is the length and the read
+        // takes it from there - which is what lets a sheet grow a column without regenerating
+        // the code that reads it. spec/nullable-array-elements.md.
+        Assert.DoesNotContain("SlotArray_N", cs);
+        Assert.Contains("record._slotArray = new int[column.Count];", cs);
+
+        // And the check no longer holds the column to a length: -1 says the member claims
+        // none. The kind is still checked, because a scalar column that became an array is a
+        // different shape rather than a longer one.
         Assert.Contains(
-            "\"ArrayTypes.Slot_array\", TcbTable.KindFixedArray, 2", cs);
+            "\"ArrayTypes.Slot_array\", TcbTable.KindFixedArray, -1", cs);
 
         string ts = File.ReadAllText(
             Path.Combine(RepoLayout.OutputDir("core"), "typescript", "tables", "array-types.ts"));

@@ -61,7 +61,6 @@ export class DeepRecord {
 
   /** element 1, a value beside a record */
   public get star(): StarEntry[] { return this._star }
-  public static readonly star_N: number = 2
 
   public _index: number = 0
   public _star: StarEntry[] = Array.from({ length: 2 }, () => ({ id: 0, position: { x: 0, y: 0 } }))

@@ -260,7 +260,7 @@ Target `html` does not support nested fields yet.
 public struct SlotEntry { public int Id; public string Label; }
 
 public SlotEntry[] Slot => _slot;
-public const int Slot_N = 2;
+internal const int Slot_N = 2;   // 공개하지 않습니다 — 아래 참조
 
 internal SlotEntry[] _slot = NewSlotEntryArray();   // 원소별 할당 없음
 ```
@@ -281,6 +281,14 @@ slot = [{"Id":10,"Label":"sword"}, {"Id":11,"Label":"shield"}]
 
 JSON 익스포트와 값이 같습니다. 그리고 이 코드는 **C# 8 · netstandard2.1로 경고 없이
 컴파일**됩니다 — 유니티 2020.3이 받는 수준입니다.
+
+> **길이 상수는 공개 API가 아닙니다.** 여기 적히는 수는 이 코드를 생성한 시점의 시트가 가졌던
+> 것이고, 소비하는 쪽이 그것을 붙들면 데이터가 더 이상 동의하지 않아도 되는 수를 붙드는 것이
+> 됩니다 — 배열의 `Length`가 답이고, 그것은 낡지 않습니다. 레코드 그룹에서 상수가 남는 것은
+> **컬럼 여럿이 배열 하나를 채우기 때문**입니다. 어느 컬럼도 그 배열을 혼자 갖지 않으므로
+> 길이는 컬럼들이 합의한 수이고, 그것은 생성된 모양의 일부입니다. 컬럼 하나가 배열 하나를
+> 갖는 모양 — `Tag1`·`Tag2`를 접은 스칼라 배열 — 에서는 상수가 아예 없고, 길이를 그 컬럼의
+> 디스크립터에서 읽습니다 ([nullable 배열 원소](nullable-array-elements.md)).
 
 > **원소 타입을 `struct`로 한 이유가 둘입니다.** 배열이 원소별 할당을 하지 않고
 > (21,000행 × 17원소 테이블이면 357,000개 객체를 만들지 않는다는 뜻입니다),

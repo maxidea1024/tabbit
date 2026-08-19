@@ -57,7 +57,6 @@ export class LoadoutRecord {
 
   /** element 1, the reference */
   public get slot(): SlotEntry[] { return this._slot }
-  public static readonly slot_N: number = 2
 
   public _index: number = 0
   public _slot: SlotEntry[] = Array.from({ length: 2 }, () => ({ itemId: undefined, itemId_index: 0, itemId_F: false, swapId: undefined, swapId_index: 0, swapId_F: false, count: 0 }))

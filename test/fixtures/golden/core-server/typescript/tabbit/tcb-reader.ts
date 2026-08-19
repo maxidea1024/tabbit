@@ -1304,6 +1304,15 @@ export function readTableHeader(reader: TcbReader): { rowCount: number, columns:
         `the row count ${rowCount} is larger than column tag ${column.tag} can hold in ` +
         `its ${column.byteLength} bytes`)
     }
+
+    // The same floor for the element count, which the read now allocates for: a fixed array's
+    // length is the file's rather than the generated code's. Only with rows to read - an empty
+    // table writes its columns' counts into a block of no bytes, and that is well-formed.
+    if (column.encoding === ENCODING_RAW && rowCount > 0 && column.count > column.byteLength) {
+      throw new TcbError(
+        `column tag ${column.tag} says each row holds ${column.count} elements, which its ` +
+        `${column.byteLength} bytes cannot hold`)
+    }
   }
 
   if (declared !== available) {
@@ -1340,7 +1349,10 @@ export function checkColumn(
       `member: ${nullable ? 'optional' : 'required'}). ` +
       'The schema changed; regenerate the code or rebuild the data.')
   }
-  if (column.kind !== kind || (kind !== KIND_VAR_ARRAY && column.count !== count)) {
+  // A negative count says the member claims no length: how many elements a row holds is
+  // what the file states, so a column that grew one is read rather than refused. The kind is
+  // still the member's claim. spec/nullable-array-elements.md.
+  if (column.kind !== kind || (kind !== KIND_VAR_ARRAY && count >= 0 && column.count !== count)) {
     throw new TcbError(
       `${fieldName}: the file's column (kind ${column.kind}, count ${column.count}) does not ` +
       `match the generated member (kind ${kind}, count ${count}). The schema changed shape; ` +

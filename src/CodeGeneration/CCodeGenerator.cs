@@ -461,8 +461,11 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
 
+        // Only the scalars. An array is a pointer now, so a column the file does not carry
+        // leaves it NULL with a count of zero - which is an empty array rather than a row of
+        // NULL strings, and there is nothing to pre-fill.
         HasStringFields = table.SerialFields.Any(
-            sf => !sf.IsRef && sf.ElementType == ValueType.String && !table.IsVariableLength(sf)),
+            sf => !sf.IsRef && !sf.IsArray && sf.ElementType == ValueType.String),
 
         // One cursor variable for the whole parse rather than one per column: the
         // declarations sit at the top of the function, and each encodable column
@@ -679,6 +682,12 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             MemberAt = wire.MemberAt,
             ElementCount = wire.Cells.Count,
             ElementType = ResolvedElementType(wire),
+            ReferenceType = wire.IsRef
+                ? (wire.ElementType == ValueType.ForeignRecord
+                    ? $"const {ResolvedElementType(wire)}*"
+                    : ResolvedElementType(wire))
+                : "",
+            KeyType = wire.IsRef ? ScalarTypeName(wire.TagCarrier.RefKeyType, null) : "",
             RecordTypeName = wire.Group.IsRecord ? RecordEntryName(table, wire.Group) : "",
             IsFirstMember = wire.IsFirstMember,
             NeedsScratch = isEnum,
@@ -712,10 +721,22 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     ///
     /// A string goes back to `""` rather than NULL, which is the guarantee the rest of this
     /// output makes - a NULL is a crash one printf later.
+    ///
+    /// An array is a pointer and a count, so both go back: zeroing the pointer alone would
+    /// leave a count saying how many elements are behind a NULL, and a consumer walking the
+    /// count is then one dereference from a crash. A reference array carries its keys in a
+    /// second pointer, which goes with them.
     /// </remarks>
     private string EmptyAssignmentOf(WireColumn wire, string target)
     {
-        if (wire.ElementType == ValueType.Uuid || wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        {
+            string keys = wire.IsRef ? $" {target}_index = NULL;" : "";
+
+            return $"{{ {target} = NULL;{keys} {target}_count = 0; }}";
+        }
+
+        if (wire.ElementType == ValueType.Uuid)
             return $"memset(&{target}, 0, sizeof {target});";
 
         string value = wire.ElementType switch
@@ -740,7 +761,14 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             ? "TB_KIND_VAR_ARRAY"
             : (wire.IsFixedArray ? "TB_KIND_FIXED_ARRAY" : "TB_KIND_SCALAR");
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
+        // -1 where one column owns the whole array: the file states how many elements it
+        // holds and the read takes it from there, so there is no length here to hold it to.
+        // A record member keeps its count - several columns fill one array and the number
+        // they agree on is part of the generated shape, so a disagreement is a schema change
+        // rather than data. spec/nullable-array-elements.md.
+        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
+
+        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
 
         string[] accepted;
 
@@ -1117,11 +1145,15 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // else from being pointed at. spec/reference-key-types.md.
             string keyType = ScalarTypeName(sf.FirstField!.RefKeyType, null);
 
+            // A pointer and a count rather than a fixed array, for the reason below: how
+            // many elements a row holds is what the file states. Both arrays are the same
+            // length, so one count answers for the pair.
             return sf.IsArray
                 ? new[]
                 {
-                    $"{resolved} {name}[{sf.Fields.Count}];",
-                    $"{keyType} {name}_index[{sf.Fields.Count}];",
+                    $"{resolved}* {name};",
+                    $"{keyType}* {name}_index;",
+                    $"int32_t {name}_count;",
                 }
                 : new[]
                 {
@@ -1130,11 +1162,13 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 };
         }
 
-        // Asked of the table, not the group: a delimited cell is variable by itself, and a
-        // serial array becomes variable the moment the table trims. Reading the group alone
-        // declared a fixed array whose read then assigned a count to a member nobody had
-        // declared - the two sides have to ask the same question.
-        if (table.IsVariableLength(sf))
+        // Every array is a pointer and a count, whether the file writes the length per row
+        // or states it once in the column descriptor. A fixed array here would be the length
+        // this sheet had when the code was generated, built into the size of the struct - and
+        // C cannot size a struct from data, so the choice is between the number and the
+        // pointer. The pointer is the shape a trimming table already produced, so a consumer
+        // that reads one table reads both. spec/nullable-array-elements.md.
+        if (sf.IsArray)
         {
             return new[]
             {
@@ -1142,9 +1176,6 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 $"int32_t {name}_count;",
             };
         }
-
-        if (sf.IsArray)
-            return new[] { $"{elementType} {name}[{sf.Fields.Count}];" };
 
         return new[] { $"{elementType} {name};" };
     }
@@ -1243,9 +1274,10 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             Access = path + subscript,
             Key = path + "_index" + subscript,
 
-            // Whichever array holds the elements - and the row's own count where the table
-            // trims, because then the sheet's column count is not this row's length.
-            Count = wire.IsVariableLengthArray
+            // Whichever array holds the elements. A record group's is the length the member
+            // columns agree on and it is written here; every other array carries its own
+            // count, so that is read instead.
+            Count = wire.IsVariableLengthArray || (wire.IsFixedArray && wire.Member is null)
                 ? $"record->{name}_count"
                 : wire.IsFixedArray
                     ? wire.Cells.Count.ToString(CultureInfo.InvariantCulture)
@@ -1280,9 +1312,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
             IsArray = sf.IsArray,
 
-            CountExpression = sf.IsVariableLengthArray
-                ? $"record->{name}_count"
-                : sf.Fields.Count.ToString(CultureInfo.InvariantCulture),
+            // The array's own count either way: a reference array is one column's, so its
+            // length is the file's. spec/nullable-array-elements.md.
+            CountExpression = $"record->{name}_count",
         };
     }
 

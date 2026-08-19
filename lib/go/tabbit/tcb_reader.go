@@ -793,6 +793,18 @@ func ReadTableHeader(r *Reader) (int32, []Column) {
 
 			return 0, nil
 		}
+
+		// The same floor for the element count, which the read now allocates for: a fixed
+		// array's length is the file's rather than the generated code's. Only with rows to
+		// read - an empty table writes its columns' counts into a block of no bytes, and
+		// that is well-formed.
+		if column.Encoding == EncodingRaw && count > 0 && column.Count > column.ByteLength {
+			r.err = fmt.Errorf(
+				"tabbit: column tag %d says each row holds %d elements, which its %d bytes "+
+					"cannot hold", column.Tag, column.Count, column.ByteLength)
+
+			return 0, nil
+		}
 	}
 
 	if declared != available {
@@ -884,7 +896,10 @@ func checkColumn(r *Reader, col Column, fieldName string, kind uint8, count int3
 		return false
 	}
 
-	if col.Kind != kind || (kind != KindVarArray && col.Count != count) {
+	// A negative count says the member claims no length: how many elements a row holds is
+	// what the file states. The kind is still the member's claim.
+	// spec/nullable-array-elements.md.
+	if col.Kind != kind || (kind != KindVarArray && count >= 0 && col.Count != count) {
 		r.err = fmt.Errorf(
 			"tabbit: %s: the file's column (kind %d, count %d) does not match the generated "+
 				"member (kind %d, count %d); the schema changed shape, regenerate the code or "+

@@ -260,17 +260,24 @@ impl {{ table.table_name }} {
                             record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
                         }
 {{~ else if column_view.kind == 'serial_ref' ~}}
-                        record.{{ column_view.name }}_index = Vec::with_capacity({{ column_view.element_count }});
-                        for _ in 0..{{ column_view.element_count }} {
+                        let element_count = column.count.max(0) as usize;
+                        record.{{ column_view.name }}_index = Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
                             record.{{ column_view.name }}_index.push({{ column_view.read_element }});
                         }
 {{~ else if column_view.kind == 'serial' ~}}
-                        record.{{ column_view.name }} = Vec::with_capacity({{ column_view.element_count }});
+{{~## One column owns the whole array, so how many elements a row holds is what the file
+   states rather than a number written in here. Capped up front like the row-by-row lengths
+   are: the reads are what refuse a count the block cannot honour, and reserving for it
+   before then is what a damaged file would spend.
+   spec/nullable-array-elements.md. ##~}}
+                        let element_count = column.count.max(0) as usize;
+                        record.{{ column_view.name }} = Vec::with_capacity(element_count.min(65536));
 {{~ if column_view.has_optional_elements ~}}
                         record.{{ column_view.element_presence_member }} =
-                            Vec::with_capacity({{ column_view.element_count }});
+                            Vec::with_capacity(element_count.min(65536));
 {{~ end ~}}
-                        for _ in 0..{{ column_view.element_count }} {
+                        for _ in 0..element_count {
                             record.{{ column_view.name }}.push({{ column_view.read_element }});
 {{~ if column_view.has_optional_elements ~}}
                             record.{{ column_view.element_presence_member }}

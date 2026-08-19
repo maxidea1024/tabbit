@@ -1175,6 +1175,21 @@ bool tb_read_table_header(tb_reader* reader, int32_t* out_row_count,
                "the row count %d is larger than column tag %d can hold in "
                "its %d bytes", bad, columns[at].tag, columns[at].byte_length);
       }
+
+      /* The same floor for the element count, which the read now allocates for: a fixed
+       * array's length is the file's rather than the generated code's, so a count no raw
+       * block could hold is refused before anybody makes room for it. Only with rows to
+       * read - an empty table writes its columns' counts into a block of no bytes, and
+       * that is well-formed. */
+      if (columns[at].encoding == TB_ENCODING_RAW
+          && *out_row_count > 0
+          && columns[at].count > columns[at].byte_length) {
+        *out_row_count = 0;
+        return tb_fail(reader,
+               "column tag %d says each row holds %d elements, which its %d "
+               "bytes cannot hold",
+               columns[at].tag, columns[at].count, columns[at].byte_length);
+      }
     }
 
     if (declared != remaining) {
@@ -1404,7 +1419,11 @@ bool tb_check_column_elements(tb_reader* reader, const tb_column* column,
         field_name);
   }
 
-  if (column->kind != kind || (kind != TB_KIND_VAR_ARRAY && column->count != count)) {
+  /* A negative count says the member claims no length: how many elements a row holds is
+   * what the file states. The kind is still the member's claim.
+   * spec/nullable-array-elements.md. */
+  if (column->kind != kind
+      || (kind != TB_KIND_VAR_ARRAY && count >= 0 && column->count != count)) {
     return tb_fail(reader,
            "%s: the file column (kind %d, count %d) does not match the generated "
            "member (kind %d, count %d). The schema changed shape; regenerate the "

@@ -40,7 +40,7 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, two levels in
             /// </summary>
             public RigEntry[] Rig => _rig;
-            public const int Rig_N = 2;
+            internal const int Rig_N = 2;
             #endregion
 
             /// <summary>A record inside <see cref="Rig"/>.</summary>
@@ -79,9 +79,18 @@ namespace Tabbit.Fixtures.RecordRef
                 }
             }
 
+            internal static RigEntry[] NewRigEntryArray(int length)
+            {
+                var result = new RigEntry[length];
+                for (int i = 0; i < result.Length; i++)
+                {
+                }
+                return result;
+            }
+
             #region Storage
             internal int _index;
-            internal RigEntry[] _rig = new RigEntry[Rig_N];
+            internal RigEntry[] _rig = NewRigEntryArray(Rig_N);
             #endregion
 
             #region ToString

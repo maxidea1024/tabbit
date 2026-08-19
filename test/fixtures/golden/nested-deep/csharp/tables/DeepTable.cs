@@ -40,7 +40,7 @@ namespace Tabbit.Fixtures.NestedDeep
             /// element 1, a value beside a record
             /// </summary>
             public StarEntry[] Star => _star;
-            public const int Star_N = 2;
+            internal const int Star_N = 2;
             #endregion
 
             /// <summary>A record inside <see cref="Star"/>.</summary>
@@ -80,9 +80,18 @@ namespace Tabbit.Fixtures.NestedDeep
                 }
             }
 
+            internal static StarEntry[] NewStarEntryArray(int length)
+            {
+                var result = new StarEntry[length];
+                for (int i = 0; i < result.Length; i++)
+                {
+                }
+                return result;
+            }
+
             #region Storage
             internal int _index;
-            internal StarEntry[] _star = new StarEntry[Star_N];
+            internal StarEntry[] _star = NewStarEntryArray(Star_N);
             #endregion
 
             #region ToString

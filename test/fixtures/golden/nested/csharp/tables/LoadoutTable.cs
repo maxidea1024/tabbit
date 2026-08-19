@@ -50,7 +50,7 @@ namespace Tabbit.Fixtures.Nested
             /// element 1, first member
             /// </summary>
             public SlotEntry[] Slot => _slot;
-            public const int Slot_N = 2;
+            internal const int Slot_N = 2;
 
             /// <summary>
             /// plain column inside the group's span
@@ -61,7 +61,6 @@ namespace Tabbit.Fixtures.Nested
             /// scalar serial field
             /// </summary>
             public string[] TagArray => _tagArray;
-            public const int TagArray_N = 2;
             #endregion
 
             /// <summary>One element of <see cref="Pos"/>.</summary>
@@ -350,13 +349,13 @@ namespace Tabbit.Fixtures.Nested
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "Loadout.Tag_array", TcbTable.KindFixedArray, 2, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Loadout.Tag_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Tag_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._tagArray = new string[Record.TagArray_N];
-                            for (int j = 0; j < Record.TagArray_N; ++j)
+                            record._tagArray = new string[column.Count];
+                            for (int j = 0; j < column.Count; ++j)
                             {
                                 record._tagArray[j] = cursor.NextString();
                             }

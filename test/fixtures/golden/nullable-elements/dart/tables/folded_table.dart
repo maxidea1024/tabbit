@@ -95,17 +95,17 @@ class FoldedTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Folded.Tag_array', kindFixedArray, 3, false, [elementString], true);
+          checkColumn(column, 'Folded.Tag_array', kindFixedArray, -1, false, [elementString], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
           // steps once per element of every row. spec/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
           cursor = TcbColumnCursor(reader, column, count, 'Folded.Tag_array');
           for (final record in loaded) {
-            record.tagArray = List.generate(3, (_) => cursor.nextString());
+            record.tagArray = List.generate(column.count, (_) => cursor.nextString());
             record.hasTagArrayAt = List.generate(
-                3, (at) => isPresent(elementPresence, elementAt + at));
-            elementAt += 3;
+                column.count, (at) => isPresent(elementPresence, elementAt + at));
+            elementAt += column.count;
           }
           break;
         default:

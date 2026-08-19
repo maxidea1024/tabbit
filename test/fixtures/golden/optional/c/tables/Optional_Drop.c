@@ -366,7 +366,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
         table->records[row].has_costs = tb_is_present(presence, row);
 
         if (!table->records[row].has_costs)
-          memset(&table->records[row].costs, 0, sizeof table->records[row].costs);
+          { table->records[row].costs = NULL; table->records[row].costs_count = 0; }
       }
       break;
 

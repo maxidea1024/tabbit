@@ -74,12 +74,9 @@ export class GuideRecord {
 
   /** scalar serial array, so both array kinds sit in one table */
   public get tagArray(): string[] { return this._tagArray }
-  public static readonly tagArray_N: number = 2
 
   /** array of arrays: outer 1, inner 1 - neither level has a name */
   public get grid(): number[][] { return this._grid }
-  public static readonly grid_N: number = 2
-  public static readonly grid_M: number = 3
 
   public _index: number = 0
   public _name: string = ''
@@ -280,12 +277,12 @@ export class GuideTable {
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'Guide.Tag_array', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Guide.Tag_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Tag_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._tagArray = []
-            for (let j = 0; j < 2; ++j) {
+            for (let j = 0; j < column.count; ++j) {
               record._tagArray.push(cursor.nextString())
             }
           }

@@ -116,15 +116,16 @@ impl FoldedTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column_with_elements(column, "Folded.Tag_array", tabbit::KIND_FIXED_ARRAY, 3, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column_with_elements(column, "Folded.Tag_array", tabbit::KIND_FIXED_ARRAY, -1, false, &[tabbit::ELEMENT_STRING])?;
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Folded.Tag_array")?;
                     for record in records.iter_mut() {
-                        record.tag_array = Vec::with_capacity(3);
+                        let element_count = column.count.max(0) as usize;
+                        record.tag_array = Vec::with_capacity(element_count.min(65536));
                         record.has_tag_array_at =
-                            Vec::with_capacity(3);
-                        for _ in 0..3 {
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
                             record.tag_array.push(cursor.next_string()?);
                             record.has_tag_array_at
                                 .push(tabbit::is_present(&element_presence, element_at));

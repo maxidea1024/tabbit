@@ -263,27 +263,29 @@ bool {{ table.table_name }}::Read(const FString& Filename)
                     {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}[ElementAt]{{ column_view.member_access }}{{ column_view.member_ref_suffix }});
                 }
 {{~ else if column_view.kind == 'serial_ref' ~}}
-                Record.{{ column_view.name }}Index.Empty({{ column_view.element_count }});
-                while (Record.{{ column_view.name }}Index.Num() < {{ column_view.element_count }})
+                Record.{{ column_view.name }}Index.Empty(Column.Count);
+                while (Record.{{ column_view.name }}Index.Num() < Column.Count)
                 {
                     {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}Index.AddDefaulted_GetRef());
                 }
 {{~ else if column_view.kind == 'serial' ~}}
-                Record.{{ column_view.name }}.Empty({{ column_view.element_count }});
-                while (Record.{{ column_view.name }}.Num() < {{ column_view.element_count }})
+{{~## One column owns the whole array, so how many elements a row holds is what the file
+   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
+                Record.{{ column_view.name }}.Empty(Column.Count);
+                while (Record.{{ column_view.name }}.Num() < Column.Count)
                 {
                     {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}.AddDefaulted_GetRef());
                 }
 {{~ if column_view.has_optional_elements ~}}
-                Record.{{ column_view.element_presence_member }}.Empty({{ column_view.element_count }});
+                Record.{{ column_view.element_presence_member }}.Empty(Column.Count);
 
-                for (int32 ElementIndex = 0; ElementIndex < {{ column_view.element_count }}; ++ElementIndex)
+                for (int32 ElementIndex = 0; ElementIndex < Column.Count; ++ElementIndex)
                 {
                     Record.{{ column_view.element_presence_member }}.Add(
                         Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
                 }
 
-                ElementAt += {{ column_view.element_count }};
+                ElementAt += Column.Count;
 {{~ end ~}}
 {{~ else if column_view.cursor_read != '' ~}}
                 {{ column_view.cursor_read }}

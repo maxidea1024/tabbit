@@ -215,11 +215,11 @@ final class GuideTable
                     break;
 
                 case 7:
-                    TcbReader::checkColumn($column, 'Guide.Tag_array', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Guide.Tag_array', TcbReader::KIND_FIXED_ARRAY, -1, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Tag_array');
                     foreach ($records as $record) {
                         $record->tagArray = [];
-                        for ($j = 0; $j < 2; $j++) {
+                        for ($j = 0; $j < $column['count']; $j++) {
                             $record->tagArray[] = $cursor->nextString();
                         }
                     }

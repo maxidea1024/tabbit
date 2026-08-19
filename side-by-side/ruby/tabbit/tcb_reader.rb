@@ -1070,6 +1070,16 @@ module Tabbit
               "the row count #{count} is larger than column tag #{column.tag} can hold in its " \
               "#{column.byte_length} bytes"
       end
+
+      # The same floor for the element count, which the read now allocates for: a fixed
+      # array's length is the file's rather than the generated code's. Only with rows to
+      # read - an empty table writes its columns' counts into a block of no bytes, and that
+      # is well-formed.
+      if column.encoding == ENCODING_RAW && count > 0 && column.count > column.byte_length
+        raise TcbError,
+              "column tag #{column.tag} says each row holds #{column.count} elements, which " \
+              "its #{column.byte_length} bytes cannot hold"
+      end
     end
 
     if declared != available
@@ -1140,7 +1150,10 @@ module Tabbit
             'column is optional. The schema changed; regenerate the code or rebuild the data.'
     end
 
-    if column.kind != kind || (kind != KIND_VAR_ARRAY && column.count != count)
+    # A negative count says the member claims no length: how many elements a row holds is
+    # what the file states. The kind is still the member's claim.
+    # spec/nullable-array-elements.md.
+    if column.kind != kind || (kind != KIND_VAR_ARRAY && count >= 0 && column.count != count)
       raise TcbError,
             "#{field_name}: the file column (kind #{column.kind}, count #{column.count}) " \
             "does not match the generated member (kind #{kind}, count #{count}). The schema " \

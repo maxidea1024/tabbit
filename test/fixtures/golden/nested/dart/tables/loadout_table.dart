@@ -168,10 +168,10 @@ class LoadoutTable {
           }
           break;
         case 8:
-          checkColumn(column, 'Loadout.Tag_array', kindFixedArray, 2, false, [elementString]);
+          checkColumn(column, 'Loadout.Tag_array', kindFixedArray, -1, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Tag_array');
           for (final record in loaded) {
-            record.tagArray = List.generate(2, (_) => cursor.nextString());
+            record.tagArray = List.generate(column.count, (_) => cursor.nextString());
           }
           break;
         default:

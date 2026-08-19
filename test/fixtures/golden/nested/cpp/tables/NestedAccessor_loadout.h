@@ -200,12 +200,12 @@ class LoadoutTable {
           break;
         }
         case 8: {
-          tabbit::check_column(column, "Loadout.Tag_array", tabbit::kKindFixedArray, 2, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Loadout.Tag_array", tabbit::kKindFixedArray, -1, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Tag_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.tag_array.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
+            record.tag_array.resize(static_cast<std::size_t>(column.count));
+            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
               record.tag_array[j] = cursor.next_string();
             }
           }

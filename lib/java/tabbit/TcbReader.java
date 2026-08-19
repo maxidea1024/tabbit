@@ -1568,6 +1568,18 @@ public final class TcbReader {
                     "the row count %d is larger than column tag %d can hold in its %d bytes",
                     header.rowCount, column.tag, column.byteLength));
             }
+
+            // The same floor for the element count, which the read now allocates for: a fixed
+            // array's length is the file's rather than the generated code's. Only with rows to
+            // read - an empty table writes its columns' counts into a block of no bytes, and
+            // that is well-formed.
+            if (column.encoding == ENCODING_RAW
+                    && header.rowCount > 0
+                    && column.count > column.byteLength) {
+                throw new TcbException(String.format(
+                    "column tag %d says each row holds %d elements, which its %d bytes cannot "
+                    + "hold", column.tag, column.count, column.byteLength));
+            }
         }
 
         if (declared != available) {
@@ -1671,7 +1683,10 @@ public final class TcbReader {
                     + "the data.");
         }
 
-        if (column.kind != kind || (kind != KIND_VAR_ARRAY && column.count != count)) {
+        // A negative count says the member claims no length: how many elements a row holds
+        // is what the file states. The kind is still the member's claim.
+        // spec/nullable-array-elements.md.
+        if (column.kind != kind || (kind != KIND_VAR_ARRAY && count >= 0 && column.count != count)) {
             throw new TcbException(
                 fieldName + ": the file's column (kind " + column.kind + ", count " + column.count
                     + ") does not match the generated member (kind " + kind + ", count " + count

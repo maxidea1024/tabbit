@@ -1455,6 +1455,21 @@ namespace Tabbit
                     TEXT("the row count %d is larger than column tag %d can hold in its %d bytes"),
                     Bad, Column.Tag, Column.ByteLength));
             }
+
+            // The same floor for the element count, which the read now allocates for: a fixed
+            // array's length is the file's rather than the generated code's. Only with rows to
+            // read - an empty table writes its columns' counts into a block of no bytes, and
+            // that is well-formed.
+            if (Column.Encoding == EncodingRaw
+                && OutHeader.RowCount > 0
+                && Column.Count > Column.ByteLength)
+            {
+                OutHeader.RowCount = 0;
+                return Reader.FailWith(FString::Printf(
+                    TEXT("column tag %d says each row holds %d elements, which its %d bytes ")
+                    TEXT("cannot hold"),
+                    Column.Tag, Column.Count, Column.ByteLength));
+            }
         }
 
         if (Declared != Remaining)
@@ -1631,7 +1646,10 @@ namespace Tabbit
                 FieldName, Column.bNullable ? 1 : 0, bNullable ? 1 : 0));
         }
 
-        if (Column.Kind != Kind || (Kind != KindVarArray && Column.Count != Count))
+        // A negative count says the member claims no length: how many elements a row holds
+        // is what the file states. The kind is still the member's claim.
+        // spec/nullable-array-elements.md.
+        if (Column.Kind != Kind || (Kind != KindVarArray && Count >= 0 && Column.Count != Count))
         {
             return Reader.FailWith(FString::Printf(
                 TEXT("%s: the file column (kind %d, count %d) does not match the generated ")

@@ -248,17 +248,19 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 						r.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_value }}
 					}
 {{~ else if column_view.kind == 'serial_ref' ~}}
-					r.{{ column_view.name }} = make({{ column_view.array_type }}, {{ column_view.element_count }})
-					r.{{ column_view.name }}Index = make([]int32, {{ column_view.element_count }})
-					for j := 0; j < {{ column_view.element_count }}; j++ {
+					r.{{ column_view.name }} = make({{ column_view.array_type }}, int(column.Count))
+					r.{{ column_view.name }}Index = make([]int32, int(column.Count))
+					for j := 0; j < int(column.Count); j++ {
 						r.{{ column_view.name }}Index[j] = {{ column_view.read_value }}
 					}
 {{~ else if column_view.kind == 'serial' ~}}
-					r.{{ column_view.name }} = make({{ column_view.array_type }}, {{ column_view.element_count }})
+{{~## One column owns the whole array, so how many elements a row holds is what the file
+   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
+					r.{{ column_view.name }} = make({{ column_view.array_type }}, int(column.Count))
 {{~ if column_view.has_optional_elements ~}}
-					r.{{ column_view.element_presence_member }} = make([]bool, {{ column_view.element_count }})
+					r.{{ column_view.element_presence_member }} = make([]bool, int(column.Count))
 {{~ end ~}}
-					for j := 0; j < {{ column_view.element_count }}; j++ {
+					for j := 0; j < int(column.Count); j++ {
 						r.{{ column_view.name }}[j] = {{ column_view.read_value }}
 {{~ if column_view.has_optional_elements ~}}
 						r.{{ column_view.element_presence_member }}[j] =

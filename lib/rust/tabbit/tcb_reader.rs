@@ -192,6 +192,8 @@ pub enum Error {
     ColumnLengthImplausible { tag: i32, byte_length: i32 },
     /// The row count is larger than a column block could hold that many rows in.
     RowCountImplausible { rows: i32, tag: i32, byte_length: i32 },
+    /// A fixed array column states more elements per row than its block could hold.
+    ElementCountImplausible { tag: i32, count: i32, byte_length: i32 },
     /// The blocks the columns declare and the bytes after the header do not add up.
     HeaderLengthMismatch { declared: i32, available: i32 },
     /// A lookup for a key no row carries.
@@ -275,6 +277,11 @@ impl fmt::Display for Error {
                 f,
                 "the row count {} is larger than column tag {} can hold in its {} bytes",
                 rows, tag, byte_length
+            ),
+            Error::ElementCountImplausible { tag, count, byte_length } => write!(
+                f,
+                "column tag {} says each row holds {} elements, which its {} bytes cannot hold",
+                tag, count, byte_length
             ),
             Error::HeaderLengthMismatch { declared, available } => write!(
                 f,
@@ -1497,6 +1504,18 @@ pub fn read_table_header(reader: &mut Reader<'_>) -> Result<Header> {
                 byte_length: column.byte_length,
             });
         }
+
+        // The same floor for the element count, which the read now allocates for: a fixed
+        // array's length is the file's rather than the generated code's. Only with rows to
+        // read - an empty table writes its columns' counts into a block of no bytes, and that
+        // is well-formed.
+        if column.encoding == ENCODING_RAW && count > 0 && column.count > column.byte_length {
+            return Err(Error::ElementCountImplausible {
+                tag: column.tag,
+                count: column.count,
+                byte_length: column.byte_length,
+            });
+        }
     }
 
     if declared != available {
@@ -1599,7 +1618,10 @@ fn check_column_shape(
         });
     }
 
-    if column.kind != kind || (kind != KIND_VAR_ARRAY && column.count != count) {
+    // A negative count says the member claims no length: how many elements a row holds is
+    // what the file states. The kind is still the member's claim.
+    // spec/nullable-array-elements.md.
+    if column.kind != kind || (kind != KIND_VAR_ARRAY && count >= 0 && column.count != count) {
         return Err(Error::ColumnMismatch {
             field,
             detail: "the column's shape does not match the generated member; the schema \

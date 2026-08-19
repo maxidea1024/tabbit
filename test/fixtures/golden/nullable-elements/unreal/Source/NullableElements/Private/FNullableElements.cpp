@@ -487,7 +487,7 @@ bool FFoldedTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Folded.Tag_array"), Tabbit::KindFixedArray, 3, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Folded.Tag_array"), Tabbit::KindFixedArray, -1, false, Tabbit::ElementMask(Tabbit::ElementString));
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
@@ -496,20 +496,20 @@ bool FFoldedTable::Read(const FString& Filename)
 
             for (FFoldedRow& Record : Loaded)
             {
-                Record.TagArray.Empty(3);
-                while (Record.TagArray.Num() < 3)
+                Record.TagArray.Empty(Column.Count);
+                while (Record.TagArray.Num() < Column.Count)
                 {
                     Cursor.NextAs(Column.Element, Record.TagArray.AddDefaulted_GetRef());
                 }
-                Record.bHasTagArrayAt.Empty(3);
+                Record.bHasTagArrayAt.Empty(Column.Count);
 
-                for (int32 ElementIndex = 0; ElementIndex < 3; ++ElementIndex)
+                for (int32 ElementIndex = 0; ElementIndex < Column.Count; ++ElementIndex)
                 {
                     Record.bHasTagArrayAt.Add(
                         Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
                 }
 
-                ElementAt += 3;
+                ElementAt += Column.Count;
             }
 
             break;

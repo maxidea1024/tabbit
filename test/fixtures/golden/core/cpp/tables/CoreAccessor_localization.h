@@ -128,24 +128,24 @@ class LocalizationTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Localization.TextEn_array", tabbit::kKindFixedArray, 2, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Localization.TextEn_array", tabbit::kKindFixedArray, -1, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Localization.TextEn_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.text_en_array.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
+            record.text_en_array.resize(static_cast<std::size_t>(column.count));
+            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
               record.text_en_array[j] = cursor.next_string();
             }
           }
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Localization.TextKo_array", tabbit::kKindFixedArray, 2, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Localization.TextKo_array", tabbit::kKindFixedArray, -1, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Localization.TextKo_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.text_ko_array.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
+            record.text_ko_array.resize(static_cast<std::size_t>(column.count));
+            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
               record.text_ko_array[j] = cursor.next_string();
             }
           }

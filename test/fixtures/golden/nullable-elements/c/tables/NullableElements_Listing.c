@@ -160,7 +160,7 @@ static bool NullableElements_ListingParse(NullableElements_ListingTable_t* table
         table->records[row].has_maybe = tb_is_present(presence, row);
 
         if (!table->records[row].has_maybe)
-          memset(&table->records[row].maybe, 0, sizeof table->records[row].maybe);
+          { table->records[row].maybe = NULL; table->records[row].maybe_count = 0; }
       }
       break;
 
@@ -261,7 +261,7 @@ static bool NullableElements_ListingParse(NullableElements_ListingTable_t* table
         table->records[row].has_both = tb_is_present(presence, row);
 
         if (!table->records[row].has_both)
-          memset(&table->records[row].both, 0, sizeof table->records[row].both);
+          { table->records[row].both = NULL; table->records[row].both_count = 0; }
       }
       break;
 

@@ -36,21 +36,6 @@ static bool NullableElements_FoldedParse(NullableElements_FoldedTable_t* table, 
       return tb_fail_with(reader, "out of memory allocating the Index index");
   }
 
-  /* The arena hands back zeroed memory, so every member starts at its zero - which for
-   * a string is NULL, and NULL is what reaches printf when a column the file does not
-   * carry is read. An empty string instead: a literal, so there is nothing to free and
-   * nothing to allocate. */
-  for (row = 0; row < table->count; ++row) {
-    NullableElements_FoldedRecord_t* record = &table->records[row];
-
-    {
-      int32_t element;
-
-      for (element = 0; element < 3; ++element)
-        record->tag_array[element] = "";
-    }
-  }
-
   /* Column by column, matched by tag rather than by position: a column this build has
    * no member for is skipped by its declared length, and one whose type no longer fits
    * the member stops the read naming the field. Rows arrive with every member at an
@@ -83,7 +68,7 @@ static bool NullableElements_FoldedParse(NullableElements_FoldedTable_t* table, 
       break;
 
     case 2:
-      (void)tb_check_column_elements(reader, column, "Folded.Tag_array", TB_KIND_FIXED_ARRAY, 3, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING), true);
+      (void)tb_check_column_elements(reader, column, "Folded.Tag_array", TB_KIND_FIXED_ARRAY, -1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING), true);
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
        * once per element of every row. spec/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);
@@ -95,22 +80,29 @@ static bool NullableElements_FoldedParse(NullableElements_FoldedTable_t* table, 
         NullableElements_FoldedRecord_t* record = &table->records[row];
         int32_t element;
 
+        record->tag_array_count = column->count;
+        record->tag_array = (const char**)tb_arena_alloc(
+          &table->arena, (size_t)column->count * sizeof *record->tag_array);
+
+        if (column->count > 0 && record->tag_array == NULL)
+          return tb_fail_with(reader, "out of memory allocating an array");
+
         {
           bool* element_presence_out = (bool*)tb_arena_alloc(
-            &table->arena, (size_t)3 * sizeof(bool));
+            &table->arena, (size_t)column->count * sizeof(bool));
 
-          if (element_presence_out == NULL)
+          if (column->count > 0 && element_presence_out == NULL)
             return tb_fail_with(reader, "out of memory allocating an element presence array");
 
           record->has_tag_array_at = element_presence_out;
 
-          for (element = 0; element < 3; ++element)
+          for (element = 0; element < column->count; ++element)
             element_presence_out[element] = tb_is_present(element_presence, element_at + element);
         }
 
-        element_at += 3;
+        element_at += column->count;
 
-        for (element = 0; element < 3; ++element)
+        for (element = 0; element < column->count; ++element)
           (void)tb_cursor_next_string(&cursor, &record->tag_array[element]);
       }
       break;

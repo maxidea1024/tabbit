@@ -196,11 +196,11 @@ class GuideTable {
                     }
                 }
                 7 -> {
-                    checkColumn(column, "Guide.Tag_array", KIND_FIXED_ARRAY, 2, false, ELEMENT_STRING)
+                    checkColumn(column, "Guide.Tag_array", KIND_FIXED_ARRAY, -1, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Tag_array")
                     for (record in loaded) {
-                        record.tagArray = ArrayList(2)
-                        repeat(2) { record.tagArray.add(cursor.nextString()) }
+                        record.tagArray = ArrayList(column.count)
+                        repeat(column.count) { record.tagArray.add(cursor.nextString()) }
                     }
                 }
                 8 -> {
