@@ -1117,7 +1117,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                 // being pointed at. spec/reference-key-types.md.
             ValueType.ForeignRecord => LanguageProfile.Ruby.ReadCall(wire.RefKeyType),
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             _ => LanguageProfile.Ruby.ReadCall(wire.ElementType),
         };
     }

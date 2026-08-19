@@ -145,11 +145,11 @@ public abstract class Target<TEntry> : ITarget
     /// with, and fail somewhere that says nothing about the cause - or worse, emit a
     /// plausible file built from one arbitrary member.
     ///
-    /// The point of the flag is that thirteen targets need not be converted at once, and one
+    /// The point of the flag is that the targets need not be converted at once, and one
     /// that has not been produces a message naming itself - a far better answer than output
     /// that differs from the other twelve for reasons nobody can see.
     ///
-    /// All thirteen code generators now say true, so this is what a fourteenth would meet
+    /// All the code generators now say true, so this is what a new one would meet
     /// before it had learned. The exporters that cannot express a record still refuse.
     /// </remarks>
     protected virtual bool SupportsNestedFields => false;

@@ -63,7 +63,7 @@ public class ConversionGoldenTests
     // the generated lookup keyed by the field's own type in both languages.
     [InlineData("string-index")]
     // Every type a key may be - `bigint`, `uuid`, `enum` - each keying one table and each
-    // also a secondary index beside a different primary. All thirteen languages, because
+    // also a secondary index beside a different primary. Every language, because
     // nothing here is new below the generators and everything is new inside them: each picks
     // the key's spelling from its own type table and builds its own dictionary. Recording it
     // found two languages that did not: PHP subscripted an array with an object, and C++
@@ -101,7 +101,7 @@ public class ConversionGoldenTests
     // decided that the key lives inside the element. spec/references-in-records.md.
     [InlineData("record-ref")]
     // An array of references: numbered reference columns folded into one array, in both forms
-    // a reference takes - a whole row and one of that row's values. All thirteen languages,
+    // a reference takes - a whole row and one of that row's values. Every language,
     // because this is the shape `foreign[]`'s refusal points at and no fixture held one: every
     // generator emitted code for it that nothing ever read, and two of them wrote the sheet's
     // column count into the linking pass. spec/nullable-array-elements.md.

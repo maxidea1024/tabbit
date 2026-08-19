@@ -228,7 +228,7 @@ public class Field
     /// One entry is the ordinary case and the same thing <see cref="RefTableName"/> says.
     /// More than one is a column that reaches several tables - the value is an id, and which
     /// table holds the row is a question each generated accessor answers for its own target
-    /// rather than a sum type nobody could spell in thirteen languages.
+    /// rather than a sum type nobody could spell in every language.
     ///
     /// The list is what the layouts fill; the singular name follows from it.
     /// </remarks>
@@ -278,7 +278,7 @@ public class Field
     /// travels is the key, and its type is the target's to decide.
     ///
     /// This existed as the constant `int32` in six places: the exporters, the format's
-    /// element mapping, thirteen generators' read switches and the SQL schemas. Meanwhile
+    /// element mapping, the generators' read switches and the SQL schemas. Meanwhile
     /// index keys had been generalized to anything that can tell rows apart, so a table keyed
     /// by `string` could be read and generated but not pointed at. Holding the answer here is
     /// what lets those places ask instead of assume.

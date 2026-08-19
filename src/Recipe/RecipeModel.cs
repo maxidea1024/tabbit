@@ -135,7 +135,7 @@ public class RecipeModel
     /// what keeps this class from growing one member per language and keeps a target
     /// deletable by deleting its file.
     ///
-    /// There used to be a section per target for the ten that predate this list, and
+    /// There used to be a section per target for the targets that predate this list, and
     /// nothing distinguished those ten but their age. Two ways to say the same thing is
     /// one more than a reader of a recipe can derive a rule from.
     ///

@@ -50,7 +50,7 @@ public static class TcbStringStructure
         /// </summary>
         /// <remarks>
         /// Not a candidate: a general compressor in the format would mean a dependency in
-        /// thirteen runtimes. It is here as the ceiling on what the schemes below could ever
+        /// the runtimes. It is here as the ceiling on what the schemes below could ever
         /// be worth, so that a layout measuring close to front coding can be dropped without
         /// building it.
         /// </remarks>

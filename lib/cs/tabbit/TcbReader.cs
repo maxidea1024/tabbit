@@ -1872,10 +1872,10 @@ namespace Tabbit.Binary
     /// </summary>
     /// <remarks>
     /// From the platform here, unlike the cipher - .NET has HMAC-SHA-256 and does not have a
-    /// bare ChaCha20. Seven of the thirteen runtimes are in the same position, which is the
+    /// bare ChaCha20. Several of the other runtimes are in the same position, which is the
     /// reason the format's tag is HMAC-SHA-256 rather than the Poly1305 that pairs with its
     /// cipher: no platform exposes Poly1305 outside an AEAD, so that choice would have meant
-    /// thirteen hand-written implementations instead of six.
+    /// a hand-written implementation in every runtime instead of only where one is needed.
     ///
     /// What it catches is what the structural checks cannot. A block length that does not add
     /// up is a malformed file; four other bytes in an f32 column is a well-formed file holding

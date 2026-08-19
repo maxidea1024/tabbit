@@ -912,7 +912,7 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// This is a constraint and not a reference. The original declares it to have a script
     /// check that an id exists somewhere; nothing about the value, the file it is written to
     /// or the code generated from it depends on the declaration. Reading it as a `foreign`
-    /// would give it a meaning it never had, and would owe thirteen languages a sum type for
+    /// would give it a meaning it never had, and would owe every language a sum type for
     /// the several-table case. spec/multi-target-references.md.
     /// </remarks>
     private static void ReadReferencedTables(

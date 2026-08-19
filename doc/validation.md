@@ -111,7 +111,7 @@ tabbit --recipe recipe.json --validate-only
 
 검증까지만 돌고 산출물을 하나도 만들지 않습니다. PR 검사가 쓰는 형태입니다.
 
-> **돌아가는 규칙 폴더가 저장소에 있습니다** — [side-by-side/validation/](../side-by-side/validation/)이고, `rules/` 아래 `pre`·`tables`·`global`·`shared` 각각 한 파일입니다. 같은 디렉터리에 그 시트를 13개 언어로 뽑은 결과가 함께 커밋되어 있으므로, 규칙이 읽는 `context.Tables.Package.Records`가 실제로 어떤 타입인지 옆에서 확인할 수 있습니다.
+> **돌아가는 규칙 폴더가 저장소에 있습니다** — [side-by-side/validation/](../side-by-side/validation/)이고, `rules/` 아래 `pre`·`tables`·`global`·`shared` 각각 한 파일입니다. 같은 디렉터리에 그 시트를 모든 언어로 뽑은 결과가 함께 커밋되어 있으므로, 규칙이 읽는 `context.Tables.Package.Records`가 실제로 어떤 타입인지 옆에서 확인할 수 있습니다.
 
 ## 4. 폴더 규약
 

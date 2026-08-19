@@ -618,7 +618,7 @@ namespace Tabbit
          *
          * One call is the entirety of skipping, because a column declares its own length.
          * That is what the column-oriented layout buys - there is no per-type skip to get
-         * wrong, and thirteen readers get it right the same way.
+         * wrong, and the readers get it right the same way.
          */
         bool Skip(int32 ByteCount)
         {

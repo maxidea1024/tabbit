@@ -362,7 +362,7 @@ public class BinaryExporter : Target<BinaryRecipe>
 
         // Column-oriented: each column's rows are one contiguous block. That is what
         // lets an unknown column be skipped in a single advance, with no per-type skip
-        // logic for thirteen readers to each get subtly wrong.
+        // logic for the readers to each get subtly wrong.
         for (int at = 0; at < columns.Count; at++)
             writer.Write(blocks[at].Payload.WrittenSpan);
 
@@ -956,7 +956,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// about it; and the values are still written for every row, so the decode of each
     /// encoding is untouched. A row without a value carries the type's empty one, which
     /// costs bytes a compacted layout would not - and buys not rewriting nine decode paths
-    /// in thirteen languages to count only the rows that are present.
+    /// in every language to count only the rows that are present.
     ///
     /// One bit per row, low bit first, padded to a byte. Raw, because the bitmap of a column
     /// where presence varies is close to incompressible and the bitmap of one where it does

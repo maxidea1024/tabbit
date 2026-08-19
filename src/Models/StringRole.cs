@@ -9,7 +9,7 @@ namespace Tabbit.Models;
 /// else is done with it on the way past.
 ///
 /// That separation is the point. Making these `ValueType` members instead would put a new
-/// case in thirteen code generators, the binary format, the database exporters and the
+/// case in every code generator, the binary format, the database exporters and the
 /// schema baseline, all to arrive at the same `string` each of them already emits - and a
 /// generator that missed the case would produce something plausible rather than fail. A
 /// role is read by the code that acts on it and ignored by everything else, so a column

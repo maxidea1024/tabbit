@@ -2079,7 +2079,7 @@ internal static class Program
     /// snake_cased method - hence a table called Template.
     ///
     /// The point of the fixture is that the toolchain gates answer the question rather
-    /// than anybody reasoning about it: the thirteen generated languages are compiled,
+    /// than anybody reasoning about it: the generated languages are compiled,
     /// linted or type-checked, and the side-by-side comparison reads this same workbook.
     ///
     /// A table name, an enum and its labels are all identifiers too, so all three are in
@@ -2454,7 +2454,7 @@ internal static class Program
 
         // The encoding rows: enough of each shape that every column encoding of
         // spec/tcb-v102-column-encoding.md wins somewhere in this corpus, so all
-        // thirteen readers decode all seven layouts - not just the ones their own
+        // the readers decode all seven layouts - not just the ones their own
         // fixture data happened to trigger. What wins where is pinned by the
         // encoding-selection test in BinaryFormatTests, so a drift in the writer's
         // choices is a failure with a column name rather than a quiet coverage hole.
@@ -2601,7 +2601,7 @@ internal static class Program
         // Nothing gated one before. The corpus had no constant set, and neither did
         // reserved-words - the only other scenario generating for every language - so
         // splitting the output into a file per table produced a constants file per set in
-        // twelve languages that nothing ever built. Rust proved the point: a constant typed
+        // every language that nothing ever built. Rust proved the point: a constant typed
         // with an enum names that enum, the dependency graph did not say so, and the crate
         // did not compile. It took building an unrelated corpus by hand to find out.
         //

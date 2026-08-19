@@ -394,7 +394,7 @@ public partial class ModelCooker
             // `enum` is the one exception, and it is a gap rather than a rule: an enum's
             // value travels zig-zag encoded rather than at a fixed width, so the read is the
             // one call the shared table has no entry for - by design, since each language
-            // spells its own enum. Said here rather than left to thirteen generators, where
+            // spells its own enum. Said here rather than left to the generators, where
             // it would surface as whichever of them a project reached first.
             if (field.RefKeyType == Models.ValueType.Enum)
             {

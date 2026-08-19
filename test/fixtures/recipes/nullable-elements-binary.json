@@ -1,6 +1,6 @@
 {
   // The same workbook written to a file, which is where bit 7 and the element bitmap are.
-  // Nothing reads it yet - the thirteen runtimes learn the bitmap in the step after this
+  // Nothing reads it yet - the runtimes learn the bitmap in the step after this
   // one - so what this exists for is the byte-level gate over what the exporter produced.
   // spec/nullable-array-elements.md.
 

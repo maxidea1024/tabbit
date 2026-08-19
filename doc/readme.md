@@ -96,7 +96,8 @@
 |[구글 시트의 정의된 이름](../spec/google-sheets-named-ranges.md)|임포터 2개 중 하나만 이름을 읽고 있던 것 — **조용히 테이블 0개가 되는 조합**과, 좌표 변환을 한 곳에 두는 설계|
 |[행 키 레이아웃](../spec/keyed-layout.md)|이름이 가리키는 사각형을 그대로 격자로 쓰는 레이아웃|
 |[테이블의 행 벌](../spec/table-row-sets.md)|한 테이블에 데이터 여러 벌 — **타입은 하나**. 별개 테이블로 읽어서 생기던 가짜 참조 오류 111건과, 표기를 recipe가 정규식으로 적어 코어가 꼬리표의 뜻을 모르게 두는 설계|
-|[생성 코드의 이름 체계](../spec/generated-naming.md)|`AccessorName` 하나가 13개 언어의 타입 이름과 파일 이름을 정하는 방법|
+|[생성 코드의 이름 체계](../spec/generated-naming.md)|`AccessorName` 하나가 모든 언어의 타입 이름과 파일 이름을 정하는 방법|
+|[Swift 언어 지원](../spec/swift-language-support.md)|14번째 생성 타깃 — 행을 `final class`로, 원소를 `struct`로 가른 이유, 그리고 **외부 패키지가 없어도 컴파일되는** 암호 3상태|
 |[접근자 객체화](../spec/accessor-instances.md)|전역 정적 말고 인스턴스로 — 테스트 격리, 두 버전 동시 열기, 핫 리로드|
 |[출력 항목을 `Targets` 하나로](../spec/target-section-unification.md)|recipe의 출력 선언을 한 목록으로 모은 기록|
 

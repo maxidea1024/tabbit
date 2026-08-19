@@ -88,7 +88,7 @@ public class JsonExporter : Target<JsonRecipe>
 
     /// <summary>
     /// An absent element is `null` in an array, which is the whole of what this format needs
-    /// to say it. The binary and the thirteen readers follow in their own step -
+    /// to say it. The binary and the readers follow in their own step -
     /// spec/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;

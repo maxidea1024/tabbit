@@ -15,7 +15,7 @@ namespace Tabbit.Tests;
 /// absence is `-` wherever it is written, and a blank element is whatever its type reads a
 /// blank as.
 ///
-/// The meaning lands in JSON and in the file first. The thirteen runtimes learn the element
+/// The meaning lands in JSON and in the file first. The the runtimes learn the element
 /// bitmap in the step after this one, so a generator still refuses a column of this shape by
 /// name - which is what keeps a partial rollout from losing the distinction quietly.
 /// spec/nullable-array-elements.md.
@@ -139,7 +139,7 @@ public class NullableArrayElementTests
     /// <remarks>
     /// Bit 6 is the row bitmap and bit 7 the element one, and `int?[]?` sets both - the whole
     /// claim that the two are orthogonal, read off the bytes rather than off the model that
-    /// wrote them. Nothing reads the bitmap itself yet; the thirteen runtimes learn it in the
+    /// wrote them. Nothing reads the bitmap itself yet; the runtimes learn it in the
     /// step after this one, and the round trip that compares it against the JSON belongs
     /// there. spec/nullable-array-elements.md.
     /// </remarks>

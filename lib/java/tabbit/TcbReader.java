@@ -1407,7 +1407,7 @@ public final class TcbReader {
      * The MAC field against the file's own bytes, and against whether a key was given.
      *
      * <p>The tag is HMAC-SHA-256 over every byte but the sixteen it lives in, truncated to
-     * those sixteen. From the platform, like the cipher - seven of the thirteen runtimes
+     * those sixteen. From the platform, like the cipher - several of the other runtimes
      * have HMAC-SHA-256 in their standard library, which is the reason the format's tag is
      * this and not the Poly1305 that pairs with its cipher.
      *

@@ -320,7 +320,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         // Whether any column reads through a cursor. PHP needs no declaration ahead
         // of the first `$cursor = ...` assignment, so unlike the C# template nothing
         // in the read method renders from this - it is here so the templates of the
-        // thirteen languages can ask the same questions of their views.
+        // every language can ask the same questions of their views.
         NeedsCursor = table.WireColumns.Any(UsesCursor),
     };
 
@@ -1288,7 +1288,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                     return LanguageProfile.Php.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Php.ReadCall(wire.ElementType);
         }
     }

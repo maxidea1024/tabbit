@@ -141,7 +141,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// An optional column becomes a `has_{name}` member beside the value.
     /// </summary>
     /// <remarks>
-    /// Not `std::optional`, so that one shape covers thirteen languages and C++ does not
+    /// Not `std::optional`, so that one shape covers every language and C++ does not
     /// split from Unreal - where the member is a UPROPERTY and cannot be optional at all.
     /// spec/optional-fields.md has the reasoning.
     /// </remarks>

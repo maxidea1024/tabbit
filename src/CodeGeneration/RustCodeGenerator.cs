@@ -1139,7 +1139,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                     return LanguageProfile.Rust.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Rust.ReadCall(wire.ElementType);
         }
     }

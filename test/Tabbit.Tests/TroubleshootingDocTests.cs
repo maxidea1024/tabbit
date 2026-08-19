@@ -60,7 +60,7 @@ public class TroubleshootingDocTests
         // `lib/` as well as `src/`, because the page documents what the runtime readers say
         // and not only what the converter says - and a reader's message is exactly the kind a
         // user meets without the converter anywhere in sight. Every extension, since the
-        // readers are written in thirteen languages.
+        // readers are written in every language.
         var files = Directory
             .EnumerateFiles(Path.Combine(RepoLayout.Root, "src"), "*.cs", SearchOption.AllDirectories)
             .Concat(Directory.EnumerateFiles(Path.Combine(RepoLayout.Root, "lib"), "*.*", SearchOption.AllDirectories))

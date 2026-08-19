@@ -93,7 +93,7 @@ public partial class ModelCooker
     /// notation it accepts - no sign, no thousands separator, no fractional part, and `0x`
     /// reaching all 64 bits - and that question is settled once a cell has become a value.
     /// Past here it is a 64-bit integer to every consumer: the wire carries it as i64, the
-    /// thirteen generators render it as their own name for that width, and the databases
+    /// the generators render it as their own name for that width, and the databases
     /// store it in a BIGINT.
     ///
     /// **Folded rather than written into each of those.** Around a hundred switches select

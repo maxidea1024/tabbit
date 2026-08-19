@@ -12,7 +12,7 @@ namespace Tabbit.Tests;
 ///
 /// The golden trees already compare every exported .tcb byte for byte, but they are
 /// recorded from the converter's own output: a change to the layout re-records them and
-/// the thirteen readers are regenerated to match, so the whole gate can move together
+/// the readers are regenerated to match, so the whole gate can move together
 /// and still agree with itself. The expectation below is written out here instead, from
 /// the specification rather than from the output, and moving it means editing this file
 /// on purpose.
@@ -53,7 +53,7 @@ public class BinaryFormatTests
         // Forty-two bytes, and the same forty-two whether or not the file is encrypted or
         // signed: the fields those layers write are reserved here as zeros rather than
         // appearing when they are used. What that costs a plain file is the thirty-seven
-        // bytes below; what it buys is one header shape for thirteen readers to agree on.
+        // bytes below; what it buys is one header shape for the readers to agree on.
         // spec/tcb-mac-and-signature.md.
         expected.Add("signature", 0x54, 0x43, 0x42, 0x00);   // "TCB\0", at offset zero
         expected.Add("version", 0x6a, 0x00, 0x00, 0x00);     // 106, fixed32
@@ -126,7 +126,7 @@ public class BinaryFormatTests
     /// Which encoding the writer picks for each conformance column, pinned by name.
     ///
     /// The corpus data is shaped so that every encoding of the spec wins somewhere -
-    /// that is what makes the thirteen conformance harnesses cover every decode path,
+    /// that is what makes the conformance harnesses cover every decode path,
     /// not just the ones their data happened to trigger. This test is the other half
     /// of that arrangement: if the writer's selection drifts (a tweak to a candidate,
     /// a change in the data), the coverage does not silently narrow - this fails,
@@ -179,7 +179,7 @@ public class BinaryFormatTests
         AssertEncodings(Path.Combine(binaryDir, "Owners.tcb"), owners);
 
         // And that between them they leave nothing untried. The point of shaping the
-        // corpus this way is that the thirteen harnesses exercise every decode path,
+        // corpus this way is that the harnesses exercise every decode path,
         // which only holds while every encoding is actually reached.
         var reached = new HashSet<byte>(vectors);
         reached.UnionWith(owners);

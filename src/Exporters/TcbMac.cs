@@ -87,7 +87,7 @@ public static class TcbMac
     /// a copy of the file.
     ///
     /// HMAC-SHA-256 rather than the Poly1305 that pairs with the format's cipher, and the
-    /// reason is porting cost rather than cryptography. Seven of the thirteen runtimes have
+    /// reason is porting cost rather than cryptography. Several of the other runtimes have
     /// HMAC-SHA-256 in their standard library; none of them exposes Poly1305 on its own,
     /// because platforms ship it welded into an AEAD. Sixteen bytes of tag is the truncation
     /// RFC 4868 names, and 128 bits is past the point where the difference is one anybody

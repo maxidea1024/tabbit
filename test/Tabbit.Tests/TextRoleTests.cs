@@ -365,7 +365,7 @@ public class TextRoleTests
     /// </summary>
     /// <remarks>
     /// The claim the whole design rests on. If a role ever became a `ValueType`, this is
-    /// where the first of thirteen generators would start disagreeing about what to emit.
+    /// where the first of the generators would start disagreeing about what to emit.
     /// </remarks>
     [Fact]
     public void Text_columns_export_as_ordinary_strings()

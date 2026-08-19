@@ -16,7 +16,7 @@ namespace Tabbit.Tests;
 /// by name rather than attempted.
 ///
 /// The gate the format specified from the beginning and that nothing asserted until now: the
-/// refusal existed in all thirteen runtimes and no test had ever seen one fire.
+/// refusal existed in every runtime and no test had ever seen one fire.
 /// </remarks>
 public class UnknownEncodingTests
 {

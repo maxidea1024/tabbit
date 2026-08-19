@@ -1089,7 +1089,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                     return LanguageProfile.Dart.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Dart.ReadCall(wire.ElementType);
         }
     }

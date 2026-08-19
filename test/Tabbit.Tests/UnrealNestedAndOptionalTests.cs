@@ -75,7 +75,7 @@ public class UnrealNestedAndOptionalTests
     /// </summary>
     /// <remarks>
     /// The shape `foreign[]`'s refusal points at, and nothing in the corpus held one - so this
-    /// page was generated for thirteen languages and never compiled. Both forms of a reference
+    /// page was generated for every language and never compiled. Both forms of a reference
     /// are in the fixture, because they resolve to different types: a whole row and one of that
     /// row's values. spec/nullable-array-elements.md.
     /// </remarks>

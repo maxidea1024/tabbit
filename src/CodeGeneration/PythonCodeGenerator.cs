@@ -249,7 +249,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // The subpackage's `__init__`, so `from . import tabbit` keeps naming the
         // reader's own symbols - which is what every generated module reaches for.
         // Two lines rather than making the reader itself the `__init__`: the file is
-        // called tcb_reader in all thirteen languages, and it should be here
+        // called tcb_reader in every language, and it should be here
         // too.
         StagingFiles.WriteAllTextToFile(
             System.IO.Path.GetFullPath(System.IO.Path.Combine(runtime, "__init__.py")),
@@ -1240,7 +1240,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                     return LanguageProfile.Python.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Python.ReadCall(wire.ElementType);
         }
     }

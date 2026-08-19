@@ -68,7 +68,7 @@ public static class TcbFormat
     // Forty-two bytes, in the same places whether or not the file is encrypted and
     // whether or not it carries a MAC. The alternative - fields that appear only when
     // they are used - is four header shapes and an offset calculation in each of the
-    // thirteen runtimes, for the thirty-seven bytes a plain file spends on zeros.
+    // the runtimes, for the thirty-seven bytes a plain file spends on zeros.
     // spec/tcb-mac-and-signature.md.
 
     /// <summary>

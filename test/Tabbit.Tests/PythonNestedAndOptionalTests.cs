@@ -10,7 +10,7 @@ namespace Tabbit.Tests;
 /// </summary>
 /// <remarks>
 /// Compiling is the whole static check a Python target can be given, and here that is worth
-/// less than it is for the nine targets before it: `record.slot[j].id = x` parses whether or
+/// less than it is for the targets before it: `record.slot[j].id = x` parses whether or
 /// not `slot` holds anything. So these run the read as well, against the binary the same
 /// conversion wrote, and assert the shapes only these two features produce - the length of a
 /// trimmed record array, and a row that has no value for a column that carries one.

@@ -143,7 +143,7 @@ voiceTagForAdd[1][0]  voiceTagForAdd[1][1]  voiceTagForAdd[1][2]  voiceTagForAdd
 
 **1을 먼저 합니다.** 와이어도 형식도 건드리지 않고 테이블 하나가 열리며, 2를 하다가 판단이
 바뀌어도 되돌릴 것이 없습니다. 2는 형식 결정이 하나 들어 있고 생성기 13개를 도는 일이라,
-1이 끝난 자리에서 다시 값을 재어보는 편이 낫습니다 — **테이블 하나 때문에 13개 언어를 도는
+1이 끝난 자리에서 다시 값을 재어보는 편이 낫습니다 — **테이블 하나 때문에 모든 언어를 도는
 일**이기 때문입니다.
 
 > 순서를 뒤집을 이유가 하나 있다면, 2가 형식에 손을 대는 마지막 기회일 때입니다. 지금은
@@ -157,7 +157,7 @@ voiceTagForAdd[1][0]  voiceTagForAdd[1][1]  voiceTagForAdd[1][2]  voiceTagForAdd
 
 ## 1의 지원 완료
 
-13개 언어 전부와 `json`·`binary`. 예상대로 **형식은 한 비트도 바뀌지 않았고**, 기존 골든
+모든 언어와 `json`·`binary`. 예상대로 **형식은 한 비트도 바뀌지 않았고**, 기존 골든
 12개도 한 바이트도 움직이지 않았습니다.
 
 들어간 것은 이만큼입니다.
@@ -182,7 +182,7 @@ voiceTagForAdd[1][0]  voiceTagForAdd[1][1]  voiceTagForAdd[1][2]  voiceTagForAdd
 
 ## 2의 지원 완료 — 비용은 예상보다 낮음
 
-13개 언어 전부와 `json`·`binary`. **형식은 여기서도 한 비트도 바뀌지 않았습니다.**
+모든 언어와 `json`·`binary`. **형식은 여기서도 한 비트도 바뀌지 않았습니다.**
 
 이 문서가 처음에 「진짜 새 모양」이라고 적은 것은 **틀렸습니다.** 1을 만들고 나서 보니
 배열의 배열은 **1과 컬럼도 와이어도 완전히 같았습니다** — 바깥 레벨에 이름이 있느냐 없느냐만
@@ -314,7 +314,7 @@ public struct StarEntry        { public int Id; public StarPositionEntry Positio
 
 ### 남은 것
 
-**13개 언어 전부와 `json`·`binary`가 깊이 제한 없이 지원합니다.**
+**모든 언어와 `json`·`binary`가 깊이 제한 없이 지원합니다.**
 `SupportsDeepNestedFields`로 타깃마다 나타내고, 14번째 타깃은 지원하기 전에 **자기 이름과 함께
 거부**합니다 — 그 플래그가 없으면 생성기가 `Star1.Position.X`를 리프 이름만으로 선언해서
 `record.Star[j].X`를 내놓습니다. 컴파일되지 않거나, 더 나쁘게는 컴파일되고 다른 것을
@@ -322,7 +322,7 @@ public struct StarEntry        { public int Id; public StarPositionEntry Positio
 
 번호가 붙는 레벨은 여전히 **한 그룹에 하나**이고(이름 없는 안쪽 레벨은 예외), 깊은 그룹에서는
 **최상위 레벨에만** 붙습니다 — `Pos.Sub.X1`처럼 안쪽에 번호가 붙으면서 중첩하는 것은
-거부합니다. 와이어는 담을 수 있지만 배열이 레코드 아래로 들어가 13개 언어의 경우가 곱해지고,
+거부합니다. 와이어는 담을 수 있지만 배열이 레코드 아래로 들어가 모든 언어의 경우가 곱해지고,
 실측에 없는 모양입니다. 자르기와 옵셔널도 최상위 배열만입니다 — 근거는
 [중첩 필드 §5](nested-fields.md#5-깊이의-제약과-남은-제약)에 있습니다.
 
@@ -333,7 +333,7 @@ public struct StarEntry        { public int Id; public StarPositionEntry Positio
 
 |게이트|무엇을 확인할 수 있는가|
 |--|--|
-|골든 트리 (13개 언어 + `binary`·`json` 둘)|생성된 페이지와 파일 바이트|
+|골든 트리 (모든 언어 + `binary`·`json` 둘)|생성된 페이지와 파일 바이트|
 |JSON 산출물|`star[i].position.x`가 배열 안 오브젝트 안 오브젝트인가|
 |컴파일 (C#·C·C++·Go·Rust·Java·Kotlin·Dart)|타입 셋과 그 대입이 그 언어에서 합법인가|
 |**되읽기** (C#·Python·Ruby·PHP)|선언의 `Star[j].Position.X`와 파일의 `Deep.Star.Position.X`가 **같은 컬럼인가**|

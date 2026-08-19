@@ -10,7 +10,7 @@ namespace Tabbit.Cooking.Layouts;
 /// <remarks>
 /// The seam between importing and cooking. Everything above it - the sources - produces a
 /// grid of cells and knows nothing about what the cells mean; everything below it - cross
-/// reference resolution, validation, every exporter and all thirteen generators - sees only
+/// reference resolution, validation, every exporter and all the generators - sees only
 /// a <see cref="Models.Model"/> and knows nothing about where it came from. A layout is the
 /// single step in between, and adding one is adding a file with
 /// <see cref="TabbitLayoutAttribute"/> on it.

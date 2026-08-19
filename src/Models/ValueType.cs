@@ -158,7 +158,7 @@ public static class ValueTypes
     ///   * `datetime` and `timespan` would compare exactly - they are ticks - and are still
     ///     refused, on the one ground that no sheet keys its rows by when something
     ///     happened. Allowing them would mean standing behind a lookup keyed by a time in
-    ///     thirteen languages, several of which reach for a type whose equality is not the
+    ///     every language, several of which reach for a type whose equality is not the
     ///     value's, and there is nothing asking for it.
     ///
     /// Everything else is a key, `enum` included: its labels are a list the author wrote,

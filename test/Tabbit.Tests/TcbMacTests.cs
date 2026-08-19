@@ -197,7 +197,7 @@ public class TcbMacTests
     /// A fixed file and a fixed key give sixteen fixed bytes.
     /// </summary>
     /// <remarks>
-    /// The cross-language vector. Each of the thirteen runtimes asserts this same constant,
+    /// The cross-language vector. Each of the runtimes asserts this same constant,
     /// which pins three things a port can get wrong independently: the algorithm, which bytes
     /// of the file are covered, and that the tag is the leading half of the digest rather
     /// than the trailing one.

@@ -1,11 +1,11 @@
 # 생성 코드의 이름 체계
 
-> 상태: **구현 완료** (2026-08-14) · 근거 조사 2026-08-14 (13개 언어 전수 실측) · 상위 계획:
+> 상태: **구현 완료** (2026-08-14) · 근거 조사 2026-08-14 (모든 언어 전수 실측) · 상위 계획:
 > [검증 사용성과 C# 어셈블리 산출](validation-usability-and-assembly-output.md)의 9단계
 
 **세 가지를 바꿉니다.**
 
-1. **`AccessorName`이 실제로 액세서 타입의 이름을 정하게 합니다.** 지금은 13개 언어 중 5개
+1. **`AccessorName`이 실제로 액세서 타입의 이름을 정하게 합니다.** 지금은 모든 언어 중 5개
    에서만 그렇게 동작하고, 7개는 파일 이름만 바꾸며, TypeScript는 아무 일도 하지 않습니다.
 2. **기본값을 하나의 정본에서 파생시킵니다.** 지금은 액세서 기본값이 4갈래, 네임스페이스류
    기본값이 4갈래입니다.
@@ -31,7 +31,7 @@
 |**아무 역할 없음**|TypeScript|
 |옵션 자체가 없음|Rust · Python(모듈 이름이 대신) · HTML|
 
-8개 언어의 템플릿에 `Tables`가 리터럴로 고정되어 있습니다(`csharp-accessor.sbn:15` ·
+여러 언어의 템플릿에 `Tables`가 리터럴로 고정되어 있습니다(`csharp-accessor.sbn:15` ·
 `cpp-accessor.sbn:4` · `ts-tables-set.sbn:10` · `go-accessor.sbn:4` ·
 `rust-accessor.sbn:53` · `python-accessor.sbn:3` · `ruby-accessor.sbn:4` ·
 `dart-accessor.sbn:7`).
@@ -88,12 +88,12 @@ csharp · cpp에 `AccessorName: "Tables"`를, ruby · dart에 `"tables"`를 명�
 |액세서 파일|그 언어의 파일 명명 관례로 정본을 변환합니다 — `Tables.cs` · `tables.go` · `tables.rb`|
 |네임스페이스류|정본 하나를 받아 언어별 표기로 변환합니다 — `GameData`(C#·PHP·Ruby) · `gamedata`(Go·Rust·Python·Java·Kotlin)|
 
-정본 액세서 이름의 기본값은 **`Tables`** 로 합니다. 8개 언어가 오늘 실제로 생성하는 이름이고,
+정본 액세서 이름의 기본값은 **`Tables`** 로 합니다. 여러 언어가 오늘 실제로 생성하는 이름이고,
 샘플이 손으로 맞추고 있는 값이며, 사용 지점이 `Tables.Item.Records`로 읽힙니다.
 
 ### 2.2 `AccessorName`의 약속 이행
 
-8개 언어의 템플릿에서 `Tables` 리터럴을 파라미터로 바꿉니다. TypeScript는 사문 상태를 해소해
+여러 언어의 템플릿에서 `Tables` 리터럴을 파라미터로 바꿉니다. TypeScript는 사문 상태를 해소해
 파일 이름과 타입 이름 모두에 반영합니다. Rust와 Python은 옵션이 없으므로 신설할지, 모듈 이름
 옵션이 그 역할을 계속할지 정합니다(§5).
 
