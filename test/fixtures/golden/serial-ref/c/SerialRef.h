@@ -11,6 +11,8 @@
 
 #include "tables/SerialRef_Piece.h"
 #include "tables/SerialRef_Kit.h"
+#include "tables/SerialRef_Bit.h"
+#include "tables/SerialRef_TrimKit.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +22,8 @@ extern "C" {
 typedef struct SerialRef_t {
   SerialRef_PieceTable_t piece;
   SerialRef_KitTable_t kit;
+  SerialRef_BitTable_t bit;
+  SerialRef_TrimKitTable_t trim_kit;
 } SerialRef_t;
 
 /* Reads every table from base_path, then links the references between them.

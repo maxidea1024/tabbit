@@ -7,6 +7,8 @@
 
 from .piece_table import PieceRecord, PieceTable
 from .kit_table import KitRecord, KitTable
+from .bit_table import BitRecord, BitTable
+from .trim_kit_table import TrimKitRecord, TrimKitTable
 from .tables import Tables
 
 __all__ = [
@@ -14,5 +16,9 @@ __all__ = [
     "PieceTable",
     "KitRecord",
     "KitTable",
+    "BitRecord",
+    "BitTable",
+    "TrimKitRecord",
+    "TrimKitTable",
     "Tables",
 ]

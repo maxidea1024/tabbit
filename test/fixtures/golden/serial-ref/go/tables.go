@@ -15,6 +15,8 @@ import (
 type Tables struct {
 	Piece PieceTable
 	Kit KitTable
+	Bit BitTable
+	TrimKit TrimKitTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not
@@ -82,6 +84,12 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 	if err := loaded.Kit.Read(filepath.Join(basePath, "Kit"+fileExtension)); err != nil {
 		return err
 	}
+	if err := loaded.Bit.Read(filepath.Join(basePath, "Bit"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.TrimKit.Read(filepath.Join(basePath, "TrimKit"+fileExtension)); err != nil {
+		return err
+	}
 
 	loaded.solveCrossReferences()
 
@@ -102,6 +110,19 @@ func (t *Tables) solveCrossReferences() {
 		}
 		for k := range record.TierArrayIndex {
 			if target := t.Piece.FindByIndex(record.TierArrayIndex[k]); target != nil {
+				record.TierArray[k] = target.Tier
+			}
+		}
+	}
+	for i := range t.TrimKit.records {
+		record := &t.TrimKit.records[i]
+		for k := range record.SlotArrayIndex {
+			if target := t.Bit.FindByIndex(record.SlotArrayIndex[k]); target != nil {
+				record.SlotArray[k] = target
+			}
+		}
+		for k := range record.TierArrayIndex {
+			if target := t.Bit.FindByIndex(record.TierArrayIndex[k]); target != nil {
 				record.TierArray[k] = target.Tier
 			}
 		}

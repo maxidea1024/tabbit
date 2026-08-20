@@ -676,6 +676,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             LengthRead = UsesCursor(wire)
                 ? "elementCount := int(cursor.NextLength())"
                 : "elementCount := int(reader.ReadCounter32())",
+            RefKeyType = wire.IsRef ? ToGoTypeName(wire.RefKeyType, null, null) : "",
             RunCall = RunCall(wire),
             RunSpend = RunSpend(wire),
             Name = name,
@@ -758,9 +759,15 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     {
         if (sf.IsRef)
         {
+            // The key the target is addressed by, not `int32`. The record-member path next
+            // door has always asked; this one wrote the width in, so a reference array whose
+            // target is keyed by anything else declared a slice the read could not fill.
+            // spec/reference-key-types.md.
+            string keyType = ToGoTypeName(sf.FirstField!.RefKeyType, null, null);
+
             return sf.IsArray
-                ? new[] { $"{name} []{elementType}", $"{name}Index []int32" }
-                : new[] { $"{name} {elementType}", $"{name}Index int32" };
+                ? new[] { $"{name} []{elementType}", $"{name}Index []{keyType}" }
+                : new[] { $"{name} {elementType}", $"{name}Index {keyType}" };
         }
 
         return sf.IsArray
@@ -867,8 +874,13 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
         }
 
+        // A trimmed array of references: the length is the row's and the key still goes in
+        // the array beside the values. Read as a plain `var_array` it assigned an int32 into
+        // the slice of pointers, which is a page that does not compile - and nothing held the
+        // shape, because `foreign[]` is refused and this is only reachable through a folded
+        // group with trimming on. spec/variable-length-record-arrays.md.
         if (wire.IsVariableLengthArray)
-            return "var_array";
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         if (wire.IsFixedArray)
             return wire.IsRef ? "serial_ref" : "serial";

@@ -145,6 +145,24 @@ public final class {{ table.table_name }} {
                                 TcbReader.isPresent(elementPresence, elementAt++);
 {{~ end ~}}
                         }
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. Same length as the values - this row's - for the keys
+   beside them, which is what `serial_ref` does from the column count.
+   spec/variable-length-record-arrays.md. ##~}}
+                        int elementCount;
+                        {{ column_view.length_read }}
+                        record.{{ column_view.name }} = new {{ column_view.element_type }}[elementCount];
+                        record.{{ column_view.name }}Index = new {{ column_view.ref_key_type }}[elementCount];
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} = new boolean[elementCount];
+{{~ end ~}}
+                        for (int j = 0; j < elementCount; j++) {
+                            record.{{ column_view.name }}Index[j] = {{ column_view.read_element }};
+{{~ if column_view.has_optional_elements ~}}
+                            record.{{ column_view.element_presence_member }}[j] =
+                                TcbReader.isPresent(elementPresence, elementAt++);
+{{~ end ~}}
+                        }
 {{~ else if column_view.kind == 'record_var' ~}}
                         int elementCount;
                         {{ column_view.length_read }}
@@ -187,7 +205,7 @@ public final class {{ table.table_name }} {
                         }
 {{~ else if column_view.kind == 'serial_ref' ~}}
                         record.{{ column_view.name }} = new {{ column_view.element_type }}[column.count];
-                        record.{{ column_view.name }}Index = new int[column.count];
+                        record.{{ column_view.name }}Index = new {{ column_view.ref_key_type }}[column.count];
                         for (int j = 0; j < column.count; j++) {
                             record.{{ column_view.name }}Index[j] = {{ column_view.read_element }};
                         }

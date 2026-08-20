@@ -14,11 +14,15 @@ import 'tabbit/tcb_reader.dart';
 
 part 'tables/piece_table.dart';
 part 'tables/kit_table.dart';
+part 'tables/bit_table.dart';
+part 'tables/trim_kit_table.dart';
 
 /// Every table, loaded together so cross-table references can be resolved.
 class Tables {
   PieceTable piece = PieceTable();
   KitTable kit = KitTable();
+  BitTable bit = BitTable();
+  TrimKitTable trimKit = TrimKitTable();
 
   /// The key the table files were sealed with, or null when they were not sealed.
   ///
@@ -76,18 +80,24 @@ class Tables {
     loadedPieceTable.read('$basePath${Platform.pathSeparator}Piece$fileExtension');
     final loadedKitTable = KitTable();
     loadedKitTable.read('$basePath${Platform.pathSeparator}Kit$fileExtension');
+    final loadedBitTable = BitTable();
+    loadedBitTable.read('$basePath${Platform.pathSeparator}Bit$fileExtension');
+    final loadedTrimKitTable = TrimKitTable();
+    loadedTrimKitTable.read('$basePath${Platform.pathSeparator}TrimKit$fileExtension');
 
-    _solveCrossReferences(loadedPieceTable, loadedKitTable);
+    _solveCrossReferences(loadedPieceTable, loadedKitTable, loadedBitTable, loadedTrimKitTable);
 
     piece = loadedPieceTable;
     kit = loadedKitTable;
+    bit = loadedBitTable;
+    trimKit = loadedTrimKitTable;
   }
 
   /// Turns the stored indices into usable values, once every table is in memory.
   ///
   /// The tables arrive as arguments and shadow the fields of the same name, which is how
   /// this resolves the load being read rather than the one already published.
-  void _solveCrossReferences(PieceTable piece, KitTable kit) {
+  void _solveCrossReferences(PieceTable piece, KitTable kit, BitTable bit, TrimKitTable trimKit) {
     for (final record in kit.records) {
       for (var i = 0; i < record.slotArrayIndex.length; i++) {
         final target = piece.findByIndex(record.slotArrayIndex[i]);
@@ -95,6 +105,16 @@ class Tables {
       }
       for (var i = 0; i < record.tierArrayIndex.length; i++) {
         final target = piece.findByIndex(record.tierArrayIndex[i]);
+        if (target != null) record.tierArray[i] = target.tier;
+      }
+    }
+    for (final record in trimKit.records) {
+      for (var i = 0; i < record.slotArrayIndex.length; i++) {
+        final target = bit.findByIndex(record.slotArrayIndex[i]);
+        if (target != null) record.slotArray[i] = target;
+      }
+      for (var i = 0; i < record.tierArrayIndex.length; i++) {
+        final target = bit.findByIndex(record.tierArrayIndex[i]);
         if (target != null) record.tierArray[i] = target.tier;
       }
     }

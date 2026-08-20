@@ -953,7 +953,12 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         }
 
         if (wire.IsVariableLengthArray)
-            return "var_array";
+            // A trimmed array of references: the length is the row's, and the key still goes
+            // in the array beside the values. Read as a plain `var_array` it appended the key
+            // to the array of rows, which does not compile - and nothing held the shape,
+            // because `foreign[]` is refused and this is only reachable through a folded group
+            // with trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         if (wire.IsFixedArray)
             return wire.IsRef ? "serial_ref" : "serial";

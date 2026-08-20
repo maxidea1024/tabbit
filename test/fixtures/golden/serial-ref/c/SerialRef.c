@@ -52,6 +52,34 @@ static void SerialRef_SolveCrossReferences(SerialRef_t* data) {
       }
     }
   }
+
+  for (row = 0; row < data->trim_kit.count; ++row) {
+    SerialRef_TrimKitRecord_t* record = &data->trim_kit.records[row];
+
+    {
+      int32_t element;
+
+      for (element = 0; element < record->slot_array_count; ++element) {
+        const SerialRef_BitRecord_t* target = SerialRef_BitFindByIndex(
+          &data->bit, record->slot_array_index[element]);
+
+        if (target != NULL)
+          record->slot_array[element] = target;
+      }
+    }
+
+    {
+      int32_t element;
+
+      for (element = 0; element < record->tier_array_count; ++element) {
+        const SerialRef_BitRecord_t* target = SerialRef_BitFindByIndex(
+          &data->bit, record->tier_array_index[element]);
+
+        if (target != NULL)
+          record->tier_array[element] = target->tier;
+      }
+    }
+  }
 }
 
 bool SerialRef_LoadAll(SerialRef_t* data, const char* base_path,
@@ -100,6 +128,34 @@ bool SerialRef_LoadAllWithExtension(SerialRef_t* data, const char* base_path,
     return false;
   }
 
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Bit", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    SerialRef_Free(&loaded);
+    return false;
+  }
+
+  if (!SerialRef_BitLoad(&loaded.bit, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    SerialRef_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "TrimKit", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    SerialRef_Free(&loaded);
+    return false;
+  }
+
+  if (!SerialRef_TrimKitLoad(&loaded.trim_kit, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    SerialRef_Free(&loaded);
+    return false;
+  }
+
   /* Linked among the tables of this load, so no row points into the previous one. */
   SerialRef_SolveCrossReferences(&loaded);
 
@@ -113,4 +169,6 @@ bool SerialRef_LoadAllWithExtension(SerialRef_t* data, const char* base_path,
 void SerialRef_Free(SerialRef_t* data) {
   SerialRef_PieceFree(&data->piece);
   SerialRef_KitFree(&data->kit);
+  SerialRef_BitFree(&data->bit);
+  SerialRef_TrimKitFree(&data->trim_kit);
 }

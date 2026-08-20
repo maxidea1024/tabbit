@@ -15,6 +15,10 @@ mod piece_table;
 pub use piece_table::{PieceRecord, PieceTable};
 mod kit_table;
 pub use kit_table::{KitRecord, KitTable};
+mod bit_table;
+pub use bit_table::{BitRecord, BitTable};
+mod trim_kit_table;
+pub use trim_kit_table::{TrimKitRecord, TrimKitTable};
 
 // The accessor.
 mod tables;

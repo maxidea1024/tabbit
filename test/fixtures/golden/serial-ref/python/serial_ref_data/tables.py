@@ -11,12 +11,14 @@ import os
 from . import tabbit
 from .piece_table import PieceTable
 from .kit_table import KitTable
+from .bit_table import BitTable
+from .trim_kit_table import TrimKitTable
 
 
 class Tables:
     """Every table, loaded together so cross-table references can be resolved."""
 
-    __slots__ = ("piece", "kit")
+    __slots__ = ("piece", "kit", "bit", "trim_kit")
 
     #: The key the table files were sealed with, or None when they were not sealed.
     #:
@@ -65,6 +67,8 @@ class Tables:
     def __init__(self):
         self.piece = PieceTable()
         self.kit = KitTable()
+        self.bit = BitTable()
+        self.trim_kit = TrimKitTable()
 
     def read_all(self, base_path, file_extension=".tcb"):
         """Reads every table from base_path, then links the references between them.
@@ -80,13 +84,19 @@ class Tables:
         loaded_piece.read(os.path.join(base_path, "Piece" + file_extension))
         loaded_kit = KitTable()
         loaded_kit.read(os.path.join(base_path, "Kit" + file_extension))
+        loaded_bit = BitTable()
+        loaded_bit.read(os.path.join(base_path, "Bit" + file_extension))
+        loaded_trim_kit = TrimKitTable()
+        loaded_trim_kit.read(os.path.join(base_path, "TrimKit" + file_extension))
 
-        self._solve_cross_references(loaded_piece, loaded_kit)
+        self._solve_cross_references(loaded_piece, loaded_kit, loaded_bit, loaded_trim_kit)
 
         self.piece = loaded_piece
         self.kit = loaded_kit
+        self.bit = loaded_bit
+        self.trim_kit = loaded_trim_kit
 
-    def _solve_cross_references(self, piece, kit):
+    def _solve_cross_references(self, piece, kit, bit, trim_kit):
         """Turns the stored indices into usable values, once every table is in memory.
 
         The tables arrive as arguments rather than off self, which is how this resolves the
@@ -99,5 +109,14 @@ class Tables:
                     record.slot_array[position] = target
             for position, index in enumerate(record.tier_array_index):
                 target = piece.find_by_index(index)
+                if target is not None:
+                    record.tier_array[position] = target.tier
+        for record in trim_kit.records:
+            for position, index in enumerate(record.slot_array_index):
+                target = bit.find_by_index(index)
+                if target is not None:
+                    record.slot_array[position] = target
+            for position, index in enumerate(record.tier_array_index):
+                target = bit.find_by_index(index)
                 if target is not None:
                     record.tier_array[position] = target.tier

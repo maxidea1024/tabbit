@@ -11,6 +11,8 @@ use std::sync::OnceLock;
 use crate::tabbit;
 use crate::piece_table::PieceTable;
 use crate::kit_table::KitTable;
+use crate::bit_table::BitTable;
+use crate::trim_kit_table::TrimKitTable;
 
 /// The key the table files were sealed with, or unset when they were not sealed.
 ///
@@ -65,6 +67,8 @@ pub static VERIFY_MAC: AtomicBool = AtomicBool::new(true);
 pub struct Tables {
     pub piece: PieceTable,
     pub kit: KitTable,
+    pub bit: BitTable,
+    pub trim_kit: TrimKitTable,
 }
 
 impl Tables {
@@ -89,6 +93,10 @@ impl Tables {
             &base_path.join(format!("Piece{}", file_extension)))?;
         loaded.kit.read(
             &base_path.join(format!("Kit{}", file_extension)))?;
+        loaded.bit.read(
+            &base_path.join(format!("Bit{}", file_extension)))?;
+        loaded.trim_kit.read(
+            &base_path.join(format!("TrimKit{}", file_extension)))?;
 
         *self = loaded;
 

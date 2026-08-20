@@ -249,6 +249,24 @@ class {{ table.table_name }} {
                         for (element in 0 until {{ column_view.element_count }}) {
                             record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
                         }
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. The keys go in the list beside the values, at this row's
+   length - which is what `serial_ref` below does from the column count.
+   spec/variable-length-record-arrays.md. ##~}}
+                        val elementCount = {{ column_view.length_read }}
+                        record.{{ column_view.name }}Index = ArrayList(elementCount.coerceAtLeast(0))
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) {
+                            record.{{ column_view.name }}Index.add({{ column_view.read_element }})
+                            record.{{ column_view.element_presence_member }}
+                                .add(isPresent(elementPresence, elementAt))
+                            elementAt++
+                        }
+{{~ else ~}}
+                        repeat(elementCount) { record.{{ column_view.name }}Index.add({{ column_view.read_element }}) }
+{{~ end ~}}
 {{~ else if column_view.kind == 'serial_ref' ~}}
                         record.{{ column_view.name }}Index = ArrayList(column.count)
                         repeat(column.count) { record.{{ column_view.name }}Index.add({{ column_view.read_element }}) }

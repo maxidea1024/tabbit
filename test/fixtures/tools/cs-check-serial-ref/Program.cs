@@ -60,6 +60,29 @@ internal static class Program
                         ["resolved"] = r._tierArray_F[at] ? tier.ToString() : "<unresolved>",
                     }).ToList(),
                 }).ToList(),
+
+                // The same shape with the length trimmed to each row's. What this catches
+                // that the table above cannot: the key array is allocated per row here, and
+                // the read left it empty - so the first element written into it was an index
+                // out of range. spec/variable-length-record-arrays.md.
+                ["TrimKit"] = SerialRefAccessor.TrimKit.Records.Select(r => new Dictionary<string, object>
+                {
+                    ["index"] = r.Index,
+                    ["length"] = r.SlotArray.Length,
+                    ["keyLength"] = r._slotArray_Bit_index.Length,
+
+                    ["slots"] = r.SlotArray.Select((bit, at) => new Dictionary<string, object>
+                    {
+                        ["key"] = r._slotArray_Bit_index[at],
+                        ["resolved"] = r._slotArray_F[at] ? bit.Name : "<unresolved>",
+                    }).ToList(),
+
+                    ["tiers"] = r.TierArray.Select((tier, at) => new Dictionary<string, object>
+                    {
+                        ["key"] = r._tierArray_Bit_index[at],
+                        ["resolved"] = r._tierArray_F[at] ? tier.ToString() : "<unresolved>",
+                    }).ToList(),
+                }).ToList(),
             };
 
             Console.WriteLine(JsonSerializer.Serialize(report));

@@ -565,7 +565,11 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         string valuesTarget = kind switch
         {
             "var_array" or "serial" => "record" + groupAccess,
-            "serial_ref" => "record" + Access(RefIndexName(wire.Group.Name)),
+
+            // A reference array reads keys, so what the read fills is the key list and the
+            // value list is cleared for the linking pass. Trimmed or not, only the length
+            // differs. spec/variable-length-record-arrays.md.
+            "serial_ref" or "var_array_ref" => "record" + Access(RefIndexName(wire.Group.Name)),
             _ => "",
         };
 
@@ -580,7 +584,9 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             ScalarTarget = scalarTarget,
             ElementTarget = elementTarget,
             ValuesTarget = valuesTarget,
-            SecondaryClear = kind == "serial_ref" ? $"record{groupAccess} = {{}}" : "",
+            SecondaryClear = kind is "serial_ref" or "var_array_ref"
+                ? $"record{groupAccess} = {{}}"
+                : "",
             GroupTarget = "record" + groupAccess,
             RecordConstructor = wire.Group.IsRecord ? "new" + RecordTypeName(table, wire.Group) : "",
             IsFirstMember = wire.IsFirstMember,
@@ -987,7 +993,13 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         }
 
         if (wire.IsVariableLengthArray)
-            return "var_array";
+            // A trimmed array of references: the length is the row's, and the key still goes
+            // in the array beside the values. Read as a plain `var_array` it put the keys where
+            // the resolved rows belong, and the linking pass then found nothing to resolve -
+            // silently, because this language does not type them apart. Nothing held the shape:
+            // `foreign[]` is refused, so it is only reachable through a folded group with
+            // trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         if (wire.IsFixedArray)
             return wire.IsRef ? "serial_ref" : "serial";

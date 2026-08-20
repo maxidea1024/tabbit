@@ -197,6 +197,11 @@ assert rows[1].slot_array[0].name == 'ring'
 assert rows[2].slot_array[1] is None
 assert rows[0].tier_array == [3, 5]
 assert rows[2].tier_array[1] is None
+trimmed = t.trim_kit.records
+assert [len(r.slot_array) for r in trimmed] == [3, 2, 0]
+assert trimmed[0].slot_array[2].name == 'ring'
+assert trimmed[1].slot_array[0].name == 'ring'
+assert trimmed[0].tier_array[2] == 8
 ");
 
     /// <summary>

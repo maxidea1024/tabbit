@@ -212,6 +212,19 @@
             {{ column_view.element_count }}.times do |element|
               record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
             end
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. The keys go in the array beside the values, at this row's
+   length - which is what `serial_ref` below does from the column count.
+   spec/variable-length-record-arrays.md. ##~}}
+            {{ column_view.length_read }}
+            record.{{ column_view.name }}_index = Array.new(element_count) { {{ column_view.read_element }} }
+            record.{{ column_view.name }} = Array.new(element_count)
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }} = Array.new(element_count) do |at|
+              Tabbit.present?(element_presence, element_at + at)
+            end
+            element_at += element_count
+{{~ end ~}}
 {{~ else if column_view.kind == 'serial_ref' ~}}
             record.{{ column_view.name }}_index = Array.new(column.count) { {{ column_view.read_element }} }
             record.{{ column_view.name }} = Array.new(column.count)

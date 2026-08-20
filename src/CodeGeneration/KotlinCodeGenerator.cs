@@ -563,6 +563,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),
             LengthRead = UsesCursor(wire) ? "cursor.nextLength()" : "reader.readCounter32()",
+            RefKeyType = wire.IsRef ? ToKotlinTypeName(wire.RefKeyType, null, null) : "",
             RunCall = RunCall(wire),
             RunSpend = RunSpend(wire),
             Name = KotlinName(wire.Group.Name),
@@ -687,16 +688,22 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         if (sf.IsRef)
         {
+            // The key the target is addressed by, not `Int`. The record-member path next door
+            // has always asked; this one wrote the width in, so a reference whose target is
+            // keyed by anything else declared a member the read could not fill.
+            // spec/reference-key-types.md.
+            string keyType = ToKotlinTypeName(sf.FirstField!.RefKeyType, null, null);
+
             return sf.IsArray
                 ? new[]
                 {
                     $"var {name}: MutableList<{elementType}> = ArrayList()",
-                    $"var {name}Index: MutableList<Int> = ArrayList()",
+                    $"var {name}Index: MutableList<{keyType}> = ArrayList()",
                 }
                 : new[]
                 {
                     $"var {name}: {elementType}? = null",
-                    $"var {name}Index: Int = 0",
+                    $"var {name}Index: {keyType} = {RefKeyDefault(sf.FirstField!.RefKeyType)}",
                 };
         }
 
@@ -961,7 +968,12 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         }
 
         if (wire.IsVariableLengthArray)
-            return "var_array";
+            // A trimmed array of references: the length is the row's, and the key still goes in
+            // the list beside the values. Read as a plain `var_array` it added the key to the
+            // list of rows, which does not compile - and nothing held the shape, because
+            // `foreign[]` is refused and this is only reachable through a folded group with
+            // trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         if (wire.IsFixedArray)
             return wire.IsRef ? "serial_ref" : "serial";

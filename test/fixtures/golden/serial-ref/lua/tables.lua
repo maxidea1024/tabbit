@@ -9,6 +9,8 @@ local _root = (...):match("^(.-)[^%.]*$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 local PieceTable = require(_root .. "tables.piece_table")
 local KitTable = require(_root .. "tables.kit_table")
+local BitTable = require(_root .. "tables.bit_table")
+local TrimKitTable = require(_root .. "tables.trim_kit_table")
 
 -- Every table, loaded together so cross-table references can be resolved.
 ---@class tables
@@ -33,12 +35,14 @@ tables.macKey = nil
 -- is not a security boundary.
 tables.verifyMac = true
 
-local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "piece", "kit" })
+local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "piece", "kit", "bit", "trimKit" })
 
 function tables.new()
   return setmetatable({
     piece = PieceTable.new(),
     kit = KitTable.new(),
+    bit = BitTable.new(),
+    trimKit = TrimKitTable.new(),
   }, instanceMeta)
 end
 
@@ -68,6 +72,12 @@ function tables:readAll(source, fileExtension)
   local loadedKit = KitTable.new()
   loadedKit:readBytes(bytesOf(source, "Kit", fileExtension))
 
+  local loadedBit = BitTable.new()
+  loadedBit:readBytes(bytesOf(source, "Bit", fileExtension))
+
+  local loadedTrimKit = TrimKitTable.new()
+  loadedTrimKit:readBytes(bytesOf(source, "TrimKit", fileExtension))
+
   -- Turns loadedKit's stored keys into rows, now that every table is in
   -- memory.
   for _, record in ipairs(loadedKit.records) do
@@ -87,9 +97,30 @@ function tables:readAll(source, fileExtension)
     end
   end
 
+  -- Turns loadedTrimKit's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedTrimKit.records) do
+    for position = 1, #record.slotArrayIndex do
+      local target = loadedBit:findByIndex(record.slotArrayIndex[position])
+
+      if target ~= nil then
+        record.slotArray[position] = target
+      end
+    end
+    for position = 1, #record.tierArrayIndex do
+      local target = loadedBit:findByIndex(record.tierArrayIndex[position])
+
+      if target ~= nil then
+        record.tierArray[position] = target.tier
+      end
+    end
+  end
+
   -- Published, now that every table read and linked.
   self.piece = loadedPiece
   self.kit = loadedKit
+  self.bit = loadedBit
+  self.trimKit = loadedTrimKit
 end
 
 return setmetatable(tables, tcb.strictType(

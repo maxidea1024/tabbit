@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "eacedb78d9abb6fe163b28b47fbca994",
-  "TotalSize": 516,
+  "MasterHash": "90337a23417c63dee9536a1217c5fa83",
+  "TotalSize": 1006,
   "Items": [
     {
       "Name": "Piece.json",
@@ -13,6 +13,18 @@
       "Name": "Kit.json",
       "Size": 333,
       "Hash": "980ec2bcc009aaccaa6ad0266d7d5667",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Bit.json",
+      "Size": 183,
+      "Hash": "e721a7d06326a1c7cc52b13c3edc8277",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "TrimKit.json",
+      "Size": 307,
+      "Hash": "5766ad0170f8bdfedbe20f8d6242efcc",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

@@ -190,7 +190,7 @@ function {{ table.table_name }}:readBytes(data)
 {{~ else ~}}
       for i = 1, count do
         local record = records[i]
-{{~ if column_view.kind == 'var_array' ~}}
+{{~ if column_view.kind == 'var_array' || column_view.kind == 'var_array_ref' ~}}
         {{ column_view.length_read }}
         local values = {}
 
@@ -199,6 +199,12 @@ function {{ table.table_name }}:readBytes(data)
         end
 
         {{ column_view.values_target }} = values
+{{~ if column_view.kind == 'var_array_ref' ~}}
+{{~## A reference array read its keys above - `values_target` is the key list for it - so the
+   list the consumer reads starts empty and the linking pass fills it.
+   spec/variable-length-record-arrays.md. ##~}}
+        {{ column_view.secondary_clear }}
+{{~ end ~}}
 {{~ if column_view.has_optional_elements ~}}
         local answers = {}
 

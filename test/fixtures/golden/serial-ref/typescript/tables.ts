@@ -11,6 +11,8 @@ import * as path from 'path'
 
 import { PieceTable } from './tables/piece'
 import { KitTable } from './tables/kit'
+import { BitTable } from './tables/bit'
+import { TrimKitTable } from './tables/trim-kit'
 
 /** Tables */
 export class Tables {
@@ -73,6 +75,14 @@ export class Tables {
   public get kit(): KitTable { return this._kit }
   private _kit: KitTable = new KitTable()
 
+  /** Peroperty for table Bit */
+  public get bit(): BitTable { return this._bit }
+  private _bit: BitTable = new BitTable()
+
+  /** Peroperty for table TrimKit */
+  public get trimKit(): TrimKitTable { return this._trimKit }
+  private _trimKit: TrimKitTable = new TrimKitTable()
+
   /**
    * Read all tables asynchronously.
    *
@@ -84,8 +94,12 @@ export class Tables {
     await piece.read(path.join(basePath, `Piece${fileExtension}`))
     const kit = new KitTable()
     await kit.read(path.join(basePath, `Kit${fileExtension}`))
+    const bit = new BitTable()
+    await bit.read(path.join(basePath, `Bit${fileExtension}`))
+    const trimKit = new TrimKitTable()
+    await trimKit.read(path.join(basePath, `TrimKit${fileExtension}`))
 
-    this.publish(piece, kit)
+    this.publish(piece, kit, bit, trimKit)
   }
 
   /** Read all tables synchronously. */
@@ -94,8 +108,12 @@ export class Tables {
     piece.readSync(path.join(basePath, `Piece${fileExtension}`))
     const kit = new KitTable()
     kit.readSync(path.join(basePath, `Kit${fileExtension}`))
+    const bit = new BitTable()
+    bit.readSync(path.join(basePath, `Bit${fileExtension}`))
+    const trimKit = new TrimKitTable()
+    trimKit.readSync(path.join(basePath, `TrimKit${fileExtension}`))
 
-    this.publish(piece, kit)
+    this.publish(piece, kit, bit, trimKit)
   }
 
   /**
@@ -110,8 +128,12 @@ export class Tables {
     piece.readBinarySync(path.join(basePath, `Piece${fileExtension}`))
     const kit = new KitTable()
     kit.readBinarySync(path.join(basePath, `Kit${fileExtension}`))
+    const bit = new BitTable()
+    bit.readBinarySync(path.join(basePath, `Bit${fileExtension}`))
+    const trimKit = new TrimKitTable()
+    trimKit.readBinarySync(path.join(basePath, `TrimKit${fileExtension}`))
 
-    this.publish(piece, kit)
+    this.publish(piece, kit, bit, trimKit)
   }
 
   /**
@@ -122,9 +144,11 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(piece: PieceTable, kit: KitTable): void {
+  private publish(piece: PieceTable, kit: KitTable, bit: BitTable, trimKit: TrimKitTable): void {
     this._piece = piece
     this._kit = kit
+    this._bit = bit
+    this._trimKit = trimKit
 
     this.solveCrossReferences()
   }
@@ -150,6 +174,25 @@ export class Tables {
         if (record._tierArray_Piece_index[i] > 0) {
           const target = this._piece.getByIndexOrThrow(
             record._tierArray_Piece_index[i])
+          record.setReference_tierArray_INTERNAL(i, target.tier)
+          record._tierArray_F[i] = true
+        }
+      }
+    }
+
+    for (const record of this._trimKit.records) {
+      for (let i = 0; i < record._slotArray_Bit_index.length; i++) {
+        if (record._slotArray_Bit_index[i] > 0) {
+          const target = this._bit.getByIndexOrThrow(
+            record._slotArray_Bit_index[i])
+          record.setReference_slotArray_INTERNAL(i, target)
+          record._slotArray_F[i] = true
+        }
+      }
+      for (let i = 0; i < record._tierArray_Bit_index.length; i++) {
+        if (record._tierArray_Bit_index[i] > 0) {
+          const target = this._bit.getByIndexOrThrow(
+            record._tierArray_Bit_index[i])
           record.setReference_tierArray_INTERNAL(i, target.tier)
           record._tierArray_F[i] = true
         }

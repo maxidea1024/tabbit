@@ -1016,19 +1016,34 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <remarks>
     /// Only where one column owns the array: a member of a record group keeps its key and its
     /// flag inside the element, which the record allocates. spec/references-in-records.md.
+    ///
+    /// **Both array kinds, from their own length.** A folded group's length is the column count
+    /// the file states; a trimmed one's is the row's, read a line earlier. This asked only for
+    /// the fixed kind, so a trimmed array of references allocated its values and its presence
+    /// bitmap per row and left the key array at `Array.Empty` - and the first element written
+    /// into it was an index out of range. `foreign[]` is refused, so the only way to that shape
+    /// is a folded group with trimming turned on for the entry, and no fixture held one.
+    /// spec/variable-length-record-arrays.md.
     /// </remarks>
     private IReadOnlyList<string> ParallelArrayLines(
         WireColumn wire, string fieldName, string refTable)
     {
-        if (!wire.IsRef || wire.Member is not null || !wire.IsFixedArray)
+        if (!wire.IsRef || wire.Member is not null)
+            return Array.Empty<string>();
+
+        string length = wire.IsFixedArray ? "column.Count"
+            : wire.IsVariableLengthArray ? "elementCount"
+            : "";
+
+        if (length.Length == 0)
             return Array.Empty<string>();
 
         string keyType = ToCSharpTypeName(wire.RefKeyType, null, null);
 
         return new[]
         {
-            $"record.{fieldName}_{refTable}_index = new {keyType}[column.Count];",
-            $"record.{fieldName}_F = new bool[column.Count];",
+            $"record.{fieldName}_{refTable}_index = new {keyType}[{length}];",
+            $"record.{fieldName}_F = new bool[{length}];",
         };
     }
 

@@ -13,6 +13,8 @@ import java.nio.file.Paths;
 public final class Tables {
     public PieceTable piece = new PieceTable();
     public KitTable kit = new KitTable();
+    public BitTable bit = new BitTable();
+    public TrimKitTable trimKit = new TrimKitTable();
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -84,11 +86,17 @@ public final class Tables {
         loadedPieceTable.read(Paths.get(basePath, "Piece" + fileExtension));
         KitTable loadedKitTable = new KitTable();
         loadedKitTable.read(Paths.get(basePath, "Kit" + fileExtension));
+        BitTable loadedBitTable = new BitTable();
+        loadedBitTable.read(Paths.get(basePath, "Bit" + fileExtension));
+        TrimKitTable loadedTrimKitTable = new TrimKitTable();
+        loadedTrimKitTable.read(Paths.get(basePath, "TrimKit" + fileExtension));
 
-        solveCrossReferences(loadedPieceTable, loadedKitTable);
+        solveCrossReferences(loadedPieceTable, loadedKitTable, loadedBitTable, loadedTrimKitTable);
 
         piece = loadedPieceTable;
         kit = loadedKitTable;
+        bit = loadedBitTable;
+        trimKit = loadedTrimKitTable;
     }
 
     /**
@@ -97,7 +105,7 @@ public final class Tables {
      * <p>The tables arrive as arguments and shadow the fields of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private void solveCrossReferences(PieceTable piece, KitTable kit) {
+    private void solveCrossReferences(PieceTable piece, KitTable kit, BitTable bit, TrimKitTable trimKit) {
         for (KitRecord record : kit.records()) {
             for (int i = 0; i < record.slotArrayIndex.length; i++) {
                 PieceRecord target = piece.findByIndex(record.slotArrayIndex[i]);
@@ -107,6 +115,20 @@ public final class Tables {
             }
             for (int i = 0; i < record.tierArrayIndex.length; i++) {
                 PieceRecord target = piece.findByIndex(record.tierArrayIndex[i]);
+                if (target != null) {
+                    record.tierArray[i] = target.tier;
+                }
+            }
+        }
+        for (TrimKitRecord record : trimKit.records()) {
+            for (int i = 0; i < record.slotArrayIndex.length; i++) {
+                BitRecord target = bit.findByIndex(record.slotArrayIndex[i]);
+                if (target != null) {
+                    record.slotArray[i] = target;
+                }
+            }
+            for (int i = 0; i < record.tierArrayIndex.length; i++) {
+                BitRecord target = bit.findByIndex(record.tierArrayIndex[i]);
                 if (target != null) {
                     record.tierArray[i] = target.tier;
                 }

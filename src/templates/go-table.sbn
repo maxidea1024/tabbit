@@ -239,6 +239,24 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 						elementAt++
 {{~ end ~}}
 					}
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. Same length as the values - this row's - for the keys
+   beside them, which is what `serial_ref` does from the column count.
+   spec/variable-length-record-arrays.md. ##~}}
+					{{ column_view.length_read }}
+					r.{{ column_view.name }} = make({{ column_view.array_type }}, elementCount)
+					r.{{ column_view.name }}Index = make([]{{ column_view.ref_key_type }}, elementCount)
+{{~ if column_view.has_optional_elements ~}}
+					r.{{ column_view.element_presence_member }} = make([]bool, elementCount)
+{{~ end ~}}
+					for j := 0; j < elementCount; j++ {
+						r.{{ column_view.name }}Index[j] = {{ column_view.read_value }}
+{{~ if column_view.has_optional_elements ~}}
+						r.{{ column_view.element_presence_member }}[j] =
+							tabbit.IsPresent(elementPresence, elementAt)
+						elementAt++
+{{~ end ~}}
+					}
 {{~ else if column_view.kind == 'record_var' ~}}
 					{{ column_view.length_read }}
 {{~ if column_view.is_first_member ~}}
@@ -273,7 +291,7 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 					}
 {{~ else if column_view.kind == 'serial_ref' ~}}
 					r.{{ column_view.name }} = make({{ column_view.array_type }}, int(column.Count))
-					r.{{ column_view.name }}Index = make([]int32, int(column.Count))
+					r.{{ column_view.name }}Index = make([]{{ column_view.ref_key_type }}, int(column.Count))
 					for j := 0; j < int(column.Count); j++ {
 						r.{{ column_view.name }}Index[j] = {{ column_view.read_value }}
 					}

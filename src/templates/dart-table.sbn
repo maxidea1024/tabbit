@@ -191,6 +191,16 @@ class {{ table.table_name }} {
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
             elementAt += elementCount;
 {{~ end ~}}
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. The keys are the list this row's length builds; the
+   resolved values are filled by the linking pass. spec/variable-length-record-arrays.md. ##~}}
+            final elementCount = {{ column_view.length_read }};
+            record.{{ column_view.name }}Index = List.generate(elementCount, (_) => {{ column_view.read_element }});
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }} =
+                List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
+            elementAt += elementCount;
+{{~ end ~}}
 {{~ else if column_view.kind == 'record_var' ~}}
             final elementCount = {{ column_view.length_read }};
 {{~ if column_view.is_first_member ~}}

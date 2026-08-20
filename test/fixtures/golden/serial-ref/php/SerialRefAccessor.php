@@ -14,6 +14,8 @@ namespace Tabbit\Fixtures\SerialRef;
 require_once __DIR__ . '/tabbit/TcbReader.php';
 require_once __DIR__ . '/tables/PieceTable.php';
 require_once __DIR__ . '/tables/KitTable.php';
+require_once __DIR__ . '/tables/BitTable.php';
+require_once __DIR__ . '/tables/TrimKitTable.php';
 
 use Tabbit\TcbReader;
 use Tabbit\TcbColumnCursor;
@@ -25,11 +27,15 @@ final class SerialRefAccessor
 {
     public PieceTable $piece;
     public KitTable $kit;
+    public BitTable $bit;
+    public TrimKitTable $trimKit;
 
     public function __construct()
     {
         $this->piece = new PieceTable();
         $this->kit = new KitTable();
+        $this->bit = new BitTable();
+        $this->trimKit = new TrimKitTable();
     }
 
     /**
@@ -93,11 +99,17 @@ final class SerialRefAccessor
         $loadedPieceTable->read($basePath . \DIRECTORY_SEPARATOR . 'Piece' . $fileExtension);
         $loadedKitTable = new KitTable();
         $loadedKitTable->read($basePath . \DIRECTORY_SEPARATOR . 'Kit' . $fileExtension);
+        $loadedBitTable = new BitTable();
+        $loadedBitTable->read($basePath . \DIRECTORY_SEPARATOR . 'Bit' . $fileExtension);
+        $loadedTrimKitTable = new TrimKitTable();
+        $loadedTrimKitTable->read($basePath . \DIRECTORY_SEPARATOR . 'TrimKit' . $fileExtension);
 
-        $this->solveCrossReferences($loadedPieceTable, $loadedKitTable);
+        $this->solveCrossReferences($loadedPieceTable, $loadedKitTable, $loadedBitTable, $loadedTrimKitTable);
 
         $this->piece = $loadedPieceTable;
         $this->kit = $loadedKitTable;
+        $this->bit = $loadedBitTable;
+        $this->trimKit = $loadedTrimKitTable;
     }
 
     /**
@@ -106,7 +118,7 @@ final class SerialRefAccessor
      * The tables arrive as arguments rather than off $this, which is how this resolves the
      * load being read rather than the one already published.
      */
-    private function solveCrossReferences(PieceTable $piece, KitTable $kit): void
+    private function solveCrossReferences(PieceTable $piece, KitTable $kit, BitTable $bit, TrimKitTable $trimKit): void
     {
         foreach ($kit->records as $record) {
             foreach ($record->slotArrayIndex as $position => $index) {
@@ -118,6 +130,22 @@ final class SerialRefAccessor
             }
             foreach ($record->tierArrayIndex as $position => $index) {
                 $target = $piece->findByIndex($index);
+
+                if ($target !== null) {
+                    $record->tierArray[$position] = $target->tier;
+                }
+            }
+        }
+        foreach ($trimKit->records as $record) {
+            foreach ($record->slotArrayIndex as $position => $index) {
+                $target = $bit->findByIndex($index);
+
+                if ($target !== null) {
+                    $record->slotArray[$position] = $target;
+                }
+            }
+            foreach ($record->tierArrayIndex as $position => $index) {
+                $target = $bit->findByIndex($index);
 
                 if ($target !== null) {
                     $record->tierArray[$position] = $target->tier;

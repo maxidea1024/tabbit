@@ -19,6 +19,18 @@
         // The whole point: without this the columns are five separate fields and there is no
         // array to get wrong.
         "FoldSerialFields": true
+      },
+
+      // The same shape with the length trimmed to each row's. A second entry rather than a
+      // second recipe, because trimming is a property of the entry and what has to be pinned
+      // is the pair: the untrimmed array's length is the sheet's column count and the trimmed
+      // one's is the row's, and a read that allocates from the wrong one passes on one table
+      // and not the other. One layout turns trimming on for every table it reads, which is
+      // how this combination arrived and where it crashed.
+      {
+        "Path": "test/fixtures/xlsx/serial-ref-trim",
+        "FoldSerialFields": true,
+        "TrimTrailingArrayElements": true
       }
     ],
     "GoogleSheets": []

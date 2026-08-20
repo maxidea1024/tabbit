@@ -659,8 +659,13 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             return wire.Group.MembersAreArrays ? "record_member_array" : "record_array_member";
         }
 
+        // A trimmed array of references: the length is the row's, and the keys still arrive in
+        // the array beside the values. Read as a plain `var_array` it pushed a number into the
+        // array of rows, which `tsc` refuses - and nothing held the shape, because `foreign[]`
+        // is refused and this is only reachable through a folded group with trimming on.
+        // spec/variable-length-record-arrays.md.
         if (wire.IsVariableLengthArray)
-            return "var_array";
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         if (wire.IsFixedArray)
             return wire.IsRef ? "array_ref" : "array";

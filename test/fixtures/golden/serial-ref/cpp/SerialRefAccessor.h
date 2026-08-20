@@ -15,6 +15,8 @@
 
 #include "tables/SerialRefAccessor_piece.h"
 #include "tables/SerialRefAccessor_kit.h"
+#include "tables/SerialRefAccessor_bit.h"
+#include "tables/SerialRefAccessor_trim_kit.h"
 
 namespace serial_ref {
 /// Every table, loaded together so cross-table references can be resolved.
@@ -22,6 +24,8 @@ class SerialRefAccessor {
  public:
   const PieceTable& piece() const { return piece_; }
   const KitTable& kit() const { return kit_; }
+  const BitTable& bit() const { return bit_; }
+  const TrimKitTable& trim_kit() const { return trim_kit_; }
 
   /// Reads every table from `base_path`, then links the references between them.
   ///
@@ -33,11 +37,17 @@ class SerialRefAccessor {
     loaded_piece.read(base_path + "/Piece" + file_extension);
     KitTable loaded_kit;
     loaded_kit.read(base_path + "/Kit" + file_extension);
+    BitTable loaded_bit;
+    loaded_bit.read(base_path + "/Bit" + file_extension);
+    TrimKitTable loaded_trim_kit;
+    loaded_trim_kit.read(base_path + "/TrimKit" + file_extension);
 
-    solve_cross_references(loaded_piece, loaded_kit);
+    solve_cross_references(loaded_piece, loaded_kit, loaded_bit, loaded_trim_kit);
 
     piece_ = std::move(loaded_piece);
     kit_ = std::move(loaded_kit);
+    bit_ = std::move(loaded_bit);
+    trim_kit_ = std::move(loaded_trim_kit);
   }
 
  private:
@@ -49,7 +59,7 @@ class SerialRefAccessor {
   /// compiler: the gate builds with `-Wextra -Werror`, and a model where nothing
   /// references anything - which is most of them - otherwise fails to compile on the
   /// unused parameters.
-  void solve_cross_references([[maybe_unused]] PieceTable& loaded_piece, [[maybe_unused]] KitTable& loaded_kit) {
+  void solve_cross_references([[maybe_unused]] PieceTable& loaded_piece, [[maybe_unused]] KitTable& loaded_kit, [[maybe_unused]] BitTable& loaded_bit, [[maybe_unused]] TrimKitTable& loaded_trim_kit) {
     for (auto& record : loaded_kit.records_) {
       record.slot_array.resize(record.slot_array_index.size(), nullptr);
       for (std::size_t i = 0; i < record.slot_array_index.size(); ++i) {
@@ -62,10 +72,24 @@ class SerialRefAccessor {
         if (target != nullptr) record.tier_array[i] = target->tier;
       }
     }
+    for (auto& record : loaded_trim_kit.records_) {
+      record.slot_array.resize(record.slot_array_index.size(), nullptr);
+      for (std::size_t i = 0; i < record.slot_array_index.size(); ++i) {
+        const auto* target = loaded_bit.find_by_index(record.slot_array_index[i]);
+        if (target != nullptr) record.slot_array[i] = target;
+      }
+      record.tier_array.resize(record.tier_array_index.size(), 0);
+      for (std::size_t i = 0; i < record.tier_array_index.size(); ++i) {
+        const auto* target = loaded_bit.find_by_index(record.tier_array_index[i]);
+        if (target != nullptr) record.tier_array[i] = target->tier;
+      }
+    }
   }
 
   PieceTable piece_;
   KitTable kit_;
+  BitTable bit_;
+  TrimKitTable trim_kit_;
 };
 
 }  // namespace serial_ref

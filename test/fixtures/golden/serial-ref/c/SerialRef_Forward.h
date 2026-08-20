@@ -18,6 +18,8 @@ extern "C" {
 
 typedef struct SerialRef_PieceRecord_t SerialRef_PieceRecord_t;
 typedef struct SerialRef_KitRecord_t SerialRef_KitRecord_t;
+typedef struct SerialRef_BitRecord_t SerialRef_BitRecord_t;
+typedef struct SerialRef_TrimKitRecord_t SerialRef_TrimKitRecord_t;
 
 /* The key the table files were sealed with, and its length - NULL and 0 when they were not
  * sealed.

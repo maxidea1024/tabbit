@@ -182,6 +182,11 @@ raise unless rows[1].slot_array[0].name == 'ring'
 raise unless rows[2].slot_array[1].nil?
 raise unless rows[0].tier_array == [3, 5]
 raise unless rows[2].tier_array[1].nil?
+trimmed = accessor.trim_kit.records
+raise unless trimmed.map { |r| r.slot_array.length } == [3, 2, 0]
+raise unless trimmed[0].slot_array[2].name == 'ring'
+raise unless trimmed[1].slot_array[0].name == 'ring'
+raise unless trimmed[0].tier_array[2] == 8
 ");
 
     /// <summary>

@@ -62,6 +62,60 @@ struct SERIALREFDATA_API FKitRow
 };
 
 
+// Generated from test/fixtures/xlsx/serial-ref-trim/serial-ref-trim.xlsx : Refs : B2
+/** What the references point at. */
+USTRUCT(BlueprintType)
+struct SERIALREFDATA_API FBitRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bit")
+    int32 Index = 0;
+
+    /** the name a whole-row reference reaches */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bit")
+    FString Name;
+
+    /** the value a field reference borrows */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bit")
+    int32 Tier = 0;
+
+};
+
+
+// Generated from test/fixtures/xlsx/serial-ref-trim/serial-ref-trim.xlsx : Refs : J2
+/** Numbered reference columns folded into an array the row's length. */
+USTRUCT(BlueprintType)
+struct SERIALREFDATA_API FTrimKitRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TrimKit")
+    int32 Index = 0;
+
+    /** element 1 - the row it points at */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TrimKit")
+    TArray<int32> SlotArrayIndex;
+
+    /** Which of SlotArray's elements have a value. Empty where the file did not carry
+     * the column, and then every index is out of range anyway.
+     * spec/nullable-array-elements.md. */
+    TArray<bool> bHasSlotArrayAt;
+
+    /** element 1 - the target's own value */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TrimKit")
+    TArray<int32> TierArrayIndex;
+
+    /** Which of TierArray's elements have a value. Empty where the file did not carry
+     * the column, and then every index is out of range anyway.
+     * spec/nullable-array-elements.md. */
+    TArray<bool> bHasTierArrayAt;
+
+};
+
+
 /** Every row of Piece. */
 class SERIALREFDATA_API FPieceTable
 {
@@ -114,6 +168,58 @@ private:
 };
 
 
+/** Every row of Bit. */
+class SERIALREFDATA_API FBitTable
+{
+public:
+    const TArray<FBitRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FBitRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FBitRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of TrimKit. */
+class SERIALREFDATA_API FTrimKitTable
+{
+public:
+    const TArray<FTrimKitRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FTrimKitRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FTrimKitRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
 /**
  * Every table, loaded together.
  *
@@ -125,6 +231,8 @@ class SERIALREFDATA_API FSerialRefData
 public:
     static const FPieceTable& Piece() { return PieceStorage; }
     static const FKitTable& Kit() { return KitStorage; }
+    static const FBitTable& Bit() { return BitStorage; }
+    static const FTrimKitTable& TrimKit() { return TrimKitStorage; }
 
     /**
      * Reads every table from BasePath. Returns false if any of them could not be read.
@@ -189,6 +297,8 @@ public:
 private:
     static FPieceTable PieceStorage;
     static FKitTable KitStorage;
+    static FBitTable BitStorage;
+    static FTrimKitTable TrimKitStorage;
 };
 
 /**
@@ -266,6 +376,62 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|Kit",
               meta = (DisplayName = "Get Kit Row At"))
     static FKitRow GetKitRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Bit row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Bit",
+              meta = (DisplayName = "Get Bit Row"))
+    static FBitRow GetBitRow(int32 Key, bool& bFound);
+
+    /** How many Bit rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Bit",
+              meta = (DisplayName = "Get Bit Row Count"))
+    static int32 GetBitRowCount();
+
+    /**
+     * The Bit row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Bit",
+              meta = (DisplayName = "Get Bit Row At"))
+    static FBitRow GetBitRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The TrimKit row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|TrimKit",
+              meta = (DisplayName = "Get TrimKit Row"))
+    static FTrimKitRow GetTrimKitRow(int32 Key, bool& bFound);
+
+    /** How many TrimKit rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|TrimKit",
+              meta = (DisplayName = "Get TrimKit Row Count"))
+    static int32 GetTrimKitRowCount();
+
+    /**
+     * The TrimKit row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|TrimKit",
+              meta = (DisplayName = "Get TrimKit Row At"))
+    static FTrimKitRow GetTrimKitRowAt(int32 Position, bool& bFound);
 
     /**
      * Reads every table from BasePath, as FSerialRefData::ReadAll does.

@@ -670,6 +670,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             LengthRead = UsesCursor(wire)
                 ? "elementCount = cursor.nextLength();"
                 : "elementCount = reader.readCounter32();",
+            RefKeyType = wire.IsRef ? ToJavaTypeName(wire.RefKeyType, null, null) : "",
             RunCall = RunCall(wire),
             RunSpend = RunSpend(wire),
             Name = JavaName(wire.Group.Name),
@@ -795,9 +796,15 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     {
         if (sf.IsRef)
         {
+            // The key the target is addressed by, not `int`. The record-member path next door
+            // has always asked; this one wrote the width in, so a reference array whose target
+            // is keyed by anything else declared an array the read could not fill.
+            // spec/reference-key-types.md.
+            string keyType = ToJavaTypeName(sf.FirstField!.RefKeyType, null, null);
+
             return sf.IsArray
-                ? new[] { $"{elementType}[] {name} = new {elementType}[0];", $"int[] {name}Index = new int[0];" }
-                : new[] { $"{elementType} {name};", $"int {name}Index;" };
+                ? new[] { $"{elementType}[] {name} = new {elementType}[0];", $"{keyType}[] {name}Index = new {keyType}[0];" }
+                : new[] { $"{elementType} {name};", $"{keyType} {name}Index;" };
         }
 
         return sf.IsArray
@@ -1061,8 +1068,13 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
         }
 
+        // A trimmed array of references: the length is the row's, and the key still goes in the
+        // array beside the values. Read as a plain `var_array` it assigned the key straight
+        // into the array of rows, which does not compile - and nothing held the shape, because
+        // `foreign[]` is refused and this is only reachable through a folded group with
+        // trimming on. spec/variable-length-record-arrays.md.
         if (wire.IsVariableLengthArray)
-            return "var_array";
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         if (wire.IsFixedArray)
             return wire.IsRef ? "serial_ref" : "serial";

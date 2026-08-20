@@ -925,7 +925,13 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         }
 
         if (wire.IsVariableLengthArray)
-            return "var_array";
+            // A trimmed array of references: the length is the row's, and the key still goes
+            // in the array beside the values. Read as a plain `var_array` it put the keys where
+            // the resolved rows belong, and the linking pass then found nothing to resolve -
+            // silently, because this language does not type them apart. Nothing held the shape:
+            // `foreign[]` is refused, so it is only reachable through a folded group with
+            // trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         if (wire.IsFixedArray)
             return wire.IsRef ? "serial_ref" : "serial";

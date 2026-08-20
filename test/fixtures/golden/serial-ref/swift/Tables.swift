@@ -22,6 +22,10 @@ public final class Tables {
 
     public private(set) var kit: KitTable = KitTable()
 
+    public private(set) var bit: BitTable = BitTable()
+
+    public private(set) var trimKit: TrimKitTable = TrimKitTable()
+
     /// The key the table files were sealed with, or nil when they were not sealed.
     ///
     /// Beside `readAll` because it is the same kind of thing: one decision the consuming
@@ -92,16 +96,28 @@ public final class Tables {
             base.appendingPathComponent("Kit" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
-        Tables.solveCrossReferences(piece: loadedPieceTable, kit: loadedKitTable)
+        let loadedBitTable = BitTable()
+        try loadedBitTable.read(
+            base.appendingPathComponent("Bit" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedTrimKitTable = TrimKitTable()
+        try loadedTrimKitTable.read(
+            base.appendingPathComponent("TrimKit" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        Tables.solveCrossReferences(piece: loadedPieceTable, kit: loadedKitTable, bit: loadedBitTable, trimKit: loadedTrimKitTable)
         piece = loadedPieceTable
         kit = loadedKitTable
+        bit = loadedBitTable
+        trimKit = loadedTrimKitTable
     }
 
     /// Turns the stored keys into usable values, once every table is in memory.
     ///
     /// The tables arrive as arguments rather than being read off the instance, which is how
     /// this resolves the load being read rather than the one already published.
-    private static func solveCrossReferences(piece: PieceTable, kit: KitTable) {
+    private static func solveCrossReferences(piece: PieceTable, kit: KitTable, bit: BitTable, trimKit: TrimKitTable) {
         for record in kit.records {
             record.slotArray = []
             record.slotArray.reserveCapacity(record.slotArrayIndex.count)
@@ -115,6 +131,22 @@ public final class Tables {
 
             for index in record.tierArrayIndex {
                 guard let target = piece.findByIndex(index) else { continue }
+                record.tierArray.append(target.tier)
+            }
+        }
+        for record in trimKit.records {
+            record.slotArray = []
+            record.slotArray.reserveCapacity(record.slotArrayIndex.count)
+
+            for index in record.slotArrayIndex {
+                guard let target = bit.findByIndex(index) else { continue }
+                record.slotArray.append(target)
+            }
+            record.tierArray = []
+            record.tierArray.reserveCapacity(record.tierArrayIndex.count)
+
+            for index in record.tierArrayIndex {
+                guard let target = bit.findByIndex(index) else { continue }
                 record.tierArray.append(target.tier)
             }
         }

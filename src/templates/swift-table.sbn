@@ -266,6 +266,28 @@ public final class {{ table.table_name }} {
                     for element in 0 ..< {{ column_view.element_count }} {
                         record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
                     }
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. The keys are the array this row's length fills; the
+   resolved rows are filled by the linking pass. spec/variable-length-record-arrays.md. ##~}}
+                    let elementCount = max(0, {{ column_view.length_read }})
+                    record.{{ column_view.name }}Index = []
+                    record.{{ column_view.name }}Index.reserveCapacity(elementCount)
+{{~ if column_view.has_optional_elements ~}}
+                    record.{{ column_view.element_presence_member }} = []
+                    record.{{ column_view.element_presence_member }}.reserveCapacity(elementCount)
+
+                    for _ in 0 ..< elementCount {
+                        record.{{ column_view.name }}Index.append({{ column_view.read_element }})
+                        record.{{ column_view.element_presence_member }}.append(
+                            Tcb.isPresent(elementPresence, elementAt))
+                        elementAt += 1
+                    }
+{{~ else ~}}
+
+                    for _ in 0 ..< elementCount {
+                        record.{{ column_view.name }}Index.append({{ column_view.read_element }})
+                    }
+{{~ end ~}}
 {{~ else if column_view.kind == 'serial_ref' ~}}
                     record.{{ column_view.name }}Index = []
                     record.{{ column_view.name }}Index.reserveCapacity(column.count)

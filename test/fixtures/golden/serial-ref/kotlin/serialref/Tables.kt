@@ -41,6 +41,10 @@ object Tables {
         private set
     var kit: KitTable = KitTable()
         private set
+    var bit: BitTable = BitTable()
+        private set
+    var trimKit: TrimKitTable = TrimKitTable()
+        private set
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -102,11 +106,17 @@ object Tables {
         loadedPieceTable.read(File(basePath, "Piece$fileExtension").path)
         val loadedKitTable = KitTable()
         loadedKitTable.read(File(basePath, "Kit$fileExtension").path)
+        val loadedBitTable = BitTable()
+        loadedBitTable.read(File(basePath, "Bit$fileExtension").path)
+        val loadedTrimKitTable = TrimKitTable()
+        loadedTrimKitTable.read(File(basePath, "TrimKit$fileExtension").path)
 
-        solveCrossReferences(loadedPieceTable, loadedKitTable)
+        solveCrossReferences(loadedPieceTable, loadedKitTable, loadedBitTable, loadedTrimKitTable)
 
         piece = loadedPieceTable
         kit = loadedKitTable
+        bit = loadedBitTable
+        trimKit = loadedTrimKitTable
     }
 
     /**
@@ -115,7 +125,7 @@ object Tables {
      * The tables arrive as arguments and shadow the properties of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private fun solveCrossReferences(piece: PieceTable, kit: KitTable) {
+    private fun solveCrossReferences(piece: PieceTable, kit: KitTable, bit: BitTable, trimKit: TrimKitTable) {
         for (record in kit.records) {
             record.slotArray = ArrayList(record.slotArrayIndex.size)
             for (index in record.slotArrayIndex) {
@@ -125,6 +135,18 @@ object Tables {
             record.tierArray = ArrayList(record.tierArrayIndex.size)
             for (index in record.tierArrayIndex) {
                 val target = piece.findByIndex(index) ?: continue
+                record.tierArray.add(target.tier)
+            }
+        }
+        for (record in trimKit.records) {
+            record.slotArray = ArrayList(record.slotArrayIndex.size)
+            for (index in record.slotArrayIndex) {
+                val target = bit.findByIndex(index) ?: continue
+                record.slotArray.add(target)
+            }
+            record.tierArray = ArrayList(record.tierArrayIndex.size)
+            for (index in record.tierArrayIndex) {
+                val target = bit.findByIndex(index) ?: continue
                 record.tierArray.add(target.tier)
             }
         }

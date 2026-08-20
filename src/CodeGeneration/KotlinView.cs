@@ -255,6 +255,16 @@ internal sealed class KotlinColumnView
     public required string LengthRead { get; set; }
 
     /// <summary>
+    /// The Kotlin spelling of the key a reference array stores, for the read to allocate.
+    /// </summary>
+    /// <remarks>
+    /// Written into the template as `Int` before, which is the assumption
+    /// spec/reference-key-types.md removed where a scalar reference reads and left standing
+    /// where an array of them allocates. Empty for a column that is not one.
+    /// </remarks>
+    public required string RefKeyType { get; set; }
+
+    /// <summary>
     /// The cursor's run method for a scalar whose column can arrive run-length encoded,
     /// or empty for one that reads row by row.
     /// </summary>

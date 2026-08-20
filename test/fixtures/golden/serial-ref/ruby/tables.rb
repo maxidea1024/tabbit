@@ -11,11 +11,15 @@ require_relative 'tables/piece_table'
 
 require_relative 'tables/kit_table'
 
+require_relative 'tables/bit_table'
+
+require_relative 'tables/trim_kit_table'
+
 
 module SerialRef
   # Every table, loaded together so cross-table references can be resolved.
   class Tables
-    attr_reader :piece, :kit
+    attr_reader :piece, :kit, :bit, :trim_kit
 
     class << self
       # The key the table files were sealed with, or nil when they were not sealed.
@@ -73,6 +77,8 @@ module SerialRef
     def initialize
       @piece = PieceTable.new
       @kit = KitTable.new
+      @bit = BitTable.new
+      @trim_kit = TrimKitTable.new
     end
 
     # Reads every table from base_path, then links the references between them.
@@ -84,11 +90,17 @@ module SerialRef
       loaded_piece.read(File.join(base_path, "Piece#{file_extension}"))
       loaded_kit = KitTable.new
       loaded_kit.read(File.join(base_path, "Kit#{file_extension}"))
+      loaded_bit = BitTable.new
+      loaded_bit.read(File.join(base_path, "Bit#{file_extension}"))
+      loaded_trim_kit = TrimKitTable.new
+      loaded_trim_kit.read(File.join(base_path, "TrimKit#{file_extension}"))
 
-      solve_cross_references(loaded_piece, loaded_kit)
+      solve_cross_references(loaded_piece, loaded_kit, loaded_bit, loaded_trim_kit)
 
       @piece = loaded_piece
       @kit = loaded_kit
+      @bit = loaded_bit
+      @trim_kit = loaded_trim_kit
     end
 
     private
@@ -96,7 +108,7 @@ module SerialRef
     # Turns the stored indices into usable values, once every table is in memory.
     # The tables arrive as arguments rather than off the instance, which is how this
     # resolves the load being read rather than the one already published.
-    def solve_cross_references(piece, kit)
+    def solve_cross_references(piece, kit, bit, trim_kit)
       kit.records.each do |record|
         record.slot_array_index.each_with_index do |index, position|
           target = piece.find_by_index(index)
@@ -104,6 +116,16 @@ module SerialRef
         end
         record.tier_array_index.each_with_index do |index, position|
           target = piece.find_by_index(index)
+          record.tier_array[position] = target.tier unless target.nil?
+        end
+      end
+      trim_kit.records.each do |record|
+        record.slot_array_index.each_with_index do |index, position|
+          target = bit.find_by_index(index)
+          record.slot_array[position] = target unless target.nil?
+        end
+        record.tier_array_index.each_with_index do |index, position|
+          target = bit.find_by_index(index)
           record.tier_array[position] = target.tier unless target.nil?
         end
       end

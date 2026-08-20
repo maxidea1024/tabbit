@@ -16,6 +16,8 @@
 namespace serial_ref {
 struct PieceRecord;
 struct KitRecord;
+struct BitRecord;
+struct TrimKitRecord;
 
 /// The key the table files were sealed with, or empty when they were not sealed.
 ///

@@ -73,6 +73,7 @@ internal static class Program
         WriteAsset(Prepare(outputDir, "asset", "asset.xlsx"));
         WriteRowSets(Prepare(outputDir, "row-sets", "row-sets.xlsx"));
         WriteMultiTarget(Prepare(outputDir, "multi-target", "multi-target.xlsx"));
+        WriteSerialRefTrim(Prepare(outputDir, "serial-ref-trim", "serial-ref-trim.xlsx"));
         // The corpus and the corpus one generation later, from one description. The skew
         // scenario is the same tables with a column appended, and the only thing the gate
         // asks of it is that nothing else differs - so nothing else may be maintained
@@ -2856,6 +2857,78 @@ internal static class Program
             .Row("3", "11", "10", "10", "21");
 
         h.Table(1, 1, holder);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// A folded array of references whose length is each row's.
+    /// </summary>
+    /// <remarks>
+    /// The shape between the two that were covered. `serial-ref` folds reference columns into
+    /// an array of a fixed length, and `record-ref-trim` trims a record array whose member is
+    /// a reference - where the key lives inside the element and the record allocates it. This
+    /// is the one where the key lives in an array beside the values **and** the length is the
+    /// row's, so the read has to allocate both from the same per-row count.
+    ///
+    /// Nothing held it, and it is not a shape a sheet reaches by accident: `foreign[]` is
+    /// refused, so a folded group is the only way in, and trimming has to be turned on for the
+    /// entry. One layout turns trimming on for every table it reads, which is how the
+    /// combination arrived - and the generated C# read allocated the values and the presence
+    /// bitmap per row while leaving the key array empty.
+    ///
+    /// spec/variable-length-record-arrays.md · spec/references-in-records.md.
+    /// </remarks>
+    private static void WriteSerialRefTrim(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Refs"));
+
+        var piece = new TableSpec
+        {
+            Name = "Bit",
+            Comment = "What the references point at.",
+        };
+        piece
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "the name a whole-row reference reaches"))
+            .Field(FieldSpec.Of("Tier", "int", "the value a field reference borrows"));
+        piece
+            .Row("1", "sword", "3")
+            .Row("2", "shield", "5")
+            .Row("3", "ring", "8");
+
+        b.Table(1, 1, piece);
+
+        var kit = new TableSpec
+        {
+            Name = "TrimKit",
+            Comment = "Numbered reference columns folded into an array the row's length.",
+        };
+        kit
+            // Optional, because that is how a cell says it has no value - which is what the
+            // trim reads. A required element would refuse the `-` before the trim saw it.
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Slot1", "foreign?", "element 1 - the row it points at",
+                                detailType: "Bit"))
+            .Field(FieldSpec.Of("Slot2", "foreign?", "element 2", detailType: "Bit"))
+            .Field(FieldSpec.Of("Slot3", "foreign?", "element 3", detailType: "Bit"))
+
+            // One of that row's values per element, so the other form of a reference is
+            // trimmed here too - it resolves to a value rather than to a row.
+            .Field(FieldSpec.Of("Tier1", "foreign?", "element 1 - the target's own value",
+                                detailType: "Bit.Tier"))
+            .Field(FieldSpec.Of("Tier2", "foreign?", "element 2", detailType: "Bit.Tier"))
+            .Field(FieldSpec.Of("Tier3", "foreign?", "element 3", detailType: "Bit.Tier"));
+        kit
+            // Three, two and none. A read that sized the key array from the sheet's column
+            // count would pass the first row and nothing else; one that sized it from nothing
+            // fails on the first.
+            .Row("1", "1", "2", "3", "1", "2", "3")
+            .Row("2", "3", "1", "-", "3", "1", "-")
+            .Row("3", "-", "-", "-", "-", "-", "-");
+
+        b.Table(9, 1, kit);
 
         Save(workbook, path);
     }

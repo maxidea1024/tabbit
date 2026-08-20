@@ -124,6 +124,8 @@ namespace Tabbit.Fixtures.SerialRef
         {
             public PieceTable Piece = new PieceTable();
             public KitTable Kit = new KitTable();
+            public BitTable Bit = new BitTable();
+            public TrimKitTable TrimKit = new TrimKitTable();
         }
 
         /// <summary>
@@ -145,6 +147,16 @@ namespace Tabbit.Fixtures.SerialRef
         /// </summary>
         public static KitTable Kit => Current.Kit;
 
+        /// <summary>
+        /// Property for Bit table.
+        /// </summary>
+        public static BitTable Bit => Current.Bit;
+
+        /// <summary>
+        /// Property for TrimKit table.
+        /// </summary>
+        public static TrimKitTable TrimKit => Current.TrimKit;
+
 
         /// <summary>
         /// Reads every table and links them, and hands the result back without publishing it.
@@ -161,6 +173,8 @@ namespace Tabbit.Fixtures.SerialRef
             var tasks = new List<Task>();
             tasks.Add(snapshot.Piece.ReadAsync(System.IO.Path.Combine(basePath, $"Piece{fileExtension}")));
             tasks.Add(snapshot.Kit.ReadAsync(System.IO.Path.Combine(basePath, $"Kit{fileExtension}")));
+            tasks.Add(snapshot.Bit.ReadAsync(System.IO.Path.Combine(basePath, $"Bit{fileExtension}")));
+            tasks.Add(snapshot.TrimKit.ReadAsync(System.IO.Path.Combine(basePath, $"TrimKit{fileExtension}")));
 
             await Task.WhenAll(tasks);
 
@@ -221,6 +235,26 @@ namespace Tabbit.Fixtures.SerialRef
                     if (record._tierArray_Piece_index[i] > 0)
                     {
                         record.SetReference_TierArray_INTERNAL(i, snapshot.Piece.GetByIndexOrThrow(record._tierArray_Piece_index[i]).Tier);
+                        record._tierArray_F[i] = true;
+                    }
+                }
+            }
+
+            foreach (var record in snapshot.TrimKit.Records)
+            {
+                for (int i = 0; i < record._slotArray_Bit_index.Length; i++)
+                {
+                    if (record._slotArray_Bit_index[i] > 0)
+                    {
+                        record.SetReference_SlotArray_INTERNAL(i, snapshot.Bit.GetByIndexOrThrow(record._slotArray_Bit_index[i]));
+                        record._slotArray_F[i] = true;
+                    }
+                }
+                for (int i = 0; i < record._tierArray_Bit_index.Length; i++)
+                {
+                    if (record._tierArray_Bit_index[i] > 0)
+                    {
+                        record.SetReference_TierArray_INTERNAL(i, snapshot.Bit.GetByIndexOrThrow(record._tierArray_Bit_index[i]).Tier);
                         record._tierArray_F[i] = true;
                     }
                 }
