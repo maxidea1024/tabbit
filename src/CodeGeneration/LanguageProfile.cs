@@ -360,17 +360,37 @@ public sealed class LanguageProfile
         },
         "{0}[]",
 
-        // Never used: the list below is empty, so nothing is ever escaped. Kept as the
-        // place the answer would go if that changed.
+        // `@class` is what C# itself offers for a name that is also a keyword, and it is a
+        // name rather than a rename: the member is still called `class` to anything reading
+        // it by reflection or by name.
         "@{0}",
 
         // No read-call table: the C# reader has one `Read(out T)` overload per type.
-        null!
-        // No reserved names. C# renders members PascalCase and every C# keyword is
-        // lowercase, so a field called `class` becomes `Class` and cannot collide. The
-        // reserved-words fixture compiles a table whose fields are named after keywords
-        // in all three languages, which is what turns that from an argument into a fact.
-        );
+        null!,
+
+        // Every C# keyword, all of them lower case.
+        //
+        // This list used to be empty, with a comment saying why: members are rendered
+        // PascalCase, so `class` arrives as `Class` and nothing can collide. That was true
+        // and it stays true - at Pascal case not one entry below is ever reached, which is
+        // why filling it in changes no output. It was also an argument that held only while
+        // the spelling was fixed, and a list that is empty for a reason nobody can see from
+        // the list is a trap for whoever changes that.
+        //
+        // Contextual keywords are left out. `value`, `var`, `record` and the rest are
+        // keywords only where the grammar expects one, and a member named `Value` is
+        // ordinary C# - escaping it would be noise in every generated file. What the
+        // grammar reserves outright is what is here.
+        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char",
+        "checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
+        "double", "else", "enum", "event", "explicit", "extern", "false", "finally",
+        "fixed", "float", "for", "foreach", "goto", "if", "implicit", "in", "int",
+        "interface", "internal", "is", "lock", "long", "namespace", "new", "null",
+        "object", "operator", "out", "override", "params", "private", "protected",
+        "public", "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof",
+        "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true",
+        "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using",
+        "virtual", "void", "volatile", "while");
 
     /// <summary>
     /// Go.

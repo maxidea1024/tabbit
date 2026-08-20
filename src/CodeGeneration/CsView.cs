@@ -289,11 +289,15 @@ internal sealed class CsColumnView
     /// <summary>Element type name of that member.</summary>
     public required string FieldType { get; set; }
 
-    /// <summary>
-    /// Property name of the member, which is how the generated element-count constant
-    /// (`Record.{PropName}_N`) is reached.
-    /// </summary>
+    /// <summary>Property name of the member.</summary>
     public required string PropName { get; set; }
+
+    /// <summary>
+    /// The same name in Pascal case, which is how the generated element-count constants
+    /// (`Record.{PascalName}_N` and `_M`) are reached. See
+    /// <see cref="CsFieldView.PascalName"/> for why the two are separate.
+    /// </summary>
+    public required string PascalName { get; set; }
 }
 
 /// <summary>
@@ -303,8 +307,14 @@ internal sealed class CsRecordMemberView
 {
     public required IReadOnlyList<string> Comment { get; set; }
 
-    /// <summary>Field name on the element type, Pascal cased.</summary>
+    /// <summary>Field name on the element type.</summary>
     public required string PropName { get; set; }
+
+    /// <summary>
+    /// The same name in Pascal case, for the identifiers built out of it rather than for the
+    /// member. See <see cref="CsFieldView.PascalName"/>.
+    /// </summary>
+    public required string PascalName { get; set; }
 
     /// <summary>That field's type name.</summary>
     public required string FieldType { get; set; }
@@ -496,6 +506,23 @@ internal sealed class CsFieldView
 
     /// <summary>Public property name.</summary>
     public required string PropName { get; set; }
+
+    /// <summary>
+    /// The field's name in Pascal case, for the identifiers built out of it rather than for
+    /// the member itself.
+    /// </summary>
+    /// <remarks>
+    /// The generated code joins this name into a dozen other identifiers - `HasFoo`,
+    /// `NewFoo()`, `Foo_N`, `FindByFoo`, `SetReference_Foo_INTERNAL` - and none of those is
+    /// the member. They are compound names in which the field is one word, so they read
+    /// correctly only if that word is capitalized whatever the member itself is called.
+    ///
+    /// Equal to <see cref="PropName"/> while the member spelling is Pascal, which it is by
+    /// default. The two exist separately so that changing the member spelling cannot produce
+    /// `HasfooBar` and `FindByfooBar`. TypeScript has kept the pair for the same reason since
+    /// its members became camel case.
+    /// </remarks>
+    public required string PascalName { get; set; }
 
     /// <summary>Private backing field name, including its leading underscore.</summary>
     public required string FieldName { get; set; }

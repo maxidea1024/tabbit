@@ -552,7 +552,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             RunRead = RunReadLines(wire, fieldName, fieldType, refTable, memberAccess),
             FieldName = fieldName,
             FieldType = fieldType,
-            PropName = wire.Group.Name.ToPascalCase(),
+            PropName = CsName(wire.Group.Name),
+            PascalName = wire.Group.Name.ToPascalCase(),
         };
     }
 
@@ -576,7 +577,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             Members = Array.Empty<CsRecordMemberView>(),
             NeedsElementInit = false,
             Comment = CommentLines(sf.FirstField!.Comment),
-            PropName = sf.Name.ToPascalCase(),
+            PropName = CsName(sf.Name),
+            PascalName = sf.Name.ToPascalCase(),
             FieldName = fieldName,
             FieldType = fieldType,
             Initializer = Initializer(sf),
@@ -663,7 +665,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // The group's own comment is the first member's column comment - a record has
             // no header cell of its own, so that is the nearest thing the sheet said.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),
-            PropName = sf.Name.ToPascalCase(),
+            PropName = CsName(sf.Name),
+            PascalName = sf.Name.ToPascalCase(),
             FieldName = "_" + sf.Name.ToCamelCase(),
 
             // An array of arrays has no element type to name, so the inner array is the
@@ -772,7 +775,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                 result.Add(new CsRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
-                    PropName = member.Name.ToPascalCase(),
+                    PropName = CsName(member.Name),
+                    PascalName = member.Name.ToPascalCase(),
                     FieldType = ToCSharpTypeName(member.FirstField) + (member.IsArray ? "[]" : ""),
 
                     // An array member allocates; a string one starts empty. Both for the same
@@ -830,7 +834,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             result.Add(new CsRecordMemberView
             {
                 Comment = CommentLines(member.FirstField!.Comment),
-                PropName = member.Name.ToPascalCase(),
+                PropName = CsName(member.Name),
+                PascalName = member.Name.ToPascalCase(),
                 FieldType = typeName,
 
                 // Only when the level below has something to set. A struct of plain numbers
@@ -1526,4 +1531,22 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
         return comment.Replace("\r\n", "\n").Split('\n');
     }
+
+    /// <summary>
+    /// What a member of the generated types is called.
+    /// </summary>
+    /// <remarks>
+    /// Every other generator has had one of these; this one spelled the casing inline at
+    /// each of its member sites instead, which is why nothing here ever asked
+    /// <see cref="LanguageProfile"/> whether the answer was usable. At Pascal case the
+    /// question has no teeth - every C# keyword is lower case, so no member can collide with
+    /// one - and that is exactly the assumption a funnel has to hold in one place rather than
+    /// in seventeen, because it stops being true the moment the spelling is anything else.
+    ///
+    /// Members only. The type names, the `Entry` record names, the lookup methods and the
+    /// column literals are spelled where they are built, because none of them is a member
+    /// and none of them should move when a member's spelling does.
+    /// </remarks>
+    private static string CsName(string name)
+        => LanguageProfile.CSharp.MemberName(name.ToPascalCase());
 }

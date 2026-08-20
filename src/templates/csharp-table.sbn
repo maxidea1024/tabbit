@@ -59,11 +59,11 @@
 {{~## No element type: the outer level has no name to be a property of, so it is an array
       too. `_N` is the outer count and `_M` the inner one. spec/nested-multi-level.md. ##~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            internal const int {{ field.prop_name }}_N = {{ field.outer_count }};
-            internal const int {{ field.prop_name }}_M = {{ field.element_count }};
+            internal const int {{ field.pascal_name }}_N = {{ field.outer_count }};
+            internal const int {{ field.pascal_name }}_M = {{ field.element_count }};
 {{~ else if field.kind == 'record_array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            internal const int {{ field.prop_name }}_N = {{ field.element_count }};
+            internal const int {{ field.pascal_name }}_N = {{ field.element_count }};
 {{~ else if field.kind == 'record_var_array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'record' ~}}
@@ -71,7 +71,7 @@
 {{~ if field.members_are_arrays ~}}
 {{~## One record, and the arrays are its members - so the length belongs to the group all
       the same, because the folding requires every member to agree on it. ##~}}
-            internal const int {{ field.prop_name }}_N = {{ field.element_count }};
+            internal const int {{ field.pascal_name }}_N = {{ field.element_count }};
 {{~ end ~}}
 {{~ else if field.kind == 'array_ref' || field.kind == 'array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
@@ -85,14 +85,14 @@
       none; this says which it was. One shape for every type, which `T?` is not - a
       nullable reference needs a nullable context the generated C# 8 does not have. ##~}}
             /// <summary>Whether this row has a value for <see cref="{{ field.prop_name }}"/>.</summary>
-            public bool Has{{ field.prop_name }} => {{ field.presence_field }};
+            public bool Has{{ field.pascal_name }} => {{ field.presence_field }};
 {{~ end ~}}
 {{~ if field.has_optional_elements ~}}
 {{~## The same answer one level in. `true` where the row never got a bitmap - a column the
       file does not carry leaves the array empty, and an index into it is out of range
       whatever this said. ##~}}
             /// <summary>Whether element <paramref name="index"/> of <see cref="{{ field.prop_name }}"/> has a value.</summary>
-            public bool Has{{ field.prop_name }}At(int index)
+            public bool Has{{ field.pascal_name }}At(int index)
                 => {{ field.element_presence_field }} == null
                     || index < 0 || index >= {{ field.element_presence_field }}.Length
                     || {{ field.element_presence_field }}[index];
@@ -107,12 +107,12 @@
 {{~## Both levels allocated with the row: each column fills one element of the outer array,
       so nothing else can create it - and the number the columns agree on is part of the
       generated shape rather than something one of them states. spec/nested-multi-level.md. ##~}}
-            private static {{ field.field_type }}[] New{{ field.prop_name }}()
+            private static {{ field.field_type }}[] New{{ field.pascal_name }}()
             {
-                var result = new {{ field.element_type_name }}[{{ field.prop_name }}_N][];
+                var result = new {{ field.element_type_name }}[{{ field.pascal_name }}_N][];
                 for (int i = 0; i < result.Length; i++)
                 {
-                    result[i] = new {{ field.element_type_name }}[{{ field.prop_name }}_M];
+                    result[i] = new {{ field.element_type_name }}[{{ field.pascal_name }}_M];
 {{~ if field.element_initializer != '' ~}}
                     for (int k = 0; k < result[i].Length; k++)
                         result[i][k]{{ field.element_initializer }};
@@ -246,9 +246,9 @@
       away from the values above because a consumer never calls one. ##~}}
 {{~ for field in table.reference_fields ~}}
 {{~ if field.kind == 'array_ref' ~}}
-            public void SetReference_{{ field.prop_name }}_INTERNAL(int index, {{ field.reference_setter_type }} value) => {{ field.field_name }}[index] = value;
+            public void SetReference_{{ field.pascal_name }}_INTERNAL(int index, {{ field.reference_setter_type }} value) => {{ field.field_name }}[index] = value;
 {{~ else ~}}
-            public void SetReference_{{ field.prop_name }}_INTERNAL({{ field.reference_setter_type }} value) => {{ field.field_name }} = value;
+            public void SetReference_{{ field.pascal_name }}_INTERNAL({{ field.reference_setter_type }} value) => {{ field.field_name }} = value;
 {{~ end ~}}
 {{~ end ~}}
             #endregion
@@ -259,15 +259,15 @@
       resolves references - hence `internal` and `public` rather than `private`. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.prop_name }}();
+            internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.pascal_name }}();
 {{~ else if field.kind == 'record_array' ~}}
 {{~## Allocated with the record, not by the read. Each member column fills one field of each
       element, so allocating per column would discard what the previous one wrote - which is
       also why this length is the group's rather than a column's. ##~}}
 {{~ if field.needs_element_init ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.record_type_name }}Array({{ field.prop_name }}_N);
+            internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.record_type_name }}Array({{ field.pascal_name }}_N);
 {{~ else ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = new {{ field.field_type }}[{{ field.prop_name }}_N];
+            internal {{ field.field_type }}[] {{ field.field_name }} = new {{ field.field_type }}[{{ field.pascal_name }}_N];
 {{~ end ~}}
 {{~ else if field.kind == 'record_var_array' ~}}
 {{~## Empty, not sized: the read allocates once it knows this row's length. Empty rather
@@ -351,8 +351,8 @@
         private List<Record> _records = new List<Record>();
 {{~ for field in table.indexed_fields }}
         #region Indexing by '{{ field.prop_name }}'
-        public Dictionary<{{ field.field_type }}, Record> RecordsBy{{ field.prop_name }} => _recordsBy{{ field.prop_name }};
-        private Dictionary<{{ field.field_type }}, Record> _recordsBy{{ field.prop_name }} = new Dictionary<{{ field.field_type }}, Record>();
+        public Dictionary<{{ field.field_type }}, Record> RecordsBy{{ field.pascal_name }} => _recordsBy{{ field.pascal_name }};
+        private Dictionary<{{ field.field_type }}, Record> _recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.field_type }}, Record>();
 
         /// <summary>
         /// The row with this `{{ field.prop_name }}`, or null when the table has none.
@@ -362,8 +362,8 @@
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBy{{ field.prop_name }}({{ field.field_type }} key)
-            => _recordsBy{{ field.prop_name }}.TryGetValue(key, out Record record) ? record : null;
+        public Record FindBy{{ field.pascal_name }}({{ field.field_type }} key)
+            => _recordsBy{{ field.pascal_name }}.TryGetValue(key, out Record record) ? record : null;
 
         /// <summary>
         /// The row with this `{{ field.prop_name }}`, or a thrown exception naming what was
@@ -371,19 +371,19 @@
         /// </summary>
         /// <remarks>
         /// For a key that has to be there - one from another table, or a constant. The name
-        /// says it throws, because a caller reading `GetBy{{ field.prop_name }}(id).Name` at
+        /// says it throws, because a caller reading `GetBy{{ field.pascal_name }}(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetBy{{ field.prop_name }}OrThrow({{ field.field_type }} key)
+        public Record GetBy{{ field.pascal_name }}OrThrow({{ field.field_type }} key)
         {
-            if (!_recordsBy{{ field.prop_name }}.TryGetValue(key, out Record record))
+            if (!_recordsBy{{ field.pascal_name }}.TryGetValue(key, out Record record))
                 throw new TabbitException($"There is no record in table `{{ table.raw_name }}` that corresponds to field `{{ field.prop_name }}` value {key}");
 
             return record;
         }
 
         /// <summary>Whether the table holds a row with this `{{ field.prop_name }}`.</summary>
-        public bool Contains{{ field.prop_name }}({{ field.field_type }} key) => _recordsBy{{ field.prop_name }}.ContainsKey(key);
+        public bool Contains{{ field.pascal_name }}({{ field.field_type }} key) => _recordsBy{{ field.pascal_name }}.ContainsKey(key);
         #endregion // Indexing by `{{ field.prop_name }}`
 {{~ end ~}}
 
@@ -567,7 +567,7 @@
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.{{ column.prop_name }}_M; ++j)
+                            for (int j = 0; j < Record.{{ column.pascal_name }}_M; ++j)
                             {
 {{~ for line in column.element_read ~}}
                                 {{ line }}
@@ -582,7 +582,7 @@
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.{{ column.prop_name }}_N; ++j)
+                            for (int j = 0; j < Record.{{ column.pascal_name }}_N; ++j)
                             {
 {{~ for line in column.element_read ~}}
                                 {{ line }}
@@ -643,9 +643,9 @@
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
 {{~ for field in table.indexed_fields ~}}
-            var recordsBy{{ field.prop_name }} = new Dictionary<{{ field.field_type }}, Record>(count);
+            var recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.field_type }}, Record>(count);
             foreach (var record in records)
-                recordsBy{{ field.prop_name }}.Add(record.{{ field.prop_name }}, record);
+                recordsBy{{ field.pascal_name }}.Add(record.{{ field.prop_name }}, record);
 {{~ end ~}}
 {{~ end }}
             // Published. Everything above succeeded, and the barrier is what keeps the writes
@@ -655,7 +655,7 @@
 
             _records = records;
 {{~ for field in table.indexed_fields ~}}
-            _recordsBy{{ field.prop_name }} = recordsBy{{ field.prop_name }};
+            _recordsBy{{ field.pascal_name }} = recordsBy{{ field.pascal_name }};
 {{~ end ~}}
 
             return Task.CompletedTask;

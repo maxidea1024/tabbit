@@ -142,13 +142,13 @@
 {{~ if field.references_field ~}}
                     if (record.{{ field.field_name }}_{{ field.ref_table }}_index[i] {{ field.ref_is_set }})
                     {
-                        record.SetReference_{{ field.prop_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]).{{ field.ref_field }});
+                        record.SetReference_{{ field.pascal_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]).{{ field.ref_field }});
                         record.{{ field.field_name }}_F[i] = true;
                     }
 {{~ else ~}}
                     if (record.{{ field.field_name }}_{{ field.ref_table }}_index[i] {{ field.ref_is_set }})
                     {
-                        record.SetReference_{{ field.prop_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]));
+                        record.SetReference_{{ field.pascal_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]));
                         record.{{ field.field_name }}_F[i] = true;
                     }
 {{~ end ~}}
@@ -157,9 +157,9 @@
                 if (record.{{ field.field_name }}_{{ field.ref_table }}_index {{ field.ref_is_set }})
                 {
 {{~ if field.references_field ~}}
-                    record.SetReference_{{ field.prop_name }}_INTERNAL(snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index).{{ field.ref_field }});
+                    record.SetReference_{{ field.pascal_name }}_INTERNAL(snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index).{{ field.ref_field }});
 {{~ else ~}}
-                    record.SetReference_{{ field.prop_name }}_INTERNAL(snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index));
+                    record.SetReference_{{ field.pascal_name }}_INTERNAL(snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index));
 {{~ end ~}}
                     record.{{ field.field_name }}_F = true;
                 }
