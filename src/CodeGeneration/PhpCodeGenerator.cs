@@ -1148,7 +1148,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables

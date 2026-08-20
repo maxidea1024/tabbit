@@ -115,6 +115,25 @@ public class RecipeModel
     /// element is trimmed, so `1; 2 ;3` reads the same as `1;2;3`.
     /// </summary>
     public string ArrayDelimiter { get; set; } = ";";
+
+    /// <summary>
+    /// Spelling of the exported data files' names. Blank keeps the table's own name.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`.
+    ///
+    /// Here rather than on a target, which is the one thing about it worth explaining. Every
+    /// other spelling setting belongs to whatever reads it, but this name is a contract
+    /// between programs: the exporter writes the file and the reader generated for each
+    /// language opens it, and the two computing it separately is how a build comes to produce
+    /// data that its own reader cannot find. One setting for the whole recipe is what makes
+    /// that impossible to get wrong.
+    ///
+    /// A row set's suffix is appended after the spelling is applied, as the sheet wrote it -
+    /// separator included, which is the existing rule for those. So `snake` turns table
+    /// `ItemDrop` with set `_alt` into `item_drop_alt`.
+    /// </remarks>
+    public string DataFileCase { get; set; } = "";
     #endregion
 
 

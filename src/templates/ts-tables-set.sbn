@@ -73,7 +73,7 @@ export class {{ accessor_name }} {
   public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
 {{~ for table in tables ~}}
     const {{ table.local }} = new {{ table.name }}Table()
-    await {{ table.local }}.read(path.join(basePath, `{{ table.name }}${fileExtension}`))
+    await {{ table.local }}.read(path.join(basePath, `{{ table.data_file_name }}${fileExtension}`))
 {{~ end ~}}
 
     this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
@@ -83,7 +83,7 @@ export class {{ accessor_name }} {
   public readAllSync(basePath: string, fileExtension: string = '.json'): void {
 {{~ for table in tables ~}}
     const {{ table.local }} = new {{ table.name }}Table()
-    {{ table.local }}.readSync(path.join(basePath, `{{ table.name }}${fileExtension}`))
+    {{ table.local }}.readSync(path.join(basePath, `{{ table.data_file_name }}${fileExtension}`))
 {{~ end ~}}
 
     this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
@@ -99,7 +99,7 @@ export class {{ accessor_name }} {
   public readAllBinarySync(basePath: string, fileExtension: string = '{{ binary_file_extension }}'): void {
 {{~ for table in tables ~}}
     const {{ table.local }} = new {{ table.name }}Table()
-    {{ table.local }}.readBinarySync(path.join(basePath, `{{ table.name }}${fileExtension}`))
+    {{ table.local }}.readBinarySync(path.join(basePath, `{{ table.data_file_name }}${fileExtension}`))
 {{~ end ~}}
 
     this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})

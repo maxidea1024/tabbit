@@ -984,7 +984,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables

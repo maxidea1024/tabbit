@@ -877,7 +877,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             TableName = TableName(table),
 
             // Unescaped: this one names the file the exporter wrote, not an identifier.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables

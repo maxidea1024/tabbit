@@ -1243,7 +1243,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             FunctionPrefix = FunctionPrefix(table),
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables

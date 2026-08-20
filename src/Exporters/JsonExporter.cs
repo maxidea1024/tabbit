@@ -299,7 +299,7 @@ public class JsonExporter : Target<JsonRecipe>
 
     private void ExportRowSet(JsonRecipe recipe, Table table, RowSet rowSet)
     {
-        string fileName = table.Name + rowSet.Name;
+        string fileName = table.DataFileName + rowSet.Name;
         var rows = rowSet.Rows;
 
         var filename = Path.Combine(recipe.Path, fileName + ".json");

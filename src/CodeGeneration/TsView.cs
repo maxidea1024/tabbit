@@ -161,6 +161,12 @@ internal sealed class TsTableSlotView
     /// <summary>Accessor member name, camelCase and escaped.</summary>
     public required string Member { get; set; }
 
+    /// <summary>
+    /// What the exported data file is called, without extension - settled by the model so
+    /// this reader and the exporter cannot disagree. See <see cref="CsTableView"/>.
+    /// </summary>
+    public required string DataFileName { get; set; }
+
     /// <summary>Table name as declared, which is also the class prefix.</summary>
     public required string Name { get; set; }
 

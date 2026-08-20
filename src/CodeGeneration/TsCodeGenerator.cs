@@ -219,6 +219,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 Tables = _model.Tables.Select(table => new TsTableSlotView
                 {
                     Member = TsCamelName(table.Name),
+                    DataFileName = table.DataFileName,
                     Local = TsLocalName(table.Name),
                     Name = table.Name,
                     File = TsFileName(table.Name),

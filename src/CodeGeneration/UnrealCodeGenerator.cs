@@ -312,7 +312,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                 PrimaryFieldName = PrimaryIndex(table).Name.ToPascalCase(),
 
                 // Unescaped: this one names the file the exporter wrote.
-                DataFileName = table.Name,
+                DataFileName = table.DataFileName,
             }).ToList(),
         },
     };

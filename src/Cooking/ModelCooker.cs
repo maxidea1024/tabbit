@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Serilog;
 using Tabbit.Cooking.Layouts;
+using Tabbit.Extensions;
 using Tabbit.Models;
 using Tabbit.Models.Raw;
 using Tabbit.Recipe;
@@ -52,6 +53,11 @@ public partial class ModelCooker
         //
         // spec/table-row-sets.md.
         TableRowSets.Fold(context, rawModel.Sheets, diagnostics);
+
+        // What each table's data file is called, settled here rather than by each of the
+        // seventeen programs that need it. After the fold, so a table that turned out to be
+        // another table's extra rows is not given a file name of its own.
+        NameDataFiles(result, recipeModel);
 
         // A column whose sheet named the tables its value belongs to is a reference, and
         // this is where it becomes one. Before resolution, because resolution is what it is
@@ -125,6 +131,32 @@ public partial class ModelCooker
             // The wire columns snapshot a field's type and tag assignment has already built
             // them, so the fold is not visible until they are rebuilt.
             table.InvalidateDerivedColumns();
+        }
+    }
+
+    /// <summary>
+    /// Settles what each table's exported data file is called.
+    /// </summary>
+    /// <remarks>
+    /// The one name in the model that several programs have to agree on: the exporter writes
+    /// the file and the reader generated for each language opens it, and nothing downstream
+    /// checks that the two arrived at the same string. So it is computed once, here, and read
+    /// everywhere else.
+    ///
+    /// Blank spelling keeps the table's own name, which is what every recipe written before
+    /// the setting existed holds - so every data file keeps the name it had.
+    ///
+    /// spec/naming-conventions.md.
+    /// </remarks>
+    private static void NameDataFiles(Model model, RecipeModel recipeModel)
+    {
+        var spelling = DataFileCasing.From(recipeModel?.DataFileCase ?? "");
+
+        foreach (var table in model.Tables)
+        {
+            table.DataFileName = spelling is null
+                ? table.Name
+                : table.Name.ToCase(spelling.Value);
         }
     }
 

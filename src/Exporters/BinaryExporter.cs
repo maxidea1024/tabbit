@@ -274,7 +274,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     {
         var writer = Encode(table, rowSet.Rows, report);
 
-        string name = table.Name + rowSet.Name;
+        string name = table.DataFileName + rowSet.Name;
 
         var filename = Path.Combine(recipe.Path, name + recipe.FileExtension);
         filename = Path.GetFullPath(filename);

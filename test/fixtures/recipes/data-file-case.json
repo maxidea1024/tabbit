@@ -1,0 +1,82 @@
+{
+  // Data files named in a spelling that is not the table's own.
+  //
+  // What this checks is an agreement, not an appearance. The exporter writes the file and
+  // the reader generated for each language opens it, and the two used to compute the name
+  // separately - sixteen places from the table's normalized name and the C# accessor from
+  // the sheet's spelling of it, so a table written `item_drop` was exported as
+  // `ItemDrop.tcb` and looked for as `item_drop.tcb`. Nothing said so, because every
+  // fixture happened to have table names that were already Pascal.
+  //
+  // Setting the spelling to something no table name is makes that class of disagreement
+  // visible: any reader still deriving the name for itself now derives a different one
+  // from the exporter's.
+
+  "DataFileCase": "snake",
+
+  "Sources": {
+    "Xlsx": [
+      {
+        // The core workbook, for its multi-word table names - `ArrayTypes` and
+        // `ItemCategory` become `array_types` and `item_category`, which no reader could
+        // arrive at by accident. A single-word table would differ only in its first
+        // letter's case, and on a case-insensitive filesystem a disagreement about that
+        // reads the file anyway.
+        "Path": "test/fixtures/xlsx/core"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/data-file-case/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/data-file-case/json",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+
+    // Every code target that reads a data file, because the question is whether all of them
+    // arrived at the same name - and one that did not is invisible in the others.
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/data-file-case/csharp",
+      "Namespace": "Tabbit.Fixtures.DataFileCase",
+      "AccessorName": "DataFileCaseAccessor"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/data-file-case/cpp",
+      "Namespace": "tabbit_fixtures::data_file_case",
+      "AccessorName": "DataFileCaseAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    { "Type": "typescript", "Path": "test/fixtures/output/data-file-case/typescript" },
+    { "Type": "c", "Path": "test/fixtures/output/data-file-case/c",
+      "AccessorName": "DataFileCaseData" },
+    { "Type": "go", "Path": "test/fixtures/output/data-file-case/go",
+      "PackageName": "datafilecase", "ModulePath": "datafilecase" },
+    { "Type": "rust", "Path": "test/fixtures/output/data-file-case/rust",
+      "CrateName": "datafilecase" },
+    { "Type": "python", "Path": "test/fixtures/output/data-file-case/python",
+      "PackageName": "data_file_case" },
+    { "Type": "java", "Path": "test/fixtures/output/data-file-case/java",
+      "PackageName": "datafilecase", "AccessorName": "DataFileCaseAccessor" },
+    { "Type": "kotlin", "Path": "test/fixtures/output/data-file-case/kotlin",
+      "PackageName": "datafilecase", "AccessorName": "DataFileCaseAccessor" },
+    { "Type": "swift", "Path": "test/fixtures/output/data-file-case/swift",
+      "AccessorName": "DataFileCaseAccessor" },
+    { "Type": "lua", "Path": "test/fixtures/output/data-file-case/lua" },
+    { "Type": "ruby", "Path": "test/fixtures/output/data-file-case/ruby",
+      "ModuleName": "DataFileCase" },
+    { "Type": "dart", "Path": "test/fixtures/output/data-file-case/dart" },
+    { "Type": "php", "Path": "test/fixtures/output/data-file-case/php",
+      "Namespace": "DataFileCase", "AccessorName": "DataFileCaseData" },
+    { "Type": "unreal", "Path": "test/fixtures/output/data-file-case/unreal",
+      "ModuleName": "DataFileCaseData" }
+  ]
+}

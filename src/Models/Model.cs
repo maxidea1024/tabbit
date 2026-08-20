@@ -103,6 +103,11 @@ public class Model
                 Comment = table.Comment,
                 Data = table.Data,
 
+                // Carried, and it has to be: a narrowed run exports the same files under the
+                // same names, and this is the name the exporter and every generated reader
+                // agree on. Left to default it is empty, and the export writes `.tcb`.
+                DataFileName = table.DataFileName,
+
                 // Carried, not defaulted: the projection recomputes SerialFields from its
                 // narrowed field list, and a table that must not fold must not start
                 // folding because a target side was asked for.

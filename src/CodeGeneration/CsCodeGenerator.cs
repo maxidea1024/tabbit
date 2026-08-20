@@ -426,6 +426,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         return new CsTableView
         {
             Name = table.Name.ToPascalCase(),
+            DataFileName = table.DataFileName,
             RawName = table.Name,
             Comment = CommentLines(table.Comment),
             Fields = fields,

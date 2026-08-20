@@ -89,8 +89,20 @@ internal sealed class CsTableView
     /// <summary>Table name in Pascal case; the class is this plus `Table`.</summary>
     public required string Name { get; set; }
 
-    /// <summary>Table name as the sheet spelled it, used in the data file name.</summary>
+    /// <summary>Table name as the sheet spelled it, for a message that has to quote it.</summary>
     public required string RawName { get; set; }
+
+    /// <summary>
+    /// What the exported data file is called, without extension - the name the model settled
+    /// so that this reader and the exporter cannot disagree.
+    /// </summary>
+    /// <remarks>
+    /// The accessor used to join <see cref="RawName"/> to the extension, which is the sheet's
+    /// spelling rather than the exporter's. A table written `item_drop` was exported as
+    /// `ItemDrop.tcb` and looked for as `item_drop.tcb`; every fixture happened to have a
+    /// table name that was already Pascal, so nothing said so.
+    /// </remarks>
+    public required string DataFileName { get; set; }
 
     /// <summary>Doc-comment lines, already split. Empty when the sheet had no comment.</summary>
     public required IReadOnlyList<string> Comment { get; set; }

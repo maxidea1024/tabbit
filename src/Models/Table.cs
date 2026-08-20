@@ -27,6 +27,28 @@ public class Table
     public required string Name { get; set; }
 
     /// <summary>
+    /// Base name of the file this table's rows are exported to, without a row-set suffix and
+    /// without an extension.
+    /// </summary>
+    /// <remarks>
+    /// **A contract, and the one name in the model that more than one program computes.** The
+    /// exporter writes the file; the reader generated for each of fifteen languages opens it.
+    /// Nothing checks that the two agree - a reader looking for the wrong name finds no file,
+    /// which is a run-time failure in somebody else's program.
+    ///
+    /// They did not agree. Sixteen places derived it from <see cref="Name"/> and the C#
+    /// accessor derived it from <see cref="RawName"/>, so a table the sheet wrote as
+    /// `item_drop` was exported as `ItemDrop.tcb` and looked for as `item_drop.tcb`. No
+    /// fixture had a table whose two names differed, so nothing said so.
+    ///
+    /// Stamped once while cooking, and read everywhere else. That is the whole point: a value
+    /// several programs have to agree on is one somebody has to own.
+    ///
+    /// spec/naming-conventions.md.
+    /// </remarks>
+    public string DataFileName { get; set; } = "";
+
+    /// <summary>
     /// Columns of the table, excluding any commented out with `#`.
     ///
     /// Narrowed by target-side filtering without the rows being touched, so a field's

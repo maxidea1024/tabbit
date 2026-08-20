@@ -75,7 +75,7 @@
             var snapshot = new Snapshot();
             var tasks = new List<Task>();
 {{~ for table in tables ~}}
-            tasks.Add(snapshot.{{ table.name }}.ReadAsync(System.IO.Path.Combine(basePath, $"{{ table.raw_name }}{fileExtension}")));
+            tasks.Add(snapshot.{{ table.name }}.ReadAsync(System.IO.Path.Combine(basePath, $"{{ table.data_file_name }}{fileExtension}")));
 {{~ end ~}}
 
             await Task.WhenAll(tasks);
