@@ -149,6 +149,10 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// before any page is written, because a table's references point at tables written
     /// later; bounded by the cap, so this holds at most that many keys per table.
     /// </summary>
+    /// <summary>Every key each table holds, filled on demand by <see cref="KeysOf"/>.</summary>
+    private readonly Dictionary<string, HashSet<string>> _allKeys =
+        new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+
     private readonly Dictionary<string, HashSet<string>> _anchoredRows = new(StringComparer.Ordinal);
 
     /// <summary>
@@ -220,6 +224,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         _enumUsers.Clear();
         _tableReferrers.Clear();
         _anchoredRows.Clear();
+        _allKeys.Clear();
         _referencedKeys.Clear();
         _digests.Clear();
 
@@ -1630,10 +1635,15 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// documenting what is stored. What was missing is that the key is a place: clicking
     /// it now lands on that row of that table's page.
     ///
-    /// A column may declare several targets, and then the key alone does not say which
-    /// table holds the row, so the cell offers each of them and the reader picks. The
+    /// A column may declare several targets, and then the key alone does not say which of
+    /// them holds the row - but the model does, so the cell names the one that has it. The
     /// anchor is only used when that page really carries the row - the row cap means it
     /// may not - and otherwise the link is to the page.
+    ///
+    /// **This used to offer every target and let the reader pick.** That was honest while
+    /// nothing knew the answer; the generated code answers it now, and a page that shows
+    /// two candidates where the accessors show one is the page being vaguer than the data.
+    /// spec/multi-target-accessors.md.
     /// </remarks>
     private string RefValueMarkup(Models.Field field, object value, string root)
     {
@@ -1647,10 +1657,28 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         if (targets.Count == 0)
             return Esc(key);
 
+        if (targets.Count > 1)
+        {
+            // The one that actually holds this key. Conversion refuses two targets holding
+            // one id, so there is at most one - and none when the cell points at nothing.
+            var holders = targets.Where(name => KeysOf(name).Contains(key)).ToList();
+
+            if (holders.Count == 0)
+            {
+                return $"{Esc(key)} <span class=\"hint\" title=\"어느 대상에도 없습니다\">" +
+                       $"&#x2192; &mdash;</span>";
+            }
+
+            targets = holders;
+        }
+
         if (targets.Count == 1)
         {
             return $"<a href=\"{RowHref(targets[0], key, root)}\" " +
-                   $"data-ref=\"{Esc(targets[0])}\" data-key=\"{Esc(key)}\">{Esc(key)}</a>";
+                   $"data-ref=\"{Esc(targets[0])}\" data-key=\"{Esc(key)}\">{Esc(key)}</a>" +
+                   (field.IsMultiRef
+                       ? $" <span class=\"hint\">&#x2192; {Esc(targets[0])}</span>"
+                       : "");
         }
 
         var choices = targets.Select(name =>
@@ -1659,6 +1687,38 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         return $"{Esc(key)} <span class=\"hint\">&#x2192; " +
                $"{string.Join(" <span class=\"sep\">&middot;</span> ", choices)}</span>";
+    }
+
+    /// <summary>
+    /// Every key one table holds, as text, built once per table.
+    /// </summary>
+    /// <remarks>
+    /// Only the tables a multi-target column names ever ask, and each asks per cell - so the
+    /// set is cached rather than the rows walked again. As text because that is what the cell
+    /// is rendering: a key is compared against what the page will print, and a boxed `10.0`
+    /// is not a boxed `10`.
+    ///
+    /// Every row, not the shown ones: which target holds a key is a fact about the data, and
+    /// the row cap is about the page. spec/multi-target-accessors.md.
+    /// </remarks>
+    private HashSet<string> KeysOf(string table)
+    {
+        if (_allKeys.TryGetValue(table, out var keys))
+            return keys;
+
+        keys = new HashSet<string>(StringComparer.Ordinal);
+        _allKeys[table] = keys;
+
+        var target = _model.FindTable(table);
+        var index = target?.PrimaryIndexField;
+
+        if (index is null)
+            return keys;
+
+        foreach (var row in target!.Data)
+            keys.Add(row[index.Index].Value?.ToString() ?? "");
+
+        return keys;
     }
 
     /// <summary>
