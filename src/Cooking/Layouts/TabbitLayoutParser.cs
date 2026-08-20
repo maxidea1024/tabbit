@@ -612,11 +612,21 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
             if (fieldType == "foreign")
             {
-                // Names that can be used as variable or class names are normalized to Pascal case at the time of calling.
-                string detailTypeName = fieldDetailTypeCell.Value.ToPascalCase();
+                // Split before casing. A bar is not a word separator to the casing, so
+                // `weapon|armour` cased as one string leaves the second name as written -
+                // which is also why the dotted form below cases each half rather than the
+                // whole cell. spec/multi-target-accessors.md.
+                var writtenTargets = fieldDetailTypeCell.Value
+                    .Split('|')
+                    .Select(part => part.Trim())
+                    .Where(part => part.Length > 0)
+                    .ToList();
 
-                if (detailTypeName == "")
+                if (writtenTargets.Count == 0)
                     throw new TabbitException(fieldDetailTypeCell.Location, $"In case of foreign type, `RefTable[.RefFieldName]` must be specified in detail-type.");
+
+                // Names that can be used as variable or class names are normalized to Pascal case at the time of calling.
+                string detailTypeName = writtenTargets[0].ToPascalCase();
 
                 field.TypeName = "$Unresolved$";
 
@@ -632,26 +642,70 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 // spec/reference-key-types.md.
                 field.Type = Models.ValueType.String;
 
-                int dot = detailTypeName.IndexOf(".");
-                if (dot < 0)
+                // Several tables, so the value is a row of one of them and which one is a
+                // question about the value rather than about the column. The model has
+                // carried that shape for a while and only a project layout's constraint row
+                // could declare it; this is the notation for it.
+                // spec/multi-target-accessors.md section 4.
+                if (writtenTargets.Count > 1)
                 {
-                    // Names that can be used as variable or class names are normalized to Pascal case at the time of calling.
-                    field.RefTableName = detailTypeName.ToPascalCase();
-                    field.RefTableNames = new List<string> { field.RefTableName };
+                    // The dotted form names a value inside the target, and "one of these
+                    // tables, at this field of it" is a second shape nothing has asked for.
+                    // Refused by name rather than resolved to whichever half looks right.
+                    string? dotted = writtenTargets.Find(part => part.Contains('.'));
+                    if (dotted is not null)
+                    {
+                        throw new TabbitException(fieldDetailTypeCell.Location,
+                            $"`{fieldDetailTypeCell.Value}` names several tables and also a field of "
+                            + $"one of them (`{dotted}`). A reference to one of several tables names "
+                            + $"the tables alone - drop the field name, or point at them from "
+                            + $"separate columns.");
+                    }
+
+                    // In the order written, and a name written twice is kept once: the order
+                    // is what the generated per-target accessors are laid out in, and "this
+                    // table or this table" said twice is the same declaration.
+                    var names = new List<string>();
+                    foreach (string part in writtenTargets)
+                    {
+                        string name = part.ToPascalCase();
+                        if (!names.Contains(name))
+                            names.Add(name);
+                    }
+
+                    field.RefTableNames = names;
                     field.RefFieldName = null;
+
+                    // `RefTableName` is left empty on purpose when there are several, because
+                    // `IsRef` reads it and has to keep meaning "resolves to exactly one
+                    // record". A bar with one name behind it is that one record.
+                    // spec/multi-target-references.md.
+                    if (names.Count == 1)
+                        field.RefTableName = names[0];
                 }
                 else
                 {
-                    // Names that can be used as variable or class names are normalized to Pascal case at the time of calling.
-                    field.RefTableName = detailTypeName.Substring(0, dot).ToPascalCase();
-                    field.RefTableNames = new List<string> { field.RefTableName };
-                    field.RefFieldName = detailTypeName.Substring(dot + 1).ToPascalCase();
+                    int dot = detailTypeName.IndexOf(".");
+                    if (dot < 0)
+                    {
+                        // Names that can be used as variable or class names are normalized to Pascal case at the time of calling.
+                        field.RefTableName = detailTypeName.ToPascalCase();
+                        field.RefTableNames = new List<string> { field.RefTableName };
+                        field.RefFieldName = null;
+                    }
+                    else
+                    {
+                        // Names that can be used as variable or class names are normalized to Pascal case at the time of calling.
+                        field.RefTableName = detailTypeName.Substring(0, dot).ToPascalCase();
+                        field.RefTableNames = new List<string> { field.RefTableName };
+                        field.RefFieldName = detailTypeName.Substring(dot + 1).ToPascalCase();
 
-                    // `Table.Index` names the row's own key, which is the row - so it is
-                    // cleared and the reference resolves to the record rather than to the
-                    // integer, which is what the writer meant either way.
-                    if (field.RefFieldName.ToLowerInvariant() == "index")
-                        field.RefFieldName = "";
+                        // `Table.Index` names the row's own key, which is the row - so it is
+                        // cleared and the reference resolves to the record rather than to the
+                        // integer, which is what the writer meant either way.
+                        if (field.RefFieldName.ToLowerInvariant() == "index")
+                            field.RefFieldName = "";
+                    }
                 }
             }
             else

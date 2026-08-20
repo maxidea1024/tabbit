@@ -66,6 +66,12 @@ public partial class ModelCooker
 
         result.SolveTableCrossReferencings(diagnostics);
 
+        // Now that the targets are known, the type that says which of them a row landed in.
+        // After resolution because it is built from the resolved tables, and before anything
+        // is generated because every generator emits it through the enumeration machinery it
+        // already has.
+        DeclareMultiTargetDiscriminators(result, diagnostics);
+
         // Only now is it known what a reference cell holds. The layout kept those cells as
         // written because the target's key type is not a fact any one sheet carries, and
         // this turns them into values of that type.
@@ -229,6 +235,97 @@ public partial class ModelCooker
     }
 
     /// <summary>
+    /// Declares, for every column reaching several tables, the enumeration that says which
+    /// of them a row's value is in.
+    /// </summary>
+    /// <remarks>
+    /// **In the model rather than in each generator.** Every generator already turns
+    /// <see cref="Model.Enums"/> into its language's enumeration, so declaring the type here
+    /// means every one of them emits it with no new code - and they all spell it and case it
+    /// the way they spell every other enumeration, which is what stops the same type being
+    /// named three ways across a project's languages.
+    ///
+    /// One per declaration rather than one per distinct target list. Lists do repeat - a
+    /// project's reward tables name the same sixteen catalogues from several columns - but
+    /// merging them would mean inventing a name for the list, and the name of a thing the
+    /// sheets did not declare is not this tool's to choose. A project that wants one
+    /// declares an enum and points its columns at that instead.
+    ///
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    private static void DeclareMultiTargetDiscriminators(Model model, Diagnostics diagnostics)
+    {
+        // Snapshotted, because the loop adds to the list it would otherwise be walking.
+        var tables = model.Tables.ToList();
+
+        foreach (var table in tables)
+        {
+            foreach (var field in table.Fields)
+            {
+                if (field.ResolvedRefTables is not { Count: > 1 })
+                    continue;
+
+                string name = $"{table.Name.ToPascalCase()}{field.Name.ToPascalCase()}Target";
+
+                // A sheet may already have declared this name, and then two different types
+                // would be generated under it. Reported rather than renamed: a name this
+                // tool made up silently is one nobody can search for.
+                if (model.Enums.Exists(existing => existing.Name == name))
+                {
+                    diagnostics.Error(field.DetailTypeLocation,
+                        $"`{table.Name}.{field.Name}` reaches several tables, so the generated code "
+                        + $"needs an enum named `{name}` to say which one - and an enum of that name "
+                        + $"is already declared. Rename one of them.");
+                    continue;
+                }
+
+                var discriminator = new Models.Enum
+                {
+                    Location = field.DetailTypeLocation ?? field.NameLocation,
+                    TargetSide = table.TargetSide,
+                    RawName = name,
+                    Name = name,
+                    Synthesized = true,
+                    Comment =
+                        $"Which table `{table.Name}.{field.Name}` points at. "
+                        + "The column carries one id and the tables it may be a row of take "
+                        + "separate id bands, so exactly one of them answers.",
+                };
+
+                // Zero is "points at nothing", which is what a column with no value holds and
+                // what a key found in none of the targets leaves behind. Every other
+                // enumeration in the model has a zero for the same reason.
+                discriminator.Labels.Add(new Models.Enum.Label
+                {
+                    RawName = "None",
+                    Name = "None",
+                    Value = 0,
+                    Synthesized = true,
+                    Location = discriminator.Location,
+                    Comment = "No row of any of them.",
+                });
+
+                int value = 1;
+                foreach (var target in field.ResolvedRefTables)
+                {
+                    discriminator.Labels.Add(new Models.Enum.Label
+                    {
+                        RawName = target.Name,
+                        Name = target.Name.ToPascalCase(),
+                        Value = value++,
+                        Synthesized = true,
+                        Location = discriminator.Location,
+                        Comment = $"A row of `{target.Name}`.",
+                    });
+                }
+
+                model.Enums.Add(discriminator);
+                field.MultiTargetEnum = discriminator;
+            }
+        }
+    }
+
+    /// <summary>
     /// Turns every reference cell into a value of the key its target is addressed by, now
     /// that the target is known.
     /// </summary>
@@ -298,8 +395,16 @@ public partial class ModelCooker
                         // the author wrote a key and the type is the target's answer. The
                         // parser's own message names `Int32` and nothing else, which sends
                         // them looking at the wrong column.
+                        //
+                        // Every target, not the resolved one: a column naming several has no
+                        // single resolved table, and reading the singular here dereferenced
+                        // null the moment such a column held a key it could not parse.
+                        string targets = field.ResolvedRefTables is not null
+                            ? string.Join("`, `", field.ResolvedRefTables.Select(t => t.Name))
+                            : field.ResolvedRefTable!.Name;
+
                         diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                            $"`{table.Name}.{field.Name}` references `{field.ResolvedRefTable!.Name}`, "
+                            $"`{table.Name}.{field.Name}` references `{targets}`, "
                             + $"which is addressed by `{field.RefKeyType.ToString().ToLowerInvariant()}`, "
                             + $"and `{written}` is not one. {problem.Message}");
                     }

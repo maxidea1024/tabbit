@@ -158,6 +158,12 @@ public partial class ModelCooker
 
         foreach (var enumm in model.Enums)
         {
+            // Declared by the cooker rather than by a sheet - the target list of a column
+            // reaching several tables. Same reason the zero label below is skipped: there is
+            // no cell holding this name.
+            if (enumm.Synthesized)
+                continue;
+
             AddSimple(NameKind.Entity, enumm.RawName, enumm.Name, enumm.Location, "Enum");
 
             foreach (var label in enumm.Labels)

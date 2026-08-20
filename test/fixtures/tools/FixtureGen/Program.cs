@@ -72,6 +72,7 @@ internal static class Program
             Prepare(outputDir, "reference-required-blank", "reference-required-blank.xlsx"));
         WriteAsset(Prepare(outputDir, "asset", "asset.xlsx"));
         WriteRowSets(Prepare(outputDir, "row-sets", "row-sets.xlsx"));
+        WriteMultiTarget(Prepare(outputDir, "multi-target", "multi-target.xlsx"));
         // The corpus and the corpus one generation later, from one description. The skew
         // scenario is the same tables with a column appended, and the only thing the gate
         // asks of it is that nothing else differs - so nothing else may be maintained
@@ -2768,6 +2769,96 @@ internal static class Program
     }
 
     // ------------------------------------------------------------- helpers
+
+    // -------------------------------------------------------- multi-target
+
+    /// <summary>
+    /// A column whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// Written `Weapon|Armour` - the notation the core layout grew so that this shape could
+    /// be declared without a project's own constraint row. Before it, the only way in was
+    /// one project layout, which would have made this feature's gate that project's
+    /// workbook. spec/multi-target-accessors.md section 4.
+    ///
+    /// What the fixture has to hold, beyond one such column:
+    ///
+    ///   a wide one       five targets, because a two-target column exercises none of the
+    ///                    per-target layout - a pair could be special-cased and pass.
+    ///   both ends        a row resolving to the first target and a row resolving to the
+    ///                    last, so an off-by-one in the discriminator shows.
+    ///   a single target  the same notation with one name, which must generate exactly what
+    ///                    a plain `foreign` generates and move no golden byte.
+    ///   an absent one    `foreign?` with `-`, which is the `None` discriminator.
+    ///
+    /// The catalogues take separate id bands. That is not decoration: two targets holding one
+    /// id is already an error, because the accessors would answer together and which row the
+    /// column meant would not be in the data.
+    /// </remarks>
+    private static void WriteMultiTarget(string path)
+    {
+        var workbook = new XSSFWorkbook();
+
+        // The catalogues on their own sheet, so they can be three columns wide while the
+        // table pointing at them is five. Tables sharing a sheet are kept one width, since a
+        // narrower one reads rightward until a cell is blank.
+        var c = new SheetBuilder(workbook.CreateSheet("Catalogues"));
+
+        int row = 1;
+        foreach (var (name, band, comment) in new[]
+                 {
+                     ("Weapon", 10, "first target of every column below"),
+                     ("Armour", 20, "second target"),
+                     ("Trinket", 30, "only the wide column names this"),
+                     ("Mount", 40, "only the wide column names this"),
+                     ("Banner", 50, "the wide column's last target"),
+                 })
+        {
+            var catalogue = new TableSpec { Name = name, Comment = comment };
+            catalogue
+                .Field(FieldSpec.Of("index", "int", "primary index, in this table's own band"))
+                .Field(FieldSpec.Of("Name", "string", "so the resolved row has something to read"))
+                .Field(FieldSpec.Of("Note", "string", "a third column, so every table is one width"));
+            catalogue
+                .Row((band + 0).ToString(), name.ToLowerInvariant() + "-a", "a")
+                .Row((band + 1).ToString(), name.ToLowerInvariant() + "-b", "b");
+
+            c.Table(row, 1, catalogue);
+            row += 8;
+        }
+
+        var h = new SheetBuilder(workbook.CreateSheet("Holders"));
+
+        var holder = new TableSpec
+        {
+            Name = "Holder",
+            Comment = "One column per case the spec states.",
+        };
+        holder
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Pick", "foreign", "two targets - the ordinary case",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Wide", "foreign", "five targets, and the value picks one",
+                                detailType: "Weapon|Armour|Trinket|Mount|Banner"))
+            .Field(FieldSpec.Of("Only", "foreign", "the same notation with one name",
+                                detailType: "Weapon"))
+            .Field(FieldSpec.Of("Maybe", "foreign?", "two targets, and `-` is none of them",
+                                detailType: "Weapon|Armour"));
+        holder
+            // Resolves to the first target in one column and the third in the other.
+            .Row("1", "10", "30", "10", "20")
+            // The second target, and the wide column's last one - so a discriminator that
+            // stopped one short of the end is visible here rather than nowhere.
+            .Row("2", "21", "51", "11", "-")
+            // The wide column at its own first target, which is the one a loop that never
+            // advanced would also answer. It differs from row 1's third target for that
+            // reason.
+            .Row("3", "11", "10", "10", "21");
+
+        h.Table(1, 1, holder);
+
+        Save(workbook, path);
+    }
 
     private static void Save(XSSFWorkbook workbook, string path)
     {

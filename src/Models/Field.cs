@@ -250,6 +250,23 @@ public class Field
     public List<Table>? ResolvedRefTables { get; set; }
 
     /// <summary>
+    /// The enumeration saying which of those tables a row's value is in. Null unless this
+    /// field names several.
+    /// </summary>
+    /// <remarks>
+    /// Declared by the cooker, not by a sheet - see <see cref="Enum.Synthesized"/>. It has a
+    /// `None` at zero and one label per target, in the order they are named, and the linking
+    /// pass sets it beside the resolved row.
+    ///
+    /// The column's value could answer this question by being looked up in each target in
+    /// turn, and that is exactly what a consumer would otherwise write. The linking already
+    /// walks the targets once, so it records the answer instead.
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    [JsonIgnore]
+    public Enum? MultiTargetEnum { get; set; }
+
+    /// <summary>
     /// Field within the referenced table, for the `RefTable.RefFieldName` form.
     /// Null or empty when the reference names the whole row.
     /// </summary>

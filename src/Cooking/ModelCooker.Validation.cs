@@ -564,6 +564,22 @@ public partial class ModelCooker
     {
         foreach (var field in table.Fields)
         {
+            // A column that resolved to several tables is checked against those, whichever
+            // notation declared it. The list used to be read off the column constraint,
+            // which only one layout fills - so the same declaration written in the core
+            // layout got no existence check and, worse, no overlap check. The accessors rest
+            // on there being at most one target holding a given id, so that check may not
+            // depend on which notation was used. spec/multi-target-accessors.md.
+            if (field.ResolvedRefTables is { Count: > 0 })
+            {
+                _checkedReferencedTables++;
+                _rowsAgainstReferencedTables += rowSet.Rows.Count;
+
+                CheckKeyBandsDoNotOverlap(table, field, field.ResolvedRefTables, diagnostics);
+                CheckValuesExistIn(table, rowSet, field, field.ResolvedRefTables, diagnostics);
+                continue;
+            }
+
             var named = field.Constraints.ReferencedTables;
             if (named is null || named.Count == 0)
                 continue;
