@@ -201,8 +201,15 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                       AccessorName = AccessorType,
                       ModuleName = _recipe.ModuleName,
 
-                      // One directory down, and its `read` names the reader.
-                      Requires = new[] { "../tabbit/tcb_reader" },
+                      // One directory down, and its `read` names the reader. And the
+                      // discriminator module of every column reaching several tables, which
+                      // the record's own methods name. spec/multi-target-accessors.md.
+                      Requires = new[] { "../tabbit/tcb_reader" }
+                          .Concat(table.MultiReferences
+                                       .Select(reference =>
+                                           "../enums/" + reference.TargetTypeName.ToSnakeCase())
+                                       .Distinct())
+                          .ToList(),
                       Table = table,
                   });
         }
@@ -318,8 +325,19 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                 accessors.Add(ElementPresenceMember(sf));
         }
 
+        // A column reaching several tables adds the resolved row and the discriminator beside
+        // the key. spec/multi-target-accessors.md.
+        var multiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList();
+
+        foreach (var reference in multiReferences)
+        {
+            accessors.Add(reference.SlotMember);
+            accessors.Add(reference.TargetMember);
+        }
+
         return new RubyTableView
         {
+            MultiReferences = multiReferences,
             RawName = table.Name,
             RecordName = table.Name.ToPascalCase() + "Record",
             TableName = table.Name.ToPascalCase() + "Table",
@@ -359,6 +377,41 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// </remarks>
     private static string PrimaryLookup(Table? refTable)
         => "find_by_" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToSnakeCase();
+
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType == ValueType.String ? "!= ''" : "!= 0";
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private RubyMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new RubyMultiReferenceView
+        {
+            KeyMember = RubyName(column.Group.Name),
+            SlotMember = RubyName(column.Group.Name) + "_row",
+            TargetMember = RubyName(column.Group.Name) + "_target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+
+            // Upper snake, which is how this generator spells every other label - a Ruby
+            // constant, not the model's Pascal spelling.
+            NoneLabel = ConstantName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new RubyMultiTargetView
+            {
+                Table = RubyName(target.Name),
+                Method = RubyName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Label = ConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
 
     private RubyFieldView BuildField(Table table, SerialField sf)
     {
@@ -908,8 +961,12 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
             .Select(x => new RubyCrossReferenceView
             {
                 Table = RubyName(x.Table.Name),
@@ -924,6 +981,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                     IsArray = sf.IsArray,
                 }).ToList(),
                 RecordFields = x.RecordFields,
+                MultiFields = x.MultiFields,
             })
             .ToList(),
     };

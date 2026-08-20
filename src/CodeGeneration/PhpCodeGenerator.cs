@@ -330,6 +330,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -423,6 +424,44 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// </remarks>
     private static string PrimaryLookup(Table? refTable)
         => "findBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!== ''",
+            ValueType.Uuid => "->isSet()",
+            _ => "!== 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private PhpMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new PhpMultiReferenceView
+        {
+            KeyMember = PhpName(column.Group.Name),
+            SlotMember = PhpName(column.Group.Name) + "Row",
+            TargetMember = PhpName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneCase = CaseName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new PhpMultiTargetView
+            {
+                Table = PhpName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = PhpName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Case = CaseName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
 
     private PhpFieldView BuildField(Table table, SerialField sf)
     {
@@ -1165,11 +1204,16 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
             .Select(x => new PhpCrossReferenceView
             {
                 Table = PhpName(x.Table.Name),
+                MultiFields = x.MultiFields,
                 Fields = x.Fields.Select(sf => new PhpReferenceFieldView
                 {
                     Name = PhpName(sf.Name),

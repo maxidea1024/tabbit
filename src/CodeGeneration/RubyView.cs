@@ -99,6 +99,12 @@ internal sealed class RubyTableView
     /// <summary>The `attr_accessor` list, already as symbols and comma separated.</summary>
     public required string AccessorNames { get; set; }
 
+    /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<RubyMultiReferenceView> MultiReferences { get; set; }
+
     public required IReadOnlyList<RubyFieldView> Fields { get; set; }
 
     /// <summary>
@@ -353,6 +359,56 @@ internal sealed class RubyCrossReferenceView
     /// than beside it. spec/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<RubyRecordReferenceView> RecordFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables, which resolve by trying each in turn.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<RubyMultiReferenceView> MultiFields { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// One attribute for the resolved row whatever table it came from, and the discriminator
+/// saying which. spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class RubyMultiReferenceView
+{
+    /// <summary>The attribute holding the key.</summary>
+    public required string KeyMember { get; set; }
+
+    /// <summary>The attribute the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated module's name, which qualifies the labels.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>The label standing for "no row of any of them".</summary>
+    public required string NoneLabel { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<RubyMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class RubyMultiTargetView
+{
+    /// <summary>The accessor's local name for the table.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The method this target is read through.</summary>
+    public required string Method { get; set; }
+
+    /// <summary>The label for this target.</summary>
+    public required string Label { get; set; }
+
+    /// <summary>The target's lookup, which answers nil rather than raising.</summary>
+    public required string Lookup { get; set; }
 }
 
 /// <summary>

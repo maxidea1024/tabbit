@@ -63,6 +63,28 @@ final class {{ table.record_name }}
     {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One property for the resolved row
+   whatever table it came from, and the discriminator saying which - the targets take separate
+   id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+    /** The row this column names, as whichever of its targets holds it. Read it through the methods below. */
+    public ?object ${{ ref.slot_member }} = null;
+    /** Which table this column is a row of. */
+    public {{ ref.target_type_name }} ${{ ref.target_member }} = {{ ref.target_type_name }}::{{ ref.none_case }};
+{{~ end ~}}
+{{~ for ref in table.multi_references }}
+{{~ for target in ref.targets }}
+    /** The {{ target.record_name }} row this column names, or null when it names a row of one of the others. */
+    public function {{ target.method }}(): ?{{ target.record_name }}
+    {
+        if ($this->{{ ref.target_member }} !== {{ ref.target_type_name }}::{{ target.case }}) {
+            return null;
+        }
+
+        return $this->{{ ref.slot_member }};
+    }
+{{~ end ~}}
+{{~ end ~}}
 {{~ if table.needs_constructor }}
 
     /**

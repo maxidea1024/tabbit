@@ -356,6 +356,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
         // One cursor variable for the whole read method, assigned per column before its
         // row loop rather than declared once per case. Asked of the columns, because that
@@ -415,6 +416,51 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// </remarks>
     private static string PrimaryLookup(Table? refTable)
         => "findBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!= null && !$KEY$.isEmpty()",
+            ValueType.Uuid => "!= null",
+            _ => "!= 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private JavaMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+    {
+        string key = "record." + JavaName(column.Group.Name);
+
+        return new JavaMultiReferenceView
+        {
+            KeyMember = JavaName(column.Group.Name),
+            SlotMember = JavaName(column.Group.Name) + "Row",
+            TargetMember = JavaName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = JavaConstantName("None"),
+
+            // The string case needs the key twice - Java has no truthiness - so the suffix is
+            // written with the expression substituted in rather than appended blindly.
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType).Replace("$KEY$", key),
+            Targets = column.Targets.Select(target => new JavaMultiTargetView
+            {
+                Table = JavaName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = JavaName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Label = JavaConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
 
     private JavaFieldView BuildField(Table table, SerialField sf)
     {
@@ -1051,12 +1097,17 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
             .Select(x => new JavaCrossReferenceView
             {
                 Table = JavaName(x.Table.Name),
                 RecordName = x.Table.Name.ToPascalCase() + "Record",
+                MultiFields = x.MultiFields,
                 Fields = x.Fields.Select(sf => new JavaReferenceFieldView
                 {
                     Name = JavaName(sf.Name),

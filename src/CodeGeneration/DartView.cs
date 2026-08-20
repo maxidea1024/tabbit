@@ -107,6 +107,12 @@ internal sealed class DartTableView
     public required IReadOnlyList<string> Comment { get; set; }
 
     /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<DartMultiReferenceView> MultiReferences { get; set; }
+
+    /// <summary>
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<DartIndexView> Indexes { get; set; }
@@ -366,6 +372,12 @@ internal sealed class DartCrossReferenceView
     /// than beside it. spec/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<DartRecordReferenceView> RecordFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables, which resolve by trying each in turn.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<DartMultiReferenceView> MultiFields { get; set; }
 }
 
 /// <summary>
@@ -403,4 +415,53 @@ internal sealed class DartReferenceFieldView
 
     public required string Value { get; set; }
     public required bool IsArray { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// One field for the resolved row whatever table it came from, and the discriminator saying
+/// which. `Object?` for the slot, because the target records share no supertype - the getter
+/// below casts it, having asked the discriminator first.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class DartMultiReferenceView
+{
+    /// <summary>The property holding the key.</summary>
+    public required string KeyMember { get; set; }
+
+    /// <summary>The property the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>The label standing for "no row of any of them".</summary>
+    public required string NoneLabel { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<DartMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class DartMultiTargetView
+{
+    /// <summary>The accessor's local name for the table.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The record type a resolved row has.</summary>
+    public required string RecordName { get; set; }
+
+    /// <summary>The member this target is read through.</summary>
+    public required string Method { get; set; }
+
+    /// <summary>The enum label for this target.</summary>
+    public required string Label { get; set; }
+
+    /// <summary>The target's lookup, which answers null rather than throwing.</summary>
+    public required string Lookup { get; set; }
 }

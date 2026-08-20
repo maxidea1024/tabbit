@@ -47,7 +47,25 @@
       {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One attribute for the resolved
+   row whatever table it came from, and the discriminator saying which - the targets take
+   separate id bands, so at most one of them ever answers.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+      @{{ ref.slot_member }} = nil
+      @{{ ref.target_member }} = {{ ref.target_type_name }}::{{ ref.none_label }}
+{{~ end ~}}
     end
+{{~ for ref in table.multi_references }}
+{{~ for target in ref.targets }}
+    # The {{ target.table }} row this column names, or nil when it names a row of one of the others.
+    def {{ target.method }}
+      return nil unless @{{ ref.target_member }} == {{ ref.target_type_name }}::{{ target.label }}
+
+      @{{ ref.slot_member }}
+    end
+{{~ end ~}}
+{{~ end ~}}
 
   end
 

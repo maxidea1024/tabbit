@@ -104,6 +104,12 @@ internal sealed class PhpTableView
     /// </summary>
     public required IReadOnlyList<PhpIndexView> Indexes { get; set; }
 
+    /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<PhpMultiReferenceView> MultiReferences { get; set; }
+
     public required IReadOnlyList<PhpFieldView> Fields { get; set; }
 
     /// <summary>
@@ -408,6 +414,61 @@ internal sealed class PhpCrossReferenceView
     /// than beside it. spec/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<PhpRecordReferenceView> RecordFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables, which resolve by trying each in turn.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<PhpMultiReferenceView> MultiFields { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// One property for the resolved row whatever table it came from, and the discriminator saying
+/// which. `?object` for the slot, because the target records share no base class - the method
+/// below narrows it, having asked the discriminator first.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class PhpMultiReferenceView
+{
+    /// <summary>The property holding the key.</summary>
+    public required string KeyMember { get; set; }
+
+    /// <summary>The property the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>The case standing for "no row of any of them".</summary>
+    public required string NoneCase { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<PhpMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class PhpMultiTargetView
+{
+    /// <summary>The accessor's local name for the table.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The record class a resolved row has.</summary>
+    public required string RecordName { get; set; }
+
+    /// <summary>The method this target is read through.</summary>
+    public required string Method { get; set; }
+
+    /// <summary>The enum case for this target.</summary>
+    public required string Case { get; set; }
+
+    /// <summary>The target's lookup, which answers null rather than throwing.</summary>
+    public required string Lookup { get; set; }
 }
 
 /// <summary>

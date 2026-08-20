@@ -146,6 +146,24 @@ final class {{ accessor.name }}
             }
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column reaching several tables is looked up in each of them in the order they were
+   named, stopping at the first that has the key. The tables take separate id bands - an id in
+   two of them is refused at conversion - so the order only decides which lookup runs.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in reference.multi_fields ~}}
+            if ($record->{{ ref.key_member }} {{ ref.key_is_set }}) {
+{{~ for target in ref.targets ~}}
+                if ($record->{{ ref.target_member }} === {{ ref.target_type_name }}::{{ ref.none_case }}) {
+                    $target = ${{ target.table }}->{{ target.lookup }}($record->{{ ref.key_member }});
+
+                    if ($target !== null) {
+                        $record->{{ ref.slot_member }} = $target;
+                        $record->{{ ref.target_member }} = {{ ref.target_type_name }}::{{ target.case }};
+                    }
+                }
+{{~ end ~}}
+            }
+{{~ end ~}}
         }
 {{~ end ~}}
 {{~ end ~}}

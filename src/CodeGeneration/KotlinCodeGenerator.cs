@@ -284,6 +284,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -316,6 +317,44 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// </remarks>
     private static string PrimaryLookup(Table? refTable)
         => "findBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => ".isNotEmpty()",
+            ValueType.Uuid => "!= null",
+            _ => "!= 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private KotlinMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new KotlinMultiReferenceView
+        {
+            KeyMember = KotlinName(column.Group.Name),
+            SlotMember = KotlinName(column.Group.Name) + "Row",
+            TargetMember = KotlinName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = ConstantName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new KotlinMultiTargetView
+            {
+                Table = KotlinName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = KotlinName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Label = ConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
 
     private KotlinFieldView BuildField(Table table, SerialField sf)
     {
@@ -957,11 +996,16 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
             .Select(x => new KotlinCrossReferenceView
             {
                 Table = KotlinName(x.Table.Name),
+                MultiFields = x.MultiFields,
                 Fields = x.Fields.Select(sf => new KotlinReferenceFieldView
                 {
                     Name = KotlinName(sf.Name),
