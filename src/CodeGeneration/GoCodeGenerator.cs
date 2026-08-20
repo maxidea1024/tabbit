@@ -980,7 +980,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
         Tables = _model.Tables.Select(table => new GoTableSlotView
         {
-            Name = GoName(table.Name),
+            Name = GoPascalName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
@@ -1260,5 +1260,21 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// escaped: every Go keyword is lowercase.
     /// </summary>
     private static string GoName(string name) => LanguageProfile.Go.MemberName(name.ToPascalCase());
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// PascalCase because that is how Go writes an exported identifier, not because a member
+    /// is spelled that way. Sharing one function let the two look like one rule.
+    ///
+    /// Go is the one target with no `MemberCase` setting, so the two can never actually
+    /// diverge here. They are still separate, because which of them a name is remains a fact
+    /// about that name: this one is a table's slot on the accessor. Go has no setting because
+    /// the first letter's case is what exports a member - spelled any other way, the
+    /// generated fields would be unreachable from the package that reads them, which is a
+    /// broken output rather than a differently spelled one.
+    /// </remarks>
+    private static string GoPascalName(string name) => LanguageProfile.Go.MemberName(name.ToPascalCase());
 
 }

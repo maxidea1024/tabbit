@@ -62,6 +62,22 @@ public sealed class PhpRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -84,6 +100,10 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private PhpRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates a class and a list of it; a member column fills one of its
@@ -127,6 +147,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Camel, "php");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -673,11 +694,11 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
     /// <summary>The member holding which of an array's elements have a value.</summary>
-    private static string ElementPresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase() + "At";
+    private string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : PhpName("has_" + sf.Name + "_at");
 
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : PhpName("has_" + sf.Name);
 
     /// <summary>One record member's declaration, by the same rules an ordinary field follows.</summary>
     private IReadOnlyList<string> MemberDeclarations(RecordMember member)
@@ -912,7 +933,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// The line assigning one row from the value the run decoded, inside the loop the
     /// template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -1123,7 +1144,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         Tables = _model.Tables.Select(table => new PhpTableSlotView
         {
-            Name = PhpName(table.Name),
+            Name = PhpCamelName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
@@ -1390,6 +1411,15 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     private static string ConstantName(string name) => name.ToUpperSnakeCase();
 
     /// <summary>A property name, camelCase.</summary>
-    private static string PhpName(string name) => LanguageProfile.Php.MemberName(name.ToCamelCase());
+    private string PhpName(string name) => LanguageProfile.Php.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// camelCase because that is how PHP writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string PhpCamelName(string name) => LanguageProfile.Php.MemberName(name.ToCamelCase());
 
 }

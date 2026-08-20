@@ -52,6 +52,22 @@ public sealed class LuaRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -73,6 +89,10 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     private Model _model = null!;
     private LuaRecipe _recipe = null!;
 
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
+
     protected override bool SupportsNestedFields => true;
     protected override bool SupportsDeepNestedFields => true;
     protected override bool SupportsOptionalFields => true;
@@ -93,6 +113,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Camel, "lua");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -220,7 +241,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         Comment = CommentLines(enumm.Comment),
         Labels = enumm.Labels.Select(label => new LuaEnumLabelView
         {
-            Key = Key(LuaName(label.Name)),
+            Key = Key(LuaCamelName(label.Name)),
             Value = label.Value.ToString(CultureInfo.InvariantCulture),
             Comment = CommentLines(label.Comment),
         }).ToList(),
@@ -233,7 +254,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         Comment = CommentLines(constantSet.Comment),
         Constants = constantSet.Constants.Select(constant => new LuaConstantView
         {
-            Key = Key(LuaName(constant.Name)),
+            Key = Key(LuaCamelName(constant.Name)),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
         }).ToList(),
@@ -518,18 +539,18 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     private static string RecordTypeName(Table table, SerialField sf)
         => table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
 
-    private static string PresenceName(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+    private string PresenceName(SerialField sf)
+        => sf.IsRecord ? "" : LuaName("has_" + sf.Name);
 
-    private static string ElementPresenceName(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase() + "At";
+    private string ElementPresenceName(SerialField sf)
+        => sf.IsRecord ? "" : LuaName("has_" + sf.Name + "_at");
 
     /// <summary>The field a reference's stored key lands in: `ownerIndex`.</summary>
     /// <remarks>
     /// Built from the camel name and never bracketed: appending `Index` takes any keyword
     /// out of keyword-hood, so the composite is always a plain identifier.
     /// </remarks>
-    private static string RefIndexName(string name) => LuaName(name) + "Index";
+    private string RefIndexName(string name) => LuaName(name) + "Index";
 
     private IReadOnlyList<string> MemberInitializers(RecordMember member)
     {
@@ -914,12 +935,12 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     {
         Name = _recipe.AccessorName,
         FileExtension = _recipe.BinaryTableFileExtension,
-        FieldNames = QuotedList(_model.Tables.Select(table => LuaName(table.Name)).ToList()),
+        FieldNames = QuotedList(_model.Tables.Select(table => LuaCamelName(table.Name)).ToList()),
 
         Tables = _model.Tables.Select(table => new LuaTableSlotView
         {
-            Access = Access(LuaName(table.Name)),
-            Key = Key(LuaName(table.Name)),
+            Access = Access(LuaCamelName(table.Name)),
+            Key = Key(LuaCamelName(table.Name)),
             Loaded = "loaded" + table.Name.ToPascalCase(),
             TableName = table.Name.ToPascalCase() + "Table",
 
@@ -1008,7 +1029,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             case ValueType.Enum:
             {
                 var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
-                return constant.Enum.Name.ToPascalCase() + Access(LuaName(label.Name));
+                return constant.Enum.Name.ToPascalCase() + Access(LuaCamelName(label.Name));
             }
 
             default:
@@ -1114,7 +1135,13 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     // ------------------------------------------------------------- helpers
 
     /// <summary>A field name: camelCase, its spelling kept even on a keyword.</summary>
-    private static string LuaName(string name) => name.ToCamelCase();
+    private string LuaName(string name) => name.ToCase(_memberCase);
+
+    /// <summary>
+    /// The same spelling, for the names that are not members - an enum label, a constant,
+    /// an accessor's per-table slot.
+    /// </summary>
+    private static string LuaCamelName(string name) => name.ToCamelCase();
 
     private static bool IsReserved(string name)
         => LanguageProfile.Lua.ReservedMemberNames.Contains(name);

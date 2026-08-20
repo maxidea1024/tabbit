@@ -70,6 +70,22 @@ public sealed class CRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -135,6 +151,10 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     private Model _model = null!;
     private CRecipe _recipe = null!;
 
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Snake;
+
     protected override void Run(TargetContext context, CRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -144,6 +164,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Snake, "c");
 
         Generate();
 
@@ -1217,7 +1238,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         Tables = _model.Tables.Select(table => new CTableSlotView
         {
-            Name = CName(table.Name),
+            Name = CSnakeName(table.Name),
             TableName = TableTypeName(table),
             FunctionPrefix = FunctionPrefix(table),
 
@@ -1525,6 +1546,15 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
            .ToUpperInvariant();
 
     /// <summary>A member name, snake_case as Doom writes them.</summary>
-    private static string CName(string? name) => LanguageProfile.C.MemberName(name!.ToSnakeCase());
+    private string CName(string? name) => LanguageProfile.C.MemberName(name!.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// snake_case because that is how C writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string CSnakeName(string name) => LanguageProfile.C.MemberName(name.ToSnakeCase());
 
 }

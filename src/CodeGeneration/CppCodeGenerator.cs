@@ -82,6 +82,22 @@ public class CppRecipe : IOutputRecipe
     /// generated reader will not match the data.
     /// </summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -157,6 +173,10 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     private Model _model = null!;
     private CppRecipe _cppRecipe = null!;
 
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Snake;
+
     protected override void Run(TargetContext context, CppRecipe cppRecipe)
     {
         if (string.IsNullOrEmpty(cppRecipe.Path))
@@ -169,6 +189,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         // Already narrowed to the side this entry is built for. Both (the default)
         // leaves the model unchanged.
         _model = context.Model;
+        _memberCase = MemberCasing.From(cppRecipe.MemberCase, NameCase.Snake, "cpp");
 
         GenerateModel();
         WriteBinaryReaderRuntime();
@@ -852,7 +873,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         Tables = _model.Tables.Select(table => new CppTableSlotView
         {
-            Name = CppName(table.Name),
+            Name = CppSnakeName(table.Name),
             TableName = TableName(table),
 
             // Unescaped: this one names the file the exporter wrote, not an identifier.
@@ -1287,7 +1308,16 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// generator used to emit those verbatim - `std::string class;` - and report success,
     /// because nothing compiled the result.
     /// </summary>
-    private static string CppName(string name) => LanguageProfile.Cpp.MemberName(name.ToSnakeCase());
+    private string CppName(string name) => LanguageProfile.Cpp.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// snake_case because that is how C++ writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string CppSnakeName(string name) => LanguageProfile.Cpp.MemberName(name.ToSnakeCase());
 
     /// <summary>
     /// The C++ type a field's values have. A reference's is the key it carries rather than

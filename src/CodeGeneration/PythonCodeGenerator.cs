@@ -72,6 +72,22 @@ public sealed class PythonRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -93,6 +109,10 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private PythonRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting
+    // is reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Snake;
 
     /// <summary>
     /// A record group generates a class and a list of it; a member column fills one of its
@@ -138,6 +158,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Snake, "python");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -370,7 +391,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             DefaultValue = fallback.Value.ToString(CultureInfo.InvariantCulture),
             Labels = enumm.Labels.Select(label => new PythonEnumLabelView
             {
-                Name = PythonName(label.Name),
+                Name = PythonSnakeName(label.Name),
                 Value = label.Value.ToString(CultureInfo.InvariantCulture),
                 Comment = CommentLines(label.Comment),
             }).ToList(),
@@ -694,12 +715,12 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : PythonName("has_" + sf.Name);
 
     /// <summary>The attribute holding which of an array's elements have a value.</summary>
-    private static string ElementPresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase() + "_at";
+    private string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : PythonName("has_" + sf.Name + "_at");
 
     /// <summary>What one record member starts at, for the same reason an ordinary one does.</summary>
     /// <summary>
@@ -962,7 +983,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// The line assigning one row from the value the run decoded, inside the loop the
     /// template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -1177,11 +1198,11 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     private PythonAccessorView BuildAccessor() => new PythonAccessorView
     {
         FileExtension = _recipe.BinaryTableFileExtension,
-        SlotNames = Tuple(_model.Tables.Select(table => PythonName(table.Name)).ToList()),
+        SlotNames = Tuple(_model.Tables.Select(table => PythonSnakeName(table.Name)).ToList()),
 
         Tables = _model.Tables.Select(table => new PythonTableSlotView
         {
-            Name = PythonName(table.Name),
+            Name = PythonSnakeName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
@@ -1282,7 +1303,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             case ValueType.Enum:
             {
                 var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
-                return $"{constant.Enum.Name.ToPascalCase()}.{PythonName(label.Name)}";
+                return $"{constant.Enum.Name.ToPascalCase()}.{PythonSnakeName(label.Name)}";
             }
 
             default:
@@ -1337,7 +1358,18 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// snake_case, and escaped when it lands on a keyword - which it can, because
     /// Python members are lowercase and so is nearly every Python keyword.
     /// </summary>
-    private static string PythonName(string name) => LanguageProfile.Python.MemberName(name.ToSnakeCase());
+    private string PythonName(string name) => LanguageProfile.Python.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for the names that are not members.
+    /// </summary>
+    /// <remarks>
+    /// An enum label and an accessor's per-table slot are snake_case here because that is
+    /// how Python writes an identifier, not because a member is. They read the same
+    /// function today and would follow a member's spelling anywhere - which is a
+    /// coincidence of shared code rather than an intention, so it is spelled out.
+    /// </remarks>
+    private static string PythonSnakeName(string name) => LanguageProfile.Python.MemberName(name.ToSnakeCase());
 
     // `new`, and not the base one: each line goes through this target's own doc
     // escaping on the way out.

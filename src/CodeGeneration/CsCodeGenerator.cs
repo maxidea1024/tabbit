@@ -103,6 +103,22 @@ public class CSharpRecipe : IOutputRecipe
     /// generated reader will not match the data.
     /// </summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -123,6 +139,10 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private CSharpRecipe _csharpReceipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Pascal;
 
     /// <summary>
     /// A record group generates a struct and an array of it; a member column fills one of
@@ -170,6 +190,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         SweepStaleOutput(csharpRecipe.Path, csharpRecipe.Sweep);
 
         _csharpReceipe = csharpRecipe;
+        _memberCase = MemberCasing.From(csharpRecipe.MemberCase, NameCase.Pascal, "csharp");
 
         // Already narrowed to the side this entry is built for. Both (the default)
         // leaves the model unchanged.
@@ -447,8 +468,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // Pascal-casing a folded group's name gives the property it is exposed under
             // - `TextEn_array` becomes `TextEnArray` - so these literals name the very
             // members BuildObjectValueMap reads.
-            FieldNameLiterals = string.Join(", ", table.SerialFields.Select(sf => $"\"{sf.Name.ToPascalCase()}\"")),
-            FieldValueExpressions = string.Join(", ", table.SerialFields.Select(sf => "r." + sf.Name.ToPascalCase())),
+            FieldNameLiterals = string.Join(", ", table.SerialFields.Select(sf => $"\"{CsName(sf.Name)}\"")),
+            FieldValueExpressions = string.Join(", ", table.SerialFields.Select(sf => "r." + CsName(sf.Name))),
         };
     }
 
@@ -509,7 +530,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // spec/nested-multi-level.md.
         string memberAccess = (wire.Member is null)
             ? ""
-            : string.Concat(wire.MemberPath.Select(name => "." + name.ToPascalCase()));
+            : string.Concat(wire.MemberPath.Select(name => "." + CsName(name)));
 
         // A member of an array-valued record loops over the elements without allocating:
         // the array is a struct array created with the record, so unlike a serial field
@@ -585,7 +606,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             ElementCount = sf.Fields.Count,
             RefTable = refTable,
             RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
-            RefField = sf.FirstField!.RefFieldName.ToPascalCase() ?? "",
+            RefField = CsName(sf.FirstField!.RefFieldName ?? ""),
             RefKeyTypeName = ToCSharpTypeName(sf.FirstField!.RefKeyType, null, null),
             RefIsSet = RefIsSetSuffix(sf.FirstField!.RefKeyType),
             Kind = DeclarationKind(table, sf),
@@ -703,10 +724,10 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// of the three record shapes this is: the group's array, the member's, or neither.
     /// spec/references-in-records.md.
     /// </remarks>
-    private static CsRecordReferenceView BuildRecordReference(WireColumn wire)
+    private CsRecordReferenceView BuildRecordReference(WireColumn wire)
     {
         string fieldName = "_" + wire.Group.Name.ToCamelCase();
-        string memberAccess = string.Concat(wire.MemberPath.Select(name => "." + name.ToPascalCase()));
+        string memberAccess = string.Concat(wire.MemberPath.Select(name => "." + CsName(name)));
 
         var (path, subscript) = MemberPlace(wire, fieldName, memberAccess);
 
@@ -1547,6 +1568,6 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// column literals are spelled where they are built, because none of them is a member
     /// and none of them should move when a member's spelling does.
     /// </remarks>
-    private static string CsName(string name)
-        => LanguageProfile.CSharp.MemberName(name.ToPascalCase());
+    private string CsName(string name)
+        => LanguageProfile.CSharp.MemberName(name.ToCase(_memberCase));
 }

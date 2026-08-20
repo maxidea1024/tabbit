@@ -86,6 +86,22 @@ public sealed class SwiftRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -106,6 +122,10 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private SwiftRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates a nested struct and an array of it; a member column fills one
@@ -150,6 +170,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Camel, "swift");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -297,7 +318,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             DefaultLabel = SwiftName(fallback.Name),
             Labels = enumm.Labels.Select(label => new SwiftEnumLabelView
             {
-                Name = SwiftName(label.Name),
+                Name = SwiftCamelName(label.Name),
                 Value = label.Value.ToString(CultureInfo.InvariantCulture),
                 Comment = CommentLines(label.Comment),
             }).ToList(),
@@ -311,7 +332,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         Comment = CommentLines(constantSet.Comment),
         Constants = constantSet.Constants.Select(constant => new SwiftConstantView
         {
-            Name = SwiftName(constant.Name),
+            Name = SwiftCamelName(constant.Name),
             Type = ToSwiftTypeName(constant.Type, constant.Enum, null),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
@@ -583,8 +604,8 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// <summary>
     /// The property a nullable column's presence lands in.
     /// </summary>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : SwiftName("has_" + sf.Name);
 
     /// <summary>
     /// What a stored key holds before a row is read.
@@ -842,7 +863,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// The line assigning one row from the value the run decoded, inside the loop the
     /// template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -907,7 +928,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
         Tables = _model.Tables.Select(table => new SwiftTableSlotView
         {
-            Name = SwiftName(table.Name),
+            Name = SwiftCamelName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
@@ -1094,7 +1115,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             case ValueType.Enum:
             {
                 var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
-                return $"{constant.Enum.Name.ToPascalCase()}.{SwiftName(label.Name)}";
+                return $"{constant.Enum.Name.ToPascalCase()}.{SwiftCamelName(label.Name)}";
             }
 
             default:
@@ -1187,6 +1208,12 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// <summary>
     /// A member name in Swift's casing, escaped in backticks when it lands on a keyword.
     /// </summary>
-    private static string SwiftName(string name)
-        => LanguageProfile.Swift.MemberName(name.ToCamelCase());
+    private string SwiftName(string name)
+        => LanguageProfile.Swift.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for the names that are not members - an enum case, a constant,
+    /// an accessor's per-table slot.
+    /// </summary>
+    private static string SwiftCamelName(string name) => LanguageProfile.Swift.MemberName(name.ToCamelCase());
 }

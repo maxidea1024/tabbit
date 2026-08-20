@@ -58,6 +58,22 @@ public sealed class DartRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -79,6 +95,10 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private DartRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates a class and a list of it; a member column fills one of its
@@ -124,6 +144,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Camel, "dart");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -244,7 +265,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             DefaultLabel = DartName(fallback.Name),
             Labels = enumm.Labels.Select((label, index) => new DartEnumLabelView
             {
-                Name = DartName(label.Name),
+                Name = DartCamelName(label.Name),
                 Value = label.Value.ToString(CultureInfo.InvariantCulture),
                 Comment = CommentLines(label.Comment),
 
@@ -262,7 +283,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         Comment = CommentLines(constantSet.Comment),
         Constants = constantSet.Constants.Select(constant => new DartConstantView
         {
-            Name = DartName(constant.Name),
+            Name = DartCamelName(constant.Name),
             Type = ToDartTypeName(constant.Type, constant.Enum, null),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
@@ -574,12 +595,12 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : DartName("has_" + sf.Name);
 
     /// <summary>The member holding which of an array's elements have a value.</summary>
-    private static string ElementPresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase() + "At";
+    private string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : DartName("has_" + sf.Name + "_at");
 
     /// <summary>What one record member starts at, for the same reason an ordinary one does.</summary>
     /// <summary>What a stored key holds before a row is read.</summary>
@@ -756,7 +777,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// The line assigning one row from `value`, the run's decoded value, inside the loop
     /// the template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -944,7 +965,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         Tables = _model.Tables.Select(table => new DartTableSlotView
         {
-            Name = DartName(table.Name),
+            Name = DartCamelName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
@@ -1155,7 +1176,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             case ValueType.Enum:
             {
                 var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
-                return $"{constant.Enum.Name.ToPascalCase()}.{DartName(label.Name)}";
+                return $"{constant.Enum.Name.ToPascalCase()}.{DartCamelName(label.Name)}";
             }
 
             default:
@@ -1209,6 +1230,13 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// camelCase, and escaped with a trailing underscore when it lands on a reserved
     /// word. Not a leading one: that would make the member private to its library.
     /// </summary>
-    private static string DartName(string name) => LanguageProfile.Dart.MemberName(name.ToCamelCase());
+    private string DartName(string name) => LanguageProfile.Dart.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for the names that are not members - an enum label, a constant,
+    /// an accessor's per-table slot. They share a member's casing because Dart writes every
+    /// identifier that way, not because they are members.
+    /// </summary>
+    private static string DartCamelName(string name) => LanguageProfile.Dart.MemberName(name.ToCamelCase());
 
 }

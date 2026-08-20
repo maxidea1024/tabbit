@@ -521,6 +521,41 @@ tabbit --new-recipe my-recipe.json --template unity
 
 ### 이름과 관련된 것
 
+#### `MemberCase` — 생성 멤버의 표기
+
+레코드 멤버(프로퍼티·필드·게터)를 어떤 표기로 낼지 정합니다. **비우면 그 언어가 늘 쓰던
+표기**이므로, 적지 않은 레시피의 산출물은 한 바이트도 달라지지 않습니다.
+
+|값|예 — 시트의 `OpenAt`|
+|--|--|
+|`pascal`|`OpenAt`|
+|`camel`|`openAt`|
+|`snake`|`open_at`|
+|`upper-snake`|`OPEN_AT`|
+
+|언어|기본값|
+|--|--|
+|C#|`pascal`|
+|Dart · Java · Kotlin · Lua · PHP · Swift · TypeScript|`camel`|
+|C · C++ · Python · Ruby · Rust|`snake`|
+|Go|**제공하지 않습니다** — 첫 글자의 대소문자가 export 여부를 정하므로, 표기를 바꾸면 소비자가 멤버를 읽을 수 없게 됩니다|
+|Unreal|**제공하지 않습니다** — 멤버 이름이 표기가 아닙니다. bool UPROPERTY는 `bIsOpen`처럼 소문자 `b` + Pascal이고, 그 모양에 대응하는 snake·camel이 없습니다(`bis_open`은 어느 관례도 아닙니다). UHT가 이 선언을 읽는 것도 함께 걸립니다|
+
+**멤버만 움직이고 나머지는 그대로입니다.** 타입 이름, 조회 메서드(`FindByIndex`),
+원소 개수 상수(`Index_N`), 데이터 파일은 멤버 표기와 무관합니다 — 그것들은 멤버 이름을 한
+단어로 품은 합성 이름이라, 그 단어가 대문자로 남아야 읽힙니다. 전부 함께 움직이면 표기를
+정하는 것이 아니라 산출물을 개명하는 것이 됩니다.
+
+**존재 여부 접근자는 멤버입니다.** 시트의 `OpenAt`이 옵셔널이면 `snake`에서 `has_open_at`,
+`camel`에서 `hasOpenAt`이 됩니다 — 접두어를 붙인 뒤 표기하는 것이 아니라 합성한 이름을
+표기하므로 네 표기 모두에서 어긋나지 않습니다.
+
+**예약어는 그 표기에서 다시 판정됩니다.** C#은 멤버가 PascalCase인 동안 키워드와 겹칠 수
+없었지만(모든 C# 키워드가 소문자입니다), `camel`로 두면 `Class` 컬럼이 `class`로 도착하므로
+`@class`로 회피합니다. 표기를 바꾸는 것은 어느 이름이 위험해지는지를 바꾸는 것입니다.
+
+---
+
 **`AccessorName`은 모든 언어에서 「전부 담고 있는 진입점」의 이름입니다.** 기본값은 어디서나
 `Tables`이고, 각 생성기가 자기 언어의 표기로 바꿔 씁니다 — **타입은 PascalCase, 파일은 그 언어의
 파일 명명 관례**입니다. 그래서 `Tables`라고 한 번 적으면 C#은 `Tables.cs`의 `Tables`, Go는

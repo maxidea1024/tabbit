@@ -76,6 +76,7 @@ public sealed class UnrealRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
 }
 
 /// <summary>
@@ -1206,6 +1207,16 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// following here because the generated types show up beside the engine's in the
     /// editor.
     /// </summary>
+    /// <remarks>
+    /// The one code target besides Go with no `MemberCase` setting, and for a different
+    /// reason: what this spells is not a casing. A bool UPROPERTY is `bIsOpen` - a lower-case
+    /// `b` in front of a Pascal-cased name, chosen by the member's type - and that shape has
+    /// no snake or camel equivalent to move to. `b` glued to a snake-cased name gives
+    /// `bis_open`, which is neither convention.
+    ///
+    /// The engine's own tooling is the other half of it. UHT reads these declarations and
+    /// Unreal's coding standard is not a preference a project overrides per recipe.
+    /// </remarks>
     private static string MemberName(Field? field, string name)
     {
         string cased = LanguageProfile.Unreal.MemberName(name.ToPascalCase());

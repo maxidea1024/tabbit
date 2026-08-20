@@ -61,6 +61,22 @@ public sealed class KotlinRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -79,6 +95,10 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private KotlinRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates a nested class and a list of it; a member column fills one of
@@ -123,6 +143,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Camel, "kotlin");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -546,8 +567,8 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : KotlinName("has_" + sf.Name);
 
     /// <summary>What one record member starts at, for the same reason an ordinary one does.</summary>
     /// <summary>What a stored key holds before a row is read.</summary>
@@ -841,7 +862,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// The line assigning one row from the value the run decoded, inside the loop the
     /// template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -915,7 +936,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         Tables = _model.Tables.Select(table => new KotlinTableSlotView
         {
-            Name = KotlinName(table.Name),
+            Name = KotlinCamelName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
@@ -1175,7 +1196,16 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// camelCase, and escaped with backticks when it lands on a keyword - which Kotlin
     /// accepts for exactly this, unlike Java, where the name has to change instead.
     /// </summary>
-    private static string KotlinName(string name) => LanguageProfile.Kotlin.MemberName(name.ToCamelCase());
+    private string KotlinName(string name) => LanguageProfile.Kotlin.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// camelCase because that is how Kotlin writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string KotlinCamelName(string name) => LanguageProfile.Kotlin.MemberName(name.ToCamelCase());
 
     /// <summary>An enum constant, SCREAMING_SNAKE_CASE as Kotlin writes them.</summary>
     private static string ConstantName(string name) => name.ToUpperSnakeCase();

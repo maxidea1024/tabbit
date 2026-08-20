@@ -1,0 +1,79 @@
+{
+  // The same workbook as `reserved-words`, generated with a member spelling nobody's
+  // language would have chosen for it.
+  //
+  // Two questions, and only a compiler answers either. Does the spelling actually move the
+  // members - and nothing else, since the type names, the element-count constants and the
+  // lookup methods are all built by joining a member's name into a longer identifier. And
+  // does a name that was safe at the language's own spelling stay safe at another one:
+  // this workbook's columns are named after keywords, so C# at camel case has to escape
+  // what C# at Pascal case never could collide with.
+
+  "Sources": {
+    "Xlsx": [
+      // Columns named after keywords, which is what makes the escaping question real.
+      {
+        "Path": "test/fixtures/xlsx/reserved-words"
+      },
+
+      // And columns with more than one word in them, plus optional ones. Single-word names
+      // hide half of what this fixture is for: `label` is `label` in camel and in snake
+      // alike, and a presence accessor only exists where a column may be absent.
+      {
+        "Path": "test/fixtures/xlsx/optional"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/member-case/binary",
+      "FileExtension": ".tcb"
+    },
+
+    // Pascal by default, so camel is the spelling that exercises the escape. Every C#
+    // keyword is lower case: at Pascal a member cannot collide with one, and at camel a
+    // column called `class` arrives as `class` and has to become `@class`.
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/member-case/csharp",
+      "Namespace": "Tabbit.Fixtures.MemberCase",
+      "AccessorName": "MemberCaseAccessor",
+      "MemberCase": "camel"
+    },
+
+    // snake_case by default, so Pascal is the move. Nothing collides here - Python's
+    // keywords are lower case too - which is the point: what this target checks is that a
+    // module whose members are all spelled the other way is still a module that imports.
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/member-case/python",
+      "PackageName": "member_case",
+      "MemberCase": "pascal"
+    },
+
+    // camelCase by default. Snake here, which is the spelling that puts an underscore into
+    // every presence accessor as well - `has_foo` rather than `hasFoo` - and those are
+    // built from the member's name rather than beside it.
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/member-case/java",
+      "PackageName": "membercase",
+      "AccessorName": "MemberCaseAccessor",
+      "MemberCase": "snake"
+    },
+
+    // snake_case by default; camel here. C++ has the largest reserved-word list of the
+    // three, because snake_case is where a member and a keyword can meet - and moving to
+    // camel does not make that go away, it moves which names are at risk.
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/member-case/cpp",
+      "Namespace": "tabbit_fixtures::member_case",
+      "AccessorName": "MemberCaseAccessor",
+      "BinaryTableFileExtension": ".tcb",
+      "MemberCase": "camel"
+    }
+  ]
+}

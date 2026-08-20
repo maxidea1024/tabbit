@@ -79,6 +79,23 @@ public class TypescriptRecipe : IOutputRecipe
     /// generated reader will not match the data.
     /// </summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
+
     
     /// <summary>
     /// Emits enums as string unions rather than numeric enums.
@@ -106,6 +123,10 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private TypescriptRecipe _typescriptRecipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates an element interface and a member of it, in both read
@@ -158,6 +179,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // Already narrowed to the side this entry is built for. Both (the default)
         // leaves the model unchanged.
         _model = context.Model;
+        _memberCase = MemberCasing.From(typescriptRecipe.MemberCase, NameCase.Camel, "typescript");
 
         GenerateModel();
     }
@@ -196,7 +218,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 AccessorFile = AccessorFile,
                 Tables = _model.Tables.Select(table => new TsTableSlotView
                 {
-                    Member = TsName(table.Name),
+                    Member = TsCamelName(table.Name),
                     Local = TsLocalName(table.Name),
                     Name = table.Name,
                     File = TsFileName(table.Name),
@@ -313,7 +335,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         Constants = constantSet.Constants.Select(constant => new TsConstantView
         {
-            Name = TsName(constant.Name),
+            Name = TsCamelName(constant.Name),
             Type = ToTypescriptTypename(constant.Type, constant.Enum, null),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
@@ -1826,7 +1848,13 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// legal as member names, so only the few that genuinely are not get renamed -
     /// `constructor` above all, which a class may not declare as an accessor.
     /// </summary>
-    private static string TsName(string name) => LanguageProfile.Typescript.MemberName(name.ToCamelCase());
+    private string TsName(string name) => LanguageProfile.Typescript.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for the names that are not members - a constant, an accessor's
+    /// per-table slot.
+    /// </summary>
+    private static string TsCamelName(string name) => LanguageProfile.Typescript.MemberName(name.ToCamelCase());
 
     /// <summary>
     /// The same name, but usable where TypeScript binds rather than where it names a
@@ -1841,7 +1869,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// accessor failed to parse; nothing caught it because the fixture had no table
     /// named after a keyword.
     /// </remarks>
-    private static string TsLocalName(string name)
+    private string TsLocalName(string name)
     {
         string local = TsName(name);
 

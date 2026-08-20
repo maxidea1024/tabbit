@@ -95,6 +95,22 @@ public sealed class RustRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -119,6 +135,10 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private RustRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Snake;
 
     /// <summary>
     /// A record group generates a struct and a `Vec` of it; a member column fills one of its
@@ -165,6 +185,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Snake, "rust");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -479,7 +500,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             FileExtension = _recipe.BinaryTableFileExtension,
             Tables = _model.Tables.Select(table => new RustTableSlotView
             {
-                Name = RustName(table.Name),
+                Name = RustSnakeName(table.Name),
                 TableName = table.Name.ToPascalCase() + "Table",
 
                 // Unescaped: this one names the file the exporter wrote.
@@ -797,8 +818,8 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : RustName("has_" + sf.Name);
 
     private IReadOnlyList<string> Declarations(SerialField sf, string name, string elementType)
     {
@@ -1035,7 +1056,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// A string is cloned per row, because every record owns its own - which is what the
     /// per-row shape does too, one dictionary lookup earlier.
     /// </remarks>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -1261,7 +1282,16 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// snake_case, and escaped when it lands on a keyword - which it can, unlike Go and
     /// C#, because Rust members are lowercase and so is every Rust keyword.
     /// </summary>
-    private static string RustName(string name) => LanguageProfile.Rust.MemberName(name.ToSnakeCase());
+    private string RustName(string name) => LanguageProfile.Rust.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// snake_case because that is how Rust writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string RustSnakeName(string name) => LanguageProfile.Rust.MemberName(name.ToSnakeCase());
 
     /// <summary>
     /// A PascalCase identifier Rust will accept: an enum's type name, or one of its labels.
