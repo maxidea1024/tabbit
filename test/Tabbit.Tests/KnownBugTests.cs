@@ -225,7 +225,9 @@ public class KnownBugTests
     {
         TabbitRunner.Convert("core");
 
-        string html = OutputFile("core", "html", "tables.html");
+        // The table's own page. Every table used to be on one `tables.html`, which is why
+        // this named that file; the strings under test are two cells of `Item`.
+        string html = OutputFile("core", "html", "tables", "item.html");
 
         Assert.Contains("Sharp &amp; quick; deals &lt;b&gt;bonus&lt;/b&gt; damage", html);
         Assert.Contains("Restores 10 HP &lt;or&gt; 5 MP", html);

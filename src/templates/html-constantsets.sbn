@@ -1,25 +1,61 @@
-﻿{{~## Every constant set on one page. ##~}}
+{{~##
+   Every constant set: the list, then each set in full.
+
+   The tables got a page each and these did not, because the volumes are not comparable -
+   a set holds a few dozen constants and a table holds however many rows the sheet has.
+   The list at the top is there so this page answers the same first question the other
+   list pages answer, and the side list names anchors on this page rather than pages.
+##~}}
 {{~ include 'html-head.sbn' ~}}
-<br>
-{{~ for set in sets ~}}
-<div class="definition">
-<h3 id="constantset_{{ set.name }}"><i>ConstantSet: {{ set.source_link }}</i></h3>
-{{~ if set.comment != '' ~}}
-<div class="comment">{{ set.comment }}</div>
+<p class="lead">상수 세트 {{ sets | array.size }}개 · 상수 {{ constant_total }}개</p>
+{{~ if sets | array.size == 0 ~}}
+<p class="none">선언된 것이 없습니다.</p>
+{{~ else ~}}
+<div data-table>
+<div class="tools">
+<input type="search" data-filter="rows" placeholder="상수 세트 필터">
+<span class="hint" data-shown>{{ sets | array.size }}행 중 {{ sets | array.size }}행</span>
+<span class="hint">제목을 누르면 정렬됩니다.</span>
+</div>
+<div class="scroll">
+<table data-sortable>
+<thead>
+<tr class="names">
+<th class="sorted"><svg class="i"><use href="#i-const"></use></svg>상수 세트</th><th>상수</th><th>시트</th>{{ if has_comments }}<th>설명</th>{{ end }}
+</tr>
+</thead>
+<tbody>
+{{~ for row in list ~}}
+<tr><td><a href="{{ row.href }}">{{ row.name }}</a></td><td class="num">{{ row.constant_count }}</td><td>{{ row.sheet }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
 {{~ end ~}}
+</tbody>
+</table>
+</div>
+</div>
+{{~ end ~}}
+{{~ for set in sets ~}}
+<h2 id="constantset_{{ set.name }}"><svg class="i"><use href="#i-const"></use></svg>{{ set.name }}<span class="count">상수 {{ set.constants | array.size }}개</span></h2>
+<p class="lead">{{ set.source_link }}{{ if set.source_cell != '' }} <span class="hint"><svg class="i"><use href="#i-sheet"></use></svg>{{ set.source_cell }}</span>{{ end }}</p>
+{{~ if set.comment != '' ~}}
+<p class="comment">{{ set.comment }}</p>
+{{~ end ~}}
+<div class="scroll">
 <table>
-<thead><th>No</th><th>Name</th><th>Type</th><th>Value</th><th>Description</th></thead>
+<thead>
+<tr class="names"><th>번호</th><th>이름</th><th>타입</th><th>값</th><th>설명</th></tr>
+</thead>
+<tbody>
 {{~ for constant in set.constants ~}}
 <tr>
-<td>{{ constant.no }}</td>
+<td class="num">{{ constant.no }}</td>
 <td id="const_{{ set.name }}.{{ constant.name }}">{{ constant.name_cell }}</td>
 <td>{{ constant.type_cell }}</td>
 <td>{{ constant.value_cell }}</td>
 <td>{{ constant.comment }}</td>
 </tr>
 {{~ end ~}}
+</tbody>
 </table>
 </div>
-<br>
 {{~ end ~}}
 {{ include 'html-foot.sbn' }}

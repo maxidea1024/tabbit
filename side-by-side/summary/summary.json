@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-20T02:36:04.3823227+09:00",
+    "generatedAt": "2026-08-20T18:35:02.6292854+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "54c0745385cce964bbe3a1acfefc26144e6d4e27",
-      "shortHash": "54c0745385cc",
+      "hash": "ec2ee25815283509950972a402a1325cb14a7162",
+      "shortHash": "ec2ee2581528",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-20T02:15:51.0000000+09:00",
-      "subject": "Update Lua data without redeploying, over the consumer's own HTTP",
+      "committedAt": "2026-08-20T15:11:46.0000000+09:00",
+      "subject": "Settle which export formats to add, and what each one costs",
       "origin": "git",
       "dirty": true,
       "attributable": false

@@ -34,7 +34,7 @@ internal static class OutputNormalizer
         RegexOptions.Compiled);
 
     private static readonly Regex HtmlFooter = new Regex(
-        @"This file was created at [^<]*",
+        @"(생성 시각|This file was created at) [^<]*",
         RegexOptions.Compiled);
 
     public static string Normalize(string relativePath, string content)
@@ -50,7 +50,7 @@ internal static class OutputNormalizer
         // a `<TIMESTAMP>` in it would leave the tail unmatched and the next pass would
         // mask the masked text again.
         if (path.EndsWith(".html"))
-            content = HtmlFooter.Replace(content, "This file was created at TIMESTAMP");
+            content = HtmlFooter.Replace(content, "생성 시각 TIMESTAMP");
 
         if (path.EndsWith("summary.json"))
             content = MaskRun(content);

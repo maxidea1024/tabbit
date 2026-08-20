@@ -1,0 +1,28 @@
+{
+  // Documentation of a table whose page shows only part of it.
+  //
+  // `MaxRowsPerTable` exists because table size is the data's business and page size is
+  // the reader's - one committed sample has a 103,395-row table, and a page holding it
+  // whole is 37 MB. What has to be true of that cap is that the page says it applied:
+  // a truncation nobody is told about reads as the whole table, which is worse for a
+  // page whose only purpose is checking data than showing nothing would be.
+  //
+  // Two rather than a realistic number, because the fixtures are small on purpose and
+  // the property under test is the notice rather than the threshold.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/html-row-cap/html",
+      "MaxRowsPerTable": 2
+    }
+  ]
+}

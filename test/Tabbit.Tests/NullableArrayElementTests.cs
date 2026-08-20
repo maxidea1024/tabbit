@@ -117,10 +117,15 @@ public class NullableArrayElementTests
     /// A target that cannot say an element is absent refuses the column rather than losing it.
     /// </summary>
     /// <remarks>
-    /// `html` is the target here because it will never carry a bit per element - it renders a
-    /// page, and a page has nowhere to put one - so this gate does not move as the thirteen
-    /// readers learn the bitmap one at a time. The fixture has nothing optional at the row
-    /// level, so what the target meets is this refusal rather than the one beside it.
+    /// `text` is the target here: it gathers localizable values into a file whose shape the
+    /// recipe writes, and a line of that file has nowhere to say that one element of an array
+    /// is absent rather than empty. The fixture has nothing optional at the row level, so
+    /// what the target meets is this refusal rather than the one beside it.
+    ///
+    /// It used to be `html`, on the reasoning that a page could never carry a bit per
+    /// element. That was the wrong reading of what a page does - it draws absence as a dash
+    /// and an empty value as a pair of quotes, which is the distinction the marker exists to
+    /// make - so the documentation target accepts these columns now and this gate moved.
     /// </remarks>
     [Fact]
     public void A_target_that_cannot_say_it_refuses_the_column()

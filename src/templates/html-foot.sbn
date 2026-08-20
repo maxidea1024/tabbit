@@ -1,12 +1,668 @@
 {{~##
-   The closing markup every generated page shares.
+   The closing markup every generated page shares: the footer line, the enum definitions
+   a hover card is built from, and the script driving filtering, sorting, that card and
+   the theme control.
 
-   The wrapping <div class="container-fluid"> is gone with Bootstrap - the padding it
-   provided is on the body now - so there is no </div> here to close it.
+   Do not write a Scriban delimiter inside one of these comment blocks. The closing brace
+   pair ends the block wherever it appears, including inside a backtick, and the rest of
+   the comment then lands in the page as text. This footer did exactly that - it carried
+   six lines of its own commentary into every page of every project - and a golden
+   comparison recorded it as correct, because it had been that way from the start.
 
-   The footer used to end with `by {{ user }}`, taken from the machine's account name.
-   Generated pages get committed, so that put whoever ran the conversion into somebody's
-   repository - and made the file churn for every contributor who regenerated it. The
-   timestamp answers what the line was for.
+   The footer used to end with the machine's account name. Generated pages get committed,
+   so that put whoever ran the conversion into somebody's repository and made the file
+   churn for every contributor who regenerated it. The timestamp answers what the line
+   was for. Its wording is what the golden normalizer masks on, so it stays as it is.
+
+   The enum blocks are the page's own copy of every enum it mentions, once each, and the
+   cells carry only the name of one. Putting each cell's tooltip in a `title` would repeat
+   the whole enum per cell - a 100,000-row table has that many cells - so the text is here
+   and the card is assembled on hover. Already escaped, since it is markup rather than
+   data handed to a script: nothing here has to survive a JSON round trip.
+
+   The script reaches nothing over the network, which a test checks by looking for a
+   scheme separator on any line that loads something. There is no url in here at all.
 ##~}}
-<h4>This file was created at {{ created_at }}</h4></body></html>
+</main>
+</div>
+{{~ if enum_defs | array.size > 0 ~}}
+<div id="enumdefs" hidden>
+{{~ for def in enum_defs ~}}
+<div data-enum-def="{{ def.name }}">
+<p class="lead"><b>enum.{{ def.name }}</b>{{ if def.comment != '' }} <span class="hint">{{ def.comment }}</span>{{ end }}</p>
+<table><tbody>
+{{~ for label in def.labels ~}}
+<tr data-label="{{ label.name }}"><td>{{ label.name }}</td><td class="num">{{ label.value }}</td><td class="hint">{{ label.comment }}</td></tr>
+{{~ end ~}}
+</tbody></table>
+</div>
+{{~ end ~}}
+</div>
+{{~ end ~}}
+<p class="foot">생성 시각 {{ created_at }}</p>
+<script>
+(function () {
+  "use strict";
+
+  // ---- the theme control. Three states, because "follow the system" is a state and not
+  // the absence of one: a reader who wants the page to keep matching their machine has to
+  // be able to go back to it after trying the other two.
+  var THEMES = [
+    { name: "system", label: "시스템", icon: "#i-auto", title: "테마: 시스템 설정을 따릅니다" },
+    { name: "light", label: "밝게", icon: "#i-sun", title: "테마: 밝게" },
+    { name: "dark", label: "어둡게", icon: "#i-moon", title: "테마: 어둡게" }
+  ];
+
+  function stored() {
+    try { return localStorage.getItem("tabbit-theme") || "system"; } catch (e) { return "system"; }
+  }
+
+  function remember(name) {
+    try {
+      if (name === "system") localStorage.removeItem("tabbit-theme");
+      else localStorage.setItem("tabbit-theme", name);
+    } catch (e) { /* storage unavailable - the choice lasts for this page only */ }
+  }
+
+  function paint(button, theme) {
+    if (theme.name === "system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", theme.name);
+
+    button.querySelector("use").setAttribute("href", theme.icon);
+    button.querySelector("[data-theme-name]").textContent = theme.label;
+    button.setAttribute("title", theme.title);
+  }
+
+  function index(name) {
+    for (var i = 0; i < THEMES.length; i++) {
+      if (THEMES[i].name === name) return i;
+    }
+    return 0;
+  }
+
+  var button = document.querySelector("[data-theme-cycle]");
+  if (button) {
+    var at = index(stored());
+    paint(button, THEMES[at]);
+
+    button.addEventListener("click", function () {
+      at = (at + 1) % THEMES.length;
+      remember(THEMES[at].name);
+      paint(button, THEMES[at]);
+    });
+  }
+
+  // ---- filtering. A row is hidden by class rather than by style, so sorting and
+  // filtering do not have to agree about what `display` should be.
+  function words(value) { return value.toLowerCase().split(/\s+/).filter(Boolean); }
+
+  function apply(box) {
+    var scope = box.getAttribute("data-filter");
+    var terms = words(box.value);
+    var rows = scope === "side"
+      ? box.parentNode.querySelectorAll(".side-list li")
+      : box.closest("[data-table]").querySelectorAll("tbody tr");
+    var shown = 0;
+
+    rows.forEach(function (row) {
+      var text = (row.textContent || "").toLowerCase();
+      var hit = terms.every(function (term) { return text.indexOf(term) >= 0; });
+      row.classList.toggle("out", !hit);
+      if (hit) shown++;
+    });
+
+    var counter = box.parentNode.querySelector("[data-shown]");
+    if (counter) counter.textContent = rows.length + "행 중 " + shown + "행";
+  }
+
+  document.querySelectorAll("input[data-filter]").forEach(function (box) {
+    box.addEventListener("input", function () { apply(box); });
+  });
+
+  // ---- sorting. Numbers compare as numbers, everything else as text; a column of
+  // mixed content falls back to text so the order stays defined.
+  function cellValue(row, index) {
+    var cell = row.children[index];
+    return cell ? (cell.textContent || "").trim() : "";
+  }
+
+  function comparer(index, sign) {
+    return function (a, b) {
+      var x = cellValue(a, index), y = cellValue(b, index);
+      var nx = parseFloat(x.replace(/,/g, "")), ny = parseFloat(y.replace(/,/g, ""));
+      var numeric = !isNaN(nx) && !isNaN(ny)
+        && /^[-+0-9.,eE]+$/.test(x) && /^[-+0-9.,eE]+$/.test(y);
+      if (numeric) return (nx - ny) * sign;
+      return x.localeCompare(y) * sign;
+    };
+  }
+
+  document.querySelectorAll("table[data-sortable] thead tr.names th").forEach(function (head) {
+    head.addEventListener("click", function () {
+      var table = head.closest("table");
+      var body = table.tBodies[0];
+
+      // The column's position in its own row, not in the list this handler was bound
+      // from: a page with two sortable tables would otherwise sort by the wrong column.
+      var index = Array.prototype.indexOf.call(head.parentNode.children, head);
+      var desc = head.classList.contains("sorted") && !head.classList.contains("desc");
+
+      table.querySelectorAll("thead tr.names th").forEach(function (other) {
+        other.classList.remove("sorted", "desc");
+      });
+
+      head.classList.add("sorted");
+      if (desc) head.classList.add("desc");
+
+      var rows = Array.prototype.slice.call(body.rows);
+      rows.sort(comparer(index, desc ? -1 : 1));
+      rows.forEach(function (row) { body.appendChild(row); });
+    });
+  });
+
+  // ---- the reference graph. One viewport that pans and zooms, holding either the whole
+  // drawing or one table's neighbourhood.
+  //
+  // The drawing sits in a transformed group rather than being an element the size of the
+  // layout, so moving around it is one attribute on one element - a canvas of a few
+  // thousand pixels square would otherwise be repainted on every drag.
+  var svg = document.getElementById("graph");
+
+  if (svg) {
+    var viewport = svg.querySelector("#viewport");
+    // The whole drawing is only on the pages where drawing it whole reads; the rest of
+    // this works either way, so everything about it is asked for rather than assumed.
+    var all = svg.querySelector("#all");
+    var focus = svg.querySelector("#focus");
+    var edgeLayer = all && all.querySelector("#edges");
+    var litLayer = all && all.querySelector("#lit");
+    var proto = document.getElementById("proto");
+    var adjacency = document.getElementById("adjacency");
+
+    var where = document.querySelector('[data-graph="where"]');
+    var backButton = document.querySelector('[data-graph="back"]');
+    var openLink = document.querySelector('[data-graph="open"]');
+
+    var links = null;
+    var scale = 1, panX = 0, panY = 0;
+    var showing = null;   // null is the whole graph; otherwise the table in the middle
+
+    function apply() {
+      viewport.setAttribute("transform",
+        "translate(" + panX.toFixed(2) + "," + panY.toFixed(2) + ") scale(" + scale.toFixed(4) + ")");
+    }
+
+    function frame() {
+      var group = (showing === null && all) ? all : focus;
+      return {
+        width: Number(group.getAttribute("data-width")) || 1,
+        height: Number(group.getAttribute("data-height")) || 1
+      };
+    }
+
+    function fit() {
+      var box = svg.getBoundingClientRect();
+      var size = frame();
+
+      scale = Math.min(box.width / (size.width + 20), box.height / (size.height + 20), 1.6);
+      panX = (box.width - size.width * scale) / 2;
+      panY = (box.height - size.height * scale) / 2;
+      apply();
+    }
+
+    function zoom(by, atX, atY) {
+      var next = Math.min(4, Math.max(0.05, scale * by));
+
+      // Around the pointer, so zooming keeps what is under it under it.
+      panX = atX - (atX - panX) * (next / scale);
+      panY = atY - (atY - panY) * (next / scale);
+      scale = next;
+      apply();
+    }
+
+    svg.addEventListener("wheel", function (event) {
+      event.preventDefault();
+      var box = svg.getBoundingClientRect();
+      zoom(event.deltaY < 0 ? 1.15 : 1 / 1.15, event.clientX - box.left, event.clientY - box.top);
+    }, { passive: false });
+
+    var dragging = false, fromX = 0, fromY = 0, moved = false;
+
+    svg.addEventListener("pointerdown", function (event) {
+      dragging = true;
+      moved = false;
+      fromX = event.clientX - panX;
+      fromY = event.clientY - panY;
+      svg.setPointerCapture(event.pointerId);
+      svg.classList.add("dragging");
+    });
+
+    svg.addEventListener("pointermove", function (event) {
+      if (!dragging) return;
+
+      var nextX = event.clientX - fromX;
+      var nextY = event.clientY - fromY;
+
+      if (Math.abs(nextX - panX) > 2 || Math.abs(nextY - panY) > 2) moved = true;
+
+      panX = nextX;
+      panY = nextY;
+      apply();
+    });
+
+    svg.addEventListener("pointerup", function () {
+      dragging = false;
+      svg.classList.remove("dragging");
+    });
+
+    document.querySelector('[data-graph="in"]').addEventListener("click", function () {
+      var box = svg.getBoundingClientRect();
+      zoom(1.3, box.width / 2, box.height / 2);
+    });
+
+    document.querySelector('[data-graph="out"]').addEventListener("click", function () {
+      var box = svg.getBoundingClientRect();
+      zoom(1 / 1.3, box.width / 2, box.height / 2);
+    });
+
+    document.querySelector('[data-graph="fit"]').addEventListener("click", fit);
+
+    // ---- hovering a table in the whole drawing keeps its own edges and dims the rest.
+    // The whole set is one group whose opacity changes once, and the edges that matter are
+    // copied into a second group: a hover touches a few dozen elements, not all of them.
+    var wholeNodes = all ? all.querySelectorAll("[data-node]") : [];
+    var marked = [];
+
+    function unhighlight() {
+      if (!all) return;
+
+      all.classList.remove("focused");
+      while (litLayer.firstChild) litLayer.removeChild(litLayer.firstChild);
+      marked.forEach(function (node) { node.classList.remove("hit", "near"); });
+      marked = [];
+    }
+
+    wholeNodes.forEach(function (node) {
+      node.addEventListener("mouseenter", function () {
+        if (showing !== null) return;
+
+        unhighlight();
+
+        var name = node.getAttribute("data-node");
+        var neighbours = {};
+
+        edgeLayer.querySelectorAll('[data-from="' + name + '"], [data-to="' + name + '"]')
+                 .forEach(function (edge) {
+                   // Cloned rather than built, so the copy is in the same namespace as the
+                   // original without this file naming one.
+                   var copy = edge.cloneNode(false);
+                   copy.removeAttribute("class");
+                   litLayer.appendChild(copy);
+
+                   neighbours[edge.getAttribute("data-from")] = true;
+                   neighbours[edge.getAttribute("data-to")] = true;
+                 });
+
+        wholeNodes.forEach(function (other) {
+          var its = other.getAttribute("data-node");
+
+          if (its === name) {
+            other.classList.add("hit");
+            marked.push(other);
+          } else if (neighbours[its] === true) {
+            other.classList.add("near");
+            marked.push(other);
+          }
+        });
+
+        all.classList.add("focused");
+      });
+
+      node.addEventListener("mouseleave", unhighlight);
+
+      node.addEventListener("click", function (event) {
+        if (moved) return;   // a drag that ended on a table is not a click on it
+        event.stopPropagation();
+        show(node.getAttribute("data-node"));
+      });
+    });
+
+    // ---- one table's neighbourhood: what points at it on the left, what it points at on
+    // the right. Built from the adjacency the page carries.
+    var ROW = 30, GAP = 12, COLUMN = 170, PAD = 14, CHAR = 8, HEAD = 22, MOST = 12;
+
+    var protoNode = proto.querySelector('[data-proto="node"]');
+    var protoEdge = proto.querySelector('[data-proto="edge"]');
+    var protoLabel = proto.querySelector('[data-proto="label"]');
+
+    function widthOf(name) { return Math.max(110, name.length * CHAR + 26); }
+
+    function hrefOf(name) {
+      var row = document.querySelector('[data-pick="' + name + '"] a');
+      return row ? row.getAttribute("href") : null;
+    }
+
+    function box(name, x, y, w, middle) {
+      var node = protoNode.cloneNode(true);
+      var rect = node.querySelector("rect");
+      var text = node.querySelector("text");
+
+      rect.setAttribute("x", x);
+      rect.setAttribute("y", y);
+      rect.setAttribute("width", w);
+      rect.setAttribute("height", ROW);
+
+      text.setAttribute("x", x + 10);
+      text.setAttribute("y", y + 20);
+      text.textContent = name;
+
+      if (middle) node.classList.add("hit");
+
+      // Clicking a neighbour walks the graph, so a reader can follow a chain without
+      // going back to the whole picture between steps.
+      node.addEventListener("click", function (event) {
+        if (moved) return;
+        event.stopPropagation();
+        if (!middle) show(name);
+      });
+
+      focus.appendChild(node);
+    }
+
+    function edge(x1, y1, x2, y2, columns) {
+      var path = protoEdge.cloneNode(true);
+      var bend = Math.max(34, (x2 - x1) / 2);
+
+      path.setAttribute("d", "M" + x1 + "," + y1 + " C" + (x1 + bend) + "," + y1
+        + " " + (x2 - bend) + "," + y2 + " " + x2 + "," + y2);
+
+      if (columns) {
+        var title = document.createElementNS(path.namespaceURI, "title");
+        title.textContent = columns;
+        path.appendChild(title);
+      }
+
+      focus.appendChild(path);
+    }
+
+    function label(text, x, y) {
+      var node = protoLabel.cloneNode(true);
+      node.setAttribute("x", x);
+      node.setAttribute("y", y);
+      node.textContent = text;
+      focus.appendChild(node);
+    }
+
+    function show(name) {
+      if (links === null) {
+        try { links = JSON.parse(adjacency.textContent); } catch (e) { links = {}; }
+      }
+
+      unhighlight();
+      showing = name;
+
+      while (focus.firstChild) focus.removeChild(focus.firstChild);
+
+      var about = links[name] || { "in": [], "out": [] };
+      var ins = about["in"].slice(0, MOST);
+      var outs = about["out"].slice(0, MOST);
+
+      var inWidth = ins.length ? Math.max.apply(null, ins.map(function (e) { return widthOf(e[0]); })) : 0;
+      var outWidth = outs.length ? Math.max.apply(null, outs.map(function (e) { return widthOf(e[0]); })) : 0;
+      var midWidth = widthOf(name);
+
+      var rows = Math.max(ins.length, outs.length, 1);
+      var height = HEAD + rows * ROW + (rows - 1) * GAP + PAD * 2;
+      var width = PAD * 2 + inWidth + midWidth + outWidth
+        + (ins.length ? COLUMN : 0) + (outs.length ? COLUMN : 0);
+
+      var midX = PAD + inWidth + (ins.length ? COLUMN : 0);
+      var outX = midX + midWidth + (outs.length ? COLUMN : 0);
+      var midY = HEAD + (height - HEAD - ROW) / 2;
+
+      function stack(count, index) {
+        var block = count * ROW + (count - 1) * GAP;
+        return HEAD + (height - HEAD - block) / 2 + index * (ROW + GAP);
+      }
+
+      ins.forEach(function (entry, i) {
+        var y = stack(ins.length, i);
+        box(entry[0], PAD, y, inWidth, false);
+        edge(PAD + inWidth, y + ROW / 2, midX, midY + ROW / 2, entry[1]);
+      });
+
+      outs.forEach(function (entry, i) {
+        var y = stack(outs.length, i);
+        box(entry[0], outX, y, outWidth, false);
+        edge(midX + midWidth, midY + ROW / 2, outX, y + ROW / 2, entry[1]);
+      });
+
+      box(name, midX, midY, midWidth, true);
+
+      if (ins.length) {
+        label(about["in"].length > MOST
+          ? "이 테이블을 가리킴 " + about["in"].length + "개 중 " + MOST + "개"
+          : "이 테이블을 가리킴 " + ins.length + "개", PAD, 15);
+      }
+
+      if (outs.length) {
+        label(about["out"].length > MOST
+          ? "이 테이블이 가리킴 " + about["out"].length + "개 중 " + MOST + "개"
+          : "이 테이블이 가리킴 " + outs.length + "개", outX, 15);
+      }
+
+      focus.setAttribute("data-width", width);
+      focus.setAttribute("data-height", height);
+
+      if (all) all.setAttribute("hidden", "hidden");
+      focus.removeAttribute("hidden");
+
+      if (backButton) backButton.removeAttribute("hidden");
+
+      if (openLink) {
+        openLink.removeAttribute("hidden");
+        openLink.setAttribute("href", hrefOf(name) || openLink.getAttribute("href"));
+        openLink.textContent = name + " 열기";
+      }
+
+      if (where) where.textContent = name;
+
+      document.querySelectorAll("[data-pick]").forEach(function (row) {
+        row.classList.toggle("picked", row.getAttribute("data-pick") === name);
+      });
+
+      fit();
+    }
+
+    function whole() {
+      if (!all) return;   // there is no whole drawing on this page to go back to
+
+      showing = null;
+      while (focus.firstChild) focus.removeChild(focus.firstChild);
+      focus.setAttribute("hidden", "hidden");
+      all.removeAttribute("hidden");
+      if (backButton) backButton.setAttribute("hidden", "hidden");
+      if (openLink) openLink.setAttribute("hidden", "hidden");
+      if (where) where.textContent = "전체 그래프";
+      document.querySelectorAll("[data-pick]").forEach(function (row) {
+        row.classList.remove("picked");
+      });
+      fit();
+    }
+
+    if (backButton) backButton.addEventListener("click", whole);
+
+    document.querySelectorAll("[data-pick]").forEach(function (row) {
+      row.addEventListener("click", function (event) {
+        // The name in the row is a link to that table's page; the rest of the row draws it.
+        if (event.target.closest("a")) return;
+        show(row.getAttribute("data-pick"));
+      });
+    });
+
+    // A page with no whole drawing opens on the most connected table, because an empty
+    // viewport reads as a page that failed rather than as one waiting to be asked.
+    var opening = document.querySelector("[data-pick]");
+
+    if (!all && opening) {
+      show(opening.getAttribute("data-pick"));
+    } else {
+      focus.setAttribute("hidden", "hidden");
+      fit();
+    }
+
+    window.addEventListener("resize", function () { if (scale) fit(); });
+  }
+
+  // ---- the hover panel. One element, two users: the whole of an enum, and the whole of
+  // a value too long to show in its column. Both are things a reader wants without
+  // leaving the row, and a browser tooltip is the wrong shape for either - it appears
+  // where the pointer is, which is over the rows being compared.
+  var card = document.createElement("div");
+  card.id = "enumcard";
+  card.style.cssText = "position:fixed;z-index:20;display:none;max-height:60vh;overflow:auto;"
+    + "padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);"
+    + "box-shadow:0 8px 24px var(--shadow);font-size:12px";
+  document.body.appendChild(card);
+
+  var closing = null;
+
+  function hide() {
+    closing = null;
+    card.style.display = "none";
+  }
+
+  function scheduleHide() {
+    closing = window.setTimeout(hide, 220);
+  }
+
+  function keepOpen() {
+    if (closing === null) return;
+    window.clearTimeout(closing);
+    closing = null;
+  }
+
+  // Beside the anchor, not under it. Under it, the panel covered the next rows of the same
+  // column - and reading down a column is exactly what someone checking values is doing,
+  // so it was in the way of the thing it was meant to help with. To the right when there
+  // is room, to the left when there is not.
+  function place(anchor) {
+    var box = anchor.getBoundingClientRect();
+    card.style.display = "block";
+
+    var right = box.right + 12;
+    var left = box.left - card.offsetWidth - 12;
+
+    var x = right + card.offsetWidth <= window.innerWidth - 6 ? right : left;
+
+    // Clamped on both axes afterwards, so the panel is on screen whatever the anchor is
+    // doing - a cell scrolled out sideways would otherwise take the panel with it.
+    card.style.left = Math.max(6, Math.min(x, window.innerWidth - card.offsetWidth - 6)) + "px";
+    card.style.top = Math.max(6, Math.min(box.top - 6, window.innerHeight - card.offsetHeight - 6)) + "px";
+  }
+
+  card.addEventListener("mouseenter", keepOpen);
+  card.addEventListener("mouseleave", hide);
+
+  // ---- a value too long for its column. The panel carries the text itself, which is
+  // already in the cell - so nothing is repeated in the page for it.
+  document.querySelectorAll("td.text").forEach(function (cell) {
+    cell.addEventListener("mouseenter", function () {
+      if (cell.classList.contains("open")) return;
+
+      keepOpen();
+      card.className = "wrap";
+
+      // The clipped part, so the count beside it is not read as part of the value.
+      var clip = cell.querySelector(".clip");
+      card.textContent = (clip || cell).textContent;
+      place(cell);
+    });
+
+    cell.addEventListener("mouseleave", scheduleHide);
+
+    cell.addEventListener("click", function () {
+      cell.classList.toggle("open");
+      hide();
+    });
+  });
+
+  // ---- a reference's own row. The key says which row, and this says what that row is,
+  // which is the question a reader has at the cell rather than after following the link.
+  var rowsource = document.getElementById("rowdefs");
+
+  if (rowsource) {
+    var previews = null;
+
+    document.querySelectorAll("a[data-ref]").forEach(function (link) {
+      link.addEventListener("mouseenter", function () {
+        if (previews === null) {
+          try { previews = JSON.parse(rowsource.textContent); } catch (e) { previews = {}; }
+        }
+
+        var table = previews[link.getAttribute("data-ref")];
+        if (!table) return;
+
+        var values = table.rows[link.getAttribute("data-key")];
+        if (!values) return;
+
+        keepOpen();
+        card.className = "";
+
+        var html = "<p class=\"lead\"><b>" + link.getAttribute("data-ref") + "</b> "
+          + "<span class=\"hint\">행 " + link.getAttribute("data-key") + "</span></p><table><tbody>";
+
+        for (var i = 0; i < values.length; i++) {
+          html += "<tr><td class=\"hint\">" + table.cols[i] + "</td><td>" + values[i] + "</td></tr>";
+        }
+
+        card.innerHTML = html + "</tbody></table>";
+        place(link);
+      });
+
+      link.addEventListener("mouseleave", scheduleHide);
+    });
+  }
+
+  // ---- the enum card. Hover or focus an enum-valued cell and its whole enum appears,
+  // with the value that cell holds marked, so checking a value costs no navigation.
+  var defs = document.getElementById("enumdefs");
+  if (!defs) return;
+
+  function show(anchor) {
+    keepOpen();
+
+    var name = anchor.getAttribute("data-enum");
+    var def = defs.querySelector('[data-enum-def="' + name + '"]');
+    if (!def) return;
+
+    card.className = "";
+    card.innerHTML = def.innerHTML;
+
+    // By class rather than by inline style, so the highlight is the stylesheet's business
+    // and covers every cell of the row.
+    var wanted = anchor.getAttribute("data-label");
+    card.querySelectorAll("tr[data-label]").forEach(function (row) {
+      row.classList.toggle("on", row.getAttribute("data-label") === wanted);
+    });
+
+    place(anchor);
+
+    // The marked row rather than the top of the list: a long enum opens where the value is.
+    var marked = card.querySelector('tr[data-label="' + wanted + '"]');
+    if (marked && marked.offsetTop > card.clientHeight - 40)
+      card.scrollTop = marked.offsetTop - card.clientHeight / 2;
+  }
+
+  document.querySelectorAll("[data-enum]").forEach(function (anchor) {
+    anchor.addEventListener("mouseenter", function () { show(anchor); });
+    anchor.addEventListener("focus", function () { show(anchor); });
+    anchor.addEventListener("mouseleave", scheduleHide);
+    anchor.addEventListener("blur", scheduleHide);
+  });
+
+  document.addEventListener("keydown", function (event) { if (event.key === "Escape") hide(); });
+})();
+</script>
+</body>
+</html>
