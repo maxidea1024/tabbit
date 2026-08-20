@@ -140,6 +140,16 @@ internal sealed class CsTableView
     public required IReadOnlyList<CsRecordReferenceView> RecordReferenceFields { get; set; }
 
     /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// A third list rather than a branch inside <see cref="ReferenceFields"/>, because such a
+    /// column is not one record and must not present itself as one - the value stays the key
+    /// and what is added beside it is a property per target. spec/multi-target-accessors.md.
+    /// </remarks>
+    public required IReadOnlyList<CsMultiReferenceView> MultiReferenceFields { get; set; }
+
+    /// <summary>
     /// Whether the read needs a scratch int for enum casting.
     ///
     /// The reader hands back an int and the field is an enum, so one temporary is
@@ -630,6 +640,70 @@ internal sealed class CsFieldView
 
     /// <summary>Whether the reference names a field of the target rather than the row.</summary>
     public required bool ReferencesField { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// What is stored is a key, one slot for the resolved row whatever table it came from, and
+/// the discriminator saying which table that was. The slot is `object` rather than a property
+/// per target: the tables take separate id bands, so at most one target ever answers, and a
+/// property per target would leave every other one permanently null - fifteen of sixteen in
+/// the widest declaration measured, carried inside an element struct that gets copied.
+///
+/// The cast back out is inside the generated property, where the discriminator has already
+/// said which type it is. spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class CsMultiReferenceView
+{
+    /// <summary>The member holding the key, which is the column's own value.</summary>
+    public required string KeyProperty { get; set; }
+
+    /// <summary>The name the setter is spelled with, matching the other reference setters.</summary>
+    public required string PascalName { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotField { get; set; }
+    public required string TargetField { get; set; }
+
+    /// <summary>The property the discriminator is read through.</summary>
+    public required string TargetProperty { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string RefIsSet { get; set; }
+
+    /// <summary>One entry per table the value may be a row of, in the order named.</summary>
+    public required IReadOnlyList<CsMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class CsMultiTargetView
+{
+    /// <summary>The table as the accessor names it, which is also the enum label.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The record type a resolved row has.</summary>
+    public required string RecordTypeName { get; set; }
+
+    /// <summary>The property this target is read through.</summary>
+    public required string Property { get; set; }
+
+    /// <summary>The enum label for this target.</summary>
+    public required string Label { get; set; }
+
+    /// <summary>
+    /// The target's non-throwing lookup.
+    /// </summary>
+    /// <remarks>
+    /// Not the throwing one every other reference resolves through. A key that is not in this
+    /// target is the ordinary case here - it means the row belongs to one of the others - so
+    /// a miss has to be an answer rather than an exception.
+    /// </remarks>
+    public required string Lookup { get; set; }
 }
 
 internal sealed class CsEnumView

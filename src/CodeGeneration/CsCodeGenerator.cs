@@ -411,7 +411,9 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             FileExtension = _csharpReceipe.BinaryTableFileExtension,
             Tables = tables,
             TablesWithReferences = tables
-                .Where(t => t.ReferenceFields.Count > 0 || t.RecordReferenceFields.Count > 0)
+                .Where(t => t.ReferenceFields.Count > 0
+                            || t.RecordReferenceFields.Count > 0
+                            || t.MultiReferenceFields.Count > 0)
                 .ToList(),
             Enums = _model.Enums.Select(BuildEnum).ToList(),
             ConstantSets = _model.ConstantSets.Select(BuildConstantSet).ToList(),
@@ -452,6 +454,10 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                                          .Where(wire => wire.Member is not null && wire.IsRef)
                                          .Select(BuildRecordReference)
                                          .ToList(),
+
+            MultiReferenceFields = MultiTargetColumns.Of(table)
+                                                     .Select(BuildMultiReference)
+                                                     .ToList(),
 
             // One scratch int for the whole method rather than one per field: the reader
             // hands back an int and an enum field needs a cast through something. Scalar
@@ -506,6 +512,45 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         => refTable is null
             ? ""
             : "GetBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase() + "OrThrow";
+
+    /// <summary>
+    /// The lookup that answers with null rather than throwing.
+    /// </summary>
+    /// <remarks>
+    /// What a multi-target column resolves through. A key absent from one of its targets is
+    /// the ordinary case - it means the row is in another of them - so the miss has to come
+    /// back as an answer. spec/multi-target-accessors.md.
+    /// </remarks>
+    private static string PrimaryFind(Table table)
+        => "FindBy" + table.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private CsMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+    {
+        string pascal = column.Group.Name.ToPascalCase();
+        string storage = "_" + column.Group.Name.ToCamelCase();
+
+        return new CsMultiReferenceView
+        {
+            KeyProperty = CsName(column.Group.Name),
+            PascalName = pascal,
+            SlotField = storage + "Row",
+            TargetField = storage + "Target",
+            TargetProperty = CsName(column.Group.Name + "Target"),
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            RefIsSet = RefIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new CsMultiTargetView
+            {
+                Table = target.Name.ToPascalCase(),
+                RecordTypeName = target.Name.ToPascalCase() + "Table.Record",
+                Property = CsName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Label = target.Name.ToPascalCase(),
+                Lookup = PrimaryFind(target),
+            }).ToList(),
+        };
+    }
 
     /// <summary>
     /// One column of the file: how it is checked, how it is decoded, and where its values

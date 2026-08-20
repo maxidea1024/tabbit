@@ -98,6 +98,27 @@
                     || {{ field.element_presence_field }}[index];
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column whose value is a row of one of several tables. The key above is the value;
+      these say which table it is in and hand back that table's row.
+
+      One slot behind them all rather than one per target: the tables take separate id
+      bands, so at most one target ever answers and the rest would be permanently null.
+      The cast is safe by construction - the discriminator was set by the same assignment
+      that filled the slot. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_reference_fields }}
+            /// <summary>Which table <see cref="{{ ref.key_property }}"/> is a row of.</summary>
+            public {{ ref.target_type_name }} {{ ref.target_property }} => {{ ref.target_field }};
+{{~ for target in ref.targets ~}}
+            /// <summary>
+            /// The <c>{{ target.table }}</c> row <see cref="{{ ref.key_property }}"/> names, or null
+            /// when it names a row of one of the others.
+            /// </summary>
+            public {{ target.record_type_name }} {{ target.property }}
+                => {{ ref.target_field }} == {{ ref.target_type_name }}.{{ target.label }}
+                    ? ({{ target.record_type_name }}){{ ref.slot_field }}
+                    : null;
+{{~ end ~}}
+{{~ end ~}}
             #endregion
 {{~## The element type of each record group. A struct, so an array of them needs no
       per-element allocation and `array[j].Member = x` is a legal assignment - which is
@@ -253,6 +274,19 @@
 {{~ end ~}}
             #endregion
 {{~ end ~}}
+{{~ if table.multi_reference_fields | array.size > 0 }}
+            #region Multi-target reference wiring
+{{~## The row and which table it came from arrive together, because either without the
+      other is a state the properties above would read wrongly. ##~}}
+{{~ for ref in table.multi_reference_fields ~}}
+            public void SetReference_{{ ref.pascal_name }}_INTERNAL({{ ref.target_type_name }} target, object row)
+            {
+                {{ ref.target_field }} = target;
+                {{ ref.slot_field }} = row;
+            }
+{{~ end ~}}
+            #endregion
+{{~ end ~}}
 
             #region Storage
 {{~## Written by the enclosing table as it reads, and by the accessor as it
@@ -300,6 +334,14 @@
 {{~ if field.has_optional_elements ~}}
             internal bool[] {{ field.element_presence_field }};
 {{~ end ~}}
+{{~ end ~}}
+{{~## One slot for the resolved row whatever table it came from, and the discriminator that
+      says which. `object` because the tables have no common type and inventing one would be
+      a sum type in every language; the cast back out lives in the property above, where the
+      discriminator has already answered. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_reference_fields ~}}
+            internal object {{ ref.slot_field }};
+            internal {{ ref.target_type_name }} {{ ref.target_field }};
 {{~ end ~}}
             #endregion
 

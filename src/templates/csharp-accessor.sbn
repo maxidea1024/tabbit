@@ -187,6 +187,27 @@
                 }
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column reaching several tables is looked up in each of them in the order they were
+   named, and stops at the first that has the key. The tables take separate id bands - an id
+   in two of them is refused at conversion - so "the first that has it" is "the one that has
+   it", and the order only decides which lookup runs.
+
+   A miss is not a fault: it means the row belongs to one of the others. So this resolves
+   through the non-throwing lookup, and a key none of them holds leaves the discriminator at
+   `None` rather than stopping the load. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_reference_fields ~}}
+                if (record.{{ ref.key_property }} {{ ref.ref_is_set }})
+                {
+{{~ for target in ref.targets ~}}
+                    if (record.{{ ref.target_property }} == {{ ref.target_type_name }}.None)
+                    {
+                        var found = snapshot.{{ target.table }}.{{ target.lookup }}(record.{{ ref.key_property }});
+                        if (found != null)
+                            record.SetReference_{{ ref.pascal_name }}_INTERNAL({{ ref.target_type_name }}.{{ target.label }}, found);
+                    }
+{{~ end ~}}
+                }
+{{~ end ~}}
             }
 {{~ end ~}}
         }
