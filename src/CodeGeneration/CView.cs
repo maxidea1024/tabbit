@@ -147,6 +147,12 @@ internal sealed class CTableView
     /// <summary>The table struct's name, already prefixed.</summary>
     public required string TableName { get; set; }
 
+    /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<CMultiReferenceView> MultiReferences { get; set; }
+
     /// <summary>What the table's functions are called, minus the verb.</summary>
     public required string FunctionPrefix { get; set; }
 
@@ -353,6 +359,12 @@ internal sealed class CCrossReferenceView
     /// than beside it. spec/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<CRecordReferenceView> RecordFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables, which resolve by trying each in turn.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<CMultiReferenceView> MultiFields { get; set; }
 }
 
 /// <summary>
@@ -581,4 +593,54 @@ internal sealed class CColumnView
     /// A statement, not a value: a uuid is a struct in C and `= 0` does not compile for one.
     /// </remarks>
     public required string EmptyAssignment { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// One member for the resolved row whatever table it came from, and the discriminator saying
+/// which. `const void*` for the slot, because C has no common type for the targets - the
+/// function below casts it, having asked the discriminator first. Casting from `void*` asks
+/// nothing of the target type, so the forward header is enough.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class CMultiReferenceView
+{
+    /// <summary>The member holding the key.</summary>
+    public required string KeyMember { get; set; }
+
+    /// <summary>The member the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>The constant standing for "no row of any of them".</summary>
+    public required string NoneLabel { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<CMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class CMultiTargetView
+{
+    /// <summary>The accessor member holding the table, for the linking pass.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The record struct a resolved row has.</summary>
+    public required string RecordName { get; set; }
+
+    /// <summary>The function this target is read through, already prefixed.</summary>
+    public required string Function { get; set; }
+
+    /// <summary>The enum constant for this target.</summary>
+    public required string Label { get; set; }
+
+    /// <summary>The target's lookup, which answers NULL rather than aborting.</summary>
+    public required string Lookup { get; set; }
 }

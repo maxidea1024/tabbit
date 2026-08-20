@@ -106,6 +106,14 @@ public class ConversionGoldenTests
     // generator emitted code for it that nothing ever read, and two of them wrote the sheet's
     // column count into the linking pass. spec/nullable-array-elements.md.
     [InlineData("serial-ref")]
+    // A column whose value is a row of one of several tables, written `Weapon|Armour` - the
+    // notation the core layout grew so this shape could be declared without a project's own
+    // constraint row. Every language, because what each adds is a slot, a discriminator and a
+    // narrowing accessor per target, all of them spelled per language. Both file formats too,
+    // and neither may move: the column already travelled as the target's key, so a diff in the
+    // binary or the JSON here is a defect rather than a feature.
+    // spec/multi-target-accessors.md.
+    [InlineData("multi-target")]
     public void Fixture_matches_golden(string scenario)
     {
         var result = TabbitRunner.Convert(scenario);

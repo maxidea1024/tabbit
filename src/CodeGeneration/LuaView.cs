@@ -93,6 +93,12 @@ internal sealed class LuaTableView
     /// </summary>
     public required string RecordFieldNames { get; set; }
 
+    /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<LuaMultiReferenceView> MultiReferences { get; set; }
+
     /// <summary>The table instance's field names, quoted and comma separated.</summary>
     public required string TableFieldNames { get; set; }
 
@@ -277,6 +283,12 @@ internal sealed class LuaCrossReferenceView
 
     public required IReadOnlyList<LuaReferenceFieldView> Fields { get; set; }
     public required IReadOnlyList<LuaRecordReferenceView> RecordFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables, which resolve by trying each in turn.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<LuaMultiReferenceView> MultiFields { get; set; }
 }
 
 internal sealed class LuaReferenceFieldView
@@ -318,4 +330,57 @@ internal sealed class LuaRecordReferenceView
 
     public required string RefTable { get; set; }
     public required string RefLookup { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// One field for the resolved row whatever table it came from, and the discriminator saying
+/// which. Lua needs no cast to read it back, but the discriminator is still what a consumer
+/// asks - and the methods below spare it comparing metatables.
+///
+/// A record holding one of these is sealed behind `strictInstance` rather than `strictType`,
+/// which is the difference between a row that has methods and a row that is only data. Only
+/// such a record: a table with no multi-target column keeps the metatable it had, so nothing
+/// already generated moves. spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class LuaMultiReferenceView
+{
+    /// <summary>The field holding the key.</summary>
+    public required string KeyMember { get; set; }
+
+    /// <summary>The field the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's table name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>The key standing for "no row of any of them".</summary>
+    public required string NoneLabel { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<LuaMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class LuaMultiTargetView
+{
+    /// <summary>The loaded local holding the table, for the linking pass.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The record type a resolved row has, for the annotation.</summary>
+    public required string RecordName { get; set; }
+
+    /// <summary>The method this target is read through.</summary>
+    public required string Method { get; set; }
+
+    /// <summary>The enum key for this target.</summary>
+    public required string Label { get; set; }
+
+    /// <summary>The target's lookup, which answers nil rather than raising.</summary>
+    public required string Lookup { get; set; }
 }

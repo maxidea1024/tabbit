@@ -203,7 +203,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             Write(TableModule(pair.model) + ".py", "python-table.sbn", new PythonPartView
             {
                 AccessorName = AccessorType,
-                Imports = TypeDependencies.EnumsNamedBy(pair.model).Select(EnumImport).ToList(),
+                Imports = TypeDependencies.EnumsNamedBy(pair.model)
+                                          .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
+                                          .Select(EnumImport).ToList(),
                 AccessorModule = _recipe.ModuleName,
                 Table = pair.rendered,
             });
@@ -226,7 +228,8 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             Write(ConstantsModule(pair.model) + ".py", "python-constants.sbn", new PythonPartView
             {
                 AccessorName = AccessorType,
-                Imports = TypeDependencies.EnumsNamedBy(pair.model).Select(EnumImport).ToList(),
+                Imports = TypeDependencies.EnumsNamedBy(pair.model)
+                                          .Select(EnumImport).ToList(),
                 Set = pair.rendered,
             });
         }

@@ -198,6 +198,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             var requires = new List<string> { Require(1, "tabbit/TcbReader.php") };
 
             requires.AddRange(TypeDependencies.EnumsNamedBy(pair.model)
+                                              .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
                 .Select(enumm => Require(1, $"enums/{EnumName(enumm)}.php")));
 
             // The accessor, for the encryption key it holds. It requires this file back, and

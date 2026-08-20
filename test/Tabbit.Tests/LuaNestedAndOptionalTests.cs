@@ -240,6 +240,33 @@ ok, err = pcall(function() return t.vectors:findByIndx(1) end)
 assert(not ok and tostring(err):find('no field or method'), tostring(err))
 ");
 
+    /// <summary>
+    /// A column whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
+    /// discriminator are written by the same assignment, and one set a target late hands out a
+    /// row of the wrong table. The wide column is checked at its first and last target, which
+    /// is where an off-by-one shows. spec/multi-target-accessors.md.
+    /// </remarks>
+    [Fact]
+    public void A_multi_target_column_reads()
+        => AssertReads("multi-target", @"
+local t = require('tables').new()
+t:readAll(arg[1])
+local rows = t.holder.records
+assert(rows[1]:pickAsWeapon().name == 'weapon-a')
+assert(rows[1]:pickAsArmour() == nil)
+assert(rows[2]:pickAsArmour().name == 'armour-b')
+assert(rows[2]:pickAsWeapon() == nil)
+assert(rows[1]:wideAsTrinket().name == 'trinket-a')
+assert(rows[2]:wideAsBanner().name == 'banner-b')
+assert(rows[3]:wideAsWeapon().name == 'weapon-a')
+assert(rows[2].maybeTarget == 0)
+assert(rows[2]:maybeAsWeapon() == nil)
+assert(rows[1].only.name == 'weapon-a')
+");
+
     private static void AssertReads(string scenario, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);

@@ -1,0 +1,43 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "5f5d5637445bd07c8a929dce1c0df654",
+  "TotalSize": 947,
+  "Items": [
+    {
+      "Name": "Weapon.json",
+      "Size": 135,
+      "Hash": "931d51fd45fd9587223295df935d4242",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Armour.json",
+      "Size": 135,
+      "Hash": "20735db047729683b2d2d92949b0db12",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Trinket.json",
+      "Size": 137,
+      "Hash": "919c6d442450eaf91b1c343ec01df108",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Mount.json",
+      "Size": 133,
+      "Hash": "73480a59177d0b4dec7fab2379ef5ec1",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Banner.json",
+      "Size": 135,
+      "Hash": "304cfe9f55a880269317739415f928b9",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Holder.json",
+      "Size": 272,
+      "Hash": "35e7ba7787b4880bd3e5b61f0ea1cdab",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

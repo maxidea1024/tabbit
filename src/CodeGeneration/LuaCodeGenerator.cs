@@ -128,7 +128,15 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         Write(_recipe.AccessorName + ".lua", "lua-accessor.sbn", new LuaPartView
         {
             RootPattern = RootPatternTop,
-            Requires = _model.Tables.Select(TableRequire).ToList(),
+            // And the discriminator of every column reaching several tables: linking compares
+            // against it, so the accessor names that module as well as the table ones.
+            // spec/multi-target-accessors.md.
+            Requires = _model.Tables.Select(TableRequire)
+                             .Concat(_model.Tables
+                                           .SelectMany(MultiTargetColumns.Of)
+                                           .Select(column => EnumRequire(column.Discriminator))
+                                           .Distinct())
+                             .ToList(),
             Accessor = view.Accessor,
         });
 
@@ -141,7 +149,9 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 "lua-table.sbn", new LuaPartView
                 {
                     RootPattern = RootPatternDeep,
-                    Requires = TypeDependencies.EnumsNamedBy(pair.model).Select(EnumRequire).ToList(),
+                    Requires = TypeDependencies.EnumsNamedBy(pair.model)
+                                                   .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
+                                                   .Select(EnumRequire).ToList(),
                     AccessorModule = _recipe.AccessorName,
                     Table = pair.rendered,
                 });
@@ -164,7 +174,8 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 "lua-constants.sbn", new LuaPartView
                 {
                     RootPattern = RootPatternDeep,
-                    Requires = TypeDependencies.EnumsNamedBy(pair.model).Select(EnumRequire).ToList(),
+                    Requires = TypeDependencies.EnumsNamedBy(pair.model)
+                                                   .Select(EnumRequire).ToList(),
                     Set = pair.rendered,
                 });
         }
@@ -296,8 +307,23 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             }
         }
 
+        // A column reaching several tables adds the resolved row and the discriminator beside
+        // the key, and both have to be in the declared list or the strict metatable refuses
+        // the write. spec/multi-target-accessors.md.
+        var multiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList();
+
+        foreach (var reference in multiReferences)
+        {
+            known.Add(reference.SlotMember);
+            annotations.Add($"---@field {reference.SlotMember} any");
+
+            known.Add(reference.TargetMember);
+            annotations.Add($"---@field {reference.TargetMember} integer");
+        }
+
         return new LuaTableView
         {
+            MultiReferences = multiReferences,
             RawName = table.Name,
             RecordName = table.Name.ToPascalCase() + "Record",
             TableName = table.Name.ToPascalCase() + "Table",
@@ -336,6 +362,44 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
     private static string PrimaryLookup(Table? refTable)
         => "findBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "~= ''",
+            ValueType.Uuid => "~= tcb.UUID_EMPTY",
+            _ => "~= 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private LuaMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new LuaMultiReferenceView
+        {
+            KeyMember = LuaName(column.Group.Name),
+            SlotMember = LuaName(column.Group.Name) + "Row",
+            TargetMember = LuaName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = LuaCamelName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new LuaMultiTargetView
+            {
+                Table = "loaded" + target.Name.ToPascalCase(),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = LuaName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Label = LuaCamelName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
 
     private LuaFieldView BuildField(Table table, SerialField sf)
     {
@@ -957,12 +1021,17 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
             .Select(x => new LuaCrossReferenceView
             {
                 Loaded = "loaded" + x.Table.Name.ToPascalCase(),
                 RecordFields = x.RecordFields,
+                MultiFields = x.MultiFields,
                 Fields = x.Fields.Select(sf => new LuaReferenceFieldView
                 {
                     Access = "record" + Access(LuaName(sf.Name)),

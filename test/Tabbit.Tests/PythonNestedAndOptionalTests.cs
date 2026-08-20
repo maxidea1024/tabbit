@@ -199,6 +199,33 @@ assert rows[0].tier_array == [3, 5]
 assert rows[2].tier_array[1] is None
 ");
 
+    /// <summary>
+    /// A column whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
+    /// discriminator are written by the same assignment, and one set a target late hands out a
+    /// row of the wrong table. The wide column is checked at its first and last target, which
+    /// is where an off-by-one shows. spec/multi-target-accessors.md.
+    /// </remarks>
+    [Fact]
+    public void A_multi_target_column_reads()
+        => AssertReads("multi-target", "multi_target_data", @"
+t = Tables()
+t.read_all(sys.argv[1])
+rows = t.holder.records
+assert rows[0].pick_as_weapon.name == 'weapon-a'
+assert rows[0].pick_as_armour is None
+assert rows[1].pick_as_armour.name == 'armour-b'
+assert rows[1].pick_as_weapon is None
+assert rows[0].wide_as_trinket.name == 'trinket-a'
+assert rows[1].wide_as_banner.name == 'banner-b'
+assert rows[2].wide_as_weapon.name == 'weapon-a'
+assert rows[1].maybe_target.value == 0
+assert rows[1].maybe_as_weapon is None and rows[1].maybe_as_armour is None
+assert rows[0].only.name == 'weapon-a'
+");
+
     private static void AssertReads(string scenario, string package, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);

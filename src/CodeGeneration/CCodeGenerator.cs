@@ -222,7 +222,8 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 Guard = Guard("CONST_" + pair.rendered.Name.ToUpperSnakeCase()),
                 Includes = Includes(
                     reader: NamesUuid(pair.model),
-                    headers: TypeDependencies.EnumsNamedBy(pair.model).Select(EnumHeaderFor)),
+                    headers: TypeDependencies.EnumsNamedBy(pair.model)
+                        .Select(EnumHeaderFor)),
                 Forwards = Array.Empty<string>(),
                 ExternC = anyExtern,
                 Set = pair.rendered,
@@ -251,7 +252,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 Includes = Includes(
                     reader: true,
                     headers: new[] { ForwardHeader }
-                        .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumHeaderFor))),
+                        .Concat(TypeDependencies.EnumsNamedBy(pair.model)
+                                .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
+                                .Select(EnumHeaderFor))),
                 Forwards = Array.Empty<string>(),
                 ExternC = true,
                 Table = pair.rendered,
@@ -481,6 +484,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table)
+                                            .Select(column => BuildMultiReference(table, column))
+                                            .ToList(),
 
         // Only the scalars. An array is a pointer now, so a column the file does not carry
         // leaves it NULL with a count of zero - which is an empty array rather than a row of
@@ -559,6 +565,48 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         => FunctionPrefix(refTable)
            + "FindBy"
            + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!= NULL && record->$KEY$[0] != 0",
+            _ => "!= 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private CMultiReferenceView BuildMultiReference(Table table, MultiTargetColumn column)
+        => new CMultiReferenceView
+        {
+            KeyMember = CName(column.Group.Name),
+            SlotMember = CName(column.Group.Name + "Row"),
+            TargetMember = CName(column.Group.Name + "Target"),
+            TargetTypeName = EnumName(column.Discriminator),
+            NoneLabel = ConstantName(column.Discriminator.Name, "None"),
+
+            // The string case names the key twice - C has no truthiness - so the suffix
+            // carries the member rather than being appended blindly.
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType)
+                .Replace("$KEY$", CName(column.Group.Name)),
+            Targets = column.Targets.Select(target => new CMultiTargetView
+            {
+                Table = CName(target.Name),
+                RecordName = RecordName(target),
+                Function = FunctionPrefix(table)
+                    + (column.Group.Name + "As" + target.Name.ToPascalCase()).ToPascalCase(),
+                Label = ConstantName(column.Discriminator.Name, target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
 
     /// <summary>
     /// Members of one level of a record, declaring a struct for each member that is itself a
@@ -1260,8 +1308,14 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table)
+                                                .Select(column => BuildMultiReference(table, column))
+                                                .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
             .Select(x => new CCrossReferenceView
             {
                 Table = CName(x.Table.Name),
@@ -1269,6 +1323,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 RecordName = RecordName(x.Table),
                 Fields = x.Fields.Select(BuildReferenceField).ToList(),
                 RecordFields = x.RecordFields,
+                MultiFields = x.MultiFields,
             })
             .ToList(),
     };

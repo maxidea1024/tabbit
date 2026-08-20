@@ -187,6 +187,30 @@ assert($rows[0]->tierArray === [3, 5]);
 assert($rows[2]->tierArray[1] === null);
 ");
 
+    /// <summary>
+    /// A column whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
+    /// discriminator are written by the same assignment, and one set a target late hands out a
+    /// row of the wrong table. The wide column is checked at its first and last target, which
+    /// is where an off-by-one shows. spec/multi-target-accessors.md.
+    /// </remarks>
+    [Fact]
+    public void A_multi_target_column_reads()
+        => AssertReads("multi-target", "MultiTargetAccessor", @"
+$rows = $accessor->holder->records;
+if ($rows[0]->pickAsWeapon()->name !== 'weapon-a') { throw new \Exception('pick 0'); }
+if ($rows[0]->pickAsArmour() !== null) { throw new \Exception('pick 0 armour'); }
+if ($rows[1]->pickAsArmour()->name !== 'armour-b') { throw new \Exception('pick 1'); }
+if ($rows[1]->pickAsWeapon() !== null) { throw new \Exception('pick 1 weapon'); }
+if ($rows[0]->wideAsTrinket()->name !== 'trinket-a') { throw new \Exception('wide 0'); }
+if ($rows[1]->wideAsBanner()->name !== 'banner-b') { throw new \Exception('wide 1'); }
+if ($rows[2]->wideAsWeapon()->name !== 'weapon-a') { throw new \Exception('wide 2'); }
+if ($rows[1]->maybeTarget->value !== 0) { throw new \Exception('maybe 1'); }
+if ($rows[0]->only->name !== 'weapon-a') { throw new \Exception('only 0'); }
+");
+
     private static void AssertReads(string scenario, string accessor, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);

@@ -472,3 +472,16 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
   return {{ index.find_call }}(table->{{ index.array_name }}, table->count, key) >= 0;
 }
 {{~ end ~}}
+{{~## The per-target accessors of a column reaching several tables. The cast is safe by
+   construction: the discriminator was set by the same assignment that filled the slot.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+{{~ for target in ref.targets }}
+const {{ target.record_name }}* {{ target.function }}(const {{ table.record_name }}* record) {
+  if (record->{{ ref.target_member }} != {{ target.label }})
+    return NULL;
+
+  return (const {{ target.record_name }}*)record->{{ ref.slot_member }};
+}
+{{~ end ~}}
+{{~ end ~}}

@@ -62,6 +62,32 @@ struct {{ table.record_name }} {
   }
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One member for the resolved row
+   whatever table it came from, and the discriminator saying which - the targets take separate
+   id bands, so at most one of them ever answers.
+
+   `const void*` because the targets share no base. The cast is safe by construction: the
+   discriminator was set by the same assignment that filled the slot, and casting from `void*`
+   asks nothing of the target type - the forward header this file already includes is enough.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+
+  /// The row `{{ ref.key_member }}` names, as whichever of its target tables holds it. Read it
+  /// through the accessors below rather than directly: they check the discriminator first.
+  const void* {{ ref.slot_member }} = nullptr;
+
+  /// Which table `{{ ref.key_member }}` is a row of.
+  {{ ref.target_type_name }} {{ ref.target_member }} = {{ ref.target_type_name }}::{{ ref.none_label }};
+{{~ for target in ref.targets }}
+  /// The `{{ target.record_name }}` row `{{ ref.key_member }}` names, or nullptr when it names a
+  /// row of one of the others.
+  const {{ target.record_name }}* {{ target.method }}() const {
+    return {{ ref.target_member }} == {{ ref.target_type_name }}::{{ target.label }}
+        ? static_cast<const {{ target.record_name }}*>({{ ref.slot_member }})
+        : nullptr;
+  }
+{{~ end ~}}
+{{~ end ~}}
 };
 
 {{~ for line in table.comment ~}}

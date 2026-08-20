@@ -258,7 +258,8 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 Guard("CONST_" + pair.rendered.Name.ToSnakeCase()),
                 StandardHeadersFor(pair.model.Constants.Select(constant => constant.Type))
                     .Concat(NeedsReader(pair.model) ? new[] { ReaderInclude } : Array.Empty<string>())
-                    .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumHeaderFor)),
+                    .Concat(TypeDependencies.EnumsNamedBy(pair.model)
+                            .Select(EnumHeaderFor)),
                 part => part.Set = pair.rendered));
         }
 
@@ -272,7 +273,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 Guard(pair.rendered.RawName.ToSnakeCase()),
                 new[] { "<cstddef>", "<cstdint>", "<string>", "<unordered_map>", "<vector>", ReaderInclude }
                     .Append(ForwardHeader)
-                    .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumHeaderFor)),
+                    .Concat(TypeDependencies.EnumsNamedBy(pair.model)
+                            .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
+                            .Select(EnumHeaderFor)),
                 part => part.Table = pair.rendered));
         }
 
@@ -462,6 +465,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
@@ -534,6 +538,44 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// </remarks>
     private static string PrimaryLookup(Table? refTable)
         => "find_by_" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToSnakeCase();
+
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!= \"\"",
+            ValueType.Uuid => "!= tabbit::Uuid{}",
+            _ => "!= 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private CppMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new CppMultiReferenceView
+        {
+            KeyMember = CppName(column.Group.Name),
+            SlotMember = CppName(column.Group.Name + "Row"),
+            TargetMember = CppName(column.Group.Name + "Target"),
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = "None",
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new CppMultiTargetView
+            {
+                Table = CppName(target.Name),
+                RecordName = RecordName(target),
+                Method = CppName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Label = target.Name.ToPascalCase(),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
 
     /// <summary>
     /// One declared member of the record: what it is called and what it holds.
@@ -894,11 +936,16 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
             .Select(x => new CppCrossReferenceView
             {
                 Table = CppName(x.Table.Name),
+                MultiFields = x.MultiFields,
                 Fields = x.Fields.Select(sf => new CppReferenceFieldView
                 {
                     Name = CppName(sf.Name),

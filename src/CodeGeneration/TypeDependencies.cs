@@ -42,13 +42,20 @@ internal static class TypeDependencies
     public static IReadOnlyList<Models.Enum> EnumsNamedBy(Table table)
         => Distinct(table.SerialFields
             .Where(sf => sf.ElementType == ValueType.Enum)
-            .Select(sf => sf.FirstField!.Enum)
+            .Select(sf => sf.FirstField!.Enum));
 
-            // And the discriminator of every column reaching several tables. Not an enum
-            // column - the column's type is the key it carries - but the generated page names
-            // the type all the same, so every language's import list has to carry it.
-            // spec/multi-target-accessors.md.
-            .Concat(MultiTargetColumns.Of(table).Select(column => column.Discriminator)));
+    /// <summary>
+    /// The discriminators of a table's columns that reach several tables.
+    /// </summary>
+    /// <remarks>
+    /// Apart from <see cref="EnumsNamedBy(Table)"/> rather than folded into it, because the two
+    /// are named by different things. An enum column names its enum in every language; the
+    /// discriminator is named only by the per-target accessors, and the languages that do not
+    /// generate those - the ones with no linking pass - would import a type they never use.
+    /// Rust warns about exactly that. spec/multi-target-accessors.md.
+    /// </remarks>
+    public static IReadOnlyList<Models.Enum> MultiTargetDiscriminatorsOf(Table table)
+        => Distinct(MultiTargetColumns.Of(table).Select(column => column.Discriminator));
 
     /// <summary>
     /// The tables a table references, in declaration order and without repeats.
@@ -60,16 +67,9 @@ internal static class TypeDependencies
     public static IReadOnlyList<Table> TablesReferencedBy(Table table)
         => Distinct(table.SerialFields
             .Where(sf => sf.IsRef)
-            .Select(sf => sf.FirstField!.ResolvedRefTable!)
+            .Select(sf => sf.FirstField!.ResolvedRefTable!));
 
-            // A column reaching several tables names every one of them: the generated page
-            // has a property per target and each says that target's record type.
-            // spec/multi-target-accessors.md.
-            .Concat(MultiTargetColumns.Of(table).SelectMany(column => column.Targets)));
-
-    /// <summary>
-    /// The same, minus the table itself.
-    /// </summary>
+    /// <summary>The same, minus the table itself.</summary>
     public static IReadOnlyList<Table> OtherTablesReferencedBy(Table table)
         => TablesReferencedBy(table).Where(other => other != table).ToList();
 
