@@ -142,6 +142,14 @@ public sealed class UwoLayoutParser : ILayoutParser
             // produces two. Reading them without this gives a third element the original never
             // wrote, and no setting should be able to turn that on.
             TrimTrailingArrayElements = true,
+
+            // Whether a gap in the middle of an array is refused is the recipe's question and
+            // not the layout's, so it comes from the source entry like it does for the other
+            // layouts. This parser was the only one not passing it through, which made the
+            // setting silently do nothing for exactly the sheets that reach it: a full
+            // conversion reported 2,475 gaps and turning the setting on changed neither the
+            // count nor anything else.
+            AllowArrayGaps = (sheet.Layout ?? SheetLayout.Default).AllowArrayGaps,
         };
 
         Log.Information($"Parsing table `{table.Name}`. ({marker.Location})");
