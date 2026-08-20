@@ -388,6 +388,8 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         Indexes = Indexes(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
         // A separate list, because declaring a member is per field and reading is per
         // column - and a record group is one column per member of it.
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
@@ -422,6 +424,44 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// </remarks>
     private static string PrimaryLookup(Table? refTable)
         => "FindBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// Zero - or the key type's empty value - is the convention for "points at nothing", and a
+    /// multi-target column has to honour it in every language: the discriminator it produces is
+    /// observable, so a language that resolved a zero where another did not would answer a
+    /// different table for the same row. spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!= \"\"",
+            ValueType.Uuid => "!= (tabbit.UUID{})",
+            _ => "> 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private GoMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new GoMultiReferenceView
+        {
+            KeyMember = GoName(column.Group.Name),
+            SlotMember = GoName(column.Group.Name) + "Row",
+            TargetMember = GoName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new GoMultiTargetView
+            {
+                Table = target.Name.ToPascalCase(),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = GoName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Constant = column.Discriminator.Name.ToPascalCase() + target.Name.ToPascalCase(),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
 
     private GoFieldView BuildField(Table table, SerialField sf)
     {
@@ -1001,8 +1041,12 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
             .Select(x => new GoCrossReferenceView
             {
                 Table = GoName(x.Table.Name),
@@ -1015,6 +1059,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                     IsArray = sf.IsArray,
                 }).ToList(),
                 RecordFields = x.RecordFields,
+                MultiFields = x.MultiFields,
             })
             .ToList(),
     };

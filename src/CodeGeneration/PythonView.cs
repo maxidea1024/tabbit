@@ -109,6 +109,12 @@ internal sealed class PythonTableView
     public required string TableSlotNames { get; set; }
 
     /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<PythonMultiReferenceView> MultiReferences { get; set; }
+
+    /// <summary>
     /// The `__slots__` tuple's contents, already quoted and comma separated.
     ///
     /// Slots rather than a plain class: a table is tens of thousands of rows and a
@@ -389,6 +395,58 @@ internal sealed class PythonCrossReferenceView
     /// than beside it. spec/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<PythonRecordReferenceView> RecordFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables, which resolve by trying each in turn.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<PythonMultiReferenceView> MultiFields { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// One attribute for the resolved row whatever table it came from, and the discriminator
+/// saying which. Python needs no cast to read it back, but it needs the discriminator all the
+/// same: without it a consumer asking "is this an Item" has to compare types, and the linking
+/// already knew the answer. spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class PythonMultiReferenceView
+{
+    /// <summary>The attribute holding the key.</summary>
+    public required string KeyMember { get; set; }
+
+    /// <summary>The attribute the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>The label standing for "no row of any of them", as this language spells it.</summary>
+    public required string NoneLabel { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<PythonMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class PythonMultiTargetView
+{
+    /// <summary>The accessor's local name for the table.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The property this target is read through.</summary>
+    public required string Property { get; set; }
+
+    /// <summary>The enum label for this target.</summary>
+    public required string Label { get; set; }
+
+    /// <summary>The target's lookup, which answers None rather than raising.</summary>
+    public required string Lookup { get; set; }
 }
 
 /// <summary>

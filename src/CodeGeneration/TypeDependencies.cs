@@ -42,7 +42,13 @@ internal static class TypeDependencies
     public static IReadOnlyList<Models.Enum> EnumsNamedBy(Table table)
         => Distinct(table.SerialFields
             .Where(sf => sf.ElementType == ValueType.Enum)
-            .Select(sf => sf.FirstField!.Enum));
+            .Select(sf => sf.FirstField!.Enum)
+
+            // And the discriminator of every column reaching several tables. Not an enum
+            // column - the column's type is the key it carries - but the generated page names
+            // the type all the same, so every language's import list has to carry it.
+            // spec/multi-target-accessors.md.
+            .Concat(MultiTargetColumns.Of(table).Select(column => column.Discriminator)));
 
     /// <summary>
     /// The tables a table references, in declaration order and without repeats.
@@ -54,7 +60,12 @@ internal static class TypeDependencies
     public static IReadOnlyList<Table> TablesReferencedBy(Table table)
         => Distinct(table.SerialFields
             .Where(sf => sf.IsRef)
-            .Select(sf => sf.FirstField!.ResolvedRefTable!));
+            .Select(sf => sf.FirstField!.ResolvedRefTable!)
+
+            // A column reaching several tables names every one of them: the generated page
+            // has a property per target and each says that target's record type.
+            // spec/multi-target-accessors.md.
+            .Concat(MultiTargetColumns.Of(table).SelectMany(column => column.Targets)));
 
     /// <summary>
     /// The same, minus the table itself.
@@ -78,7 +89,8 @@ internal static class TypeDependencies
     /// cross-reference resolution to generate at all.
     /// </summary>
     public static bool AnyCrossReference(Model model)
-        => model.Tables.Any(table => table.SerialFields.Any(sf => sf.IsRef));
+        => model.Tables.Any(table => table.SerialFields.Any(sf => sf.IsRef)
+                                     || MultiTargetColumns.Of(table).Count > 0);
 
     /// <summary>
     /// Reference order by declaration, and each entry once.

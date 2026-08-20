@@ -125,8 +125,38 @@ export class {{ name }}Record {
   }
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column whose value is a row of one of several tables. The getter above hands back the
+   key; these say which table it is in and hand back that table's row.
+
+   One slot behind them all: the targets take separate id bands, so at most one of them ever
+   answers and the rest would be permanently undefined. TypeScript can spell the slot as a
+   union of the target types, so each getter narrows rather than asserts.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in multi_reference_fields }}
+  /** Which table `{{ ref.key_prop }}` is a row of. */
+  public get {{ ref.target_prop }}(): {{ ref.target_type_name }} { return this.{{ ref.target_field }} }
+{{~ for target in ref.targets ~}}
+  /** The `{{ target.table }}` row `{{ ref.key_prop }}` names, or undefined when it names a row of one of the others. */
+  public get {{ target.prop }}(): {{ target.record_type_name }} | undefined {
+    return this.{{ ref.target_field }} === {{ ref.target_type_name }}.{{ target.label }}
+      ? this.{{ ref.slot_field }} as {{ target.record_type_name }}
+      : undefined
+  }
+{{~ end ~}}
+{{~ end ~}}
 {{~## Called by the accessor once every table is read, and by nothing else. Kept away
    from the getters above because a consumer never calls one. ##~}}
+{{~ if multi_reference_fields | array.size > 0 ~}}
+{{~ for ref in multi_reference_fields ~}}
+
+{{~## The row and which table it came from arrive together: either without the other is a
+   state the getters above would read wrongly. ##~}}
+  public setReference_{{ ref.key_prop }}_INTERNAL(target: {{ ref.target_type_name }}, row: {{ ref.slot_type_name }}): void {
+    this.{{ ref.target_field }} = target
+    this.{{ ref.slot_field }} = row
+  }
+{{~ end ~}}
+{{~ end ~}}
 {{~ if reference_fields | array.size > 0 ~}}
 
 {{~ for field in fields ~}}
@@ -174,6 +204,12 @@ export class {{ name }}Record {
 {{~ if field.has_optional_elements ~}}
   public {{ field.element_presence_field }}: boolean[] | null = null
 {{~ end ~}}
+{{~ end ~}}
+{{~## One slot for the resolved row whatever table it came from, typed as the union of those
+   tables' records, and the discriminator that says which. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in multi_reference_fields ~}}
+  public {{ ref.slot_field }}: {{ ref.slot_type_name }} = undefined
+  public {{ ref.target_field }}: {{ ref.target_type_name }} = {{ ref.target_type_name }}.None
 {{~ end ~}}
 
   /** Populate field values. */

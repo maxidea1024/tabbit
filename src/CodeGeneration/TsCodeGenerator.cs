@@ -227,6 +227,14 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
                 BinaryFileExtension = _typescriptRecipe.BinaryTableFileExtension,
                 CrossReferences = BuildCrossReferences(),
+
+                Imports = _model.Tables
+                                .SelectMany(MultiTargetColumns.Of)
+                                .Select(column =>
+                                    $"import {{ {column.Discriminator.Name.ToPascalCase()} }} "
+                                    + $"from './enums/{TsFileName(column.Discriminator.Name)}'")
+                                .Distinct()
+                                .ToList(),
             });
 
         }
@@ -367,13 +375,20 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                                          .Where(wire => wire.Member is not null && wire.IsRef)
                                          .Select(BuildRecordReference)
                                          .ToList(),
+
+                     // A column reaching several tables is looked up in each of them in turn,
+                     // so it is a loop of its own too. spec/multi-target-accessors.md.
+                     MultiFields = MultiTargetColumns.Of(table)
+                                                     .Select(BuildMultiReference)
+                                                     .ToList(),
                  })
-                 .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+                 .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
                  .Select(x => new TsCrossReferenceView
                  {
                      Table = TsName(x.Table.Name),
                      Fields = x.Fields.Select(BuildReferenceField).ToList(),
                      RecordFields = x.RecordFields,
+                     MultiFields = x.MultiFields,
                  })
                  .ToList();
 
@@ -487,6 +502,49 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     private static string PrimaryLookup(Models.Table refTable)
         => "getBy" + refTable.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase() + "OrThrow";
 
+    /// <summary>
+    /// The lookup that answers with undefined rather than throwing.
+    /// </summary>
+    /// <remarks>
+    /// What a multi-target column resolves through. A key absent from one of its targets is
+    /// the ordinary case - the row is in another of them - so the miss has to be an answer.
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    private static string PrimaryFind(Models.Table refTable)
+        => "findBy" + refTable.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private TsMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+    {
+        var targets = column.Targets.Select(target => new TsMultiTargetView
+        {
+            Table = TsName(target.Name),
+            RecordTypeName = target.Name.ToPascalCase() + "Record",
+            Prop = TsName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+            Label = target.Name.ToPascalCase(),
+            Lookup = PrimaryFind(target),
+        }).ToList();
+
+        return new TsMultiReferenceView
+        {
+            KeyProp = TsName(column.Group.Name),
+            KeyField = "_" + column.Group.Name.ToCamelCase(),
+            SlotField = "_" + column.Group.Name.ToCamelCase() + "Row",
+            TargetField = "_" + column.Group.Name.ToCamelCase() + "Target",
+            TargetProp = TsName(column.Group.Name + "Target"),
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+
+            // A union rather than `unknown`: the discriminator already tells a reader which
+            // of them it is, and saying so in the type lets the getters narrow instead of
+            // asserting.
+            SlotTypeName = string.Join(" | ", targets.Select(t => t.RecordTypeName)) + " | undefined",
+            RefIsSet = RefIsSetSuffix(column.Field.RefKeyType),
+            Targets = targets,
+        };
+    }
+
     private TsTableView BuildTable(Models.Table table)
     {
         var fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList();
@@ -513,6 +571,10 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                                    .Where(x => x.sf.IsRef)
                                    .Select(x => x.view)
                                    .ToList(),
+
+            MultiReferenceFields = MultiTargetColumns.Of(table)
+                                                     .Select(BuildMultiReference)
+                                                     .ToList(),
 
             // One cursor variable for the whole method: switch cases share a scope in
             // JavaScript too, so each encodable column assigns it rather than declaring
@@ -642,6 +704,22 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
                 if (refTable is not null && refTable.Name != table.Name)
                     Add($"import {{ {refTable.Name.ToPascalCase()}Record }} from './{TsFileName(refTable.Name)}'");
+            }
+        }
+
+        // A column reaching several tables names all of them and the enumeration that says
+        // which one answered. Asked separately because the loop above reads the element type,
+        // and such a column's element type is the key it carries - it says nothing about the
+        // tables. spec/multi-target-accessors.md.
+        foreach (var column in MultiTargetColumns.Of(table))
+        {
+            Add($"import {{ {column.Discriminator.Name.ToPascalCase()} }} "
+                + $"from '../enums/{TsFileName(column.Discriminator.Name)}'");
+
+            foreach (var target in column.Targets)
+            {
+                if (target.Name != table.Name)
+                    Add($"import {{ {target.Name.ToPascalCase()}Record }} from './{TsFileName(target.Name)}'");
             }
         }
 

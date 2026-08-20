@@ -5,6 +5,10 @@ import * as path from 'path'
 {{~ for table in tables ~}}
 import { {{ table.name }}Table } from './tables/{{ table.file }}'
 {{~ end ~}}
+{{~## The discriminators the linking pass compares against. spec/multi-target-accessors.md. ##~}}
+{{~ for line in imports ~}}
+{{ line }}
+{{~ end ~}}
 
 /** {{ accessor_name }} */
 export class {{ accessor_name }} {
@@ -177,6 +181,24 @@ export class {{ accessor_name }} {
         {{ member.flag }} = true
       }
 {{~ end ~}}
+{{~ end ~}}
+{{~## A column reaching several tables is looked up in each of them in the order they were
+   named, stopping at the first that has the key. The tables take separate id bands - an id in
+   two of them is refused at conversion - so the order only decides which lookup runs.
+
+   Through the lookup that answers with undefined: a miss means the row is in one of the
+   others, and a key none of them holds leaves the discriminator at `None`.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in reference.multi_fields ~}}
+      if (record.{{ ref.key_prop }} {{ ref.ref_is_set }}) {
+{{~ for target in ref.targets ~}}
+        if (record.{{ ref.target_prop }} === {{ ref.target_type_name }}.None) {
+          const found = this._{{ target.table }}.{{ target.lookup }}(record.{{ ref.key_prop }})
+          if (found !== undefined)
+            record.setReference_{{ ref.key_prop }}_INTERNAL({{ ref.target_type_name }}.{{ target.label }}, found)
+        }
+{{~ end ~}}
+      }
 {{~ end ~}}
     }
 {{~ end ~}}

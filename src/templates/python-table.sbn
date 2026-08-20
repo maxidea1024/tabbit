@@ -53,6 +53,25 @@ class {{ table.record_name }}:
         {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One attribute for the resolved
+   row whatever table it came from, and the discriminator saying which - the targets take
+   separate id bands, so at most one of them ever answers.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+        self.{{ ref.slot_member }} = None
+        self.{{ ref.target_member }} = {{ ref.target_type_name }}.{{ ref.none_label }}
+{{~ end ~}}
+{{~ for ref in table.multi_references }}
+{{~ for target in ref.targets }}
+    @property
+    def {{ target.property }}(self):
+        """The {{ target.table }} row this column names, or None when it names a row of one of the others."""
+        if self.{{ ref.target_member }} != {{ ref.target_type_name }}.{{ target.label }}:
+            return None
+
+        return self.{{ ref.slot_member }}
+{{~ end ~}}
+{{~ end ~}}
 
     def __repr__(self):
         return "{{ table.record_name }}({{ table.repr_format }})" % ({{ table.repr_values }})

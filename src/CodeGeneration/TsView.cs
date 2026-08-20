@@ -63,6 +63,17 @@ internal sealed class TsTableSetView
     /// was the raw key from JSON or nothing at all from binary.
     /// </remarks>
     public required IReadOnlyList<TsCrossReferenceView> CrossReferences { get; set; }
+
+    /// <summary>
+    /// The discriminator enumerations the linking pass names.
+    /// </summary>
+    /// <remarks>
+    /// This module imported table classes and nothing else, because linking only ever named
+    /// tables and keys. A column reaching several tables is resolved by comparing against the
+    /// enumeration that says which one answered, so the type has to be in scope here too.
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    public required IReadOnlyList<string> Imports { get; set; }
 }
 
 /// <summary>One table's reference columns, for the linking pass.</summary>
@@ -78,6 +89,70 @@ internal sealed class TsCrossReferenceView
     /// than beside it. spec/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<TsRecordReferenceView> RecordFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables, which resolve by trying each in turn.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<TsMultiReferenceView> MultiFields { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// The key stays the column's value; beside it go one slot for the resolved row and the
+/// discriminator saying which table filled it. One slot rather than one per target, because
+/// the targets take separate id bands and so at most one of them ever answers.
+///
+/// TypeScript can spell the slot as a union of the target record types, which is more than
+/// most languages can say - the cast the others need is a narrowing here.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class TsMultiReferenceView
+{
+    /// <summary>The getter the key is read through.</summary>
+    public required string KeyProp { get; set; }
+
+    /// <summary>The member holding the key.</summary>
+    public required string KeyField { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotField { get; set; }
+    public required string TargetField { get; set; }
+
+    /// <summary>The getter the discriminator is read through.</summary>
+    public required string TargetProp { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>The union of the target record types, which is what the slot holds.</summary>
+    public required string SlotTypeName { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string RefIsSet { get; set; }
+
+    public required IReadOnlyList<TsMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class TsMultiTargetView
+{
+    /// <summary>The accessor member holding the table.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The record type a resolved row has.</summary>
+    public required string RecordTypeName { get; set; }
+
+    /// <summary>The getter this target is read through.</summary>
+    public required string Prop { get; set; }
+
+    /// <summary>The enum label for this target.</summary>
+    public required string Label { get; set; }
+
+    /// <summary>The target's lookup that answers with undefined rather than throwing.</summary>
+    public required string Lookup { get; set; }
 }
 
 /// <summary>
@@ -240,6 +315,16 @@ internal sealed class TsTableView
 
 /// <summary>The fields that reference another table, and so get a wiring method.</summary>
     public required IReadOnlyList<TsFieldView> ReferenceFields { get; set; }
+
+    /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// A third list rather than a branch inside <see cref="ReferenceFields"/>: such a column
+    /// is not one record and keeps carrying the key, and what is added beside it is a getter
+    /// per target. spec/multi-target-accessors.md.
+    /// </remarks>
+    public required IReadOnlyList<TsMultiReferenceView> MultiReferenceFields { get; set; }
 
             /// <summary>The fields a lookup map is built for.</summary>
     public required IReadOnlyList<TsFieldView> IndexedFields { get; set; }

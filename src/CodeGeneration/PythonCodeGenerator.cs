@@ -182,7 +182,16 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         Write(_recipe.ModuleName + ".py", "python-accessor.sbn", new PythonPartView
         {
             AccessorName = AccessorType,
-            Imports = _model.Tables.Select(table => TableImport(table)).ToList(),
+
+            // And the discriminator of every column reaching several tables: linking compares
+            // against it, so the accessor names that type as well as the table classes.
+            // spec/multi-target-accessors.md.
+            Imports = _model.Tables.Select(table => TableImport(table))
+                            .Concat(_model.Tables
+                                          .SelectMany(MultiTargetColumns.Of)
+                                          .Select(column => EnumImport(column.Discriminator))
+                                          .Distinct())
+                            .ToList(),
             Accessor = view.Accessor,
         });
 
@@ -435,6 +444,16 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 slots.Add(ElementPresenceMember(sf));
         }
 
+        // A column reaching several tables adds the resolved row and the discriminator beside
+        // the key. spec/multi-target-accessors.md.
+        var multiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList();
+
+        foreach (var reference in multiReferences)
+        {
+            slots.Add(reference.SlotMember);
+            slots.Add(reference.TargetMember);
+        }
+
         return new PythonTableView
         {
             RawName = table.Name,
@@ -446,6 +465,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             TableSlotNames = Tuple(
                 new[] { "records" }.Concat(Indexes(table).Select(index => index.MapName)).ToList()),
             SlotNames = Tuple(slots),
+            MultiReferences = multiReferences,
             ReprFormat = string.Join(", ", table.SerialFields.Select(sf => PythonName(sf.Name) + "=%r")),
             ReprValues = Tuple(table.SerialFields.Select(sf => "self." + PythonName(sf.Name)).ToList(),
                                quote: false),
@@ -481,6 +501,43 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// </remarks>
     private static string PrimaryLookup(Table? refTable)
         => "find_by_" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToSnakeCase();
+
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// that in every language: the discriminator is a value a consumer reads, so a language
+    /// that resolved a zero where another did not would answer a different table for the same
+    /// row. spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType == ValueType.String ? "!= \"\"" : "!= 0";
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private PythonMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new PythonMultiReferenceView
+        {
+            KeyMember = PythonName(column.Group.Name),
+            SlotMember = PythonName(column.Group.Name) + "_row",
+            TargetMember = PythonName(column.Group.Name) + "_target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = PythonSnakeName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new PythonMultiTargetView
+            {
+                Table = PythonName(target.Name),
+                Property = PythonName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+
+                // Spelled the way this generator spells every other label, which is not the
+                // model's spelling: the label list is snake cased here. Reading the model name
+                // straight would name a member the enum module does not declare.
+                Label = PythonSnakeName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
 
     private PythonFieldView BuildField(Table table, SerialField sf)
     {
@@ -1223,12 +1280,17 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
             .Select(x => new PythonCrossReferenceView
             {
                 Table = PythonName(x.Table.Name),
                 RecordFields = x.RecordFields,
+                MultiFields = x.MultiFields,
                 Fields = x.Fields.Select(sf => new PythonReferenceFieldView
                 {
                     Name = PythonName(sf.Name),

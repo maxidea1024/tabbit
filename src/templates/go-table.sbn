@@ -51,7 +51,31 @@ type {{ table.record_name }} struct {
 	{{ field.element_presence_member }} []bool
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One slot for the resolved row
+   whatever table it came from, and the discriminator saying which - the targets take separate
+   id bands, so at most one of them ever answers and a member per target would be permanently
+   nil. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+	// The row {{ ref.key_member }} names, as whichever of its target tables holds it. Read it
+	// through the methods below rather than directly: they check the discriminator first.
+	{{ ref.slot_member }} any
+	// Which table {{ ref.key_member }} is a row of.
+	{{ ref.target_member }} {{ ref.target_type_name }}
+{{~ end ~}}
 }
+{{~ for ref in table.multi_references }}
+{{~ for target in ref.targets }}
+// {{ target.method }} returns the {{ target.table }} row {{ ref.key_member }} names, or nil when it
+// names a row of one of the others.
+func (r *{{ table.record_name }}) {{ target.method }}() *{{ target.record_name }} {
+	if r.{{ ref.target_member }} != {{ target.constant }} {
+		return nil
+	}
+
+	return r.{{ ref.slot_member }}.(*{{ target.record_name }})
+}
+{{~ end ~}}
+{{~ end ~}}
 
 // {{ table.table_name }} holds every row of {{ table.raw_name }}.
 type {{ table.table_name }} struct {

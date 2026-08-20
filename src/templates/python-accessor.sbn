@@ -122,5 +122,23 @@ class {{ accessor_name }}:
                 {{ member.access }} = target
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column reaching several tables is looked up in each of them in the order they were
+   named, stopping at the first that has the key. The tables take separate id bands - an id in
+   two of them is refused at conversion - so the order only decides which lookup runs.
+
+   Guarded on the key being set, which the single-target linking above does not do. It has to
+   be: the discriminator is a value a consumer reads, so a language that resolved a zero where
+   another did not would answer a different table for the same row.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in reference.multi_fields ~}}
+            if record.{{ ref.key_member }} {{ ref.key_is_set }}:
+{{~ for target in ref.targets ~}}
+                if record.{{ ref.target_member }} == {{ ref.target_type_name }}.{{ ref.none_label }}:
+                    target = {{ target.table }}.{{ target.lookup }}(record.{{ ref.key_member }})
+                    if target is not None:
+                        record.{{ ref.slot_member }} = target
+                        record.{{ ref.target_member }} = {{ ref.target_type_name }}.{{ target.label }}
+{{~ end ~}}
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
