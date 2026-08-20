@@ -54,11 +54,6 @@
 {{ cell }}
 {{~ end ~}}
 </tr>
-<tr class="presence">
-{{~ for cell in presence_cells ~}}
-{{ cell }}
-{{~ end ~}}
-</tr>
 <tr class="side">
 {{~ for cell in side_cells ~}}
 {{ cell }}

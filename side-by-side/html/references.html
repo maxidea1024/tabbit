@@ -50,7 +50,7 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 /* A fragment jump scrolls its target to the top of its scroller. Room above it - and
    more of it for a row, whose scroller has the header stack pinned across the top. */
 [id] { scroll-margin-top: 12px; }
-tbody td[id] { scroll-margin-top: 120px; }
+tbody td[id] { scroll-margin-top: 96px; }
 body {
   margin: 0; background: var(--bg); color: var(--fg);
   font: 14px/1.55 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
@@ -213,14 +213,11 @@ thead th { height: 23px; line-height: 17px; padding-top: 3px; padding-bottom: 3p
 thead tr.names th { font-weight: 600; cursor: pointer; }
 thead tr.names th.sorted::after { content: " \25B4"; color: var(--faint); }
 thead tr.names th.sorted.desc::after { content: " \25BE"; }
-thead tr.about th, thead tr.side th, thead tr.presence th {
-  font-weight: 400; color: var(--muted); font-size: 12px;
-}
+thead tr.about th, thead tr.side th { font-weight: 400; color: var(--muted); font-size: 12px; }
 thead tr.types th { font-weight: 400; }
 thead tr.about th { top: var(--t-about, 23px); }
 thead tr.types th { top: var(--t-types, 46px); }
-thead tr.presence th { top: var(--t-presence, 69px); }
-thead tr.side th { top: var(--t-side, 92px); }
+thead tr.side th { top: var(--t-side, 69px); }
 tbody tr:nth-child(even) { background: var(--zebra); }
 tbody tr:hover > td { background: var(--hover); }
 tbody tr.out { display: none; }
@@ -249,6 +246,17 @@ tbody tr:has(td:target) > td { background: var(--hover); }
   display: block; max-width: 46ch; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
 }
+/* A record entry: objects, with the member names quiet and the values not. Expanded, one
+   object per line - a row of them on one line is what made the flat columns unreadable. */
+td.record .clip { max-width: 60ch; }
+/* The member names are in the markup so the panel can print them, and out of the cell
+   because a tuple of three values beside a hundred rows of them is what fits. */
+.mem { color: var(--faint); }
+td.record .mem, td.record .msep { display: none; }
+th .mem { color: var(--faint); }
+.obj { white-space: nowrap; }
+td.record.open .obj { display: block; }
+td.record.open .clip { max-width: 80ch; white-space: normal; }
 td.text { cursor: pointer; }
 td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
 
@@ -257,6 +265,13 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
 .key code { color: var(--key); }
 .enum { white-space: nowrap; }
 .type { color: var(--type); }
+/* The column a row is found by. Marked on the type, where the question "which one is the
+   key" comes up. */
+.keymark { font-size: 11px; }
+/* A column whose sheet names the tables its value belongs to, without that being a
+   resolved reference. Quieter than a reference, because it is a declaration. */
+.declared { color: var(--faint); }
+.declared a { color: var(--muted); }
 .flag { color: var(--flag); }
 .sep { color: var(--faint); }
 .empty { color: var(--none); }
@@ -291,6 +306,7 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
 /* The same panel holding a value rather than an enum: it wraps, and it keeps whatever
    line breaks the cell had. */
 #enumcard.wrap { white-space: pre-wrap; word-break: break-word; color: var(--fg); }
+#enumcard.code { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
 #enumcard td:last-child { white-space: normal; }
 
 /* ---- the reference graph ---- */
@@ -371,6 +387,7 @@ tbody [data-pick] { cursor: pointer; }
 <symbol id="i-const" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M5.6 6.7h4.8M5.6 9.3h4.8"/></symbol>
 <symbol id="i-workbook" viewBox="0 0 16 16"><path d="M3.2 3.9A1.7 1.7 0 0 1 4.9 2.2h7.4a.8.8 0 0 1 .8.8v10a.8.8 0 0 1-.8.8H4.9a1.7 1.7 0 0 1-1.7-1.7z"/><path d="M6.3 2.2v11.6"/></symbol>
 <symbol id="i-sheet" viewBox="0 0 16 16"><path d="M4.3 2.4h4.6l3.3 3.3v7.1a.8.8 0 0 1-.8.8H4.3a.8.8 0 0 1-.8-.8V3.2a.8.8 0 0 1 .8-.8z"/><path d="M8.7 2.4v3.4h3.5"/></symbol>
+<symbol id="i-key" viewBox="0 0 16 16"><circle cx="5.4" cy="5.4" r="2.7"/><path d="M7.3 7.3l5.9 5.9M11.1 11.2l1.3 1.3M9.2 9.3l1.3 1.3"/></symbol>
 <symbol id="i-graph" viewBox="0 0 16 16"><circle cx="3.6" cy="8" r="1.9"/><circle cx="12.4" cy="4.4" r="1.9"/><circle cx="12.4" cy="11.6" r="1.9"/><path d="M5.3 7.2l5.4-2.1M5.3 8.8l5.4 2.1"/></symbol>
 <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.1"/><path d="M8 1.4v1.5M8 13.1v1.5M1.4 8h1.5M13.1 8h1.5M3.3 3.3l1.1 1.1M11.6 11.6l1.1 1.1M12.7 3.3l-1.1 1.1M4.4 11.6l-1.1 1.1"/></symbol>
 <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13.2 9.6A5.6 5.6 0 0 1 6.4 2.8a5.6 5.6 0 1 0 6.8 6.8z"/></symbol>
@@ -407,7 +424,7 @@ tbody [data-pick] { cursor: pointer; }
 </ul>
 </main>
 </div>
-<p class="foot">생성 시각 2026-08-20 18:35:02</p>
+<p class="foot">생성 시각 2026-08-21 00:11:35</p>
 <script>
 (function () {
   "use strict";
@@ -939,11 +956,22 @@ tbody [data-pick] { cursor: pointer; }
       if (cell.classList.contains("open")) return;
 
       keepOpen();
-      card.className = "wrap";
 
       // The clipped part, so the count beside it is not read as part of the value.
       var clip = cell.querySelector(".clip");
-      card.textContent = (clip || cell).textContent;
+      var source = clip || cell;
+
+      if (cell.classList.contains("record")) {
+        // A record read across one line is the thing the flat columns were bad at. Written
+        // out, one member per line, from the cell's own structure - so nothing about the
+        // objects has to be repeated in the page for this.
+        card.className = "wrap code";
+        card.textContent = pretty(source, 0);
+      } else {
+        card.className = "wrap";
+        card.textContent = source.textContent;
+      }
+
       place(cell);
     });
 
@@ -955,36 +983,139 @@ tbody [data-pick] { cursor: pointer; }
     });
   });
 
+  // ---- writing a record out. The cell holds the objects already: `obj` for one element,
+  // `mem` for a member name, `sep` for the punctuation between them. Walking that is what
+  // lets the panel print the same values with line breaks, without the page carrying a
+  // second copy of them.
+  function objectsIn(node) {
+    return Array.prototype.filter.call(node.children || [], function (child) {
+      return child.classList && child.classList.contains("obj");
+    });
+  }
+
+  function pairsOf(obj) {
+    var pairs = [], name = null, parts = [];
+
+    function flush() {
+      if (name !== null) pairs.push({ name: name, parts: parts });
+      name = null;
+      parts = [];
+    }
+
+    Array.prototype.forEach.call(obj.childNodes, function (node) {
+      var element = node.nodeType === 1 ? node : null;
+
+      if (element && element.classList.contains("mem")) {
+        flush();
+        name = element.textContent;
+        return;
+      }
+
+      // The divider between a name and its value has its own class, because the cell hides
+      // it and the panel does not.
+      if (element && element.classList.contains("msep")) return;
+
+      if (element && element.classList.contains("sep")) {
+        var mark = element.textContent.trim();
+
+        if (mark === ",") { flush(); return; }
+        if (mark === "(" || mark === ")" || mark === "{" || mark === "}") return;
+      }
+
+      parts.push(node);
+    });
+
+    flush();
+    return pairs;
+  }
+
+  function indent(depth) {
+    var pad = "";
+    for (var i = 0; i < depth; i++) pad += "  ";
+    return pad;
+  }
+
+  function valueText(parts, depth) {
+    var nested = parts.filter(function (node) {
+      return node.nodeType === 1 && node.classList && node.classList.contains("obj");
+    });
+
+    if (nested.length) return object(nested[0], depth);
+
+    return parts.map(function (node) { return node.textContent; }).join("").trim();
+  }
+
+  function object(obj, depth) {
+    var pairs = pairsOf(obj);
+
+    if (!pairs.length) return "{}";
+
+    var lines = pairs.map(function (pair) {
+      return indent(depth + 1) + pair.name + ": " + valueText(pair.parts, depth + 1);
+    });
+
+    return "{\n" + lines.join(",\n") + "\n" + indent(depth) + "}";
+  }
+
+  function pretty(node, depth) {
+    var objects = objectsIn(node);
+
+    if (!objects.length) return node.textContent;
+
+    if (objects.length === 1 && node.textContent.trim().charAt(0) !== "[")
+      return object(objects[0], depth);
+
+    var lines = objects.map(function (obj) {
+      return indent(depth + 1) + object(obj, depth + 1);
+    });
+
+    return "[\n" + lines.join(",\n") + "\n" + indent(depth) + "]";
+  }
+
   // ---- a reference's own row. The key says which row, and this says what that row is,
   // which is the question a reader has at the cell rather than after following the link.
+  //
+  // A column may name several tables, and then the panel answers for each of them: the one
+  // holding the row shows it, and the others say they do not have it. Handing the reader a
+  // choice of two links would be handing back the question.
   var rowsource = document.getElementById("rowdefs");
 
   if (rowsource) {
     var previews = null;
 
-    document.querySelectorAll("a[data-ref]").forEach(function (link) {
+    document.querySelectorAll("a[data-refs]").forEach(function (link) {
       link.addEventListener("mouseenter", function () {
         if (previews === null) {
           try { previews = JSON.parse(rowsource.textContent); } catch (e) { previews = {}; }
         }
 
-        var table = previews[link.getAttribute("data-ref")];
-        if (!table) return;
+        var names = link.getAttribute("data-refs").split("|");
+        var key = link.getAttribute("data-key");
+        var html = "";
 
-        var values = table.rows[link.getAttribute("data-key")];
-        if (!values) return;
+        names.forEach(function (name) {
+          var table = previews[name];
+          var values = table && table.rows[key];
+
+          html += '<p class="lead"><b>' + name + '</b> <span class="hint">행 ' + key
+            + (values ? '' : ' \u2014 없음') + '</span></p>';
+
+          if (!values) return;
+
+          html += "<table><tbody>";
+
+          for (var i = 0; i < values.length; i++) {
+            html += '<tr><td class="hint">' + table.cols[i] + '</td><td>' + values[i] + '</td></tr>';
+          }
+
+          html += "</tbody></table>";
+        });
+
+        if (!html) return;
 
         keepOpen();
         card.className = "";
-
-        var html = "<p class=\"lead\"><b>" + link.getAttribute("data-ref") + "</b> "
-          + "<span class=\"hint\">행 " + link.getAttribute("data-key") + "</span></p><table><tbody>";
-
-        for (var i = 0; i < values.length; i++) {
-          html += "<tr><td class=\"hint\">" + table.cols[i] + "</td><td>" + values[i] + "</td></tr>";
-        }
-
-        card.innerHTML = html + "</tbody></table>";
+        card.innerHTML = html;
         place(link);
       });
 

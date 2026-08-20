@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-20T18:35:02.6292854+09:00",
+    "generatedAt": "2026-08-21T00:11:36.2769396+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "ec2ee25815283509950972a402a1325cb14a7162",
-      "shortHash": "ec2ee2581528",
-      "branch": "main",
+      "hash": "959c06d82dc0e470446dd4ae57076a053ac0e514",
+      "shortHash": "959c06d82dc0",
+      "branch": "multi-target-accessors",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-20T15:11:46.0000000+09:00",
-      "subject": "Settle which export formats to add, and what each one costs",
+      "committedAt": "2026-08-20T23:01:46.0000000+09:00",
+      "subject": "Allocate the keys a trimmed array of references reads into",
       "origin": "git",
       "dirty": true,
       "attributable": false

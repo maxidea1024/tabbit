@@ -571,11 +571,22 @@
       if (cell.classList.contains("open")) return;
 
       keepOpen();
-      card.className = "wrap";
 
       // The clipped part, so the count beside it is not read as part of the value.
       var clip = cell.querySelector(".clip");
-      card.textContent = (clip || cell).textContent;
+      var source = clip || cell;
+
+      if (cell.classList.contains("record")) {
+        // A record read across one line is the thing the flat columns were bad at. Written
+        // out, one member per line, from the cell's own structure - so nothing about the
+        // objects has to be repeated in the page for this.
+        card.className = "wrap code";
+        card.textContent = pretty(source, 0);
+      } else {
+        card.className = "wrap";
+        card.textContent = source.textContent;
+      }
+
       place(cell);
     });
 
@@ -587,36 +598,139 @@
     });
   });
 
+  // ---- writing a record out. The cell holds the objects already: `obj` for one element,
+  // `mem` for a member name, `sep` for the punctuation between them. Walking that is what
+  // lets the panel print the same values with line breaks, without the page carrying a
+  // second copy of them.
+  function objectsIn(node) {
+    return Array.prototype.filter.call(node.children || [], function (child) {
+      return child.classList && child.classList.contains("obj");
+    });
+  }
+
+  function pairsOf(obj) {
+    var pairs = [], name = null, parts = [];
+
+    function flush() {
+      if (name !== null) pairs.push({ name: name, parts: parts });
+      name = null;
+      parts = [];
+    }
+
+    Array.prototype.forEach.call(obj.childNodes, function (node) {
+      var element = node.nodeType === 1 ? node : null;
+
+      if (element && element.classList.contains("mem")) {
+        flush();
+        name = element.textContent;
+        return;
+      }
+
+      // The divider between a name and its value has its own class, because the cell hides
+      // it and the panel does not.
+      if (element && element.classList.contains("msep")) return;
+
+      if (element && element.classList.contains("sep")) {
+        var mark = element.textContent.trim();
+
+        if (mark === ",") { flush(); return; }
+        if (mark === "(" || mark === ")" || mark === "{" || mark === "}") return;
+      }
+
+      parts.push(node);
+    });
+
+    flush();
+    return pairs;
+  }
+
+  function indent(depth) {
+    var pad = "";
+    for (var i = 0; i < depth; i++) pad += "  ";
+    return pad;
+  }
+
+  function valueText(parts, depth) {
+    var nested = parts.filter(function (node) {
+      return node.nodeType === 1 && node.classList && node.classList.contains("obj");
+    });
+
+    if (nested.length) return object(nested[0], depth);
+
+    return parts.map(function (node) { return node.textContent; }).join("").trim();
+  }
+
+  function object(obj, depth) {
+    var pairs = pairsOf(obj);
+
+    if (!pairs.length) return "{}";
+
+    var lines = pairs.map(function (pair) {
+      return indent(depth + 1) + pair.name + ": " + valueText(pair.parts, depth + 1);
+    });
+
+    return "{\n" + lines.join(",\n") + "\n" + indent(depth) + "}";
+  }
+
+  function pretty(node, depth) {
+    var objects = objectsIn(node);
+
+    if (!objects.length) return node.textContent;
+
+    if (objects.length === 1 && node.textContent.trim().charAt(0) !== "[")
+      return object(objects[0], depth);
+
+    var lines = objects.map(function (obj) {
+      return indent(depth + 1) + object(obj, depth + 1);
+    });
+
+    return "[\n" + lines.join(",\n") + "\n" + indent(depth) + "]";
+  }
+
   // ---- a reference's own row. The key says which row, and this says what that row is,
   // which is the question a reader has at the cell rather than after following the link.
+  //
+  // A column may name several tables, and then the panel answers for each of them: the one
+  // holding the row shows it, and the others say they do not have it. Handing the reader a
+  // choice of two links would be handing back the question.
   var rowsource = document.getElementById("rowdefs");
 
   if (rowsource) {
     var previews = null;
 
-    document.querySelectorAll("a[data-ref]").forEach(function (link) {
+    document.querySelectorAll("a[data-refs]").forEach(function (link) {
       link.addEventListener("mouseenter", function () {
         if (previews === null) {
           try { previews = JSON.parse(rowsource.textContent); } catch (e) { previews = {}; }
         }
 
-        var table = previews[link.getAttribute("data-ref")];
-        if (!table) return;
+        var names = link.getAttribute("data-refs").split("|");
+        var key = link.getAttribute("data-key");
+        var html = "";
 
-        var values = table.rows[link.getAttribute("data-key")];
-        if (!values) return;
+        names.forEach(function (name) {
+          var table = previews[name];
+          var values = table && table.rows[key];
+
+          html += '<p class="lead"><b>' + name + '</b> <span class="hint">행 ' + key
+            + (values ? '' : ' \u2014 없음') + '</span></p>';
+
+          if (!values) return;
+
+          html += "<table><tbody>";
+
+          for (var i = 0; i < values.length; i++) {
+            html += '<tr><td class="hint">' + table.cols[i] + '</td><td>' + values[i] + '</td></tr>';
+          }
+
+          html += "</tbody></table>";
+        });
+
+        if (!html) return;
 
         keepOpen();
         card.className = "";
-
-        var html = "<p class=\"lead\"><b>" + link.getAttribute("data-ref") + "</b> "
-          + "<span class=\"hint\">행 " + link.getAttribute("data-key") + "</span></p><table><tbody>";
-
-        for (var i = 0; i < values.length; i++) {
-          html += "<tr><td class=\"hint\">" + table.cols[i] + "</td><td>" + values[i] + "</td></tr>";
-        }
-
-        card.innerHTML = html + "</tbody></table>";
+        card.innerHTML = html;
         place(link);
       });
 

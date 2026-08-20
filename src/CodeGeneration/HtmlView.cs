@@ -570,16 +570,6 @@ internal sealed class HtmlTablePageView : HtmlPageView
     /// <summary>Complete `&lt;th&gt;` elements for the type row, one per line.</summary>
     public required IReadOnlyList<string> TypeCells { get; set; }
 
-    /// <summary>
-    /// Complete `&lt;th&gt;` elements saying whether each column may have no value.
-    /// </summary>
-    /// <remarks>
-    /// Under the type, because that is where the question comes up: a reader looking at a
-    /// blank cell wants to know whether the column allows one. The column index says the
-    /// same thing for every column at once; this says it while the values are on screen.
-    /// </remarks>
-    public required IReadOnlyList<string> PresenceCells { get; set; }
-
     /// <summary>Complete `&lt;th&gt;` elements for the target-side row, one per line.</summary>
     public required IReadOnlyList<string> SideCells { get; set; }
 

@@ -266,7 +266,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     {
         var byTarget = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
 
-        var references = table.Fields.Where(PointsAtTable).ToList();
+        var references = table.Fields.Where(field => NamedTablesOf(field).Count > 0).ToList();
 
         if (references.Count == 0)
             return byTarget;
@@ -282,7 +282,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
                 string key = value.ToString() ?? "";
 
-                foreach (var target in RefTargetsOf(field))
+                foreach (var target in NamedTablesOf(field))
                 {
                     if (_model.FindTable(target) is null)
                         continue;
@@ -339,7 +339,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 if (!pair.Value.Contains(key) || rows.ContainsKey(key))
                     continue;
 
-                rows[key] = columns.Select(field => Clip(Plain(field, row[field.Index].Value))).ToArray();
+                rows[key] = columns.Select(field => Clip(Plain(field, row[field.Index]))).ToArray();
             }
 
             _digests[pair.Key] = new RowDigest
@@ -356,10 +356,12 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// <summary>
     /// A value as the preview shows it: text, culture-independent, arrays joined.
     /// </summary>
-    private static string Plain(Models.Field field, object? value)
+    private static string Plain(Models.Field field, Cell cell)
     {
+        object? value = cell.HasValue ? cell.Value : null;
+
         if (value is null)
-            return "\u2014";
+            return "<none>";
 
         if (field.IsArray && value is Array elements)
         {
@@ -428,6 +430,26 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// it. spec/multi-target-accessors.md.
     /// </remarks>
     private static bool PointsAtTable(Models.Field field) => field.IsRef || field.IsMultiRef;
+
+    /// <summary>
+    /// Every table a column's values may be a row of - resolved reference or sheet
+    /// declaration alike.
+    /// </summary>
+    /// <remarks>
+    /// The two are one fact to a reader. A reference is promoted where the generated code
+    /// can carry an accessor, and a record member naming several tables is held back - so
+    /// the columns with the most targets to explain were the ones the page said least
+    /// about. Both kinds come through here.
+    /// </remarks>
+    private static List<string> NamedTablesOf(Models.Field field)
+    {
+        if (PointsAtTable(field))
+            return RefTargetsOf(field).Distinct(StringComparer.Ordinal).ToList();
+
+        return field.Constraints.ReferencedTables is { Count: > 0 } declared
+            ? declared.Distinct(StringComparer.Ordinal).ToList()
+            : new List<string>();
+    }
 
     // ------------------------------------------------------------- pages
 
@@ -865,13 +887,37 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         foreach (var table in _model.Tables)
         {
+            // Which heading a column is under on that table's page. A record member and a
+            // folded array element have no heading of their own there - the entry has one -
+            // so a link to the column's own name named an anchor no page carries.
+            var heading = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            foreach (var entry in table.SerialFields)
+            {
+                var head = HeadOf(entry);
+
+                if (head is null)
+                    continue;
+
+                foreach (var member in FieldsOf(entry))
+                    heading[member.Name] = head.Name;
+            }
+
             foreach (var field in table.Fields)
             {
                 rows.Add(new HtmlFieldRowView
                 {
-                    Name = Esc(field.Name),
+                    // The sheet's spelling, with the generated name in the tooltip: this
+                    // index is read against the workbook and against the generated types,
+                    // and the two names differ wherever a column is part of a record.
+                    Name = field.RawName != field.Name && field.RawName.Length > 0
+                        ? $"<span title=\"생성 이름 {Esc(field.Name)}\">{Esc(field.RawName)}</span>"
+                        : Esc(field.Name),
                     Table = Esc(table.Name),
-                    TableHref = HtmlLinks.Column(table.Name, field.Name, root: ""),
+                    TableHref = HtmlLinks.Column(
+                        table.Name,
+                        heading.TryGetValue(field.Name, out var under) ? under : field.Name,
+                        root: ""),
                     TypeCell = TypeMarkup(field, root: ""),
                     Side = SideName(field.TargetSide),
                     Presence = field.IsRequired ? "required" : "optional",
@@ -1056,6 +1102,17 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     {
         var shown = ShownRows(table);
 
+        // The page's columns are the table's entries, not the sheet's columns. A record
+        // array is written across a column per member per element - `statEffect[0]["Id"]`,
+        // `statEffect[0]["Value"]`, `statEffect[1]["Id"]` - and drawn that way it is a wall
+        // of numbers with the structure taken out of it. One column per entry puts the
+        // structure back: a record array is one column whose cells hold objects.
+        var columns = table.SerialFields
+                           .OrderBy(entry => entry.AnyField?.Index ?? int.MaxValue)
+                           .ToList();
+
+        bool hasComments = columns.Any(entry => !string.IsNullOrEmpty(CommentOf(entry)));
+
         var view = new HtmlTablePageView
         {
             Title = table.Name,
@@ -1065,41 +1122,28 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Comment = Esc(table.Comment),
             RecordCount = Num(table.Data.Count),
             ShownCount = Num(shown.Count),
+            // The sheet's columns, not the entries they fold into: how many columns a table
+            // has is a fact about the table, and the column index lists the same set.
             ColumnCount = Num(table.Fields.Count),
             Truncated = shown.Count < table.Data.Count,
             Sortable = shown.Count <= SortableRowLimit,
             ReferencedBy = Users(_tableReferrers, table.Name, root: "../"),
 
-            NameCells = table.Fields.Select((field, index) => NameCell(table, field, index)).ToList(),
-            CommentCells = table.Fields.Select(field => $"<th>{Esc(field.Comment)}</th>").ToList(),
-            HasColumnComments = table.Fields.Any(field => !string.IsNullOrEmpty(field.Comment)),
-            HeaderOffsets = HeaderOffsets(table.Fields.Any(field => !string.IsNullOrEmpty(field.Comment))),
-            TypeCells = table.Fields.Select(field => $"<th>{TypeMarkup(field, root: "../")}</th>").ToList(),
+            NameCells = columns.Select((entry, index) => NameCell(table, entry, index)).ToList(),
+            CommentCells = columns.Select(entry => $"<th>{Esc(CommentOf(entry))}</th>").ToList(),
+            HasColumnComments = hasComments,
+            HeaderOffsets = HeaderOffsets(hasComments),
+            TypeCells = columns.Select(entry => $"<th>{EntryTypeMarkup(entry, root: "../")}</th>").ToList(),
 
-            // In the vocabulary of the sheet rather than in prose, like the type row above it
-            // and the side row below: `required` is what a column is, and translating it
-            // would put a third spelling of the same idea on the page.
-            //
-            // The exception carries the class: a column that may have no value is the one
-            // worth spotting, and a page where every heading is marked marks nothing.
-            PresenceCells = table.Fields
-                                 .Select(field => field.IsRequired
-                                     ? "<th>required</th>"
-                                     : "<th class=\"flag\">optional</th>")
-                                 .ToList(),
-            SideCells = table.Fields.Select(field => $"<th>{SideName(field.TargetSide)}</th>").ToList(),
+            SideCells = columns.Select(entry => $"<th>{SideName(entry.TargetSide)}</th>").ToList(),
 
             RowPreviews = PreviewsFor(table.Name),
 
             Rows = shown.Select(row => new HtmlRowView
             {
-                // Driven by the field list, not by walking the row. A row holds every
-                // column the sheet declared, whereas the field list is what this page is
-                // meant to show; pairing them positionally only worked while the two were
-                // guaranteed identical.
-                Cells = table.Fields
-                             .Select((field, index) => DataCell(table, field, row[field.Index].Value, index == 0, root: "../"))
-                             .ToList(),
+                Cells = columns
+                        .Select((entry, index) => EntryCell(table, entry, row, index == 0, root: "../"))
+                        .ToList(),
             }).ToList(),
         };
 
@@ -1376,6 +1420,270 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     // ------------------------------------------------------------- cells
 
     /// <summary>
+    /// Every field one entry of a table is built from, in column order.
+    /// </summary>
+    private static IEnumerable<Models.Field> FieldsOf(Models.SerialField entry)
+        => entry.IsRecord
+            ? entry.Leaves.SelectMany(leaf => leaf.Fields)
+            : entry.Fields;
+
+    /// <summary>The first field of an entry, which is where its shared facts are read from.</summary>
+    private static Models.Field? HeadOf(Models.SerialField entry) => FieldsOf(entry).FirstOrDefault();
+
+    /// <summary>The description of an entry: whatever its first column said.</summary>
+    private static string CommentOf(Models.SerialField entry) => HeadOf(entry)?.Comment ?? "";
+
+    private static bool IsRequiredEntry(Models.SerialField entry) => HeadOf(entry)?.IsRequired ?? true;
+
+    /// <summary>
+    /// The type of one entry: a value, an array of them, or a record with its members named.
+    /// </summary>
+    private string EntryTypeMarkup(Models.SerialField entry, string root)
+    {
+        if (!entry.IsRecord)
+        {
+            var field = HeadOf(entry);
+
+            if (field is null)
+                return "";
+
+            // A folded array is several columns holding one value each, and the field's own
+            // type says nothing about that - the entry is what knows it is an array.
+            string brackets = entry.IsArray && !field.IsArray ? "[]" : "";
+
+            return TypeMarkup(field, root) + brackets;
+        }
+
+        return MemberTypes(entry.Members, root) + (entry.IsArray ? "[]" : "");
+    }
+
+    /// <summary>
+    /// The `?` a column carries when a row may have no value for it.
+    /// </summary>
+    /// <remarks>
+    /// On the type rather than on a row of its own. A row of `required`/`optional` says one
+    /// thing per column, and a record is several columns in one - so it had to answer for
+    /// all of them at once and answered for none. The sheet writes `?` on the type; so does
+    /// the page.
+    /// </remarks>
+    private static string Optional(Models.Field field) => field.IsRequired ? "" : "?";
+
+    /// <summary>
+    /// The mark an index column's type carries.
+    /// </summary>
+    /// <remarks>
+    /// The first column of a table is the row's key, and the type row said nothing about
+    /// that - so the one column a reader navigates by looked like any other number. Marked
+    /// on the type rather than in the heading, because being the key is a property of the
+    /// column and not of its name.
+    /// </remarks>
+    private static string KeyMark(Models.Field field)
+        => field.Indexing ? " <span class=\"keymark\" title=\"기본 인덱스\">🔑</span>" : "";
+
+    /// <summary>
+    /// The members of a record as a type: `{Type: double, Id: int?, Value: double}`.
+    /// </summary>
+    /// <remarks>
+    /// With each member's own type, its own `?` and its own targets. The heading used to
+    /// name the members and nothing else, which left the one thing a reader asks of a
+    /// record - what is in it - to be guessed from the values.
+    /// </remarks>
+    private string MemberTypes(List<Models.RecordMember> members, string root)
+    {
+        var parts = members.Select(member =>
+        {
+            string name = $"<span class=\"mem\">{Esc(member.Name)}</span><span class=\"sep\">: </span>";
+
+            if (!member.IsLeaf)
+                return name + MemberTypes(member.Members, root);
+
+            var field = member.Fields.FirstOrDefault();
+
+            return field is null ? name : name + TypeMarkup(field, root);
+        });
+
+        return $"<span class=\"sep\">{{</span>{string.Join("<span class=\"sep\">, </span>", parts)}" +
+               "<span class=\"sep\">}</span>";
+    }
+
+    /// <summary>
+    /// One cell of the table: a value, an array, or the objects a record array holds.
+    /// </summary>
+    private string EntryCell(
+        Models.Table table, Models.SerialField entry, List<Cell> row, bool isIndex, string root)
+    {
+        if (!entry.IsRecord)
+        {
+            var field = HeadOf(entry);
+
+            if (field is null)
+                return "<td></td>";
+
+            // One column holding an array, or several columns holding one element each.
+            if (entry.Fields.Count > 1)
+                return FoldedArrayCell(table, entry, row, root);
+
+            return DataCell(table, field, row[field.Index], isIndex, root);
+        }
+
+        return RecordCell(table, entry, row, root);
+    }
+
+    /// <summary>
+    /// An array the sheet spread over a column per element - `Slot1`, `Slot2` - as one cell.
+    /// </summary>
+    private string FoldedArrayCell(
+        Models.Table table, Models.SerialField entry, List<Cell> row, string root)
+    {
+        int count = table.ElementCountIn(entry, row);
+        var parts = new List<string>();
+
+        for (int i = 0; i < count && i < entry.Fields.Count; i++)
+        {
+            var field = entry.Fields[i];
+            var cell = row[field.Index];
+
+            parts.Add(cell.HasValue ? ScalarValueMarkup(field, cell.Value, root) : Absent());
+        }
+
+        string content = parts.Count == 0
+            ? "<span class=\"empty\" title=\"원소 없음\">[]</span>"
+            : $"<span class=\"sep\">[</span>{string.Join("<span class=\"sep\">, </span>", parts)}" +
+              "<span class=\"sep\">]</span>";
+
+        string badge = parts.Count > 1 ? $"<span class=\"n-of\">&times;{parts.Count}</span>" : "";
+
+        return content.Length > 220
+            ? $"<td class=\"text\"><span class=\"clip\">{content}</span>{badge}</td>"
+            : $"<td>{content}{badge}</td>";
+    }
+
+    /// <summary>
+    /// A record entry as the objects it holds: `[{Type: 0, Id: 1077, Value: 421}, ...]`.
+    /// </summary>
+    /// <remarks>
+    /// Written as an object because that is what it is. Spread over a column per member per
+    /// element, the same data is a row of numbers whose headings are the only thing saying
+    /// which number belongs with which - and a reader checking a value has to count columns
+    /// to find out.
+    ///
+    /// Long ones are clipped like any long value, and each element is its own element in the
+    /// markup so that the expanded form puts one object per line.
+    /// </remarks>
+    private string RecordCell(
+        Models.Table table, Models.SerialField entry, List<Cell> row, string root)
+    {
+        int count = table.ElementCountIn(entry, row);
+        var elements = new List<string>();
+
+        for (int i = 0; i < count; i++)
+        {
+            string body = RecordBody(entry.Members, row, i, root);
+
+            elements.Add($"<span class=\"obj\"><span class=\"sep\">(</span>{body}" +
+                         "<span class=\"sep\">)</span></span>");
+        }
+
+        if (elements.Count == 0)
+            return $"<td><span class=\"empty\" title=\"원소 없음\">[]</span></td>";
+
+        string content = entry.IsArray
+            ? $"<span class=\"sep\">[</span>{string.Join("<span class=\"sep\">, </span>", elements)}" +
+              "<span class=\"sep\">]</span>"
+            : elements[0];
+
+        string badge = entry.IsArray && elements.Count > 1
+            ? $"<span class=\"n-of\">&times;{elements.Count}</span>"
+            : "";
+
+        // A record is wider than a value by definition, so it is clipped sooner than one.
+        return content.Length > 200
+            ? $"<td class=\"text record\"><span class=\"clip\">{content}</span>{badge}</td>"
+            : $"<td class=\"record\">{content}{badge}</td>";
+    }
+
+    /// <summary>
+    /// The members of one element, `name: value` each, nested as deep as the sheet wrote.
+    /// </summary>
+    private string RecordBody(List<Models.RecordMember> members, List<Cell> row, int element, string root)
+    {
+        var parts = new List<string>();
+
+        foreach (var member in members)
+        {
+            string value;
+
+            if (member.IsLeaf)
+            {
+                if (element >= member.Fields.Count)
+                    continue;
+
+                var field = member.Fields[element];
+                var cell = row[field.Index];
+
+                value = cell.HasValue ? ScalarValueMarkup(field, cell.Value, root) : Absent();
+            }
+            else
+            {
+                value = $"<span class=\"obj\"><span class=\"sep\">(</span>" +
+                        RecordBody(member.Members, row, element, root) +
+                        "<span class=\"sep\">)</span></span>";
+            }
+
+            parts.Add($"<span class=\"mem\">{Esc(member.Name)}</span>" +
+                      $"<span class=\"msep\">: </span>{value}");
+        }
+
+        return string.Join("<span class=\"sep\">, </span>", parts);
+    }
+
+    /// <summary>
+    /// The heading of one entry: the record's name where the sheet spread it over columns,
+    /// and the column's own name where it did not.
+    /// </summary>
+    private static string NameCell(Models.Table table, Models.SerialField entry, int position)
+    {
+        var head = HeadOf(entry);
+
+        if (head is null)
+            return "<th></th>";
+
+        if (!entry.IsRecord && entry.Fields.Count <= 1)
+            return NameCell(table, head, position);
+
+        // A record, or an array folded from several columns: the entry has a name of its own
+        // and the columns under it are its parts.
+        var notes = new List<string>();
+
+        if (entry.IsRecord)
+        {
+            notes.Add($"레코드 {entry.Members.Count}멤버");
+            notes.AddRange(entry.Members.Select(member => MemberNote(member)));
+        }
+        else
+        {
+            notes.Add($"컬럼 {entry.Fields.Count}개를 접은 배열");
+        }
+
+        if (!IsRequiredEntry(entry))
+            notes.Add("옵셔널");
+
+        return $"<th id=\"{HtmlLinks.ColumnAnchor(table.Name, head.Name)}\" " +
+               $"title=\"{Esc(string.Join(" · ", notes))}\">{Esc(entry.Name)}</th>";
+    }
+
+    /// <summary>One member of a record, as the heading's tooltip names it.</summary>
+    private static string MemberNote(Models.RecordMember member)
+    {
+        if (!member.IsLeaf)
+            return $"{member.Name}: {{{string.Join(", ", member.Members.Select(inner => inner.Name))}}}";
+
+        var field = member.Fields.FirstOrDefault();
+
+        return field is null ? member.Name : $"{member.Name}: {field.TypeName}";
+    }
+
+    /// <summary>
     /// A column-name header, carrying the anchor the column index links to.
     ///
     /// What the column is beyond its name goes in a tooltip: the primary index, the
@@ -1390,23 +1698,67 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         if (position == 0)
             notes.Add("기본 인덱스");
 
+        // The name the generated code uses, when the sheet spells the column differently -
+        // `statEffect[0]["Id"]` is one column of a record array and `StatEffect0Id` is what
+        // a reader will find in the generated type.
+        if (field.RawName != field.Name)
+            notes.Add($"생성 이름 {field.Name}");
+
         string? group = GroupNameOf(table, field);
 
         if (group is not null)
-            notes.Add($"{group}으로 노출");
+            notes.Add($"{group}으로 묶임");
 
         if (!field.IsRequired)
             notes.Add("옵셔널");
 
-        string title = notes.Count > 0 ? $" title=\"{Esc(string.Join(", ", notes))}\"" : "";
+        notes.AddRange(ConstraintNotes(field));
 
-        return $"<th id=\"{HtmlLinks.ColumnAnchor(table.Name, field.Name)}\"{title}>{Esc(field.Name)}</th>";
+        string title = notes.Count > 0 ? $" title=\"{Esc(string.Join(" · ", notes))}\"" : "";
+
+        // The sheet's spelling rather than the normalized one: this page documents the
+        // workbook, and a record array written `statEffect[0]["Id"]` flattened to
+        // `StatEffect0Id` loses the one thing that says it is an array of records.
+        string caption = string.IsNullOrEmpty(field.RawName) ? field.Name : field.RawName;
+
+        return $"<th id=\"{HtmlLinks.ColumnAnchor(table.Name, field.Name)}\"{title}>{Esc(caption)}</th>";
+    }
+
+    /// <summary>
+    /// What the sheet declared about a column beyond its type, as short notes.
+    /// </summary>
+    /// <remarks>
+    /// These live in the model and no page showed them, which is a strange gap for pages
+    /// whose purpose is checking data: a value out of its declared range is exactly what
+    /// somebody is looking for.
+    /// </remarks>
+    private static IEnumerable<string> ConstraintNotes(Models.Field field)
+    {
+        var constraints = field.Constraints;
+
+        if (constraints.Minimum is double min)
+            yield return $"최소 {min.ToString(CultureInfo.InvariantCulture)}";
+
+        if (constraints.Maximum is double max)
+            yield return $"최대 {max.ToString(CultureInfo.InvariantCulture)}";
+
+        if (constraints.AllowedValues is { Count: > 0 } allowed)
+            yield return $"허용값 {allowed.Count}개";
+
+        if (constraints.RequiredInRecord)
+            yield return "레코드 안에서 필수";
     }
 
     private string DataCell(
-        Models.Table table, Models.Field field, object? value, bool isIndex, string root)
+        Models.Table table, Models.Field field, Cell cell, bool isIndex, string root)
     {
-        string content = DataValueMarkup(field, value, root);
+        // A row with no value for a column does not hold a null: it holds the type's empty
+        // value with `HasValue` false beside it, which is how the wire carries absence. Read
+        // as a value, that is a zero nobody typed - the exact confusion the marker exists to
+        // prevent, drawn by the page whose job is preventing it.
+        object? value = cell.HasValue ? cell.Value : null;
+
+        string content = DataValueMarkup(field, value, root, cell.ElementHasValue);
 
         // The index cell is the row's anchor, so a reference elsewhere can name the row.
         // Escaped, because a string index is a value from the sheet and it is going into
@@ -1547,8 +1899,8 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             // target was filtered out by side, or never resolved, would otherwise be a
             // link to a page this run did not write.
             return _model.FindTable(target) is not null
-                ? $"<a href=\"{HtmlLinks.Table(target!, root)}\" title=\"{Esc(caption)} 참조\">{arrow}</a>{brackets}"
-                : $"<span class=\"flag\" title=\"{Esc(caption)} 참조\">{arrow}</span>{brackets}";
+                ? $"<a href=\"{HtmlLinks.Table(target!, root)}\" title=\"{Esc(caption)} 참조\">{arrow}</a>{brackets}{Optional(field)}{KeyMark(field)}"
+                : $"<span class=\"flag\" title=\"{Esc(caption)} 참조\">{arrow}</span>{brackets}{Optional(field)}{KeyMark(field)}";
         }
 
         // Element type drives the choice; the brackets are appended after, so an array
@@ -1558,7 +1910,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         if (field!.ElementType == Models.ValueType.Enum)
         {
             return $"<a href=\"{HtmlLinks.Enum(field.Enum.Name, root)}\" data-enum=\"{Esc(field.Enum.Name)}\">" +
-                   $"enum.{Esc(field.Enum.Name)}</a>{suffix}";
+                   $"enum.{Esc(field.Enum.Name)}</a>{suffix}{Optional(field)}{KeyMark(field)}";
         }
 
         // A role is how the sheet spelled the type: a localizable string is written `text`
@@ -1572,7 +1924,45 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             _ => field.TypeName,
         };
 
-        return $"<span class=\"type\">{Esc(spelling)}{suffix}</span>";
+        // The type of an index column reads like any other type; what marks it is the key
+        // beside it, not a colour of its own.
+        return $"<span class=\"type\">{Esc(spelling)}{suffix}{Optional(field)}</span>" +
+               KeyMark(field) + DeclaredTargets(field, root);
+    }
+
+    /// <summary>
+    /// The tables a column's sheet says its value belongs to, when the column is not a
+    /// resolved reference.
+    /// </summary>
+    /// <remarks>
+    /// Some layouts declare a catalogue rather than a reference - "this id is a row of one
+    /// of these tables" - and the cooker promotes that to a real reference wherever it can.
+    /// What it holds back is a member of a record group naming several tables, because what
+    /// that looks like inside a generated element has not been designed. The declaration is
+    /// still the most useful thing on the page about such a column, and the page was showing
+    /// `double` and nothing else.
+    ///
+    /// Linked when the named table is in this build, plain text when it is not - the
+    /// conversion checks the ids either way, and a link to a page this run did not write is
+    /// worse than no link.
+    /// </remarks>
+    private string DeclaredTargets(Models.Field field, string root)
+    {
+        // Nothing to add where the column is a reference: the type cell already names what
+        // it points at, and for several targets it names all of them.
+        if (PointsAtTable(field) || field.Constraints.ReferencedTables is not { Count: > 0 } named)
+            return "";
+
+        var parts = named.Select(name => _model.FindTable(name) is not null
+            ? $"<a href=\"{HtmlLinks.Table(name, root)}\">{Esc(name)}</a>"
+            : Esc(name));
+
+        string title = named.Count > 1
+            ? "시트가 이 값이 이 테이블들 중 하나의 행이라고 선언합니다. 변환이 대조하고, 참조로 승격되지는 않습니다"
+            : "시트가 이 값이 이 테이블의 행이라고 선언합니다. 변환이 대조합니다";
+
+        return $" <span class=\"declared\" title=\"{Esc(title)}\">&#x21e2; " +
+               $"{string.Join(" <span class=\"sep\">|</span> ", parts)}</span>";
     }
 
     /// <summary>
@@ -1589,16 +1979,17 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             : $"{role}({field.RoleGroup},{field.RoleNamespace})";
     }
 
-    private string DataValueMarkup(Models.Field field, object? value, string root)
+    private string DataValueMarkup(
+        Models.Field field, object? value, string root, bool[]? elementsPresent = null)
     {
         // Absent rather than empty. An optional column that this row does not fill has no
-        // value at all, and rendering that as a blank cell makes it the same as a blank
-        // string - which is a different thing and is also a legal value here.
+        // value at all, and rendering that as a blank cell - or as the zero the wire carries
+        // for it - makes it the same as a value somebody wrote.
         if (value is null)
-            return "<span class=\"empty\" title=\"값 없음\">&mdash;</span>";
+            return Absent();
 
-        if (PointsAtTable(field))
-            return RefValueMarkup(field, value, root);
+        if (NamedTablesOf(field).Count > 0 && !field.IsArray)
+            return KeyMarkup(field, value, root);
 
         // A delimited cell holds an array, so render its elements. Falling into the
         // scalar switch below would try to cast the array to the element type.
@@ -1616,7 +2007,12 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 if (i > 0)
                     rendered.Append("<span class=\"sep\">, </span>");
 
-                rendered.Append(ScalarValueMarkup(field, elements.GetValue(i), root));
+                // Per element, from the same flag the wire's element bitmap is written from.
+                bool present = elementsPresent is null || i >= elementsPresent.Length || elementsPresent[i];
+
+                rendered.Append(present
+                    ? ScalarValueMarkup(field, elements.GetValue(i), root)
+                    : Absent());
             }
 
             return rendered.Append("<span class=\"sep\">]</span>").ToString();
@@ -1624,6 +2020,9 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         return ScalarValueMarkup(field, value, root);
     }
+
+    /// <summary>How the page draws a value that is not there.</summary>
+    private static string Absent() => "<span class=\"empty\" title=\"값 없음\">&lt;none&gt;</span>";
 
     /// <summary>
     /// A reference's stored key, as a way to the row it names.
@@ -1722,6 +2121,55 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     }
 
     /// <summary>
+    /// A stored key, as a way to the row it names and to every table that might hold it.
+    /// </summary>
+    /// <remarks>
+    /// The column may name several tables - the sheets say "this id is a row of
+    /// `StatOperator` or of `WorldPassiveEffect`" - and which one holds a given row is a
+    /// question about the value, not about the column. So the value is asked: the tables
+    /// are looked in, the one that has the row is what the link goes to, and every named
+    /// table is carried on the link so the panel can show what each of them says. A reader
+    /// hovering the key sees the row it found and, beside it, that the other table does not
+    /// have it - which is the answer, rather than a choice handed back to them.
+    ///
+    /// Zero is the conventional "points at nothing" and is left as it is: index values start
+    /// at one, so it can never be a row.
+    /// </remarks>
+    private string KeyMarkup(Models.Field field, object value, string root)
+    {
+        string key = value.ToString() ?? "";
+
+        if (key.Length == 0 || key == "0")
+            return Esc(key);
+
+        var named = NamedTablesOf(field).Where(name => _model.FindTable(name) is not null).ToList();
+
+        if (named.Count == 0)
+            return Esc(key);
+
+        var holders = named.Where(name => KeysOf(name).Contains(key)).ToList();
+
+        // Where the link goes: the table that has the row, or the first named one when none
+        // does - a page is still better than nothing, and the panel says what happened.
+        string destination = holders.Count > 0 ? holders[0] : named[0];
+
+        string carried = string.Join("|", named);
+
+        string mark = holders.Count == 0
+            ? $" <span class=\"flag\" title=\"{Esc(string.Join(", ", named))}에 이 행이 없습니다\">?</span>"
+            : "";
+
+        // The table's name beside the key when the column names more than one, so the answer
+        // is on the page and not only in the panel.
+        string which = named.Count > 1 && holders.Count > 0
+            ? $" <span class=\"hint\">&#x2192; {Esc(holders[0])}</span>"
+            : "";
+
+        return $"<a href=\"{RowHref(destination, key, root)}\" " +
+               $"data-refs=\"{Esc(carried)}\" data-key=\"{Esc(key)}\">{Esc(key)}</a>{which}{mark}";
+    }
+
+    /// <summary>
     /// A link to one row of a table's page, or to the page when that row is past the cap.
     /// </summary>
     private string RowHref(string table, string key, string root)
@@ -1763,7 +2211,12 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     private string ScalarValueMarkup(Models.Field field, object? value, string root)
     {
         if (value is null)
-            return "<span class=\"empty\" title=\"값 없음\">&mdash;</span>";
+            return Absent();
+
+        // A record member and a folded array element are values of a field too, so a key
+        // inside one is a key: it links to its row like any other.
+        if (NamedTablesOf(field).Count > 0)
+            return KeyMarkup(field, value, root);
 
         switch (field!.ElementType)
         {
@@ -1818,6 +2271,11 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 // be read without leaving the row it was read from.
                 return EnumValueLink(field.Enum, label, root);
             }
+
+            case Models.ValueType.ForeignRecord:
+                // A reference whose target is not in this build: there is nowhere to link,
+                // and the stored key is the whole of what the page can say.
+                return Esc(value.ToString());
 
             default:
                 throw new TabbitException($"unsupported type `{field.Type}`");
@@ -1881,8 +2339,6 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         }
 
         parts.Add($"--t-types: {next}px");
-        next += row;
-        parts.Add($"--t-presence: {next}px");
         next += row;
         parts.Add($"--t-side: {next}px");
 
