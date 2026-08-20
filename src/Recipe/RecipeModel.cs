@@ -162,6 +162,23 @@ public class RecipeModel
     #endregion
 
 
+    #region Naming group
+
+    /// <summary>
+    /// Which spelling the names in the sheets have to follow.
+    /// </summary>
+    /// <remarks>
+    /// Top level rather than per source, because a name belongs to the model: the case
+    /// worth reporting is the same name written one way in one workbook and another way
+    /// in the next, and a setting held per source could not see it.
+    ///
+    /// Leaving the section out still leaves two checks running - see
+    /// <see cref="NamingRecipe"/> for which and why.
+    /// </remarks>
+    public NamingRecipe Naming { get; set; } = new NamingRecipe();
+    #endregion
+
+
     #region Validation group
 
     /// <summary>

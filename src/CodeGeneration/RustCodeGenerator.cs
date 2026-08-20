@@ -519,7 +519,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         Constants = constantSet.Constants.Select(constant => new RustConstantView
         {
             // Rust constants are SCREAMING_SNAKE_CASE, and the compiler warns otherwise.
-            Name = constant.Name.ToSnakeCase().ToUpperInvariant(),
+            Name = constant.Name.ToUpperSnakeCase(),
             Type = ConstantTypeName(constant),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),

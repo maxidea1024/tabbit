@@ -13,6 +13,7 @@ public enum NameCase
     Pascal,
     Kebab,
     Snake,
+    UpperSnake,
     Train,
     Sentence
 }
@@ -67,6 +68,8 @@ public static class StringExtensions
                 return ToKebabCase(source);
             case NameCase.Snake:
                 return ToSnakeCase(source);
+            case NameCase.UpperSnake:
+                return ToUpperSnakeCase(source);
             case NameCase.Train:
                 return ToTrainCase(source);
             case NameCase.Sentence:
@@ -142,6 +145,39 @@ public static class StringExtensions
                 return ['_', char.ToLowerInvariant(s)];
             },
             Lower);
+    }
+
+    /// <summary>
+    /// Snake case with every letter upper - the spelling most languages give a constant.
+    /// </summary>
+    /// <remarks>
+    /// Its own form rather than <c>ToSnakeCase().ToUpperInvariant()</c>, which is what the
+    /// generators wanting this spelling used to build by hand. Upper-casing afterwards is
+    /// right only while the answer is going straight into a file: judging whether a name
+    /// already follows a convention means spelling it and comparing it against the original,
+    /// so the spelling and the judging have to be one function - two would spell an acronym
+    /// the same way only until somebody edited one of them.
+    ///
+    /// The generators were moved onto this, so there is one answer rather than a matching
+    /// pair. `NameCaseTests` pins the equivalence that made moving them a no-op.
+    /// </remarks>
+    [return: NotNullIfNotNull(nameof(source))]
+    public static string? ToUpperSnakeCase(this string? source)
+    {
+        if (source is null)
+            return null;
+
+        return SymbolsPipe(
+            source,
+            '_',
+            (s, disableFrontDelimeter) =>
+            {
+                if (disableFrontDelimeter)
+                    return [char.ToUpperInvariant(s)];
+
+                return ['_', char.ToUpperInvariant(s)];
+            },
+            Upper);
     }
 
     [return: NotNullIfNotNull(nameof(source))]

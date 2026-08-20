@@ -1291,6 +1291,6 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// <summary>
     /// A constant or enum label name, SCREAMING_SNAKE_CASE as Java writes them.
     /// </summary>
-    private static string JavaConstantName(string name) => name.ToSnakeCase().ToUpperInvariant();
+    private static string JavaConstantName(string name) => name.ToUpperSnakeCase();
 
 }

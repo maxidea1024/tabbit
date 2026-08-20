@@ -1178,6 +1178,6 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     private static string KotlinName(string name) => LanguageProfile.Kotlin.MemberName(name.ToCamelCase());
 
     /// <summary>An enum constant, SCREAMING_SNAKE_CASE as Kotlin writes them.</summary>
-    private static string ConstantName(string name) => name.ToSnakeCase().ToUpperInvariant();
+    private static string ConstantName(string name) => name.ToUpperSnakeCase();
 
 }

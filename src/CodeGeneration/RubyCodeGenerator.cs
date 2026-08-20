@@ -1201,6 +1201,6 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     private static string RubyName(string name) => LanguageProfile.Ruby.MemberName(name.ToSnakeCase());
 
     /// <summary>A constant, SCREAMING_SNAKE_CASE as Ruby writes them.</summary>
-    private static string ConstantName(string name) => name.ToSnakeCase().ToUpperInvariant();
+    private static string ConstantName(string name) => name.ToUpperSnakeCase();
 
 }

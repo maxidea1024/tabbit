@@ -1186,7 +1186,8 @@ public sealed class CookingContext
             RawName = "None",
             Name = "None",
             Value = 0,
-            Comment = "None (automatically inserted by Tabbit)"
+            Comment = "None (automatically inserted by Tabbit)",
+            Synthesized = true,
         });
     }
 

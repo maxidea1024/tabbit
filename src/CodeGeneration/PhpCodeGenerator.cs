@@ -1387,7 +1387,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     }
 
     /// <summary>A class constant, SCREAMING_SNAKE_CASE as PHP writes them.</summary>
-    private static string ConstantName(string name) => name.ToSnakeCase().ToUpperInvariant();
+    private static string ConstantName(string name) => name.ToUpperSnakeCase();
 
     /// <summary>A property name, camelCase.</summary>
     private static string PhpName(string name) => LanguageProfile.Php.MemberName(name.ToCamelCase());

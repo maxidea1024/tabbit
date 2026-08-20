@@ -54,6 +54,80 @@
 |키|기본값|설명|
 |--|--|--|
 |`ArrayDelimiter`|`";"`|배열 셀의 요소 구분자. 정확히 한 글자여야 합니다.|
+|`Naming`|(아래 참조)|시트에 적은 이름의 표기 규약. 소스별이 아니라 전역입니다 — 이름은 모델의 것이고, 워크북마다 다르게 적힌 한 이름을 찾는 것이 이 검사의 목적입니다|
+
+#### `Naming` — 이름의 표기 규약
+
+시트에 적은 이름의 표기를 recipe가 선언하고 코어가 검사합니다. **섹션을 빼도 검사 두 가지는
+계속 돕니다** — 규약이 무엇이든 한 이름을 두 가지로 적은 것은 잘못이기 때문입니다.
+
+```jsonc
+"Naming": {
+  "Field": "camel",              // 필드 이름
+  "Entity": "pascal",            // 테이블·enum·상수셋 이름
+  "Label": "pascal",             // enum 라벨
+  "Constant": "upper-snake",     // 상수 이름
+  "OnViolation": "error",
+  "Exempt": [ "Icon_Path" ]      // 아직 못 고친 기존 이름
+}
+```
+
+|키|기본값|무엇을 하나|
+|--|--|--|
+|`Field` · `Entity` · `Label` · `Constant`|`""`|각 종류가 따라야 할 표기. `pascal` · `camel` · `snake` · `upper-snake`. **비우면 그 종류는 검사하지 않습니다**|
+|`OnViolation`|`error`|규약을 벗어난 이름의 무게. `error` 또는 `warn`. 검사를 끄려면 표기를 비웁니다|
+|`OnSpellingConflict`|`warn`|한 이름이 여러 표기로 적힌 것의 무게. `error` · `warn` · `ignore`|
+|`OnConsecutiveUnderscores`|`warn`|이름 안쪽에 `__`가 있는 것의 무게. `error` · `warn` · `ignore`|
+|`Exempt`|`[]`|검사에서 빼는 이름 목록. 시트에 적힌 그대로 적습니다|
+
+**표기 판정은 왕복입니다.** 선언한 표기로 이름을 다시 적어 보고 원본과 같으면 통과입니다.
+그래서 두문자어를 판정하는 규칙과 변환하는 규칙이 어긋날 수 없습니다 — `HTTPServer`는
+양쪽 모두에게 `HTTP` + `Server`입니다.
+
+**보고는 고쳐 쓸 이름으로 끝납니다.** 무엇이 틀렸는지가 아니라 무엇을 적어야 하는지가 마지막
+문장입니다.
+
+```
+Field `MaxHitPoints` of table `Item` is not spelled in `camel` case, which this
+recipe declares for field names. Write it as `maxHitPoints`.
+
+Field `a__b` of table `Item` holds two or more underscores in a row. A run of them
+reads as one word boundary, so this name and `a_b` both reach the generated code as
+`AB` - the difference is not carried anywhere. Write it as `a_b`.
+```
+
+**한 이름을 여러 표기로 적으면** 그 이름의 모든 표기와 위치를 한 건으로 묶어 보고하고, 어느
+표기로 통일할지 함께 제시합니다. 필드는 테이블 경계를 넘어 묶습니다 — 여러 테이블이 같은
+컬럼을 다르게 적는 것이 소비 코드가 가장 크게 비용을 치르는 경우이기 때문입니다.
+무게는 생성 코드가 갈라지는지에 따라 다릅니다.
+
+|`OnSpellingConflict`|생성물이 갈라지는 충돌|갈라지지 않는 충돌|
+|--|--|--|
+|`warn` (기본)|경고|노트|
+|`error`|오류|경고|
+
+`Item.maxHitPoints`와 `Ship.maxhitpoints`는 각각 `MaxHitPoints` · `Maxhitpoints`로
+정규화되어 **생성 코드에 멤버가 두 개** 생깁니다. `my_flag`와 `myFlag`는 둘 다 `MyFlag`가
+되므로 생성물은 같고 시트만 어긋난 것이라 노트입니다.
+
+```
+One field name is written 2 ways: `Id` (66 places, first at Collection.xlsx : GroupTable : A2),
+`ID` (1 place, first at Master.xlsx : ShortCutTable : A2). These do not normalize to one
+name, so the generated code carries a separate member for each spelling and every consumer
+has to know which one it is reading. Settle on `Id` and rewrite the other 1 place.
+```
+
+가리키는 셀은 **고쳐야 할 표기의 첫 자리**입니다 — 위 예에서는 `ID`를 쓴 셀입니다.
+
+**이름 안쪽의 연속 밑줄**(`a__b`)은 따로 봅니다. 밑줄이 몇 개든 한 번의 단어 경계로 읽히므로
+`a_b`와 `a__b`는 같은 이름이 되고, 그 차이는 어디에도 전달되지 않습니다. 선행·후행 밑줄
+(`_reserved`)은 생성 코드에 그대로 남으므로 대상이 아닙니다.
+
+**기존 프로젝트에 규약을 도입할 때**는 `Exempt`를 씁니다. 규약을 선언해 위반 전체를 받아
+목록에 옮기고 `OnViolation`을 `error`로 두면, 그 시점부터 **새 이름만** 규약을 지켜야 합니다.
+기존 이름은 계열 단위로 개명하며 목록에서 지웁니다 — 목록은 줄어드는 방향으로만 관리합니다.
+
+> 설계 배경과 실측은 [이름 표기 규약](../spec/naming-conventions.md)에 있습니다.
 
 ### `Sources` — 무엇을 읽을지
 

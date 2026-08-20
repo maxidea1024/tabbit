@@ -66,4 +66,50 @@ public class NameCaseTests
     {
         Assert.Equal(expected, source.ToCamelCase());
     }
+
+    [Theory]
+    [InlineData("SFXCategoryType", "SFX_CATEGORY_TYPE")]
+    [InlineData("HTTPServer", "HTTP_SERVER")]
+    [InlineData("Name_KR", "NAME_KR")]
+    [InlineData("ItemTable", "ITEM_TABLE")]
+    [InlineData("HP", "HP")]
+    [InlineData("already_snake", "ALREADY_SNAKE")]
+    [InlineData("_private", "_PRIVATE")]
+    public void Upper_snake_case_splits_like_snake_and_raises_every_letter(
+        string source, string expected)
+    {
+        Assert.Equal(expected, source.ToUpperSnakeCase());
+    }
+
+    /// <summary>
+    /// The form the generators used to build by hand gives the same answer, name for name.
+    /// </summary>
+    /// <remarks>
+    /// The reason for having the form at all is that `ToSnakeCase().ToUpperInvariant()`
+    /// cannot judge: deciding whether a name already follows a convention means spelling it
+    /// and comparing, so the spelling and the judging have to be one function or the two
+    /// drift apart on the first acronym. This pins the equivalence so moving the generators
+    /// onto it is not a change to what they emit - and so that a future edit to the word
+    /// splitting cannot quietly move one and not the other.
+    /// </remarks>
+    [Theory]
+    [InlineData("SFXCategoryType")]
+    [InlineData("HTTPServer")]
+    [InlineData("ATK_Growth")]
+    [InlineData("Name_KR")]
+    [InlineData("AccumulatedEXP")]
+    [InlineData("CRIT_DMG")]
+    [InlineData("HP")]
+    [InlineData("ID")]
+    [InlineData("ItemTable")]
+    [InlineData("Item1Bonus")]
+    [InlineData("already_snake")]
+    [InlineData("_private")]
+    [InlineData("trailing_")]
+    [InlineData("Tables")]
+    [InlineData("Balance")]
+    public void Upper_snake_case_agrees_with_the_hand_built_form(string source)
+    {
+        Assert.Equal(source.ToSnakeCase()!.ToUpperInvariant(), source.ToUpperSnakeCase());
+    }
 }

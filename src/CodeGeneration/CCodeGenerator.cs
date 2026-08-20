@@ -183,7 +183,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // enum has linkage, so no extern "C" either.
             Write(EnumHeader(enumm), "c-enum.sbn", new CPartView
             {
-                Guard = Guard("ENUM_" + enumm.RawName.ToSnakeCase().ToUpperInvariant()),
+                Guard = Guard("ENUM_" + enumm.RawName.ToUpperSnakeCase()),
                 Includes = Array.Empty<string>(),
                 Forwards = Array.Empty<string>(),
                 Enumm = enumm,
@@ -198,7 +198,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // its complete type. extern "C" because an `extern const` has linkage.
             Write(ConstantsHeader(pair.rendered), "c-constants-header.sbn", new CPartView
             {
-                Guard = Guard("CONST_" + pair.rendered.Name.ToSnakeCase().ToUpperInvariant()),
+                Guard = Guard("CONST_" + pair.rendered.Name.ToUpperSnakeCase()),
                 Includes = Includes(
                     reader: NamesUuid(pair.model),
                     headers: TypeDependencies.EnumsNamedBy(pair.model).Select(EnumHeaderFor)),
@@ -226,7 +226,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // enum member is a value, not a pointer, so an incomplete type will not do.
             Write(TableHeader(pair.rendered), "c-table-header.sbn", new CPartView
             {
-                Guard = Guard(pair.rendered.RawName.ToSnakeCase().ToUpperInvariant()),
+                Guard = Guard(pair.rendered.RawName.ToUpperSnakeCase()),
                 Includes = Includes(
                     reader: true,
                     headers: new[] { ForwardHeader }
@@ -372,7 +372,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     private string FileBase => _recipe.AccessorName;
 
     /// <summary>The include guard and the constant names.</summary>
-    private string UpperPrefix => _recipe.AccessorName.ToSnakeCase().ToUpperInvariant();
+    private string UpperPrefix => _recipe.AccessorName.ToUpperSnakeCase();
 
     private void Write(string filename, string templateName, CPartView view)
     {

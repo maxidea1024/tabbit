@@ -385,7 +385,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         Constants = constantSet.Constants.Select(constant => new PythonConstantView
         {
             // Python constants are SCREAMING_SNAKE_CASE by convention.
-            Name = constant.Name.ToSnakeCase().ToUpperInvariant(),
+            Name = constant.Name.ToUpperSnakeCase(),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
         }).ToList(),

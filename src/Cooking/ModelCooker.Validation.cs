@@ -57,6 +57,12 @@ public partial class ModelCooker
 
         ReportAssetSetup(model, diagnostics);
 
+        // Before the checks about what the cells hold, because this one is about the model's
+        // own vocabulary: a name written two ways is what makes the reports below name two
+        // things where the sheets meant one. Read here rather than earlier so a misspelled
+        // setting is reported alongside the rest instead of stopping the run on its own.
+        ValidateNaming(model, NamingRules.From(recipeModel.Naming), diagnostics);
+
         foreach (var table in model.Tables)
         {
             // Once per set of rows the table has. A table with one set - nearly all of them -

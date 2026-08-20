@@ -34,6 +34,19 @@ public class Enum
 
         /// <summary>Description from the sheet, emitted as a doc comment.</summary>
         public required string Comment { get; set; }
+
+        /// <summary>
+        /// Whether the tool wrote this label rather than a sheet - the zero label inserted
+        /// into an enum that declared nothing at zero.
+        /// </summary>
+        /// <remarks>
+        /// Kept so that checks about how a sheet is written can leave it out. Holding a
+        /// generated name to a naming convention reports a spelling nobody chose and offers
+        /// nobody a cell to fix, and the label carries its enum's location, so a report about
+        /// it would point at the declaration rather than at any name.
+        /// </remarks>
+        [JsonIgnore]
+        public bool Synthesized { get; set; }
     }
 
     /// <summary>Cell holding the entity marker that declared this enum.</summary>
