@@ -28,6 +28,35 @@ class {{ rt.type_name }}:
 {{~ end ~}}
 {{~ end ~}}
 
+{{~## The per-target accessors of every member of this class that reaches several tables. A
+   property where the member is one value; a method taking the element number where the member
+   is the array, which is the third place an element number sits.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+    def {{ target.property }}(self, at):
+        """Element `at` of {{ multi.key_member }} as a {{ target.table }} row, or None when that element
+        names a row of one of the others.
+        """
+        if self.{{ multi.target_member }}[at] != {{ multi.target_type_name }}.{{ target.label }}:
+            return None
+
+        return self.{{ multi.slot_member }}[at]
+{{~ else ~}}
+    @property
+    def {{ target.property }}(self):
+        """The {{ target.table }} row {{ multi.key_member }} names, or None when it names a row of one of
+        the others.
+        """
+        if self.{{ multi.target_member }} != {{ multi.target_type_name }}.{{ target.label }}:
+            return None
+
+        return self.{{ multi.slot_member }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+
     def __repr__(self):
         return "{{ rt.type_name }}({{ rt.repr_format }})" % ({{ rt.repr_values }})
 

@@ -226,6 +226,38 @@ internal sealed class PythonRecordMemberView
 
     /// <summary>The constructor assignment, `self.x = 0.0`.</summary>
     public required IReadOnlyList<string> Initializers { get; set; }
+
+    /// <summary>
+    /// The slot and the discriminator of a member reaching several tables, so the accessors can
+    /// be written on the element class. Null for every other member.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public PythonMultiMemberView? Multi { get; set; }
+}
+
+/// <summary>
+/// One record member whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// The member keeps the key it already carried; beside it go one slot for the resolved row and
+/// the discriminator saying which table filled it, at the member's own arity.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class PythonMultiMemberView
+{
+    /// <summary>The key, the slot and the discriminator, by attribute name.</summary>
+    public required string KeyMember { get; set; }
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name, and its `None` label.</summary>
+    public required string TargetTypeName { get; set; }
+    public required string NoneLabel { get; set; }
+
+    /// <summary>Whether the member is the array, so an accessor takes an element number.</summary>
+    public required bool IsArray { get; set; }
+
+    public required IReadOnlyList<PythonMultiTargetView> Targets { get; set; }
 }
 
 /// <summary>
@@ -253,6 +285,13 @@ internal sealed class PythonRecordTypeView
 
     /// <summary>What the class belongs to, for its docstring.</summary>
     public required string Owner { get; set; }
+
+    /// <summary>
+    /// Those of its members that reach several tables, for the accessors written on the class.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public IReadOnlyList<PythonMultiMemberView> MultiMembers { get; set; }
+        = System.Array.Empty<PythonMultiMemberView>();
 
     /// <summary>Its `__slots__` tuple.</summary>
     public required string SlotNames { get; set; }
@@ -401,6 +440,12 @@ internal sealed class PythonCrossReferenceView
     /// spec/multi-target-accessors.md.
     /// </summary>
     public required IReadOnlyList<PythonMultiReferenceView> MultiFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables that are members of a record, which resolve per
+    /// element. spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<PythonMultiRecordReferenceView> MultiRecordFields { get; set; }
 }
 
 /// <summary>
@@ -485,4 +530,32 @@ internal sealed class PythonReferenceFieldView
 
     public required string Value { get; set; }
     public required bool IsArray { get; set; }
+}
+
+/// <summary>
+/// One multi-target column that is a member of a record, as the linking pass writes it.
+/// </summary>
+internal sealed class PythonMultiRecordReferenceView
+{
+    /// <summary>The key this resolves through, loop variable included.</summary>
+    public required string Key { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string Slot { get; set; }
+    public required string Target { get; set; }
+
+    /// <summary>
+    /// What the loop ranges over, or empty where the group is one record and there is nothing
+    /// to walk.
+    /// </summary>
+    public required string Range { get; set; }
+
+    /// <summary>The generated enumeration's type name, and its `None` label.</summary>
+    public required string TargetTypeName { get; set; }
+    public required string NoneLabel { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<PythonMultiTargetView> Targets { get; set; }
 }
