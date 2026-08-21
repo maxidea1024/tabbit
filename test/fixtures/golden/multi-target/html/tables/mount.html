@@ -273,11 +273,19 @@ td.record .clip { max-width: 60ch; }
    because a tuple of three values beside a hundred rows of them is what fits. */
 /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 td.record .mem, td.record .msep { display: none; }
 th /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 .obj { white-space: nowrap; }
@@ -499,8 +507,11 @@ tbody [data-pick] { cursor: pointer; }
 <ul class="side-list">
 <li><a href="../tables/armour.html"><svg class="i"><use href="#i-table"></use></svg>Armour</a></li>
 <li><a href="../tables/banner.html"><svg class="i"><use href="#i-table"></use></svg>Banner</a></li>
+<li><a href="../tables/fitting.html"><svg class="i"><use href="#i-table"></use></svg>Fitting</a></li>
 <li><a href="../tables/holder.html"><svg class="i"><use href="#i-table"></use></svg>Holder</a></li>
+<li><a href="../tables/loadout.html"><svg class="i"><use href="#i-table"></use></svg>Loadout</a></li>
 <li class="on"><a href="../tables/mount.html"><svg class="i"><use href="#i-table"></use></svg>Mount</a></li>
+<li><a href="../tables/rack.html"><svg class="i"><use href="#i-table"></use></svg>Rack</a></li>
 <li><a href="../tables/trinket.html"><svg class="i"><use href="#i-table"></use></svg>Trinket</a></li>
 <li><a href="../tables/weapon.html"><svg class="i"><use href="#i-table"></use></svg>Weapon</a></li>
 </ul>

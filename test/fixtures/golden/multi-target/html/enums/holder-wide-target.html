@@ -273,11 +273,19 @@ td.record .clip { max-width: 60ch; }
    because a tuple of three values beside a hundred rows of them is what fits. */
 /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 td.record .mem, td.record .msep { display: none; }
 th /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 .obj { white-space: nowrap; }
@@ -497,9 +505,12 @@ tbody [data-pick] { cursor: pointer; }
 <div class="side-head"><svg class="i"><use href="#i-enum"></use></svg>enum</div>
 <input type="search" data-filter="side" placeholder="이름 필터">
 <ul class="side-list">
+<li><a href="../enums/fitting-main-pick-target.html#enum_FittingMainPickTarget"><svg class="i"><use href="#i-enum"></use></svg>FittingMainPickTarget</a></li>
 <li><a href="../enums/holder-maybe-target.html#enum_HolderMaybeTarget"><svg class="i"><use href="#i-enum"></use></svg>HolderMaybeTarget</a></li>
 <li><a href="../enums/holder-pick-target.html#enum_HolderPickTarget"><svg class="i"><use href="#i-enum"></use></svg>HolderPickTarget</a></li>
 <li class="on"><a href="../enums/holder-wide-target.html#enum_HolderWideTarget"><svg class="i"><use href="#i-enum"></use></svg>HolderWideTarget</a></li>
+<li><a href="../enums/loadout-slot-pick-target.html#enum_LoadoutSlotPickTarget"><svg class="i"><use href="#i-enum"></use></svg>LoadoutSlotPickTarget</a></li>
+<li><a href="../enums/rack-slots-pick-target.html#enum_RackSlotsPickTarget"><svg class="i"><use href="#i-enum"></use></svg>RackSlotsPickTarget</a></li>
 </ul>
 </aside>
 <main class="fill">

@@ -273,11 +273,19 @@ td.record .clip { max-width: 60ch; }
    because a tuple of three values beside a hundred rows of them is what fits. */
 /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 td.record .mem, td.record .msep { display: none; }
 th /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 .obj { white-space: nowrap; }
@@ -494,11 +502,11 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main class="fill">
 <h1>테이블</h1>
-<p class="lead">테이블 6개 · 행 13개 · 컬럼 20개</p>
+<p class="lead">테이블 9개 · 행 19개 · 컬럼 28개</p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="테이블 필터">
-<span class="hint" data-shown>6행 중 6행</span>
+<span class="hint" data-shown>9행 중 9행</span>
 <span class="hint">제목을 누르면 정렬됩니다.</span>
 </div>
 <div class="scroll">
@@ -511,8 +519,11 @@ tbody [data-pick] { cursor: pointer; }
 <tbody>
 <tr><td><a href="tables/armour.html"><svg class="i"><use href="#i-table"></use></svg>Armour</a></td><td class="num">2</td><td class="num">3</td><td><span class="book" title="test/fixtures/xlsx/multi-target/multi-target.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>multi-target.xlsx</span> <span class="hint">&middot;</span> Catalogues</td><td>second target</td></tr>
 <tr><td><a href="tables/banner.html"><svg class="i"><use href="#i-table"></use></svg>Banner</a></td><td class="num">2</td><td class="num">3</td><td><span class="book" title="test/fixtures/xlsx/multi-target/multi-target.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>multi-target.xlsx</span> <span class="hint">&middot;</span> Catalogues</td><td>the wide column&#39;s last target</td></tr>
+<tr><td><a href="tables/fitting.html"><svg class="i"><use href="#i-table"></use></svg>Fitting</a></td><td class="num">2</td><td class="num">4</td><td><span class="book" title="test/fixtures/xlsx/multi-target/multi-target.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>multi-target.xlsx</span> <span class="hint">&middot;</span> Groups</td><td>One record - no element number at all - whose member reaches several.</td></tr>
 <tr><td><a href="tables/holder.html"><svg class="i"><use href="#i-table"></use></svg>Holder</a></td><td class="num">3</td><td class="num">5</td><td><span class="book" title="test/fixtures/xlsx/multi-target/multi-target.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>multi-target.xlsx</span> <span class="hint">&middot;</span> Holders</td><td>One column per case the spec states.</td></tr>
+<tr><td><a href="tables/loadout.html"><svg class="i"><use href="#i-table"></use></svg>Loadout</a></td><td class="num">2</td><td class="num">2</td><td><span class="book" title="test/fixtures/xlsx/multi-target/multi-target.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>multi-target.xlsx</span> <span class="hint">&middot;</span> Groups</td><td>A record array whose member reaches several tables.</td></tr>
 <tr><td><a href="tables/mount.html"><svg class="i"><use href="#i-table"></use></svg>Mount</a></td><td class="num">2</td><td class="num">3</td><td><span class="book" title="test/fixtures/xlsx/multi-target/multi-target.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>multi-target.xlsx</span> <span class="hint">&middot;</span> Catalogues</td><td>only the wide column names this</td></tr>
+<tr><td><a href="tables/rack.html"><svg class="i"><use href="#i-table"></use></svg>Rack</a></td><td class="num">2</td><td class="num">2</td><td><span class="book" title="test/fixtures/xlsx/multi-target/multi-target.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>multi-target.xlsx</span> <span class="hint">&middot;</span> Groups</td><td>One record whose members are arrays, one of them reaching several.</td></tr>
 <tr><td><a href="tables/trinket.html"><svg class="i"><use href="#i-table"></use></svg>Trinket</a></td><td class="num">2</td><td class="num">3</td><td><span class="book" title="test/fixtures/xlsx/multi-target/multi-target.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>multi-target.xlsx</span> <span class="hint">&middot;</span> Catalogues</td><td>only the wide column names this</td></tr>
 <tr><td><a href="tables/weapon.html"><svg class="i"><use href="#i-table"></use></svg>Weapon</a></td><td class="num">2</td><td class="num">3</td><td><span class="book" title="test/fixtures/xlsx/multi-target/multi-target.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>multi-target.xlsx</span> <span class="hint">&middot;</span> Catalogues</td><td>first target of every column below</td></tr>
 </tbody>

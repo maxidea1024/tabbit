@@ -273,11 +273,19 @@ td.record .clip { max-width: 60ch; }
    because a tuple of three values beside a hundred rows of them is what fits. */
 /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 td.record .mem, td.record .msep { display: none; }
 th /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 .obj { white-space: nowrap; }
@@ -494,15 +502,15 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main>
 <h1>참조</h1>
-<p class="lead">그래프의 테이블 6개 · 참조 5개. 끌어서 이동하고, 휠로 확대하고, 테이블을 누르면 그 테이블의 참조만 봅니다.</p>
+<p class="lead">그래프의 테이블 9개 · 참조 11개. 끌어서 이동하고, 휠로 확대하고, 테이블을 누르면 그 테이블의 참조만 봅니다.</p>
 
 <div class="graphrow">
 <div class="picker">
-<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">6</span></h2>
+<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">9</span></h2>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="테이블 필터">
-<span class="hint" data-shown>6행 중 6행</span>
+<span class="hint" data-shown>9행 중 9행</span>
 </div>
 <div class="scroll">
 <table data-sortable>
@@ -513,11 +521,14 @@ tbody [data-pick] { cursor: pointer; }
 </thead>
 <tbody>
 <tr data-pick="Holder"><td class="pick"><button type="button" title="Holder의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/holder.html"><svg class="i"><use href="#i-table"></use></svg>Holder</a></td><td class="num">5</td><td class="num">0</td></tr>
-<tr data-pick="Armour"><td class="pick"><button type="button" title="Armour의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/armour.html"><svg class="i"><use href="#i-table"></use></svg>Armour</a></td><td class="num">0</td><td class="num">1</td></tr>
+<tr data-pick="Armour"><td class="pick"><button type="button" title="Armour의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/armour.html"><svg class="i"><use href="#i-table"></use></svg>Armour</a></td><td class="num">0</td><td class="num">4</td></tr>
+<tr data-pick="Weapon"><td class="pick"><button type="button" title="Weapon의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/weapon.html"><svg class="i"><use href="#i-table"></use></svg>Weapon</a></td><td class="num">0</td><td class="num">4</td></tr>
+<tr data-pick="Fitting"><td class="pick"><button type="button" title="Fitting의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/fitting.html"><svg class="i"><use href="#i-table"></use></svg>Fitting</a></td><td class="num">2</td><td class="num">0</td></tr>
+<tr data-pick="Loadout"><td class="pick"><button type="button" title="Loadout의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/loadout.html"><svg class="i"><use href="#i-table"></use></svg>Loadout</a></td><td class="num">2</td><td class="num">0</td></tr>
+<tr data-pick="Rack"><td class="pick"><button type="button" title="Rack의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/rack.html"><svg class="i"><use href="#i-table"></use></svg>Rack</a></td><td class="num">2</td><td class="num">0</td></tr>
 <tr data-pick="Banner"><td class="pick"><button type="button" title="Banner의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/banner.html"><svg class="i"><use href="#i-table"></use></svg>Banner</a></td><td class="num">0</td><td class="num">1</td></tr>
 <tr data-pick="Mount"><td class="pick"><button type="button" title="Mount의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/mount.html"><svg class="i"><use href="#i-table"></use></svg>Mount</a></td><td class="num">0</td><td class="num">1</td></tr>
 <tr data-pick="Trinket"><td class="pick"><button type="button" title="Trinket의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/trinket.html"><svg class="i"><use href="#i-table"></use></svg>Trinket</a></td><td class="num">0</td><td class="num">1</td></tr>
-<tr data-pick="Weapon"><td class="pick"><button type="button" title="Weapon의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/weapon.html"><svg class="i"><use href="#i-table"></use></svg>Weapon</a></td><td class="num">0</td><td class="num">1</td></tr>
 </tbody>
 </table>
 </div>
@@ -544,42 +555,63 @@ tbody [data-pick] { cursor: pointer; }
 <g id="viewport">
 <g id="all" data-width="324" data-height="226">
 <g id="edges">
-<path class="edge" d="M98,23 C146,23 146,23 194,23" data-from="Holder" data-to="Armour" marker-end="url(#arrow)"><title>Holder → Armour (Pick, Wide, Maybe)</title></path>
-<path class="edge" d="M98,23 C146,23 146,65 194,65" data-from="Holder" data-to="Banner" marker-end="url(#arrow)"><title>Holder → Banner (Wide)</title></path>
-<path class="edge" d="M98,23 C146,23 146,107 194,107" data-from="Holder" data-to="Mount" marker-end="url(#arrow)"><title>Holder → Mount (Wide)</title></path>
-<path class="edge" d="M98,23 C146,23 146,149 194,149" data-from="Holder" data-to="Trinket" marker-end="url(#arrow)"><title>Holder → Trinket (Wide)</title></path>
-<path class="edge" d="M98,23 C146,23 146,191 194,191" data-from="Holder" data-to="Weapon" marker-end="url(#arrow)"><title>Holder → Weapon (Pick, Wide, Only, Maybe)</title></path>
+<path class="edge" d="M98,23 C146,23 146,149 194,149" data-from="Fitting" data-to="Armour" marker-end="url(#arrow)"><title>Fitting → Armour (MainPick)</title></path>
+<path class="edge" d="M98,23 C146,23 146,191 194,191" data-from="Fitting" data-to="Weapon" marker-end="url(#arrow)"><title>Fitting → Weapon (MainPick)</title></path>
+<path class="edge" d="M98,65 C146,65 146,149 194,149" data-from="Holder" data-to="Armour" marker-end="url(#arrow)"><title>Holder → Armour (Pick, Wide, Maybe)</title></path>
+<path class="edge" d="M98,65 C146,65 146,23 194,23" data-from="Holder" data-to="Banner" marker-end="url(#arrow)"><title>Holder → Banner (Wide)</title></path>
+<path class="edge" d="M98,65 C146,65 146,65 194,65" data-from="Holder" data-to="Mount" marker-end="url(#arrow)"><title>Holder → Mount (Wide)</title></path>
+<path class="edge" d="M98,65 C146,65 146,107 194,107" data-from="Holder" data-to="Trinket" marker-end="url(#arrow)"><title>Holder → Trinket (Wide)</title></path>
+<path class="edge" d="M98,65 C146,65 146,191 194,191" data-from="Holder" data-to="Weapon" marker-end="url(#arrow)"><title>Holder → Weapon (Pick, Wide, Only, Maybe)</title></path>
+<path class="edge" d="M98,107 C146,107 146,149 194,149" data-from="Loadout" data-to="Armour" marker-end="url(#arrow)"><title>Loadout → Armour (Slot1Pick, Slot2Pick)</title></path>
+<path class="edge" d="M98,107 C146,107 146,191 194,191" data-from="Loadout" data-to="Weapon" marker-end="url(#arrow)"><title>Loadout → Weapon (Slot1Pick, Slot2Pick)</title></path>
+<path class="edge" d="M98,149 C146,149 146,149 194,149" data-from="Rack" data-to="Armour" marker-end="url(#arrow)"><title>Rack → Armour (SlotsPick1, SlotsPick2)</title></path>
+<path class="edge" d="M98,149 C146,149 146,191 194,191" data-from="Rack" data-to="Weapon" marker-end="url(#arrow)"><title>Rack → Weapon (SlotsPick1, SlotsPick2)</title></path>
 </g>
 <g id="lit"></g>
-<g class="node" data-node="Holder" data-href="tables/holder.html">
+<g class="node" data-node="Fitting" data-href="tables/fitting.html">
 <rect x="8" y="8" width="90" height="30" rx="6"></rect>
-<text x="18" y="28">Holder</text>
+<text x="18" y="28">Fitting</text>
+<title>Fitting — 가리킴 2, 가리켜짐 0</title>
+</g>
+<g class="node" data-node="Holder" data-href="tables/holder.html">
+<rect x="8" y="50" width="90" height="30" rx="6"></rect>
+<text x="18" y="70">Holder</text>
 <title>Holder — 가리킴 5, 가리켜짐 0</title>
 </g>
-<g class="node" data-node="Armour" data-href="tables/armour.html">
-<rect x="194" y="8" width="90" height="30" rx="6"></rect>
-<text x="204" y="28">Armour</text>
-<title>Armour — 가리킴 0, 가리켜짐 1</title>
+<g class="node" data-node="Loadout" data-href="tables/loadout.html">
+<rect x="8" y="92" width="90" height="30" rx="6"></rect>
+<text x="18" y="112">Loadout</text>
+<title>Loadout — 가리킴 2, 가리켜짐 0</title>
+</g>
+<g class="node" data-node="Rack" data-href="tables/rack.html">
+<rect x="8" y="134" width="90" height="30" rx="6"></rect>
+<text x="18" y="154">Rack</text>
+<title>Rack — 가리킴 2, 가리켜짐 0</title>
 </g>
 <g class="node" data-node="Banner" data-href="tables/banner.html">
-<rect x="194" y="50" width="90" height="30" rx="6"></rect>
-<text x="204" y="70">Banner</text>
+<rect x="194" y="8" width="90" height="30" rx="6"></rect>
+<text x="204" y="28">Banner</text>
 <title>Banner — 가리킴 0, 가리켜짐 1</title>
 </g>
 <g class="node" data-node="Mount" data-href="tables/mount.html">
-<rect x="194" y="92" width="90" height="30" rx="6"></rect>
-<text x="204" y="112">Mount</text>
+<rect x="194" y="50" width="90" height="30" rx="6"></rect>
+<text x="204" y="70">Mount</text>
 <title>Mount — 가리킴 0, 가리켜짐 1</title>
 </g>
 <g class="node" data-node="Trinket" data-href="tables/trinket.html">
-<rect x="194" y="134" width="90" height="30" rx="6"></rect>
-<text x="204" y="154">Trinket</text>
+<rect x="194" y="92" width="90" height="30" rx="6"></rect>
+<text x="204" y="112">Trinket</text>
 <title>Trinket — 가리킴 0, 가리켜짐 1</title>
+</g>
+<g class="node" data-node="Armour" data-href="tables/armour.html">
+<rect x="194" y="134" width="90" height="30" rx="6"></rect>
+<text x="204" y="154">Armour</text>
+<title>Armour — 가리킴 0, 가리켜짐 4</title>
 </g>
 <g class="node" data-node="Weapon" data-href="tables/weapon.html">
 <rect x="194" y="176" width="90" height="30" rx="6"></rect>
 <text x="204" y="196">Weapon</text>
-<title>Weapon — 가리킴 0, 가리켜짐 1</title>
+<title>Weapon — 가리킴 0, 가리켜짐 4</title>
 </g>
 </g>
 <g id="focus"></g>
@@ -595,7 +627,7 @@ tbody [data-pick] { cursor: pointer; }
 <text data-proto="label" class="glyph"></text>
 </svg>
 
-<div id="adjacency" hidden>{&quot;Holder&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Armour&quot;,&quot;Pick, Wide, Maybe&quot;],[&quot;Banner&quot;,&quot;Wide&quot;],[&quot;Mount&quot;,&quot;Wide&quot;],[&quot;Trinket&quot;,&quot;Wide&quot;],[&quot;Weapon&quot;,&quot;Pick, Wide, Only, Maybe&quot;]]},&quot;Armour&quot;:{&quot;in&quot;:[[&quot;Holder&quot;,&quot;Pick, Wide, Maybe&quot;]],&quot;out&quot;:[]},&quot;Banner&quot;:{&quot;in&quot;:[[&quot;Holder&quot;,&quot;Wide&quot;]],&quot;out&quot;:[]},&quot;Mount&quot;:{&quot;in&quot;:[[&quot;Holder&quot;,&quot;Wide&quot;]],&quot;out&quot;:[]},&quot;Trinket&quot;:{&quot;in&quot;:[[&quot;Holder&quot;,&quot;Wide&quot;]],&quot;out&quot;:[]},&quot;Weapon&quot;:{&quot;in&quot;:[[&quot;Holder&quot;,&quot;Pick, Wide, Only, Maybe&quot;]],&quot;out&quot;:[]}}</div>
+<div id="adjacency" hidden>{&quot;Fitting&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Armour&quot;,&quot;MainPick&quot;],[&quot;Weapon&quot;,&quot;MainPick&quot;]]},&quot;Armour&quot;:{&quot;in&quot;:[[&quot;Fitting&quot;,&quot;MainPick&quot;],[&quot;Holder&quot;,&quot;Pick, Wide, Maybe&quot;],[&quot;Loadout&quot;,&quot;Slot1Pick, Slot2Pick&quot;],[&quot;Rack&quot;,&quot;SlotsPick1, SlotsPick2&quot;]],&quot;out&quot;:[]},&quot;Weapon&quot;:{&quot;in&quot;:[[&quot;Fitting&quot;,&quot;MainPick&quot;],[&quot;Holder&quot;,&quot;Pick, Wide, Only, Maybe&quot;],[&quot;Loadout&quot;,&quot;Slot1Pick, Slot2Pick&quot;],[&quot;Rack&quot;,&quot;SlotsPick1, SlotsPick2&quot;]],&quot;out&quot;:[]},&quot;Holder&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Armour&quot;,&quot;Pick, Wide, Maybe&quot;],[&quot;Banner&quot;,&quot;Wide&quot;],[&quot;Mount&quot;,&quot;Wide&quot;],[&quot;Trinket&quot;,&quot;Wide&quot;],[&quot;Weapon&quot;,&quot;Pick, Wide, Only, Maybe&quot;]]},&quot;Banner&quot;:{&quot;in&quot;:[[&quot;Holder&quot;,&quot;Wide&quot;]],&quot;out&quot;:[]},&quot;Mount&quot;:{&quot;in&quot;:[[&quot;Holder&quot;,&quot;Wide&quot;]],&quot;out&quot;:[]},&quot;Trinket&quot;:{&quot;in&quot;:[[&quot;Holder&quot;,&quot;Wide&quot;]],&quot;out&quot;:[]},&quot;Loadout&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Armour&quot;,&quot;Slot1Pick, Slot2Pick&quot;],[&quot;Weapon&quot;,&quot;Slot1Pick, Slot2Pick&quot;]]},&quot;Rack&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Armour&quot;,&quot;SlotsPick1, SlotsPick2&quot;],[&quot;Weapon&quot;,&quot;SlotsPick1, SlotsPick2&quot;]]}}</div>
 </main>
 </div>
 <p class="foot">생성 시각 TIMESTAMP</p>

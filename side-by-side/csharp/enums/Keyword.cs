@@ -7,17 +7,6 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
-
 namespace X
 {
     // Generated from test/fixtures/xlsx/reserved-words/reserved-words.xlsx : ReservedWords : O2
@@ -43,21 +32,4 @@ namespace X
         /// </summary>
         Type = 3
     }
-
-    /// <summary>
-    /// Helper class for avoiding boxing as dictionary key.
-    /// </summary>
-    public struct KeywordComparer : IEqualityComparer<Keyword>
-    {
-        public bool Equals(Keyword x, Keyword y)
-        {
-            return x == y;
-        }
-
-        public int GetHashCode(Keyword obj)
-        {
-            return (int)obj;
-        }
-    }
-
 } // namespace X
