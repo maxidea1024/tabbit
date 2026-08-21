@@ -22,6 +22,9 @@ typedef struct MultiTarget_TrinketRecord_t MultiTarget_TrinketRecord_t;
 typedef struct MultiTarget_MountRecord_t MultiTarget_MountRecord_t;
 typedef struct MultiTarget_BannerRecord_t MultiTarget_BannerRecord_t;
 typedef struct MultiTarget_HolderRecord_t MultiTarget_HolderRecord_t;
+typedef struct MultiTarget_LoadoutRecord_t MultiTarget_LoadoutRecord_t;
+typedef struct MultiTarget_FittingRecord_t MultiTarget_FittingRecord_t;
+typedef struct MultiTarget_RackRecord_t MultiTarget_RackRecord_t;
 
 /* The key the table files were sealed with, and its length - NULL and 0 when they were not
  * sealed.

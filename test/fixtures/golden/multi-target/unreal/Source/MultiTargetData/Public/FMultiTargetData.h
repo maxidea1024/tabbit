@@ -66,6 +66,48 @@ enum class EHolderMaybeTarget : uint8
 };
 
 
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : C7
+/** Which table `Loadout.Slot1Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
+UENUM(BlueprintType)
+enum class ELoadoutSlotPickTarget : uint8
+{
+    /** No row of any of them. */
+    None = 0 UMETA(DisplayName = "None"),
+    /** A row of `Weapon`. */
+    Weapon = 1 UMETA(DisplayName = "Weapon"),
+    /** A row of `Armour`. */
+    Armour = 2 UMETA(DisplayName = "Armour"),
+};
+
+
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : K7
+/** Which table `Fitting.MainPick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
+UENUM(BlueprintType)
+enum class EFittingMainPickTarget : uint8
+{
+    /** No row of any of them. */
+    None = 0 UMETA(DisplayName = "None"),
+    /** A row of `Weapon`. */
+    Weapon = 1 UMETA(DisplayName = "Weapon"),
+    /** A row of `Armour`. */
+    Armour = 2 UMETA(DisplayName = "Armour"),
+};
+
+
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : S7
+/** Which table `Rack.SlotsPick1` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
+UENUM(BlueprintType)
+enum class ERackSlotsPickTarget : uint8
+{
+    /** No row of any of them. */
+    None = 0 UMETA(DisplayName = "None"),
+    /** A row of `Weapon`. */
+    Weapon = 1 UMETA(DisplayName = "Weapon"),
+    /** A row of `Armour`. */
+    Armour = 2 UMETA(DisplayName = "Armour"),
+};
+
+
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Catalogues : B2
 /** first target of every column below */
 USTRUCT(BlueprintType)
@@ -206,6 +248,116 @@ struct MULTITARGETDATA_API FHolderRow
     /** Whether this row has a value for Maybe. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Holder")
     bool bHasMaybe = false;
+};
+
+
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : B2
+/** One element of FLoadoutRow::Slot. */
+USTRUCT(BlueprintType)
+struct MULTITARGETDATA_API FLoadoutSlotEntry
+{
+    GENERATED_BODY()
+
+    /** element 1 - two targets */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
+    int32 Pick = 0;
+
+    /** element 1 - an ordinary member */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
+    int32 Count = 0;
+
+};
+
+/** A record array whose member reaches several tables. */
+USTRUCT(BlueprintType)
+struct MULTITARGETDATA_API FLoadoutRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
+    int32 Index = 0;
+
+    /** element 1 - two targets */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
+    TArray<FLoadoutSlotEntry> Slot;
+
+};
+
+
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : J2
+/** One element of FFittingRow::Main. */
+USTRUCT(BlueprintType)
+struct MULTITARGETDATA_API FFittingMainEntry
+{
+    GENERATED_BODY()
+
+    /** the member, in a record of one */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fitting")
+    int32 Pick = 0;
+
+    /** an ordinary member beside it */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fitting")
+    int32 Count = 0;
+
+};
+
+/** One record - no element number at all - whose member reaches several. */
+USTRUCT(BlueprintType)
+struct MULTITARGETDATA_API FFittingRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fitting")
+    int32 Index = 0;
+
+    /** the member, in a record of one */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fitting")
+    FFittingMainEntry Main;
+
+    /** padding, so every table is one width */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fitting")
+    int32 Pad = 0;
+
+    /** padding, so every table is one width */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fitting")
+    int32 Pad2 = 0;
+
+};
+
+
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : R2
+/** One element of FRackRow::Slots. */
+USTRUCT(BlueprintType)
+struct MULTITARGETDATA_API FRackSlotsEntry
+{
+    GENERATED_BODY()
+
+    /** element 1 of the member */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rack")
+    TArray<int32> Pick;
+
+    /** element 1 beside it */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rack")
+    TArray<int32> Count;
+
+};
+
+/** One record whose members are arrays, one of them reaching several. */
+USTRUCT(BlueprintType)
+struct MULTITARGETDATA_API FRackRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rack")
+    int32 Index = 0;
+
+    /** element 1 of the member */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rack")
+    FRackSlotsEntry Slots;
+
 };
 
 
@@ -365,6 +517,84 @@ private:
 };
 
 
+/** Every row of Loadout. */
+class MULTITARGETDATA_API FLoadoutTable
+{
+public:
+    const TArray<FLoadoutRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FLoadoutRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FLoadoutRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Fitting. */
+class MULTITARGETDATA_API FFittingTable
+{
+public:
+    const TArray<FFittingRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FFittingRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FFittingRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Rack. */
+class MULTITARGETDATA_API FRackTable
+{
+public:
+    const TArray<FRackRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FRackRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FRackRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
 /**
  * Every table, loaded together.
  *
@@ -380,6 +610,9 @@ public:
     static const FMountTable& Mount() { return MountStorage; }
     static const FBannerTable& Banner() { return BannerStorage; }
     static const FHolderTable& Holder() { return HolderStorage; }
+    static const FLoadoutTable& Loadout() { return LoadoutStorage; }
+    static const FFittingTable& Fitting() { return FittingStorage; }
+    static const FRackTable& Rack() { return RackStorage; }
 
     /**
      * Reads every table from BasePath. Returns false if any of them could not be read.
@@ -448,6 +681,9 @@ private:
     static FMountTable MountStorage;
     static FBannerTable BannerStorage;
     static FHolderTable HolderStorage;
+    static FLoadoutTable LoadoutStorage;
+    static FFittingTable FittingStorage;
+    static FRackTable RackStorage;
 };
 
 /**
@@ -637,6 +873,90 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|Holder",
               meta = (DisplayName = "Get Holder Row At"))
     static FHolderRow GetHolderRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Loadout row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Loadout",
+              meta = (DisplayName = "Get Loadout Row"))
+    static FLoadoutRow GetLoadoutRow(int32 Key, bool& bFound);
+
+    /** How many Loadout rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Loadout",
+              meta = (DisplayName = "Get Loadout Row Count"))
+    static int32 GetLoadoutRowCount();
+
+    /**
+     * The Loadout row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Loadout",
+              meta = (DisplayName = "Get Loadout Row At"))
+    static FLoadoutRow GetLoadoutRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Fitting row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Fitting",
+              meta = (DisplayName = "Get Fitting Row"))
+    static FFittingRow GetFittingRow(int32 Key, bool& bFound);
+
+    /** How many Fitting rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Fitting",
+              meta = (DisplayName = "Get Fitting Row Count"))
+    static int32 GetFittingRowCount();
+
+    /**
+     * The Fitting row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Fitting",
+              meta = (DisplayName = "Get Fitting Row At"))
+    static FFittingRow GetFittingRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Rack row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Rack",
+              meta = (DisplayName = "Get Rack Row"))
+    static FRackRow GetRackRow(int32 Key, bool& bFound);
+
+    /** How many Rack rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Rack",
+              meta = (DisplayName = "Get Rack Row Count"))
+    static int32 GetRackRowCount();
+
+    /**
+     * The Rack row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Rack",
+              meta = (DisplayName = "Get Rack Row At"))
+    static FRackRow GetRackRowAt(int32 Position, bool& bFound);
 
     /**
      * Reads every table from BasePath, as FMultiTargetData::ReadAll does.

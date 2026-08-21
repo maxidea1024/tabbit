@@ -19,6 +19,9 @@ type Tables struct {
 	Mount MountTable
 	Banner BannerTable
 	Holder HolderTable
+	Loadout LoadoutTable
+	Fitting FittingTable
+	Rack RackTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not
@@ -96,6 +99,15 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 		return err
 	}
 	if err := loaded.Holder.Read(filepath.Join(basePath, "Holder"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Loadout.Read(filepath.Join(basePath, "Loadout"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Fitting.Read(filepath.Join(basePath, "Fitting"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Rack.Read(filepath.Join(basePath, "Rack"+fileExtension)); err != nil {
 		return err
 	}
 

@@ -16,12 +16,18 @@
 #include "enums/MultiTargetAccessor_enum_holder_pick_target.h"
 #include "enums/MultiTargetAccessor_enum_holder_wide_target.h"
 #include "enums/MultiTargetAccessor_enum_holder_maybe_target.h"
+#include "enums/MultiTargetAccessor_enum_loadout_slot_pick_target.h"
+#include "enums/MultiTargetAccessor_enum_fitting_main_pick_target.h"
+#include "enums/MultiTargetAccessor_enum_rack_slots_pick_target.h"
 #include "tables/MultiTargetAccessor_weapon.h"
 #include "tables/MultiTargetAccessor_armour.h"
 #include "tables/MultiTargetAccessor_trinket.h"
 #include "tables/MultiTargetAccessor_mount.h"
 #include "tables/MultiTargetAccessor_banner.h"
 #include "tables/MultiTargetAccessor_holder.h"
+#include "tables/MultiTargetAccessor_loadout.h"
+#include "tables/MultiTargetAccessor_fitting.h"
+#include "tables/MultiTargetAccessor_rack.h"
 
 namespace multi_target {
 /// Every table, loaded together so cross-table references can be resolved.
@@ -33,6 +39,9 @@ class MultiTargetAccessor {
   const MountTable& mount() const { return mount_; }
   const BannerTable& banner() const { return banner_; }
   const HolderTable& holder() const { return holder_; }
+  const LoadoutTable& loadout() const { return loadout_; }
+  const FittingTable& fitting() const { return fitting_; }
+  const RackTable& rack() const { return rack_; }
 
   /// Reads every table from `base_path`, then links the references between them.
   ///
@@ -52,8 +61,14 @@ class MultiTargetAccessor {
     loaded_banner.read(base_path + "/Banner" + file_extension);
     HolderTable loaded_holder;
     loaded_holder.read(base_path + "/Holder" + file_extension);
+    LoadoutTable loaded_loadout;
+    loaded_loadout.read(base_path + "/Loadout" + file_extension);
+    FittingTable loaded_fitting;
+    loaded_fitting.read(base_path + "/Fitting" + file_extension);
+    RackTable loaded_rack;
+    loaded_rack.read(base_path + "/Rack" + file_extension);
 
-    solve_cross_references(loaded_weapon, loaded_armour, loaded_trinket, loaded_mount, loaded_banner, loaded_holder);
+    solve_cross_references(loaded_weapon, loaded_armour, loaded_trinket, loaded_mount, loaded_banner, loaded_holder, loaded_loadout, loaded_fitting, loaded_rack);
 
     weapon_ = std::move(loaded_weapon);
     armour_ = std::move(loaded_armour);
@@ -61,6 +76,9 @@ class MultiTargetAccessor {
     mount_ = std::move(loaded_mount);
     banner_ = std::move(loaded_banner);
     holder_ = std::move(loaded_holder);
+    loadout_ = std::move(loaded_loadout);
+    fitting_ = std::move(loaded_fitting);
+    rack_ = std::move(loaded_rack);
   }
 
  private:
@@ -72,7 +90,7 @@ class MultiTargetAccessor {
   /// compiler: the gate builds with `-Wextra -Werror`, and a model where nothing
   /// references anything - which is most of them - otherwise fails to compile on the
   /// unused parameters.
-  void solve_cross_references([[maybe_unused]] WeaponTable& loaded_weapon, [[maybe_unused]] ArmourTable& loaded_armour, [[maybe_unused]] TrinketTable& loaded_trinket, [[maybe_unused]] MountTable& loaded_mount, [[maybe_unused]] BannerTable& loaded_banner, [[maybe_unused]] HolderTable& loaded_holder) {
+  void solve_cross_references([[maybe_unused]] WeaponTable& loaded_weapon, [[maybe_unused]] ArmourTable& loaded_armour, [[maybe_unused]] TrinketTable& loaded_trinket, [[maybe_unused]] MountTable& loaded_mount, [[maybe_unused]] BannerTable& loaded_banner, [[maybe_unused]] HolderTable& loaded_holder, [[maybe_unused]] LoadoutTable& loaded_loadout, [[maybe_unused]] FittingTable& loaded_fitting, [[maybe_unused]] RackTable& loaded_rack) {
     for (auto& record : loaded_holder.records_) {
       {
         const auto* target = loaded_weapon.find_by_index(record.only_index);
@@ -156,6 +174,9 @@ class MultiTargetAccessor {
   MountTable mount_;
   BannerTable banner_;
   HolderTable holder_;
+  LoadoutTable loadout_;
+  FittingTable fitting_;
+  RackTable rack_;
 };
 
 }  // namespace multi_target

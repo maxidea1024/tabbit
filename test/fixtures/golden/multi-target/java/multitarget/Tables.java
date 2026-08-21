@@ -17,6 +17,9 @@ public final class Tables {
     public MountTable mount = new MountTable();
     public BannerTable banner = new BannerTable();
     public HolderTable holder = new HolderTable();
+    public LoadoutTable loadout = new LoadoutTable();
+    public FittingTable fitting = new FittingTable();
+    public RackTable rack = new RackTable();
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -96,8 +99,14 @@ public final class Tables {
         loadedBannerTable.read(Paths.get(basePath, "Banner" + fileExtension));
         HolderTable loadedHolderTable = new HolderTable();
         loadedHolderTable.read(Paths.get(basePath, "Holder" + fileExtension));
+        LoadoutTable loadedLoadoutTable = new LoadoutTable();
+        loadedLoadoutTable.read(Paths.get(basePath, "Loadout" + fileExtension));
+        FittingTable loadedFittingTable = new FittingTable();
+        loadedFittingTable.read(Paths.get(basePath, "Fitting" + fileExtension));
+        RackTable loadedRackTable = new RackTable();
+        loadedRackTable.read(Paths.get(basePath, "Rack" + fileExtension));
 
-        solveCrossReferences(loadedWeaponTable, loadedArmourTable, loadedTrinketTable, loadedMountTable, loadedBannerTable, loadedHolderTable);
+        solveCrossReferences(loadedWeaponTable, loadedArmourTable, loadedTrinketTable, loadedMountTable, loadedBannerTable, loadedHolderTable, loadedLoadoutTable, loadedFittingTable, loadedRackTable);
 
         weapon = loadedWeaponTable;
         armour = loadedArmourTable;
@@ -105,6 +114,9 @@ public final class Tables {
         mount = loadedMountTable;
         banner = loadedBannerTable;
         holder = loadedHolderTable;
+        loadout = loadedLoadoutTable;
+        fitting = loadedFittingTable;
+        rack = loadedRackTable;
     }
 
     /**
@@ -113,7 +125,7 @@ public final class Tables {
      * <p>The tables arrive as arguments and shadow the fields of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private void solveCrossReferences(WeaponTable weapon, ArmourTable armour, TrinketTable trinket, MountTable mount, BannerTable banner, HolderTable holder) {
+    private void solveCrossReferences(WeaponTable weapon, ArmourTable armour, TrinketTable trinket, MountTable mount, BannerTable banner, HolderTable holder, LoadoutTable loadout, FittingTable fitting, RackTable rack) {
         for (HolderRecord record : holder.records()) {
             {
                 WeaponRecord target = weapon.findByIndex(record.onlyIndex);

@@ -15,6 +15,9 @@ import { TrinketTable } from './tables/trinket'
 import { MountTable } from './tables/mount'
 import { BannerTable } from './tables/banner'
 import { HolderTable } from './tables/holder'
+import { LoadoutTable } from './tables/loadout'
+import { FittingTable } from './tables/fitting'
+import { RackTable } from './tables/rack'
 import { HolderPickTarget } from './enums/holder-pick-target'
 import { HolderWideTarget } from './enums/holder-wide-target'
 import { HolderMaybeTarget } from './enums/holder-maybe-target'
@@ -96,6 +99,18 @@ export class Tables {
   public get holder(): HolderTable { return this._holder }
   private _holder: HolderTable = new HolderTable()
 
+  /** Peroperty for table Loadout */
+  public get loadout(): LoadoutTable { return this._loadout }
+  private _loadout: LoadoutTable = new LoadoutTable()
+
+  /** Peroperty for table Fitting */
+  public get fitting(): FittingTable { return this._fitting }
+  private _fitting: FittingTable = new FittingTable()
+
+  /** Peroperty for table Rack */
+  public get rack(): RackTable { return this._rack }
+  private _rack: RackTable = new RackTable()
+
   /**
    * Read all tables asynchronously.
    *
@@ -115,8 +130,14 @@ export class Tables {
     await banner.read(path.join(basePath, `Banner${fileExtension}`))
     const holder = new HolderTable()
     await holder.read(path.join(basePath, `Holder${fileExtension}`))
+    const loadout = new LoadoutTable()
+    await loadout.read(path.join(basePath, `Loadout${fileExtension}`))
+    const fitting = new FittingTable()
+    await fitting.read(path.join(basePath, `Fitting${fileExtension}`))
+    const rack = new RackTable()
+    await rack.read(path.join(basePath, `Rack${fileExtension}`))
 
-    this.publish(weapon, armour, trinket, mount, banner, holder)
+    this.publish(weapon, armour, trinket, mount, banner, holder, loadout, fitting, rack)
   }
 
   /** Read all tables synchronously. */
@@ -133,8 +154,14 @@ export class Tables {
     banner.readSync(path.join(basePath, `Banner${fileExtension}`))
     const holder = new HolderTable()
     holder.readSync(path.join(basePath, `Holder${fileExtension}`))
+    const loadout = new LoadoutTable()
+    loadout.readSync(path.join(basePath, `Loadout${fileExtension}`))
+    const fitting = new FittingTable()
+    fitting.readSync(path.join(basePath, `Fitting${fileExtension}`))
+    const rack = new RackTable()
+    rack.readSync(path.join(basePath, `Rack${fileExtension}`))
 
-    this.publish(weapon, armour, trinket, mount, banner, holder)
+    this.publish(weapon, armour, trinket, mount, banner, holder, loadout, fitting, rack)
   }
 
   /**
@@ -157,8 +184,14 @@ export class Tables {
     banner.readBinarySync(path.join(basePath, `Banner${fileExtension}`))
     const holder = new HolderTable()
     holder.readBinarySync(path.join(basePath, `Holder${fileExtension}`))
+    const loadout = new LoadoutTable()
+    loadout.readBinarySync(path.join(basePath, `Loadout${fileExtension}`))
+    const fitting = new FittingTable()
+    fitting.readBinarySync(path.join(basePath, `Fitting${fileExtension}`))
+    const rack = new RackTable()
+    rack.readBinarySync(path.join(basePath, `Rack${fileExtension}`))
 
-    this.publish(weapon, armour, trinket, mount, banner, holder)
+    this.publish(weapon, armour, trinket, mount, banner, holder, loadout, fitting, rack)
   }
 
   /**
@@ -169,13 +202,16 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(weapon: WeaponTable, armour: ArmourTable, trinket: TrinketTable, mount: MountTable, banner: BannerTable, holder: HolderTable): void {
+  private publish(weapon: WeaponTable, armour: ArmourTable, trinket: TrinketTable, mount: MountTable, banner: BannerTable, holder: HolderTable, loadout: LoadoutTable, fitting: FittingTable, rack: RackTable): void {
     this._weapon = weapon
     this._armour = armour
     this._trinket = trinket
     this._mount = mount
     this._banner = banner
     this._holder = holder
+    this._loadout = loadout
+    this._fitting = fitting
+    this._rack = rack
 
     this.solveCrossReferences()
   }

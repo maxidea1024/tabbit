@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "142550a7f88c0138a0fc4fd5573e60e5",
-  "TotalSize": 551,
+  "MasterHash": "5b529bab43f0cb291419e2fdf64a155a",
+  "TotalSize": 803,
   "Items": [
     {
       "Name": "Weapon.tcb",
@@ -37,6 +37,24 @@
       "Name": "Holder.tcb",
       "Size": 101,
       "Hash": "39c3b9707d3ecdd9f4eb0e7881e4fb82",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Loadout.tcb",
+      "Size": 79,
+      "Hash": "897533f44d7843c30f54503efc10d5bc",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Fitting.tcb",
+      "Size": 94,
+      "Hash": "1f48b291ed64a02ed71aa8e26d6229be",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Rack.tcb",
+      "Size": 79,
+      "Hash": "01e5802870fef66f67603995721de239",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

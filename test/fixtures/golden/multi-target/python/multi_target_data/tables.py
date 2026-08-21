@@ -15,6 +15,9 @@ from .trinket_table import TrinketTable
 from .mount_table import MountTable
 from .banner_table import BannerTable
 from .holder_table import HolderTable
+from .loadout_table import LoadoutTable
+from .fitting_table import FittingTable
+from .rack_table import RackTable
 from .enum_holder_pick_target import HolderPickTarget
 from .enum_holder_wide_target import HolderWideTarget
 from .enum_holder_maybe_target import HolderMaybeTarget
@@ -23,7 +26,7 @@ from .enum_holder_maybe_target import HolderMaybeTarget
 class Tables:
     """Every table, loaded together so cross-table references can be resolved."""
 
-    __slots__ = ("weapon", "armour", "trinket", "mount", "banner", "holder")
+    __slots__ = ("weapon", "armour", "trinket", "mount", "banner", "holder", "loadout", "fitting", "rack")
 
     #: The key the table files were sealed with, or None when they were not sealed.
     #:
@@ -76,6 +79,9 @@ class Tables:
         self.mount = MountTable()
         self.banner = BannerTable()
         self.holder = HolderTable()
+        self.loadout = LoadoutTable()
+        self.fitting = FittingTable()
+        self.rack = RackTable()
 
     def read_all(self, base_path, file_extension=".tcb"):
         """Reads every table from base_path, then links the references between them.
@@ -99,8 +105,14 @@ class Tables:
         loaded_banner.read(os.path.join(base_path, "Banner" + file_extension))
         loaded_holder = HolderTable()
         loaded_holder.read(os.path.join(base_path, "Holder" + file_extension))
+        loaded_loadout = LoadoutTable()
+        loaded_loadout.read(os.path.join(base_path, "Loadout" + file_extension))
+        loaded_fitting = FittingTable()
+        loaded_fitting.read(os.path.join(base_path, "Fitting" + file_extension))
+        loaded_rack = RackTable()
+        loaded_rack.read(os.path.join(base_path, "Rack" + file_extension))
 
-        self._solve_cross_references(loaded_weapon, loaded_armour, loaded_trinket, loaded_mount, loaded_banner, loaded_holder)
+        self._solve_cross_references(loaded_weapon, loaded_armour, loaded_trinket, loaded_mount, loaded_banner, loaded_holder, loaded_loadout, loaded_fitting, loaded_rack)
 
         self.weapon = loaded_weapon
         self.armour = loaded_armour
@@ -108,8 +120,11 @@ class Tables:
         self.mount = loaded_mount
         self.banner = loaded_banner
         self.holder = loaded_holder
+        self.loadout = loaded_loadout
+        self.fitting = loaded_fitting
+        self.rack = loaded_rack
 
-    def _solve_cross_references(self, weapon, armour, trinket, mount, banner, holder):
+    def _solve_cross_references(self, weapon, armour, trinket, mount, banner, holder, loadout, fitting, rack):
         """Turns the stored indices into usable values, once every table is in memory.
 
         The tables arrive as arguments rather than off self, which is how this resolves the

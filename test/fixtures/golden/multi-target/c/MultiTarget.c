@@ -239,6 +239,48 @@ bool MultiTarget_LoadAllWithExtension(MultiTarget_t* data, const char* base_path
     return false;
   }
 
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Loadout", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    MultiTarget_Free(&loaded);
+    return false;
+  }
+
+  if (!MultiTarget_LoadoutLoad(&loaded.loadout, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    MultiTarget_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Fitting", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    MultiTarget_Free(&loaded);
+    return false;
+  }
+
+  if (!MultiTarget_FittingLoad(&loaded.fitting, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    MultiTarget_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Rack", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    MultiTarget_Free(&loaded);
+    return false;
+  }
+
+  if (!MultiTarget_RackLoad(&loaded.rack, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    MultiTarget_Free(&loaded);
+    return false;
+  }
+
   /* Linked among the tables of this load, so no row points into the previous one. */
   MultiTarget_SolveCrossReferences(&loaded);
 
@@ -256,4 +298,7 @@ void MultiTarget_Free(MultiTarget_t* data) {
   MultiTarget_MountFree(&data->mount);
   MultiTarget_BannerFree(&data->banner);
   MultiTarget_HolderFree(&data->holder);
+  MultiTarget_LoadoutFree(&data->loadout);
+  MultiTarget_FittingFree(&data->fitting);
+  MultiTarget_RackFree(&data->rack);
 }

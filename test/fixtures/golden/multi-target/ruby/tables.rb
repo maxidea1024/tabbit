@@ -13,6 +13,12 @@ require_relative 'enums/holder_wide_target'
 
 require_relative 'enums/holder_maybe_target'
 
+require_relative 'enums/loadout_slot_pick_target'
+
+require_relative 'enums/fitting_main_pick_target'
+
+require_relative 'enums/rack_slots_pick_target'
+
 require_relative 'tables/weapon_table'
 
 require_relative 'tables/armour_table'
@@ -25,11 +31,17 @@ require_relative 'tables/banner_table'
 
 require_relative 'tables/holder_table'
 
+require_relative 'tables/loadout_table'
+
+require_relative 'tables/fitting_table'
+
+require_relative 'tables/rack_table'
+
 
 module MultiTarget
   # Every table, loaded together so cross-table references can be resolved.
   class Tables
-    attr_reader :weapon, :armour, :trinket, :mount, :banner, :holder
+    attr_reader :weapon, :armour, :trinket, :mount, :banner, :holder, :loadout, :fitting, :rack
 
     class << self
       # The key the table files were sealed with, or nil when they were not sealed.
@@ -91,6 +103,9 @@ module MultiTarget
       @mount = MountTable.new
       @banner = BannerTable.new
       @holder = HolderTable.new
+      @loadout = LoadoutTable.new
+      @fitting = FittingTable.new
+      @rack = RackTable.new
     end
 
     # Reads every table from base_path, then links the references between them.
@@ -110,8 +125,14 @@ module MultiTarget
       loaded_banner.read(File.join(base_path, "Banner#{file_extension}"))
       loaded_holder = HolderTable.new
       loaded_holder.read(File.join(base_path, "Holder#{file_extension}"))
+      loaded_loadout = LoadoutTable.new
+      loaded_loadout.read(File.join(base_path, "Loadout#{file_extension}"))
+      loaded_fitting = FittingTable.new
+      loaded_fitting.read(File.join(base_path, "Fitting#{file_extension}"))
+      loaded_rack = RackTable.new
+      loaded_rack.read(File.join(base_path, "Rack#{file_extension}"))
 
-      solve_cross_references(loaded_weapon, loaded_armour, loaded_trinket, loaded_mount, loaded_banner, loaded_holder)
+      solve_cross_references(loaded_weapon, loaded_armour, loaded_trinket, loaded_mount, loaded_banner, loaded_holder, loaded_loadout, loaded_fitting, loaded_rack)
 
       @weapon = loaded_weapon
       @armour = loaded_armour
@@ -119,6 +140,9 @@ module MultiTarget
       @mount = loaded_mount
       @banner = loaded_banner
       @holder = loaded_holder
+      @loadout = loaded_loadout
+      @fitting = loaded_fitting
+      @rack = loaded_rack
     end
 
     private
@@ -126,7 +150,7 @@ module MultiTarget
     # Turns the stored indices into usable values, once every table is in memory.
     # The tables arrive as arguments rather than off the instance, which is how this
     # resolves the load being read rather than the one already published.
-    def solve_cross_references(weapon, armour, trinket, mount, banner, holder)
+    def solve_cross_references(weapon, armour, trinket, mount, banner, holder, loadout, fitting, rack)
       holder.records.each do |record|
         target = weapon.find_by_index(record.only_index)
         record.only = target unless target.nil?

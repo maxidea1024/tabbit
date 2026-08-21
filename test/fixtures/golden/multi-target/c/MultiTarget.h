@@ -12,12 +12,18 @@
 #include "enums/MultiTarget_EnumHolderPickTarget.h"
 #include "enums/MultiTarget_EnumHolderWideTarget.h"
 #include "enums/MultiTarget_EnumHolderMaybeTarget.h"
+#include "enums/MultiTarget_EnumLoadoutSlotPickTarget.h"
+#include "enums/MultiTarget_EnumFittingMainPickTarget.h"
+#include "enums/MultiTarget_EnumRackSlotsPickTarget.h"
 #include "tables/MultiTarget_Weapon.h"
 #include "tables/MultiTarget_Armour.h"
 #include "tables/MultiTarget_Trinket.h"
 #include "tables/MultiTarget_Mount.h"
 #include "tables/MultiTarget_Banner.h"
 #include "tables/MultiTarget_Holder.h"
+#include "tables/MultiTarget_Loadout.h"
+#include "tables/MultiTarget_Fitting.h"
+#include "tables/MultiTarget_Rack.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +37,9 @@ typedef struct MultiTarget_t {
   MultiTarget_MountTable_t mount;
   MultiTarget_BannerTable_t banner;
   MultiTarget_HolderTable_t holder;
+  MultiTarget_LoadoutTable_t loadout;
+  MultiTarget_FittingTable_t fitting;
+  MultiTarget_RackTable_t rack;
 } MultiTarget_t;
 
 /* Reads every table from base_path, then links the references between them.

@@ -13,6 +13,9 @@ local TrinketTable = require(_root .. "tables.trinket_table")
 local MountTable = require(_root .. "tables.mount_table")
 local BannerTable = require(_root .. "tables.banner_table")
 local HolderTable = require(_root .. "tables.holder_table")
+local LoadoutTable = require(_root .. "tables.loadout_table")
+local FittingTable = require(_root .. "tables.fitting_table")
+local RackTable = require(_root .. "tables.rack_table")
 local HolderPickTarget = require(_root .. "enums.enum_holder_pick_target")
 local HolderWideTarget = require(_root .. "enums.enum_holder_wide_target")
 local HolderMaybeTarget = require(_root .. "enums.enum_holder_maybe_target")
@@ -40,7 +43,7 @@ tables.macKey = nil
 -- is not a security boundary.
 tables.verifyMac = true
 
-local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "weapon", "armour", "trinket", "mount", "banner", "holder" })
+local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "weapon", "armour", "trinket", "mount", "banner", "holder", "loadout", "fitting", "rack" })
 
 function tables.new()
   return setmetatable({
@@ -50,6 +53,9 @@ function tables.new()
     mount = MountTable.new(),
     banner = BannerTable.new(),
     holder = HolderTable.new(),
+    loadout = LoadoutTable.new(),
+    fitting = FittingTable.new(),
+    rack = RackTable.new(),
   }, instanceMeta)
 end
 
@@ -90,6 +96,15 @@ function tables:readAll(source, fileExtension)
 
   local loadedHolder = HolderTable.new()
   loadedHolder:readBytes(bytesOf(source, "Holder", fileExtension))
+
+  local loadedLoadout = LoadoutTable.new()
+  loadedLoadout:readBytes(bytesOf(source, "Loadout", fileExtension))
+
+  local loadedFitting = FittingTable.new()
+  loadedFitting:readBytes(bytesOf(source, "Fitting", fileExtension))
+
+  local loadedRack = RackTable.new()
+  loadedRack:readBytes(bytesOf(source, "Rack", fileExtension))
 
   -- Turns loadedHolder's stored keys into rows, now that every table is in
   -- memory.
@@ -188,6 +203,9 @@ function tables:readAll(source, fileExtension)
   self.mount = loadedMount
   self.banner = loadedBanner
   self.holder = loadedHolder
+  self.loadout = loadedLoadout
+  self.fitting = loadedFitting
+  self.rack = loadedRack
 end
 
 return setmetatable(tables, tcb.strictType(

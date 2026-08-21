@@ -122,6 +122,9 @@ namespace Tabbit.Fixtures.MultiTarget
             public MountTable Mount = new MountTable();
             public BannerTable Banner = new BannerTable();
             public HolderTable Holder = new HolderTable();
+            public LoadoutTable Loadout = new LoadoutTable();
+            public FittingTable Fitting = new FittingTable();
+            public RackTable Rack = new RackTable();
         }
 
         /// <summary>
@@ -164,6 +167,21 @@ namespace Tabbit.Fixtures.MultiTarget
         public static HolderTable Holder => Current.Holder;
 
         /// <summary>
+        /// Property for Loadout table.
+        /// </summary>
+        public static LoadoutTable Loadout => Current.Loadout;
+
+        /// <summary>
+        /// Property for Fitting table.
+        /// </summary>
+        public static FittingTable Fitting => Current.Fitting;
+
+        /// <summary>
+        /// Property for Rack table.
+        /// </summary>
+        public static RackTable Rack => Current.Rack;
+
+        /// <summary>
         /// Reads every table and links them, and hands the result back without publishing it.
         /// </summary>
         /// <remarks>
@@ -182,6 +200,9 @@ namespace Tabbit.Fixtures.MultiTarget
             tasks.Add(snapshot.Mount.ReadAsync(System.IO.Path.Combine(basePath, $"Mount{fileExtension}")));
             tasks.Add(snapshot.Banner.ReadAsync(System.IO.Path.Combine(basePath, $"Banner{fileExtension}")));
             tasks.Add(snapshot.Holder.ReadAsync(System.IO.Path.Combine(basePath, $"Holder{fileExtension}")));
+            tasks.Add(snapshot.Loadout.ReadAsync(System.IO.Path.Combine(basePath, $"Loadout{fileExtension}")));
+            tasks.Add(snapshot.Fitting.ReadAsync(System.IO.Path.Combine(basePath, $"Fitting{fileExtension}")));
+            tasks.Add(snapshot.Rack.ReadAsync(System.IO.Path.Combine(basePath, $"Rack{fileExtension}")));
 
             await Task.WhenAll(tasks);
 
@@ -293,6 +314,87 @@ namespace Tabbit.Fixtures.MultiTarget
                         var found = snapshot.Armour.FindByIndex(record.Maybe);
                         if (found != null)
                             record.SetReference_Maybe_INTERNAL(HolderMaybeTarget.Armour, found);
+                    }
+                }
+            }
+
+            foreach (var record in snapshot.Loadout.Records)
+            {
+                for (int j = 0; j < record._slot.Length; j++)
+                {
+                    if (record._slot[j].Pick > 0)
+                    {
+                        if (record._slot[j].Pick_target == LoadoutSlotPickTarget.None)
+                        {
+                            var found = snapshot.Weapon.FindByIndex(record._slot[j].Pick);
+                            if (found != null)
+                            {
+                                record._slot[j].Pick_row = found;
+                                record._slot[j].Pick_target = LoadoutSlotPickTarget.Weapon;
+                            }
+                        }
+                        if (record._slot[j].Pick_target == LoadoutSlotPickTarget.None)
+                        {
+                            var found = snapshot.Armour.FindByIndex(record._slot[j].Pick);
+                            if (found != null)
+                            {
+                                record._slot[j].Pick_row = found;
+                                record._slot[j].Pick_target = LoadoutSlotPickTarget.Armour;
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (var record in snapshot.Fitting.Records)
+            {
+                if (record._main.Pick > 0)
+                {
+                    if (record._main.Pick_target == FittingMainPickTarget.None)
+                    {
+                        var found = snapshot.Weapon.FindByIndex(record._main.Pick);
+                        if (found != null)
+                        {
+                            record._main.Pick_row = found;
+                            record._main.Pick_target = FittingMainPickTarget.Weapon;
+                        }
+                    }
+                    if (record._main.Pick_target == FittingMainPickTarget.None)
+                    {
+                        var found = snapshot.Armour.FindByIndex(record._main.Pick);
+                        if (found != null)
+                        {
+                            record._main.Pick_row = found;
+                            record._main.Pick_target = FittingMainPickTarget.Armour;
+                        }
+                    }
+                }
+            }
+
+            foreach (var record in snapshot.Rack.Records)
+            {
+                for (int j = 0; j < record._slots.Pick.Length; j++)
+                {
+                    if (record._slots.Pick[j] > 0)
+                    {
+                        if (record._slots.Pick_target[j] == RackSlotsPickTarget.None)
+                        {
+                            var found = snapshot.Weapon.FindByIndex(record._slots.Pick[j]);
+                            if (found != null)
+                            {
+                                record._slots.Pick_row[j] = found;
+                                record._slots.Pick_target[j] = RackSlotsPickTarget.Weapon;
+                            }
+                        }
+                        if (record._slots.Pick_target[j] == RackSlotsPickTarget.None)
+                        {
+                            var found = snapshot.Armour.FindByIndex(record._slots.Pick[j]);
+                            if (found != null)
+                            {
+                                record._slots.Pick_row[j] = found;
+                                record._slots.Pick_target[j] = RackSlotsPickTarget.Armour;
+                            }
+                        }
                     }
                 }
             }
