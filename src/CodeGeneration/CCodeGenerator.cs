@@ -886,7 +886,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                     accepted = new[] { "TB_ELEMENT_I64" }; break;
 
                 default:
-                    throw new TabbitException($"The c generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The c generator cannot check type `{wire.Type}`.");
             }
         }
 

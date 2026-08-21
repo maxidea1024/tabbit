@@ -1003,7 +1003,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                     accepted = "Tabbit::ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The ruby generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The ruby generator cannot check type `{wire.Type}`.");
             }
         }
 

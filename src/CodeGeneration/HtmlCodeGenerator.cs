@@ -2519,7 +2519,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 return Esc(value.ToString());
 
             default:
-                throw new TabbitException($"unsupported type `{field.Type}`");
+                throw new TabbitDefectException($"unsupported type `{field.Type}`");
         }
     }
 

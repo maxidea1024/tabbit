@@ -894,7 +894,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                     accepted = "ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The kotlin generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The kotlin generator cannot check type `{wire.Type}`.");
             }
         }
 

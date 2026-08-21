@@ -1850,7 +1850,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                     accepted = "tabbit.ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The typescript generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The typescript generator cannot check type `{wire.Type}`.");
             }
         }
 

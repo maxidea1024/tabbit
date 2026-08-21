@@ -793,7 +793,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                     accepted = new[] { "ElementI64" }; break;
 
                 default:
-                    throw new TabbitException($"The unreal generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The unreal generator cannot check type `{wire.Type}`.");
             }
         }
 

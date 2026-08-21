@@ -50,10 +50,10 @@ public static class ChaCha20
         ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Span<byte> data, uint counter = 0)
     {
         if (key.Length != KeySize)
-            throw new TabbitException($"A ChaCha20 key is {KeySize} bytes, not {key.Length}.");
+            throw new TabbitDefectException($"A ChaCha20 key is {KeySize} bytes, not {key.Length}.");
 
         if (nonce.Length != NonceSize)
-            throw new TabbitException($"A ChaCha20 nonce is {NonceSize} bytes, not {nonce.Length}.");
+            throw new TabbitDefectException($"A ChaCha20 nonce is {NonceSize} bytes, not {nonce.Length}.");
 
         Span<uint> state = stackalloc uint[16];
         Span<uint> working = stackalloc uint[16];

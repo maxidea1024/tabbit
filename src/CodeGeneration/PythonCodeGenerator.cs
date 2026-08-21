@@ -1326,7 +1326,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                     accepted = "tabbit.ELEMENT_I64,"; break;
 
                 default:
-                    throw new TabbitException($"The python generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The python generator cannot check type `{wire.Type}`.");
             }
         }
 

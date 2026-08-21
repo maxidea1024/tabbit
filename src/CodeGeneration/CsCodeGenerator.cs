@@ -1390,7 +1390,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                     break;
 
                 default:
-                    throw new TabbitException($"The csharp generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The csharp generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -1816,7 +1816,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             }
 
             default:
-                throw new TabbitException(location, $"unsupported constant type `{valueType}`");
+                throw new TabbitDefectException($"unsupported constant type `{valueType}`");
         }
     }
 

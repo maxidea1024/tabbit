@@ -876,7 +876,7 @@ public sealed class CookingContext
                     return int.Parse(rawValue!, IntegerStyles, CultureInfo.InvariantCulture);
 
                 default:
-                    throw new Exception($"not implemented value type {type}");
+                    throw new TabbitDefectException($"not implemented value type {type}");
             }
         }
         catch (TabbitException)
@@ -886,10 +886,15 @@ public sealed class CookingContext
             // would restate the obvious around a better explanation.
             throw;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not TabbitDefectException)
         {
             // Whatever the framework parsers throw: FormatException, OverflowException
             // and friends, whose messages name the problem but not the cell.
+            //
+            // A defect passes through instead of being dressed as one of those. The switch
+            // above throws one when it meets a value type nobody taught it, and without the
+            // guard that arrived as `Cannot parse ... as a value of type` against a cell
+            // whose author had written nothing wrong.
             throw new TabbitException(location, $"Cannot parse `{authored}` as a value of type `{type}`. ({ex.Message})");
         }
     }

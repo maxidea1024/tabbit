@@ -942,7 +942,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                     accepted = "tabbit.ElementI64"; break;
 
                 default:
-                    throw new TabbitException($"The go generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The go generator cannot check type `{wire.Type}`.");
             }
         }
 

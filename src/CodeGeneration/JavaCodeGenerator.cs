@@ -1004,7 +1004,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                     accepted = "TcbReader.ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The java generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The java generator cannot check type `{wire.Type}`.");
             }
         }
 

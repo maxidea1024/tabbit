@@ -895,7 +895,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                     accepted = "tabbit::ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The rust generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The rust generator cannot check type `{wire.Type}`.");
             }
         }
 

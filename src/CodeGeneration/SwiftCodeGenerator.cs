@@ -913,7 +913,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                     accepted = "Tcb.elementI64"; break;
 
                 default:
-                    throw new TabbitException($"The swift generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The swift generator cannot check type `{wire.Type}`.");
             }
         }
 

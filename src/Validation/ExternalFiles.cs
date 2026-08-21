@@ -134,7 +134,7 @@ internal sealed class ExternalFiles
             {
                 parsed = JToken.Parse(File.ReadAllText(full));
             }
-            catch (Exception failure)
+            catch (Exception failure) when (failure is not TabbitDefectException)
             {
                 throw new TabbitException($"`{full}` is not readable as JSON: {failure.Message}");
             }

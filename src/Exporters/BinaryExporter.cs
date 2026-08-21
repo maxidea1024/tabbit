@@ -1151,7 +1151,7 @@ public class BinaryExporter : Target<BinaryRecipe>
                 writer.Write((int)value!);
                 break;
             default:
-                throw new TabbitException($"unsupported type  `{valueType}`");
+                throw new TabbitDefectException($"unsupported type  `{valueType}`");
         }
     }
 }

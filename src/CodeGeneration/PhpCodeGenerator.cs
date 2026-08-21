@@ -1263,7 +1263,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                     accepted = "TcbReader::ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The php generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The php generator cannot check type `{wire.Type}`.");
             }
         }
 

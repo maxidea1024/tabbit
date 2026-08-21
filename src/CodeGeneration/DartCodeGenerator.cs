@@ -1056,7 +1056,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                     accepted = "elementI64"; break;
 
                 default:
-                    throw new TabbitException($"The dart generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The dart generator cannot check type `{wire.Type}`.");
             }
         }
 

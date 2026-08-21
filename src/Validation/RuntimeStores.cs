@@ -106,7 +106,7 @@ public sealed class SqlStore : ISqlStore
 
             read(reader);
         }
-        catch (Exception failure) when (failure is not TabbitException)
+        catch (Exception failure) when (failure is not TabbitException && failure is not TabbitDefectException)
         {
             // A store that cannot answer is not a store that agreed. Reported as the rule's
             // failure so the run stops, with the connection named and its secret masked.
@@ -177,7 +177,7 @@ public sealed class RedisStore : IRedisStore
 
             return read(connection.GetDatabase(_database));
         }
-        catch (Exception failure) when (failure is not TabbitException)
+        catch (Exception failure) when (failure is not TabbitException && failure is not TabbitDefectException)
         {
             throw new TabbitException(
                 $"Validation could not read `{_name}`: {failure.Message} "

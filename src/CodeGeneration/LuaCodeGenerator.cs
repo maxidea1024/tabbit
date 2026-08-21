@@ -1095,7 +1095,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                     accepted = "tcb.ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The lua generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The lua generator cannot check type `{wire.Type}`.");
             }
         }
 

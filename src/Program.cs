@@ -28,6 +28,8 @@ class Program
     {
         //string summaryFilename = Path.Combine(Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), ".tabbit/tabbit.summary.json"); ;
 
+        UseUtf8ForOutput();
+
         if (args.Length == 1 && args[0].StartsWith("@"))
         {
             var argFile = args[0][1..];
@@ -528,6 +530,28 @@ class Program
     {
         Log.Fatal(ex.Message);
 
+        // Said out loud, because the two kinds of failure need different readers. A data
+        // problem names a cell and the person holding the workbook fixes it; this one names
+        // nothing they own, and the worst outcome is that they go looking through their
+        // sheets for a cause that is not there.
+        //
+        // The stack comes without `--debugging` being asked for. It is the only part of a
+        // defect report that is worth anything to us, and a user who has to be told about a
+        // flag first will send the sentence without it.
+        if (ex is TabbitDefectException)
+        {
+            Log.Fatal("This is a defect in tabbit, not a problem with the data or the recipe.");
+            Log.Fatal("Please report it with the call stack below.");
+
+            if (ex.StackTrace is not null)
+            {
+                Log.Fatal("Callstack:");
+                Log.Fatal(ex.StackTrace);
+            }
+
+            return;
+        }
+
         if (ex is TabbitException tabbitEx)
         {
             if (tabbitEx.Location is not null)
@@ -556,6 +580,49 @@ class Program
             Log.Fatal(ex.StackTrace);
         }
     }
+
+    /// <summary>
+    /// Makes the console take UTF-8, so a message can hold any character this tool might
+    /// have to write.
+    /// </summary>
+    /// <remarks>
+    /// A Windows console starts on the system's ANSI codepage, and on a Korean machine that
+    /// is 949 - which has no room for kana or for Chinese at all, so those characters leave
+    /// as question marks whatever the string held. The encoding is not a display setting
+    /// here: the bytes are already gone by the time anything is drawn.
+    ///
+    /// Called before anything writes, which is why it is the first line of Main rather than
+    /// part of <see cref="SetupLogging"/> - the argument parser writes its own errors and
+    /// help text, and those come out before a logger exists.
+    ///
+    /// Without the identifier, so a redirected run does not get a byte-order mark in front
+    /// of its first line. Setting this reaches Console.Error too, which is where the run's
+    /// own messages go.
+    ///
+    /// It throws where there is no console to configure - a detached or fully redirected
+    /// process on some hosts - and that is not a reason to stop: the streams are already
+    /// UTF-8 everywhere except the Windows console, so the platform that does not need this
+    /// is also the one that refuses it.
+    /// </remarks>
+    private static void UseUtf8ForOutput()
+    {
+        try
+        {
+            Console.OutputEncoding = Utf8WithoutMark;
+        }
+        catch (IOException)
+        {
+        }
+        catch (System.Security.SecurityException)
+        {
+        }
+    }
+
+    /// <summary>
+    /// UTF-8 that writes no byte-order mark, for the console and the log file alike.
+    /// </summary>
+    private static readonly System.Text.UTF8Encoding Utf8WithoutMark =
+        new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
     private static void SetupLogging(bool verbose, bool silent)
     {
@@ -598,9 +665,14 @@ class Program
             .WriteTo.Console(outputTemplate: ConsoleTemplate,
                             theme: SystemConsoleTheme.Literate,
                             restrictedToMinimumLevel: loggingLevel)
+            // The encoding is stated rather than left to the sink's default, for the same
+            // reason the console's is: a log file holding a run's reports has to be readable
+            // whatever language those reports came out in, and a default that changes
+            // between sink versions is not something to find out from a mangled log.
             .WriteTo.File("logs/tabbit.log",
                           outputTemplate: FileTemplate,
-                          rollingInterval: RollingInterval.Day)
+                          rollingInterval: RollingInterval.Day,
+                          encoding: Utf8WithoutMark)
             .CreateLogger();
     }
 }

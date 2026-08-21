@@ -1424,7 +1424,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                     accepted = "tabbit::kElementI64"; break;
 
                 default:
-                    throw new TabbitException($"The cpp generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The cpp generator cannot check type `{wire.Type}`.");
             }
         }
 

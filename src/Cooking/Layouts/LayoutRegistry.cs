@@ -96,7 +96,7 @@ public static class LayoutRegistry
 
             if (type.IsAbstract || !typeof(ILayoutParser).IsAssignableFrom(type))
             {
-                throw new TabbitException(
+                throw new TabbitDefectException(
                     $"`{type.Name}` is marked [TabbitLayout] but is not a concrete {nameof(ILayoutParser)}.");
             }
 

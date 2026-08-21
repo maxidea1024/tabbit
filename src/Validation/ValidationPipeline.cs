@@ -266,7 +266,9 @@ public sealed class ValidationPipeline
             diagnostics.Error(failure.Location ?? SheetLocation.OfTextFile(file.Path, 1, 1),
                 $"[{file.Display}] {failure.Message}");
         }
-        catch (Exception failure)
+        // A defect is not a rule that failed, so it is not recorded against the rule's file
+        // and it does not let the run carry on to its next rule.
+        catch (Exception failure) when (failure is not TabbitDefectException)
         {
             diagnostics.Error(WhereItThrew(file, failure),
                 $"[{file.Display}] threw {failure.GetType().Name}: {failure.Message}");

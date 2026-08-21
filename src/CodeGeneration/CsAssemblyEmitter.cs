@@ -87,9 +87,10 @@ internal static class CsAssemblyEmitter
                 .Take(5)
                 .Select(problem => problem.ToString());
 
-            throw new TabbitException(
-                $"The generated C# did not compile, which is this tool's own fault rather than "
-                + $"anything a recipe can fix. Please report it with what follows."
+            // Whose fault it is and what to do about it used to be spelled out here, and
+            // the exception's own type says both now.
+            throw new TabbitDefectException(
+                "The generated C# did not compile."
                 + Environment.NewLine + string.Join(Environment.NewLine, errors));
         }
 

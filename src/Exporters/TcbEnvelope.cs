@@ -48,7 +48,7 @@ public static class TcbEnvelope
     public static void Seal(Span<byte> file, ReadOnlySpan<byte> key)
     {
         if (file.Length < TcbFormat.HeaderSize)
-            throw new TabbitException("A table file too short to hold a header cannot be encrypted.");
+            throw new TabbitDefectException("A table file too short to hold a header cannot be encrypted.");
 
         // From the key check to the end: everything that is not the plaintext header.
         var payload = file[TcbFormat.KeyCheckOffset..];
@@ -78,7 +78,7 @@ public static class TcbEnvelope
     public static byte[] Open(ReadOnlySpan<byte> sealedFile, ReadOnlySpan<byte> key)
     {
         if (sealedFile.Length < TcbFormat.HeaderSize)
-            throw new TabbitException("A file too short to hold a header cannot be decrypted.");
+            throw new TabbitDefectException("A file too short to hold a header cannot be decrypted.");
 
         if ((sealedFile[TcbFormat.FlagsOffset] & TcbFormat.FlagEncrypted) == 0)
             throw new TabbitException("The file is not encrypted.");

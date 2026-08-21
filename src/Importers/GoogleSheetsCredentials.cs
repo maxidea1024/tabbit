@@ -165,7 +165,7 @@ internal static class GoogleSheetsCredentials
         {
             serviceAccount = CredentialFactory.FromJson<ServiceAccountCredential>(json);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not TabbitDefectException)
         {
             throw new TabbitException(
                 $"Recipe section `{section}` could not read a service account key from " +
