@@ -7,17 +7,6 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
-
 namespace Tabbit.Fixtures.Core.Server
 {
     // Generated from test/fixtures/xlsx/core/core.xlsx : Enums : G2
@@ -43,21 +32,4 @@ namespace Tabbit.Fixtures.Core.Server
         /// </summary>
         Epic = 3
     }
-
-    /// <summary>
-    /// Helper class for avoiding boxing as dictionary key.
-    /// </summary>
-    public struct GradeComparer : IEqualityComparer<Grade>
-    {
-        public bool Equals(Grade x, Grade y)
-        {
-            return x == y;
-        }
-
-        public int GetHashCode(Grade obj)
-        {
-            return (int)obj;
-        }
-    }
-
 } // namespace Tabbit.Fixtures.Core.Server

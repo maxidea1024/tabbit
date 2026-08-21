@@ -7,16 +7,8 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.Core
 {
@@ -97,5 +89,4 @@ namespace Tabbit.Fixtures.Core
         }
     }
 #endif
-
 } // namespace Tabbit.Fixtures.Core

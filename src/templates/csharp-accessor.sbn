@@ -211,6 +211,6 @@
             }
 {{~ end ~}}
         }
-{{~ end }}
+{{~ end ~}}
     }
 {{ include 'csharp-file-foot.sbn' ~}}

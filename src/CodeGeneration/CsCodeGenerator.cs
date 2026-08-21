@@ -335,42 +335,189 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         Log.Information($"Generating codes for CSharp into `{Path.GetFullPath(_csharpReceipe.Path)}`");
 
         Write(AccessorType + ".cs", "csharp-accessor.sbn", view);
-        Write(Path.Combine("tabbit", "TabbitHelpers.cs"), "csharp-helpers.sbn", Part());
+        Write(Path.Combine("tabbit", "TabbitHelpers.cs"), "csharp-helpers.sbn",
+              Part(usings: HelperUsings()));
 
         // The only file that knows what Unity is, and it is written whether or not the
         // consumer is Unity: outside the engine its body is behind a symbol nothing defines,
         // so it compiles to nothing. Written as source rather than folded into the accessor
         // because the engine's own compiler is what has to see those branches - and because
         // everything else this target writes stays plain netstandard as a result.
-        Write(Path.Combine("tabbit", "TabbitUnityAdapter.cs"), "csharp-unity-adapter.sbn", Part());
+        Write(Path.Combine("tabbit", "TabbitUnityAdapter.cs"), "csharp-unity-adapter.sbn",
+              Part(usings: UnityAdapterUsings()));
 
         foreach (var table in view.Tables)
-            Write(Path.Combine("tables", table.Name + "Table.cs"), "csharp-table.sbn", Part(table: table));
+        {
+            Write(Path.Combine("tables", table.Name + "Table.cs"), "csharp-table.sbn",
+                  Part(table: table, usings: TableUsings()));
+        }
 
+        // An enum declaration names no type outside itself, so it opens with nothing.
         foreach (var enumm in view.Enums)
             Write(Path.Combine("enums", enumm.Name + ".cs"), "csharp-enum.sbn", Part(enumm: enumm));
 
-        foreach (var set in view.ConstantSets)
-            Write(Path.Combine("constants", set.Name + ".cs"), "csharp-constants.sbn", Part(set: set));
+        foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
+        {
+            Write(Path.Combine("constants", pair.rendered.Name + ".cs"), "csharp-constants.sbn",
+                  Part(set: pair.rendered, usings: ConstantUsings(pair.model)));
+        }
     }
 
     /// <summary>A view for one of the single-subject templates.</summary>
     private CsPartView Part(
-        CsTableView? table = null, CsEnumView? enumm = null, CsConstantSetView? set = null)
+        CsTableView? table = null, CsEnumView? enumm = null, CsConstantSetView? set = null,
+        IReadOnlyList<string>? usings = null)
         => new CsPartView
         {
             Namespace = _csharpReceipe.Namespace,
             AccessorName = AccessorType,
+            Usings = usings ?? NoUsings,
             Table = table,
             Enumm = enumm,
             Set = set,
         };
 
+    /// <summary>
+    /// The `using` lines one generated file needs.
+    /// </summary>
+    /// <remarks>
+    /// Asked per file. Every file used to open with the same six namespaces plus the binary
+    /// reader, which for an enum file meant seven lines declaring nothing it could reach - and
+    /// for a reviewer, seven lines to check against a file that names one type.
+    ///
+    /// What each kind reaches, and nothing more:
+    ///
+    ///   enum        nothing. The declaration names no type outside itself.
+    ///   constants   `System`, for the constants whose type is `Guid`, `DateTime` or
+    ///               `TimeSpan`. Asked of the set rather than assumed.
+    ///   table       the collections its lookups are built from, the reader it reads through,
+    ///               `StringBuilder` for `ToString`, and `Task` for the read.
+    ///   accessor    the same minus the reader's own types, plus `Path`.
+    ///   helpers     the non-generic `IEnumerable` those two helpers compare through, and
+    ///               `System` for the types `ToString` special-cases.
+    ///
+    /// `System.Array` and `System.Serializable` are written out in full where they appear, so
+    /// `System` is not what carries them.
+    /// </remarks>
+    private static readonly string[] NoUsings = System.Array.Empty<string>();
+
+    private static IReadOnlyList<string> TableUsings()
+        => new[]
+        {
+            "using System;",
+            "using System.Text;",
+            "using System.Collections.Generic;",
+            "using System.Threading.Tasks;",
+            "",
+            "// Tabbit's binary reader, written into this directory beside the accessor.",
+            "// Nothing has to be installed for the generated code to compile.",
+            "using Tabbit.Binary;",
+        };
+
+    private static IReadOnlyList<string> AccessorUsings()
+        => new[]
+        {
+            "using System;",
+            "using System.Collections.Generic;",
+            "using System.IO;",
+            "using System.Threading.Tasks;",
+        };
+
+    private static IReadOnlyList<string> HelperUsings()
+        => new[]
+        {
+            "using System;",
+            "using System.Text;",
+            "using System.Collections;",
+        };
+
+    private static IReadOnlyList<string> UnityAdapterUsings()
+        => new[]
+        {
+            "using System.IO;",
+            "using System.Threading.Tasks;",
+        };
+
+    /// <summary>
+    /// What a constant set reaches: `System`, and only when one of its constants is a type
+    /// declared there.
+    /// </summary>
+    private static IReadOnlyList<string> ConstantUsings(ConstantSet set)
+        => set.Constants.Any(constant => constant.Type is Models.ValueType.Uuid
+                                            or Models.ValueType.DateTime
+                                            or Models.ValueType.TimeSpan)
+            ? new[] { "using System;" }
+            : NoUsings;
+
     private void Write(string relative, string templateName, object view)
     {
         string filename = Path.GetFullPath(Path.Combine(_csharpReceipe.Path, relative));
 
-        Emit(filename, Outdent(TemplateEngine.Render(templateName, view)));
+        Emit(filename, Tidy(Outdent(TemplateEngine.Render(templateName, view))));
+    }
+
+    /// <summary>
+    /// Drops the blank lines that mean nothing.
+    /// </summary>
+    /// <remarks>
+    /// Two of them, and both were everywhere:
+    ///
+    ///   - a blank line in front of a closing brace, so every type ended with a gap and
+    ///     every file ended with two - one before the type's brace and one before the
+    ///     namespace's.
+    ///   - two or more blank lines in a row.
+    ///
+    /// Here rather than in the templates because the templates are not where it came from.
+    /// A tag written `{{~ end }}` rather than `{{~ end ~}}` keeps the newline after itself,
+    /// and the difference is invisible while reading the template - so the same blank line
+    /// arrived from six of them, and would arrive again from the seventh. What the output
+    /// looks like is stated once, here, in the terms it is read in.
+    ///
+    /// Only the templates' output. The runtime sources this target copies in are written by
+    /// hand and are not this function's to reformat.
+    /// </remarks>
+    private static string Tidy(string rendered)
+    {
+        var lines = rendered.Split('\n');
+        var result = new List<string>(lines.Length);
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (lines[i].Length == 0)
+            {
+                // The last segment is what the trailing newline leaves behind rather than a
+                // line of the file, and `TemplateEngine` has already settled the ending.
+                if (i == lines.Length - 1)
+                {
+                    result.Add(lines[i]);
+                    continue;
+                }
+
+                if (result.Count > 0 && result[^1].Length == 0)
+                    continue;
+
+                if (IsClosingBrace(lines[i + 1]))
+                    continue;
+            }
+
+            result.Add(lines[i]);
+        }
+
+        return string.Join("\n", result);
+    }
+
+    /// <summary>Whether a line is a closing brace and nothing else a reader would miss.</summary>
+    private static bool IsClosingBrace(string line)
+    {
+        string text = line.Trim();
+
+        if (!text.StartsWith("}", StringComparison.Ordinal))
+            return false;
+
+        // `}` alone, and `} // namespace X` - the one the file ends with.
+        text = text.Substring(1).TrimStart();
+
+        return text.Length == 0 || text.StartsWith("//", StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -408,6 +555,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         {
             Namespace = _csharpReceipe.Namespace ?? "",
             AccessorName = AccessorType,
+            Usings = AccessorUsings(),
             FileExtension = _csharpReceipe.BinaryTableFileExtension,
             Tables = tables,
             TablesWithReferences = tables

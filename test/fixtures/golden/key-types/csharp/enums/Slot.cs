@@ -7,17 +7,6 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
-
 namespace Tabbit.Fixtures.KeyTypes
 {
     // Generated from test/fixtures/xlsx/key-types/key-types.xlsx : Enums : B2
@@ -43,21 +32,4 @@ namespace Tabbit.Fixtures.KeyTypes
         /// </summary>
         Feet = 3
     }
-
-    /// <summary>
-    /// Helper class for avoiding boxing as dictionary key.
-    /// </summary>
-    public struct SlotComparer : IEqualityComparer<Slot>
-    {
-        public bool Equals(Slot x, Slot y)
-        {
-            return x == y;
-        }
-
-        public int GetHashCode(Slot obj)
-        {
-            return (int)obj;
-        }
-    }
-
 } // namespace Tabbit.Fixtures.KeyTypes

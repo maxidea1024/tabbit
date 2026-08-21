@@ -12,6 +12,16 @@ namespace Tabbit.CodeGeneration;
 /// </summary>
 internal sealed class CsFileView
 {
+    /// <summary>
+    /// The `using` lines this file opens with, already written out.
+    /// </summary>
+    /// <remarks>
+    /// Per file rather than one list every file shares. An enum declares names from no
+    /// namespace at all, and a constant set only from `System`; opening both with the six the
+    /// accessor needs is six lines a reader has to check against nothing.
+    /// </remarks>
+    public required IReadOnlyList<string> Usings { get; set; }
+
     /// <summary>The namespace, or empty. The template wraps the file in it when set.</summary>
     public required string Namespace { get; set; }
 
@@ -70,6 +80,9 @@ internal sealed class CsPartView
 {
     /// <summary>The namespace, or empty. The head template wraps the file in it when set.</summary>
     public string? Namespace { get; set; }
+
+    /// <summary>The `using` lines this file opens with. See <see cref="CsFileView.Usings"/>.</summary>
+    public IReadOnlyList<string>? Usings { get; set; }
 
     /// <summary>What the accessor type is called. A table's read reaches it for the keys.</summary>
     public string? AccessorName { get; set; }

@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -396,5 +394,4 @@ namespace Tabbit.Fixtures.Nested
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.Nested

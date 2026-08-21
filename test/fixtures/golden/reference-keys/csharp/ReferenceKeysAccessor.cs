@@ -8,15 +8,9 @@
 // ------------------------------------------------------------------------------
 
 using System;
-using System.Text;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.ReferenceKeys
 {
@@ -157,7 +151,6 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// </summary>
         public static ClipTable Clip => Current.Clip;
 
-
         /// <summary>
         /// Reads every table and links them, and hands the result back without publishing it.
         /// </summary>
@@ -200,7 +193,6 @@ namespace Tabbit.Fixtures.ReferenceKeys
             Current = snapshot;
         }
 
-
         /// <summary>
         /// Read all tables.
         /// </summary>
@@ -213,7 +205,6 @@ namespace Tabbit.Fixtures.ReferenceKeys
         {
             Publish(await LoadAsync(basePath, fileExtension));
         }
-
 
         /// <summary>
         /// Solve cross references, among the tables of one read.
@@ -239,7 +230,5 @@ namespace Tabbit.Fixtures.ReferenceKeys
                 }
             }
         }
-
     }
-
 } // namespace Tabbit.Fixtures.ReferenceKeys

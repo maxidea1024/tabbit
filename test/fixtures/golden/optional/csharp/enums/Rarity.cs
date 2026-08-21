@@ -7,17 +7,6 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
-
 namespace Tabbit.Fixtures.Optional
 {
     // Generated from test/fixtures/xlsx/optional/optional.xlsx : Optional : B2
@@ -39,21 +28,4 @@ namespace Tabbit.Fixtures.Optional
         /// </summary>
         Rare = 2
     }
-
-    /// <summary>
-    /// Helper class for avoiding boxing as dictionary key.
-    /// </summary>
-    public struct RarityComparer : IEqualityComparer<Rarity>
-    {
-        public bool Equals(Rarity x, Rarity y)
-        {
-            return x == y;
-        }
-
-        public int GetHashCode(Rarity obj)
-        {
-            return (int)obj;
-        }
-    }
-
 } // namespace Tabbit.Fixtures.Optional

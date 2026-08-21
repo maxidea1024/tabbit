@@ -7,17 +7,6 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
-
 namespace Tabbit.Fixtures.Core
 {
     // Generated from test/fixtures/xlsx/core/core.xlsx : Enums : L2
@@ -39,21 +28,4 @@ namespace Tabbit.Fixtures.Core
         /// </summary>
         IceShard = 2
     }
-
-    /// <summary>
-    /// Helper class for avoiding boxing as dictionary key.
-    /// </summary>
-    public struct SkillTypeComparer : IEqualityComparer<SkillType>
-    {
-        public bool Equals(SkillType x, SkillType y)
-        {
-            return x == y;
-        }
-
-        public int GetHashCode(SkillType obj)
-        {
-            return (int)obj;
-        }
-    }
-
 } // namespace Tabbit.Fixtures.Core

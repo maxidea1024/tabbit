@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -390,5 +388,4 @@ namespace Tabbit.Fixtures.Core.Server
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.Core.Server

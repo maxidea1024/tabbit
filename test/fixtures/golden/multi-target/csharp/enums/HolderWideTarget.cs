@@ -7,17 +7,6 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
-
 namespace Tabbit.Fixtures.MultiTarget
 {
     // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : D7
@@ -51,21 +40,4 @@ namespace Tabbit.Fixtures.MultiTarget
         /// </summary>
         Banner = 5
     }
-
-    /// <summary>
-    /// Helper class for avoiding boxing as dictionary key.
-    /// </summary>
-    public struct HolderWideTargetComparer : IEqualityComparer<HolderWideTarget>
-    {
-        public bool Equals(HolderWideTarget x, HolderWideTarget y)
-        {
-            return x == y;
-        }
-
-        public int GetHashCode(HolderWideTarget obj)
-        {
-            return (int)obj;
-        }
-    }
-
 } // namespace Tabbit.Fixtures.MultiTarget
