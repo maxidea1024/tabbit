@@ -522,7 +522,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         {
             Table = TsName(target.Name),
             RecordTypeName = target.Name.ToPascalCase() + "Record",
-            Prop = TsName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+            Prop = TsName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
             Label = target.Name.ToPascalCase(),
             Lookup = PrimaryFind(target),
         }).ToList();

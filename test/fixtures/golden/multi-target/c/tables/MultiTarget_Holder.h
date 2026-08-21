@@ -61,39 +61,39 @@ struct MultiTarget_HolderRecord_t {
 
 /* The MultiTarget_WeaponRecord_t row pick names, or NULL when it names a row of
  * one of the others. */
-const MultiTarget_WeaponRecord_t* MultiTarget_HolderPickAsWeapon(const MultiTarget_HolderRecord_t* record);
+const MultiTarget_WeaponRecord_t* MultiTarget_HolderWeaponByPick(const MultiTarget_HolderRecord_t* record);
 
 /* The MultiTarget_ArmourRecord_t row pick names, or NULL when it names a row of
  * one of the others. */
-const MultiTarget_ArmourRecord_t* MultiTarget_HolderPickAsArmour(const MultiTarget_HolderRecord_t* record);
+const MultiTarget_ArmourRecord_t* MultiTarget_HolderArmourByPick(const MultiTarget_HolderRecord_t* record);
 
 /* The MultiTarget_WeaponRecord_t row wide names, or NULL when it names a row of
  * one of the others. */
-const MultiTarget_WeaponRecord_t* MultiTarget_HolderWideAsWeapon(const MultiTarget_HolderRecord_t* record);
+const MultiTarget_WeaponRecord_t* MultiTarget_HolderWeaponByWide(const MultiTarget_HolderRecord_t* record);
 
 /* The MultiTarget_ArmourRecord_t row wide names, or NULL when it names a row of
  * one of the others. */
-const MultiTarget_ArmourRecord_t* MultiTarget_HolderWideAsArmour(const MultiTarget_HolderRecord_t* record);
+const MultiTarget_ArmourRecord_t* MultiTarget_HolderArmourByWide(const MultiTarget_HolderRecord_t* record);
 
 /* The MultiTarget_TrinketRecord_t row wide names, or NULL when it names a row of
  * one of the others. */
-const MultiTarget_TrinketRecord_t* MultiTarget_HolderWideAsTrinket(const MultiTarget_HolderRecord_t* record);
+const MultiTarget_TrinketRecord_t* MultiTarget_HolderTrinketByWide(const MultiTarget_HolderRecord_t* record);
 
 /* The MultiTarget_MountRecord_t row wide names, or NULL when it names a row of
  * one of the others. */
-const MultiTarget_MountRecord_t* MultiTarget_HolderWideAsMount(const MultiTarget_HolderRecord_t* record);
+const MultiTarget_MountRecord_t* MultiTarget_HolderMountByWide(const MultiTarget_HolderRecord_t* record);
 
 /* The MultiTarget_BannerRecord_t row wide names, or NULL when it names a row of
  * one of the others. */
-const MultiTarget_BannerRecord_t* MultiTarget_HolderWideAsBanner(const MultiTarget_HolderRecord_t* record);
+const MultiTarget_BannerRecord_t* MultiTarget_HolderBannerByWide(const MultiTarget_HolderRecord_t* record);
 
 /* The MultiTarget_WeaponRecord_t row maybe names, or NULL when it names a row of
  * one of the others. */
-const MultiTarget_WeaponRecord_t* MultiTarget_HolderMaybeAsWeapon(const MultiTarget_HolderRecord_t* record);
+const MultiTarget_WeaponRecord_t* MultiTarget_HolderWeaponByMaybe(const MultiTarget_HolderRecord_t* record);
 
 /* The MultiTarget_ArmourRecord_t row maybe names, or NULL when it names a row of
  * one of the others. */
-const MultiTarget_ArmourRecord_t* MultiTarget_HolderMaybeAsArmour(const MultiTarget_HolderRecord_t* record);
+const MultiTarget_ArmourRecord_t* MultiTarget_HolderArmourByMaybe(const MultiTarget_HolderRecord_t* record);
 
 /* Every row of Holder.
  *

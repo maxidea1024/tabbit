@@ -48,9 +48,9 @@ type HolderRecord struct {
 }
 
 
-// PickAsWeapon returns the Weapon row Pick names, or nil when it
+// WeaponByPick returns the Weapon row Pick names, or nil when it
 // names a row of one of the others.
-func (r *HolderRecord) PickAsWeapon() *WeaponRecord {
+func (r *HolderRecord) WeaponByPick() *WeaponRecord {
 	if r.PickTarget != HolderPickTargetWeapon {
 		return nil
 	}
@@ -58,9 +58,9 @@ func (r *HolderRecord) PickAsWeapon() *WeaponRecord {
 	return r.PickRow.(*WeaponRecord)
 }
 
-// PickAsArmour returns the Armour row Pick names, or nil when it
+// ArmourByPick returns the Armour row Pick names, or nil when it
 // names a row of one of the others.
-func (r *HolderRecord) PickAsArmour() *ArmourRecord {
+func (r *HolderRecord) ArmourByPick() *ArmourRecord {
 	if r.PickTarget != HolderPickTargetArmour {
 		return nil
 	}
@@ -69,9 +69,9 @@ func (r *HolderRecord) PickAsArmour() *ArmourRecord {
 }
 
 
-// WideAsWeapon returns the Weapon row Wide names, or nil when it
+// WeaponByWide returns the Weapon row Wide names, or nil when it
 // names a row of one of the others.
-func (r *HolderRecord) WideAsWeapon() *WeaponRecord {
+func (r *HolderRecord) WeaponByWide() *WeaponRecord {
 	if r.WideTarget != HolderWideTargetWeapon {
 		return nil
 	}
@@ -79,9 +79,9 @@ func (r *HolderRecord) WideAsWeapon() *WeaponRecord {
 	return r.WideRow.(*WeaponRecord)
 }
 
-// WideAsArmour returns the Armour row Wide names, or nil when it
+// ArmourByWide returns the Armour row Wide names, or nil when it
 // names a row of one of the others.
-func (r *HolderRecord) WideAsArmour() *ArmourRecord {
+func (r *HolderRecord) ArmourByWide() *ArmourRecord {
 	if r.WideTarget != HolderWideTargetArmour {
 		return nil
 	}
@@ -89,9 +89,9 @@ func (r *HolderRecord) WideAsArmour() *ArmourRecord {
 	return r.WideRow.(*ArmourRecord)
 }
 
-// WideAsTrinket returns the Trinket row Wide names, or nil when it
+// TrinketByWide returns the Trinket row Wide names, or nil when it
 // names a row of one of the others.
-func (r *HolderRecord) WideAsTrinket() *TrinketRecord {
+func (r *HolderRecord) TrinketByWide() *TrinketRecord {
 	if r.WideTarget != HolderWideTargetTrinket {
 		return nil
 	}
@@ -99,9 +99,9 @@ func (r *HolderRecord) WideAsTrinket() *TrinketRecord {
 	return r.WideRow.(*TrinketRecord)
 }
 
-// WideAsMount returns the Mount row Wide names, or nil when it
+// MountByWide returns the Mount row Wide names, or nil when it
 // names a row of one of the others.
-func (r *HolderRecord) WideAsMount() *MountRecord {
+func (r *HolderRecord) MountByWide() *MountRecord {
 	if r.WideTarget != HolderWideTargetMount {
 		return nil
 	}
@@ -109,9 +109,9 @@ func (r *HolderRecord) WideAsMount() *MountRecord {
 	return r.WideRow.(*MountRecord)
 }
 
-// WideAsBanner returns the Banner row Wide names, or nil when it
+// BannerByWide returns the Banner row Wide names, or nil when it
 // names a row of one of the others.
-func (r *HolderRecord) WideAsBanner() *BannerRecord {
+func (r *HolderRecord) BannerByWide() *BannerRecord {
 	if r.WideTarget != HolderWideTargetBanner {
 		return nil
 	}
@@ -120,9 +120,9 @@ func (r *HolderRecord) WideAsBanner() *BannerRecord {
 }
 
 
-// MaybeAsWeapon returns the Weapon row Maybe names, or nil when it
+// WeaponByMaybe returns the Weapon row Maybe names, or nil when it
 // names a row of one of the others.
-func (r *HolderRecord) MaybeAsWeapon() *WeaponRecord {
+func (r *HolderRecord) WeaponByMaybe() *WeaponRecord {
 	if r.MaybeTarget != HolderMaybeTargetWeapon {
 		return nil
 	}
@@ -130,9 +130,9 @@ func (r *HolderRecord) MaybeAsWeapon() *WeaponRecord {
 	return r.MaybeRow.(*WeaponRecord)
 }
 
-// MaybeAsArmour returns the Armour row Maybe names, or nil when it
+// ArmourByMaybe returns the Armour row Maybe names, or nil when it
 // names a row of one of the others.
-func (r *HolderRecord) MaybeAsArmour() *ArmourRecord {
+func (r *HolderRecord) ArmourByMaybe() *ArmourRecord {
 	if r.MaybeTarget != HolderMaybeTargetArmour {
 		return nil
 	}

@@ -219,15 +219,15 @@ assert trimmed[0].tier_array[2] == 8
 t = Tables()
 t.read_all(sys.argv[1])
 rows = t.holder.records
-assert rows[0].pick_as_weapon.name == 'weapon-a'
-assert rows[0].pick_as_armour is None
-assert rows[1].pick_as_armour.name == 'armour-b'
-assert rows[1].pick_as_weapon is None
-assert rows[0].wide_as_trinket.name == 'trinket-a'
-assert rows[1].wide_as_banner.name == 'banner-b'
-assert rows[2].wide_as_weapon.name == 'weapon-a'
+assert rows[0].weapon_by_pick.name == 'weapon-a'
+assert rows[0].armour_by_pick is None
+assert rows[1].armour_by_pick.name == 'armour-b'
+assert rows[1].weapon_by_pick is None
+assert rows[0].trinket_by_wide.name == 'trinket-a'
+assert rows[1].banner_by_wide.name == 'banner-b'
+assert rows[2].weapon_by_wide.name == 'weapon-a'
 assert rows[1].maybe_target.value == 0
-assert rows[1].maybe_as_weapon is None and rows[1].maybe_as_armour is None
+assert rows[1].weapon_by_maybe is None and rows[1].armour_by_maybe is None
 assert rows[0].only.name == 'weapon-a'
 ");
 

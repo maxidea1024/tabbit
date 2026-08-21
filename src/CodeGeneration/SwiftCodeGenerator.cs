@@ -408,7 +408,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             {
                 Table = SwiftName(target.Name),
                 RecordName = target.Name.ToPascalCase() + "Record",
-                Method = SwiftName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Method = SwiftName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Label = SwiftCamelName(target.Name),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

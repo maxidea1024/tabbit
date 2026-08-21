@@ -64,7 +64,7 @@ namespace Tabbit.Fixtures.MultiTarget
             /// The <c>Weapon</c> row <see cref="Pick"/> names, or null
             /// when it names a row of one of the others.
             /// </summary>
-            public WeaponTable.Record PickAsWeapon
+            public WeaponTable.Record WeaponByPick
                 => _pickTarget == HolderPickTarget.Weapon
                     ? (WeaponTable.Record)_pickRow
                     : null;
@@ -72,7 +72,7 @@ namespace Tabbit.Fixtures.MultiTarget
             /// The <c>Armour</c> row <see cref="Pick"/> names, or null
             /// when it names a row of one of the others.
             /// </summary>
-            public ArmourTable.Record PickAsArmour
+            public ArmourTable.Record ArmourByPick
                 => _pickTarget == HolderPickTarget.Armour
                     ? (ArmourTable.Record)_pickRow
                     : null;
@@ -83,7 +83,7 @@ namespace Tabbit.Fixtures.MultiTarget
             /// The <c>Weapon</c> row <see cref="Wide"/> names, or null
             /// when it names a row of one of the others.
             /// </summary>
-            public WeaponTable.Record WideAsWeapon
+            public WeaponTable.Record WeaponByWide
                 => _wideTarget == HolderWideTarget.Weapon
                     ? (WeaponTable.Record)_wideRow
                     : null;
@@ -91,7 +91,7 @@ namespace Tabbit.Fixtures.MultiTarget
             /// The <c>Armour</c> row <see cref="Wide"/> names, or null
             /// when it names a row of one of the others.
             /// </summary>
-            public ArmourTable.Record WideAsArmour
+            public ArmourTable.Record ArmourByWide
                 => _wideTarget == HolderWideTarget.Armour
                     ? (ArmourTable.Record)_wideRow
                     : null;
@@ -99,7 +99,7 @@ namespace Tabbit.Fixtures.MultiTarget
             /// The <c>Trinket</c> row <see cref="Wide"/> names, or null
             /// when it names a row of one of the others.
             /// </summary>
-            public TrinketTable.Record WideAsTrinket
+            public TrinketTable.Record TrinketByWide
                 => _wideTarget == HolderWideTarget.Trinket
                     ? (TrinketTable.Record)_wideRow
                     : null;
@@ -107,7 +107,7 @@ namespace Tabbit.Fixtures.MultiTarget
             /// The <c>Mount</c> row <see cref="Wide"/> names, or null
             /// when it names a row of one of the others.
             /// </summary>
-            public MountTable.Record WideAsMount
+            public MountTable.Record MountByWide
                 => _wideTarget == HolderWideTarget.Mount
                     ? (MountTable.Record)_wideRow
                     : null;
@@ -115,7 +115,7 @@ namespace Tabbit.Fixtures.MultiTarget
             /// The <c>Banner</c> row <see cref="Wide"/> names, or null
             /// when it names a row of one of the others.
             /// </summary>
-            public BannerTable.Record WideAsBanner
+            public BannerTable.Record BannerByWide
                 => _wideTarget == HolderWideTarget.Banner
                     ? (BannerTable.Record)_wideRow
                     : null;
@@ -126,7 +126,7 @@ namespace Tabbit.Fixtures.MultiTarget
             /// The <c>Weapon</c> row <see cref="Maybe"/> names, or null
             /// when it names a row of one of the others.
             /// </summary>
-            public WeaponTable.Record MaybeAsWeapon
+            public WeaponTable.Record WeaponByMaybe
                 => _maybeTarget == HolderMaybeTarget.Weapon
                     ? (WeaponTable.Record)_maybeRow
                     : null;
@@ -134,7 +134,7 @@ namespace Tabbit.Fixtures.MultiTarget
             /// The <c>Armour</c> row <see cref="Maybe"/> names, or null
             /// when it names a row of one of the others.
             /// </summary>
-            public ArmourTable.Record MaybeAsArmour
+            public ArmourTable.Record ArmourByMaybe
                 => _maybeTarget == HolderMaybeTarget.Armour
                     ? (ArmourTable.Record)_maybeRow
                     : null;

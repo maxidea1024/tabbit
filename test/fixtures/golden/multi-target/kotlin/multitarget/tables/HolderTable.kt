@@ -84,7 +84,7 @@ class HolderRecord {
      * The WeaponRecord row pick names, or null when it names a row of
      * one of the others.
      */
-    val pickAsWeapon: WeaponRecord?
+    val weaponByPick: WeaponRecord?
         get() = if (pickTarget == HolderPickTarget.WEAPON)
             pickRow as WeaponRecord
         else
@@ -94,7 +94,7 @@ class HolderRecord {
      * The ArmourRecord row pick names, or null when it names a row of
      * one of the others.
      */
-    val pickAsArmour: ArmourRecord?
+    val armourByPick: ArmourRecord?
         get() = if (pickTarget == HolderPickTarget.ARMOUR)
             pickRow as ArmourRecord
         else
@@ -104,7 +104,7 @@ class HolderRecord {
      * The WeaponRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    val wideAsWeapon: WeaponRecord?
+    val weaponByWide: WeaponRecord?
         get() = if (wideTarget == HolderWideTarget.WEAPON)
             wideRow as WeaponRecord
         else
@@ -114,7 +114,7 @@ class HolderRecord {
      * The ArmourRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    val wideAsArmour: ArmourRecord?
+    val armourByWide: ArmourRecord?
         get() = if (wideTarget == HolderWideTarget.ARMOUR)
             wideRow as ArmourRecord
         else
@@ -124,7 +124,7 @@ class HolderRecord {
      * The TrinketRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    val wideAsTrinket: TrinketRecord?
+    val trinketByWide: TrinketRecord?
         get() = if (wideTarget == HolderWideTarget.TRINKET)
             wideRow as TrinketRecord
         else
@@ -134,7 +134,7 @@ class HolderRecord {
      * The MountRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    val wideAsMount: MountRecord?
+    val mountByWide: MountRecord?
         get() = if (wideTarget == HolderWideTarget.MOUNT)
             wideRow as MountRecord
         else
@@ -144,7 +144,7 @@ class HolderRecord {
      * The BannerRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    val wideAsBanner: BannerRecord?
+    val bannerByWide: BannerRecord?
         get() = if (wideTarget == HolderWideTarget.BANNER)
             wideRow as BannerRecord
         else
@@ -154,7 +154,7 @@ class HolderRecord {
      * The WeaponRecord row maybe names, or null when it names a row of
      * one of the others.
      */
-    val maybeAsWeapon: WeaponRecord?
+    val weaponByMaybe: WeaponRecord?
         get() = if (maybeTarget == HolderMaybeTarget.WEAPON)
             maybeRow as WeaponRecord
         else
@@ -164,7 +164,7 @@ class HolderRecord {
      * The ArmourRecord row maybe names, or null when it names a row of
      * one of the others.
      */
-    val maybeAsArmour: ArmourRecord?
+    val armourByMaybe: ArmourRecord?
         get() = if (maybeTarget == HolderMaybeTarget.ARMOUR)
             maybeRow as ArmourRecord
         else

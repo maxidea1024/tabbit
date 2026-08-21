@@ -49,7 +49,7 @@ struct HolderRecord {
 
   /// The `WeaponRecord` row `pick` names, or nullptr when it names a
   /// row of one of the others.
-  const WeaponRecord* pick_as_weapon() const {
+  const WeaponRecord* weapon_by_pick() const {
     return pick_target == HolderPickTarget::Weapon
         ? static_cast<const WeaponRecord*>(pick_row)
         : nullptr;
@@ -57,7 +57,7 @@ struct HolderRecord {
 
   /// The `ArmourRecord` row `pick` names, or nullptr when it names a
   /// row of one of the others.
-  const ArmourRecord* pick_as_armour() const {
+  const ArmourRecord* armour_by_pick() const {
     return pick_target == HolderPickTarget::Armour
         ? static_cast<const ArmourRecord*>(pick_row)
         : nullptr;
@@ -72,7 +72,7 @@ struct HolderRecord {
 
   /// The `WeaponRecord` row `wide` names, or nullptr when it names a
   /// row of one of the others.
-  const WeaponRecord* wide_as_weapon() const {
+  const WeaponRecord* weapon_by_wide() const {
     return wide_target == HolderWideTarget::Weapon
         ? static_cast<const WeaponRecord*>(wide_row)
         : nullptr;
@@ -80,7 +80,7 @@ struct HolderRecord {
 
   /// The `ArmourRecord` row `wide` names, or nullptr when it names a
   /// row of one of the others.
-  const ArmourRecord* wide_as_armour() const {
+  const ArmourRecord* armour_by_wide() const {
     return wide_target == HolderWideTarget::Armour
         ? static_cast<const ArmourRecord*>(wide_row)
         : nullptr;
@@ -88,7 +88,7 @@ struct HolderRecord {
 
   /// The `TrinketRecord` row `wide` names, or nullptr when it names a
   /// row of one of the others.
-  const TrinketRecord* wide_as_trinket() const {
+  const TrinketRecord* trinket_by_wide() const {
     return wide_target == HolderWideTarget::Trinket
         ? static_cast<const TrinketRecord*>(wide_row)
         : nullptr;
@@ -96,7 +96,7 @@ struct HolderRecord {
 
   /// The `MountRecord` row `wide` names, or nullptr when it names a
   /// row of one of the others.
-  const MountRecord* wide_as_mount() const {
+  const MountRecord* mount_by_wide() const {
     return wide_target == HolderWideTarget::Mount
         ? static_cast<const MountRecord*>(wide_row)
         : nullptr;
@@ -104,7 +104,7 @@ struct HolderRecord {
 
   /// The `BannerRecord` row `wide` names, or nullptr when it names a
   /// row of one of the others.
-  const BannerRecord* wide_as_banner() const {
+  const BannerRecord* banner_by_wide() const {
     return wide_target == HolderWideTarget::Banner
         ? static_cast<const BannerRecord*>(wide_row)
         : nullptr;
@@ -119,7 +119,7 @@ struct HolderRecord {
 
   /// The `WeaponRecord` row `maybe` names, or nullptr when it names a
   /// row of one of the others.
-  const WeaponRecord* maybe_as_weapon() const {
+  const WeaponRecord* weapon_by_maybe() const {
     return maybe_target == HolderMaybeTarget::Weapon
         ? static_cast<const WeaponRecord*>(maybe_row)
         : nullptr;
@@ -127,7 +127,7 @@ struct HolderRecord {
 
   /// The `ArmourRecord` row `maybe` names, or nullptr when it names a
   /// row of one of the others.
-  const ArmourRecord* maybe_as_armour() const {
+  const ArmourRecord* armour_by_maybe() const {
     return maybe_target == HolderMaybeTarget::Armour
         ? static_cast<const ArmourRecord*>(maybe_row)
         : nullptr;

@@ -202,15 +202,15 @@ raise unless trimmed[0].tier_array[2] == 8
     public void A_multi_target_column_reads()
         => AssertReads("multi-target", "MultiTarget", @"
 rows = accessor.holder.records
-raise unless rows[0].pick_as_weapon.name == 'weapon-a'
-raise unless rows[0].pick_as_armour.nil?
-raise unless rows[1].pick_as_armour.name == 'armour-b'
-raise unless rows[1].pick_as_weapon.nil?
-raise unless rows[0].wide_as_trinket.name == 'trinket-a'
-raise unless rows[1].wide_as_banner.name == 'banner-b'
-raise unless rows[2].wide_as_weapon.name == 'weapon-a'
+raise unless rows[0].weapon_by_pick.name == 'weapon-a'
+raise unless rows[0].armour_by_pick.nil?
+raise unless rows[1].armour_by_pick.name == 'armour-b'
+raise unless rows[1].weapon_by_pick.nil?
+raise unless rows[0].trinket_by_wide.name == 'trinket-a'
+raise unless rows[1].banner_by_wide.name == 'banner-b'
+raise unless rows[2].weapon_by_wide.name == 'weapon-a'
 raise unless rows[1].maybe_target == MultiTarget::HolderMaybeTarget::NONE
-raise unless rows[1].maybe_as_weapon.nil? && rows[1].maybe_as_armour.nil?
+raise unless rows[1].weapon_by_maybe.nil? && rows[1].armour_by_maybe.nil?
 raise unless rows[0].only.name == 'weapon-a'
 ");
 

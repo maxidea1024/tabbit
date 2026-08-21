@@ -39,7 +39,7 @@ class HolderRecord:
 
 
     @property
-    def pick_as_weapon(self):
+    def weapon_by_pick(self):
         """The weapon row this column names, or None when it names a row of one of the others."""
         if self.pick_target != HolderPickTarget.weapon:
             return None
@@ -47,7 +47,7 @@ class HolderRecord:
         return self.pick_row
 
     @property
-    def pick_as_armour(self):
+    def armour_by_pick(self):
         """The armour row this column names, or None when it names a row of one of the others."""
         if self.pick_target != HolderPickTarget.armour:
             return None
@@ -56,7 +56,7 @@ class HolderRecord:
 
 
     @property
-    def wide_as_weapon(self):
+    def weapon_by_wide(self):
         """The weapon row this column names, or None when it names a row of one of the others."""
         if self.wide_target != HolderWideTarget.weapon:
             return None
@@ -64,7 +64,7 @@ class HolderRecord:
         return self.wide_row
 
     @property
-    def wide_as_armour(self):
+    def armour_by_wide(self):
         """The armour row this column names, or None when it names a row of one of the others."""
         if self.wide_target != HolderWideTarget.armour:
             return None
@@ -72,7 +72,7 @@ class HolderRecord:
         return self.wide_row
 
     @property
-    def wide_as_trinket(self):
+    def trinket_by_wide(self):
         """The trinket row this column names, or None when it names a row of one of the others."""
         if self.wide_target != HolderWideTarget.trinket:
             return None
@@ -80,7 +80,7 @@ class HolderRecord:
         return self.wide_row
 
     @property
-    def wide_as_mount(self):
+    def mount_by_wide(self):
         """The mount row this column names, or None when it names a row of one of the others."""
         if self.wide_target != HolderWideTarget.mount:
             return None
@@ -88,7 +88,7 @@ class HolderRecord:
         return self.wide_row
 
     @property
-    def wide_as_banner(self):
+    def banner_by_wide(self):
         """The banner row this column names, or None when it names a row of one of the others."""
         if self.wide_target != HolderWideTarget.banner:
             return None
@@ -97,7 +97,7 @@ class HolderRecord:
 
 
     @property
-    def maybe_as_weapon(self):
+    def weapon_by_maybe(self):
         """The weapon row this column names, or None when it names a row of one of the others."""
         if self.maybe_target != HolderMaybeTarget.weapon:
             return None
@@ -105,7 +105,7 @@ class HolderRecord:
         return self.maybe_row
 
     @property
-    def maybe_as_armour(self):
+    def armour_by_maybe(self):
         """The armour row this column names, or None when it names a row of one of the others."""
         if self.maybe_target != HolderMaybeTarget.armour:
             return None

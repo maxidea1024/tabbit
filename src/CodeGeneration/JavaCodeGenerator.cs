@@ -455,7 +455,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             {
                 Table = JavaName(target.Name),
                 RecordName = target.Name.ToPascalCase() + "Record",
-                Method = JavaName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Method = JavaName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Label = JavaConstantName(target.Name),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

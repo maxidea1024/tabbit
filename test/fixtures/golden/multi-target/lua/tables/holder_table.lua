@@ -32,7 +32,7 @@ local HolderRecord = {}
 -- The WeaponRecord row `pick` names, or nil when it names a row of
 -- one of the others.
 ---@return WeaponRecord|nil
-function HolderRecord:pickAsWeapon()
+function HolderRecord:weaponByPick()
   if self.pickTarget ~= HolderPickTarget.weapon then
     return nil
   end
@@ -43,7 +43,7 @@ end
 -- The ArmourRecord row `pick` names, or nil when it names a row of
 -- one of the others.
 ---@return ArmourRecord|nil
-function HolderRecord:pickAsArmour()
+function HolderRecord:armourByPick()
   if self.pickTarget ~= HolderPickTarget.armour then
     return nil
   end
@@ -54,7 +54,7 @@ end
 -- The WeaponRecord row `wide` names, or nil when it names a row of
 -- one of the others.
 ---@return WeaponRecord|nil
-function HolderRecord:wideAsWeapon()
+function HolderRecord:weaponByWide()
   if self.wideTarget ~= HolderWideTarget.weapon then
     return nil
   end
@@ -65,7 +65,7 @@ end
 -- The ArmourRecord row `wide` names, or nil when it names a row of
 -- one of the others.
 ---@return ArmourRecord|nil
-function HolderRecord:wideAsArmour()
+function HolderRecord:armourByWide()
   if self.wideTarget ~= HolderWideTarget.armour then
     return nil
   end
@@ -76,7 +76,7 @@ end
 -- The TrinketRecord row `wide` names, or nil when it names a row of
 -- one of the others.
 ---@return TrinketRecord|nil
-function HolderRecord:wideAsTrinket()
+function HolderRecord:trinketByWide()
   if self.wideTarget ~= HolderWideTarget.trinket then
     return nil
   end
@@ -87,7 +87,7 @@ end
 -- The MountRecord row `wide` names, or nil when it names a row of
 -- one of the others.
 ---@return MountRecord|nil
-function HolderRecord:wideAsMount()
+function HolderRecord:mountByWide()
   if self.wideTarget ~= HolderWideTarget.mount then
     return nil
   end
@@ -98,7 +98,7 @@ end
 -- The BannerRecord row `wide` names, or nil when it names a row of
 -- one of the others.
 ---@return BannerRecord|nil
-function HolderRecord:wideAsBanner()
+function HolderRecord:bannerByWide()
   if self.wideTarget ~= HolderWideTarget.banner then
     return nil
   end
@@ -109,7 +109,7 @@ end
 -- The WeaponRecord row `maybe` names, or nil when it names a row of
 -- one of the others.
 ---@return WeaponRecord|nil
-function HolderRecord:maybeAsWeapon()
+function HolderRecord:weaponByMaybe()
   if self.maybeTarget ~= HolderMaybeTarget.weapon then
     return nil
   end
@@ -120,7 +120,7 @@ end
 -- The ArmourRecord row `maybe` names, or nil when it names a row of
 -- one of the others.
 ---@return ArmourRecord|nil
-function HolderRecord:maybeAsArmour()
+function HolderRecord:armourByMaybe()
   if self.maybeTarget ~= HolderMaybeTarget.armour then
     return nil
   end

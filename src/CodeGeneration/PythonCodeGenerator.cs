@@ -532,7 +532,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             Targets = column.Targets.Select(target => new PythonMultiTargetView
             {
                 Table = PythonName(target.Name),
-                Property = PythonName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Property = PythonName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
 
                 // Spelled the way this generator spells every other label, which is not the
                 // model's spelling: the label list is snake cased here. Reading the model name

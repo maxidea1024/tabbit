@@ -395,7 +395,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             {
                 Table = "loaded" + target.Name.ToPascalCase(),
                 RecordName = target.Name.ToPascalCase() + "Record",
-                Method = LuaName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Method = LuaName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Label = LuaCamelName(target.Name),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

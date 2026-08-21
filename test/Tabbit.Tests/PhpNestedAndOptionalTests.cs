@@ -200,13 +200,13 @@ assert($rows[2]->tierArray[1] === null);
     public void A_multi_target_column_reads()
         => AssertReads("multi-target", "MultiTargetAccessor", @"
 $rows = $accessor->holder->records;
-if ($rows[0]->pickAsWeapon()->name !== 'weapon-a') { throw new \Exception('pick 0'); }
-if ($rows[0]->pickAsArmour() !== null) { throw new \Exception('pick 0 armour'); }
-if ($rows[1]->pickAsArmour()->name !== 'armour-b') { throw new \Exception('pick 1'); }
-if ($rows[1]->pickAsWeapon() !== null) { throw new \Exception('pick 1 weapon'); }
-if ($rows[0]->wideAsTrinket()->name !== 'trinket-a') { throw new \Exception('wide 0'); }
-if ($rows[1]->wideAsBanner()->name !== 'banner-b') { throw new \Exception('wide 1'); }
-if ($rows[2]->wideAsWeapon()->name !== 'weapon-a') { throw new \Exception('wide 2'); }
+if ($rows[0]->weaponByPick()->name !== 'weapon-a') { throw new \Exception('pick 0'); }
+if ($rows[0]->armourByPick() !== null) { throw new \Exception('pick 0 armour'); }
+if ($rows[1]->armourByPick()->name !== 'armour-b') { throw new \Exception('pick 1'); }
+if ($rows[1]->weaponByPick() !== null) { throw new \Exception('pick 1 weapon'); }
+if ($rows[0]->trinketByWide()->name !== 'trinket-a') { throw new \Exception('wide 0'); }
+if ($rows[1]->bannerByWide()->name !== 'banner-b') { throw new \Exception('wide 1'); }
+if ($rows[2]->weaponByWide()->name !== 'weapon-a') { throw new \Exception('wide 2'); }
 if ($rows[1]->maybeTarget->value !== 0) { throw new \Exception('maybe 1'); }
 if ($rows[0]->only->name !== 'weapon-a') { throw new \Exception('only 0'); }
 ");

@@ -276,63 +276,63 @@ bool MultiTarget_HolderContainsIndex(
   return tb_index_find(table->by_index, table->count, key) >= 0;
 }
 
-const MultiTarget_WeaponRecord_t* MultiTarget_HolderPickAsWeapon(const MultiTarget_HolderRecord_t* record) {
+const MultiTarget_WeaponRecord_t* MultiTarget_HolderWeaponByPick(const MultiTarget_HolderRecord_t* record) {
   if (record->pick_target != MULTI_TARGET_HOLDER_PICK_TARGET_WEAPON)
     return NULL;
 
   return (const MultiTarget_WeaponRecord_t*)record->pick_row;
 }
 
-const MultiTarget_ArmourRecord_t* MultiTarget_HolderPickAsArmour(const MultiTarget_HolderRecord_t* record) {
+const MultiTarget_ArmourRecord_t* MultiTarget_HolderArmourByPick(const MultiTarget_HolderRecord_t* record) {
   if (record->pick_target != MULTI_TARGET_HOLDER_PICK_TARGET_ARMOUR)
     return NULL;
 
   return (const MultiTarget_ArmourRecord_t*)record->pick_row;
 }
 
-const MultiTarget_WeaponRecord_t* MultiTarget_HolderWideAsWeapon(const MultiTarget_HolderRecord_t* record) {
+const MultiTarget_WeaponRecord_t* MultiTarget_HolderWeaponByWide(const MultiTarget_HolderRecord_t* record) {
   if (record->wide_target != MULTI_TARGET_HOLDER_WIDE_TARGET_WEAPON)
     return NULL;
 
   return (const MultiTarget_WeaponRecord_t*)record->wide_row;
 }
 
-const MultiTarget_ArmourRecord_t* MultiTarget_HolderWideAsArmour(const MultiTarget_HolderRecord_t* record) {
+const MultiTarget_ArmourRecord_t* MultiTarget_HolderArmourByWide(const MultiTarget_HolderRecord_t* record) {
   if (record->wide_target != MULTI_TARGET_HOLDER_WIDE_TARGET_ARMOUR)
     return NULL;
 
   return (const MultiTarget_ArmourRecord_t*)record->wide_row;
 }
 
-const MultiTarget_TrinketRecord_t* MultiTarget_HolderWideAsTrinket(const MultiTarget_HolderRecord_t* record) {
+const MultiTarget_TrinketRecord_t* MultiTarget_HolderTrinketByWide(const MultiTarget_HolderRecord_t* record) {
   if (record->wide_target != MULTI_TARGET_HOLDER_WIDE_TARGET_TRINKET)
     return NULL;
 
   return (const MultiTarget_TrinketRecord_t*)record->wide_row;
 }
 
-const MultiTarget_MountRecord_t* MultiTarget_HolderWideAsMount(const MultiTarget_HolderRecord_t* record) {
+const MultiTarget_MountRecord_t* MultiTarget_HolderMountByWide(const MultiTarget_HolderRecord_t* record) {
   if (record->wide_target != MULTI_TARGET_HOLDER_WIDE_TARGET_MOUNT)
     return NULL;
 
   return (const MultiTarget_MountRecord_t*)record->wide_row;
 }
 
-const MultiTarget_BannerRecord_t* MultiTarget_HolderWideAsBanner(const MultiTarget_HolderRecord_t* record) {
+const MultiTarget_BannerRecord_t* MultiTarget_HolderBannerByWide(const MultiTarget_HolderRecord_t* record) {
   if (record->wide_target != MULTI_TARGET_HOLDER_WIDE_TARGET_BANNER)
     return NULL;
 
   return (const MultiTarget_BannerRecord_t*)record->wide_row;
 }
 
-const MultiTarget_WeaponRecord_t* MultiTarget_HolderMaybeAsWeapon(const MultiTarget_HolderRecord_t* record) {
+const MultiTarget_WeaponRecord_t* MultiTarget_HolderWeaponByMaybe(const MultiTarget_HolderRecord_t* record) {
   if (record->maybe_target != MULTI_TARGET_HOLDER_MAYBE_TARGET_WEAPON)
     return NULL;
 
   return (const MultiTarget_WeaponRecord_t*)record->maybe_row;
 }
 
-const MultiTarget_ArmourRecord_t* MultiTarget_HolderMaybeAsArmour(const MultiTarget_HolderRecord_t* record) {
+const MultiTarget_ArmourRecord_t* MultiTarget_HolderArmourByMaybe(const MultiTarget_HolderRecord_t* record) {
   if (record->maybe_target != MULTI_TARGET_HOLDER_MAYBE_TARGET_ARMOUR)
     return NULL;
 

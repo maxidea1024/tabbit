@@ -57,7 +57,7 @@ public final class HolderRecord {
      * The WeaponRecord row pick names, or null when it names a row of
      * one of the others.
      */
-    public WeaponRecord pickAsWeapon() {
+    public WeaponRecord weaponByPick() {
         if (pickTarget != HolderPickTarget.WEAPON) {
             return null;
         }
@@ -69,7 +69,7 @@ public final class HolderRecord {
      * The ArmourRecord row pick names, or null when it names a row of
      * one of the others.
      */
-    public ArmourRecord pickAsArmour() {
+    public ArmourRecord armourByPick() {
         if (pickTarget != HolderPickTarget.ARMOUR) {
             return null;
         }
@@ -81,7 +81,7 @@ public final class HolderRecord {
      * The WeaponRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    public WeaponRecord wideAsWeapon() {
+    public WeaponRecord weaponByWide() {
         if (wideTarget != HolderWideTarget.WEAPON) {
             return null;
         }
@@ -93,7 +93,7 @@ public final class HolderRecord {
      * The ArmourRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    public ArmourRecord wideAsArmour() {
+    public ArmourRecord armourByWide() {
         if (wideTarget != HolderWideTarget.ARMOUR) {
             return null;
         }
@@ -105,7 +105,7 @@ public final class HolderRecord {
      * The TrinketRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    public TrinketRecord wideAsTrinket() {
+    public TrinketRecord trinketByWide() {
         if (wideTarget != HolderWideTarget.TRINKET) {
             return null;
         }
@@ -117,7 +117,7 @@ public final class HolderRecord {
      * The MountRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    public MountRecord wideAsMount() {
+    public MountRecord mountByWide() {
         if (wideTarget != HolderWideTarget.MOUNT) {
             return null;
         }
@@ -129,7 +129,7 @@ public final class HolderRecord {
      * The BannerRecord row wide names, or null when it names a row of
      * one of the others.
      */
-    public BannerRecord wideAsBanner() {
+    public BannerRecord bannerByWide() {
         if (wideTarget != HolderWideTarget.BANNER) {
             return null;
         }
@@ -141,7 +141,7 @@ public final class HolderRecord {
      * The WeaponRecord row maybe names, or null when it names a row of
      * one of the others.
      */
-    public WeaponRecord maybeAsWeapon() {
+    public WeaponRecord weaponByMaybe() {
         if (maybeTarget != HolderMaybeTarget.WEAPON) {
             return null;
         }
@@ -153,7 +153,7 @@ public final class HolderRecord {
      * The ArmourRecord row maybe names, or null when it names a row of
      * one of the others.
      */
-    public ArmourRecord maybeAsArmour() {
+    public ArmourRecord armourByMaybe() {
         if (maybeTarget != HolderMaybeTarget.ARMOUR) {
             return null;
         }

@@ -152,9 +152,20 @@ RewardSeasonItems
 **합 타입이 공개 표면에 안 나옵니다.** 8절이 합 타입을 피한 근거가 유지됩니다 — 대상 무관
 슬롯은 **내부**이고, 소비하는 쪽이 보는 것은 언제나 타입이 하나인 프로퍼티입니다.
 
+> **식별자는 더한 기능이 아니라 슬롯 하나의 대가입니다.** 슬롯을 하나만 두면 그 안에 어느
+> 테이블의 행이 들었는지 말해 주는 것이 있어야 캐스트가 안전하고, 식별자가 그 태그입니다.
+> 대상마다 슬롯을 두는 설계에서는 필요하지 않습니다 — 그쪽은 「단일 대상 참조 N개」와 완전히
+> 같은 것이고, 그것이 이 설계를 읽을 때 가장 먼저 떠오르는 형태입니다. 아래에 무엇을 사고
+> 무엇을 낸 것인지 적어 둡니다.
+
 ### 고려하고 버린 것
 
 - **대상마다 슬롯.** 위 표. 대상이 둘일 때는 차이가 없고 열여섯일 때 8배입니다.
+  `RewardFixed`(대상 16 · 원소 20 · 약 25,000행)로 재면 **64MB 대 8MB**이고, 64MB 중
+  60MB가 영구히 `null`입니다 — 16개 중 15개는 절대 채워지지 않기 때문입니다. C#에서는 그
+  포인터들이 `struct` 원소 안에 인라인이라 원소를 읽을 때마다 복사됩니다.
+  **A단계에서는 이 절감이 거의 0입니다** — 승격된 31개는 대상이 대부분 둘이고 원소 배수가
+  없습니다. 이 결정이 값을 갖는 것은 B단계입니다.
 - **담지 않고 접근할 때 조회.** 슬롯이 0이 되지만 로우가 접근자를 되가리켜야 하고, 지금
   생성되는 레코드에는 그 되가리킴이 없습니다. 참조를 **로드 뒤 한 번** 잇는 것이 이 도구의
   방식이고, 그것만 다르게 하면 배울 것이 하나 늘어납니다.
@@ -206,8 +217,8 @@ foreign   Weapon.Name            대상의 필드 — 지금 그대로
 ```csharp
 shopRow.ItemId              // int — 키. 지금도 있는 것
 shopRow.ItemIdTarget        // ShopItemIdTarget.CEquip 또는 .Item 또는 .None
-shopRow.ItemIdAsCEquip      // CEquipTable.Record 또는 null
-shopRow.ItemIdAsItem        // ItemTable.Record 또는 null
+shopRow.CEquipByItemId      // CEquipTable.Record 또는 null
+shopRow.ItemByItemId        // ItemTable.Record 또는 null
 ```
 
 레코드 멤버도 같은 모양이고, [세 가지 레코드 모양](references-in-records.md#레코드-그룹의-세-가지-모양)에서
@@ -215,13 +226,17 @@ shopRow.ItemIdAsItem        // ItemTable.Record 또는 null
 
 ```csharp
 rewardRow.RewardFixed[j].IdTarget      // RewardFixedIdTarget.Item
-rewardRow.RewardFixed[j].IdAsItem      // ItemTable.Record
+rewardRow.RewardFixed[j].ItemById      // ItemTable.Record
 ```
 
 ### 이름
 
-**멤버 이름 통로를 지나갑니다.** 모델 표기로 `ItemIdAsCEquip`·`ItemIdTarget`을 만들고, 각
-생성기가 그 언어의 통로에 넣습니다 — `MemberCase`가 `snake`면 `item_id_as_c_equip`입니다
+**`<대상>By<컬럼>`입니다.** 얻는 것이 앞에 오고 그것에 닿은 키가 뒤에 옵니다 —
+레코드를 훑는 사람이 먼저 찾는 것이 타입이기 때문입니다. 한 테이블을 가리키는 컬럼이 여러 개
+있어도 구별됩니다.
+
+**멤버 이름 통로를 지나갑니다.** 모델 표기로 `CEquipByItemId`·`ItemIdTarget`을 만들고, 각
+생성기가 그 언어의 통로에 넣습니다 — `MemberCase`가 `snake`면 `c_equip_by_item_id`입니다
 ([이름 규약](naming-conventions.md)).
 
 식별자 enum은 **선언 하나에 하나**이고 테이블과 컬럼으로 이름을 만듭니다 —

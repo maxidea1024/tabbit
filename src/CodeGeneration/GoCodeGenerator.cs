@@ -457,7 +457,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             {
                 Table = target.Name.ToPascalCase(),
                 RecordName = target.Name.ToPascalCase() + "Record",
-                Method = GoName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Method = GoName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Constant = column.Discriminator.Name.ToPascalCase() + target.Name.ToPascalCase(),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

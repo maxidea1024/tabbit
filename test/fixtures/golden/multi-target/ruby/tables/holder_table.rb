@@ -38,14 +38,14 @@ module MultiTarget
 
 
     # The weapon row this column names, or nil when it names a row of one of the others.
-    def pick_as_weapon
+    def weapon_by_pick
       return nil unless @pick_target == HolderPickTarget::WEAPON
 
       @pick_row
     end
 
     # The armour row this column names, or nil when it names a row of one of the others.
-    def pick_as_armour
+    def armour_by_pick
       return nil unless @pick_target == HolderPickTarget::ARMOUR
 
       @pick_row
@@ -53,35 +53,35 @@ module MultiTarget
 
 
     # The weapon row this column names, or nil when it names a row of one of the others.
-    def wide_as_weapon
+    def weapon_by_wide
       return nil unless @wide_target == HolderWideTarget::WEAPON
 
       @wide_row
     end
 
     # The armour row this column names, or nil when it names a row of one of the others.
-    def wide_as_armour
+    def armour_by_wide
       return nil unless @wide_target == HolderWideTarget::ARMOUR
 
       @wide_row
     end
 
     # The trinket row this column names, or nil when it names a row of one of the others.
-    def wide_as_trinket
+    def trinket_by_wide
       return nil unless @wide_target == HolderWideTarget::TRINKET
 
       @wide_row
     end
 
     # The mount row this column names, or nil when it names a row of one of the others.
-    def wide_as_mount
+    def mount_by_wide
       return nil unless @wide_target == HolderWideTarget::MOUNT
 
       @wide_row
     end
 
     # The banner row this column names, or nil when it names a row of one of the others.
-    def wide_as_banner
+    def banner_by_wide
       return nil unless @wide_target == HolderWideTarget::BANNER
 
       @wide_row
@@ -89,14 +89,14 @@ module MultiTarget
 
 
     # The weapon row this column names, or nil when it names a row of one of the others.
-    def maybe_as_weapon
+    def weapon_by_maybe
       return nil unless @maybe_target == HolderMaybeTarget::WEAPON
 
       @maybe_row
     end
 
     # The armour row this column names, or nil when it names a row of one of the others.
-    def maybe_as_armour
+    def armour_by_maybe
       return nil unless @maybe_target == HolderMaybeTarget::ARMOUR
 
       @maybe_row

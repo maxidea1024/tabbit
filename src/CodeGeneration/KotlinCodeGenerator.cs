@@ -350,7 +350,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             {
                 Table = KotlinName(target.Name),
                 RecordName = target.Name.ToPascalCase() + "Record",
-                Method = KotlinName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Method = KotlinName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Label = ConstantName(target.Name),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

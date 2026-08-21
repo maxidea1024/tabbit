@@ -602,7 +602,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 Table = CName(target.Name),
                 RecordName = RecordName(target),
                 Function = FunctionPrefix(table)
-                    + (column.Group.Name + "As" + target.Name.ToPascalCase()).ToPascalCase(),
+                    + (target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()).ToPascalCase(),
                 Label = ConstantName(column.Discriminator.Name, target.Name),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

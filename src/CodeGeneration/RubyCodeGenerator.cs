@@ -407,7 +407,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             Targets = column.Targets.Select(target => new RubyMultiTargetView
             {
                 Table = RubyName(target.Name),
-                Method = RubyName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Method = RubyName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Label = ConstantName(target.Name),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

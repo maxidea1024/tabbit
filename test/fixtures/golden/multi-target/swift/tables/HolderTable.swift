@@ -41,7 +41,7 @@ public final class HolderRecord {
 
     /// The `WeaponRecord` row `pick` names, or nil when it names a row
     /// of one of the others.
-    public var pickAsWeapon: WeaponRecord? {
+    public var weaponByPick: WeaponRecord? {
         pickTarget == HolderPickTarget.weapon
             ? (pickRow as? WeaponRecord)
             : nil
@@ -49,7 +49,7 @@ public final class HolderRecord {
 
     /// The `ArmourRecord` row `pick` names, or nil when it names a row
     /// of one of the others.
-    public var pickAsArmour: ArmourRecord? {
+    public var armourByPick: ArmourRecord? {
         pickTarget == HolderPickTarget.armour
             ? (pickRow as? ArmourRecord)
             : nil
@@ -64,7 +64,7 @@ public final class HolderRecord {
 
     /// The `WeaponRecord` row `wide` names, or nil when it names a row
     /// of one of the others.
-    public var wideAsWeapon: WeaponRecord? {
+    public var weaponByWide: WeaponRecord? {
         wideTarget == HolderWideTarget.weapon
             ? (wideRow as? WeaponRecord)
             : nil
@@ -72,7 +72,7 @@ public final class HolderRecord {
 
     /// The `ArmourRecord` row `wide` names, or nil when it names a row
     /// of one of the others.
-    public var wideAsArmour: ArmourRecord? {
+    public var armourByWide: ArmourRecord? {
         wideTarget == HolderWideTarget.armour
             ? (wideRow as? ArmourRecord)
             : nil
@@ -80,7 +80,7 @@ public final class HolderRecord {
 
     /// The `TrinketRecord` row `wide` names, or nil when it names a row
     /// of one of the others.
-    public var wideAsTrinket: TrinketRecord? {
+    public var trinketByWide: TrinketRecord? {
         wideTarget == HolderWideTarget.trinket
             ? (wideRow as? TrinketRecord)
             : nil
@@ -88,7 +88,7 @@ public final class HolderRecord {
 
     /// The `MountRecord` row `wide` names, or nil when it names a row
     /// of one of the others.
-    public var wideAsMount: MountRecord? {
+    public var mountByWide: MountRecord? {
         wideTarget == HolderWideTarget.mount
             ? (wideRow as? MountRecord)
             : nil
@@ -96,7 +96,7 @@ public final class HolderRecord {
 
     /// The `BannerRecord` row `wide` names, or nil when it names a row
     /// of one of the others.
-    public var wideAsBanner: BannerRecord? {
+    public var bannerByWide: BannerRecord? {
         wideTarget == HolderWideTarget.banner
             ? (wideRow as? BannerRecord)
             : nil
@@ -111,7 +111,7 @@ public final class HolderRecord {
 
     /// The `WeaponRecord` row `maybe` names, or nil when it names a row
     /// of one of the others.
-    public var maybeAsWeapon: WeaponRecord? {
+    public var weaponByMaybe: WeaponRecord? {
         maybeTarget == HolderMaybeTarget.weapon
             ? (maybeRow as? WeaponRecord)
             : nil
@@ -119,7 +119,7 @@ public final class HolderRecord {
 
     /// The `ArmourRecord` row `maybe` names, or nil when it names a row
     /// of one of the others.
-    public var maybeAsArmour: ArmourRecord? {
+    public var armourByMaybe: ArmourRecord? {
         maybeTarget == HolderMaybeTarget.armour
             ? (maybeRow as? ArmourRecord)
             : nil

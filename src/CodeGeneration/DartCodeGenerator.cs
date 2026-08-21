@@ -372,7 +372,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             {
                 Table = DartName(target.Name),
                 RecordName = target.Name.ToPascalCase() + "Record",
-                Method = DartName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Method = DartName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Label = DartCamelName(target.Name),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

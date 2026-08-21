@@ -519,8 +519,8 @@ foreign   Weapon|Armour          둘 중 하나
 ```csharp
 shopRow.ItemId              // int — 키
 shopRow.ItemIdTarget        // 어느 카탈로그인가 (생성된 enum)
-shopRow.ItemIdAsCEquip      // CEquip 행 또는 null
-shopRow.ItemIdAsItem        // Item 행 또는 null
+shopRow.CEquipByItemId      // CEquip 행 또는 null
+shopRow.ItemByItemId        // Item 행 또는 null
 ```
 
 `ItemIdTarget`이 답하는 것이 「어느 것인가」이고, 그 값이 아닌 프로퍼티는 언제나 비어 있습니다.

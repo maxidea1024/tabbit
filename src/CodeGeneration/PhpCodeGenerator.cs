@@ -458,7 +458,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             {
                 Table = PhpName(target.Name),
                 RecordName = target.Name.ToPascalCase() + "Record",
-                Method = PhpName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Method = PhpName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Case = CaseName(target.Name),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

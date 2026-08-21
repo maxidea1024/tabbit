@@ -58,7 +58,7 @@ final class HolderRecord
 
 
     /** The WeaponRecord row this column names, or null when it names a row of one of the others. */
-    public function pickAsWeapon(): ?WeaponRecord
+    public function weaponByPick(): ?WeaponRecord
     {
         if ($this->pickTarget !== HolderPickTarget::Weapon) {
             return null;
@@ -68,7 +68,7 @@ final class HolderRecord
     }
 
     /** The ArmourRecord row this column names, or null when it names a row of one of the others. */
-    public function pickAsArmour(): ?ArmourRecord
+    public function armourByPick(): ?ArmourRecord
     {
         if ($this->pickTarget !== HolderPickTarget::Armour) {
             return null;
@@ -79,7 +79,7 @@ final class HolderRecord
 
 
     /** The WeaponRecord row this column names, or null when it names a row of one of the others. */
-    public function wideAsWeapon(): ?WeaponRecord
+    public function weaponByWide(): ?WeaponRecord
     {
         if ($this->wideTarget !== HolderWideTarget::Weapon) {
             return null;
@@ -89,7 +89,7 @@ final class HolderRecord
     }
 
     /** The ArmourRecord row this column names, or null when it names a row of one of the others. */
-    public function wideAsArmour(): ?ArmourRecord
+    public function armourByWide(): ?ArmourRecord
     {
         if ($this->wideTarget !== HolderWideTarget::Armour) {
             return null;
@@ -99,7 +99,7 @@ final class HolderRecord
     }
 
     /** The TrinketRecord row this column names, or null when it names a row of one of the others. */
-    public function wideAsTrinket(): ?TrinketRecord
+    public function trinketByWide(): ?TrinketRecord
     {
         if ($this->wideTarget !== HolderWideTarget::Trinket) {
             return null;
@@ -109,7 +109,7 @@ final class HolderRecord
     }
 
     /** The MountRecord row this column names, or null when it names a row of one of the others. */
-    public function wideAsMount(): ?MountRecord
+    public function mountByWide(): ?MountRecord
     {
         if ($this->wideTarget !== HolderWideTarget::Mount) {
             return null;
@@ -119,7 +119,7 @@ final class HolderRecord
     }
 
     /** The BannerRecord row this column names, or null when it names a row of one of the others. */
-    public function wideAsBanner(): ?BannerRecord
+    public function bannerByWide(): ?BannerRecord
     {
         if ($this->wideTarget !== HolderWideTarget::Banner) {
             return null;
@@ -130,7 +130,7 @@ final class HolderRecord
 
 
     /** The WeaponRecord row this column names, or null when it names a row of one of the others. */
-    public function maybeAsWeapon(): ?WeaponRecord
+    public function weaponByMaybe(): ?WeaponRecord
     {
         if ($this->maybeTarget !== HolderMaybeTarget::Weapon) {
             return null;
@@ -140,7 +140,7 @@ final class HolderRecord
     }
 
     /** The ArmourRecord row this column names, or null when it names a row of one of the others. */
-    public function maybeAsArmour(): ?ArmourRecord
+    public function armourByMaybe(): ?ArmourRecord
     {
         if ($this->maybeTarget !== HolderMaybeTarget::Armour) {
             return null;

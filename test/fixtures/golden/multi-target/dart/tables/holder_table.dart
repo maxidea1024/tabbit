@@ -46,7 +46,7 @@ class HolderRecord {
 
   /// The [WeaponRecord] row [pick] names, or null when it names a row
   /// of one of the others.
-  WeaponRecord? get pickAsWeapon =>
+  WeaponRecord? get weaponByPick =>
       pickTarget == HolderPickTarget.weapon
           ? pickRow as WeaponRecord
           : null;
@@ -54,7 +54,7 @@ class HolderRecord {
 
   /// The [ArmourRecord] row [pick] names, or null when it names a row
   /// of one of the others.
-  ArmourRecord? get pickAsArmour =>
+  ArmourRecord? get armourByPick =>
       pickTarget == HolderPickTarget.armour
           ? pickRow as ArmourRecord
           : null;
@@ -62,7 +62,7 @@ class HolderRecord {
 
   /// The [WeaponRecord] row [wide] names, or null when it names a row
   /// of one of the others.
-  WeaponRecord? get wideAsWeapon =>
+  WeaponRecord? get weaponByWide =>
       wideTarget == HolderWideTarget.weapon
           ? wideRow as WeaponRecord
           : null;
@@ -70,7 +70,7 @@ class HolderRecord {
 
   /// The [ArmourRecord] row [wide] names, or null when it names a row
   /// of one of the others.
-  ArmourRecord? get wideAsArmour =>
+  ArmourRecord? get armourByWide =>
       wideTarget == HolderWideTarget.armour
           ? wideRow as ArmourRecord
           : null;
@@ -78,7 +78,7 @@ class HolderRecord {
 
   /// The [TrinketRecord] row [wide] names, or null when it names a row
   /// of one of the others.
-  TrinketRecord? get wideAsTrinket =>
+  TrinketRecord? get trinketByWide =>
       wideTarget == HolderWideTarget.trinket
           ? wideRow as TrinketRecord
           : null;
@@ -86,7 +86,7 @@ class HolderRecord {
 
   /// The [MountRecord] row [wide] names, or null when it names a row
   /// of one of the others.
-  MountRecord? get wideAsMount =>
+  MountRecord? get mountByWide =>
       wideTarget == HolderWideTarget.mount
           ? wideRow as MountRecord
           : null;
@@ -94,7 +94,7 @@ class HolderRecord {
 
   /// The [BannerRecord] row [wide] names, or null when it names a row
   /// of one of the others.
-  BannerRecord? get wideAsBanner =>
+  BannerRecord? get bannerByWide =>
       wideTarget == HolderWideTarget.banner
           ? wideRow as BannerRecord
           : null;
@@ -102,7 +102,7 @@ class HolderRecord {
 
   /// The [WeaponRecord] row [maybe] names, or null when it names a row
   /// of one of the others.
-  WeaponRecord? get maybeAsWeapon =>
+  WeaponRecord? get weaponByMaybe =>
       maybeTarget == HolderMaybeTarget.weapon
           ? maybeRow as WeaponRecord
           : null;
@@ -110,7 +110,7 @@ class HolderRecord {
 
   /// The [ArmourRecord] row [maybe] names, or null when it names a row
   /// of one of the others.
-  ArmourRecord? get maybeAsArmour =>
+  ArmourRecord? get armourByMaybe =>
       maybeTarget == HolderMaybeTarget.armour
           ? maybeRow as ArmourRecord
           : null;

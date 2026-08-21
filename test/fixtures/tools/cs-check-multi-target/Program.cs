@@ -89,11 +89,11 @@ internal static class Program
     {
         var names = new List<string>();
 
-        if (r.PickAsWeapon != null)
-            names.Add("Weapon:" + r.PickAsWeapon.Name);
+        if (r.WeaponByPick != null)
+            names.Add("Weapon:" + r.WeaponByPick.Name);
 
-        if (r.PickAsArmour != null)
-            names.Add("Armour:" + r.PickAsArmour.Name);
+        if (r.ArmourByPick != null)
+            names.Add("Armour:" + r.ArmourByPick.Name);
 
         return names.Count == 0 ? "<none>" : string.Join("+", names);
     }
@@ -102,20 +102,20 @@ internal static class Program
     {
         var names = new List<string>();
 
-        if (r.WideAsWeapon != null)
-            names.Add("Weapon:" + r.WideAsWeapon.Name);
+        if (r.WeaponByWide != null)
+            names.Add("Weapon:" + r.WeaponByWide.Name);
 
-        if (r.WideAsArmour != null)
-            names.Add("Armour:" + r.WideAsArmour.Name);
+        if (r.ArmourByWide != null)
+            names.Add("Armour:" + r.ArmourByWide.Name);
 
-        if (r.WideAsTrinket != null)
-            names.Add("Trinket:" + r.WideAsTrinket.Name);
+        if (r.TrinketByWide != null)
+            names.Add("Trinket:" + r.TrinketByWide.Name);
 
-        if (r.WideAsMount != null)
-            names.Add("Mount:" + r.WideAsMount.Name);
+        if (r.MountByWide != null)
+            names.Add("Mount:" + r.MountByWide.Name);
 
-        if (r.WideAsBanner != null)
-            names.Add("Banner:" + r.WideAsBanner.Name);
+        if (r.BannerByWide != null)
+            names.Add("Banner:" + r.BannerByWide.Name);
 
         return names.Count == 0 ? "<none>" : string.Join("+", names);
     }
@@ -124,11 +124,11 @@ internal static class Program
     {
         var names = new List<string>();
 
-        if (r.MaybeAsWeapon != null)
-            names.Add("Weapon:" + r.MaybeAsWeapon.Name);
+        if (r.WeaponByMaybe != null)
+            names.Add("Weapon:" + r.WeaponByMaybe.Name);
 
-        if (r.MaybeAsArmour != null)
-            names.Add("Armour:" + r.MaybeAsArmour.Name);
+        if (r.ArmourByMaybe != null)
+            names.Add("Armour:" + r.ArmourByMaybe.Name);
 
         return names.Count == 0 ? "<none>" : string.Join("+", names);
     }

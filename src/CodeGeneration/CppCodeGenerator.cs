@@ -571,7 +571,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             {
                 Table = CppName(target.Name),
                 RecordName = RecordName(target),
-                Method = CppName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Method = CppName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Label = target.Name.ToPascalCase(),
                 Lookup = PrimaryLookup(target),
             }).ToList(),

@@ -545,7 +545,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             {
                 Table = target.Name.ToPascalCase(),
                 RecordTypeName = target.Name.ToPascalCase() + "Table.Record",
-                Property = CsName(column.Group.Name + "As" + target.Name.ToPascalCase()),
+                Property = CsName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
                 Label = target.Name.ToPascalCase(),
                 Lookup = PrimaryFind(target),
             }).ToList(),

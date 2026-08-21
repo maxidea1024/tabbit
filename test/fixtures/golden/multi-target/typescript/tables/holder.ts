@@ -61,13 +61,13 @@ export class HolderRecord {
   /** Which table `pick` is a row of. */
   public get pickTarget(): HolderPickTarget { return this._pickTarget }
   /** The `weapon` row `pick` names, or undefined when it names a row of one of the others. */
-  public get pickAsWeapon(): WeaponRecord | undefined {
+  public get weaponByPick(): WeaponRecord | undefined {
     return this._pickTarget === HolderPickTarget.Weapon
       ? this._pickRow as WeaponRecord
       : undefined
   }
   /** The `armour` row `pick` names, or undefined when it names a row of one of the others. */
-  public get pickAsArmour(): ArmourRecord | undefined {
+  public get armourByPick(): ArmourRecord | undefined {
     return this._pickTarget === HolderPickTarget.Armour
       ? this._pickRow as ArmourRecord
       : undefined
@@ -76,31 +76,31 @@ export class HolderRecord {
   /** Which table `wide` is a row of. */
   public get wideTarget(): HolderWideTarget { return this._wideTarget }
   /** The `weapon` row `wide` names, or undefined when it names a row of one of the others. */
-  public get wideAsWeapon(): WeaponRecord | undefined {
+  public get weaponByWide(): WeaponRecord | undefined {
     return this._wideTarget === HolderWideTarget.Weapon
       ? this._wideRow as WeaponRecord
       : undefined
   }
   /** The `armour` row `wide` names, or undefined when it names a row of one of the others. */
-  public get wideAsArmour(): ArmourRecord | undefined {
+  public get armourByWide(): ArmourRecord | undefined {
     return this._wideTarget === HolderWideTarget.Armour
       ? this._wideRow as ArmourRecord
       : undefined
   }
   /** The `trinket` row `wide` names, or undefined when it names a row of one of the others. */
-  public get wideAsTrinket(): TrinketRecord | undefined {
+  public get trinketByWide(): TrinketRecord | undefined {
     return this._wideTarget === HolderWideTarget.Trinket
       ? this._wideRow as TrinketRecord
       : undefined
   }
   /** The `mount` row `wide` names, or undefined when it names a row of one of the others. */
-  public get wideAsMount(): MountRecord | undefined {
+  public get mountByWide(): MountRecord | undefined {
     return this._wideTarget === HolderWideTarget.Mount
       ? this._wideRow as MountRecord
       : undefined
   }
   /** The `banner` row `wide` names, or undefined when it names a row of one of the others. */
-  public get wideAsBanner(): BannerRecord | undefined {
+  public get bannerByWide(): BannerRecord | undefined {
     return this._wideTarget === HolderWideTarget.Banner
       ? this._wideRow as BannerRecord
       : undefined
@@ -109,13 +109,13 @@ export class HolderRecord {
   /** Which table `maybe` is a row of. */
   public get maybeTarget(): HolderMaybeTarget { return this._maybeTarget }
   /** The `weapon` row `maybe` names, or undefined when it names a row of one of the others. */
-  public get maybeAsWeapon(): WeaponRecord | undefined {
+  public get weaponByMaybe(): WeaponRecord | undefined {
     return this._maybeTarget === HolderMaybeTarget.Weapon
       ? this._maybeRow as WeaponRecord
       : undefined
   }
   /** The `armour` row `maybe` names, or undefined when it names a row of one of the others. */
-  public get maybeAsArmour(): ArmourRecord | undefined {
+  public get armourByMaybe(): ArmourRecord | undefined {
     return this._maybeTarget === HolderMaybeTarget.Armour
       ? this._maybeRow as ArmourRecord
       : undefined
