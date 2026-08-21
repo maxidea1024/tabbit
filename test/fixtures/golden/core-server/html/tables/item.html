@@ -7,9 +7,10 @@
 <style>
 :root {
   --bg: #fff; --fg: #1f2328; --muted: #59636e; --faint: #818b98;
-  --line: #d1d9e0; --line-soft: #eaeef2; --head: #f6f8fa; --zebra: #fbfcfd;
+  --line: #d1d9e0; --line-soft: #eaeef2; --head-line: #dfe4ea; --head: #f6f8fa; --zebra: #fbfcfd;
   --hover: #fff8c5; --link: #0969da; --accent: #0969da;
   --num: #0a7c4a; --key: #0a7c4a; --type: #6639ba; --flag: #9a6700; --none: #a0a8b0;
+  --str: #a31515; --bad: #cf222e; --good: #c8a200;
   --bar: #f6f8fa; --card: #f6f8fa; --shadow: rgba(31, 35, 40, .12);
   --thumb: #ced3d9; --thumb-hover: #aeb6c0;
   color-scheme: light;
@@ -17,9 +18,10 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --faint: #6e7681;
-    --line: #30363d; --line-soft: #21262d; --head: #161b22; --zebra: #11161d;
+    --line: #30363d; --line-soft: #21262d; --head-line: #2b3138; --head: #161b22; --zebra: #11161d;
     --hover: #2d2611; --link: #4493f8; --accent: #4493f8;
     --num: #3fb950; --key: #3fb950; --type: #d2a8ff; --flag: #d29922; --none: #545d68;
+    --str: #ce9178; --bad: #f85149; --good: #ffd60a; --bad: #f85149;
     --bar: #161b22; --card: #161b22; --shadow: rgba(1, 4, 9, .8);
     --thumb: #30363d; --thumb-hover: #484f58;
     color-scheme: dark;
@@ -27,9 +29,10 @@
 }
 :root[data-theme="dark"] {
   --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --faint: #6e7681;
-  --line: #30363d; --line-soft: #21262d; --head: #161b22; --zebra: #11161d;
+  --line: #30363d; --line-soft: #21262d; --head-line: #2b3138; --head: #161b22; --zebra: #11161d;
   --hover: #2d2611; --link: #4493f8; --accent: #4493f8;
   --num: #3fb950; --key: #3fb950; --type: #d2a8ff; --flag: #d29922; --none: #545d68;
+  --str: #ce9178; --bad: #f85149; --good: #ffd60a;
   --bar: #161b22; --card: #161b22; --shadow: rgba(1, 4, 9, .8);
   --thumb: #30363d; --thumb-hover: #484f58;
   color-scheme: dark;
@@ -159,7 +162,16 @@ input[type=search]:focus { outline: 2px solid var(--accent); outline-offset: -1p
   display: block; background: var(--card); border: 1px solid var(--line-soft);
   border-radius: 8px; padding: 9px 14px; min-width: 116px; color: inherit;
 }
+/* The cards that go somewhere say so. Half of them are counters and half are doors, and
+   they looked alike - a reader found out which by clicking. The arrow is the same mark the
+   page puts on a reference, so it reads as "there is more this way" here too. */
+a.card { position: relative; padding-right: 26px; }
+a.card::after {
+  content: "→"; position: absolute; top: 8px; right: 10px;
+  font-size: 12px; color: var(--faint);
+}
 a.card:hover { border-color: var(--accent); text-decoration: none; }
+a.card:hover::after { color: var(--accent); }
 .card .n { font-size: 19px; font-weight: 600; }
 .card .k {
   display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--faint);
@@ -200,24 +212,30 @@ th, td {
   padding: 3px 9px; text-align: left; vertical-align: top; white-space: nowrap;
 }
 th:last-child, td:last-child { border-right: 0; }
+/* The whole band is one sticky element, and that is what keeps its lines intact.
+   Each header row used to stick on its own at an offset the page computed - 23px, 46px,
+   69px - and at a device pixel ratio that is not a whole number a row's rendered height
+   and its offset round differently. The rows then overlapped by a fraction: a line came
+   out doubled where two edges landed together and gone where one covered another, and it
+   changed as the table scrolled. Sticking `thead` instead makes the rows' edges internal
+   to one painted box, so the arithmetic - and the whole class of problem - is gone. */
+thead { position: sticky; top: 0; z-index: 2; }
 thead th {
-  background: var(--head); position: sticky; top: 0; z-index: 2;
-  border-bottom: 1px solid var(--line);
+  background: var(--head); position: static;
+  border-right: 1px solid var(--head-line);
+  border-bottom: 1px solid var(--head-line);
 }
-/* Every header row exactly 23px, so the sticky offsets below can be exact. A row's
-   height was the height of its own text before, and the description row of a sheet with
-   no column comments is empty - so the stack overlapped the first values by however much
-   the rows disagreed. The offsets come from the table, because a page whose description
-   row is dropped has three rows to stack rather than four. */
+/* The band's own edge is the one line that separates headings from values, so it is drawn
+   in the grid's colour and the rows inside it in a lighter one. */
+thead tr:last-child th { border-bottom: 1px solid var(--line); }
+/* Every header row the same height. A row was as tall as its own text before, and the
+   description row of a sheet with no column comments is empty. */
 thead th { height: 23px; line-height: 17px; padding-top: 3px; padding-bottom: 3px; }
 thead tr.names th { font-weight: 600; cursor: pointer; }
 thead tr.names th.sorted::after { content: " \25B4"; color: var(--faint); }
 thead tr.names th.sorted.desc::after { content: " \25BE"; }
 thead tr.about th, thead tr.side th { font-weight: 400; color: var(--muted); font-size: 12px; }
 thead tr.types th { font-weight: 400; }
-thead tr.about th { top: var(--t-about, 23px); }
-thead tr.types th { top: var(--t-types, 46px); }
-thead tr.side th { top: var(--t-side, 69px); }
 tbody tr:nth-child(even) { background: var(--zebra); }
 tbody tr:hover > td { background: var(--hover); }
 tbody tr.out { display: none; }
@@ -231,7 +249,9 @@ tbody tr.out { display: none; }
    cell onwards. */
 .scroll thead th:first-child, .scroll tbody td:first-child { position: sticky; left: 0; }
 .scroll thead th:first-child { z-index: 3; }
-.scroll tbody td:first-child { background: var(--bg); }
+/* The same reason as the header: this cell is sticky sideways, so its right-hand line is
+   painted from inside it. */
+.scroll tbody td:first-child { background: var(--bg); border-right: 0; box-shadow: inset -1px 0 0 var(--line-soft); }
 .scroll tbody tr:nth-child(even) td:first-child { background: var(--zebra); }
 .scroll tbody tr:hover > td:first-child { background: var(--hover); }
 
@@ -251,16 +271,24 @@ tbody tr:has(td:target) > td { background: var(--hover); }
 td.record .clip { max-width: 60ch; }
 /* The member names are in the markup so the panel can print them, and out of the cell
    because a tuple of three values beside a hundred rows of them is what fits. */
+/* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
+   rather than as two columns crammed into one. */
+.book { color: var(--muted); }
 .mem { color: var(--faint); }
 td.record .mem, td.record .msep { display: none; }
-th .mem { color: var(--faint); }
+th /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
+   rather than as two columns crammed into one. */
+.book { color: var(--muted); }
+.mem { color: var(--faint); }
 .obj { white-space: nowrap; }
 td.record.open .obj { display: block; }
 td.record.open .clip { max-width: 80ch; white-space: normal; }
 td.text { cursor: pointer; }
 td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
 
-.num, .key { text-align: right; }
+/* Everything left aligned, headings and values alike. A column of right-aligned numbers
+   beside a column of left-aligned text puts a ragged gap down the middle of a table whose
+   columns are read across, not summed. */
 .num { color: var(--num); }
 .key code { color: var(--key); }
 .enum { white-space: nowrap; }
@@ -274,9 +302,20 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
 .declared a { color: var(--muted); }
 .flag { color: var(--flag); }
 .sep { color: var(--faint); }
+/* No value, spelled the way a database grid spells it - and the only thing on the page in
+   italic, so it is never read as a value. An empty string and an empty array are values, so
+   they are upright. */
+.null { color: var(--none); font-style: italic; }
 .empty { color: var(--none); }
-.yes { color: var(--num); }
-.no { color: var(--none); }
+/* A string literal, coloured the way an editor colours one - quotes included, since the
+   quotes are part of the literal. It reads as a value of a kind rather than as text that
+   happens to be in a cell, which is the same reason numbers and enums have their own. */
+.str { color: var(--str); }
+/* True and false differ in shape first and colour second. In one shape and two colours a
+   column of `false` still reads as ticked - the eye takes the silhouette and not the hue. */
+.yes, .no { font-weight: 600; }
+.yes { color: var(--good); }
+.no { color: var(--bad); }
 .n-of { color: var(--faint); font-size: 11px; margin-left: 4px; }
 .tools { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; flex-wrap: wrap; }
 .tools input[type=search] { width: 260px; }
@@ -320,6 +359,31 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
   height: 58vh; min-height: 260px; overflow: hidden;
   border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
 }
+/* The list that drives the drawing sits beside it. Under it, choosing a table meant
+   scrolling to the list, choosing, and scrolling back to see what changed - and on a tall
+   drawing the two were never on screen together. The drawing sets the row's height and the
+   list stretches to it, scrolling its own rows inside. */
+.graphrow {
+  display: flex; align-items: stretch; gap: 14px; min-width: 0;
+  /* A definite height, because both columns are sized from it: without one the row is as
+     tall as the longer column's content, which is a list of every table in the model. */
+  height: 66vh; min-height: 320px;
+}
+.graphrow > * { min-height: 0; }
+.graphrow .viewport { height: auto; flex: 1 1 auto; min-height: 0; }
+.graphrow > .picker {
+  flex: 0 0 clamp(240px, 26%, 330px); min-width: 0;
+  display: flex; flex-direction: column;
+}
+/* Tighter cells, because four columns in a 240px box is what this list is. */
+.graphrow .picker th, .graphrow .picker td { padding-left: 6px; padding-right: 6px; }
+.graphrow > .stage { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.graphrow h2 { margin-top: 0; }
+.graphrow .picker [data-table] { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.graphrow .picker .scroll { flex: 1 1 auto; min-height: 0; width: 100%; }
+.graphrow .picker table { width: 100%; }
+.graphrow .picker input[type=search] { width: 100%; }
+.graphrow .picker .tools { gap: 6px; }
 .viewport .graph { cursor: grab; touch-action: none; }
 .viewport .graph.dragging { cursor: grabbing; }
 .tools .grow { flex: 1 1 auto; }
@@ -334,6 +398,15 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
 /* The neighbourhood drawing: one table, what points at it, what it points at. */
 .graph .glyph { fill: var(--faint); font-size: 11px; }
 .graph .node { cursor: pointer; }
+/* The button that draws a table. The row draws it too, but a row that is clickable in one
+   place and a link in another says neither - so the thing to click is a thing. */
+td.pick, th.pick { width: 1px; padding-right: 4px; text-align: center; }
+td.pick button {
+  display: block; padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--faint); line-height: 0;
+}
+td.pick button:hover { color: var(--accent); }
+tbody tr.picked td.pick button { color: var(--accent); }
 tbody tr.picked > td { background: var(--hover); }
 tbody tr.picked > td:first-child { background: var(--hover); }
 tbody [data-pick] { cursor: pointer; }
@@ -350,6 +423,10 @@ tbody [data-pick] { cursor: pointer; }
 .graph #all.focused #edges { opacity: .07; }
 .graph #lit path { fill: none; stroke: var(--accent); stroke-width: 1.8; pointer-events: none; }
 .graph .node.hit rect { stroke: var(--accent); stroke-width: 1.8; }
+/* A box that is one step away, and the arrow that says so. */
+.graph .node.walk:hover rect { stroke: var(--accent); fill: var(--hover); }
+.graph .node .go { fill: var(--faint); font-size: 12px; }
+.graph .node.walk:hover .go { fill: var(--accent); }
 .graph .node.near rect { stroke: var(--accent); }
 
 .foot {
@@ -363,6 +440,9 @@ tbody [data-pick] { cursor: pointer; }
   aside { width: auto; margin-bottom: 20px; }
   main.fill { display: block; }
   main.fill .scroll { max-height: 70vh; }
+  .graphrow { display: block; height: auto; }
+  .graphrow .viewport { height: 58vh; }
+  .graphrow > .picker .scroll { max-height: 40vh; margin-bottom: 18px; }
   .entities { columns: 1; }
 }
 </style>
@@ -427,7 +507,7 @@ tbody [data-pick] { cursor: pointer; }
 </aside>
 <main class="fill">
 <h1>Item</h1>
-<p class="lead"><svg class="i"><use href="#i-table"></use></svg>Item &middot; 행 3개 &middot; 컬럼 7개 <span class="hint">&middot; <svg class="i"><use href="#i-sheet"></use></svg>Refs : I2</span></p>
+<p class="lead"><svg class="i"><use href="#i-table"></use></svg>Item &middot; 행 3개 &middot; 컬럼 7개 <span class="hint">&middot; <span class="book" title="test/fixtures/xlsx/core/core.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>core.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>Refs : I2</span></p>
 <p class="comment">References ItemCategory by record.</p>
 <div data-table>
 <div class="tools">
@@ -435,7 +515,7 @@ tbody [data-pick] { cursor: pointer; }
 <span class="hint" data-shown>3행 중 3행</span>
 </div>
 <div class="scroll">
-<table id="table_Item" style="--t-about: 23px; --t-types: 46px; --t-side: 69px" data-sortable>
+<table id="table_Item" data-sortable>
 <thead>
 <tr class="names">
 <th id="col_Item.Index" title="기본 인덱스 &#183; 생성 이름 Index">index</th>
@@ -458,7 +538,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="types">
 <th><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></th>
 <th><span class="type">string</span></th>
-<th><a href="../tables/item-category.html" title="ItemCategory 참조">&#x2192; ItemCategory</a></th>
+<th><span class="type">int</span> <a href="../tables/item-category.html" title="ItemCategory 참조">&#x2192; ItemCategory</a></th>
 <th><a href="../enums/grade.html#enum_Grade" data-enum="Grade">enum.Grade</a></th>
 <th><a href="../enums/skill-type.html#enum_SkillType" data-enum="SkillType">enum.SkillType</a></th>
 <th><span class="type">string</span></th>
@@ -475,9 +555,9 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 </thead>
 <tbody>
-<tr><td class="key" id="row_Item.1"><code>1</code></td><td>Short Sword</td><td class="key"><code><a href="../tables/item-category.html#row_ItemCategory.1" data-refs="ItemCategory" data-key="1">1</a></code></td><td><a class="enum" href="../enums/grade.html#const_Grade.Common" data-enum="Grade" data-label="Common">Common</a></td><td><a class="enum" href="../enums/skill-type.html#const_SkillType.FireBall" data-enum="SkillType" data-label="FireBall">FireBall</a></td><td>Sharp &amp; quick; deals &lt;b&gt;bonus&lt;/b&gt; damage</td><td class="num">100</td></tr>
-<tr><td class="key" id="row_Item.2"><code>2</code></td><td>Leather Armor</td><td class="key"><code><a href="../tables/item-category.html#row_ItemCategory.2" data-refs="ItemCategory" data-key="2">2</a></code></td><td><a class="enum" href="../enums/grade.html#const_Grade.Rare" data-enum="Grade" data-label="Rare">Rare</a></td><td><a class="enum" href="../enums/skill-type.html#const_SkillType.IceShard" data-enum="SkillType" data-label="IceShard">IceShard</a></td><td>Blocks 5% of &quot;physical&quot; hits</td><td class="num">250</td></tr>
-<tr><td class="key" id="row_Item.3"><code>3</code></td><td>Small Potion</td><td class="key"><code><a href="../tables/item-category.html#row_ItemCategory.3" data-refs="ItemCategory" data-key="3">3</a></code></td><td><a class="enum" href="../enums/grade.html#const_Grade.Epic" data-enum="Grade" data-label="Epic">Epic</a></td><td><a class="enum" href="../enums/skill-type.html#const_SkillType.None" data-enum="SkillType" data-label="None">None</a></td><td>Restores 10 HP &lt;or&gt; 5 MP</td><td class="num">50</td></tr>
+<tr><td class="key" id="row_Item.1"><code>1</code></td><td><span class="str">&quot;Short Sword&quot;</span></td><td class="key"><code><a href="../tables/item-category.html#row_ItemCategory.1" data-refs="ItemCategory" data-key="1">1</a></code></td><td><a class="enum" href="../enums/grade.html#const_Grade.Common" data-enum="Grade" data-label="Common">Common</a></td><td><a class="enum" href="../enums/skill-type.html#const_SkillType.FireBall" data-enum="SkillType" data-label="FireBall">FireBall</a></td><td><span class="str">&quot;Sharp &amp; quick; deals &lt;b&gt;bonus&lt;/b&gt; damage&quot;</span></td><td class="num">100</td></tr>
+<tr><td class="key" id="row_Item.2"><code>2</code></td><td><span class="str">&quot;Leather Armor&quot;</span></td><td class="key"><code><a href="../tables/item-category.html#row_ItemCategory.2" data-refs="ItemCategory" data-key="2">2</a></code></td><td><a class="enum" href="../enums/grade.html#const_Grade.Rare" data-enum="Grade" data-label="Rare">Rare</a></td><td><a class="enum" href="../enums/skill-type.html#const_SkillType.IceShard" data-enum="SkillType" data-label="IceShard">IceShard</a></td><td><span class="str">&quot;Blocks 5% of &quot;physical&quot; hits&quot;</span></td><td class="num">250</td></tr>
+<tr><td class="key" id="row_Item.3"><code>3</code></td><td><span class="str">&quot;Small Potion&quot;</span></td><td class="key"><code><a href="../tables/item-category.html#row_ItemCategory.3" data-refs="ItemCategory" data-key="3">3</a></code></td><td><a class="enum" href="../enums/grade.html#const_Grade.Epic" data-enum="Grade" data-label="Epic">Epic</a></td><td><a class="enum" href="../enums/skill-type.html#const_SkillType.None" data-enum="SkillType" data-label="None">None</a></td><td><span class="str">&quot;Restores 10 HP &lt;or&gt; 5 MP&quot;</span></td><td class="num">50</td></tr>
 </tbody>
 </table>
 </div>
@@ -557,6 +637,29 @@ tbody [data-pick] { cursor: pointer; }
     });
   }
 
+  // ---- the list down the side, on the table it is showing. Every page is its own
+  // document, so the list starts at the top on each one - and on a model with a few hundred
+  // tables the current one is then hundreds of rows below the fold. It was marked as
+  // current where nobody could see it, and reading it took a scroll to find out where you
+  // were. Centred rather than merely revealed: the tables either side of this one are the
+  // ones a reader moves to next.
+  //
+  // The container's own `scrollTop`, not `scrollIntoView` - that scrolls every ancestor
+  // that can scroll, which here would move the page and take the top bar with it.
+  var sidelist = document.querySelector(".side-list");
+  var current = sidelist && sidelist.querySelector("li.on");
+
+  if (current) {
+    // Measured, not from `offsetTop`: that is relative to the nearest positioned ancestor,
+    // which is not this list, so it carried the list's own distance down the page into the
+    // sum and overshot by exactly that much.
+    var listBox = sidelist.getBoundingClientRect();
+    var rowBox = current.getBoundingClientRect();
+
+    sidelist.scrollTop +=
+      (rowBox.top - listBox.top) - (listBox.height - rowBox.height) / 2;
+  }
+
   // ---- filtering. A row is hidden by class rather than by style, so sorting and
   // filtering do not have to agree about what `display` should be.
   function words(value) { return value.toLowerCase().split(/\s+/).filter(Boolean); }
@@ -577,11 +680,21 @@ tbody [data-pick] { cursor: pointer; }
     });
 
     var counter = box.parentNode.querySelector("[data-shown]");
-    if (counter) counter.textContent = rows.length + "행 중 " + shown + "행";
+    // Grouped, because every other count on the page is - and a page of 10,765 columns
+    // that says `10765` in one place and `10,765` in another reads as two numbers.
+    if (counter) {
+      counter.textContent =
+        rows.length.toLocaleString() + "행 중 " + shown.toLocaleString() + "행";
+    }
   }
 
   document.querySelectorAll("input[data-filter]").forEach(function (box) {
     box.addEventListener("input", function () { apply(box); });
+
+    // Once on load as well, so the count reads the same before anyone types as after. The
+    // page renders it too - a reader with no script still gets a number - and this is what
+    // groups the digits.
+    apply(box);
   });
 
   // ---- sorting. Numbers compare as numbers, everything else as text; a column of
@@ -800,7 +913,7 @@ tbody [data-pick] { cursor: pointer; }
     var protoEdge = proto.querySelector('[data-proto="edge"]');
     var protoLabel = proto.querySelector('[data-proto="label"]');
 
-    function widthOf(name) { return Math.max(110, name.length * CHAR + 26); }
+    function widthOf(name) { return Math.max(110, name.length * CHAR + 34); }
 
     function hrefOf(name) {
       var row = document.querySelector('[data-pick="' + name + '"] a');
@@ -823,8 +936,28 @@ tbody [data-pick] { cursor: pointer; }
 
       if (middle) node.classList.add("hit");
 
-      // Clicking a neighbour walks the graph, so a reader can follow a chain without
-      // going back to the whole picture between steps.
+      // A neighbour is a step, and it says so. Clicking one has walked the graph from the
+      // start - a reader can follow a chain without going back to the whole picture between
+      // steps - but nothing on the box said it could be clicked, so nobody did. The arrow
+      // is the mark this page puts on a reference everywhere else.
+      if (!middle) {
+        node.classList.add("walk");
+
+        var go = document.createElementNS(node.namespaceURI, "text");
+
+        go.setAttribute("class", "go");
+        go.setAttribute("x", x + w - 8);
+        go.setAttribute("y", y + 20);
+        go.setAttribute("text-anchor", "end");
+        go.textContent = "→";
+        node.appendChild(go);
+
+        var tip = document.createElementNS(node.namespaceURI, "title");
+
+        tip.textContent = name + "의 참조로 이동";
+        node.appendChild(tip);
+      }
+
       node.addEventListener("click", function (event) {
         if (moved) return;
         event.stopPropagation();

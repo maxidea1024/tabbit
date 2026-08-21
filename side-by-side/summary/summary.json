@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-21T00:11:36.2769396+09:00",
+    "generatedAt": "2026-08-21T13:53:34.3546489+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "959c06d82dc0e470446dd4ae57076a053ac0e514",
-      "shortHash": "959c06d82dc0",
+      "hash": "c534d96efd45422f9c371d80f869bab1d81d844f",
+      "shortHash": "c534d96efd45",
       "branch": "multi-target-accessors",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-20T23:01:46.0000000+09:00",
-      "subject": "Allocate the keys a trimmed array of references reads into",
+      "committedAt": "2026-08-21T00:32:18.0000000+09:00",
+      "subject": "Draw a table's entries, not the columns the sheet spread them over",
       "origin": "git",
       "dirty": true,
       "attributable": false
