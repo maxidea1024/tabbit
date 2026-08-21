@@ -6,6 +6,7 @@ using Serilog;
 using Tabbit.Extensions;
 using Tabbit.Models;
 using Tabbit.Models.Raw;
+using Tabbit.Messages;
 using Tabbit.Recipe;
 
 namespace Tabbit.Cooking;
@@ -315,24 +316,20 @@ public sealed class CookingContext
 
         if (group is not null && group.Length == 0)
         {
-            throw new TabbitException(location,
-                $"`{written}` opens brackets and names no {what}. Write one - `{example}` - or "
-                + $"drop the brackets.");
+            throw new TabbitException(location, Message.Of(CookingMessages.RoleGroupEmpty,
+                ("Written", written), ("What", what), ("Example", example)));
         }
 
         if (space is not null && role != StringRole.Text)
         {
-            throw new TabbitException(location,
-                $"`{written}` has a second name in its brackets, and `asset` takes only a kind. "
-                + $"A namespace is a `text` thing - the folders an asset is looked for in come "
-                + $"from the recipe, keyed by the kind.");
+            throw new TabbitException(location, Message.Of(CookingMessages.RoleSpaceNotText,
+                ("Written", written)));
         }
 
         if (space is not null && space.Length == 0)
         {
-            throw new TabbitException(location,
-                $"`{written}` ends in a comma and names no namespace. Write one - "
-                + $"`text(Achievement,Quests)` - or drop the comma.");
+            throw new TabbitException(location, Message.Of(CookingMessages.RoleSpaceEmpty,
+                ("Written", written)));
         }
 
         if (group is not null)

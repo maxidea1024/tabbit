@@ -191,6 +191,25 @@
 
   <ItemGroup>
     <!--
+      The text of this tool's own reports, one file per owner and language: `core.en.json`
+      is the core's English. A wildcard rather than a list, so that adding a language is
+      adding a file and deleting a layout is deleting its file - there is nothing here to
+      keep in step with either. The logical name is what MessageCatalog scans for.
+
+      WithCulture is off, and it has to be. `name.<something>.ext` is how MSBuild spells a
+      culture-specific resource, so AssignCulture reads the `en` in `core.en.json` as a
+      culture and moves the file into a satellite assembly - `en/tabbit.resources.dll` -
+      where GetManifestResourceNames on this assembly cannot see it. It builds and it runs;
+      the catalog is simply empty. Which is the build doing the localization itself, in the
+      one way this design ruled out: a language axis nobody can open a file to read.
+    -->
+    <EmbeddedResource Include="Messages\Catalog\*.json"
+                      LogicalName="Tabbit.Messages.%(Filename)%(Extension)"
+                      WithCulture="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
       Code generation templates, embedded for the same reason as the readers: what ships
       cannot drift from what is committed, and a target cannot be pointed at a template of
       a different vintage.

@@ -283,6 +283,11 @@ public class AssetRoleTests
             () => Context().SplitStringRole("asset(icon,ui)", Somewhere(), out _, out _, out _));
 
         Assert.Contains("takes only a kind", failure.Message);
+
+        // The wording and the id, together, only while the move is in progress. Once every
+        // report is named the wording assertions go and this one stays - that is what stops
+        // a message being frozen by the tests that read it. spec/message-ids.md §7.
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RoleSpaceNotText, failure.MessageId);
     }
 
     /// <summary>

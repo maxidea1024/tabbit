@@ -81,6 +81,39 @@ public sealed class Diagnostics
     /// <summary>The same, for a report about the run rather than about a cell.</summary>
     public void Info(string message) => Add(Severity.Info, null, message);
 
+    /// <summary>Records a named problem and carries on.</summary>
+    public void Error(Location? location, Messages.Message message)
+        => Add(Severity.Error, location, message);
+
+    /// <summary>Records something named worth seeing that does not stop the run on its own.</summary>
+    public void Warn(Location? location, Messages.Message message)
+        => Add(Severity.Warning, location, message);
+
+    /// <summary>Records what the run did, named. Never stops it.</summary>
+    public void Info(Location? location, Messages.Message message)
+        => Add(Severity.Info, location, message);
+
+    /// <summary>
+    /// Records one named report at the given severity.
+    /// </summary>
+    /// <remarks>
+    /// The text is settled here, so that everything downstream - sorting, the known-problem
+    /// matching, printing - reads a <see cref="TabbitException.Detail"/> that looks the same
+    /// whether the call site had been moved to an id or not.
+    /// </remarks>
+    public void Add(Severity severity, Location? location, Messages.Message message)
+    {
+        lock (_entries)
+        {
+            _entries.Add((severity, new TabbitException.Detail
+            {
+                Location = location,
+                Message = message.In(Messages.MessageCatalog.Current),
+                MessageId = message.Id,
+            }));
+        }
+    }
+
     /// <summary>Records one report at the given severity.</summary>
     public void Add(Severity severity, Location? location, string message)
     {

@@ -1,0 +1,5 @@
+{
+  "cook.role-group-empty": "`{Written}` opens brackets and names no {What}. Write one - `{Example}` - or drop the brackets.",
+  "cook.role-space-not-text": "`{Written}` has a second name in its brackets, and `asset` takes only a kind. A namespace is a `text` thing - the folders an asset is looked for in come from the recipe, keyed by the kind.",
+  "cook.role-space-empty": "`{Written}` ends in a comma and names no namespace. Write one - `text(Achievement,Quests)` - or drop the comma."
+}
