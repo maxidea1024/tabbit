@@ -24,6 +24,34 @@ type {{ rt.type_name }} struct {
 {{~ end ~}}
 {{~ end ~}}
 }
+{{~## The per-target methods of every member of this struct that reaches several tables. One
+   taking an element number where the member is the array, which is the third place an element
+   number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+// {{ target.method }} returns the {{ target.record_name }} row that element at of {{ multi.key_member }}
+// names, or nil when that element names a row of one of the others.
+func (e *{{ rt.type_name }}) {{ target.method }}(at int) *{{ target.record_name }} {
+	if e.{{ multi.target_member }}[at] != {{ target.constant }} {
+		return nil
+	}
+
+	return e.{{ multi.slot_member }}[at].(*{{ target.record_name }})
+}
+{{~ else ~}}
+// {{ target.method }} returns the {{ target.record_name }} row {{ multi.key_member }} names, or nil when
+// it names a row of one of the others.
+func (e *{{ rt.type_name }}) {{ target.method }}() *{{ target.record_name }} {
+	if e.{{ multi.target_member }} != {{ target.constant }} {
+		return nil
+	}
+
+	return e.{{ multi.slot_member }}.(*{{ target.record_name }})
+}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 
 {{~ end ~}}
 {{~ end ~}}
@@ -178,6 +206,13 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are made. spec/references-in-records.md. ##~}}
 		records[i].{{ field.name }}.{{ member.name }}Index = make({{ member.ref_key_slice_type }}, {{ member.element_count }})
+{{~ end ~}}
+{{~ if member.multi ~}}
+{{~## A member reaching several tables holds one slot and one discriminator per element beside
+   the keys, and the linking pass writes into both - so both are made here as well.
+   spec/multi-target-accessors.md. ##~}}
+		records[i].{{ field.name }}.{{ member.multi.slot_member }} = make([]any, {{ member.element_count }})
+		records[i].{{ field.name }}.{{ member.multi.target_member }} = make([]{{ member.multi.target_type_name }}, {{ member.element_count }})
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
