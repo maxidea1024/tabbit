@@ -37,6 +37,19 @@ internal static class GoogleSheetsCredentials
     private static Serilog.ILogger Log => LogCategory.Importing;
 
     /// <summary>
+    /// Where a person's token is cached once they have consented.
+    /// </summary>
+    /// <remarks>
+    /// Public because a message has to be able to name it. Adding a scope does not
+    /// re-consent by itself - the cached token is used as it is, and the call needing the new
+    /// scope is the only thing that fails - so the useful sentence is which file to delete,
+    /// and this tool is what decides where that file goes.
+    /// </remarks>
+    public static string TokenStore => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+        ".credentials/sheets.googleapis.com-tabbit");
+
+    /// <summary>
     /// Whether this entry names any credential at all.
     /// </summary>
     /// <remarks>
@@ -184,9 +197,7 @@ internal static class GoogleSheetsCredentials
 
         using var stream = new FileStream(recipe.ClientSecretFilename, FileMode.Open, FileAccess.Read);
 
-        string credentialsPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-            ".credentials/sheets.googleapis.com-tabbit");
+        string credentialsPath = TokenStore;
 
         var clientSecrets = GoogleClientSecrets.FromStream(stream);
 

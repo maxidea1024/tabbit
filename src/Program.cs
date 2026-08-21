@@ -17,6 +17,8 @@ using System.Collections.Generic;
 using Tabbit.Targets;
 using Tabbit.Sources;
 using Tabbit.Validation;
+using Tabbit.Caching;
+using Newtonsoft.Json.Linq;
 
 namespace Tabbit;
 
@@ -59,6 +61,30 @@ class Program
 
         SetupLogging(options.Verbose, options.Silent);
 
+        // Which build this is, before anything it does. A log that reaches us without it
+        // starts with a round trip asking, and the answer decides how to read everything
+        // under it.
+        //
+        // Not written when this invocation's standard output is somebody else's input:
+        // `--new-encryption-key` puts the key there on its own line so it can be piped into
+        // a secret store, and a report with no `--out` puts JSON there. The file log gets
+        // the line either way, which is where it is read from anyway.
+        if (!OwnsStandardOutput(options))
+        {
+            Log.Information(ToolVersion.Banner);
+            Log.Information(ToolVersion.Runtime);
+
+            // A blank line under it, so the header is a header rather than the first two of
+            // a wall of lines. Written to the console directly because a blank line through
+            // the logger is not blank - it carries the level and the step, which is a line
+            // saying nothing rather than a gap.
+            //
+            // Not under `--silent`, where the two lines above went nowhere and this would be
+            // the only thing printed.
+            if (!options.Silent)
+                Console.WriteLine();
+        }
+
         // Serilog's file sink buffers, so the last writes are lost unless the
         // logger is closed. Every exit below runs through this.
         try
@@ -69,6 +95,22 @@ class Program
         {
             Log.CloseAndFlush();
         }
+    }
+
+    /// <summary>
+    /// Whether this invocation's standard output is a payload rather than a transcript.
+    /// </summary>
+    /// <remarks>
+    /// Those runs put one thing on standard output and everything else on standard error, so
+    /// that a caller can pipe them. A line about which build is running would be the first
+    /// thing that pipe received.
+    /// </remarks>
+    private static bool OwnsStandardOutput(Options options)
+    {
+        bool toStandardOutput = string.IsNullOrEmpty(options.Out);
+
+        return (options.NewEncryptionKey && toStandardOutput)
+            || ((options.History || options.Stats) && toStandardOutput);
     }
 
     /// <summary>
@@ -163,6 +205,7 @@ class Program
         }
 
         RecipeModel? recipe = null;
+        JObject? recipeDocument = null;
         if (!string.IsNullOrEmpty(options.RecipeFilename))
         {
             try
@@ -172,7 +215,7 @@ class Program
                 // its sheets by the same word.
                 RunEnvironment.Establish(options);
 
-                recipe = RecipeModel.LoadFromFile(options.RecipeFilename);
+                recipe = RecipeModel.LoadFromFile(options.RecipeFilename, out recipeDocument);
             }
             catch (Exception ex)
             {
@@ -268,10 +311,13 @@ class Program
             var stopWatch = new Stopwatch();
 
             stopWatch.Start();
-            int rc = Process(options, recipe);
+            int rc = Process(options, recipe, recipeDocument);
             stopWatch.Stop();
 
-            if (rc == 0)
+            // `NothingToDo` is a success that produced nothing, not a failure - so the run
+            // says it finished. Leaving it out would mean that asking for the detailed exit
+            // code also silently removes the line saying the run went fine.
+            if (rc == ExitCode.Success || rc == ExitCode.NothingToDo)
             {
                 if (!options.Silent)
                 {
@@ -284,8 +330,10 @@ class Program
         }
     }
 
-    private static int Process(Options options, RecipeModel recipeModel)
+    private static int Process(Options options, RecipeModel recipeModel, JObject? recipeDocument)
     {
+        var timings = new RunTimings();
+
         try
         {
             // Read before any work starts, and discarded: the consumers below take it
@@ -293,6 +341,17 @@ class Program
             // --target-side into an immediate error rather than one reported after
             // every workbook has been read.
             CommandLineTargetSide.Of(options);
+
+            // Refused rather than resolved. A run that produces no output cannot be asked to
+            // produce its output anyway, so one of the two flags is a mistake - and choosing
+            // which one wins would hide the mistake until the run ended with the wrong thing
+            // done or not done.
+            if (options.ValidateOnly && options.ForceOutput)
+            {
+                throw new TabbitException(
+                    "`--validate-only` and `--force-output` ask for opposite things: one stops "
+                    + "before any output, the other insists every output entry runs. Pass one.");
+            }
 
             // Stamped onto the recipe before anything reads it, so the zone every dated cell
             // is read in is settled in one place. A zone that names no place stops the run
@@ -304,13 +363,52 @@ class Program
             // is spawns git, so that part waits until a target asks for it.
             CommitInfo.ValidateOptions(options);
 
+            // Before the rules are compiled and before a workbook is opened, because the
+            // point of it is to answer "is there anything to do" without paying for either.
+            // What it looks at is file sizes and times, one directory listing per source,
+            // and one metadata call per hosted document.
+            // Measured like any other step, because on a run that skips everything it is the
+            // whole of the run - and what it costs is the number that says whether skipping
+            // is worth having. Working out the keys is part of it, so the measure covers
+            // both halves.
+            BuildCache cache;
+            CachePlan plan;
+
+            using (timings.Measure(RunTimings.Phase.Deciding))
+            {
+                cache = BuildCache.Open(options, recipeModel, recipeDocument);
+                plan = cache.Decide();
+            }
+
+            if (plan == CachePlan.Nothing)
+            {
+                // The one thing a run with nothing to do still owes: a generated file that
+                // is no longer produced is removed whether or not anything else happened.
+                cache.SweepUnchanged();
+
+                timings.Report();
+
+                if (!options.DetailedExitCode)
+                    return ExitCode.Success;
+
+                LogCategory.Caching.Information(
+                    $"Exiting with {ExitCode.NothingToDo}, as --detailed-exit-code asks. "
+                    + "Nothing was produced, and nothing failed.");
+
+                return ExitCode.NothingToDo;
+            }
+
             // Read now, before anything is imported, so a validation folder that does not
             // exist is reported with no work done. Null when the recipe asks for none.
-            var validation = ValidationPipeline.Create(options, recipeModel);
+            ValidationPipeline? validation;
+
+            using (timings.Measure(RunTimings.Phase.Rules))
+                validation = ValidationPipeline.Create(options, recipeModel);
 
             // What can be answered before a workbook is opened: file names, settings,
             // whatever a project's own conventions require of its sources.
-            validation?.RunPre();
+            using (timings.Measure(RunTimings.Phase.Validating))
+                validation?.RunPre();
 
 
             // Imports
@@ -321,13 +419,17 @@ class Program
             // touches only the file that defines it.
             RawModel rawModel = new RawModel();
 
-            SourceRegistry.ImportAll(options, recipeModel, rawModel);
+            using (timings.Measure(RunTimings.Phase.Importing))
+                SourceRegistry.ImportAll(options, recipeModel, rawModel, cache.Inputs);
 
 
             // Cooking
 
             var cooker = new ModelCooker();
-            var model = cooker.Cook(options, recipeModel, rawModel);
+            Models.Model model;
+
+            using (timings.Measure(RunTimings.Phase.Cooking))
+                model = cooker.Cook(options, recipeModel, rawModel);
 
             // Before validation on purpose. What this writes is where the tables are, and a
             // workbook with a broken value still has its tables in the same places - so a
@@ -349,7 +451,8 @@ class Program
             // has already changed. Every output is a deterministic projection of the model,
             // so checking the model is checking the output, and a failed run leaves no trace
             // in a file or in a database.
-            validation?.RunPost(model);
+            using (timings.Measure(RunTimings.Phase.Validating))
+                validation?.RunPost(model);
 
             if (options.ValidateOnly)
             {
@@ -372,16 +475,20 @@ class Program
             // it goes. Atomicity is per store either way: files and four databases
             // cannot share one transaction without a distributed coordinator.
 
-            TargetRegistry.RunAll(options, recipeModel, model);
+            using (timings.Measure(RunTimings.Phase.Output))
+                TargetRegistry.RunAll(options, recipeModel, model, timings, cache);
 
             LogCategory.Committing.Information("Now that we have completed all the work, we are copying the generated staging files to the destination folder.");
 
             try
             {
-                StagingFiles.CommitFiles((filename, stagedFilename) =>
+                using (timings.Measure(RunTimings.Phase.Committing))
                 {
-                    LogCategory.Committing.Debug($"Commit staged file `{filename}`");
-                });
+                    StagingFiles.CommitFiles((filename, stagedFilename) =>
+                    {
+                        LogCategory.Committing.Debug($"Commit staged file `{filename}`");
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -396,6 +503,11 @@ class Program
 
                 return 1;
             }
+
+            // After the commit, because the output being recorded is at its destination only
+            // now - until the move above it was in staging under a name of its own.
+            using (timings.Measure(RunTimings.Phase.Sealing))
+                cache.Seal();
         }
         catch (Exception ex)
         {
@@ -403,6 +515,11 @@ class Program
 
             return 1;
         }
+
+        // Only on the way out of a run that finished. The phases of one that stopped
+        // part-way say how far it got rather than what the work costs, and they would print
+        // under the message saying what went wrong.
+        timings.Report();
 
         return 0;
     }

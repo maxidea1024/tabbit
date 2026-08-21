@@ -5,6 +5,8 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
+using Tabbit.Caching;
+using Tabbit.Helpers;
 using Tabbit.History;
 using Tabbit.Models;
 using Tabbit.Recipe;
@@ -14,11 +16,12 @@ namespace Tabbit.Targets;
 /// <summary>One registered target and the metadata its attribute declared.</summary>
 public sealed class TargetDescriptor
 {
-    internal TargetDescriptor(string id, TargetKind kind, int order, ITarget target)
+    internal TargetDescriptor(string id, TargetKind kind, int order, bool deterministic, ITarget target)
     {
         Id = id;
         Kind = kind;
         Order = order;
+        Deterministic = deterministic;
         Target = target;
     }
 
@@ -30,6 +33,12 @@ public sealed class TargetDescriptor
 
     /// <summary>Sort key within a kind.</summary>
     public int Order { get; }
+
+    /// <summary>
+    /// Whether the same model produces the same bytes twice.
+    /// See <see cref="TabbitTargetAttribute.Deterministic"/>.
+    /// </summary>
+    public bool Deterministic { get; }
 
     /// <summary>The target itself.</summary>
     public ITarget Target { get; }
@@ -157,7 +166,8 @@ public static class TargetRegistry
     /// The model is narrowed here rather than inside each target, so a target reads
     /// only what its entry is entitled to and none of them can forget to project.
     /// </summary>
-    public static void RunAll(Options options, RecipeModel recipe, Model model)
+    public static void RunAll(
+        Options options, RecipeModel recipe, Model model, RunTimings timings, BuildCache cache)
     {
         var requested = CommandLineTargetSide.Of(options);
 
@@ -170,10 +180,28 @@ public static class TargetRegistry
 
         foreach (var planned in Plan(recipe, requested))
         {
+            // Asked before the model is narrowed, because narrowing it is work too. A false
+            // answer has already declared this entry's previous output as still standing -
+            // otherwise the sweep below would delete it for not having been written.
+            if (!cache.ShouldRun(planned))
+                continue;
+
             var sided = model.ProjectTo(planned.Side);
 
-            planned.Descriptor.Target.Run(
-                new TargetContext(options, recipe, sided, model, commit, planned.Entry, planned.Section));
+            // What this entry staged, taken as the difference across its run rather than
+            // reported by the target itself. A target writes through StagingFiles and does
+            // not keep a list, and asking twenty-five of them to start keeping one - so
+            // that a cache can be sealed - would put the cache's bookkeeping into every
+            // one of them.
+            int before = StagingFiles.PendingCount;
+
+            using (timings.MeasureEntry($"{planned.Section} {planned.Descriptor.Id}"))
+            {
+                planned.Descriptor.Target.Run(
+                    new TargetContext(options, recipe, sided, model, commit, planned.Entry, planned.Section));
+            }
+
+            cache.Wrote(planned.Section!, StagingFiles.PendingSince(before), planned.Descriptor.Deterministic);
         }
     }
 
@@ -301,7 +329,8 @@ public static class TargetRegistry
 
             var target = (ITarget)Activator.CreateInstance(type)!;
 
-            descriptors.Add(new TargetDescriptor(attribute.Id, attribute.Kind, attribute.Order, target));
+            descriptors.Add(new TargetDescriptor(
+                attribute.Id, attribute.Kind, attribute.Order, attribute.Deterministic, target));
         }
 
         var duplicate = descriptors.GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)

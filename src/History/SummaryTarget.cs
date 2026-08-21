@@ -62,7 +62,9 @@ public enum AuthorDisclosure
 /// this file's shape - because two renderings of one question drift and nothing
 /// notices, and the answer that is wrong looks exactly like the one that is right.
 /// </summary>
-[TabbitTarget("summary", TargetKind.Description, Order = 10)]
+// Not deterministic: the document records when it was generated, so the same model
+// produces different bytes on every run. spec/build-cache.md §5.
+[TabbitTarget("summary", TargetKind.Description, Order = 10, Deterministic = false)]
 public class SummaryTarget : Target<SummaryRecipe>
 {
     /// <summary>Which step of a run this class's log lines belong to.</summary>

@@ -270,8 +270,21 @@ public class RecipeModel
     /// holding a quote would then produce a file that no longer parses rather than a
     /// wrong setting.
     /// </remarks>
-    public static RecipeModel? LoadFromFile(string filename)
+    public static RecipeModel? LoadFromFile(string filename) => LoadFromFile(filename, out _);
+
+    /// <param name="document">
+    /// The parsed recipe, after substitution and with its comments already gone.
+    /// </param>
+    /// <remarks>
+    /// Handed out for the build cache, which keys on the document rather than on this object.
+    /// Two things follow from that choice and both are wanted: a setting added to the recipe
+    /// schema later is in the key without anybody putting it there, and editing a comment
+    /// costs nothing because the parser has dropped them by now.
+    /// </remarks>
+    public static RecipeModel? LoadFromFile(string filename, out JObject? document)
     {
+        document = null;
+
         string json = File.ReadAllText(filename);
 
         if (string.IsNullOrWhiteSpace(json))
@@ -279,14 +292,16 @@ public class RecipeModel
 
         // Comments dropped rather than kept as tokens: they are here to explain the
         // recipe to whoever opens it, and nothing downstream reads them.
-        var document = JObject.Parse(json, new JsonLoadSettings
+        var parsed = JObject.Parse(json, new JsonLoadSettings
         {
             CommentHandling = CommentHandling.Ignore,
         });
 
-        RecipeVariables.Expand(document, filename);
+        RecipeVariables.Expand(parsed, filename);
 
-        return document.ToObject<RecipeModel>();
+        document = parsed;
+
+        return parsed.ToObject<RecipeModel>();
     }
 
     /// <summary>

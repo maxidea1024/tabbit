@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using CommandLine;
+using Tabbit.Caching;
 
 namespace Tabbit;
 
 public class Options
 {
+    [Cache(CacheRelevance.Identity)]
     [Option('r', "recipe", HelpText = "Recipe file.")]
     public string? RecipeFilename { get; set; }
 
@@ -14,6 +16,7 @@ public class Options
     /// Every list comes out holding one entry with its defaults filled in, so the file
     /// shows what each target takes rather than only that the section exists.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("new-recipe", HelpText = "Write a starting recipe file and exit.")]
     public string? NewRecipeFilename { get; set; }
 
@@ -28,6 +31,7 @@ public class Options
     /// A template is a recipe for a situation, carrying the settings that situation needs
     /// and a comment on each saying what it is for.
     /// </remarks>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("template", HelpText =
         "Which starting recipe --new-recipe writes. Omit for one holding every setting.")]
     public string? RecipeTemplate { get; set; }
@@ -43,6 +47,7 @@ public class Options
     /// Left out, the run is not narrowed at all and each entry is built for whatever
     /// side it declares, which is what happened before this option existed.
     /// </summary>
+    [Cache(CacheRelevance.Output)]
     [Option("target-side",
         HelpText = "Narrow the run to one side: `client`, `server`, or `both` (the default).")]
     public string? TargetSide { get; set; }
@@ -61,6 +66,7 @@ public class Options
     /// the start of the run, because a flag that moves every date in the output should not be
     /// something a reader has to reconstruct from the command line.
     /// </remarks>
+    [Cache(CacheRelevance.Output)]
     [Option("time-zone", HelpText =
         "Time zone the sheets' dates were written in, forced over the recipe: "
         + "`Asia/Seoul` or `+09:00`.")]
@@ -81,6 +87,7 @@ public class Options
     /// what happened. A `TABBIT_ENV` already set to something else is refused rather
     /// than overwritten.
     /// </remarks>
+    [Cache(CacheRelevance.Output)]
     [Option("env", HelpText =
         "Environment this run is for. Recorded in the summary, and available as ${TABBIT_ENV}.")]
     public string? EnvironmentName { get; set; }
@@ -96,6 +103,7 @@ public class Options
     /// Not required to be a git hash. A project keeping its sheets somewhere without
     /// commits can pass any stable identifier and the history treats it as opaque.
     /// </summary>
+    [Cache(CacheRelevance.Commit)]
     [Option("commit", HelpText = "Commit this conversion is of. Read from git when left out.")]
     public string? Commit { get; set; }
 
@@ -106,6 +114,7 @@ public class Options
     /// extends. Read from the working copy when left out - but a detached HEAD, which
     /// is what most CI checkouts produce, is not a branch and yields nothing.
     /// </summary>
+    [Cache(CacheRelevance.Commit)]
     [Option("branch", HelpText = "Branch this snapshot belongs to. Read from git when left out.")]
     public string? Branch { get; set; }
 
@@ -115,10 +124,12 @@ public class Options
     /// For the build systems that know the author without a git checkout to read it
     /// from. Overrides what the commit says.
     /// </summary>
+    [Cache(CacheRelevance.Commit)]
     [Option("commit-author", HelpText = "Author of the change, as `Name <email>`. Overrides git.")]
     public string? CommitAuthor { get; set; }
 
     /// <summary>When the change was made, as an ISO 8601 timestamp. Overrides git.</summary>
+    [Cache(CacheRelevance.Commit)]
     [Option("commit-date", HelpText = "When the change was made, ISO 8601. Overrides git.")]
     public string? CommitDate { get; set; }
 
@@ -129,6 +140,7 @@ public class Options
     /// directory. Given, it is the only place looked at: falling through to somewhere
     /// else would record another repository's commits against this data.
     /// </summary>
+    [Cache(CacheRelevance.Commit)]
     [Option("repository", HelpText = "Working copy to read commit information from.")]
     public string? Repository { get; set; }
 
@@ -142,10 +154,12 @@ public class Options
     /// project name are - reading them from a second place is how the two come to
     /// disagree.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("history", HelpText = "Report what changed between two commits, and exit.")]
     public bool History { get; set; }
 
     /// <summary>Reports the statistics of one commit instead of converting.</summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("stats", HelpText = "Report the statistics of a commit, and exit.")]
     public bool Stats { get; set; }
 
@@ -155,40 +169,49 @@ public class Options
     /// Exclusive: it is the state being compared from, so its own changes belong to the
     /// range before this one. Left out, the range starts at the branch's first snapshot.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("from", HelpText = "Commit the range starts after. Exclusive.")]
     public string? From { get; set; }
 
     /// <summary>The commit a range ends at, inclusive. Left out, the branch's head.</summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("to", HelpText = "Commit the range ends at. Inclusive.")]
     public string? To { get; set; }
 
     /// <summary>Which commit `--stats` describes. Left out, the branch's head.</summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("at", HelpText = "Commit to report statistics for. The head when left out.")]
     public string? At { get; set; }
 
     /// <summary>Narrows a report to one table.</summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("table", HelpText = "Only report changes to this table.")]
     public string? Table { get; set; }
 
     /// <summary>Narrows a report to one column.</summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("field", HelpText = "Only report changes to this column.")]
     public string? Field { get; set; }
 
     /// <summary>Narrows a report to one person, by name or address.</summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("author", HelpText = "Only report changes by this person.")]
     public string? Author { get; set; }
 
     /// <summary>
     /// Which project's history to read, when the recipe's entry is not the one wanted.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("project", HelpText = "Project whose history to read. From the recipe when left out.")]
     public string? Project { get; set; }
 
     /// <summary>How to render a report: `json` or `text`.</summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("format", HelpText = "Report format: `json` or `text`.")]
     public string? Format { get; set; }
 
     /// <summary>Where to write a report. Standard output when left out.</summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("out", HelpText = "File to write the report to. Standard output when left out.")]
     public string? Out { get; set; }
 
@@ -198,6 +221,7 @@ public class Options
     /// A range over a busy month is hundreds of thousands of cells. What is cut is
     /// reported as cut rather than left to be noticed.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("limit", HelpText = "Most changes to report. Anything cut is reported as cut.")]
     public int Limit { get; set; }
 
@@ -209,6 +233,7 @@ public class Options
     /// for ever. A pruned snapshot keeps its row, its statistics and its stored summary;
     /// only the cell-by-cell detail goes, and a query over a range holding one says so.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("prune", HelpText = "Remove the change detail of old snapshots, and exit.")]
     public bool Prune { get; set; }
 
@@ -219,6 +244,7 @@ public class Options
     /// whatever runs it, and one that is not is a job that prunes nothing after the
     /// first time.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("before", HelpText = "Prune snapshots older than this: a date, or an age like `90d`.")]
     public string? Before { get; set; }
 
@@ -229,6 +255,7 @@ public class Options
     /// touched for a year would otherwise lose every snapshot's detail and become a
     /// history with no history in it.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("keep", Default = 100, HelpText = "Most recent snapshots to leave alone. 100 by default.")]
     public int Keep { get; set; }
 
@@ -240,10 +267,12 @@ public class Options
     /// Read-only: the server never writes, and the account in the recipe need not be
     /// able to.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("serve", HelpText = "Serve the history over HTTP and stay running.")]
     public bool Serve { get; set; }
 
     /// <summary>Port to listen on. 8080 when left out.</summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("port", HelpText = "Port to serve on. 8080 when left out.")]
     public int Port { get; set; }
 
@@ -254,6 +283,7 @@ public class Options
     /// what an open port exposes here is every value in the project's design data and
     /// the name of everyone who touched it.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("bind", HelpText = "Address to serve on. 127.0.0.1 when left out.")]
     public string? Bind { get; set; }
 
@@ -269,6 +299,7 @@ public class Options
     ///
     /// A file rather than a library, so nothing has to link against this program to use it.
     /// </remarks>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("dump-schema", HelpText =
         "Write where each table sits in its sheet as JSON, and exit. For tools that read the "
         + "same workbooks without cooking them.")]
@@ -284,6 +315,7 @@ public class Options
     /// gate that can be turned off from a command line is a gate nobody can rely on, and
     /// clearing `Validation.Path` in the recipe is the deliberate, reviewable way to do it.
     /// </summary>
+    [Cache(CacheRelevance.Control)]
     [Option("validate-only", HelpText = "Validate and exit, without running any output target.")]
     public bool ValidateOnly { get; set; }
 
@@ -294,6 +326,7 @@ public class Options
     /// needs nor reads them - so having a command write them is what makes them worth having at
     /// all. Refuses to overwrite a file that is already there.
     /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("new-validator", HelpText = "Write a starting validation rule for this table, and exit.")]
     public string? NewValidator { get; set; }
 
@@ -305,6 +338,7 @@ public class Options
     /// disagreeing with the rule it is about but leaves the whole order in no one place - so this
     /// prints it, and unlike a file that lists the order, what it prints is what runs.
     /// </remarks>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("list-validators", HelpText = "Print the validation rules in the order they run, and exit.")]
     public bool ListValidators { get; set; }
 
@@ -315,6 +349,7 @@ public class Options
     /// sheets are unaffected, and the run reports how many rules were skipped rather than
     /// leaving that to be noticed.
     /// </summary>
+    [Cache(CacheRelevance.Validation)]
     [Option("skip-runtime-validation", HelpText = "Skip the validation rules that read an external store.")]
     public bool SkipRuntimeValidation { get; set; }
 
@@ -334,16 +369,90 @@ public class Options
     /// overwritten: replacing a key silently would leave every file written with the old one
     /// unreadable, with nothing to say why.
     /// </remarks>
+    [Cache(CacheRelevance.NotAConversion)]
     [Option("new-encryption-key", HelpText =
         "Write a new encryption key and exit. To --out, or to standard output.")]
     public bool NewEncryptionKey { get; set; }
 
+    // -------------------------------------------------------------- caching
+
+    /// <summary>
+    /// Converts everything, without consulting what a previous run recorded.
+    /// </summary>
+    /// <remarks>
+    /// For the case where the cache is what is suspected. Every way of deciding that an
+    /// input is unchanged has a state it cannot tell apart from unchanged - a file restored
+    /// with its old size and its old timestamp, a hosted document whose version did not
+    /// move - and this is the answer to all of them at once, without anybody having to work
+    /// out which one they are in.
+    ///
+    /// The seal is still written. A run that did all the work has the most accurate record
+    /// of what the inputs were, and discarding it would mean the next run has nothing
+    /// either.
+    /// </remarks>
+    [Cache(CacheRelevance.Control)]
+    [Option("full", HelpText = "Convert everything, ignoring what the cache says.")]
+    public bool Full { get; set; }
+
+    /// <summary>
+    /// Runs every output entry whatever the cache says, while still trusting it about the
+    /// inputs.
+    /// </summary>
+    /// <remarks>
+    /// A different question from <see cref="Full"/>, which is why it is a different option.
+    /// `--full` doubts the cache; this one believes it and wants the output anyway - because
+    /// something outside this tool reads those files and has its own reasons, or because a
+    /// directory was moved by hand and the recipe that describes it did not change.
+    ///
+    /// Keeping them apart costs one option and saves the time of reading every source again,
+    /// which is half of a run. spec/build-cache.md §7.1.
+    /// </remarks>
+    [Cache(CacheRelevance.Control)]
+    [Option("force-output", HelpText = "Run every output entry, whatever the cache says.")]
+    public bool ForceOutput { get; set; }
+
+    /// <summary>
+    /// Where the build cache is kept. `.tabbit/` beside the working directory when left out.
+    /// </summary>
+    /// <remarks>
+    /// Named for the build machines, where the working directory is thrown away between
+    /// jobs and the cache has to be somewhere that is mounted. It holds absolute paths and
+    /// the state of one machine's files, so it is not something a checkout should carry.
+    /// </remarks>
+    [Cache(CacheRelevance.Control)]
+    [Option("cache-dir", HelpText = "Where to keep the build cache. `.tabbit/` when left out.")]
+    public string? CacheDirectory { get; set; }
+
+    /// <summary>
+    /// Tells a run that had nothing to do apart from one that converted, by exit code.
+    /// </summary>
+    /// <remarks>
+    /// For the build pipelines whose next step is a publish. "The conversion succeeded" does
+    /// not say whether there is anything new to publish, and working it out from the log is
+    /// parsing English out of a tool that could simply have said so.
+    ///
+    /// Behind a flag because almost everything that invokes a command line tool treats any
+    /// non-zero code as a failure. A skipped run is not a failure, and making it non-zero by
+    /// default would break every script that chains a step after this one - on the day the
+    /// cache first worked, which is the worst day for it to look like a new bug.
+    ///
+    /// <see cref="ExitCode"/> lists the codes.
+    /// </remarks>
+    [Cache(CacheRelevance.Control)]
+    [Option("detailed-exit-code", HelpText =
+        "Exit with 2 when the run had nothing to do, instead of 0. For a pipeline whose next "
+        + "step is a publish.")]
+    public bool DetailedExitCode { get; set; }
+
+    [Cache(CacheRelevance.Irrelevant)]
     [Option("verbose", HelpText = "Sets whether to output debugging log messages.")]
     public bool Verbose { get; set; }
 
+    [Cache(CacheRelevance.Irrelevant)]
     [Option("silent", HelpText = "Suppress all logging message except ERROR/FATAL.")]
     public bool Silent { get; set; }
     
+    [Cache(CacheRelevance.Irrelevant)]
     [Option("debug", HelpText = "Enables or disables internal debugging.")]
     public bool Debugging { get; set; }
 }

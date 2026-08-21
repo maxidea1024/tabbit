@@ -42,7 +42,15 @@ public class SweepTests
     /// </summary>
     private static void Reconvert()
     {
-        var result = TabbitRunner.Invoke("--recipe", RepoLayout.Recipe(Scenario), "--debug");
+        var result = TabbitRunner.Invoke(
+            "--recipe", RepoLayout.Recipe(Scenario),
+            "--debug",
+
+            // The same cache the first conversion wrote, so this really is the second run of
+            // one pair. Pointed at explicitly because this one does not go through
+            // TabbitRunner.Convert - that clears the output tree, which would delete the
+            // planted file whether the sweep worked or not.
+            "--cache-dir", RepoLayout.CacheDir(Scenario));
 
         Assert.True(result.Succeeded, $"Reconversion failed.{Environment.NewLine}{result.Describe()}");
     }

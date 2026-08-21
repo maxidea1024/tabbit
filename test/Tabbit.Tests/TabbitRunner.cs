@@ -115,13 +115,26 @@ internal static class TabbitRunner
         // lingering from a previous run.
         ClearOutput(RepoLayout.OutputDir(scenario));
 
+        // And its cache with it. A conversion the suite asks for has to happen: a test that
+        // compares output against a golden tree is not testing anything if the run it drove
+        // decided the previous run's answer would do.
+        ClearOutput(RepoLayout.CacheDir(scenario));
+
         // --debug: makes Tabbit print the call stack when it throws. Successful runs are
         // unaffected, and it lets the defect tests assert on stack frames instead of
         // framework exception text, which the runtime localizes.
         //
         // No --no-launch-profile any more: launchSettings.json is `dotnet run`'s business
         // and the executable does not read it.
-        var args = new List<string> { "--recipe", RepoLayout.Recipe(scenario), "--debug" };
+        var args = new List<string>
+        {
+            "--recipe", RepoLayout.Recipe(scenario),
+            "--debug",
+
+            // Its own cache, so the suite does not leave one in the checkout and two
+            // scenarios sharing a recipe name do not share a seal.
+            "--cache-dir", RepoLayout.CacheDir(scenario),
+        };
 
         args.AddRange(extraArgs ?? Array.Empty<string>());
 

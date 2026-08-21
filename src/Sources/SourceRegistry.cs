@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Serilog;
+using Tabbit.Caching;
 using Tabbit.Models.Raw;
 using Tabbit.Recipe;
 
@@ -64,7 +65,22 @@ public static class SourceRegistry
     /// <summary>
     /// Imports every source entry the recipe lists, into one raw model.
     /// </summary>
-    public static void ImportAll(Options options, RecipeModel recipe, RawModel model)
+    public static void ImportAll(Options options, RecipeModel recipe, RawModel model, InputLedger inputs)
+    {
+        foreach (var (descriptor, entry, section) in Entries(recipe))
+            descriptor.Source.Import(new SourceContext(options, recipe, model, entry, section, inputs));
+    }
+
+    /// <summary>
+    /// Every source entry the recipe lists, paired with the source that reads it.
+    /// </summary>
+    /// <remarks>
+    /// Separate from <see cref="ImportAll"/> because the build cache walks the same list
+    /// before anything is imported, to ask the sources that can answer whether their inputs
+    /// changed. Two walks of one list, so the two cannot disagree about which entries exist.
+    /// </remarks>
+    public static IEnumerable<(SourceDescriptor Descriptor, object Entry, string Section)> Entries(
+        RecipeModel recipe)
     {
         foreach (var descriptor in All)
         {
@@ -79,7 +95,7 @@ public static class SourceRegistry
                 if (entry is null)
                     continue;
 
-                descriptor.Source.Import(new SourceContext(options, recipe, model, entry, section));
+                yield return (descriptor, entry, section);
             }
         }
     }

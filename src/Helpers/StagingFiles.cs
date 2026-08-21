@@ -20,10 +20,75 @@ public static class StagingFiles
     static readonly List<string> _sweepRoots = [];
 
     /// <summary>
+    /// The same directories, kept for the whole run rather than until the sweep.
+    /// </summary>
+    /// <remarks>
+    /// The build cache records these, because a run that decides it has nothing to do never
+    /// reaches a target and so is never told where the output lives - and it still has to
+    /// sweep. Removing a generated file that is no longer produced is part of what a
+    /// successful run leaves behind, and "unless it was quick" is not a condition anybody
+    /// would want on that.
+    /// </remarks>
+    static readonly List<string> _declaredSweepRoots = [];
+
+    /// <summary>Every directory this run was asked to sweep, whether or not it has yet.</summary>
+    public static IReadOnlyList<string> DeclaredSweepRoots => _declaredSweepRoots;
+
+    /// <summary>
     /// Files a target named individually as its own, to be removed if this run does not
     /// write them.
     /// </summary>
     static readonly List<string> _pruneCandidates = [];
+
+    /// <summary>
+    /// Files a previous run wrote that this run is keeping instead of writing again.
+    /// </summary>
+    /// <remarks>
+    /// This exists because of what <see cref="Sweep"/> does. The sweep deletes generated
+    /// files that this run did not write, which is right when a table was renamed and
+    /// catastrophic when an output entry was skipped: its thousands of files are, by that
+    /// definition, files this run did not write.
+    ///
+    /// So a skipped entry declares its previous output here, and the sweep counts it as
+    /// written. The list comes from the build cache's record of what that entry produced
+    /// last time, which is the only place that knows.
+    /// </remarks>
+    static readonly List<string> _keptFiles = [];
+
+    /// <summary>How many distinct files have been staged so far.</summary>
+    /// <remarks>
+    /// For a caller wanting to know what one step of the run produced: read this before
+    /// and use <see cref="PendingSince"/> after. Stable while output is being produced,
+    /// because <see cref="CommitFiles"/> - the only thing that drains the list - runs
+    /// after all of it.
+    /// </remarks>
+    public static int PendingCount => _stagingFiles.Count;
+
+    /// <summary>The destination paths staged after <paramref name="count"/> of them existed.</summary>
+    public static IReadOnlyList<string> PendingSince(int count)
+    {
+        if (count < 0)
+            count = 0;
+
+        var since = new List<string>();
+
+        for (int at = count; at < _stagingFiles.Count; at++)
+            since.Add(_stagingFiles[at].Item1);
+
+        return since;
+    }
+
+    /// <summary>
+    /// Says that a file a previous run wrote is still this run's output, though this run
+    /// did not write it.
+    /// </summary>
+    public static void Keep(string filename)
+    {
+        string full = Path.GetFullPath(filename);
+
+        if (!_keptFiles.Contains(full, PathNames.Comparer))
+            _keptFiles.Add(full);
+    }
 
     /// <summary>
     /// What every generated file says about itself, in its first few lines.
@@ -55,7 +120,9 @@ public static class StagingFiles
         // Nothing is swept either: a run that failed has no business deciding which of
         // the previous run's files are stale.
         _sweepRoots.Clear();
+        _declaredSweepRoots.Clear();
         _pruneCandidates.Clear();
+        _keptFiles.Clear();
     }
 
     /// <summary>
@@ -80,6 +147,9 @@ public static class StagingFiles
 
         if (!_sweepRoots.Contains(full, PathNames.Comparer))
             _sweepRoots.Add(full);
+
+        if (!_declaredSweepRoots.Contains(full, PathNames.Comparer))
+            _declaredSweepRoots.Add(full);
     }
 
     /// <summary>
@@ -159,6 +229,11 @@ public static class StagingFiles
         // because the run wrote `Item.cs`, and those are two files there.
         var written = new HashSet<string>(
             _stagingFiles.Select(kv => kv.Item1), PathNames.Comparer);
+
+        // The output of an entry this run skipped counts as written. Without this the
+        // sweep, whose whole rule is "delete what this run did not write", deletes exactly
+        // the files the cache decided were already correct.
+        written.UnionWith(_keptFiles);
 
         while (_stagingFiles.Count > 0)
         {
@@ -255,6 +330,7 @@ public static class StagingFiles
         }
 
         _sweepRoots.Clear();
+        _keptFiles.Clear();
 
         return removed;
     }

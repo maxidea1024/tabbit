@@ -105,6 +105,7 @@
 |[Swift 언어 지원](../spec/swift-language-support.md)|14번째 생성 타깃 — 행을 `final class`로, 원소를 `struct`로 가른 이유, 그리고 **외부 패키지가 없어도 컴파일되는** 암호 3상태|
 |[접근자 객체화](../spec/accessor-instances.md)|전역 정적 말고 인스턴스로 — 테스트 격리, 두 버전 동시 열기, 핫 리로드|
 |[출력 항목을 `Targets` 하나로](../spec/target-section-unification.md)|recipe의 출력 선언을 한 목록으로 모은 기록|
+|[빌드 캐시](../spec/build-cache.md)|바뀐 것이 없는 재실행이 161초인 것 — **어디로 가는 시간인지의 실측**, 레시피와 CLI 옵션 중 무엇이 전체 실행을 강제하는지, 그리고 **히스토리 지문을 캐시 키로 쓰면 안 되는 이유**|
 
 ## 사례
 

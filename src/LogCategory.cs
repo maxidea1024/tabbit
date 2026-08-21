@@ -50,6 +50,12 @@ public static class LogCategory
     /// <summary>Recording what a run produced, and answering questions about earlier ones.</summary>
     public static ILogger Recording => Of("Recording");
 
+    /// <summary>Deciding what this run has to do at all, and what a previous one already did.</summary>
+    public static ILogger Caching => Of("Caching");
+
+    /// <summary>What each step of the run took.</summary>
+    public static ILogger Timing => Of("Timing");
+
     /// <summary>
     /// A logger that tags everything written through it with <paramref name="category"/>.
     /// </summary>

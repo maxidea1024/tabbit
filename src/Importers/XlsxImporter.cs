@@ -7,6 +7,7 @@ using Tabbit.Recipe;
 using System.Linq;
 using Tabbit.Sources;
 using Tabbit.Cooking.Layouts;
+using Tabbit.Helpers;
 using Tabbit.Importers.Xlsx;
 using Serilog;
 
@@ -61,16 +62,7 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
         _workbooksSeen.Clear();
         _sheetsSeen.Clear();
 
-        var fileExtensionPatterns = xlsx.FileExtensionPatterns.Split(";");
-        if (fileExtensionPatterns is null || fileExtensionPatterns.Length == 0)
-        {
-            fileExtensionPatterns = [".xlsx"];
-        }
-        else
-        {
-            for (int i = 0; i < fileExtensionPatterns.Length; i++)
-                fileExtensionPatterns[i] = fileExtensionPatterns[i].Trim().ToLowerInvariant();
-        }
+        var extensions = SourceFiles.Extensions(xlsx.FileExtensionPatterns);
 
         if (!Directory.Exists(xlsx.Path))
         {
@@ -78,37 +70,24 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                 $"Recipe `{context.Section}` reads workbooks from `{xlsx.Path}`, which does not exist.");
         }
 
-        // Ordered, because this is the order the tables enter the model in and so the order
-        // they leave in. The filesystem's own order is not the same on ext4 as on NTFS, which
-        // made the same directory of workbooks produce different output on Linux than on
-        // Windows - silently, since both are valid outputs of a run that read everything.
-        var files = Helpers.PathNames.InOrder(
-            Directory.GetFiles(xlsx.Path, "*.*", SearchOption.AllDirectories));
+        // Which files are candidates is decided in one place, because the build cache asks
+        // the same question on a later run to find out whether a workbook was added. Two
+        // answers to it would differ exactly where it matters.
+        var candidates = SourceFiles.Candidates(
+            xlsx.Path,
+            extensions,
+            lockFile => Log.Debug($"Skipping `{lockFile}`: an Excel lock file, not a workbook."))
+            .ToList();
 
-        foreach (var filename in files)
+        // The listing rather than the files: adding a workbook changes no existing file, so
+        // nothing else in the ledger would notice one appearing. Recorded before the
+        // recipe's own include and exclude lists are applied, so a workbook that arrives
+        // while excluded is still noticed - the recipe may stop excluding it tomorrow.
+        context.Inputs.Listed(
+            xlsx.Path, xlsx.FileExtensionPatterns, candidates.Select(candidate => candidate.Name));
+
+        foreach (var (filename, workbook) in candidates)
         {
-            if (filename.Contains("/#") || filename.Contains("\\#"))
-                continue;
-
-            // Excel's lock file for a workbook somebody has open: `~$Book.xlsx`, same
-            // extension and a few hundred bytes of nothing usable. Reading one throws,
-            // so leaving a workbook open in Excel used to fail the whole run - and the
-            // message named a file the author never created.
-            if (Path.GetFileName(filename).StartsWith("~$"))
-            {
-                Log.Debug($"Skipping `{filename}`: an Excel lock file, not a workbook.");
-                continue;
-            }
-
-            string fileExtensions = Path.GetExtension(filename).ToLowerInvariant();
-            if (!fileExtensionPatterns.Contains(fileExtensions))
-                continue;
-
-            // Relative to the directory being searched, so a recipe names a workbook the way
-            // somebody looking at that directory would - `backup/Items.xlsx` rather than
-            // whatever absolute path this run happened to be given.
-            string workbook = Path.GetRelativePath(xlsx.Path, filename).Replace('\\', '/');
-
             _workbooksSeen.Add(workbook);
 
             // Asked before the file is opened. A workbook that is not input costs nothing to
@@ -118,6 +97,8 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                 Log.Information($"Skipping workbook `{workbook}`: the recipe does not ask for it.");
                 continue;
             }
+
+            context.Inputs.Read(filename);
 
             ImportXlsx(filename, workbook);
         }

@@ -75,7 +75,9 @@ public class HtmlRecipe : IOutputRecipe
 /// which is where the type-dependent decisions are, and the links, which is where the
 /// decisions about where a page lives are.
 /// </summary>
-[TabbitTarget("html", TargetKind.CodeGeneration, Order = 40)]
+// Not deterministic: the page carries the time it was generated, so the same model
+// produces different bytes on every run. spec/build-cache.md §5.
+[TabbitTarget("html", TargetKind.CodeGeneration, Order = 40, Deterministic = false)]
 public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 {
     /// <summary>
