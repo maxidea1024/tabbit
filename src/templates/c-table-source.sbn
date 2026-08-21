@@ -519,6 +519,35 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
   return {{ index.find_call }}(table->{{ index.array_name }}, table->count, key) >= 0;
 }
 {{~ end ~}}
+{{~## The same for a member of a record, which takes the element rather than the row.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for field in table.fields ~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~ for rt in field.record_types ~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+const {{ target.record_name }}* {{ target.function }}(
+  const struct {{ multi.element_type_name }}* element, int32_t at) {
+  if (element->{{ multi.target_member }}[at] != {{ target.label }})
+    return NULL;
+
+  return (const {{ target.record_name }}*)element->{{ multi.slot_member }}[at];
+}
+{{~ else ~}}
+const {{ target.record_name }}* {{ target.function }}(
+  const struct {{ multi.element_type_name }}* element) {
+  if (element->{{ multi.target_member }} != {{ target.label }})
+    return NULL;
+
+  return (const {{ target.record_name }}*)element->{{ multi.slot_member }};
+}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 {{~## The per-target accessors of a column reaching several tables. The cast is safe by
    construction: the discriminator was set by the same assignment that filled the slot.
    spec/multi-target-accessors.md. ##~}}

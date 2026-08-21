@@ -29,6 +29,25 @@ struct {{ rt.type_name }} {
   {{ member.declaration }}
 {{~ end ~}}
 };
+{{~## The per-target functions of every member of this struct that reaches several tables. They
+   take the element rather than the row - the slot is inside it - and one more argument where
+   the member is the array, which is the third place an element number sits.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+/* The {{ target.record_name }} row element `at` of {{ multi.key_member }} names, or NULL when
+ * that element names a row of one of the others. */
+const {{ target.record_name }}* {{ target.function }}(
+  const struct {{ multi.element_type_name }}* element, int32_t at);
+{{~ else ~}}
+/* The {{ target.record_name }} row {{ multi.key_member }} names, or NULL when it names a row of
+ * one of the others. */
+const {{ target.record_name }}* {{ target.function }}(
+  const struct {{ multi.element_type_name }}* element);
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 
 {{~ end ~}}
 {{~ end ~}}
