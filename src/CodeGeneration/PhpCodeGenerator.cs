@@ -443,9 +443,6 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         };
 
     /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    /// <summary>
     /// The slot and the discriminator of a record member reaching several tables, or null when
     /// the member reaches one table or none.
     /// </summary>
@@ -529,6 +526,9 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
            && wire.TagCarrier.IsMultiRef
            && wire.TagCarrier.MultiTargetEnum is not null;
 
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
     private PhpMultiReferenceView BuildMultiReference(MultiTargetColumn column)
         => new PhpMultiReferenceView
         {

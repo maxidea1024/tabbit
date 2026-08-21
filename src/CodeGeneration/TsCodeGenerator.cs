@@ -526,9 +526,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         => "findBy" + refTable.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
 
     /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    /// <summary>
     /// One record member whose value is a row of one of several tables.
     /// </summary>
     /// <remarks>
@@ -697,6 +694,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
            && wire.TagCarrier.IsMultiRef
            && wire.TagCarrier.MultiTargetEnum is not null;
 
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
     private TsMultiReferenceView BuildMultiReference(MultiTargetColumn column)
     {
         var targets = column.Targets.Select(target => new TsMultiTargetView
