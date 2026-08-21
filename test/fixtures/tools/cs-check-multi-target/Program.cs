@@ -65,6 +65,47 @@ internal static class Program
                     ["maybeTarget"] = r.MaybeTarget.ToString(),
                     ["maybeName"] = MaybeName(r),
                 }).ToList(),
+
+                // The three record shapes, each with a member that reaches several tables.
+                // What this catches is the element number: an array of records numbers the
+                // group, a record of one numbers nothing, and a record of arrays numbers the
+                // member - and a linking pass written around one of them resolves the wrong
+                // element in the others. spec/references-in-records.md.
+                ["Loadout"] = MultiTargetAccessor.Loadout.Records.Select(r => new Dictionary<string, object>
+                {
+                    ["index"] = r.Index,
+                    ["slots"] = r.Slot.Select(slot => new Dictionary<string, object>
+                    {
+                        ["key"] = slot.Pick,
+                        ["target"] = slot.Pick_target.ToString(),
+                        ["name"] = slot.WeaponByPick != null ? "Weapon:" + slot.WeaponByPick.Name
+                            : slot.ArmourByPick != null ? "Armour:" + slot.ArmourByPick.Name
+                            : "<none>",
+                    }).ToList(),
+                }).ToList(),
+
+                ["Fitting"] = MultiTargetAccessor.Fitting.Records.Select(r => new Dictionary<string, object>
+                {
+                    ["index"] = r.Index,
+                    ["key"] = r.Main.Pick,
+                    ["target"] = r.Main.Pick_target.ToString(),
+                    ["name"] = r.Main.WeaponByPick != null ? "Weapon:" + r.Main.WeaponByPick.Name
+                        : r.Main.ArmourByPick != null ? "Armour:" + r.Main.ArmourByPick.Name
+                        : "<none>",
+                }).ToList(),
+
+                ["Rack"] = MultiTargetAccessor.Rack.Records.Select(r => new Dictionary<string, object>
+                {
+                    ["index"] = r.Index,
+                    ["picks"] = Enumerable.Range(0, r.Slots.Pick.Length).Select(at => new Dictionary<string, object>
+                    {
+                        ["key"] = r.Slots.Pick[at],
+                        ["target"] = r.Slots.Pick_target[at].ToString(),
+                        ["name"] = r.Slots.WeaponByPick(at) != null ? "Weapon:" + r.Slots.WeaponByPick(at).Name
+                            : r.Slots.ArmourByPick(at) != null ? "Armour:" + r.Slots.ArmourByPick(at).Name
+                            : "<none>",
+                    }).ToList(),
+                }).ToList(),
             };
 
             Console.OutputEncoding = Encoding.UTF8;

@@ -163,6 +163,16 @@ internal sealed class CsTableView
     public required IReadOnlyList<CsMultiReferenceView> MultiReferenceFields { get; set; }
 
     /// <summary>
+    /// The multi-target columns that are members of a record, for the linking pass.
+    /// </summary>
+    /// <remarks>
+    /// Separate from <see cref="MultiReferenceFields"/> because the loop differs: a member is
+    /// resolved per element, so the generated code walks the array before it looks anything
+    /// up. spec/multi-target-accessors.md.
+    /// </remarks>
+    public required IReadOnlyList<CsMultiRecordReferenceView> MultiRecordReferenceFields { get; set; }
+
+    /// <summary>
     /// Whether the read needs a scratch int for enum casting.
     ///
     /// The reader hands back an int and the field is an enum, so one temporary is
@@ -433,6 +443,40 @@ internal sealed class CsRecordMemberView
     /// See spec/nested-multi-level.md.
     /// </remarks>
     public bool IsRecord { get; set; }
+
+    /// <summary>
+    /// The discriminator's type, when this member reaches several tables. Empty otherwise.
+    /// </summary>
+    /// <remarks>
+    /// Such a member keeps the key it already had and gains two things beside it, inside the
+    /// element: one slot for the resolved row whatever table it came from, and this. Same
+    /// arity as the member - a record of arrays holds one of each per element, just as it
+    /// holds one key per element. spec/multi-target-accessors.md.
+    /// </remarks>
+    public string MultiTargetTypeName { get; set; } = "";
+
+    /// <summary>The slot and the discriminator, declared beside the key.</summary>
+    public string MultiSlotName { get; set; } = "";
+    public string MultiTargetName { get; set; } = "";
+
+    /// <summary>Their declared types, which carry the brackets when the member is an array.</summary>
+    public string MultiSlotType { get; set; } = "";
+    public string MultiTargetDeclaredType { get; set; } = "";
+
+    /// <summary>What each is set to at declaration, for the array case.</summary>
+    public string MultiSlotInitializer { get; set; } = "";
+    public string MultiTargetInitializer { get; set; } = "";
+
+    /// <summary>
+    /// Whether the member is the array, which decides whether an accessor takes an element
+    /// number. spec/nested-multi-level.md.
+    /// </summary>
+    public bool MultiIsArray { get; set; }
+
+    /// <summary>One entry per table the member may be a row of.</summary>
+    public IReadOnlyList<CsMultiMemberTargetView> MultiTargets { get; set; }
+        = System.Array.Empty<CsMultiMemberTargetView>();
+
 }
 
 /// <summary>
@@ -784,4 +828,46 @@ internal sealed class CsRecordReferenceView
 
     /// <summary>What follows the stored key to ask whether it points anywhere.</summary>
     public required string RefIsSet { get; set; }
+}
+
+/// <summary>One table a multi-target record member may point at.</summary>
+internal sealed class CsMultiMemberTargetView
+{
+    /// <summary>The record type a resolved row has.</summary>
+    public required string RecordTypeName { get; set; }
+
+    /// <summary>The member this target is read through.</summary>
+    public required string Accessor { get; set; }
+
+    /// <summary>The enum label for this target.</summary>
+    public required string Label { get; set; }
+}
+
+/// <summary>
+/// One multi-target column that is a member of a record, as the linking pass writes it.
+/// </summary>
+/// <remarks>
+/// Whole expressions rather than the parts, for the reason the single-target one gives: which
+/// of the three record shapes this is decides where the element number sits, and the template
+/// should not be the place that knows. spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class CsMultiRecordReferenceView
+{
+    /// <summary>The key this resolves through, loop variable included.</summary>
+    public required string Key { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string Slot { get; set; }
+    public required string Target { get; set; }
+
+    /// <summary>The loop bound, or empty where the group is one record.</summary>
+    public required string Count { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string RefIsSet { get; set; }
+
+    public required IReadOnlyList<CsMultiTargetView> Targets { get; set; }
 }
