@@ -53,6 +53,13 @@ export interface {{ rt.type_name }} {
   {{ member.prop_name }}_index: {{ member.ref_key_type_name }}
   {{ member.prop_name }}_F: {{ member.ref_flag_type_name }}
 {{~ end ~}}
+{{~ if member.multi_target_type_name != '' ~}}
+{{~## A member reaching several tables keeps the key above and gains these: one slot for the
+   resolved row, typed as the union of the tables it may be a row of, and the discriminator
+   saying which of them filled it. spec/multi-target-accessors.md. ##~}}
+  {{ member.multi_slot_name }}: {{ member.multi_slot_type }}
+  {{ member.multi_target_name }}: {{ member.multi_target_declared_type }}
+{{~ end ~}}
 {{~ end ~}}
 }
 
@@ -76,6 +83,29 @@ interface IDataRow {
 {{~ end ~}}
 {{~ end ~}}
 }
+
+{{~## The per-target accessors of every record member reaching several tables. Functions
+   beside the element rather than members of it: this language's element type is an interface,
+   and an interface declares no accessor - every other language puts the accessor on the
+   element, which is that language's own convention. spec/multi-target-accessors.md. ##~}}
+{{~ for m in multi_members ~}}
+{{~ for target in m.targets }}
+/** The `{{ target.record_type_name }}` row `{{ m.key_name }}` names, or undefined when it names a row of one of the others. */
+{{~ if m.is_array ~}}
+export function {{ target.function }}(element: {{ m.element_type_name }}, at: number): {{ target.record_type_name }} | undefined {
+  return element.{{ m.target_name }}[at] === {{ m.target_type_name }}.{{ target.label }}
+    ? element.{{ m.slot_name }}[at] as {{ target.record_type_name }}
+    : undefined
+}
+{{~ else ~}}
+export function {{ target.function }}(element: {{ m.element_type_name }}): {{ target.record_type_name }} | undefined {
+  return element.{{ m.target_name }} === {{ m.target_type_name }}.{{ target.label }}
+    ? element.{{ m.slot_name }} as {{ target.record_type_name }}
+    : undefined
+}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 
 // Generated from {{ location }}
 {{~ for line in comment ~}}
