@@ -326,6 +326,10 @@ internal sealed class HtmlStatsView
     public required string Tables { get; set; }
     public required string Rows { get; set; }
     public required string Columns { get; set; }
+
+    /// <summary>Columns of the workbook: a folded array has several of them per column.</summary>
+    public required string SheetColumns { get; set; }
+
     public required string Cells { get; set; }
     public required string Enums { get; set; }
     public required string Labels { get; set; }
@@ -400,6 +404,12 @@ internal sealed class HtmlSourceSheetView
 internal sealed class HtmlFieldsPageView : HtmlPageView
 {
     public required string TableCount { get; set; }
+
+    /// <summary>The workbook's own column count, beside the number of entries listed.</summary>
+    public required string SheetColumnCount { get; set; }
+
+    /// <summary>How many rows the page lists, formatted.</summary>
+    public required string ColumnCount { get; set; }
 
     /// <summary>Whether any column has a description. The column is dropped when none has.</summary>
     public required bool HasComments { get; set; }
@@ -529,6 +539,12 @@ internal sealed class HtmlTablePageView : HtmlPageView
 
     public required string ColumnCount { get; set; }
 
+    /// <summary>
+    /// The sheet's own column count, or empty when it is the same as the above - which it is
+    /// for every table that folds nothing.
+    /// </summary>
+    public required string SheetColumnCount { get; set; }
+
     /// <summary>Whether the page says it is showing part of the table.</summary>
     public required bool Truncated { get; set; }
 
@@ -559,13 +575,6 @@ internal sealed class HtmlTablePageView : HtmlPageView
     /// </summary>
     public required bool HasColumnComments { get; set; }
 
-    /// <summary>
-    /// Where each header row sticks, as the custom properties the stylesheet reads.
-    ///
-    /// Here rather than in the stylesheet because the count of rows is the page's: with
-    /// the description row dropped, the two below it move up by one row.
-    /// </summary>
-    public required string HeaderOffsets { get; set; }
 
     /// <summary>Complete `&lt;th&gt;` elements for the type row, one per line.</summary>
     public required IReadOnlyList<string> TypeCells { get; set; }

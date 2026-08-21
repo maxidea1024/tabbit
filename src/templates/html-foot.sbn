@@ -92,6 +92,29 @@
     });
   }
 
+  // ---- the list down the side, on the table it is showing. Every page is its own
+  // document, so the list starts at the top on each one - and on a model with a few hundred
+  // tables the current one is then hundreds of rows below the fold. It was marked as
+  // current where nobody could see it, and reading it took a scroll to find out where you
+  // were. Centred rather than merely revealed: the tables either side of this one are the
+  // ones a reader moves to next.
+  //
+  // The container's own `scrollTop`, not `scrollIntoView` - that scrolls every ancestor
+  // that can scroll, which here would move the page and take the top bar with it.
+  var sidelist = document.querySelector(".side-list");
+  var current = sidelist && sidelist.querySelector("li.on");
+
+  if (current) {
+    // Measured, not from `offsetTop`: that is relative to the nearest positioned ancestor,
+    // which is not this list, so it carried the list's own distance down the page into the
+    // sum and overshot by exactly that much.
+    var listBox = sidelist.getBoundingClientRect();
+    var rowBox = current.getBoundingClientRect();
+
+    sidelist.scrollTop +=
+      (rowBox.top - listBox.top) - (listBox.height - rowBox.height) / 2;
+  }
+
   // ---- filtering. A row is hidden by class rather than by style, so sorting and
   // filtering do not have to agree about what `display` should be.
   function words(value) { return value.toLowerCase().split(/\s+/).filter(Boolean); }
@@ -112,11 +135,21 @@
     });
 
     var counter = box.parentNode.querySelector("[data-shown]");
-    if (counter) counter.textContent = rows.length + "행 중 " + shown + "행";
+    // Grouped, because every other count on the page is - and a page of 10,765 columns
+    // that says `10765` in one place and `10,765` in another reads as two numbers.
+    if (counter) {
+      counter.textContent =
+        rows.length.toLocaleString() + "행 중 " + shown.toLocaleString() + "행";
+    }
   }
 
   document.querySelectorAll("input[data-filter]").forEach(function (box) {
     box.addEventListener("input", function () { apply(box); });
+
+    // Once on load as well, so the count reads the same before anyone types as after. The
+    // page renders it too - a reader with no script still gets a number - and this is what
+    // groups the digits.
+    apply(box);
   });
 
   // ---- sorting. Numbers compare as numbers, everything else as text; a column of
@@ -335,7 +368,7 @@
     var protoEdge = proto.querySelector('[data-proto="edge"]');
     var protoLabel = proto.querySelector('[data-proto="label"]');
 
-    function widthOf(name) { return Math.max(110, name.length * CHAR + 26); }
+    function widthOf(name) { return Math.max(110, name.length * CHAR + 34); }
 
     function hrefOf(name) {
       var row = document.querySelector('[data-pick="' + name + '"] a');
@@ -358,8 +391,28 @@
 
       if (middle) node.classList.add("hit");
 
-      // Clicking a neighbour walks the graph, so a reader can follow a chain without
-      // going back to the whole picture between steps.
+      // A neighbour is a step, and it says so. Clicking one has walked the graph from the
+      // start - a reader can follow a chain without going back to the whole picture between
+      // steps - but nothing on the box said it could be clicked, so nobody did. The arrow
+      // is the mark this page puts on a reference everywhere else.
+      if (!middle) {
+        node.classList.add("walk");
+
+        var go = document.createElementNS(node.namespaceURI, "text");
+
+        go.setAttribute("class", "go");
+        go.setAttribute("x", x + w - 8);
+        go.setAttribute("y", y + 20);
+        go.setAttribute("text-anchor", "end");
+        go.textContent = "→";
+        node.appendChild(go);
+
+        var tip = document.createElementNS(node.namespaceURI, "title");
+
+        tip.textContent = name + "의 참조로 이동";
+        node.appendChild(tip);
+      }
+
       node.addEventListener("click", function (event) {
         if (moved) return;
         event.stopPropagation();

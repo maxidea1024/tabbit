@@ -21,12 +21,12 @@
 <table data-sortable>
 <thead>
 <tr class="names">
-<th class="sorted"><svg class="i"><use href="#i-const"></use></svg>상수 세트</th><th>상수</th><th>시트</th>{{ if has_comments }}<th>설명</th>{{ end }}
+<th class="sorted"><svg class="i"><use href="#i-const"></use></svg>상수 세트</th><th>상수</th><th>선언 위치</th>{{ if has_comments }}<th>설명</th>{{ end }}
 </tr>
 </thead>
 <tbody>
 {{~ for row in list ~}}
-<tr><td><a href="{{ row.href }}">{{ row.name }}</a></td><td class="num">{{ row.constant_count }}</td><td>{{ row.sheet }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
+<tr><td><a href="{{ row.href }}"><svg class="i"><use href="#i-const"></use></svg>{{ row.name }}</a></td><td class="num">{{ row.constant_count }}</td><td>{{ row.sheet }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
 {{~ end ~}}
 </tbody>
 </table>
@@ -35,7 +35,7 @@
 {{~ end ~}}
 {{~ for set in sets ~}}
 <h2 id="constantset_{{ set.name }}"><svg class="i"><use href="#i-const"></use></svg>{{ set.name }}<span class="count">상수 {{ set.constants | array.size }}개</span></h2>
-<p class="lead">{{ set.source_link }}{{ if set.source_cell != '' }} <span class="hint"><svg class="i"><use href="#i-sheet"></use></svg>{{ set.source_cell }}</span>{{ end }}</p>
+<p class="lead">{{ set.source_link }}{{ if set.source_cell != '' }} <span class="hint">{{ set.source_cell }}</span>{{ end }}</p>
 {{~ if set.comment != '' ~}}
 <p class="comment">{{ set.comment }}</p>
 {{~ end ~}}

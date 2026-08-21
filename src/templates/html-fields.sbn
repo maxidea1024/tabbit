@@ -7,7 +7,7 @@
    adjacent rows, which is what makes an inconsistent type or side visible.
 ##~}}
 {{~ include 'html-head.sbn' ~}}
-<p class="lead">테이블 {{ table_count }}개의 컬럼 {{ rows | array.size }}개</p>
+<p class="lead">테이블 {{ table_count }}개의 컬럼 {{ column_count }}개 <span class="hint">&middot; 접힌 것을 펼치면 시트 컬럼 {{ sheet_column_count }}개</span></p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="컬럼 필터">
@@ -18,12 +18,12 @@
 <table data-sortable>
 <thead>
 <tr class="names">
-<th class="sorted"><svg class="i"><use href="#i-column"></use></svg>컬럼</th><th><svg class="i"><use href="#i-table"></use></svg>테이블</th><th>타입</th><th>측</th><th>필수 여부</th>{{ if has_comments }}<th>설명</th>{{ end }}
+<th class="sorted"><svg class="i"><use href="#i-column"></use></svg>컬럼</th><th><svg class="i"><use href="#i-table"></use></svg>테이블</th><th>타입</th><th>측</th><th title="필수 여부">필수</th>{{ if has_comments }}<th>설명</th>{{ end }}
 </tr>
 </thead>
 <tbody>
 {{~ for row in rows ~}}
-<tr><td>{{ row.name }}</td><td><a href="{{ row.table_href }}">{{ row.table }}</a></td><td>{{ row.type_cell }}</td><td>{{ row.side }}</td><td>{{ row.presence }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg>{{ row.name }}</td><td><a href="{{ row.table_href }}"><svg class="i"><use href="#i-table"></use></svg>{{ row.table }}</a></td><td>{{ row.type_cell }}</td><td>{{ row.side }}</td><td>{{ row.presence }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
 {{~ end ~}}
 </tbody>
 </table>

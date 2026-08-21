@@ -24,12 +24,12 @@
 <table data-sortable>
 <thead>
 <tr class="names">
-<th class="sorted"><svg class="i"><use href="#i-table"></use></svg>테이블</th><th>행</th><th>컬럼</th><th>시트</th>{{ if has_comments }}<th>설명</th>{{ end }}
+<th class="sorted"><svg class="i"><use href="#i-table"></use></svg>테이블</th><th>행</th><th>컬럼</th><th>선언 위치</th>{{ if has_comments }}<th>설명</th>{{ end }}
 </tr>
 </thead>
 <tbody>
 {{~ for row in rows ~}}
-<tr><td><a href="{{ row.href }}">{{ row.name }}</a></td><td class="num">{{ row.record_count }}</td><td class="num">{{ row.column_count }}</td><td>{{ row.sheet }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
+<tr><td><a href="{{ row.href }}"><svg class="i"><use href="#i-table"></use></svg>{{ row.name }}</a></td><td class="num">{{ row.record_count }}</td><td class="num">{{ row.column_count }}</td><td>{{ row.sheet }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
 {{~ end ~}}
 </tbody>
 </table>

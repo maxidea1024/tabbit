@@ -23,7 +23,38 @@
 <p class="lead">그래프의 테이블 {{ nodes | array.size }}개 · 참조 {{ edge_count }}개. 끌어서 이동하고, 휠로 확대하고, 테이블을 누르면 그 테이블의 참조만 봅니다.</p>
 {{~ else ~}}
 <p class="lead">그래프의 테이블 {{ degrees | array.size }}개 · 참조 {{ edge_count }}개. 이 규모에서는 한 장에 다 그리면 읽히지 않으므로, 층의 크기와 한 테이블의 참조로 보여줍니다.</p>
+{{~ end ~}}
 
+{{~## The list and the drawing on one line. The list is what the drawing is driven from, so
+     under the drawing it was a scroll away from the thing it changes. ##~}}
+<div class="graphrow">
+<div class="picker">
+<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">{{ degrees | array.size }}</span></h2>
+<div data-table>
+<div class="tools">
+<input type="search" data-filter="rows" placeholder="테이블 필터">
+<span class="hint" data-shown>{{ degrees | array.size }}행 중 {{ degrees | array.size }}행</span>
+</div>
+<div class="scroll">
+<table data-sortable>
+<thead>
+<tr class="names">
+<th class="pick" title="아이콘을 누르면 그 테이블의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></th><th><svg class="i"><use href="#i-table"></use></svg>테이블</th><th title="이 테이블이 가리키는 수">&#x2192;</th><th title="이 테이블을 가리키는 수">&#x2190;</th>
+</tr>
+</thead>
+<tbody>
+{{~ for row in degrees ~}}
+<tr data-pick="{{ row.name }}"><td class="pick"><button type="button" title="{{ row.name }}의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="{{ row.href }}"><svg class="i"><use href="#i-table"></use></svg>{{ row.name }}</a></td><td class="num">{{ row.out }}</td><td class="num">{{ row.in }}</td></tr>
+{{~ end ~}}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="stage">
+{{~ if detailed ~}}
+<h2><svg class="i"><use href="#i-graph"></use></svg>전체 그래프</h2>
+{{~ else ~}}
 <h2><svg class="i"><use href="#i-graph"></use></svg>한 테이블의 참조</h2>
 {{~ end ~}}
 <div class="tools">
@@ -68,6 +99,8 @@
 </g>
 </svg>
 </div>
+</div>
+</div>
 
 {{~## The shapes the script clones for a neighbourhood, so the drawing is built from markup
      this template owns rather than from element names spelled out in a script. ##~}}
@@ -77,28 +110,6 @@
 <text data-proto="label" class="glyph"></text>
 </svg>
 
-<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">{{ degrees | array.size }}</span></h2>
-<div data-table>
-<div class="tools">
-<input type="search" data-filter="rows" placeholder="테이블 필터">
-<span class="hint" data-shown>{{ degrees | array.size }}행 중 {{ degrees | array.size }}행</span>
-<span class="hint">연결이 많은 순서입니다. 행을 누르면 그 테이블의 참조를 그립니다.</span>
-</div>
-<div class="scroll">
-<table data-sortable>
-<thead>
-<tr class="names">
-<th><svg class="i"><use href="#i-table"></use></svg>테이블</th><th>가리키는 수</th><th>가리켜지는 수</th>
-</tr>
-</thead>
-<tbody>
-{{~ for row in degrees ~}}
-<tr data-pick="{{ row.name }}"><td><a href="{{ row.href }}">{{ row.name }}</a></td><td class="num">{{ row.out }}</td><td class="num">{{ row.in }}</td></tr>
-{{~ end ~}}
-</tbody>
-</table>
-</div>
-</div>
 <div id="adjacency" hidden>{{ adjacency }}</div>
 {{~ if !detailed ~}}
 <h2>층의 크기</h2>

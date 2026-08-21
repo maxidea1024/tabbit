@@ -361,7 +361,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         object? value = cell.HasValue ? cell.Value : null;
 
         if (value is null)
-            return "<none>";
+            return "null";
 
         if (field.IsArray && value is Array elements)
         {
@@ -496,7 +496,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Title = "테이블",
             HasComments = _model.Tables.Any(table => !string.IsNullOrEmpty(table.Comment)),
             RecordTotal = Num(_model.Tables.Sum(table => (long)table.Data.Count)),
-            ColumnTotal = Num(_model.Tables.Sum(table => (long)table.Fields.Count)),
+            ColumnTotal = Num(_model.Tables.Sum(table => (long)table.SerialFields.Count)),
 
             Rows = ByName(_model.Tables, table => table.Name)
                          .Select(table => new HtmlTableListRowView
@@ -504,7 +504,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                              Name = Esc(table.Name),
                              Href = HtmlLinks.Table(table.Name, root: ""),
                              RecordCount = Num(table.Data.Count),
-                             ColumnCount = Num(table.Fields.Count),
+                             ColumnCount = Num(table.SerialFields.Count),
                              Sheet = SheetName(table.Location),
                              Comment = Esc(table.Comment),
                          })
@@ -887,11 +887,10 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         foreach (var table in _model.Tables)
         {
-            // Which heading a column is under on that table's page. A record member and a
-            // folded array element have no heading of their own there - the entry has one -
-            // so a link to the column's own name named an anchor no page carries.
-            var heading = new Dictionary<string, string>(StringComparer.Ordinal);
-
+            // One row per entry, which is what a column is on the page this links to. Per
+            // sheet column, a folded array arrived as `accumulateExp[0]`, `[1]`, `[2]` -
+            // rows that read as three columns of one table when they are three elements of
+            // one column, and that no table page has a heading for.
             foreach (var entry in table.SerialFields)
             {
                 var head = HeadOf(entry);
@@ -899,29 +898,36 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 if (head is null)
                     continue;
 
-                foreach (var member in FieldsOf(entry))
-                    heading[member.Name] = head.Name;
-            }
+                string caption = EntryCaption(entry, head);
+                int folded = FieldsOf(entry).Count();
 
-            foreach (var field in table.Fields)
-            {
+                var notes = new List<string>();
+
+                if (entry.Name != caption)
+                    notes.Add($"생성 이름 {entry.Name}");
+
+                if (folded > 1)
+                    notes.Add($"시트 컬럼 {folded}개");
+
                 rows.Add(new HtmlFieldRowView
                 {
                     // The sheet's spelling, with the generated name in the tooltip: this
                     // index is read against the workbook and against the generated types,
                     // and the two names differ wherever a column is part of a record.
-                    Name = field.RawName != field.Name && field.RawName.Length > 0
-                        ? $"<span title=\"생성 이름 {Esc(field.Name)}\">{Esc(field.RawName)}</span>"
-                        : Esc(field.Name),
+                    Name = notes.Count > 0
+                        ? $"<span title=\"{Esc(string.Join(" · ", notes))}\">{Esc(caption)}</span>"
+                        : Esc(caption),
                     Table = Esc(table.Name),
-                    TableHref = HtmlLinks.Column(
-                        table.Name,
-                        heading.TryGetValue(field.Name, out var under) ? under : field.Name,
-                        root: ""),
-                    TypeCell = TypeMarkup(field, root: ""),
-                    Side = SideName(field.TargetSide),
-                    Presence = field.IsRequired ? "required" : "optional",
-                    Comment = Esc(field.Comment),
+                    TableHref = HtmlLinks.Column(table.Name, head.Name, root: ""),
+                    TypeCell = EntryTypeMarkup(entry, root: ""),
+                    Side = SideName(head.TargetSide),
+                    // The same tick and cross the data pages draw for a `bool`, because
+                    // this is one: two spellings of a yes/no in one document make the reader
+                    // learn the document rather than read it.
+                    Presence = IsRequiredEntry(entry)
+                        ? "<span class=\"yes\" title=\"필수\">&#x2714;</span>"
+                        : "<span class=\"no\" title=\"옵셔널\">&#x2718;</span>",
+                    Comment = Esc(CommentOf(entry)),
                 });
             }
         }
@@ -937,6 +943,8 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         {
             Title = "컬럼",
             TableCount = Num(_model.Tables.Count),
+            SheetColumnCount = Num(_model.Tables.Sum(table => (long)table.Fields.Count)),
+            ColumnCount = Num(rows.Count),
             HasComments = rows.Any(row => row.Comment.Length > 0),
             Rows = rows,
         };
@@ -1124,7 +1132,10 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             ShownCount = Num(shown.Count),
             // The sheet's columns, not the entries they fold into: how many columns a table
             // has is a fact about the table, and the column index lists the same set.
-            ColumnCount = Num(table.Fields.Count),
+            ColumnCount = Num(table.SerialFields.Count),
+            SheetColumnCount = table.SerialFields.Count == table.Fields.Count
+                ? ""
+                : Num(table.Fields.Count),
             Truncated = shown.Count < table.Data.Count,
             Sortable = shown.Count <= SortableRowLimit,
             ReferencedBy = Users(_tableReferrers, table.Name, root: "../"),
@@ -1132,7 +1143,6 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             NameCells = columns.Select((entry, index) => NameCell(table, entry, index)).ToList(),
             CommentCells = columns.Select(entry => $"<th>{Esc(CommentOf(entry))}</th>").ToList(),
             HasColumnComments = hasComments,
-            HeaderOffsets = HeaderOffsets(hasComments),
             TypeCells = columns.Select(entry => $"<th>{EntryTypeMarkup(entry, root: "../")}</th>").ToList(),
 
             SideCells = columns.Select(entry => $"<th>{SideName(entry.TargetSide)}</th>").ToList(),
@@ -1282,15 +1292,21 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         if (!index.TryGetValue(key, out var fields))
             return Array.Empty<HtmlSummaryEntryView>();
 
-        return fields.Select(field => new HtmlSummaryEntryView
+        // By entry rather than by sheet column. A folded array of references is one column
+        // on the page and N in the workbook, so listing the columns answered "which column
+        // points here" with names - `AdvSpcEffTerms0`, `AdvSpcEffTerms1` - that the table's
+        // own page does not have. The first column of an entry is the one its heading is
+        // anchored on, which is where the link has to land.
+        return fields.GroupBy(field => (
+                         field.OwnerTable.Name,
+                         Entry: string.IsNullOrEmpty(field.GroupName) ? field.Name : field.GroupName!))
+                     .Select(group => new HtmlSummaryEntryView
                      {
-                         Name = Esc($"{field.OwnerTable.Name}.{field.Name}"),
+                         Name = Esc($"{group.Key.Name}.{group.Key.Entry}"),
                          Comment = "",
-                         Detail = "",
-                         Href = HtmlLinks.Column(field.OwnerTable.Name, field.Name, root),
+                         Detail = group.Count() > 1 ? $"컬럼 {group.Count()}개" : "",
+                         Href = HtmlLinks.Column(group.Key.Name, group.First().Name, root),
                      })
-                     .GroupBy(entry => entry.Href, StringComparer.Ordinal)
-                     .Select(group => group.First())
                      .OrderBy(entry => entry.Name, StringComparer.Ordinal)
                      .ToList();
     }
@@ -1300,7 +1316,13 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     private HtmlStatsView BuildStats(int workbooks)
     {
         long rows = _model.Tables.Sum(table => (long)table.Data.Count);
-        long columns = _model.Tables.Sum(table => (long)table.Fields.Count);
+
+        // Columns as the pages draw them: one per entry. A folded array is one column of a
+        // table and several of a sheet, so a counter that reports the sheet's number
+        // disagrees with every page under it. The sheet's number is worth having as well -
+        // it is the size of the workbook - so it is named as what it is rather than dropped.
+        long columns = _model.Tables.Sum(table => (long)table.SerialFields.Count);
+        long sheetColumns = _model.Tables.Sum(table => (long)table.Fields.Count);
         long cells = _model.Tables.Sum(table => (long)table.Data.Count * table.Fields.Count);
 
         return new HtmlStatsView
@@ -1308,6 +1330,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Tables = Num(_model.Tables.Count),
             Rows = Num(rows),
             Columns = Num(columns),
+            SheetColumns = Num(sheetColumns),
             Cells = Num(cells),
             Enums = Num(_model.Enums.Count),
             Labels = Num(_model.Enums.Sum(x => (long)x.Labels.Count)),
@@ -1648,11 +1671,15 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         if (head is null)
             return "<th></th>";
 
-        if (!entry.IsRecord && entry.Fields.Count <= 1)
+        // A single column the model reads as an array is still one entry, and its heading is
+        // the entry - `worldBuffId`, not `worldBuffId[0]`. The sheet writes the element in
+        // the column name because a sheet has nowhere else to put it; the page has one
+        // column for the whole array, so the index in the heading names nothing.
+        if (!entry.IsRecord && entry.Fields.Count <= 1 && !entry.IsArray)
             return NameCell(table, head, position);
 
-        // A record, or an array folded from several columns: the entry has a name of its own
-        // and the columns under it are its parts.
+        // A record, or an array: the entry has a name of its own and the columns under it are
+        // its parts.
         var notes = new List<string>();
 
         if (entry.IsRecord)
@@ -1669,7 +1696,29 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             notes.Add("옵셔널");
 
         return $"<th id=\"{HtmlLinks.ColumnAnchor(table.Name, head.Name)}\" " +
-               $"title=\"{Esc(string.Join(" · ", notes))}\">{Esc(entry.Name)}</th>";
+               $"title=\"{Esc(string.Join(" · ", notes))}\">{Esc(EntryCaption(entry, head))}</th>";
+    }
+
+    /// <summary>
+    /// What an entry is called, in the sheet's own spelling where the sheet has one.
+    /// </summary>
+    /// <remarks>
+    /// A column name carries the element it holds - `worldBuffId[0]`, `statEffect[0]["Id"]` -
+    /// because a sheet has one column per element and nowhere else to write which. The page
+    /// has one column for the whole entry, so everything from the first bracket on names a
+    /// part rather than the entry, and the heading drops it. Where the sheet spread an array
+    /// over numbered names instead (`Slot1`, `Slot2`), the model's own name is the only one
+    /// that covers them all.
+    /// </remarks>
+    private static string EntryCaption(Models.SerialField entry, Models.Field head)
+    {
+        string raw = head.RawName ?? "";
+        int bracket = raw.IndexOf('[');
+
+        if (bracket > 0)
+            return raw.Substring(0, bracket);
+
+        return entry.Fields.Count > 1 || raw.Length == 0 ? entry.Name : raw;
     }
 
     /// <summary>One member of a record, as the heading's tooltip names it.</summary>
@@ -1872,7 +1921,8 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                     ? $"<a href=\"{HtmlLinks.Table(name, root)}\" title=\"{Esc(name)} 참조\">{Esc(name)}</a>"
                     : $"<span class=\"flag\" title=\"{Esc(name)} 참조\">{Esc(name)}</span>");
 
-            return $"<span class=\"type\">{Esc(field.TypeName)}</span> " +
+            return $"<span class=\"type\">{Esc(field.TypeName)}" +
+                   $"{(field.IsArray ? "[]" : "")}{Optional(field)}</span> " +
                    $"<span class=\"hint\">&#x2192; " +
                    $"{string.Join(" <span class=\"sep\">&middot;</span> ", links)}</span>";
         }
@@ -1892,15 +1942,26 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 ? target
                 : $"{target}.{field.RefFieldName}";
 
-            string brackets = field.IsArray ? "[]" : "";
             string arrow = $"&#x2192; {Esc(caption)}";
+
+            // The key's own type, and then what it points at. The arrow alone left the
+            // column's type unsaid - a reader looking at `-> AdventureSpecialEffect` cannot
+            // tell whether the cells hold a number or a name, which is exactly what they
+            // need to know to read the values under it. The target's own key type is not
+            // the answer either: this column carries what this sheet wrote.
+            string keyType = KeySpelling(field);
+
+            string left = string.IsNullOrEmpty(keyType)
+                ? ""
+                : $"<span class=\"type\">{Esc(keyType)}" +
+                  $"{(field.IsArray ? "[]" : "")}{Optional(field)}</span> ";
 
             // Only as a link when the table it names is in this model. A reference whose
             // target was filtered out by side, or never resolved, would otherwise be a
             // link to a page this run did not write.
             return _model.FindTable(target) is not null
-                ? $"<a href=\"{HtmlLinks.Table(target!, root)}\" title=\"{Esc(caption)} 참조\">{arrow}</a>{brackets}{Optional(field)}{KeyMark(field)}"
-                : $"<span class=\"flag\" title=\"{Esc(caption)} 참조\">{arrow}</span>{brackets}{Optional(field)}{KeyMark(field)}";
+                ? $"{left}<a href=\"{HtmlLinks.Table(target!, root)}\" title=\"{Esc(caption)} 참조\">{arrow}</a>{KeyMark(field)}"
+                : $"{left}<span class=\"flag\" title=\"{Esc(caption)} 참조\">{arrow}</span>{KeyMark(field)}";
         }
 
         // Element type drives the choice; the brackets are appended after, so an array
@@ -2022,7 +2083,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     }
 
     /// <summary>How the page draws a value that is not there.</summary>
-    private static string Absent() => "<span class=\"empty\" title=\"값 없음\">&lt;none&gt;</span>";
+    private static string Absent() => "<span class=\"null\" title=\"값 없음\">null</span>";
 
     /// <summary>
     /// A reference's stored key, as a way to the row it names.
@@ -2135,17 +2196,70 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// Zero is the conventional "points at nothing" and is left as it is: index values start
     /// at one, so it can never be a row.
     /// </remarks>
+    /// <summary>
+    /// How a reference's own cells are spelled - which is not always how its type is.
+    /// </summary>
+    /// <remarks>
+    /// A reference to a whole row is a `ForeignRecord`, and the model names that type after
+    /// the table it resolves to: `AdvSpcEffTerms.Record`. Printed left of the arrow that
+    /// already names the table, it said the table twice and the cells' own type not at all.
+    /// The cells hold the target's primary index, so the target's own sheet is what spells
+    /// it - the page never has to invent a name for a type.
+    ///
+    /// A dotted reference (`Table.Field`) resolves to a value instead, and the field's type
+    /// name is already that value's.
+    /// </remarks>
+    private static string KeySpelling(Models.Field field)
+    {
+        if (field.ElementType != Models.ValueType.ForeignRecord)
+            return field.TypeName;
+
+        return field.ResolvedRefTable?.PrimaryIndexField?.TypeName ?? "";
+    }
+
+    /// <summary>
+    /// A string as a value: in quotes, so `0` and `"0"` are different cells and a value
+    /// with a comma in it is one value rather than two. An empty string is then the quotes
+    /// with nothing between them, which is what it is.
+    /// </summary>
+    private static string StringMarkup(string text)
+        => text.Length == 0
+            ? "<span class=\"empty\" title=\"빈 문자열\">&quot;&quot;</span>"
+            : $"<span class=\"str\">&quot;{Esc(text)}&quot;</span>";
+
     private string KeyMarkup(Models.Field field, object value, string root)
     {
         string key = value.ToString() ?? "";
 
-        if (key.Length == 0 || key == "0")
-            return Esc(key);
+        // A key is a value before it is a link, and a string key wears the quotes every
+        // other string on the page wears - without them a column of names read as bare
+        // words while the column beside it, the same strings but not a reference, read as
+        // strings. The quotes only, without the string colour: the colour here is the
+        // link's, which is what says the cell can be followed.
+        bool textual = field.ElementType == Models.ValueType.String;
 
+        // Two spellings of one key: as a value on its own, and as the text of a link. The
+        // link's colour is what says the cell can be followed, so inside one the string
+        // wears the quotes without the string colour.
+        string plain = textual ? StringMarkup(key) : Esc(key);
+        string linked = textual ? $"&quot;{Esc(key)}&quot;" : Esc(key);
+
+        if (key.Length == 0)
+            return plain;
+
+        // `0` in a numeric key is how a sheet leaves a reference empty. In a string key it
+        // is a key.
+        if (!textual && key == "0")
+            return plain;
+
+        // Every route out of here that is not a link still spells the value the way the rest
+        // of the page spells it. A target this build does not hold is the common one, and
+        // those cells read as bare words beside a column of the same strings that is not a
+        // reference and does wear quotes.
         var named = NamedTablesOf(field).Where(name => _model.FindTable(name) is not null).ToList();
 
         if (named.Count == 0)
-            return Esc(key);
+            return plain;
 
         var holders = named.Where(name => KeysOf(name).Contains(key)).ToList();
 
@@ -2166,7 +2280,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             : "";
 
         return $"<a href=\"{RowHref(destination, key, root)}\" " +
-               $"data-refs=\"{Esc(carried)}\" data-key=\"{Esc(key)}\">{Esc(key)}</a>{which}{mark}";
+               $"data-refs=\"{Esc(carried)}\" data-key=\"{Esc(key)}\">{linked}</a>{which}{mark}";
     }
 
     /// <summary>
@@ -2174,7 +2288,11 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// </summary>
     private string RowHref(string table, string key, string root)
         => _anchoredRows.TryGetValue(table, out var keys) && keys.Contains(key)
-            ? $"{root}{HtmlLinks.TablePage(table)}#{HtmlLinks.RowAnchor(table, key)}"
+            // The fragment is escaped and the anchor it names is not. A key can be a string,
+            // and a string key can hold a space, a quote or a `#` - characters that end an
+            // attribute or a url early. The browser unescapes a fragment before matching it
+            // against an id, so the readable form is the one that stays on the element.
+            ? $"{root}{HtmlLinks.TablePage(table)}#{Uri.EscapeDataString(HtmlLinks.RowAnchor(table, key))}"
             : $"{root}{HtmlLinks.TablePage(table)}";
 
     /// <summary>
@@ -2221,15 +2339,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         switch (field!.ElementType)
         {
             case Models.ValueType.String:
-            {
-                string text = (string)value;
-
-                // An empty string is a value, and a blank cell is what a missing one looks
-                // like. Saying which is which is the whole point of a page for checking data.
-                return text.Length == 0
-                    ? "<span class=\"empty\" title=\"빈 문자열\">&quot;&quot;</span>"
-                    : Esc(text);
-            }
+                return StringMarkup((string)value);
 
             case Models.ValueType.Bool:
                 // A tick or a cross, rather than the words: a column of them reads as a
@@ -2240,7 +2350,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 // on a page whose whole purpose is telling them apart.
                 return ((bool)value!)
                     ? "<span class=\"yes\">&#x2714;</span>"
-                    : "<span class=\"no\">&#x2715;</span>";
+                    : "<span class=\"no\">&#x2718;</span>";
 
             case Models.ValueType.Int32:
                 return ((int)value!).ToString(CultureInfo.InvariantCulture);
@@ -2313,45 +2423,48 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// entity is asked the narrower question. Empty when the source addresses no cell,
     /// which is how a page for a source that has none says nothing rather than `` : ``.
     /// </summary>
+    /// <summary>
+    /// Where a declaration is, as a reader would go looking for it: the workbook, the sheet,
+    /// and the cell.
+    /// </summary>
+    /// <remarks>
+    /// The sheet alone was not enough to find anything. A project keeps its sheets in a
+    /// dozen workbooks and the sheet names do not say which - so "declared in `Shop`" left
+    /// the reader opening files until one of them had that tab.
+    ///
+    /// The workbook by its file name, with the path it came from in the tooltip: the path is
+    /// the same for every row of a list, and a column of identical text is a column nobody
+    /// reads.
+    /// </remarks>
     private static string SourceCell(Models.Location location)
         => string.IsNullOrEmpty(location.Sheet)
             ? ""
-            : Esc($"{location.Sheet} : {location.CellRange}");
+            : $"{WorkbookName(location)} &middot; " +
+              $"<svg class=\"i\"><use href=\"#i-sheet\"></use></svg>" +
+              $"{Esc(location.Sheet)} : {Esc(location.CellRange)}";
+
+    /// <summary>Which sheet of which workbook, for a list that names one per row.</summary>
+    private static string SheetName(Models.Location location)
+        => string.IsNullOrEmpty(location.Sheet)
+            ? WorkbookName(location)
+            : $"{WorkbookName(location)} <span class=\"hint\">&middot;</span> {Esc(location.Sheet)}";
 
     /// <summary>
-    /// Where each header row below the first one sticks, in the units the stylesheet uses.
-    ///
-    /// One row is 23px, fixed by the stylesheet so that this arithmetic is exact. Dropping
-    /// the description row moves everything below it up by one, which is why the offsets
-    /// are the page's business and not the stylesheet's.
+    /// The workbook a location is in, by file name, carrying its path as a tooltip.
     /// </summary>
-    private static string HeaderOffsets(bool hasComments)
+    private static string WorkbookName(Models.Location location)
     {
-        const int row = 23;
-        int next = row;
+        string path = location.Filename ?? "";
 
-        var parts = new List<string>();
+        if (path.Length == 0)
+            return "";
 
-        if (hasComments)
-        {
-            parts.Add($"--t-about: {next}px");
-            next += row;
-        }
+        int slash = path.LastIndexOf('/');
+        string name = slash < 0 ? path : path.Substring(slash + 1);
 
-        parts.Add($"--t-types: {next}px");
-        next += row;
-        parts.Add($"--t-side: {next}px");
-
-        return string.Join("; ", parts);
+        return $"<span class=\"book\" title=\"{Esc(path)}\">" +
+               $"<svg class=\"i\"><use href=\"#i-workbook\"></use></svg>{Esc(name)}</span>";
     }
-
-    /// <summary>
-    /// Which sheet, for a list that names one per row.
-    ///
-    /// The sheet alone rather than the workbook and the cell: the list is scanned down a
-    /// column, and a path repeated on every row is a column nobody reads.
-    /// </summary>
-    private static string SheetName(Models.Location location) => Esc(location.Sheet);
 
     /// <summary>The side a column goes to, in the vocabulary a recipe writes it in.</summary>
     private static string SideName(Models.TargetSide side)
