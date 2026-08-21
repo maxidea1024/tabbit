@@ -224,6 +224,64 @@ module MultiTarget
           end
         end
       end
+      loadout.records.each do |record|
+        record.slot.each_index do |i|
+          if record.slot[i].pick != 0
+            if record.slot[i].pick_target == LoadoutSlotPickTarget::NONE
+              found = weapon.find_by_index(record.slot[i].pick)
+              unless found.nil?
+                record.slot[i].pick_row = found
+                record.slot[i].pick_target = LoadoutSlotPickTarget::WEAPON
+              end
+            end
+            if record.slot[i].pick_target == LoadoutSlotPickTarget::NONE
+              found = armour.find_by_index(record.slot[i].pick)
+              unless found.nil?
+                record.slot[i].pick_row = found
+                record.slot[i].pick_target = LoadoutSlotPickTarget::ARMOUR
+              end
+            end
+          end
+        end
+      end
+      fitting.records.each do |record|
+        if record.main.pick != 0
+          if record.main.pick_target == FittingMainPickTarget::NONE
+            found = weapon.find_by_index(record.main.pick)
+            unless found.nil?
+              record.main.pick_row = found
+              record.main.pick_target = FittingMainPickTarget::WEAPON
+            end
+          end
+          if record.main.pick_target == FittingMainPickTarget::NONE
+            found = armour.find_by_index(record.main.pick)
+            unless found.nil?
+              record.main.pick_row = found
+              record.main.pick_target = FittingMainPickTarget::ARMOUR
+            end
+          end
+        end
+      end
+      rack.records.each do |record|
+        record.slots.pick.each_index do |i|
+          if record.slots.pick[i] != 0
+            if record.slots.pick_target[i] == RackSlotsPickTarget::NONE
+              found = weapon.find_by_index(record.slots.pick[i])
+              unless found.nil?
+                record.slots.pick_row[i] = found
+                record.slots.pick_target[i] = RackSlotsPickTarget::WEAPON
+              end
+            end
+            if record.slots.pick_target[i] == RackSlotsPickTarget::NONE
+              found = armour.find_by_index(record.slots.pick[i])
+              unless found.nil?
+                record.slots.pick_row[i] = found
+                record.slots.pick_target[i] = RackSlotsPickTarget::ARMOUR
+              end
+            end
+          end
+        end
+      end
     end
   end
 end

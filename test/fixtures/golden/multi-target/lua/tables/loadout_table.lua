@@ -7,16 +7,45 @@
 
 local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
+local LoadoutSlotPickTarget = require(_root .. "enums.enum_loadout_slot_pick_target")
 
 ---@class LoadoutSlotEntry
 ---@field pick integer
+---@field pickRow any
+---@field pickTarget integer
 ---@field count integer
-local LoadoutSlotEntryMeta = tcb.strictType("an element of LoadoutRecord.slot", { "pick", "count" })
+local LoadoutSlotEntry = {}
+
+-- The WeaponRecord row `pick` names, or nil when it names a row of
+-- one of the others.
+---@return WeaponRecord|nil
+function LoadoutSlotEntry:weaponByPick()
+  if self.pickTarget ~= LoadoutSlotPickTarget.weapon then
+    return nil
+  end
+
+  return self.pickRow
+end
+
+-- The ArmourRecord row `pick` names, or nil when it names a row of
+-- one of the others.
+---@return ArmourRecord|nil
+function LoadoutSlotEntry:armourByPick()
+  if self.pickTarget ~= LoadoutSlotPickTarget.armour then
+    return nil
+  end
+
+  return self.pickRow
+end
+
+local LoadoutSlotEntryMeta = tcb.strictInstance("an element of LoadoutRecord.slot", LoadoutSlotEntry, { "pick", "pickRow", "pickTarget", "count" })
 
 ---@return LoadoutSlotEntry
 local function newLoadoutSlotEntry()
   return setmetatable({
     pick = 0,
+    pickRow = nil,
+    pickTarget = LoadoutSlotPickTarget.none,
     count = 0,
   }, LoadoutSlotEntryMeta)
 end

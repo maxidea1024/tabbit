@@ -15,10 +15,17 @@ import * as tabbit from '../tabbit/tcb-reader'
 // finished evaluating - so neither one is half built when the binding is used.
 import { Tables } from '../tables'
 
+// Automatically import to handle external type references.
+import { FittingMainPickTarget } from '../enums/fitting-main-pick-target'
+import { WeaponRecord } from './weapon'
+import { ArmourRecord } from './armour'
+
 /** One element of FittingRecord.main. */
 export interface MainEntry {
   /** the member, in a record of one */
   pick: number
+  pickRow: WeaponRecord | ArmourRecord | undefined
+  pickTarget: FittingMainPickTarget
   /** an ordinary member beside it */
   count: number
 }
@@ -35,6 +42,20 @@ interface IDataRow {
   main: MainEntryJson
   pad: number
   pad2: number
+}
+
+/** The `WeaponRecord` row `pick` names, or undefined when it names a row of one of the others. */
+export function weaponByPick(element: MainEntry): WeaponRecord | undefined {
+  return element.pickTarget === FittingMainPickTarget.Weapon
+    ? element.pickRow as WeaponRecord
+    : undefined
+}
+
+/** The `ArmourRecord` row `pick` names, or undefined when it names a row of one of the others. */
+export function armourByPick(element: MainEntry): ArmourRecord | undefined {
+  return element.pickTarget === FittingMainPickTarget.Armour
+    ? element.pickRow as ArmourRecord
+    : undefined
 }
 
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : J2
@@ -57,14 +78,14 @@ export class FittingRecord {
   public get pad2(): number { return this._pad2 }
 
   public _index: number = 0
-  public _main: MainEntry = { pick: 0, count: 0 }
+  public _main: MainEntry = { pick: 0, pickRow: undefined, pickTarget: FittingMainPickTarget.None, count: 0 }
   public _pad: number = 0
   public _pad2: number = 0
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._main = ((e: any) => ({ pick: e.pick, count: e.count }))(dataRow.main)
+    this._main = ((e: any) => ({ pick: e.pick, pickRow: undefined, pickTarget: FittingMainPickTarget.None, count: e.count }))(dataRow.main)
     this._pad = dataRow.pad
     this._pad2 = dataRow.pad2
   }
@@ -73,7 +94,7 @@ export class FittingRecord {
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
     this._index = dataRow[offset++]
-    this._main = { pick: dataRow[offset++], count: dataRow[offset++] }
+    this._main = { pick: dataRow[offset++], pickRow: undefined, pickTarget: FittingMainPickTarget.None, count: dataRow[offset++] }
     this._pad = dataRow[offset++]
     this._pad2 = dataRow[offset++]
   }

@@ -48,8 +48,30 @@ class RackRecord {
     class SlotsEntry {
         /** element 1 of the member */
         var pick: MutableList<Int> = MutableList(2) { 0 }
+        var pickRow: MutableList<Any?> = MutableList(2) { null }
+        var pickTarget: MutableList<RackSlotsPickTarget> = MutableList(2) { RackSlotsPickTarget.NONE }
         /** element 1 beside it */
         var count: MutableList<Int> = MutableList(2) { 0 }
+
+        /**
+         * The WeaponRecord row element [at] of pick names, or null
+         * when that element names a row of one of the others.
+         */
+        fun weaponByPick(at: Int): WeaponRecord? =
+            if (pickTarget[at] == RackSlotsPickTarget.WEAPON)
+                pickRow[at] as WeaponRecord
+            else
+                null
+
+        /**
+         * The ArmourRecord row element [at] of pick names, or null
+         * when that element names a row of one of the others.
+         */
+        fun armourByPick(at: Int): ArmourRecord? =
+            if (pickTarget[at] == RackSlotsPickTarget.ARMOUR)
+                pickRow[at] as ArmourRecord
+            else
+                null
     }
 
 }

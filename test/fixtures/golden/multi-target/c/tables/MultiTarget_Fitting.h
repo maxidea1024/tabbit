@@ -12,6 +12,7 @@
 #include "tabbit/tabbit_tcb_reader.h"
 
 #include "MultiTarget_Forward.h"
+#include "enums/MultiTarget_EnumFittingMainPickTarget.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,10 +25,20 @@ extern "C" {
 /* One element of MultiTarget_FittingRecord_t::main. */
 struct MultiTarget_FittingRecord_t_main_entry {
   /* the member, in a record of one */
-  int32_t pick;
+  int32_t pick; const void* pick_row; MultiTarget_FittingMainPickTarget_t pick_target;
   /* an ordinary member beside it */
   int32_t count;
 };
+
+/* The MultiTarget_WeaponRecord_t row pick names, or NULL when it names a row of
+ * one of the others. */
+const MultiTarget_WeaponRecord_t* MultiTarget_FittingMainWeaponByPick(
+  const struct MultiTarget_FittingRecord_t_main_entry* element);
+
+/* The MultiTarget_ArmourRecord_t row pick names, or NULL when it names a row of
+ * one of the others. */
+const MultiTarget_ArmourRecord_t* MultiTarget_FittingMainArmourByPick(
+  const struct MultiTarget_FittingRecord_t_main_entry* element);
 
 struct MultiTarget_FittingRecord_t {
   /* primary index */

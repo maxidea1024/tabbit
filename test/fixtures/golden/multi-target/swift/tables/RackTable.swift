@@ -26,9 +26,27 @@ public final class RackRecord {
 
         /// element 1 of the member
         public var pick: [Int32] = [Int32](repeating: 0, count: 2)
+        public var pickRow: [AnyObject?] = [AnyObject?](repeating: nil, count: 2)
+        public var pickTarget: [RackSlotsPickTarget] = [RackSlotsPickTarget](repeating: RackSlotsPickTarget.none, count: 2)
 
         /// element 1 beside it
         public var count: [Int32] = [Int32](repeating: 0, count: 2)
+
+        /// The `WeaponRecord` row element `at` of `pick` names, or
+        /// nil when that element names a row of one of the others.
+        public func weaponByPick(_ at: Int) -> WeaponRecord? {
+            pickTarget[at] == RackSlotsPickTarget.weapon
+                ? (pickRow[at] as? WeaponRecord)
+                : nil
+        }
+
+        /// The `ArmourRecord` row element `at` of `pick` names, or
+        /// nil when that element names a row of one of the others.
+        public func armourByPick(_ at: Int) -> ArmourRecord? {
+            pickTarget[at] == RackSlotsPickTarget.armour
+                ? (pickRow[at] as? ArmourRecord)
+                : nil
+        }
     }
 }
 

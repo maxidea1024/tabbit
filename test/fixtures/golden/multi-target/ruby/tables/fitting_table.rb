@@ -11,11 +11,29 @@ require_relative '../tabbit/tcb_reader'
 module MultiTarget
   # One element of FittingRecord#main.
   class FittingMainEntry
-    attr_accessor :pick, :count
+    attr_accessor :pick, :pick_row, :pick_target, :count
 
     def initialize
       @pick = 0
+      @pick_row = nil
+      @pick_target = FittingMainPickTarget::NONE
       @count = 0
+    end
+
+    # The weapon row pick names, or nil when it names a row of one of
+    # the others.
+    def weapon_by_pick
+      return nil unless @pick_target == FittingMainPickTarget::WEAPON
+
+      @pick_row
+    end
+
+    # The armour row pick names, or nil when it names a row of one of
+    # the others.
+    def armour_by_pick
+      return nil unless @pick_target == FittingMainPickTarget::ARMOUR
+
+      @pick_row
     end
   end
 

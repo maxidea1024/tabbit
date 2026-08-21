@@ -216,5 +216,57 @@ object Tables {
                 }
             }
         }
+        for (record in loadout.records) {
+            for (i in 0 until record.slot.size) {
+                if (record.slot[i].pick != 0) {
+                    if (record.slot[i].pickTarget == LoadoutSlotPickTarget.NONE) {
+                        weapon.findByIndex(record.slot[i].pick)?.let { found ->
+                            record.slot[i].pickRow = found
+                            record.slot[i].pickTarget = LoadoutSlotPickTarget.WEAPON
+                        }
+                    }
+                    if (record.slot[i].pickTarget == LoadoutSlotPickTarget.NONE) {
+                        armour.findByIndex(record.slot[i].pick)?.let { found ->
+                            record.slot[i].pickRow = found
+                            record.slot[i].pickTarget = LoadoutSlotPickTarget.ARMOUR
+                        }
+                    }
+                }
+            }
+        }
+        for (record in fitting.records) {
+            if (record.main.pick != 0) {
+                if (record.main.pickTarget == FittingMainPickTarget.NONE) {
+                    weapon.findByIndex(record.main.pick)?.let { found ->
+                        record.main.pickRow = found
+                        record.main.pickTarget = FittingMainPickTarget.WEAPON
+                    }
+                }
+                if (record.main.pickTarget == FittingMainPickTarget.NONE) {
+                    armour.findByIndex(record.main.pick)?.let { found ->
+                        record.main.pickRow = found
+                        record.main.pickTarget = FittingMainPickTarget.ARMOUR
+                    }
+                }
+            }
+        }
+        for (record in rack.records) {
+            for (i in 0 until record.slots.pick.size) {
+                if (record.slots.pick[i] != 0) {
+                    if (record.slots.pickTarget[i] == RackSlotsPickTarget.NONE) {
+                        weapon.findByIndex(record.slots.pick[i])?.let { found ->
+                            record.slots.pickRow[i] = found
+                            record.slots.pickTarget[i] = RackSlotsPickTarget.WEAPON
+                        }
+                    }
+                    if (record.slots.pickTarget[i] == RackSlotsPickTarget.NONE) {
+                        armour.findByIndex(record.slots.pick[i])?.let { found ->
+                            record.slots.pickRow[i] = found
+                            record.slots.pickTarget[i] = RackSlotsPickTarget.ARMOUR
+                        }
+                    }
+                }
+            }
+        }
     }
 }

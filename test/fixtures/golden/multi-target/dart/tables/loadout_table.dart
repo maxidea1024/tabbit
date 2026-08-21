@@ -10,8 +10,24 @@ part of '../tables.dart';
 class LoadoutSlotEntry {
   /// element 1 - two targets
   int pick = 0;
+  Object? pickRow;
+  LoadoutSlotPickTarget pickTarget = LoadoutSlotPickTarget.none;
   /// element 1 - an ordinary member
   int count = 0;
+
+  /// The [WeaponRecord] row [pick] names, or null when it names a
+  /// row of one of the others.
+  WeaponRecord? get weaponByPick =>
+      pickTarget == LoadoutSlotPickTarget.weapon
+          ? pickRow as WeaponRecord
+          : null;
+
+  /// The [ArmourRecord] row [pick] names, or null when it names a
+  /// row of one of the others.
+  ArmourRecord? get armourByPick =>
+      pickTarget == LoadoutSlotPickTarget.armour
+          ? pickRow as ArmourRecord
+          : null;
 }
 
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : B2

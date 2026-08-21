@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Tabbit\Fixtures\MultiTarget;
 
 require_once __DIR__ . '/../tabbit/TcbReader.php';
+require_once __DIR__ . '/../enums/LoadoutSlotPickTarget.php';
 require_once __DIR__ . '/../MultiTargetAccessor.php';
 
 use Tabbit\TcbReader;
@@ -24,8 +25,34 @@ final class LoadoutSlotEntry
 {
     /** element 1 - two targets */
     public int $pick = 0;
+
+    /** The row this member names, as whichever of its targets holds it. */
+    public ?object $pickRow = null;
+
+    /** Which table this member is a row of. */
+    public LoadoutSlotPickTarget $pickTarget = LoadoutSlotPickTarget::None;
     /** element 1 - an ordinary member */
     public int $count = 0;
+
+    /** The WeaponRecord row $pick names, or null when it names a row of one of the others. */
+    public function weaponByPick(): ?WeaponRecord
+    {
+        if ($this->pickTarget !== LoadoutSlotPickTarget::Weapon) {
+            return null;
+        }
+
+        return $this->pickRow;
+    }
+
+    /** The ArmourRecord row $pick names, or null when it names a row of one of the others. */
+    public function armourByPick(): ?ArmourRecord
+    {
+        if ($this->pickTarget !== LoadoutSlotPickTarget::Armour) {
+            return null;
+        }
+
+        return $this->pickRow;
+    }
 }
 
 /**

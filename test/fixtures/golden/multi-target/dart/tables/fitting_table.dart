@@ -10,8 +10,24 @@ part of '../tables.dart';
 class FittingMainEntry {
   /// the member, in a record of one
   int pick = 0;
+  Object? pickRow;
+  FittingMainPickTarget pickTarget = FittingMainPickTarget.none;
   /// an ordinary member beside it
   int count = 0;
+
+  /// The [WeaponRecord] row [pick] names, or null when it names a
+  /// row of one of the others.
+  WeaponRecord? get weaponByPick =>
+      pickTarget == FittingMainPickTarget.weapon
+          ? pickRow as WeaponRecord
+          : null;
+
+  /// The [ArmourRecord] row [pick] names, or null when it names a
+  /// row of one of the others.
+  ArmourRecord? get armourByPick =>
+      pickTarget == FittingMainPickTarget.armour
+          ? pickRow as ArmourRecord
+          : null;
 }
 
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : J2

@@ -52,8 +52,30 @@ class FittingRecord {
     class MainEntry {
         /** the member, in a record of one */
         var pick: Int = 0
+        var pickRow: Any? = null
+        var pickTarget: FittingMainPickTarget = FittingMainPickTarget.NONE
         /** an ordinary member beside it */
         var count: Int = 0
+
+        /**
+         * The WeaponRecord row pick names, or null when it names a
+         * row of one of the others.
+         */
+        val weaponByPick: WeaponRecord?
+            get() = if (pickTarget == FittingMainPickTarget.WEAPON)
+                pickRow as WeaponRecord
+            else
+                null
+
+        /**
+         * The ArmourRecord row pick names, or null when it names a
+         * row of one of the others.
+         */
+        val armourByPick: ArmourRecord?
+            get() = if (pickTarget == FittingMainPickTarget.ARMOUR)
+                pickRow as ArmourRecord
+            else
+                null
     }
 
 }

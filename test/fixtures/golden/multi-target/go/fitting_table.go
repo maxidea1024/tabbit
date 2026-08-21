@@ -17,8 +17,34 @@ import (
 type FittingMainEntry struct {
 	// the member, in a record of one
 	Pick int32
+	// The row Pick names, as whichever of its target tables holds
+	// it. Read it through the methods below rather than directly: they check the
+	// discriminator first.
+	PickRow any
+	// Which table Pick is a row of.
+	PickTarget FittingMainPickTarget
 	// an ordinary member beside it
 	Count int32
+}
+
+// WeaponByPick returns the WeaponRecord row Pick names, or nil when
+// it names a row of one of the others.
+func (e *FittingMainEntry) WeaponByPick() *WeaponRecord {
+	if e.PickTarget != FittingMainPickTargetWeapon {
+		return nil
+	}
+
+	return e.PickRow.(*WeaponRecord)
+}
+
+// ArmourByPick returns the ArmourRecord row Pick names, or nil when
+// it names a row of one of the others.
+func (e *FittingMainEntry) ArmourByPick() *ArmourRecord {
+	if e.PickTarget != FittingMainPickTargetArmour {
+		return nil
+	}
+
+	return e.PickRow.(*ArmourRecord)
 }
 
 // FittingRecord was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : J2.

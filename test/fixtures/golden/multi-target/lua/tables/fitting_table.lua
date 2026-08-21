@@ -7,16 +7,45 @@
 
 local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
+local FittingMainPickTarget = require(_root .. "enums.enum_fitting_main_pick_target")
 
 ---@class FittingMainEntry
 ---@field pick integer
+---@field pickRow any
+---@field pickTarget integer
 ---@field count integer
-local FittingMainEntryMeta = tcb.strictType("an element of FittingRecord.main", { "pick", "count" })
+local FittingMainEntry = {}
+
+-- The WeaponRecord row `pick` names, or nil when it names a row of
+-- one of the others.
+---@return WeaponRecord|nil
+function FittingMainEntry:weaponByPick()
+  if self.pickTarget ~= FittingMainPickTarget.weapon then
+    return nil
+  end
+
+  return self.pickRow
+end
+
+-- The ArmourRecord row `pick` names, or nil when it names a row of
+-- one of the others.
+---@return ArmourRecord|nil
+function FittingMainEntry:armourByPick()
+  if self.pickTarget ~= FittingMainPickTarget.armour then
+    return nil
+  end
+
+  return self.pickRow
+end
+
+local FittingMainEntryMeta = tcb.strictInstance("an element of FittingRecord.main", FittingMainEntry, { "pick", "pickRow", "pickTarget", "count" })
 
 ---@return FittingMainEntry
 local function newFittingMainEntry()
   return setmetatable({
     pick = 0,
+    pickRow = nil,
+    pickTarget = FittingMainPickTarget.none,
     count = 0,
   }, FittingMainEntryMeta)
 end

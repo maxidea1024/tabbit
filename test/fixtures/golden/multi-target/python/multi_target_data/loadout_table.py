@@ -9,16 +9,39 @@ import enum
 import os
 
 from . import tabbit
+from .enum_loadout_slot_pick_target import LoadoutSlotPickTarget
 
 
 class LoadoutSlotEntry:
     """One element of LoadoutRecord.slot."""
 
-    __slots__ = ("pick", "count")
+    __slots__ = ("pick", "pick_row", "pick_target", "count")
 
     def __init__(self):
         self.pick = 0
+        self.pick_row = None
+        self.pick_target = LoadoutSlotPickTarget.none
         self.count = 0
+
+    @property
+    def weapon_by_pick(self):
+        """The weapon row pick names, or None when it names a row of one of
+        the others.
+        """
+        if self.pick_target != LoadoutSlotPickTarget.weapon:
+            return None
+
+        return self.pick_row
+
+    @property
+    def armour_by_pick(self):
+        """The armour row pick names, or None when it names a row of one of
+        the others.
+        """
+        if self.pick_target != LoadoutSlotPickTarget.armour:
+            return None
+
+        return self.pick_row
 
     def __repr__(self):
         return "LoadoutSlotEntry(pick=%r, count=%r)" % (self.pick, self.count)

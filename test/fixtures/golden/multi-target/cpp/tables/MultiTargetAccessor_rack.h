@@ -18,6 +18,7 @@
 
 #include "tabbit/tcb_reader.h"
 #include "MultiTargetAccessor_forward.h"
+#include "enums/MultiTargetAccessor_enum_rack_slots_pick_target.h"
 
 namespace multi_target {
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : R2
@@ -25,8 +26,26 @@ namespace multi_target {
 struct RackRecord_slots_entry {
   /// element 1 of the member
   std::vector<std::int32_t> pick;
+  std::vector<const void*> pick_row;
+  std::vector<RackSlotsPickTarget> pick_target;
   /// element 1 beside it
   std::vector<std::int32_t> count;
+
+  /// The `WeaponRecord` row element `at` of `pick` names, or
+  /// nullptr when that element names a row of one of the others.
+  const WeaponRecord* weapon_by_pick(std::size_t at) const {
+    return pick_target[at] == RackSlotsPickTarget::Weapon
+        ? static_cast<const WeaponRecord*>(pick_row[at])
+        : nullptr;
+  }
+
+  /// The `ArmourRecord` row element `at` of `pick` names, or
+  /// nullptr when that element names a row of one of the others.
+  const ArmourRecord* armour_by_pick(std::size_t at) const {
+    return pick_target[at] == RackSlotsPickTarget::Armour
+        ? static_cast<const ArmourRecord*>(pick_row[at])
+        : nullptr;
+  }
 };
 
 /// One record whose members are arrays, one of them reaching several.
@@ -123,6 +142,8 @@ class RackTable {
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             record.slots.pick.resize(2);
+            record.slots.pick_row.assign(2, nullptr);
+            record.slots.pick_target.assign(2, RackSlotsPickTarget::None);
             for (std::size_t j = 0; j < 2; ++j) {
               record.slots.pick[j] = cursor.next_i32();
             }

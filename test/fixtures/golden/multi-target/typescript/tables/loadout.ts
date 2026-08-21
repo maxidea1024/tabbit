@@ -15,10 +15,17 @@ import * as tabbit from '../tabbit/tcb-reader'
 // finished evaluating - so neither one is half built when the binding is used.
 import { Tables } from '../tables'
 
+// Automatically import to handle external type references.
+import { LoadoutSlotPickTarget } from '../enums/loadout-slot-pick-target'
+import { WeaponRecord } from './weapon'
+import { ArmourRecord } from './armour'
+
 /** One element of LoadoutRecord.slot. */
 export interface SlotEntry {
   /** element 1 - two targets */
   pick: number
+  pickRow: WeaponRecord | ArmourRecord | undefined
+  pickTarget: LoadoutSlotPickTarget
   /** element 1 - an ordinary member */
   count: number
 }
@@ -35,6 +42,20 @@ interface IDataRow {
   slot: SlotEntryJson[]
 }
 
+/** The `WeaponRecord` row `pick` names, or undefined when it names a row of one of the others. */
+export function weaponByPick(element: SlotEntry): WeaponRecord | undefined {
+  return element.pickTarget === LoadoutSlotPickTarget.Weapon
+    ? element.pickRow as WeaponRecord
+    : undefined
+}
+
+/** The `ArmourRecord` row `pick` names, or undefined when it names a row of one of the others. */
+export function armourByPick(element: SlotEntry): ArmourRecord | undefined {
+  return element.pickTarget === LoadoutSlotPickTarget.Armour
+    ? element.pickRow as ArmourRecord
+    : undefined
+}
+
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : B2
 /** A record array whose member reaches several tables. */
 export class LoadoutRecord {
@@ -49,12 +70,12 @@ export class LoadoutRecord {
   public get slot(): SlotEntry[] { return this._slot }
 
   public _index: number = 0
-  public _slot: SlotEntry[] = Array.from({ length: 2 }, () => ({ pick: 0, count: 0 }))
+  public _slot: SlotEntry[] = Array.from({ length: 2 }, () => ({ pick: 0, pickRow: undefined, pickTarget: LoadoutSlotPickTarget.None, count: 0 }))
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._slot = dataRow.slot.map(e => ({ pick: e.pick, count: e.count }))
+    this._slot = dataRow.slot.map(e => ({ pick: e.pick, pickRow: undefined, pickTarget: LoadoutSlotPickTarget.None, count: e.count }))
   }
 
   /** Populate field values. */
@@ -65,7 +86,7 @@ export class LoadoutRecord {
     offset += 2
     const _slot_count = dataRow.slice(offset, offset + 2)
     offset += 2
-    this._slot = Array.from({ length: 2 }, (_, k) => ({ pick: _slot_pick[k], count: _slot_count[k] }))
+    this._slot = Array.from({ length: 2 }, (_, k) => ({ pick: _slot_pick[k], pickRow: undefined, pickTarget: LoadoutSlotPickTarget.None, count: _slot_count[k] }))
   }
 }
 

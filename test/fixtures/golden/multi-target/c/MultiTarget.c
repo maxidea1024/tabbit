@@ -135,6 +135,99 @@ static void MultiTarget_SolveCrossReferences(MultiTarget_t* data) {
       }
     }
   }
+
+  for (row = 0; row < data->loadout.count; ++row) {
+    MultiTarget_LoadoutRecord_t* record = &data->loadout.records[row];
+
+    {
+      int32_t element;
+
+      for (element = 0; element < 2; ++element) {
+        if (record->slot[element].pick != 0) {
+
+          if (record->slot[element].pick_target == MULTI_TARGET_LOADOUT_SLOT_PICK_TARGET_NONE) {
+            const MultiTarget_WeaponRecord_t* found = MultiTarget_WeaponFindByIndex(
+              &data->weapon, record->slot[element].pick);
+
+            if (found != NULL) {
+              record->slot[element].pick_row = found;
+              record->slot[element].pick_target = MULTI_TARGET_LOADOUT_SLOT_PICK_TARGET_WEAPON;
+            }
+          }
+
+          if (record->slot[element].pick_target == MULTI_TARGET_LOADOUT_SLOT_PICK_TARGET_NONE) {
+            const MultiTarget_ArmourRecord_t* found = MultiTarget_ArmourFindByIndex(
+              &data->armour, record->slot[element].pick);
+
+            if (found != NULL) {
+              record->slot[element].pick_row = found;
+              record->slot[element].pick_target = MULTI_TARGET_LOADOUT_SLOT_PICK_TARGET_ARMOUR;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (row = 0; row < data->fitting.count; ++row) {
+    MultiTarget_FittingRecord_t* record = &data->fitting.records[row];
+
+    if (record->main.pick != 0) {
+
+      if (record->main.pick_target == MULTI_TARGET_FITTING_MAIN_PICK_TARGET_NONE) {
+        const MultiTarget_WeaponRecord_t* found = MultiTarget_WeaponFindByIndex(
+          &data->weapon, record->main.pick);
+
+        if (found != NULL) {
+          record->main.pick_row = found;
+          record->main.pick_target = MULTI_TARGET_FITTING_MAIN_PICK_TARGET_WEAPON;
+        }
+      }
+
+      if (record->main.pick_target == MULTI_TARGET_FITTING_MAIN_PICK_TARGET_NONE) {
+        const MultiTarget_ArmourRecord_t* found = MultiTarget_ArmourFindByIndex(
+          &data->armour, record->main.pick);
+
+        if (found != NULL) {
+          record->main.pick_row = found;
+          record->main.pick_target = MULTI_TARGET_FITTING_MAIN_PICK_TARGET_ARMOUR;
+        }
+      }
+    }
+  }
+
+  for (row = 0; row < data->rack.count; ++row) {
+    MultiTarget_RackRecord_t* record = &data->rack.records[row];
+
+    {
+      int32_t element;
+
+      for (element = 0; element < 2; ++element) {
+        if (record->slots.pick[element] != 0) {
+
+          if (record->slots.pick_target[element] == MULTI_TARGET_RACK_SLOTS_PICK_TARGET_NONE) {
+            const MultiTarget_WeaponRecord_t* found = MultiTarget_WeaponFindByIndex(
+              &data->weapon, record->slots.pick[element]);
+
+            if (found != NULL) {
+              record->slots.pick_row[element] = found;
+              record->slots.pick_target[element] = MULTI_TARGET_RACK_SLOTS_PICK_TARGET_WEAPON;
+            }
+          }
+
+          if (record->slots.pick_target[element] == MULTI_TARGET_RACK_SLOTS_PICK_TARGET_NONE) {
+            const MultiTarget_ArmourRecord_t* found = MultiTarget_ArmourFindByIndex(
+              &data->armour, record->slots.pick[element]);
+
+            if (found != NULL) {
+              record->slots.pick_row[element] = found;
+              record->slots.pick_target[element] = MULTI_TARGET_RACK_SLOTS_PICK_TARGET_ARMOUR;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 bool MultiTarget_LoadAll(MultiTarget_t* data, const char* base_path,

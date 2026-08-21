@@ -21,6 +21,9 @@ from .rack_table import RackTable
 from .enum_holder_pick_target import HolderPickTarget
 from .enum_holder_wide_target import HolderWideTarget
 from .enum_holder_maybe_target import HolderMaybeTarget
+from .enum_loadout_slot_pick_target import LoadoutSlotPickTarget
+from .enum_fitting_main_pick_target import FittingMainPickTarget
+from .enum_rack_slots_pick_target import RackSlotsPickTarget
 
 
 class Tables:
@@ -182,3 +185,41 @@ class Tables:
                     if target is not None:
                         record.maybe_row = target
                         record.maybe_target = HolderMaybeTarget.armour
+        for record in loadout.records:
+            for i in range(len(record.slot)):
+                if record.slot[i].pick != 0:
+                    if record.slot[i].pick_target == LoadoutSlotPickTarget.none:
+                        found = weapon.find_by_index(record.slot[i].pick)
+                        if found is not None:
+                            record.slot[i].pick_row = found
+                            record.slot[i].pick_target = LoadoutSlotPickTarget.weapon
+                    if record.slot[i].pick_target == LoadoutSlotPickTarget.none:
+                        found = armour.find_by_index(record.slot[i].pick)
+                        if found is not None:
+                            record.slot[i].pick_row = found
+                            record.slot[i].pick_target = LoadoutSlotPickTarget.armour
+        for record in fitting.records:
+            if record.main.pick != 0:
+                if record.main.pick_target == FittingMainPickTarget.none:
+                    found = weapon.find_by_index(record.main.pick)
+                    if found is not None:
+                        record.main.pick_row = found
+                        record.main.pick_target = FittingMainPickTarget.weapon
+                if record.main.pick_target == FittingMainPickTarget.none:
+                    found = armour.find_by_index(record.main.pick)
+                    if found is not None:
+                        record.main.pick_row = found
+                        record.main.pick_target = FittingMainPickTarget.armour
+        for record in rack.records:
+            for i in range(len(record.slots.pick)):
+                if record.slots.pick[i] != 0:
+                    if record.slots.pick_target[i] == RackSlotsPickTarget.none:
+                        found = weapon.find_by_index(record.slots.pick[i])
+                        if found is not None:
+                            record.slots.pick_row[i] = found
+                            record.slots.pick_target[i] = RackSlotsPickTarget.weapon
+                    if record.slots.pick_target[i] == RackSlotsPickTarget.none:
+                        found = armour.find_by_index(record.slots.pick[i])
+                        if found is not None:
+                            record.slots.pick_row[i] = found
+                            record.slots.pick_target[i] = RackSlotsPickTarget.armour

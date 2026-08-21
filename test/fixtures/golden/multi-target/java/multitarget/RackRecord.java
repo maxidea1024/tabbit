@@ -21,8 +21,35 @@ public final class RackRecord {
     public static final class SlotsEntry {
         /** element 1 of the member */
         public int[] pick = new int[2];
+        public Object[] pickRow = new Object[2];
+        public RackSlotsPickTarget[] pickTarget = new RackSlotsPickTarget[2];
         /** element 1 beside it */
         public int[] count = new int[2];
+        { for (int i = 0; i < 2; i++) pickTarget[i] = RackSlotsPickTarget.NONE; }
+
+        /**
+         * The WeaponRecord row element {@code at} of pick names, or
+         * null when that element names a row of one of the others.
+         */
+        public WeaponRecord weaponByPick(int at) {
+            if (pickTarget[at] != RackSlotsPickTarget.WEAPON) {
+                return null;
+            }
+
+            return (WeaponRecord) pickRow[at];
+        }
+
+        /**
+         * The ArmourRecord row element {@code at} of pick names, or
+         * null when that element names a row of one of the others.
+         */
+        public ArmourRecord armourByPick(int at) {
+            if (pickTarget[at] != RackSlotsPickTarget.ARMOUR) {
+                return null;
+            }
+
+            return (ArmourRecord) pickRow[at];
+        }
     }
 
 }

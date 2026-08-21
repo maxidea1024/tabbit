@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Tabbit\Fixtures\MultiTarget;
 
 require_once __DIR__ . '/../tabbit/TcbReader.php';
+require_once __DIR__ . '/../enums/RackSlotsPickTarget.php';
 require_once __DIR__ . '/../MultiTargetAccessor.php';
 
 use Tabbit\TcbReader;
@@ -23,11 +24,50 @@ use Tabbit\Uuid;
 final class RackSlotsEntry
 {
     /** element 1 of the member */
-    /** @var int[] */
+    /** @var list<int> */
     public array $pick = [];
+
+    /** @var list<?object> The rows this member names, as whichever of its targets holds each. */
+    public array $pickRow = [];
+
+    /** @var list<RackSlotsPickTarget> Which table each element is a row of. */
+    public array $pickTarget = [];
     /** element 1 beside it */
     /** @var int[] */
     public array $count = [];
+
+    /**
+     * What cannot be built at a declaration: the levels below, and the lists whose positions
+     * have to be there before anything fills one.
+     *
+     * A PHP property initializer has to be a constant expression, and a typed property left
+     * unset is an error to read.
+     */
+    public function __construct()
+    {
+        $this->pickRow = array_fill(0, 2, null);
+        $this->pickTarget = array_fill(0, 2, RackSlotsPickTarget::None);
+    }
+
+    /** The WeaponRecord row element `$at` of $pick names, or null when that element names a row of one of the others. */
+    public function weaponByPick(int $at): ?WeaponRecord
+    {
+        if ($this->pickTarget[$at] !== RackSlotsPickTarget::Weapon) {
+            return null;
+        }
+
+        return $this->pickRow[$at];
+    }
+
+    /** The ArmourRecord row element `$at` of $pick names, or null when that element names a row of one of the others. */
+    public function armourByPick(int $at): ?ArmourRecord
+    {
+        if ($this->pickTarget[$at] !== RackSlotsPickTarget::Armour) {
+            return null;
+        }
+
+        return $this->pickRow[$at];
+    }
 }
 
 /**

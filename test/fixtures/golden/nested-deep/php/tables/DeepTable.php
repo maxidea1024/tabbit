@@ -37,10 +37,11 @@ final class DeepStarEntry
     public DeepStarEntryPosition $position;
 
     /**
-     * The levels below, built.
+     * What cannot be built at a declaration: the levels below, and the lists whose positions
+     * have to be there before anything fills one.
      *
-     * They cannot be built at their declarations: a PHP property initializer has to be a
-     * constant expression, and a typed property left unset is an error to read.
+     * A PHP property initializer has to be a constant expression, and a typed property left
+     * unset is an error to read.
      */
     public function __construct()
     {

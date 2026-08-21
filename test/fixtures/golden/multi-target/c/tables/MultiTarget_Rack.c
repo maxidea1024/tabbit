@@ -201,3 +201,19 @@ bool MultiTarget_RackContainsIndex(
   const MultiTarget_RackTable_t* table, int32_t key) {
   return tb_index_find(table->by_index, table->count, key) >= 0;
 }
+
+const MultiTarget_WeaponRecord_t* MultiTarget_RackSlotsWeaponByPick(
+  const struct MultiTarget_RackRecord_t_slots_entry* element, int32_t at) {
+  if (element->pick_target[at] != MULTI_TARGET_RACK_SLOTS_PICK_TARGET_WEAPON)
+    return NULL;
+
+  return (const MultiTarget_WeaponRecord_t*)element->pick_row[at];
+}
+
+const MultiTarget_ArmourRecord_t* MultiTarget_RackSlotsArmourByPick(
+  const struct MultiTarget_RackRecord_t_slots_entry* element, int32_t at) {
+  if (element->pick_target[at] != MULTI_TARGET_RACK_SLOTS_PICK_TARGET_ARMOUR)
+    return NULL;
+
+  return (const MultiTarget_ArmourRecord_t*)element->pick_row[at];
+}

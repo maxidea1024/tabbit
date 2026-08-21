@@ -203,5 +203,63 @@ public final class Tables {
                 }
             }
         }
+        for (LoadoutRecord record : loadout.records()) {
+            for (int i = 0; i < record.slot.length; i++) {
+                if (record.slot[i].pick != 0) {
+                    if (record.slot[i].pickTarget == LoadoutSlotPickTarget.NONE) {
+                        WeaponRecord found = weapon.findByIndex(record.slot[i].pick);
+                        if (found != null) {
+                            record.slot[i].pickRow = found;
+                            record.slot[i].pickTarget = LoadoutSlotPickTarget.WEAPON;
+                        }
+                    }
+                    if (record.slot[i].pickTarget == LoadoutSlotPickTarget.NONE) {
+                        ArmourRecord found = armour.findByIndex(record.slot[i].pick);
+                        if (found != null) {
+                            record.slot[i].pickRow = found;
+                            record.slot[i].pickTarget = LoadoutSlotPickTarget.ARMOUR;
+                        }
+                    }
+                }
+            }
+        }
+        for (FittingRecord record : fitting.records()) {
+            if (record.main.pick != 0) {
+                if (record.main.pickTarget == FittingMainPickTarget.NONE) {
+                    WeaponRecord found = weapon.findByIndex(record.main.pick);
+                    if (found != null) {
+                        record.main.pickRow = found;
+                        record.main.pickTarget = FittingMainPickTarget.WEAPON;
+                    }
+                }
+                if (record.main.pickTarget == FittingMainPickTarget.NONE) {
+                    ArmourRecord found = armour.findByIndex(record.main.pick);
+                    if (found != null) {
+                        record.main.pickRow = found;
+                        record.main.pickTarget = FittingMainPickTarget.ARMOUR;
+                    }
+                }
+            }
+        }
+        for (RackRecord record : rack.records()) {
+            for (int i = 0; i < record.slots.pick.length; i++) {
+                if (record.slots.pick[i] != 0) {
+                    if (record.slots.pickTarget[i] == RackSlotsPickTarget.NONE) {
+                        WeaponRecord found = weapon.findByIndex(record.slots.pick[i]);
+                        if (found != null) {
+                            record.slots.pickRow[i] = found;
+                            record.slots.pickTarget[i] = RackSlotsPickTarget.WEAPON;
+                        }
+                    }
+                    if (record.slots.pickTarget[i] == RackSlotsPickTarget.NONE) {
+                        ArmourRecord found = armour.findByIndex(record.slots.pick[i]);
+                        if (found != null) {
+                            record.slots.pickRow[i] = found;
+                            record.slots.pickTarget[i] = RackSlotsPickTarget.ARMOUR;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

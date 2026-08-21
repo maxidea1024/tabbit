@@ -15,10 +15,17 @@ import * as tabbit from '../tabbit/tcb-reader'
 // finished evaluating - so neither one is half built when the binding is used.
 import { Tables } from '../tables'
 
+// Automatically import to handle external type references.
+import { RackSlotsPickTarget } from '../enums/rack-slots-pick-target'
+import { WeaponRecord } from './weapon'
+import { ArmourRecord } from './armour'
+
 /** One element of RackRecord.slots. */
 export interface SlotsEntry {
   /** element 1 of the member */
   pick: number[]
+  pickRow: (WeaponRecord | ArmourRecord | undefined)[]
+  pickTarget: RackSlotsPickTarget[]
   /** element 1 beside it */
   count: number[]
 }
@@ -35,6 +42,20 @@ interface IDataRow {
   slots: SlotsEntryJson
 }
 
+/** The `WeaponRecord` row `pick` names, or undefined when it names a row of one of the others. */
+export function weaponByPick(element: SlotsEntry, at: number): WeaponRecord | undefined {
+  return element.pickTarget[at] === RackSlotsPickTarget.Weapon
+    ? element.pickRow[at] as WeaponRecord
+    : undefined
+}
+
+/** The `ArmourRecord` row `pick` names, or undefined when it names a row of one of the others. */
+export function armourByPick(element: SlotsEntry, at: number): ArmourRecord | undefined {
+  return element.pickTarget[at] === RackSlotsPickTarget.Armour
+    ? element.pickRow[at] as ArmourRecord
+    : undefined
+}
+
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : R2
 /** One record whose members are arrays, one of them reaching several. */
 export class RackRecord {
@@ -49,19 +70,19 @@ export class RackRecord {
   public get slots(): SlotsEntry { return this._slots }
 
   public _index: number = 0
-  public _slots: SlotsEntry = { pick: [0, 0], count: [0, 0] }
+  public _slots: SlotsEntry = { pick: [0, 0], pickRow: [undefined, undefined], pickTarget: [RackSlotsPickTarget.None, RackSlotsPickTarget.None], count: [0, 0] }
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._slots = ((e: any) => ({ pick: e.pick.map((v: any) => v), count: e.count.map((v: any) => v) }))(dataRow.slots)
+    this._slots = ((e: any) => ({ pick: e.pick.map((v: any) => v), pickRow: e.pick.map(() => undefined), pickTarget: e.pick.map(() => RackSlotsPickTarget.None), count: e.count.map((v: any) => v) }))(dataRow.slots)
   }
 
   /** Populate field values. */
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
     this._index = dataRow[offset++]
-    this._slots = { pick: dataRow.slice(offset + 0, offset + 2).map((v: any) => v), count: dataRow.slice(offset + 2, offset + 4).map((v: any) => v) }
+    this._slots = { pick: dataRow.slice(offset + 0, offset + 2).map((v: any) => v), pickRow: dataRow.slice(offset + 0, offset + 2).map(() => undefined), pickTarget: dataRow.slice(offset + 0, offset + 2).map(() => RackSlotsPickTarget.None), count: dataRow.slice(offset + 2, offset + 4).map((v: any) => v) }
     offset += 4
   }
 }

@@ -241,5 +241,65 @@ final class MultiTargetAccessor
                 }
             }
         }
+        foreach ($loadout->records as $record) {
+            for ($j = 0; $j < \count($record->slot); $j++) {
+                if ($record->slot[$j]->pick !== 0) {
+                    if ($record->slot[$j]->pickTarget === LoadoutSlotPickTarget::None) {
+                        $found = $weapon->findByIndex($record->slot[$j]->pick);
+                        if ($found !== null) {
+                            $record->slot[$j]->pickRow = $found;
+                            $record->slot[$j]->pickTarget = LoadoutSlotPickTarget::Weapon;
+                        }
+                    }
+                    if ($record->slot[$j]->pickTarget === LoadoutSlotPickTarget::None) {
+                        $found = $armour->findByIndex($record->slot[$j]->pick);
+                        if ($found !== null) {
+                            $record->slot[$j]->pickRow = $found;
+                            $record->slot[$j]->pickTarget = LoadoutSlotPickTarget::Armour;
+                        }
+                    }
+                }
+            }
+        }
+        foreach ($fitting->records as $record) {
+            if ($record->main->pick !== 0) {
+                if ($record->main->pickTarget === FittingMainPickTarget::None) {
+                    $found = $weapon->findByIndex($record->main->pick);
+
+                    if ($found !== null) {
+                        $record->main->pickRow = $found;
+                        $record->main->pickTarget = FittingMainPickTarget::Weapon;
+                    }
+                }
+                if ($record->main->pickTarget === FittingMainPickTarget::None) {
+                    $found = $armour->findByIndex($record->main->pick);
+
+                    if ($found !== null) {
+                        $record->main->pickRow = $found;
+                        $record->main->pickTarget = FittingMainPickTarget::Armour;
+                    }
+                }
+            }
+        }
+        foreach ($rack->records as $record) {
+            for ($j = 0; $j < \count($record->slots->pick); $j++) {
+                if ($record->slots->pick[$j] !== 0) {
+                    if ($record->slots->pickTarget[$j] === RackSlotsPickTarget::None) {
+                        $found = $weapon->findByIndex($record->slots->pick[$j]);
+                        if ($found !== null) {
+                            $record->slots->pickRow[$j] = $found;
+                            $record->slots->pickTarget[$j] = RackSlotsPickTarget::Weapon;
+                        }
+                    }
+                    if ($record->slots->pickTarget[$j] === RackSlotsPickTarget::None) {
+                        $found = $armour->findByIndex($record->slots->pick[$j]);
+                        if ($found !== null) {
+                            $record->slots->pickRow[$j] = $found;
+                            $record->slots->pickTarget[$j] = RackSlotsPickTarget::Armour;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

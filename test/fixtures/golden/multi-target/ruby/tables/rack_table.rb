@@ -11,11 +11,29 @@ require_relative '../tabbit/tcb_reader'
 module MultiTarget
   # One element of RackRecord#slots.
   class RackSlotsEntry
-    attr_accessor :pick, :count
+    attr_accessor :pick, :pick_row, :pick_target, :count
 
     def initialize
       @pick = Array.new(2) { 0 }
+      @pick_row = Array.new(2)
+      @pick_target = Array.new(2) { RackSlotsPickTarget::NONE }
       @count = Array.new(2) { 0 }
+    end
+
+    # The weapon row element `at` of pick names, or nil when that
+    # element names a row of one of the others.
+    def weapon_by_pick(at)
+      return nil unless @pick_target[at] == RackSlotsPickTarget::WEAPON
+
+      @pick_row[at]
+    end
+
+    # The armour row element `at` of pick names, or nil when that
+    # element names a row of one of the others.
+    def armour_by_pick(at)
+      return nil unless @pick_target[at] == RackSlotsPickTarget::ARMOUR
+
+      @pick_row[at]
     end
   end
 

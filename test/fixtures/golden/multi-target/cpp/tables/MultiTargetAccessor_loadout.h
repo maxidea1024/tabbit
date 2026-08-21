@@ -18,6 +18,7 @@
 
 #include "tabbit/tcb_reader.h"
 #include "MultiTargetAccessor_forward.h"
+#include "enums/MultiTargetAccessor_enum_loadout_slot_pick_target.h"
 
 namespace multi_target {
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : B2
@@ -25,8 +26,26 @@ namespace multi_target {
 struct LoadoutRecord_slot_entry {
   /// element 1 - two targets
   std::int32_t pick = 0;
+  const void* pick_row = nullptr;
+  LoadoutSlotPickTarget pick_target = LoadoutSlotPickTarget::None;
   /// element 1 - an ordinary member
   std::int32_t count = 0;
+
+  /// The `WeaponRecord` row `pick` names, or nullptr when it names
+  /// a row of one of the others.
+  const WeaponRecord* weapon_by_pick() const {
+    return pick_target == LoadoutSlotPickTarget::Weapon
+        ? static_cast<const WeaponRecord*>(pick_row)
+        : nullptr;
+  }
+
+  /// The `ArmourRecord` row `pick` names, or nullptr when it names
+  /// a row of one of the others.
+  const ArmourRecord* armour_by_pick() const {
+    return pick_target == LoadoutSlotPickTarget::Armour
+        ? static_cast<const ArmourRecord*>(pick_row)
+        : nullptr;
+  }
 };
 
 /// A record array whose member reaches several tables.

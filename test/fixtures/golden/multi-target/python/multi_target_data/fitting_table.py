@@ -9,16 +9,39 @@ import enum
 import os
 
 from . import tabbit
+from .enum_fitting_main_pick_target import FittingMainPickTarget
 
 
 class FittingMainEntry:
     """One element of FittingRecord.main."""
 
-    __slots__ = ("pick", "count")
+    __slots__ = ("pick", "pick_row", "pick_target", "count")
 
     def __init__(self):
         self.pick = 0
+        self.pick_row = None
+        self.pick_target = FittingMainPickTarget.none
         self.count = 0
+
+    @property
+    def weapon_by_pick(self):
+        """The weapon row pick names, or None when it names a row of one of
+        the others.
+        """
+        if self.pick_target != FittingMainPickTarget.weapon:
+            return None
+
+        return self.pick_row
+
+    @property
+    def armour_by_pick(self):
+        """The armour row pick names, or None when it names a row of one of
+        the others.
+        """
+        if self.pick_target != FittingMainPickTarget.armour:
+            return None
+
+        return self.pick_row
 
     def __repr__(self):
         return "FittingMainEntry(pick=%r, count=%r)" % (self.pick, self.count)

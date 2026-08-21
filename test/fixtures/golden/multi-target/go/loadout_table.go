@@ -17,8 +17,34 @@ import (
 type LoadoutSlotEntry struct {
 	// element 1 - two targets
 	Pick int32
+	// The row Pick names, as whichever of its target tables holds
+	// it. Read it through the methods below rather than directly: they check the
+	// discriminator first.
+	PickRow any
+	// Which table Pick is a row of.
+	PickTarget LoadoutSlotPickTarget
 	// element 1 - an ordinary member
 	Count int32
+}
+
+// WeaponByPick returns the WeaponRecord row Pick names, or nil when
+// it names a row of one of the others.
+func (e *LoadoutSlotEntry) WeaponByPick() *WeaponRecord {
+	if e.PickTarget != LoadoutSlotPickTargetWeapon {
+		return nil
+	}
+
+	return e.PickRow.(*WeaponRecord)
+}
+
+// ArmourByPick returns the ArmourRecord row Pick names, or nil when
+// it names a row of one of the others.
+func (e *LoadoutSlotEntry) ArmourByPick() *ArmourRecord {
+	if e.PickTarget != LoadoutSlotPickTargetArmour {
+		return nil
+	}
+
+	return e.PickRow.(*ArmourRecord)
 }
 
 // LoadoutRecord was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : B2.

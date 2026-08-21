@@ -26,9 +26,27 @@ public final class LoadoutRecord {
 
         /// element 1 - two targets
         public var pick: Int32 = 0
+        public var pickRow: AnyObject? = nil
+        public var pickTarget: LoadoutSlotPickTarget = LoadoutSlotPickTarget.none
 
         /// element 1 - an ordinary member
         public var count: Int32 = 0
+
+        /// The `WeaponRecord` row `pick` names, or nil when it names
+        /// a row of one of the others.
+        public var weaponByPick: WeaponRecord? {
+            pickTarget == LoadoutSlotPickTarget.weapon
+                ? (pickRow as? WeaponRecord)
+                : nil
+        }
+
+        /// The `ArmourRecord` row `pick` names, or nil when it names
+        /// a row of one of the others.
+        public var armourByPick: ArmourRecord? {
+            pickTarget == LoadoutSlotPickTarget.armour
+                ? (pickRow as? ArmourRecord)
+                : nil
+        }
     }
 }
 

@@ -257,3 +257,19 @@ bool MultiTarget_FittingContainsIndex(
   const MultiTarget_FittingTable_t* table, int32_t key) {
   return tb_index_find(table->by_index, table->count, key) >= 0;
 }
+
+const MultiTarget_WeaponRecord_t* MultiTarget_FittingMainWeaponByPick(
+  const struct MultiTarget_FittingRecord_t_main_entry* element) {
+  if (element->pick_target != MULTI_TARGET_FITTING_MAIN_PICK_TARGET_WEAPON)
+    return NULL;
+
+  return (const MultiTarget_WeaponRecord_t*)element->pick_row;
+}
+
+const MultiTarget_ArmourRecord_t* MultiTarget_FittingMainArmourByPick(
+  const struct MultiTarget_FittingRecord_t_main_entry* element) {
+  if (element->pick_target != MULTI_TARGET_FITTING_MAIN_PICK_TARGET_ARMOUR)
+    return NULL;
+
+  return (const MultiTarget_ArmourRecord_t*)element->pick_row;
+}

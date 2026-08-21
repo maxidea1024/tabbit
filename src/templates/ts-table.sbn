@@ -83,7 +83,6 @@ interface IDataRow {
 {{~ end ~}}
 {{~ end ~}}
 }
-
 {{~## The per-target accessors of every record member reaching several tables. Functions
    beside the element rather than members of it: this language's element type is an interface,
    and an interface declares no accessor - every other language puts the accessor on the

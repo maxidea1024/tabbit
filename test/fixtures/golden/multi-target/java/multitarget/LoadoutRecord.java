@@ -21,8 +21,34 @@ public final class LoadoutRecord {
     public static final class SlotEntry {
         /** element 1 - two targets */
         public int pick;
+        public Object pickRow;
+        public LoadoutSlotPickTarget pickTarget = LoadoutSlotPickTarget.NONE;
         /** element 1 - an ordinary member */
         public int count;
+
+        /**
+         * The WeaponRecord row pick names, or null when it names a
+         * row of one of the others.
+         */
+        public WeaponRecord weaponByPick() {
+            if (pickTarget != LoadoutSlotPickTarget.WEAPON) {
+                return null;
+            }
+
+            return (WeaponRecord) pickRow;
+        }
+
+        /**
+         * The ArmourRecord row pick names, or null when it names a
+         * row of one of the others.
+         */
+        public ArmourRecord armourByPick() {
+            if (pickTarget != LoadoutSlotPickTarget.ARMOUR) {
+                return null;
+            }
+
+            return (ArmourRecord) pickRow;
+        }
     }
 
     /**

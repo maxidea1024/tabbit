@@ -19,6 +19,9 @@ local RackTable = require(_root .. "tables.rack_table")
 local HolderPickTarget = require(_root .. "enums.enum_holder_pick_target")
 local HolderWideTarget = require(_root .. "enums.enum_holder_wide_target")
 local HolderMaybeTarget = require(_root .. "enums.enum_holder_maybe_target")
+local LoadoutSlotPickTarget = require(_root .. "enums.enum_loadout_slot_pick_target")
+local FittingMainPickTarget = require(_root .. "enums.enum_fitting_main_pick_target")
+local RackSlotsPickTarget = require(_root .. "enums.enum_rack_slots_pick_target")
 
 -- Every table, loaded together so cross-table references can be resolved.
 ---@class tables
@@ -191,6 +194,79 @@ function tables:readAll(source, fileExtension)
         if found ~= nil then
           record.maybeRow = found
           record.maybeTarget = HolderMaybeTarget.armour
+        end
+      end
+    end
+  end
+
+  -- Turns loadedLoadout's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedLoadout.records) do
+    for i = 1, #record.slot do
+      if record.slot[i].pick ~= 0 then
+        if record.slot[i].pickTarget == LoadoutSlotPickTarget.none then
+          local found = loadedWeapon:findByIndex(record.slot[i].pick)
+
+          if found ~= nil then
+            record.slot[i].pickRow = found
+            record.slot[i].pickTarget = LoadoutSlotPickTarget.weapon
+          end
+        end
+        if record.slot[i].pickTarget == LoadoutSlotPickTarget.none then
+          local found = loadedArmour:findByIndex(record.slot[i].pick)
+
+          if found ~= nil then
+            record.slot[i].pickRow = found
+            record.slot[i].pickTarget = LoadoutSlotPickTarget.armour
+          end
+        end
+      end
+    end
+  end
+
+  -- Turns loadedFitting's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedFitting.records) do
+    if record.main.pick ~= 0 then
+      if record.main.pickTarget == FittingMainPickTarget.none then
+        local found = loadedWeapon:findByIndex(record.main.pick)
+
+        if found ~= nil then
+          record.main.pickRow = found
+          record.main.pickTarget = FittingMainPickTarget.weapon
+        end
+      end
+      if record.main.pickTarget == FittingMainPickTarget.none then
+        local found = loadedArmour:findByIndex(record.main.pick)
+
+        if found ~= nil then
+          record.main.pickRow = found
+          record.main.pickTarget = FittingMainPickTarget.armour
+        end
+      end
+    end
+  end
+
+  -- Turns loadedRack's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedRack.records) do
+    for i = 1, #record.slots.pick do
+      if record.slots.pick[i] ~= 0 then
+        if record.slots.pickTarget[i] == RackSlotsPickTarget.none then
+          local found = loadedWeapon:findByIndex(record.slots.pick[i])
+
+          if found ~= nil then
+            record.slots.pickRow[i] = found
+            record.slots.pickTarget[i] = RackSlotsPickTarget.weapon
+          end
+        end
+        if record.slots.pickTarget[i] == RackSlotsPickTarget.none then
+          local found = loadedArmour:findByIndex(record.slots.pick[i])
+
+          if found ~= nil then
+            record.slots.pickRow[i] = found
+            record.slots.pickTarget[i] = RackSlotsPickTarget.armour
+          end
         end
       end
     end

@@ -32,9 +32,27 @@ public final class FittingRecord {
 
         /// the member, in a record of one
         public var pick: Int32 = 0
+        public var pickRow: AnyObject? = nil
+        public var pickTarget: FittingMainPickTarget = FittingMainPickTarget.none
 
         /// an ordinary member beside it
         public var count: Int32 = 0
+
+        /// The `WeaponRecord` row `pick` names, or nil when it names
+        /// a row of one of the others.
+        public var weaponByPick: WeaponRecord? {
+            pickTarget == FittingMainPickTarget.weapon
+                ? (pickRow as? WeaponRecord)
+                : nil
+        }
+
+        /// The `ArmourRecord` row `pick` names, or nil when it names
+        /// a row of one of the others.
+        public var armourByPick: ArmourRecord? {
+            pickTarget == FittingMainPickTarget.armour
+                ? (pickRow as? ArmourRecord)
+                : nil
+        }
     }
 }
 

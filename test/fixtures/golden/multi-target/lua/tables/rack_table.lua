@@ -7,16 +7,45 @@
 
 local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
+local RackSlotsPickTarget = require(_root .. "enums.enum_rack_slots_pick_target")
 
 ---@class RackSlotsEntry
 ---@field pick integer[]
+---@field pickRow any[]
+---@field pickTarget integer[]
 ---@field count integer[]
-local RackSlotsEntryMeta = tcb.strictType("an element of RackRecord.slots", { "pick", "count" })
+local RackSlotsEntry = {}
+
+-- The WeaponRecord row element `at` of `pick` names, or nil when
+-- that element names a row of one of the others.
+---@return WeaponRecord|nil
+function RackSlotsEntry:weaponByPick(at)
+  if self.pickTarget[at] ~= RackSlotsPickTarget.weapon then
+    return nil
+  end
+
+  return self.pickRow[at]
+end
+
+-- The ArmourRecord row element `at` of `pick` names, or nil when
+-- that element names a row of one of the others.
+---@return ArmourRecord|nil
+function RackSlotsEntry:armourByPick(at)
+  if self.pickTarget[at] ~= RackSlotsPickTarget.armour then
+    return nil
+  end
+
+  return self.pickRow[at]
+end
+
+local RackSlotsEntryMeta = tcb.strictInstance("an element of RackRecord.slots", RackSlotsEntry, { "pick", "pickRow", "pickTarget", "count" })
 
 ---@return RackSlotsEntry
 local function newRackSlotsEntry()
   return setmetatable({
     pick = tcb.repeated(2, 0),
+    pickRow = {},
+    pickTarget = tcb.repeated(2, RackSlotsPickTarget.none),
     count = tcb.repeated(2, 0),
   }, RackSlotsEntryMeta)
 end

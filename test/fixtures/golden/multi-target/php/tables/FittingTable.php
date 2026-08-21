@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Tabbit\Fixtures\MultiTarget;
 
 require_once __DIR__ . '/../tabbit/TcbReader.php';
+require_once __DIR__ . '/../enums/FittingMainPickTarget.php';
 require_once __DIR__ . '/../MultiTargetAccessor.php';
 
 use Tabbit\TcbReader;
@@ -24,8 +25,34 @@ final class FittingMainEntry
 {
     /** the member, in a record of one */
     public int $pick = 0;
+
+    /** The row this member names, as whichever of its targets holds it. */
+    public ?object $pickRow = null;
+
+    /** Which table this member is a row of. */
+    public FittingMainPickTarget $pickTarget = FittingMainPickTarget::None;
     /** an ordinary member beside it */
     public int $count = 0;
+
+    /** The WeaponRecord row $pick names, or null when it names a row of one of the others. */
+    public function weaponByPick(): ?WeaponRecord
+    {
+        if ($this->pickTarget !== FittingMainPickTarget::Weapon) {
+            return null;
+        }
+
+        return $this->pickRow;
+    }
+
+    /** The ArmourRecord row $pick names, or null when it names a row of one of the others. */
+    public function armourByPick(): ?ArmourRecord
+    {
+        if ($this->pickTarget !== FittingMainPickTarget::Armour) {
+            return null;
+        }
+
+        return $this->pickRow;
+    }
 }
 
 /**

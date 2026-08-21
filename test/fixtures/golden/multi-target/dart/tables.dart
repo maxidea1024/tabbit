@@ -204,5 +204,63 @@ class Tables {
         }
       }
     }
+    for (final record in loadout.records) {
+      for (var i = 0; i < record.slot.length; i++) {
+        if (record.slot[i].pick != 0) {
+          if (record.slot[i].pickTarget == LoadoutSlotPickTarget.none) {
+            final found = weapon.findByIndex(record.slot[i].pick);
+            if (found != null) {
+              record.slot[i].pickRow = found;
+              record.slot[i].pickTarget = LoadoutSlotPickTarget.weapon;
+            }
+          }
+          if (record.slot[i].pickTarget == LoadoutSlotPickTarget.none) {
+            final found = armour.findByIndex(record.slot[i].pick);
+            if (found != null) {
+              record.slot[i].pickRow = found;
+              record.slot[i].pickTarget = LoadoutSlotPickTarget.armour;
+            }
+          }
+        }
+      }
+    }
+    for (final record in fitting.records) {
+      if (record.main.pick != 0) {
+        if (record.main.pickTarget == FittingMainPickTarget.none) {
+          final found = weapon.findByIndex(record.main.pick);
+          if (found != null) {
+            record.main.pickRow = found;
+            record.main.pickTarget = FittingMainPickTarget.weapon;
+          }
+        }
+        if (record.main.pickTarget == FittingMainPickTarget.none) {
+          final found = armour.findByIndex(record.main.pick);
+          if (found != null) {
+            record.main.pickRow = found;
+            record.main.pickTarget = FittingMainPickTarget.armour;
+          }
+        }
+      }
+    }
+    for (final record in rack.records) {
+      for (var i = 0; i < record.slots.pick.length; i++) {
+        if (record.slots.pick[i] != 0) {
+          if (record.slots.pickTarget[i] == RackSlotsPickTarget.none) {
+            final found = weapon.findByIndex(record.slots.pick[i]);
+            if (found != null) {
+              record.slots.pickRow[i] = found;
+              record.slots.pickTarget[i] = RackSlotsPickTarget.weapon;
+            }
+          }
+          if (record.slots.pickTarget[i] == RackSlotsPickTarget.none) {
+            final found = armour.findByIndex(record.slots.pick[i]);
+            if (found != null) {
+              record.slots.pickRow[i] = found;
+              record.slots.pickTarget[i] = RackSlotsPickTarget.armour;
+            }
+          }
+        }
+      }
+    }
   }
 }

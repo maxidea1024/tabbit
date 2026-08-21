@@ -48,8 +48,30 @@ class LoadoutRecord {
     class SlotEntry {
         /** element 1 - two targets */
         var pick: Int = 0
+        var pickRow: Any? = null
+        var pickTarget: LoadoutSlotPickTarget = LoadoutSlotPickTarget.NONE
         /** element 1 - an ordinary member */
         var count: Int = 0
+
+        /**
+         * The WeaponRecord row pick names, or null when it names a
+         * row of one of the others.
+         */
+        val weaponByPick: WeaponRecord?
+            get() = if (pickTarget == LoadoutSlotPickTarget.WEAPON)
+                pickRow as WeaponRecord
+            else
+                null
+
+        /**
+         * The ArmourRecord row pick names, or null when it names a
+         * row of one of the others.
+         */
+        val armourByPick: ArmourRecord?
+            get() = if (pickTarget == LoadoutSlotPickTarget.ARMOUR)
+                pickRow as ArmourRecord
+            else
+                null
     }
 
 }

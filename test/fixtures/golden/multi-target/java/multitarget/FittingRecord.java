@@ -25,8 +25,34 @@ public final class FittingRecord {
     public static final class MainEntry {
         /** the member, in a record of one */
         public int pick;
+        public Object pickRow;
+        public FittingMainPickTarget pickTarget = FittingMainPickTarget.NONE;
         /** an ordinary member beside it */
         public int count;
+
+        /**
+         * The WeaponRecord row pick names, or null when it names a
+         * row of one of the others.
+         */
+        public WeaponRecord weaponByPick() {
+            if (pickTarget != FittingMainPickTarget.WEAPON) {
+                return null;
+            }
+
+            return (WeaponRecord) pickRow;
+        }
+
+        /**
+         * The ArmourRecord row pick names, or null when it names a
+         * row of one of the others.
+         */
+        public ArmourRecord armourByPick() {
+            if (pickTarget != FittingMainPickTarget.ARMOUR) {
+                return null;
+            }
+
+            return (ArmourRecord) pickRow;
+        }
     }
 
 }

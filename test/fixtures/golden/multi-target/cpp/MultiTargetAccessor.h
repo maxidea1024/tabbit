@@ -166,6 +166,70 @@ class MultiTargetAccessor {
         }
       }
     }
+    for (auto& record : loaded_loadout.records_) {
+      for (std::size_t i = 0; i < record.slot.size(); ++i) {
+        if (record.slot[i].pick != 0) {
+          if (record.slot[i].pick_target == LoadoutSlotPickTarget::None) {
+            const auto* found = loaded_weapon.find_by_index(record.slot[i].pick);
+
+            if (found != nullptr) {
+              record.slot[i].pick_row = found;
+              record.slot[i].pick_target = LoadoutSlotPickTarget::Weapon;
+            }
+          }
+          if (record.slot[i].pick_target == LoadoutSlotPickTarget::None) {
+            const auto* found = loaded_armour.find_by_index(record.slot[i].pick);
+
+            if (found != nullptr) {
+              record.slot[i].pick_row = found;
+              record.slot[i].pick_target = LoadoutSlotPickTarget::Armour;
+            }
+          }
+        }
+      }
+    }
+    for (auto& record : loaded_fitting.records_) {
+      if (record.main.pick != 0) {
+        if (record.main.pick_target == FittingMainPickTarget::None) {
+          const auto* found = loaded_weapon.find_by_index(record.main.pick);
+
+          if (found != nullptr) {
+            record.main.pick_row = found;
+            record.main.pick_target = FittingMainPickTarget::Weapon;
+          }
+        }
+        if (record.main.pick_target == FittingMainPickTarget::None) {
+          const auto* found = loaded_armour.find_by_index(record.main.pick);
+
+          if (found != nullptr) {
+            record.main.pick_row = found;
+            record.main.pick_target = FittingMainPickTarget::Armour;
+          }
+        }
+      }
+    }
+    for (auto& record : loaded_rack.records_) {
+      for (std::size_t i = 0; i < record.slots.pick.size(); ++i) {
+        if (record.slots.pick[i] != 0) {
+          if (record.slots.pick_target[i] == RackSlotsPickTarget::None) {
+            const auto* found = loaded_weapon.find_by_index(record.slots.pick[i]);
+
+            if (found != nullptr) {
+              record.slots.pick_row[i] = found;
+              record.slots.pick_target[i] = RackSlotsPickTarget::Weapon;
+            }
+          }
+          if (record.slots.pick_target[i] == RackSlotsPickTarget::None) {
+            const auto* found = loaded_armour.find_by_index(record.slots.pick[i]);
+
+            if (found != nullptr) {
+              record.slots.pick_row[i] = found;
+              record.slots.pick_target[i] = RackSlotsPickTarget::Armour;
+            }
+          }
+        }
+      }
+    }
   }
 
   WeaponTable weapon_;

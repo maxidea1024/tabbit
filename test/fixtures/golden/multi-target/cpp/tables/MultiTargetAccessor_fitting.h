@@ -18,6 +18,7 @@
 
 #include "tabbit/tcb_reader.h"
 #include "MultiTargetAccessor_forward.h"
+#include "enums/MultiTargetAccessor_enum_fitting_main_pick_target.h"
 
 namespace multi_target {
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : J2
@@ -25,8 +26,26 @@ namespace multi_target {
 struct FittingRecord_main_entry {
   /// the member, in a record of one
   std::int32_t pick = 0;
+  const void* pick_row = nullptr;
+  FittingMainPickTarget pick_target = FittingMainPickTarget::None;
   /// an ordinary member beside it
   std::int32_t count = 0;
+
+  /// The `WeaponRecord` row `pick` names, or nullptr when it names
+  /// a row of one of the others.
+  const WeaponRecord* weapon_by_pick() const {
+    return pick_target == FittingMainPickTarget::Weapon
+        ? static_cast<const WeaponRecord*>(pick_row)
+        : nullptr;
+  }
+
+  /// The `ArmourRecord` row `pick` names, or nullptr when it names
+  /// a row of one of the others.
+  const ArmourRecord* armour_by_pick() const {
+    return pick_target == FittingMainPickTarget::Armour
+        ? static_cast<const ArmourRecord*>(pick_row)
+        : nullptr;
+  }
 };
 
 /// One record - no element number at all - whose member reaches several.

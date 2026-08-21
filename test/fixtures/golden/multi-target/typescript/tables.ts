@@ -21,6 +21,9 @@ import { RackTable } from './tables/rack'
 import { HolderPickTarget } from './enums/holder-pick-target'
 import { HolderWideTarget } from './enums/holder-wide-target'
 import { HolderMaybeTarget } from './enums/holder-maybe-target'
+import { LoadoutSlotPickTarget } from './enums/loadout-slot-pick-target'
+import { FittingMainPickTarget } from './enums/fitting-main-pick-target'
+import { RackSlotsPickTarget } from './enums/rack-slots-pick-target'
 
 /** Tables */
 export class Tables {
@@ -280,6 +283,67 @@ export class Tables {
           const found = this._armour.findByIndex(record.maybe)
           if (found !== undefined)
             record.setReference_maybe_INTERNAL(HolderMaybeTarget.Armour, found)
+        }
+      }
+    }
+
+    for (const record of this._loadout.records) {
+      for (let i = 0; i < record._slot.length; i++) {
+        if (record._slot[i].pick > 0) {
+          if (record._slot[i].pickTarget === LoadoutSlotPickTarget.None) {
+            const found = this._weapon.findByIndex(record._slot[i].pick)
+            if (found !== undefined) {
+              record._slot[i].pickRow = found
+              record._slot[i].pickTarget = LoadoutSlotPickTarget.Weapon
+            }
+          }
+          if (record._slot[i].pickTarget === LoadoutSlotPickTarget.None) {
+            const found = this._armour.findByIndex(record._slot[i].pick)
+            if (found !== undefined) {
+              record._slot[i].pickRow = found
+              record._slot[i].pickTarget = LoadoutSlotPickTarget.Armour
+            }
+          }
+        }
+      }
+    }
+
+    for (const record of this._fitting.records) {
+      if (record._main.pick > 0) {
+        if (record._main.pickTarget === FittingMainPickTarget.None) {
+          const found = this._weapon.findByIndex(record._main.pick)
+          if (found !== undefined) {
+            record._main.pickRow = found
+            record._main.pickTarget = FittingMainPickTarget.Weapon
+          }
+        }
+        if (record._main.pickTarget === FittingMainPickTarget.None) {
+          const found = this._armour.findByIndex(record._main.pick)
+          if (found !== undefined) {
+            record._main.pickRow = found
+            record._main.pickTarget = FittingMainPickTarget.Armour
+          }
+        }
+      }
+    }
+
+    for (const record of this._rack.records) {
+      for (let i = 0; i < record._slots.pick.length; i++) {
+        if (record._slots.pick[i] > 0) {
+          if (record._slots.pickTarget[i] === RackSlotsPickTarget.None) {
+            const found = this._weapon.findByIndex(record._slots.pick[i])
+            if (found !== undefined) {
+              record._slots.pickRow[i] = found
+              record._slots.pickTarget[i] = RackSlotsPickTarget.Weapon
+            }
+          }
+          if (record._slots.pickTarget[i] === RackSlotsPickTarget.None) {
+            const found = this._armour.findByIndex(record._slots.pick[i])
+            if (found !== undefined) {
+              record._slots.pickRow[i] = found
+              record._slots.pickTarget[i] = RackSlotsPickTarget.Armour
+            }
+          }
         }
       }
     }

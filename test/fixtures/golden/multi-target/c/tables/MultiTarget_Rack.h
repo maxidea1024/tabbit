@@ -12,6 +12,7 @@
 #include "tabbit/tabbit_tcb_reader.h"
 
 #include "MultiTarget_Forward.h"
+#include "enums/MultiTarget_EnumRackSlotsPickTarget.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,10 +25,20 @@ extern "C" {
 /* One element of MultiTarget_RackRecord_t::slots. */
 struct MultiTarget_RackRecord_t_slots_entry {
   /* element 1 of the member */
-  int32_t pick[2];
+  int32_t pick[2]; const void* pick_row[2]; MultiTarget_RackSlotsPickTarget_t pick_target[2];
   /* element 1 beside it */
   int32_t count[2];
 };
+
+/* The MultiTarget_WeaponRecord_t row element `at` of pick names, or NULL when
+ * that element names a row of one of the others. */
+const MultiTarget_WeaponRecord_t* MultiTarget_RackSlotsWeaponByPick(
+  const struct MultiTarget_RackRecord_t_slots_entry* element, int32_t at);
+
+/* The MultiTarget_ArmourRecord_t row element `at` of pick names, or NULL when
+ * that element names a row of one of the others. */
+const MultiTarget_ArmourRecord_t* MultiTarget_RackSlotsArmourByPick(
+  const struct MultiTarget_RackRecord_t_slots_entry* element, int32_t at);
 
 struct MultiTarget_RackRecord_t {
   /* primary index */

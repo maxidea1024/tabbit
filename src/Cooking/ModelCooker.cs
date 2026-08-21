@@ -184,26 +184,22 @@ public partial class ModelCooker
     {
         foreach (var table in model.Tables)
         {
-            // A member of a record group is promoted like any other column now - the
-            // generated element carries the row, the key, and the linking that fills it
-            // (spec/references-in-records.md). Only the ones naming several tables are still
-            // held back: what a reference to one of many looks like inside an element is the
-            // per-target property that has not been designed yet, and promoting them would
-            // turn columns that convert today into a refusal.
-            // spec/multi-target-references.md.
+            // A member of a record group is promoted like any other column, whether it names
+            // one table or several: the generated element carries the key, the row it
+            // resolved to - or the slot and the discriminator where there is more than one
+            // target - and the linking that fills them.
+            // spec/references-in-records.md ~ spec/multi-target-accessors.md.
+            //
+            // One kind is still held back, and for a reason about names rather than targets.
+            // An anonymous level is reached by number, so a reference in one has no name to
+            // keep its key under - the same thing `ValidateRecordGroup` refuses for a column
+            // declared `foreign`. It cannot refuse this one: it runs while the groups are
+            // built, which is before this pass makes the column a reference at all.
+            // spec/references-in-records.md.
             var heldBack = new HashSet<Field>(
                 table.SerialFields
-                    .Where(group => group.IsRecord)
-                    .SelectMany(group => group.MembersAreAnonymous
-                        // An anonymous level is reached by number, so a reference in one has
-                        // no name to keep its key under - the same thing `ValidateRecordGroup`
-                        // refuses for a column declared `foreign`. It cannot refuse this one:
-                        // it runs while the groups are built, which is before this pass makes
-                        // the column a reference at all. spec/references-in-records.md.
-                        ? group.Leaves.SelectMany(member => member.Fields)
-                        : group.Leaves
-                               .SelectMany(member => member.Fields)
-                               .Where(field => field.Constraints.ReferencedTables is { Count: > 1 })));
+                    .Where(group => group.IsRecord && group.MembersAreAnonymous)
+                    .SelectMany(group => group.Leaves.SelectMany(member => member.Fields)));
 
             foreach (var field in table.Fields)
             {

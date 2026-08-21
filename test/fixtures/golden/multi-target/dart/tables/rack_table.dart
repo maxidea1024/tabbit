@@ -10,8 +10,24 @@ part of '../tables.dart';
 class RackSlotsEntry {
   /// element 1 of the member
   List<int> pick = List.filled(2, 0);
+  List<Object?> pickRow = List.filled(2, null);
+  List<RackSlotsPickTarget> pickTarget = List.filled(2, RackSlotsPickTarget.none);
   /// element 1 beside it
   List<int> count = List.filled(2, 0);
+
+  /// The [WeaponRecord] row element [at] of [pick] names, or null
+  /// when that element names a row of one of the others.
+  WeaponRecord? weaponByPick(int at) =>
+      pickTarget[at] == RackSlotsPickTarget.weapon
+          ? pickRow[at] as WeaponRecord
+          : null;
+
+  /// The [ArmourRecord] row element [at] of [pick] names, or null
+  /// when that element names a row of one of the others.
+  ArmourRecord? armourByPick(int at) =>
+      pickTarget[at] == RackSlotsPickTarget.armour
+          ? pickRow[at] as ArmourRecord
+          : null;
 }
 
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : R2

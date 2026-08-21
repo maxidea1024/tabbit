@@ -9,16 +9,37 @@ import enum
 import os
 
 from . import tabbit
+from .enum_rack_slots_pick_target import RackSlotsPickTarget
 
 
 class RackSlotsEntry:
     """One element of RackRecord.slots."""
 
-    __slots__ = ("pick", "count")
+    __slots__ = ("pick", "pick_row", "pick_target", "count")
 
     def __init__(self):
         self.pick = [0] * 2
+        self.pick_row = [None] * 2
+        self.pick_target = [RackSlotsPickTarget.none] * 2
         self.count = [0] * 2
+
+    def weapon_by_pick(self, at):
+        """Element `at` of pick as a weapon row, or None when that element
+        names a row of one of the others.
+        """
+        if self.pick_target[at] != RackSlotsPickTarget.weapon:
+            return None
+
+        return self.pick_row[at]
+
+    def armour_by_pick(self, at):
+        """Element `at` of pick as a armour row, or None when that element
+        names a row of one of the others.
+        """
+        if self.pick_target[at] != RackSlotsPickTarget.armour:
+            return None
+
+        return self.pick_row[at]
 
     def __repr__(self):
         return "RackSlotsEntry(pick=%r, count=%r)" % (self.pick, self.count)

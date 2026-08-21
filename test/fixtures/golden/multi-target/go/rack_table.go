@@ -17,8 +17,34 @@ import (
 type RackSlotsEntry struct {
 	// element 1 of the member
 	Pick []int32
+	// The row Pick names, as whichever of its target tables holds
+	// it. Read it through the methods below rather than directly: they check the
+	// discriminator first.
+	PickRow []any
+	// Which table Pick is a row of.
+	PickTarget []RackSlotsPickTarget
 	// element 1 beside it
 	Count []int32
+}
+
+// WeaponByPick returns the WeaponRecord row that element at of Pick
+// names, or nil when that element names a row of one of the others.
+func (e *RackSlotsEntry) WeaponByPick(at int) *WeaponRecord {
+	if e.PickTarget[at] != RackSlotsPickTargetWeapon {
+		return nil
+	}
+
+	return e.PickRow[at].(*WeaponRecord)
+}
+
+// ArmourByPick returns the ArmourRecord row that element at of Pick
+// names, or nil when that element names a row of one of the others.
+func (e *RackSlotsEntry) ArmourByPick(at int) *ArmourRecord {
+	if e.PickTarget[at] != RackSlotsPickTargetArmour {
+		return nil
+	}
+
+	return e.PickRow[at].(*ArmourRecord)
 }
 
 // RackRecord was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : R2.
@@ -111,6 +137,8 @@ func (t *RackTable) Read(filename string) error {
 	// a file that no longer carries it would leave the members after it indexing nothing.
 	for i := int32(0); i < count; i++ {
 		records[i].Slots.Pick = make([]int32, 2)
+		records[i].Slots.PickRow = make([]any, 2)
+		records[i].Slots.PickTarget = make([]RackSlotsPickTarget, 2)
 		records[i].Slots.Count = make([]int32, 2)
 	}
 
