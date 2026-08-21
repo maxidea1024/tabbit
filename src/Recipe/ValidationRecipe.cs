@@ -74,4 +74,14 @@ public class ValidationRecipe
     /// can become an error is a judgement, and `Info` is a record.
     /// </remarks>
     public bool TreatWarningsAsErrors { get; set; } = false;
+
+    /// <summary>
+    /// The places whose reports this run knows about and does not stop for.
+    /// </summary>
+    /// <remarks>
+    /// For the data somebody else owns. Each entry says where and why, the report comes out as
+    /// `Info` rather than disappearing, and an entry that matches nothing - or a count that no
+    /// longer holds - is an error. spec/known-problems.md.
+    /// </remarks>
+    public List<KnownProblemRecipe> KnownProblems { get; set; } = new List<KnownProblemRecipe>();
 }

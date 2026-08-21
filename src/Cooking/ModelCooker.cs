@@ -40,6 +40,7 @@ public partial class ModelCooker
         // cell has been read and the counts are final.
         context.ReportCellNotices();
 
+
         // Every cell has been read, so the one type that existed for the reading is done.
         FoldBitsetIntoInt64(result);
 
@@ -84,6 +85,12 @@ public partial class ModelCooker
         // will actually build. Without it, `--target-side client` could fail on a
         // problem that only exists in the server cut it is not producing.
         ValidateModel(result, recipeModel, CommandLineTargetSide.Of(options), diagnostics);
+
+        // The reports this recipe has written down stop being reports that end the run, and
+        // start being reports that say so. After every check, because an entry states how many
+        // it accounts for and that can only be counted once. spec/known-problems.md.
+        diagnostics.ApplyKnownProblems(recipeModel.Validation?.KnownProblems
+                                       ?? (IReadOnlyList<Recipe.KnownProblemRecipe>)System.Array.Empty<Recipe.KnownProblemRecipe>());
 
         // Printed before the throw, and printed at all: this stage only ever produced errors,
         // which the exception carried, so nothing here had to say anything about the reports

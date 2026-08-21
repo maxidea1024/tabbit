@@ -158,6 +158,160 @@ public sealed class Diagnostics
         throw new TabbitException(headline) { Details = stopping };
     }
 
+    /// <summary>
+    /// Takes the reports a recipe has written down out of the way of the run.
+    /// </summary>
+    /// <remarks>
+    /// Each matched report becomes <see cref="Severity.Info"/> with the entry's reason beside
+    /// it, so it is still printed on every run - the list says "not now", not "not a problem".
+    ///
+    /// **What is added rather than removed** is the reporting about the list itself: an entry
+    /// matching nothing, or matching a different number of reports than it claims, is an error.
+    /// Without those two an entry covering a sheet would hide the next defect in that sheet,
+    /// and a list nobody prunes eventually covers a workbook.
+    ///
+    /// Applied in one pass after every check has run rather than as reports arrive, because
+    /// counting is the point and a count is only right once the counting has finished.
+    /// spec/known-problems.md.
+    /// </remarks>
+    public void ApplyKnownProblems(IReadOnlyList<Recipe.KnownProblemRecipe> known)
+    {
+        if (known.Count == 0)
+            return;
+
+        lock (_entries)
+        {
+            var matched = new int[known.Count];
+
+            for (int at = 0; at < _entries.Count; at++)
+            {
+                var (severity, detail) = _entries[at];
+
+                if (severity == Severity.Info)
+                    continue;
+
+                int entry = FirstMatch(known, detail.Location);
+
+                if (entry < 0)
+                    continue;
+
+                matched[entry]++;
+
+                _entries[at] = (Severity.Info, new TabbitException.Detail
+                {
+                    Location = detail.Location,
+                    Message = $"{detail.Message} (Known problem: {known[entry].Reason})",
+                });
+            }
+
+            for (int entry = 0; entry < known.Count; entry++)
+            {
+                var item = known[entry];
+
+                // A wholly blank entry is not an entry. The skeleton a new recipe is written
+                // from fills every list with one so that the shape is visible, and that
+                // skeleton has to run - an entry saying nothing at all is that placeholder.
+                // Half of one is a mistake, and stays an error below.
+                if (item.At.Length == 0 && item.Reason.Length == 0)
+                    continue;
+
+                if (item.Reason.Length == 0 || item.At.Length == 0)
+                {
+                    _entries.Add((Severity.Error, new TabbitException.Detail
+                    {
+                        Message = $"`Validation.KnownProblems` entry {entry + 1} needs both `At` "
+                            + $"and `Reason`. An entry without a place covers everything, and one "
+                            + $"without a reason is a switch rather than a note.",
+                    }));
+
+                    continue;
+                }
+
+                if (matched[entry] == 0)
+                {
+                    _entries.Add((Severity.Error, new TabbitException.Detail
+                    {
+                        Message = $"`Validation.KnownProblems` names `{item.At}`, and nothing was "
+                            + $"reported there. Either it is fixed or the place is wrong; both are "
+                            + $"reasons to take the entry out. (`{item.Reason}`)",
+                    }));
+
+                    continue;
+                }
+
+                if (item.Count > 0 && matched[entry] != item.Count)
+                {
+                    _entries.Add((Severity.Error, new TabbitException.Detail
+                    {
+                        Message = $"`Validation.KnownProblems` says `{item.At}` accounts for "
+                            + $"{item.Count} report(s) and it accounts for {matched[entry]}. "
+                            + $"{(matched[entry] > item.Count ? "Something new is wrong there" : "Some of it is fixed")}, "
+                            + $"so the entry no longer says what is known. (`{item.Reason}`)",
+                    }));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Which written-down place a report's location sits in, or -1 for none.
+    /// </summary>
+    /// <remarks>
+    /// The first match wins, so a narrow entry written above a wide one takes its own reports.
+    /// A report with no location matches nothing: it is about the run rather than about a cell,
+    /// and there is no place for a list of places to name.
+    /// </remarks>
+    private static int FirstMatch(
+        IReadOnlyList<Recipe.KnownProblemRecipe> known, Location? location)
+    {
+        if (location is null)
+            return -1;
+
+        for (int at = 0; at < known.Count; at++)
+        {
+            if (known[at].At.Length > 0 && known[at].Reason.Length > 0
+                && Covers(known[at].At, location))
+            {
+                return at;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>Whether a written-down place covers this location.</summary>
+    /// <remarks>
+    /// Three forms, widest first: the file, a sheet of it, one cell of that sheet. The file is
+    /// matched by the end of the path so that the same list works wherever the folder is.
+    /// </remarks>
+    private static bool Covers(string place, Location location)
+    {
+        var parts = place.Split(':');
+
+        for (int at = 0; at < parts.Length; at++)
+            parts[at] = parts[at].Trim();
+
+        if (parts.Length == 0 || parts[0].Length == 0)
+            return false;
+
+        string filename = (location.Filename ?? "").Replace('\\', '/');
+        string wanted = parts[0].Replace('\\', '/');
+
+        if (!filename.EndsWith(wanted, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (parts.Length == 1)
+            return true;
+
+        if (!string.Equals(location.Sheet ?? "", parts[1], StringComparison.Ordinal))
+            return false;
+
+        if (parts.Length == 2)
+            return true;
+
+        return string.Equals(location.CellRange, parts[2], StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>Whether a report at this severity ends the run.</summary>
     private bool Stops(Severity severity)
         => severity == Severity.Error || (PromoteWarnings && severity == Severity.Warning);
