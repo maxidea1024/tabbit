@@ -27,6 +27,30 @@ struct {{ rt.type_name }} {
   {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## The per-target accessors of every member of this struct that reaches several tables. One
+   taking the element number where the member is the array, which is the third place an element
+   number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+  /// The `{{ target.record_name }}` row element `at` of `{{ multi.key_member }}` names, or
+  /// nullptr when that element names a row of one of the others.
+  const {{ target.record_name }}* {{ target.method }}(std::size_t at) const {
+    return {{ multi.target_member }}[at] == {{ multi.target_type_name }}::{{ target.label }}
+        ? static_cast<const {{ target.record_name }}*>({{ multi.slot_member }}[at])
+        : nullptr;
+  }
+{{~ else ~}}
+  /// The `{{ target.record_name }}` row `{{ multi.key_member }}` names, or nullptr when it names
+  /// a row of one of the others.
+  const {{ target.record_name }}* {{ target.method }}() const {
+    return {{ multi.target_member }} == {{ multi.target_type_name }}::{{ target.label }}
+        ? static_cast<const {{ target.record_name }}*>({{ multi.slot_member }})
+        : nullptr;
+  }
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 };
 
 {{~ end ~}}
@@ -257,6 +281,13 @@ class {{ table.table_name }} {
    into the key - so both are sized. spec/references-in-records.md. ##~}}
             record.{{ column_view.name }}{{ column_view.member_access }}.assign({{ column_view.element_count }}, nullptr);
             record.{{ column_view.name }}{{ column_view.member_access }}_index.resize({{ column_view.element_count }});
+{{~ else if column_view.multi_target_type_name != '' ~}}
+{{~## A member reaching several tables holds one slot and one discriminator per element beside
+   the keys, and the linking pass assigns into both - so all three are sized.
+   spec/multi-target-accessors.md. ##~}}
+            record.{{ column_view.name }}{{ column_view.member_access }}.resize({{ column_view.element_count }});
+            record.{{ column_view.name }}{{ column_view.member_access }}_row.assign({{ column_view.element_count }}, nullptr);
+            record.{{ column_view.name }}{{ column_view.member_access }}_target.assign({{ column_view.element_count }}, {{ column_view.multi_target_type_name }}::None);
 {{~ else ~}}
             record.{{ column_view.name }}{{ column_view.member_access }}.resize({{ column_view.element_count }});
 {{~ end ~}}

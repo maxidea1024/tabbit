@@ -288,6 +288,12 @@ internal sealed class CppCrossReferenceView
     /// </summary>
     public required IReadOnlyList<CppMultiReferenceView> MultiFields { get; set; }
 
+    /// <summary>
+    /// The columns reaching several tables that are members of a record, which resolve per
+    /// element. spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<CppMultiRecordReferenceView> MultiRecordFields { get; set; }
+
 }
 
 /// <summary>
@@ -345,6 +351,13 @@ internal sealed class CppRecordMemberView
     public required string Name { get; set; }
 
     /// <summary>
+    /// The slot and the discriminator of a member reaching several tables, so the accessors can
+    /// be written on the element struct. Null for every other member.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public CppMultiMemberView? Multi { get; set; }
+
+    /// <summary>
     /// The declaration lines, type and initializer included.
     ///
     /// More than one for a reference member, which holds the row it resolved to as well as
@@ -377,6 +390,39 @@ internal sealed class CppRecordTypeView
 
     /// <summary>What the struct belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }
+
+    /// <summary>
+    /// Those of its members that reach several tables, for the accessors written on the struct.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public IReadOnlyList<CppMultiMemberView> MultiMembers { get; set; }
+        = System.Array.Empty<CppMultiMemberView>();
+}
+
+/// <summary>
+/// One record member whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// The member keeps the key it already carried; beside it go one slot for the resolved row and
+/// the discriminator saying which table filled it, at the member's own arity. `const void*` for
+/// the slot, as the row-level shape has it - the target records share no base, and the cast back
+/// out sits in the generated accessor where the discriminator has already answered.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class CppMultiMemberView
+{
+    /// <summary>The key, the slot and the discriminator, by member name.</summary>
+    public required string KeyMember { get; set; }
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>Whether the member is the array, so the accessor takes an element number.</summary>
+    public required bool IsArray { get; set; }
+
+    public required IReadOnlyList<CppMultiTargetView> Targets { get; set; }
 }
 
 /// <summary>
@@ -452,6 +498,18 @@ internal sealed class CppColumnView
     /// spec/references-in-records.md.
     /// </summary>
     public string MemberRefSuffix { get; set; } = "";
+
+    /// <summary>
+    /// The discriminator's type when this column is a record member reaching several tables, and
+    /// empty otherwise.
+    /// </summary>
+    /// <remarks>
+    /// The read sizes the member's vector, and the slot and the discriminator beside it are
+    /// vectors of the same length - so they are sized here too, for the reason the reference
+    /// member's key vector is: the linking pass assigns into a position, and a vector that was
+    /// never sized has none. spec/multi-target-accessors.md.
+    /// </remarks>
+    public string MultiTargetTypeName { get; set; } = "";
 
     /// <summary>How many inner vectors the group has, so a column can size the outer level.</summary>
     public int OuterCount { get; set; }
@@ -544,4 +602,30 @@ internal sealed class CppMultiTargetView
 
     /// <summary>The target's lookup, which answers nullptr rather than throwing.</summary>
     public required string Lookup { get; set; }
+}
+
+/// <summary>
+/// One multi-target column that is a member of a record, as the linking pass writes it.
+/// </summary>
+internal sealed class CppMultiRecordReferenceView
+{
+    /// <summary>The key this resolves through, loop variable included.</summary>
+    public required string Key { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string Slot { get; set; }
+    public required string Target { get; set; }
+
+    /// <summary>
+    /// The loop bound, or empty where the group is one record and there is nothing to walk.
+    /// </summary>
+    public required string Count { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<CppMultiTargetView> Targets { get; set; }
 }
