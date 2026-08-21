@@ -27,7 +27,6 @@ class {{ rt.type_name }}:
         {{ line }}
 {{~ end ~}}
 {{~ end ~}}
-
 {{~## The per-target accessors of every member of this class that reaches several tables. A
    property where the member is one value; a method taking the element number where the member
    is the array, which is the third place an element number sits.
