@@ -26,7 +26,7 @@ interface IDataRow {
   brushId: number
 }
 
-// Generated from test/fixtures/xlsx/row-sets/row-sets.xlsx : Tables : W2
+// Generated from test/fixtures/xlsx/row-sets/row-sets.xlsx : Tables : X2
 /** Points at both kinds. */
 export class PaintRecord {
   /** Default constructor */
@@ -69,7 +69,7 @@ export class PaintRecord {
   }
 }
 
-// Generated from test/fixtures/xlsx/row-sets/row-sets.xlsx : Tables : W2
+// Generated from test/fixtures/xlsx/row-sets/row-sets.xlsx : Tables : X2
 /** Points at both kinds. */
 export class PaintTable {
   /** Default constructor. */

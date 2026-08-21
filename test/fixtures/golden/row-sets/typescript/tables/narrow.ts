@@ -21,6 +21,7 @@ interface IDataRow {
   kept: number
   also: number
   dropped: number
+  firm: number
 }
 
 // Generated from test/fixtures/xlsx/row-sets/row-sets.xlsx : Tables : R2
@@ -44,11 +45,18 @@ export class NarrowRecord {
   /** Whether this row has a value for `dropped`. */
   public get hasDropped(): boolean { return this._droppedHasValue }
 
+  /** in this set only, and required */
+  public get firm(): number { return this._firm }
+  /** Whether this row has a value for `firm`. */
+  public get hasFirm(): boolean { return this._firmHasValue }
+
   public _index: number = 0
   public _kept: number = 0
   public _also: number = 0
   public _dropped: number = 0
   public _droppedHasValue: boolean = false
+  public _firm: number = 0
+  public _firmHasValue: boolean = false
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -56,6 +64,7 @@ export class NarrowRecord {
     this._kept = dataRow.kept
     this._also = dataRow.also
     this._droppedHasValue = dataRow.dropped !== null && dataRow.dropped !== undefined; if (this._droppedHasValue) this._dropped = dataRow.dropped
+    this._firmHasValue = dataRow.firm !== null && dataRow.firm !== undefined; if (this._firmHasValue) this._firm = dataRow.firm
   }
 
   /** Populate field values. */
@@ -67,6 +76,9 @@ export class NarrowRecord {
     const _dropped_raw = dataRow[offset++]
     this._droppedHasValue = _dropped_raw !== null && _dropped_raw !== undefined
     if (this._droppedHasValue) this._dropped = _dropped_raw
+    const _firm_raw = dataRow[offset++]
+    this._firmHasValue = _firm_raw !== null && _firm_raw !== undefined
+    if (this._firmHasValue) this._firm = _firm_raw
   }
 }
 
@@ -229,6 +241,25 @@ export class NarrowTable {
             // path agree with the JSON one.
             if (!records[i]._droppedHasValue)
               records[i]._dropped = 0
+          }
+          break
+        case 5:
+          tabbit.checkColumn(column, 'Narrow.Firm', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          presence = tabbit.readPresence(reader, column, rowCount)
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Narrow.Firm')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameI32(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._firm = value
+          }
+          for (let i = 0; i < rowCount; ++i) {
+            records[i]._firmHasValue = tabbit.isPresent(presence, i)
+
+            // The block carries a value for every row, so an absent one has just been
+            // given whatever was there. Putting the empty value back is what makes this
+            // path agree with the JSON one.
+            if (!records[i]._firmHasValue)
+              records[i]._firm = 0
           }
           break
         default:

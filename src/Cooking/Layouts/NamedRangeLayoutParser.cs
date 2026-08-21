@@ -161,7 +161,7 @@ public sealed class UwoLayoutParser : ILayoutParser
             return null;
 
         if (matrixColumns.Count > 0)
-            PrepareMatrix(table, matrixColumns);
+            PrepareMatrix(table, matrixColumns, sheet);
 
         // Grouped before the cells are read: grouping is what gives every element of an array
         // the first one's answer about being optional, and reading a cell asks that question.
@@ -1125,7 +1125,8 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// The design and the two shapes turned down on the way to this one are in
     /// spec/matrix-tables.md.
     /// </remarks>
-    private void PrepareMatrix(Models.Table table, List<(long Id, RawCell NameCell)> columns)
+    private void PrepareMatrix(
+        Models.Table table, List<(long Id, RawCell NameCell)> columns, RawSheet sheet)
     {
         // Every element of the array is one column of the grid, so its type is one type. The
         // rewrite to `Value[k]` means the folding would otherwise report this as a group
@@ -1147,6 +1148,28 @@ public sealed class UwoLayoutParser : ILayoutParser
         // for a list of slots and wrong for a grid: shorten one row and every lookup past
         // that point reads a different column - or nothing.
         table.TrimTrailingArrayElements = false;
+
+        // The element names above are positional, and another set of this table's rows is laid
+        // onto its columns by name. A locale with fewer columns of this axis would then be
+        // shifted from its first missing id onwards - measured, and it was: two elements of a
+        // 735-column grid read another town's value. So each element says what to match it by,
+        // and that is the column id. spec/table-row-sets.md ~ spec/matrix-tables.md.
+        for (int position = 0; position < columns.Count && position < elements.Count; position++)
+            elements[position].SetAlignName = $"{MatrixValueField}#{columns[position].Id}";
+
+        // A sheet that is another set of some table's rows makes no column table of its own.
+        // Once folded, the positions are the table's, so this one would state positions that
+        // nothing holds any more. Which sheets those are is the source's own setting, and this
+        // layout can read it. spec/table-row-sets.md.
+        if (IsAnotherSetsRows(table, sheet))
+        {
+            Log.Information(
+                $"`{table.Name}` is a grid of {columns.Count} column(s) and another set of some "
+                + $"table's rows, so its column ids come from the table it folds into. "
+                + $"({table.Location})");
+
+            return;
+        }
 
         var companion = new Models.Table
         {
@@ -1229,6 +1252,32 @@ public sealed class UwoLayoutParser : ILayoutParser
         // shape produces one - threading a second return value through for this one case would
         // put a grid's existence in the signature of everything that reads a table.
         _context.Model.Tables.Add(companion);
+    }
+
+    /// <summary>
+    /// Whether this table's name says it is another set of some table's rows.
+    /// </summary>
+    /// <remarks>
+    /// The same pattern the folding uses, read from the same place - the source's own setting.
+    /// Asked here because a grid decides one thing differently when it is a set, and the
+    /// answer is available before the folding runs. spec/table-row-sets.md.
+    /// </remarks>
+    private static bool IsAnotherSetsRows(Models.Table table, RawSheet sheet)
+    {
+        string pattern = (sheet.Layout ?? SheetLayout.Default).TableRowSets;
+
+        if (pattern.Length == 0)
+            return false;
+
+        var match = System.Text.RegularExpressions.Regex.Match(table.RawName, pattern);
+
+        if (!match.Success)
+            return false;
+
+        var group = match.Groups["table"];
+
+        return group.Success && group.Value.Length > 0
+               && !string.Equals(group.Value, table.RawName, StringComparison.Ordinal);
     }
 
     /// <summary>A cell of the rectangle, addressed from its top-left.</summary>

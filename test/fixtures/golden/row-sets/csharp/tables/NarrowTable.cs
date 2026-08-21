@@ -50,6 +50,13 @@ namespace Tabbit.Fixtures.RowSets
             public int Dropped => _dropped;
             /// <summary>Whether this row has a value for <see cref="Dropped"/>.</summary>
             public bool HasDropped => _droppedHasValue;
+
+            /// <summary>
+            /// in this set only, and required
+            /// </summary>
+            public int Firm => _firm;
+            /// <summary>Whether this row has a value for <see cref="Firm"/>.</summary>
+            public bool HasFirm => _firmHasValue;
             #endregion
 
             #region Storage
@@ -58,6 +65,8 @@ namespace Tabbit.Fixtures.RowSets
             internal int _also;
             internal int _dropped;
             internal bool _droppedHasValue;
+            internal int _firm;
+            internal bool _firmHasValue;
             #endregion
 
             #region ToString
@@ -68,6 +77,7 @@ namespace Tabbit.Fixtures.RowSets
                 sb.Append(",\"Kept\":"); ToStringHelper.ToString(Kept, sb);
                 sb.Append(",\"Also\":"); ToStringHelper.ToString(Also, sb);
                 sb.Append(",\"Dropped\":"); ToStringHelper.ToString(Dropped, sb);
+                sb.Append(",\"Firm\":"); ToStringHelper.ToString(Firm, sb);
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -78,7 +88,7 @@ namespace Tabbit.Fixtures.RowSets
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "Index", "Kept", "Also", "Dropped" };
+        public static readonly string[] FieldNames = { "Index", "Kept", "Also", "Dropped", "Firm" };
 
         /// <summary>
         /// Build object value map.
@@ -87,7 +97,7 @@ namespace Tabbit.Fixtures.RowSets
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.Index, r.Kept, r.Also, r.Dropped });
+                result.Add(new object[] { r.Index, r.Kept, r.Also, r.Dropped, r.Firm });
 
             return result;
         }
@@ -265,6 +275,33 @@ namespace Tabbit.Fixtures.RowSets
                             // back is what makes this path agree with the JSON one.
                             if (!records[i]._droppedHasValue)
                                 records[i]._dropped = default(int);
+                        }
+                        break;
+
+                    case 5:
+                        TcbTable.CheckColumn(column, "Narrow.Firm", TcbTable.KindScalar, 1, true, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        presence = TcbTable.ReadPresence(reader, column, count);
+                        cursor = new TcbColumnCursor(reader, column, count, "Narrow.Firm");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameI32(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._firm = value;
+                            } while (--n > 0);
+                        }
+                        for (int i = 0; i < count; i++)
+                        {
+                            records[i]._firmHasValue = TcbTable.IsPresent(presence, i);
+
+                            // The block carries a value for every row, so an absent one has
+                            // just been given whatever was there. Putting the empty value
+                            // back is what makes this path agree with the JSON one.
+                            if (!records[i]._firmHasValue)
+                                records[i]._firm = default(int);
                         }
                         break;
 

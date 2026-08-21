@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "712a01150357cf63087e1d9a22beed2c",
-  "TotalSize": 563,
+  "MasterHash": "3fb9cd486f1afc4ee5be3443f4bbf68d",
+  "TotalSize": 589,
   "Items": [
     {
       "Name": "Colour.tcb",
@@ -23,14 +23,14 @@
     },
     {
       "Name": "Narrow.tcb",
-      "Size": 88,
-      "Hash": "4e49c1477afc214dc4726867b1e2dfd5",
+      "Size": 102,
+      "Hash": "fbb85905872b9f069991375c155259d8",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Narrow_alt.tcb",
-      "Size": 86,
-      "Hash": "9520482c60a2eb8e8f87cc706d86dd18",
+      "Size": 98,
+      "Hash": "f98addfdc97a8351b326a1201acc7793",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {

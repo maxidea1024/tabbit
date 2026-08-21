@@ -180,6 +180,15 @@ internal static class TableRowSets
     /// false, which is the same thing the layouts write for a cell the sheet left blank. That
     /// is what makes a shorter array come out shorter rather than padded: the element count is
     /// taken per row from `HasValue`.
+    ///
+    /// **A column no set of this table declares stays required. One that a set does not
+    /// declare becomes optional**, because otherwise validation reports the value written
+    /// here - by this method, deliberately - as a violation. What it costs and why the whole
+    /// array turns optional rather than one element of it is in spec/table-row-sets.md 4.2.
+    ///
+    /// **Matched by <see cref="Field.SetAlignName"/> where a field carries one**, which is how
+    /// a grid's columns line up by their ids rather than by the positional names the layout
+    /// gave them.
     /// </remarks>
     private static bool TryProjectOnto(
         Table owner, Table other, CookingContext context,
@@ -189,7 +198,7 @@ internal static class TableRowSets
 
         var ownerByName = new Dictionary<string, Field>(StringComparer.Ordinal);
         foreach (var field in owner.Fields)
-            ownerByName[field.RawName] = field;
+            ownerByName[AlignKey(field)] = field;
 
         // Where each of the table's columns is in this set's rows, or -1 when the set has
         // none. Worked out once rather than per row.
@@ -199,7 +208,7 @@ internal static class TableRowSets
 
         foreach (var field in other.Fields)
         {
-            if (!ownerByName.TryGetValue(field.RawName, out var ours))
+            if (!ownerByName.TryGetValue(AlignKey(field), out var ours))
             {
                 difference = $"`{owner.RawName}` has no `{field.RawName}`.";
                 return false;
@@ -231,6 +240,8 @@ internal static class TableRowSets
             rows.Add(projected);
         }
 
+        MakeMissingColumnsOptional(owner, takeFrom);
+
         difference = null;
         return true;
     }
@@ -245,6 +256,70 @@ internal static class TableRowSets
     /// is none; what a diagnostic needs from it is which row of which sheet, and that is what
     /// it carries.
     /// </remarks>
+    /// <summary>The name a column is matched by: its own unless the layout named one.</summary>
+    private static string AlignKey(Field field)
+        => field.SetAlignName.Length > 0 ? field.SetAlignName : field.RawName;
+
+    /// <summary>
+    /// Marks every column this set did not provide as one that may have no value.
+    /// </summary>
+    /// <remarks>
+    /// The projection above writes `HasValue` false into those cells, and a column declared
+    /// required would then have validation report exactly that. The two rules contradicted
+    /// each other, and the sheets said which one was right: a set that does not declare a
+    /// column is not a set that forgot to fill it in.
+    ///
+    /// **An element of an array turns the whole array optional.** Requiredness is one answer
+    /// per array in this model - element 0 states it and every element takes it - so there is
+    /// no room for one element of it to be the optional one. That is stated as the cost in
+    /// spec/table-row-sets.md rather than worked around here.
+    ///
+    /// The derived views are dropped afterwards, because requiredness is copied to the
+    /// elements when they are built and a view built before this ran holds the old answer.
+    /// </remarks>
+    private static void MakeMissingColumnsOptional(Table owner, int[] takeFrom)
+    {
+        var groupsToRelax = new HashSet<string>(StringComparer.Ordinal);
+        bool changed = false;
+
+        for (int at = 0; at < takeFrom.Length; at++)
+        {
+            if (takeFrom[at] >= 0)
+                continue;
+
+            var field = owner.Fields[at];
+
+            if (field.IsRequired)
+            {
+                field.IsRequired = false;
+                changed = true;
+            }
+
+            // An array's answer lives on its first element, so the group is named here and
+            // that element is relaxed below.
+            if (field.GroupName is { Length: > 0 } group)
+                groupsToRelax.Add(group);
+        }
+
+        foreach (var group in groupsToRelax)
+        {
+            foreach (var field in owner.Fields)
+            {
+                if (!string.Equals(field.GroupName, group, StringComparison.Ordinal)
+                    || !field.IsRequired)
+                {
+                    continue;
+                }
+
+                field.IsRequired = false;
+                changed = true;
+            }
+        }
+
+        if (changed)
+            owner.InvalidateDerivedColumns();
+    }
+
     private static Cell Absent(Field field, List<Cell> row, CookingContext context)
     {
         var where = row.Count > 0 ? row[0].RawCell : null!;

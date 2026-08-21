@@ -37,7 +37,7 @@ reference-keys/reference-keys.xlsx	sheets=1 rows=10 cells=107 chars=1014 names=0
 reference-optional/reference-optional.xlsx	sheets=1 rows=11 cells=45 chars=385 names=0 skipped-names=0 notes=0 hash=91c315029b0917a3
 reference-required-blank/reference-required-blank.xlsx	sheets=1 rows=11 cells=40 chars=397 names=0 skipped-names=0 notes=0 hash=182e16f42efe4c2f
 reserved-words/reserved-words.xlsx	sheets=1 rows=10 cells=88 chars=897 names=0 skipped-names=0 notes=0 hash=c68cd412ef7c18b4
-row-sets/row-sets.xlsx	sheets=1 rows=10 cells=150 chars=940 names=0 skipped-names=0 notes=0 hash=ac5e80afe28d880a
+row-sets/row-sets.xlsx	sheets=1 rows=10 cells=156 chars=987 names=0 skipped-names=0 notes=0 hash=c59d50f3010d16e9
 serial-ref-trim/serial-ref-trim.xlsx	sheets=1 rows=11 cells=80 chars=531 names=0 skipped-names=0 notes=0 hash=2cd514032b8cfee8
 serial-ref/serial-ref.xlsx	sheets=1 rows=11 cells=64 chars=450 names=0 skipped-names=0 notes=0 hash=85a5cdd202b10564
 side-dangling/side-dangling.xlsx	sheets=1 rows=10 cells=41 chars=315 names=0 skipped-names=0 notes=0 hash=32c62ce3f464e215

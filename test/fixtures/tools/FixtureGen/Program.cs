@@ -967,13 +967,20 @@ internal static class Program
         // 11 and 12 exist only in `Colour_alt`, and 1 and 2 only in `Brush`.
         paintAlt.Row("1", "11", "1").Row("2", "12", "2");
 
+        // `Firm` is declared required and only this set has it, which is the case the fold
+        // turns optional: the projection writes `HasValue` false into those cells, and a
+        // required column would have validation report the value the fold just wrote.
+        // `Dropped` is the same shape already marked optional by the sheet, so the two
+        // together say that the rule is about the set and not about the marker.
+        // spec/table-row-sets.md.
         var narrow = new TableSpec { Name = "Narrow", Comment = "One set holds fewer columns." };
         narrow
             .Field(FieldSpec.Of("index", "int", "primary index"))
             .Field(FieldSpec.Of("Kept", "int", "in both sets"))
             .Field(FieldSpec.Of("Also", "int", "in both sets"))
-            .Field(FieldSpec.Of("Dropped", "int?", "in this set only"));
-        narrow.Row("1", "10", "1", "100").Row("2", "20", "2", "200");
+            .Field(FieldSpec.Of("Dropped", "int?", "in this set only"))
+            .Field(FieldSpec.Of("Firm", "int", "in this set only, and required"));
+        narrow.Row("1", "10", "1", "100", "1000").Row("2", "20", "2", "200", "2000");
 
         var narrowAlt = new TableSpec { Name = "Narrow_alt", Comment = "One set holds fewer columns." };
         narrowAlt

@@ -71,6 +71,24 @@ public class Field
     public bool IsRequired { get; set; } = true;
 
     /// <summary>
+    /// The name this column is matched by when another set of the table's rows is laid onto
+    /// its columns. Empty means <see cref="RawName"/>, which is the ordinary case.
+    /// </summary>
+    /// <remarks>
+    /// The folding matches by name rather than by position, because two sets of one table's
+    /// rows do not have to be the same width. That works as long as the name says which column
+    /// it is - and a layout may rename a column to something positional, in which case the
+    /// name no longer does. A grid is that case: its column names are ids of another axis, so
+    /// the layout renames them to `Value[0]`, `Value[1]`, and a set missing one id would then
+    /// be laid out shifted by one from there on.
+    ///
+    /// So the layout that renames a column may say what to match it by instead. **Nothing here
+    /// knows what a grid is** - only that this column has a name of its own for this one
+    /// purpose. spec/table-row-sets.md · spec/matrix-tables.md.
+    /// </remarks>
+    public string SetAlignName { get; set; } = "";
+
+    /// <summary>
     /// Whether every element of this column's array has to be a value.
     /// </summary>
     /// <remarks>

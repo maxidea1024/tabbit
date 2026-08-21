@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "310c0bbdd2ee750230dc95ab7ef5abbe",
-  "TotalSize": 942,
+  "MasterHash": "8fa02ed7436befe8305be8b182e4cd16",
+  "TotalSize": 1014,
   "Items": [
     {
       "Name": "Colour.json",
@@ -23,14 +23,14 @@
     },
     {
       "Name": "Narrow.json",
-      "Size": 153,
-      "Hash": "1829a8f0afab47abc86a553b82737a44",
+      "Size": 189,
+      "Hash": "10168f012d44f19e34e604910585441d",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Narrow_alt.json",
-      "Size": 155,
-      "Hash": "0f6983cee6f022b81fbc29e1f84bb3ce",
+      "Size": 191,
+      "Hash": "920b5df0deac7b603e729164a1abf949",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
