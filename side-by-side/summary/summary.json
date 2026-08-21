@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-21T13:53:34.3546489+09:00",
+    "generatedAt": "2026-08-21T16:00:37.0790426+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "c534d96efd45422f9c371d80f869bab1d81d844f",
-      "shortHash": "c534d96efd45",
-      "branch": "multi-target-accessors",
+      "hash": "a48688b7a8eb8f9e3b168814c40ade35d8212ac3",
+      "shortHash": "a48688b7a8eb",
+      "branch": "multi-target-records",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-21T00:32:18.0000000+09:00",
-      "subject": "Draw a table's entries, not the columns the sheet spread them over",
+      "committedAt": "2026-08-21T15:20:30.0000000+09:00",
+      "subject": "Give C# the per-target accessors inside a record element",
       "origin": "git",
       "dirty": true,
       "attributable": false

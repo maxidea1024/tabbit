@@ -55,7 +55,17 @@ internal static class TypeDependencies
     /// Rust warns about exactly that. spec/multi-target-accessors.md.
     /// </remarks>
     public static IReadOnlyList<Models.Enum> MultiTargetDiscriminatorsOf(Table table)
-        => Distinct(MultiTargetColumns.Of(table).Select(column => column.Discriminator));
+        => Distinct(MultiTargetColumns.Of(table)
+                        .Select(column => column.Discriminator)
+
+                        // And the ones a record member declares. A member reaching several
+                        // tables is not one of the columns above - the list of those skips a
+                        // record group deliberately - but its accessors name a discriminator
+                        // exactly the same way, so the file has to see that type too.
+                        .Concat(table.WireColumns
+                                     .Where(wire => wire.Member is not null
+                                                    && wire.TagCarrier.MultiTargetEnum is not null)
+                                     .Select(wire => wire.TagCarrier.MultiTargetEnum!)));
 
     /// <summary>
     /// The tables a table references, in declaration order and without repeats.

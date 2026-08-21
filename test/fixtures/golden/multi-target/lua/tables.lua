@@ -13,9 +13,15 @@ local TrinketTable = require(_root .. "tables.trinket_table")
 local MountTable = require(_root .. "tables.mount_table")
 local BannerTable = require(_root .. "tables.banner_table")
 local HolderTable = require(_root .. "tables.holder_table")
+local LoadoutTable = require(_root .. "tables.loadout_table")
+local FittingTable = require(_root .. "tables.fitting_table")
+local RackTable = require(_root .. "tables.rack_table")
 local HolderPickTarget = require(_root .. "enums.enum_holder_pick_target")
 local HolderWideTarget = require(_root .. "enums.enum_holder_wide_target")
 local HolderMaybeTarget = require(_root .. "enums.enum_holder_maybe_target")
+local LoadoutSlotPickTarget = require(_root .. "enums.enum_loadout_slot_pick_target")
+local FittingMainPickTarget = require(_root .. "enums.enum_fitting_main_pick_target")
+local RackSlotsPickTarget = require(_root .. "enums.enum_rack_slots_pick_target")
 
 -- Every table, loaded together so cross-table references can be resolved.
 ---@class tables
@@ -40,7 +46,7 @@ tables.macKey = nil
 -- is not a security boundary.
 tables.verifyMac = true
 
-local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "weapon", "armour", "trinket", "mount", "banner", "holder" })
+local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "weapon", "armour", "trinket", "mount", "banner", "holder", "loadout", "fitting", "rack" })
 
 function tables.new()
   return setmetatable({
@@ -50,6 +56,9 @@ function tables.new()
     mount = MountTable.new(),
     banner = BannerTable.new(),
     holder = HolderTable.new(),
+    loadout = LoadoutTable.new(),
+    fitting = FittingTable.new(),
+    rack = RackTable.new(),
   }, instanceMeta)
 end
 
@@ -90,6 +99,15 @@ function tables:readAll(source, fileExtension)
 
   local loadedHolder = HolderTable.new()
   loadedHolder:readBytes(bytesOf(source, "Holder", fileExtension))
+
+  local loadedLoadout = LoadoutTable.new()
+  loadedLoadout:readBytes(bytesOf(source, "Loadout", fileExtension))
+
+  local loadedFitting = FittingTable.new()
+  loadedFitting:readBytes(bytesOf(source, "Fitting", fileExtension))
+
+  local loadedRack = RackTable.new()
+  loadedRack:readBytes(bytesOf(source, "Rack", fileExtension))
 
   -- Turns loadedHolder's stored keys into rows, now that every table is in
   -- memory.
@@ -181,6 +199,79 @@ function tables:readAll(source, fileExtension)
     end
   end
 
+  -- Turns loadedLoadout's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedLoadout.records) do
+    for i = 1, #record.slot do
+      if record.slot[i].pick ~= 0 then
+        if record.slot[i].pickTarget == LoadoutSlotPickTarget.none then
+          local found = loadedWeapon:findByIndex(record.slot[i].pick)
+
+          if found ~= nil then
+            record.slot[i].pickRow = found
+            record.slot[i].pickTarget = LoadoutSlotPickTarget.weapon
+          end
+        end
+        if record.slot[i].pickTarget == LoadoutSlotPickTarget.none then
+          local found = loadedArmour:findByIndex(record.slot[i].pick)
+
+          if found ~= nil then
+            record.slot[i].pickRow = found
+            record.slot[i].pickTarget = LoadoutSlotPickTarget.armour
+          end
+        end
+      end
+    end
+  end
+
+  -- Turns loadedFitting's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedFitting.records) do
+    if record.main.pick ~= 0 then
+      if record.main.pickTarget == FittingMainPickTarget.none then
+        local found = loadedWeapon:findByIndex(record.main.pick)
+
+        if found ~= nil then
+          record.main.pickRow = found
+          record.main.pickTarget = FittingMainPickTarget.weapon
+        end
+      end
+      if record.main.pickTarget == FittingMainPickTarget.none then
+        local found = loadedArmour:findByIndex(record.main.pick)
+
+        if found ~= nil then
+          record.main.pickRow = found
+          record.main.pickTarget = FittingMainPickTarget.armour
+        end
+      end
+    end
+  end
+
+  -- Turns loadedRack's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedRack.records) do
+    for i = 1, #record.slots.pick do
+      if record.slots.pick[i] ~= 0 then
+        if record.slots.pickTarget[i] == RackSlotsPickTarget.none then
+          local found = loadedWeapon:findByIndex(record.slots.pick[i])
+
+          if found ~= nil then
+            record.slots.pickRow[i] = found
+            record.slots.pickTarget[i] = RackSlotsPickTarget.weapon
+          end
+        end
+        if record.slots.pickTarget[i] == RackSlotsPickTarget.none then
+          local found = loadedArmour:findByIndex(record.slots.pick[i])
+
+          if found ~= nil then
+            record.slots.pickRow[i] = found
+            record.slots.pickTarget[i] = RackSlotsPickTarget.armour
+          end
+        end
+      end
+    end
+  end
+
   -- Published, now that every table read and linked.
   self.weapon = loadedWeapon
   self.armour = loadedArmour
@@ -188,6 +279,9 @@ function tables:readAll(source, fileExtension)
   self.mount = loadedMount
   self.banner = loadedBanner
   self.holder = loadedHolder
+  self.loadout = loadedLoadout
+  self.fitting = loadedFitting
+  self.rack = loadedRack
 end
 
 return setmetatable(tables, tcb.strictType(

@@ -141,6 +141,9 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     private readonly Dictionary<string, List<Models.Field>> _enumUsers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<Models.Field>> _tableReferrers = new(StringComparer.Ordinal);
 
+    /// <summary>Broken keys per entry, by table and entry name. See <see cref="BrokenKeys"/>.</summary>
+    private readonly Dictionary<(string Table, string Entry), Dictionary<string, int>> _brokenKeys = new();
+
     /// <summary>
     /// The keys each table's page will carry an anchor for.
     ///
@@ -223,6 +226,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     {
         _enumUsers.Clear();
         _tableReferrers.Clear();
+        _brokenKeys.Clear();
         _anchoredRows.Clear();
         _allKeys.Clear();
         _referencedKeys.Clear();
@@ -1474,11 +1478,136 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             // type says nothing about that - the entry is what knows it is an array.
             string brackets = entry.IsArray && !field.IsArray ? "[]" : "";
 
-            return TypeMarkup(field, root) + brackets;
+            return TypeMarkup(field, root) + brackets + BrokenMark(entry);
         }
 
-        return MemberTypes(entry.Members, root) + (entry.IsArray ? "[]" : "");
+        return MemberTypes(entry.Members, root) + (entry.IsArray ? "[]" : "") + BrokenMark(entry);
     }
+
+    /// <summary>
+    /// The mark a reference column carries when some of its keys name no row.
+    /// </summary>
+    /// <remarks>
+    /// Per value the page already says it - the key wears a `?` and a tooltip naming the
+    /// tables that do not have it - but the first thing a reader checking data wants is the
+    /// column, not the row: "does this column have broken references, and how many". Finding
+    /// that by scrolling is not finding it.
+    ///
+    /// A different mark from the `?` on the type on purpose. That `?` is the schema allowing
+    /// an empty cell; this is the data being wrong, and one glyph for both would make the
+    /// page unreadable on exactly the question it exists to answer.
+    /// </remarks>
+    private string BrokenMark(Models.SerialField entry)
+    {
+        var broken = BrokenKeys(entry);
+        int total = broken.Values.Sum();
+
+        if (total == 0)
+            return "";
+
+        // Per target, because a record's members point at different tables and one number
+        // covering all of them says which column to look at and nothing more. The head field
+        // is no help here either - the first member of a record is often not a reference.
+        string detail = string.Join(", ",
+            broken.OrderByDescending(pair => pair.Value)
+                  .ThenBy(pair => pair.Key, StringComparer.Ordinal)
+                  .Select(pair => $"{pair.Key}에 없는 키 {Num(pair.Value)}개"));
+
+        return $" <span class=\"broken\" title=\"{Esc(detail)}\">" +
+               $"&#x26A0; {Num(total)}</span>";
+    }
+
+    /// <summary>
+    /// Keys of one entry that no named table holds, over every row of the table.
+    /// </summary>
+    /// <remarks>
+    /// Every row rather than the rows the page shows: a column's broken references are a
+    /// fact about the data, and a count that stopped at the row cap would say a table is
+    /// clean because the page is short. Counted once per entry - the table page and the
+    /// column index both ask.
+    /// </remarks>
+    private Dictionary<string, int> BrokenKeys(Models.SerialField entry)
+    {
+        var head = HeadOf(entry);
+        var table = head?.OwnerTable;
+
+        if (table is null)
+            return Empty;
+
+        var at = (table.Name, entry.Name);
+
+        if (_brokenKeys.TryGetValue(at, out var cached))
+            return cached;
+
+        var fields = FieldsOf(entry)
+                     .Select(field => (Field: field, Named: TargetsInModel(field)))
+                     .Where(pair => pair.Named.Count > 0)
+                     .ToList();
+
+        var broken = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        foreach (var row in table.Data)
+        {
+            foreach (var (field, named) in fields)
+            {
+                var cell = row[field.Index];
+
+                if (cell.Value is Array elements)
+                {
+                    for (int i = 0; i < elements.Length; i++)
+                    {
+                        bool present = cell.ElementHasValue is null
+                                       || i >= cell.ElementHasValue.Length
+                                       || cell.ElementHasValue[i];
+
+                        if (present)
+                            Count(field, named, elements.GetValue(i), broken);
+                    }
+
+                    continue;
+                }
+
+                if (cell.HasValue)
+                    Count(field, named, cell.Value, broken);
+            }
+        }
+
+        _brokenKeys[at] = broken;
+
+        return broken;
+
+        // Counted against the set of tables the column names rather than against each of
+        // them. A column naming two tables has one fact to report - "in neither" - and
+        // reporting it once per table would say 25 twice for the same 25 keys.
+        void Count(Models.Field field, List<string> named, object? value, Dictionary<string, int> into)
+        {
+            if (value is null)
+                return;
+
+            string key = value.ToString() ?? "";
+
+            // The two keys that are not references at all: nothing written, and the `0` a
+            // sheet leaves in a numeric column it means to leave empty.
+            if (key.Length == 0)
+                return;
+
+            if (field.ElementType != Models.ValueType.String && key == "0")
+                return;
+
+            if (named.Any(name => KeysOf(name).Contains(key)))
+                return;
+
+            string where = string.Join(" / ", named);
+
+            into[where] = into.TryGetValue(where, out int had) ? had + 1 : 1;
+        }
+    }
+
+    /// <summary>The tables a column names that this build actually holds.</summary>
+    private List<string> TargetsInModel(Models.Field field)
+        => NamedTablesOf(field).Where(name => _model.FindTable(name) is not null).ToList();
+
+    private static readonly Dictionary<string, int> Empty = new(StringComparer.Ordinal);
 
     /// <summary>
     /// The `?` a column carries when a row may have no value for it.

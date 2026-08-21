@@ -15,9 +15,15 @@ import { TrinketTable } from './tables/trinket'
 import { MountTable } from './tables/mount'
 import { BannerTable } from './tables/banner'
 import { HolderTable } from './tables/holder'
+import { LoadoutTable } from './tables/loadout'
+import { FittingTable } from './tables/fitting'
+import { RackTable } from './tables/rack'
 import { HolderPickTarget } from './enums/holder-pick-target'
 import { HolderWideTarget } from './enums/holder-wide-target'
 import { HolderMaybeTarget } from './enums/holder-maybe-target'
+import { LoadoutSlotPickTarget } from './enums/loadout-slot-pick-target'
+import { FittingMainPickTarget } from './enums/fitting-main-pick-target'
+import { RackSlotsPickTarget } from './enums/rack-slots-pick-target'
 
 /** Tables */
 export class Tables {
@@ -96,6 +102,18 @@ export class Tables {
   public get holder(): HolderTable { return this._holder }
   private _holder: HolderTable = new HolderTable()
 
+  /** Peroperty for table Loadout */
+  public get loadout(): LoadoutTable { return this._loadout }
+  private _loadout: LoadoutTable = new LoadoutTable()
+
+  /** Peroperty for table Fitting */
+  public get fitting(): FittingTable { return this._fitting }
+  private _fitting: FittingTable = new FittingTable()
+
+  /** Peroperty for table Rack */
+  public get rack(): RackTable { return this._rack }
+  private _rack: RackTable = new RackTable()
+
   /**
    * Read all tables asynchronously.
    *
@@ -115,8 +133,14 @@ export class Tables {
     await banner.read(path.join(basePath, `Banner${fileExtension}`))
     const holder = new HolderTable()
     await holder.read(path.join(basePath, `Holder${fileExtension}`))
+    const loadout = new LoadoutTable()
+    await loadout.read(path.join(basePath, `Loadout${fileExtension}`))
+    const fitting = new FittingTable()
+    await fitting.read(path.join(basePath, `Fitting${fileExtension}`))
+    const rack = new RackTable()
+    await rack.read(path.join(basePath, `Rack${fileExtension}`))
 
-    this.publish(weapon, armour, trinket, mount, banner, holder)
+    this.publish(weapon, armour, trinket, mount, banner, holder, loadout, fitting, rack)
   }
 
   /** Read all tables synchronously. */
@@ -133,8 +157,14 @@ export class Tables {
     banner.readSync(path.join(basePath, `Banner${fileExtension}`))
     const holder = new HolderTable()
     holder.readSync(path.join(basePath, `Holder${fileExtension}`))
+    const loadout = new LoadoutTable()
+    loadout.readSync(path.join(basePath, `Loadout${fileExtension}`))
+    const fitting = new FittingTable()
+    fitting.readSync(path.join(basePath, `Fitting${fileExtension}`))
+    const rack = new RackTable()
+    rack.readSync(path.join(basePath, `Rack${fileExtension}`))
 
-    this.publish(weapon, armour, trinket, mount, banner, holder)
+    this.publish(weapon, armour, trinket, mount, banner, holder, loadout, fitting, rack)
   }
 
   /**
@@ -157,8 +187,14 @@ export class Tables {
     banner.readBinarySync(path.join(basePath, `Banner${fileExtension}`))
     const holder = new HolderTable()
     holder.readBinarySync(path.join(basePath, `Holder${fileExtension}`))
+    const loadout = new LoadoutTable()
+    loadout.readBinarySync(path.join(basePath, `Loadout${fileExtension}`))
+    const fitting = new FittingTable()
+    fitting.readBinarySync(path.join(basePath, `Fitting${fileExtension}`))
+    const rack = new RackTable()
+    rack.readBinarySync(path.join(basePath, `Rack${fileExtension}`))
 
-    this.publish(weapon, armour, trinket, mount, banner, holder)
+    this.publish(weapon, armour, trinket, mount, banner, holder, loadout, fitting, rack)
   }
 
   /**
@@ -169,13 +205,16 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(weapon: WeaponTable, armour: ArmourTable, trinket: TrinketTable, mount: MountTable, banner: BannerTable, holder: HolderTable): void {
+  private publish(weapon: WeaponTable, armour: ArmourTable, trinket: TrinketTable, mount: MountTable, banner: BannerTable, holder: HolderTable, loadout: LoadoutTable, fitting: FittingTable, rack: RackTable): void {
     this._weapon = weapon
     this._armour = armour
     this._trinket = trinket
     this._mount = mount
     this._banner = banner
     this._holder = holder
+    this._loadout = loadout
+    this._fitting = fitting
+    this._rack = rack
 
     this.solveCrossReferences()
   }
@@ -244,6 +283,67 @@ export class Tables {
           const found = this._armour.findByIndex(record.maybe)
           if (found !== undefined)
             record.setReference_maybe_INTERNAL(HolderMaybeTarget.Armour, found)
+        }
+      }
+    }
+
+    for (const record of this._loadout.records) {
+      for (let i = 0; i < record._slot.length; i++) {
+        if (record._slot[i].pick > 0) {
+          if (record._slot[i].pickTarget === LoadoutSlotPickTarget.None) {
+            const found = this._weapon.findByIndex(record._slot[i].pick)
+            if (found !== undefined) {
+              record._slot[i].pickRow = found
+              record._slot[i].pickTarget = LoadoutSlotPickTarget.Weapon
+            }
+          }
+          if (record._slot[i].pickTarget === LoadoutSlotPickTarget.None) {
+            const found = this._armour.findByIndex(record._slot[i].pick)
+            if (found !== undefined) {
+              record._slot[i].pickRow = found
+              record._slot[i].pickTarget = LoadoutSlotPickTarget.Armour
+            }
+          }
+        }
+      }
+    }
+
+    for (const record of this._fitting.records) {
+      if (record._main.pick > 0) {
+        if (record._main.pickTarget === FittingMainPickTarget.None) {
+          const found = this._weapon.findByIndex(record._main.pick)
+          if (found !== undefined) {
+            record._main.pickRow = found
+            record._main.pickTarget = FittingMainPickTarget.Weapon
+          }
+        }
+        if (record._main.pickTarget === FittingMainPickTarget.None) {
+          const found = this._armour.findByIndex(record._main.pick)
+          if (found !== undefined) {
+            record._main.pickRow = found
+            record._main.pickTarget = FittingMainPickTarget.Armour
+          }
+        }
+      }
+    }
+
+    for (const record of this._rack.records) {
+      for (let i = 0; i < record._slots.pick.length; i++) {
+        if (record._slots.pick[i] > 0) {
+          if (record._slots.pickTarget[i] === RackSlotsPickTarget.None) {
+            const found = this._weapon.findByIndex(record._slots.pick[i])
+            if (found !== undefined) {
+              record._slots.pickRow[i] = found
+              record._slots.pickTarget[i] = RackSlotsPickTarget.Weapon
+            }
+          }
+          if (record._slots.pickTarget[i] === RackSlotsPickTarget.None) {
+            const found = this._armour.findByIndex(record._slots.pick[i])
+            if (found !== undefined) {
+              record._slots.pickRow[i] = found
+              record._slots.pickTarget[i] = RackSlotsPickTarget.Armour
+            }
+          }
         }
       }
     }

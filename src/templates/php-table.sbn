@@ -29,10 +29,11 @@ final class {{ rt.type_name }}
 {{~ end ~}}
 {{~ if rt.constructor_lines | array.size > 0 }}
     /**
-     * The levels below, built.
+     * What cannot be built at a declaration: the levels below, and the lists whose positions
+     * have to be there before anything fills one.
      *
-     * They cannot be built at their declarations: a PHP property initializer has to be a
-     * constant expression, and a typed property left unset is an error to read.
+     * A PHP property initializer has to be a constant expression, and a typed property left
+     * unset is an error to read.
      */
     public function __construct()
     {
@@ -40,6 +41,34 @@ final class {{ rt.type_name }}
         {{ line }}
 {{~ end ~}}
     }
+{{~ end ~}}
+{{~## The per-target methods of every member of this class that reaches several tables. One
+   taking the element number where the member is the array, which is the third place an element
+   number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+    /** The {{ target.record_name }} row element `$at` of ${{ multi.key_member }} names, or null when that element names a row of one of the others. */
+    public function {{ target.method }}(int $at): ?{{ target.record_name }}
+    {
+        if ($this->{{ multi.target_member }}[$at] !== {{ multi.target_type_name }}::{{ target.case }}) {
+            return null;
+        }
+
+        return $this->{{ multi.slot_member }}[$at];
+    }
+{{~ else ~}}
+    /** The {{ target.record_name }} row ${{ multi.key_member }} names, or null when it names a row of one of the others. */
+    public function {{ target.method }}(): ?{{ target.record_name }}
+    {
+        if ($this->{{ multi.target_member }} !== {{ multi.target_type_name }}::{{ target.case }}) {
+            return null;
+        }
+
+        return $this->{{ multi.slot_member }};
+    }
+{{~ end ~}}
+{{~ end ~}}
 {{~ end ~}}
 }
 

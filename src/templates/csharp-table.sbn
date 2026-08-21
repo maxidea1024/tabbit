@@ -169,6 +169,40 @@
                 public {{ member.ref_key_type_name }} {{ member.prop_name }}_index;
                 public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
 {{~ end ~}}
+{{~ if member.multi_target_type_name != '' ~}}
+{{~## A member reaching several tables keeps the key above and gains these: one slot for the
+   resolved row whatever table it came from, and the discriminator saying which. At the
+   member's own arity, so a record of arrays holds one of each per element.
+   spec/multi-target-accessors.md. ##~}}
+                public {{ member.multi_slot_type }} {{ member.multi_slot_name }};
+                public {{ member.multi_target_declared_type }} {{ member.multi_target_name }};
+{{~ end ~}}
+{{~ end ~}}
+{{~## The per-target accessors of every member that reaches several tables. A property where
+   the member is one value; a method taking the element number where the member is the array,
+   which is the third place an element number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for member in rt.members ~}}
+{{~ for target in member.multi_targets ~}}
+{{~ if member.multi_is_array ~}}
+                /// <summary>
+                /// Element <paramref name="at"/> of <c>{{ member.prop_name }}</c> as a
+                /// <c>{{ target.record_type_name }}</c>, or null when it is a row of one of the others.
+                /// </summary>
+                public {{ target.record_type_name }} {{ target.accessor }}(int at)
+                    => {{ member.multi_target_name }}[at] == {{ member.multi_target_type_name }}.{{ target.label }}
+                        ? ({{ target.record_type_name }}){{ member.multi_slot_name }}[at]
+                        : null;
+{{~ else ~}}
+                /// <summary>
+                /// <c>{{ member.prop_name }}</c> as a <c>{{ target.record_type_name }}</c>, or null
+                /// when it is a row of one of the others.
+                /// </summary>
+                public {{ target.record_type_name }} {{ target.accessor }}
+                    => {{ member.multi_target_name }} == {{ member.multi_target_type_name }}.{{ target.label }}
+                        ? ({{ target.record_type_name }}){{ member.multi_slot_name }}
+                        : null;
+{{~ end ~}}
+{{~ end ~}}
 {{~ end ~}}
 
                 public override string ToString()
@@ -204,6 +238,13 @@
       are allocated with the member for the same reason it is. ##~}}
                 result.{{ member.prop_name }}_index{{ member.ref_key_initializer }};
                 result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
+{{~ end ~}}
+{{~ if member.multi_slot_initializer != '' ~}}
+{{~## A record of arrays holds one slot and one discriminator per element, and a struct cannot
+      size them at their declaration - the same reason the key and flag arrays above are
+      sized here. spec/multi-target-accessors.md. ##~}}
+                result.{{ member.multi_slot_name }}{{ member.multi_slot_initializer }};
+                result.{{ member.multi_target_name }}{{ member.multi_target_initializer }};
 {{~ end ~}}
 {{~ end ~}}
                 return result;
@@ -253,6 +294,13 @@
       are allocated with the member for the same reason it is. ##~}}
                 result.{{ member.prop_name }}_index{{ member.ref_key_initializer }};
                 result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
+{{~ end ~}}
+{{~ if member.multi_slot_initializer != '' ~}}
+{{~## A record of arrays holds one slot and one discriminator per element, and a struct cannot
+      size them at their declaration - the same reason the key and flag arrays above are
+      sized here. spec/multi-target-accessors.md. ##~}}
+                result.{{ member.multi_slot_name }}{{ member.multi_slot_initializer }};
+                result.{{ member.multi_target_name }}{{ member.multi_target_initializer }};
 {{~ end ~}}
 {{~ end ~}}
                 return result;

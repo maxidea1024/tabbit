@@ -1,0 +1,28 @@
+[
+  {
+    "index": 1,
+    "slot": [
+      {
+        "pick": 10,
+        "count": 1
+      },
+      {
+        "pick": 20,
+        "count": 2
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "slot": [
+      {
+        "pick": 21,
+        "count": 3
+      },
+      {
+        "pick": 11,
+        "count": 4
+      }
+    ]
+  }
+]

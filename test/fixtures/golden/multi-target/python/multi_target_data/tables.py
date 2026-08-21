@@ -15,15 +15,21 @@ from .trinket_table import TrinketTable
 from .mount_table import MountTable
 from .banner_table import BannerTable
 from .holder_table import HolderTable
+from .loadout_table import LoadoutTable
+from .fitting_table import FittingTable
+from .rack_table import RackTable
 from .enum_holder_pick_target import HolderPickTarget
 from .enum_holder_wide_target import HolderWideTarget
 from .enum_holder_maybe_target import HolderMaybeTarget
+from .enum_loadout_slot_pick_target import LoadoutSlotPickTarget
+from .enum_fitting_main_pick_target import FittingMainPickTarget
+from .enum_rack_slots_pick_target import RackSlotsPickTarget
 
 
 class Tables:
     """Every table, loaded together so cross-table references can be resolved."""
 
-    __slots__ = ("weapon", "armour", "trinket", "mount", "banner", "holder")
+    __slots__ = ("weapon", "armour", "trinket", "mount", "banner", "holder", "loadout", "fitting", "rack")
 
     #: The key the table files were sealed with, or None when they were not sealed.
     #:
@@ -76,6 +82,9 @@ class Tables:
         self.mount = MountTable()
         self.banner = BannerTable()
         self.holder = HolderTable()
+        self.loadout = LoadoutTable()
+        self.fitting = FittingTable()
+        self.rack = RackTable()
 
     def read_all(self, base_path, file_extension=".tcb"):
         """Reads every table from base_path, then links the references between them.
@@ -99,8 +108,14 @@ class Tables:
         loaded_banner.read(os.path.join(base_path, "Banner" + file_extension))
         loaded_holder = HolderTable()
         loaded_holder.read(os.path.join(base_path, "Holder" + file_extension))
+        loaded_loadout = LoadoutTable()
+        loaded_loadout.read(os.path.join(base_path, "Loadout" + file_extension))
+        loaded_fitting = FittingTable()
+        loaded_fitting.read(os.path.join(base_path, "Fitting" + file_extension))
+        loaded_rack = RackTable()
+        loaded_rack.read(os.path.join(base_path, "Rack" + file_extension))
 
-        self._solve_cross_references(loaded_weapon, loaded_armour, loaded_trinket, loaded_mount, loaded_banner, loaded_holder)
+        self._solve_cross_references(loaded_weapon, loaded_armour, loaded_trinket, loaded_mount, loaded_banner, loaded_holder, loaded_loadout, loaded_fitting, loaded_rack)
 
         self.weapon = loaded_weapon
         self.armour = loaded_armour
@@ -108,8 +123,11 @@ class Tables:
         self.mount = loaded_mount
         self.banner = loaded_banner
         self.holder = loaded_holder
+        self.loadout = loaded_loadout
+        self.fitting = loaded_fitting
+        self.rack = loaded_rack
 
-    def _solve_cross_references(self, weapon, armour, trinket, mount, banner, holder):
+    def _solve_cross_references(self, weapon, armour, trinket, mount, banner, holder, loadout, fitting, rack):
         """Turns the stored indices into usable values, once every table is in memory.
 
         The tables arrive as arguments rather than off self, which is how this resolves the
@@ -167,3 +185,41 @@ class Tables:
                     if target is not None:
                         record.maybe_row = target
                         record.maybe_target = HolderMaybeTarget.armour
+        for record in loadout.records:
+            for i in range(len(record.slot)):
+                if record.slot[i].pick != 0:
+                    if record.slot[i].pick_target == LoadoutSlotPickTarget.none:
+                        found = weapon.find_by_index(record.slot[i].pick)
+                        if found is not None:
+                            record.slot[i].pick_row = found
+                            record.slot[i].pick_target = LoadoutSlotPickTarget.weapon
+                    if record.slot[i].pick_target == LoadoutSlotPickTarget.none:
+                        found = armour.find_by_index(record.slot[i].pick)
+                        if found is not None:
+                            record.slot[i].pick_row = found
+                            record.slot[i].pick_target = LoadoutSlotPickTarget.armour
+        for record in fitting.records:
+            if record.main.pick != 0:
+                if record.main.pick_target == FittingMainPickTarget.none:
+                    found = weapon.find_by_index(record.main.pick)
+                    if found is not None:
+                        record.main.pick_row = found
+                        record.main.pick_target = FittingMainPickTarget.weapon
+                if record.main.pick_target == FittingMainPickTarget.none:
+                    found = armour.find_by_index(record.main.pick)
+                    if found is not None:
+                        record.main.pick_row = found
+                        record.main.pick_target = FittingMainPickTarget.armour
+        for record in rack.records:
+            for i in range(len(record.slots.pick)):
+                if record.slots.pick[i] != 0:
+                    if record.slots.pick_target[i] == RackSlotsPickTarget.none:
+                        found = weapon.find_by_index(record.slots.pick[i])
+                        if found is not None:
+                            record.slots.pick_row[i] = found
+                            record.slots.pick_target[i] = RackSlotsPickTarget.weapon
+                    if record.slots.pick_target[i] == RackSlotsPickTarget.none:
+                        found = armour.find_by_index(record.slots.pick[i])
+                        if found is not None:
+                            record.slots.pick_row[i] = found
+                            record.slots.pick_target[i] = RackSlotsPickTarget.armour

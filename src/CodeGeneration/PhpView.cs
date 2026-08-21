@@ -245,6 +245,40 @@ internal sealed class PhpRecordMemberView
 
     /// <summary>The declaration lines, which include the doc line an array needs.</summary>
     public required IReadOnlyList<string> Declarations { get; set; }
+
+    /// <summary>
+    /// The slot and the discriminator of a member reaching several tables, so the methods can
+    /// be written on the element class. Null for every other member.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public PhpMultiMemberView? Multi { get; set; }
+}
+
+/// <summary>
+/// One record member whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// The member keeps the key it already carried; beside it go one slot for the resolved row and
+/// the discriminator saying which table filled it, at the member's own arity. `?object` for the
+/// slot, as the row-level shape has it - the target records share no interface, and the method
+/// narrows it back where the discriminator has already answered.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class PhpMultiMemberView
+{
+    /// <summary>The key, the slot and the discriminator, by property name.</summary>
+    public required string KeyMember { get; set; }
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name, and its `None` case.</summary>
+    public required string TargetTypeName { get; set; }
+    public required string NoneCase { get; set; }
+
+    /// <summary>Whether the member is the array, so a method takes an element number.</summary>
+    public required bool IsArray { get; set; }
+
+    public required IReadOnlyList<PhpMultiTargetView> Targets { get; set; }
 }
 
 /// <summary>
@@ -260,6 +294,13 @@ internal sealed class PhpRecordTypeView
 {
     /// <summary>Name of the class.</summary>
     public required string TypeName { get; set; }
+
+    /// <summary>
+    /// Those of its members that reach several tables, for the methods written on the class.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public IReadOnlyList<PhpMultiMemberView> MultiMembers { get; set; }
+        = System.Array.Empty<PhpMultiMemberView>();
 
     /// <summary>Properties of the class.</summary>
     public required IReadOnlyList<PhpRecordMemberView> Members { get; set; }
@@ -420,6 +461,12 @@ internal sealed class PhpCrossReferenceView
     /// spec/multi-target-accessors.md.
     /// </summary>
     public required IReadOnlyList<PhpMultiReferenceView> MultiFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables that are members of a record, which resolve per
+    /// element. spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<PhpMultiRecordReferenceView> MultiRecordFields { get; set; }
 }
 
 /// <summary>
@@ -508,4 +555,31 @@ internal sealed class PhpReferenceFieldView
 
     public required string Value { get; set; }
     public required bool IsArray { get; set; }
+}
+
+/// <summary>
+/// One multi-target column that is a member of a record, as the linking pass writes it.
+/// </summary>
+internal sealed class PhpMultiRecordReferenceView
+{
+    /// <summary>The key this resolves through, loop variable included.</summary>
+    public required string Key { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string Slot { get; set; }
+    public required string Target { get; set; }
+
+    /// <summary>
+    /// The loop bound, or empty where the group is one record and there is nothing to walk.
+    /// </summary>
+    public required string Count { get; set; }
+
+    /// <summary>The generated enumeration's type name, and its `None` case.</summary>
+    public required string TargetTypeName { get; set; }
+    public required string NoneCase { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<PhpMultiTargetView> Targets { get; set; }
 }

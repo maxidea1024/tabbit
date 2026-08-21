@@ -209,6 +209,20 @@ if ($rows[1]->bannerByWide()->name !== 'banner-b') { throw new \Exception('wide 
 if ($rows[2]->weaponByWide()->name !== 'weapon-a') { throw new \Exception('wide 2'); }
 if ($rows[1]->maybeTarget->value !== 0) { throw new \Exception('maybe 1'); }
 if ($rows[0]->only->name !== 'weapon-a') { throw new \Exception('only 0'); }
+$groups = $accessor->loadout->records;
+if ($groups[0]->slot[0]->weaponByPick()->name !== 'weapon-a') { throw new \Exception('group 0 0'); }
+if ($groups[0]->slot[1]->armourByPick()->name !== 'armour-a') { throw new \Exception('group 0 1'); }
+if ($groups[0]->slot[0]->armourByPick() !== null) { throw new \Exception('group 0 0 armour'); }
+if ($groups[1]->slot[0]->armourByPick()->name !== 'armour-b') { throw new \Exception('group 1 0'); }
+$fittings = $accessor->fitting->records;
+if ($fittings[0]->main->armourByPick()->name !== 'armour-a') { throw new \Exception('fitting 0'); }
+if ($fittings[1]->main->weaponByPick()->name !== 'weapon-b') { throw new \Exception('fitting 1'); }
+if ($fittings[0]->main->weaponByPick() !== null) { throw new \Exception('fitting 0 weapon'); }
+$racks = $accessor->rack->records;
+if ($racks[0]->slots->weaponByPick(0)->name !== 'weapon-a') { throw new \Exception('rack 0 0'); }
+if ($racks[0]->slots->armourByPick(1)->name !== 'armour-b') { throw new \Exception('rack 0 1'); }
+if ($racks[0]->slots->weaponByPick(1) !== null) { throw new \Exception('rack 0 1 weapon'); }
+if ($racks[1]->slots->armourByPick(0)->name !== 'armour-a') { throw new \Exception('rack 1 0'); }
 ");
 
     private static void AssertReads(string scenario, string accessor, string body)

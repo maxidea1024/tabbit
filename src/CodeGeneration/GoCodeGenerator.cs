@@ -443,6 +443,96 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         };
 
     /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    /// <remarks>
+    /// The element type name is what the methods hang off, so it is passed in: the view has
+    /// flattened the nesting by the time this runs and that name carries the whole path.
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    private static GoMultiMemberView? MultiMemberOrNull(RecordMember member, string elementTypeName)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
+        string name = GoName(member.Name);
+
+        return new GoMultiMemberView
+        {
+            ElementTypeName = elementTypeName,
+            KeyMember = name,
+            SlotMember = name + "Row",
+            TargetMember = name + "Target",
+            TargetTypeName = enumType,
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new GoMultiTargetView
+            {
+                Table = "",
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = GoName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Constant = enumType + target.Name.ToPascalCase(),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member - and the same reason keeps that decision here
+    /// rather than in the template. spec/references-in-records.md.
+    /// </remarks>
+    private GoMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = GoName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + GoName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{name}{member}"
+            : $"record.{name}[k]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[k]" : "";
+
+        return new GoMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "Row" + subscript,
+            Target = path + "Target" + subscript,
+
+            // Whichever slice holds the elements. The key member is that slice where the
+            // members are the arrays, so there is no separate key slice to range over.
+            Range = isArray
+                ? (wire.Group.MembersAreArrays ? path : $"record.{name}")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new GoMultiTargetView
+            {
+                Table = GoName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = "",
+                Constant = field.MultiTargetEnum!.Name.ToPascalCase() + target.Name.ToPascalCase(),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
+
+    /// <summary>
     /// One column whose value is a row of one of several tables.
     /// </summary>
     private GoMultiReferenceView BuildMultiReference(MultiTargetColumn column)
@@ -535,8 +625,24 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 if (member.IsRef)
                     declarations.Add($"{GoName(member.Name)}Index {slice}{keyType}");
 
+                // A member reaching several tables keeps the key declared above and gains two
+                // more: one slot for the resolved row whatever table it came from, and the
+                // discriminator saying which. spec/multi-target-accessors.md.
+                var multi = MultiMemberOrNull(member, prefix);
+
+                if (multi is not null)
+                {
+                    declarations.Add($"// The row {GoName(member.Name)} names, as whichever of its target tables holds");
+                    declarations.Add("// it. Read it through the methods below rather than directly: they check the");
+                    declarations.Add("// discriminator first.");
+                    declarations.Add($"{multi.SlotMember} {slice}any");
+                    declarations.Add($"// Which table {GoName(member.Name)} is a row of.");
+                    declarations.Add($"{multi.TargetMember} {slice}{multi.TargetTypeName}");
+                }
+
                 result.Add(new GoRecordMemberView
                 {
+                    Multi = multi,
                     Comment = CommentLines(member.FirstField!.Comment),
 
                     // The array is the member's when the group is one record - same columns,
@@ -558,6 +664,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
             declared.Add(new GoRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -600,6 +707,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
         recordTypes.Add(new GoRecordTypeView
         {
+            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = elementType,
             Members = members,
             IsOutermost = true,
@@ -1057,8 +1165,16 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 // A column reaching several tables is looked up in each of them in turn, so it
                 // is a loop of its own too. spec/multi-target-accessors.md.
                 MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own again. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new GoCrossReferenceView
             {
                 Table = GoName(x.Table.Name),
@@ -1072,6 +1188,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 }).ToList(),
                 RecordFields = x.RecordFields,
                 MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
             })
             .ToList(),
     };

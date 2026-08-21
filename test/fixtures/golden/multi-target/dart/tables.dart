@@ -18,9 +18,15 @@ part 'tables/trinket_table.dart';
 part 'tables/mount_table.dart';
 part 'tables/banner_table.dart';
 part 'tables/holder_table.dart';
+part 'tables/loadout_table.dart';
+part 'tables/fitting_table.dart';
+part 'tables/rack_table.dart';
 part 'enums/holder_pick_target.dart';
 part 'enums/holder_wide_target.dart';
 part 'enums/holder_maybe_target.dart';
+part 'enums/loadout_slot_pick_target.dart';
+part 'enums/fitting_main_pick_target.dart';
+part 'enums/rack_slots_pick_target.dart';
 
 /// Every table, loaded together so cross-table references can be resolved.
 class Tables {
@@ -30,6 +36,9 @@ class Tables {
   MountTable mount = MountTable();
   BannerTable banner = BannerTable();
   HolderTable holder = HolderTable();
+  LoadoutTable loadout = LoadoutTable();
+  FittingTable fitting = FittingTable();
+  RackTable rack = RackTable();
 
   /// The key the table files were sealed with, or null when they were not sealed.
   ///
@@ -95,8 +104,14 @@ class Tables {
     loadedBannerTable.read('$basePath${Platform.pathSeparator}Banner$fileExtension');
     final loadedHolderTable = HolderTable();
     loadedHolderTable.read('$basePath${Platform.pathSeparator}Holder$fileExtension');
+    final loadedLoadoutTable = LoadoutTable();
+    loadedLoadoutTable.read('$basePath${Platform.pathSeparator}Loadout$fileExtension');
+    final loadedFittingTable = FittingTable();
+    loadedFittingTable.read('$basePath${Platform.pathSeparator}Fitting$fileExtension');
+    final loadedRackTable = RackTable();
+    loadedRackTable.read('$basePath${Platform.pathSeparator}Rack$fileExtension');
 
-    _solveCrossReferences(loadedWeaponTable, loadedArmourTable, loadedTrinketTable, loadedMountTable, loadedBannerTable, loadedHolderTable);
+    _solveCrossReferences(loadedWeaponTable, loadedArmourTable, loadedTrinketTable, loadedMountTable, loadedBannerTable, loadedHolderTable, loadedLoadoutTable, loadedFittingTable, loadedRackTable);
 
     weapon = loadedWeaponTable;
     armour = loadedArmourTable;
@@ -104,13 +119,16 @@ class Tables {
     mount = loadedMountTable;
     banner = loadedBannerTable;
     holder = loadedHolderTable;
+    loadout = loadedLoadoutTable;
+    fitting = loadedFittingTable;
+    rack = loadedRackTable;
   }
 
   /// Turns the stored indices into usable values, once every table is in memory.
   ///
   /// The tables arrive as arguments and shadow the fields of the same name, which is how
   /// this resolves the load being read rather than the one already published.
-  void _solveCrossReferences(WeaponTable weapon, ArmourTable armour, TrinketTable trinket, MountTable mount, BannerTable banner, HolderTable holder) {
+  void _solveCrossReferences(WeaponTable weapon, ArmourTable armour, TrinketTable trinket, MountTable mount, BannerTable banner, HolderTable holder, LoadoutTable loadout, FittingTable fitting, RackTable rack) {
     for (final record in holder.records) {
       {
         final target = weapon.findByIndex(record.onlyIndex);
@@ -182,6 +200,64 @@ class Tables {
           if (found != null) {
             record.maybeRow = found;
             record.maybeTarget = HolderMaybeTarget.armour;
+          }
+        }
+      }
+    }
+    for (final record in loadout.records) {
+      for (var i = 0; i < record.slot.length; i++) {
+        if (record.slot[i].pick != 0) {
+          if (record.slot[i].pickTarget == LoadoutSlotPickTarget.none) {
+            final found = weapon.findByIndex(record.slot[i].pick);
+            if (found != null) {
+              record.slot[i].pickRow = found;
+              record.slot[i].pickTarget = LoadoutSlotPickTarget.weapon;
+            }
+          }
+          if (record.slot[i].pickTarget == LoadoutSlotPickTarget.none) {
+            final found = armour.findByIndex(record.slot[i].pick);
+            if (found != null) {
+              record.slot[i].pickRow = found;
+              record.slot[i].pickTarget = LoadoutSlotPickTarget.armour;
+            }
+          }
+        }
+      }
+    }
+    for (final record in fitting.records) {
+      if (record.main.pick != 0) {
+        if (record.main.pickTarget == FittingMainPickTarget.none) {
+          final found = weapon.findByIndex(record.main.pick);
+          if (found != null) {
+            record.main.pickRow = found;
+            record.main.pickTarget = FittingMainPickTarget.weapon;
+          }
+        }
+        if (record.main.pickTarget == FittingMainPickTarget.none) {
+          final found = armour.findByIndex(record.main.pick);
+          if (found != null) {
+            record.main.pickRow = found;
+            record.main.pickTarget = FittingMainPickTarget.armour;
+          }
+        }
+      }
+    }
+    for (final record in rack.records) {
+      for (var i = 0; i < record.slots.pick.length; i++) {
+        if (record.slots.pick[i] != 0) {
+          if (record.slots.pickTarget[i] == RackSlotsPickTarget.none) {
+            final found = weapon.findByIndex(record.slots.pick[i]);
+            if (found != null) {
+              record.slots.pickRow[i] = found;
+              record.slots.pickTarget[i] = RackSlotsPickTarget.weapon;
+            }
+          }
+          if (record.slots.pickTarget[i] == RackSlotsPickTarget.none) {
+            final found = armour.findByIndex(record.slots.pick[i]);
+            if (found != null) {
+              record.slots.pickRow[i] = found;
+              record.slots.pickTarget[i] = RackSlotsPickTarget.armour;
+            }
           }
         }
       }

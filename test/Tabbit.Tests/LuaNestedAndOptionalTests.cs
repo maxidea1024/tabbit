@@ -265,6 +265,20 @@ assert(rows[3]:weaponByWide().name == 'weapon-a')
 assert(rows[2].maybeTarget == 0)
 assert(rows[2]:weaponByMaybe() == nil)
 assert(rows[1].only.name == 'weapon-a')
+local groups = t.loadout.records
+assert(groups[1].slot[1]:weaponByPick().name == 'weapon-a')
+assert(groups[1].slot[2]:armourByPick().name == 'armour-a')
+assert(groups[1].slot[1]:armourByPick() == nil)
+assert(groups[2].slot[1]:armourByPick().name == 'armour-b')
+local fittings = t.fitting.records
+assert(fittings[1].main:armourByPick().name == 'armour-a')
+assert(fittings[2].main:weaponByPick().name == 'weapon-b')
+assert(fittings[1].main:weaponByPick() == nil)
+local racks = t.rack.records
+assert(racks[1].slots:weaponByPick(1).name == 'weapon-a')
+assert(racks[1].slots:armourByPick(2).name == 'armour-b')
+assert(racks[1].slots:weaponByPick(2) == nil)
+assert(racks[2].slots:armourByPick(1).name == 'armour-a')
 ");
 
     private static void AssertReads(string scenario, string body)

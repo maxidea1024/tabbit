@@ -8,18 +8,27 @@
 from .enum_holder_pick_target import HolderPickTarget
 from .enum_holder_wide_target import HolderWideTarget
 from .enum_holder_maybe_target import HolderMaybeTarget
+from .enum_loadout_slot_pick_target import LoadoutSlotPickTarget
+from .enum_fitting_main_pick_target import FittingMainPickTarget
+from .enum_rack_slots_pick_target import RackSlotsPickTarget
 from .weapon_table import WeaponRecord, WeaponTable
 from .armour_table import ArmourRecord, ArmourTable
 from .trinket_table import TrinketRecord, TrinketTable
 from .mount_table import MountRecord, MountTable
 from .banner_table import BannerRecord, BannerTable
 from .holder_table import HolderRecord, HolderTable
+from .loadout_table import LoadoutRecord, LoadoutTable, LoadoutSlotEntry
+from .fitting_table import FittingRecord, FittingTable, FittingMainEntry
+from .rack_table import RackRecord, RackTable, RackSlotsEntry
 from .tables import Tables
 
 __all__ = [
     "HolderPickTarget",
     "HolderWideTarget",
     "HolderMaybeTarget",
+    "LoadoutSlotPickTarget",
+    "FittingMainPickTarget",
+    "RackSlotsPickTarget",
     "WeaponRecord",
     "WeaponTable",
     "ArmourRecord",
@@ -32,5 +41,14 @@ __all__ = [
     "BannerTable",
     "HolderRecord",
     "HolderTable",
+    "LoadoutRecord",
+    "LoadoutTable",
+    "LoadoutSlotEntry",
+    "FittingRecord",
+    "FittingTable",
+    "FittingMainEntry",
+    "RackRecord",
+    "RackTable",
+    "RackSlotsEntry",
     "Tables",
 ]

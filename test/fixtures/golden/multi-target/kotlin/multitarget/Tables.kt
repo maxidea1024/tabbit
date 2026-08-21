@@ -49,6 +49,12 @@ object Tables {
         private set
     var holder: HolderTable = HolderTable()
         private set
+    var loadout: LoadoutTable = LoadoutTable()
+        private set
+    var fitting: FittingTable = FittingTable()
+        private set
+    var rack: RackTable = RackTable()
+        private set
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -118,8 +124,14 @@ object Tables {
         loadedBannerTable.read(File(basePath, "Banner$fileExtension").path)
         val loadedHolderTable = HolderTable()
         loadedHolderTable.read(File(basePath, "Holder$fileExtension").path)
+        val loadedLoadoutTable = LoadoutTable()
+        loadedLoadoutTable.read(File(basePath, "Loadout$fileExtension").path)
+        val loadedFittingTable = FittingTable()
+        loadedFittingTable.read(File(basePath, "Fitting$fileExtension").path)
+        val loadedRackTable = RackTable()
+        loadedRackTable.read(File(basePath, "Rack$fileExtension").path)
 
-        solveCrossReferences(loadedWeaponTable, loadedArmourTable, loadedTrinketTable, loadedMountTable, loadedBannerTable, loadedHolderTable)
+        solveCrossReferences(loadedWeaponTable, loadedArmourTable, loadedTrinketTable, loadedMountTable, loadedBannerTable, loadedHolderTable, loadedLoadoutTable, loadedFittingTable, loadedRackTable)
 
         weapon = loadedWeaponTable
         armour = loadedArmourTable
@@ -127,6 +139,9 @@ object Tables {
         mount = loadedMountTable
         banner = loadedBannerTable
         holder = loadedHolderTable
+        loadout = loadedLoadoutTable
+        fitting = loadedFittingTable
+        rack = loadedRackTable
     }
 
     /**
@@ -135,7 +150,7 @@ object Tables {
      * The tables arrive as arguments and shadow the properties of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private fun solveCrossReferences(weapon: WeaponTable, armour: ArmourTable, trinket: TrinketTable, mount: MountTable, banner: BannerTable, holder: HolderTable) {
+    private fun solveCrossReferences(weapon: WeaponTable, armour: ArmourTable, trinket: TrinketTable, mount: MountTable, banner: BannerTable, holder: HolderTable, loadout: LoadoutTable, fitting: FittingTable, rack: RackTable) {
         for (record in holder.records) {
             weapon.findByIndex(record.onlyIndex)?.let { target ->
                 record.only = target
@@ -197,6 +212,58 @@ object Tables {
                     armour.findByIndex(record.maybe)?.let { found ->
                         record.maybeRow = found
                         record.maybeTarget = HolderMaybeTarget.ARMOUR
+                    }
+                }
+            }
+        }
+        for (record in loadout.records) {
+            for (i in 0 until record.slot.size) {
+                if (record.slot[i].pick != 0) {
+                    if (record.slot[i].pickTarget == LoadoutSlotPickTarget.NONE) {
+                        weapon.findByIndex(record.slot[i].pick)?.let { found ->
+                            record.slot[i].pickRow = found
+                            record.slot[i].pickTarget = LoadoutSlotPickTarget.WEAPON
+                        }
+                    }
+                    if (record.slot[i].pickTarget == LoadoutSlotPickTarget.NONE) {
+                        armour.findByIndex(record.slot[i].pick)?.let { found ->
+                            record.slot[i].pickRow = found
+                            record.slot[i].pickTarget = LoadoutSlotPickTarget.ARMOUR
+                        }
+                    }
+                }
+            }
+        }
+        for (record in fitting.records) {
+            if (record.main.pick != 0) {
+                if (record.main.pickTarget == FittingMainPickTarget.NONE) {
+                    weapon.findByIndex(record.main.pick)?.let { found ->
+                        record.main.pickRow = found
+                        record.main.pickTarget = FittingMainPickTarget.WEAPON
+                    }
+                }
+                if (record.main.pickTarget == FittingMainPickTarget.NONE) {
+                    armour.findByIndex(record.main.pick)?.let { found ->
+                        record.main.pickRow = found
+                        record.main.pickTarget = FittingMainPickTarget.ARMOUR
+                    }
+                }
+            }
+        }
+        for (record in rack.records) {
+            for (i in 0 until record.slots.pick.size) {
+                if (record.slots.pick[i] != 0) {
+                    if (record.slots.pickTarget[i] == RackSlotsPickTarget.NONE) {
+                        weapon.findByIndex(record.slots.pick[i])?.let { found ->
+                            record.slots.pickRow[i] = found
+                            record.slots.pickTarget[i] = RackSlotsPickTarget.WEAPON
+                        }
+                    }
+                    if (record.slots.pickTarget[i] == RackSlotsPickTarget.NONE) {
+                        armour.findByIndex(record.slots.pick[i])?.let { found ->
+                            record.slots.pickRow[i] = found
+                            record.slots.pickTarget[i] = RackSlotsPickTarget.ARMOUR
+                        }
                     }
                 }
             }

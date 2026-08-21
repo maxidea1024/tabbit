@@ -15,12 +15,18 @@ require_once __DIR__ . '/tabbit/TcbReader.php';
 require_once __DIR__ . '/enums/HolderPickTarget.php';
 require_once __DIR__ . '/enums/HolderWideTarget.php';
 require_once __DIR__ . '/enums/HolderMaybeTarget.php';
+require_once __DIR__ . '/enums/LoadoutSlotPickTarget.php';
+require_once __DIR__ . '/enums/FittingMainPickTarget.php';
+require_once __DIR__ . '/enums/RackSlotsPickTarget.php';
 require_once __DIR__ . '/tables/WeaponTable.php';
 require_once __DIR__ . '/tables/ArmourTable.php';
 require_once __DIR__ . '/tables/TrinketTable.php';
 require_once __DIR__ . '/tables/MountTable.php';
 require_once __DIR__ . '/tables/BannerTable.php';
 require_once __DIR__ . '/tables/HolderTable.php';
+require_once __DIR__ . '/tables/LoadoutTable.php';
+require_once __DIR__ . '/tables/FittingTable.php';
+require_once __DIR__ . '/tables/RackTable.php';
 
 use Tabbit\TcbReader;
 use Tabbit\TcbColumnCursor;
@@ -36,6 +42,9 @@ final class MultiTargetAccessor
     public MountTable $mount;
     public BannerTable $banner;
     public HolderTable $holder;
+    public LoadoutTable $loadout;
+    public FittingTable $fitting;
+    public RackTable $rack;
 
     public function __construct()
     {
@@ -45,6 +54,9 @@ final class MultiTargetAccessor
         $this->mount = new MountTable();
         $this->banner = new BannerTable();
         $this->holder = new HolderTable();
+        $this->loadout = new LoadoutTable();
+        $this->fitting = new FittingTable();
+        $this->rack = new RackTable();
     }
 
     /**
@@ -116,8 +128,14 @@ final class MultiTargetAccessor
         $loadedBannerTable->read($basePath . \DIRECTORY_SEPARATOR . 'Banner' . $fileExtension);
         $loadedHolderTable = new HolderTable();
         $loadedHolderTable->read($basePath . \DIRECTORY_SEPARATOR . 'Holder' . $fileExtension);
+        $loadedLoadoutTable = new LoadoutTable();
+        $loadedLoadoutTable->read($basePath . \DIRECTORY_SEPARATOR . 'Loadout' . $fileExtension);
+        $loadedFittingTable = new FittingTable();
+        $loadedFittingTable->read($basePath . \DIRECTORY_SEPARATOR . 'Fitting' . $fileExtension);
+        $loadedRackTable = new RackTable();
+        $loadedRackTable->read($basePath . \DIRECTORY_SEPARATOR . 'Rack' . $fileExtension);
 
-        $this->solveCrossReferences($loadedWeaponTable, $loadedArmourTable, $loadedTrinketTable, $loadedMountTable, $loadedBannerTable, $loadedHolderTable);
+        $this->solveCrossReferences($loadedWeaponTable, $loadedArmourTable, $loadedTrinketTable, $loadedMountTable, $loadedBannerTable, $loadedHolderTable, $loadedLoadoutTable, $loadedFittingTable, $loadedRackTable);
 
         $this->weapon = $loadedWeaponTable;
         $this->armour = $loadedArmourTable;
@@ -125,6 +143,9 @@ final class MultiTargetAccessor
         $this->mount = $loadedMountTable;
         $this->banner = $loadedBannerTable;
         $this->holder = $loadedHolderTable;
+        $this->loadout = $loadedLoadoutTable;
+        $this->fitting = $loadedFittingTable;
+        $this->rack = $loadedRackTable;
     }
 
     /**
@@ -133,7 +154,7 @@ final class MultiTargetAccessor
      * The tables arrive as arguments rather than off $this, which is how this resolves the
      * load being read rather than the one already published.
      */
-    private function solveCrossReferences(WeaponTable $weapon, ArmourTable $armour, TrinketTable $trinket, MountTable $mount, BannerTable $banner, HolderTable $holder): void
+    private function solveCrossReferences(WeaponTable $weapon, ArmourTable $armour, TrinketTable $trinket, MountTable $mount, BannerTable $banner, HolderTable $holder, LoadoutTable $loadout, FittingTable $fitting, RackTable $rack): void
     {
         foreach ($holder->records as $record) {
             $target = $weapon->findByIndex($record->onlyIndex);
@@ -216,6 +237,66 @@ final class MultiTargetAccessor
                     if ($target !== null) {
                         $record->maybeRow = $target;
                         $record->maybeTarget = HolderMaybeTarget::Armour;
+                    }
+                }
+            }
+        }
+        foreach ($loadout->records as $record) {
+            for ($j = 0; $j < \count($record->slot); $j++) {
+                if ($record->slot[$j]->pick !== 0) {
+                    if ($record->slot[$j]->pickTarget === LoadoutSlotPickTarget::None) {
+                        $found = $weapon->findByIndex($record->slot[$j]->pick);
+                        if ($found !== null) {
+                            $record->slot[$j]->pickRow = $found;
+                            $record->slot[$j]->pickTarget = LoadoutSlotPickTarget::Weapon;
+                        }
+                    }
+                    if ($record->slot[$j]->pickTarget === LoadoutSlotPickTarget::None) {
+                        $found = $armour->findByIndex($record->slot[$j]->pick);
+                        if ($found !== null) {
+                            $record->slot[$j]->pickRow = $found;
+                            $record->slot[$j]->pickTarget = LoadoutSlotPickTarget::Armour;
+                        }
+                    }
+                }
+            }
+        }
+        foreach ($fitting->records as $record) {
+            if ($record->main->pick !== 0) {
+                if ($record->main->pickTarget === FittingMainPickTarget::None) {
+                    $found = $weapon->findByIndex($record->main->pick);
+
+                    if ($found !== null) {
+                        $record->main->pickRow = $found;
+                        $record->main->pickTarget = FittingMainPickTarget::Weapon;
+                    }
+                }
+                if ($record->main->pickTarget === FittingMainPickTarget::None) {
+                    $found = $armour->findByIndex($record->main->pick);
+
+                    if ($found !== null) {
+                        $record->main->pickRow = $found;
+                        $record->main->pickTarget = FittingMainPickTarget::Armour;
+                    }
+                }
+            }
+        }
+        foreach ($rack->records as $record) {
+            for ($j = 0; $j < \count($record->slots->pick); $j++) {
+                if ($record->slots->pick[$j] !== 0) {
+                    if ($record->slots->pickTarget[$j] === RackSlotsPickTarget::None) {
+                        $found = $weapon->findByIndex($record->slots->pick[$j]);
+                        if ($found !== null) {
+                            $record->slots->pickRow[$j] = $found;
+                            $record->slots->pickTarget[$j] = RackSlotsPickTarget::Weapon;
+                        }
+                    }
+                    if ($record->slots->pickTarget[$j] === RackSlotsPickTarget::None) {
+                        $found = $armour->findByIndex($record->slots->pick[$j]);
+                        if ($found !== null) {
+                            $record->slots->pickRow[$j] = $found;
+                            $record->slots->pickTarget[$j] = RackSlotsPickTarget::Armour;
+                        }
                     }
                 }
             }

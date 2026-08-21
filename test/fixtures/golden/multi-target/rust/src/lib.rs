@@ -17,6 +17,12 @@ mod enum_holder_wide_target;
 pub use enum_holder_wide_target::HolderWideTarget;
 mod enum_holder_maybe_target;
 pub use enum_holder_maybe_target::HolderMaybeTarget;
+mod enum_loadout_slot_pick_target;
+pub use enum_loadout_slot_pick_target::LoadoutSlotPickTarget;
+mod enum_fitting_main_pick_target;
+pub use enum_fitting_main_pick_target::FittingMainPickTarget;
+mod enum_rack_slots_pick_target;
+pub use enum_rack_slots_pick_target::RackSlotsPickTarget;
 
 // A record and a table type per table.
 mod weapon_table;
@@ -31,6 +37,12 @@ mod banner_table;
 pub use banner_table::{BannerRecord, BannerTable};
 mod holder_table;
 pub use holder_table::{HolderRecord, HolderTable};
+mod loadout_table;
+pub use loadout_table::{LoadoutRecord, LoadoutTable, LoadoutSlotEntry};
+mod fitting_table;
+pub use fitting_table::{FittingRecord, FittingTable, FittingMainEntry};
+mod rack_table;
+pub use rack_table::{RackRecord, RackTable, RackSlotsEntry};
 
 // The accessor.
 mod tables;

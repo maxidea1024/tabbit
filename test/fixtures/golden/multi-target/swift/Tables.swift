@@ -30,6 +30,12 @@ public final class Tables {
 
     public private(set) var holder: HolderTable = HolderTable()
 
+    public private(set) var loadout: LoadoutTable = LoadoutTable()
+
+    public private(set) var fitting: FittingTable = FittingTable()
+
+    public private(set) var rack: RackTable = RackTable()
+
     /// The key the table files were sealed with, or nil when they were not sealed.
     ///
     /// Beside `readAll` because it is the same kind of thing: one decision the consuming
@@ -120,20 +126,38 @@ public final class Tables {
             base.appendingPathComponent("Holder" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
-        Tables.solveCrossReferences(weapon: loadedWeaponTable, armour: loadedArmourTable, trinket: loadedTrinketTable, mount: loadedMountTable, banner: loadedBannerTable, holder: loadedHolderTable)
+        let loadedLoadoutTable = LoadoutTable()
+        try loadedLoadoutTable.read(
+            base.appendingPathComponent("Loadout" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedFittingTable = FittingTable()
+        try loadedFittingTable.read(
+            base.appendingPathComponent("Fitting" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedRackTable = RackTable()
+        try loadedRackTable.read(
+            base.appendingPathComponent("Rack" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        Tables.solveCrossReferences(weapon: loadedWeaponTable, armour: loadedArmourTable, trinket: loadedTrinketTable, mount: loadedMountTable, banner: loadedBannerTable, holder: loadedHolderTable, loadout: loadedLoadoutTable, fitting: loadedFittingTable, rack: loadedRackTable)
         weapon = loadedWeaponTable
         armour = loadedArmourTable
         trinket = loadedTrinketTable
         mount = loadedMountTable
         banner = loadedBannerTable
         holder = loadedHolderTable
+        loadout = loadedLoadoutTable
+        fitting = loadedFittingTable
+        rack = loadedRackTable
     }
 
     /// Turns the stored keys into usable values, once every table is in memory.
     ///
     /// The tables arrive as arguments rather than being read off the instance, which is how
     /// this resolves the load being read rather than the one already published.
-    private static func solveCrossReferences(weapon: WeaponTable, armour: ArmourTable, trinket: TrinketTable, mount: MountTable, banner: BannerTable, holder: HolderTable) {
+    private static func solveCrossReferences(weapon: WeaponTable, armour: ArmourTable, trinket: TrinketTable, mount: MountTable, banner: BannerTable, holder: HolderTable, loadout: LoadoutTable, fitting: FittingTable, rack: RackTable) {
         for record in holder.records {
             if let target = weapon.findByIndex(record.onlyIndex) {
                 record.only = target
@@ -187,6 +211,52 @@ public final class Tables {
                    let found = armour.findByIndex(record.maybe) {
                     record.maybeRow = found
                     record.maybeTarget = HolderMaybeTarget.armour
+                }
+            }
+        }
+        for record in loadout.records {
+            for i in 0..<record.slot.count {
+                if record.slot[i].pick != 0 {
+                    if record.slot[i].pickTarget == LoadoutSlotPickTarget.none,
+                       let found = weapon.findByIndex(record.slot[i].pick) {
+                        record.slot[i].pickRow = found
+                        record.slot[i].pickTarget = LoadoutSlotPickTarget.weapon
+                    }
+                    if record.slot[i].pickTarget == LoadoutSlotPickTarget.none,
+                       let found = armour.findByIndex(record.slot[i].pick) {
+                        record.slot[i].pickRow = found
+                        record.slot[i].pickTarget = LoadoutSlotPickTarget.armour
+                    }
+                }
+            }
+        }
+        for record in fitting.records {
+            if record.main.pick != 0 {
+                if record.main.pickTarget == FittingMainPickTarget.none,
+                   let found = weapon.findByIndex(record.main.pick) {
+                    record.main.pickRow = found
+                    record.main.pickTarget = FittingMainPickTarget.weapon
+                }
+                if record.main.pickTarget == FittingMainPickTarget.none,
+                   let found = armour.findByIndex(record.main.pick) {
+                    record.main.pickRow = found
+                    record.main.pickTarget = FittingMainPickTarget.armour
+                }
+            }
+        }
+        for record in rack.records {
+            for i in 0..<record.slots.pick.count {
+                if record.slots.pick[i] != 0 {
+                    if record.slots.pickTarget[i] == RackSlotsPickTarget.none,
+                       let found = weapon.findByIndex(record.slots.pick[i]) {
+                        record.slots.pickRow[i] = found
+                        record.slots.pickTarget[i] = RackSlotsPickTarget.weapon
+                    }
+                    if record.slots.pickTarget[i] == RackSlotsPickTarget.none,
+                       let found = armour.findByIndex(record.slots.pick[i]) {
+                        record.slots.pickRow[i] = found
+                        record.slots.pickTarget[i] = RackSlotsPickTarget.armour
+                    }
                 }
             }
         }

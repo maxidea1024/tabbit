@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "5f5d5637445bd07c8a929dce1c0df654",
-  "TotalSize": 947,
+  "MasterHash": "99896ad8f34cd613affad6eec84187ea",
+  "TotalSize": 1770,
   "Items": [
     {
       "Name": "Weapon.json",
@@ -37,6 +37,24 @@
       "Name": "Holder.json",
       "Size": 272,
       "Hash": "35e7ba7787b4880bd3e5b61f0ea1cdab",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Loadout.json",
+      "Size": 315,
+      "Hash": "6c08933acd3ae7f943b4ee88839476ce",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Fitting.json",
+      "Size": 221,
+      "Hash": "0e59b8e8e00165cbd86ae51a9a50cc63",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Rack.json",
+      "Size": 287,
+      "Hash": "a2dcfebf1626d10ad90ea63a2fad1035",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

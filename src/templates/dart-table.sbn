@@ -24,6 +24,29 @@ class {{ rt.type_name }} {
   {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## The per-target accessors of every member of this class that reaches several tables. A
+   getter where the member is one value; a method taking the element number where the member is
+   the array, which is the third place an element number sits.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+  /// The [{{ target.record_name }}] row element [at] of [{{ multi.key_member }}] names, or null
+  /// when that element names a row of one of the others.
+  {{ target.record_name }}? {{ target.method }}(int at) =>
+      {{ multi.target_member }}[at] == {{ multi.target_type_name }}.{{ target.label }}
+          ? {{ multi.slot_member }}[at] as {{ target.record_name }}
+          : null;
+{{~ else ~}}
+  /// The [{{ target.record_name }}] row [{{ multi.key_member }}] names, or null when it names a
+  /// row of one of the others.
+  {{ target.record_name }}? get {{ target.method }} =>
+      {{ multi.target_member }} == {{ multi.target_type_name }}.{{ target.label }}
+          ? {{ multi.slot_member }} as {{ target.record_name }}
+          : null;
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 }
 
 {{~ end ~}}

@@ -12,6 +12,9 @@
 export { HolderPickTarget } from './enums/holder-pick-target'
 export { HolderWideTarget } from './enums/holder-wide-target'
 export { HolderMaybeTarget } from './enums/holder-maybe-target'
+export { LoadoutSlotPickTarget } from './enums/loadout-slot-pick-target'
+export { FittingMainPickTarget } from './enums/fitting-main-pick-target'
+export { RackSlotsPickTarget } from './enums/rack-slots-pick-target'
 
 // Tables
 export { WeaponRecord } from './tables/weapon'
@@ -26,5 +29,11 @@ export { BannerRecord } from './tables/banner'
 export { BannerTable } from './tables/banner'
 export { HolderRecord } from './tables/holder'
 export { HolderTable } from './tables/holder'
+export { LoadoutRecord } from './tables/loadout'
+export { LoadoutTable } from './tables/loadout'
+export { FittingRecord } from './tables/fitting'
+export { FittingTable } from './tables/fitting'
+export { RackRecord } from './tables/rack'
+export { RackTable } from './tables/rack'
 
 export { Tables } from './tables'

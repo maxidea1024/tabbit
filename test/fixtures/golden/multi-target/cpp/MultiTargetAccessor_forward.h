@@ -20,6 +20,9 @@ struct TrinketRecord;
 struct MountRecord;
 struct BannerRecord;
 struct HolderRecord;
+struct LoadoutRecord;
+struct FittingRecord;
+struct RackRecord;
 
 /// The key the table files were sealed with, or empty when they were not sealed.
 ///

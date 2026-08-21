@@ -19,6 +19,9 @@ type Tables struct {
 	Mount MountTable
 	Banner BannerTable
 	Holder HolderTable
+	Loadout LoadoutTable
+	Fitting FittingTable
+	Rack RackTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not
@@ -98,6 +101,15 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 	if err := loaded.Holder.Read(filepath.Join(basePath, "Holder"+fileExtension)); err != nil {
 		return err
 	}
+	if err := loaded.Loadout.Read(filepath.Join(basePath, "Loadout"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Fitting.Read(filepath.Join(basePath, "Fitting"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Rack.Read(filepath.Join(basePath, "Rack"+fileExtension)); err != nil {
+		return err
+	}
 
 	loaded.solveCrossReferences()
 
@@ -171,6 +183,61 @@ func (t *Tables) solveCrossReferences() {
 				if target := t.Armour.FindByIndex(record.Maybe); target != nil {
 					record.MaybeRow = target
 					record.MaybeTarget = HolderMaybeTargetArmour
+				}
+			}
+		}
+	}
+	for i := range t.Loadout.records {
+		record := &t.Loadout.records[i]
+		for k := range record.Slot {
+			if record.Slot[k].Pick > 0 {
+				if record.Slot[k].PickTarget == LoadoutSlotPickTargetNone {
+					if found := t.Weapon.FindByIndex(record.Slot[k].Pick); found != nil {
+						record.Slot[k].PickRow = found
+						record.Slot[k].PickTarget = LoadoutSlotPickTargetWeapon
+					}
+				}
+				if record.Slot[k].PickTarget == LoadoutSlotPickTargetNone {
+					if found := t.Armour.FindByIndex(record.Slot[k].Pick); found != nil {
+						record.Slot[k].PickRow = found
+						record.Slot[k].PickTarget = LoadoutSlotPickTargetArmour
+					}
+				}
+			}
+		}
+	}
+	for i := range t.Fitting.records {
+		record := &t.Fitting.records[i]
+		if record.Main.Pick > 0 {
+			if record.Main.PickTarget == FittingMainPickTargetNone {
+				if found := t.Weapon.FindByIndex(record.Main.Pick); found != nil {
+					record.Main.PickRow = found
+					record.Main.PickTarget = FittingMainPickTargetWeapon
+				}
+			}
+			if record.Main.PickTarget == FittingMainPickTargetNone {
+				if found := t.Armour.FindByIndex(record.Main.Pick); found != nil {
+					record.Main.PickRow = found
+					record.Main.PickTarget = FittingMainPickTargetArmour
+				}
+			}
+		}
+	}
+	for i := range t.Rack.records {
+		record := &t.Rack.records[i]
+		for k := range record.Slots.Pick {
+			if record.Slots.Pick[k] > 0 {
+				if record.Slots.PickTarget[k] == RackSlotsPickTargetNone {
+					if found := t.Weapon.FindByIndex(record.Slots.Pick[k]); found != nil {
+						record.Slots.PickRow[k] = found
+						record.Slots.PickTarget[k] = RackSlotsPickTargetWeapon
+					}
+				}
+				if record.Slots.PickTarget[k] == RackSlotsPickTargetNone {
+					if found := t.Armour.FindByIndex(record.Slots.Pick[k]); found != nil {
+						record.Slots.PickRow[k] = found
+						record.Slots.PickTarget[k] = RackSlotsPickTargetArmour
+					}
 				}
 			}
 		}

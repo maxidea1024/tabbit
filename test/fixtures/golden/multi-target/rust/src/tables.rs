@@ -15,6 +15,9 @@ use crate::trinket_table::TrinketTable;
 use crate::mount_table::MountTable;
 use crate::banner_table::BannerTable;
 use crate::holder_table::HolderTable;
+use crate::loadout_table::LoadoutTable;
+use crate::fitting_table::FittingTable;
+use crate::rack_table::RackTable;
 
 /// The key the table files were sealed with, or unset when they were not sealed.
 ///
@@ -73,6 +76,9 @@ pub struct Tables {
     pub mount: MountTable,
     pub banner: BannerTable,
     pub holder: HolderTable,
+    pub loadout: LoadoutTable,
+    pub fitting: FittingTable,
+    pub rack: RackTable,
 }
 
 impl Tables {
@@ -105,6 +111,12 @@ impl Tables {
             &base_path.join(format!("Banner{}", file_extension)))?;
         loaded.holder.read(
             &base_path.join(format!("Holder{}", file_extension)))?;
+        loaded.loadout.read(
+            &base_path.join(format!("Loadout{}", file_extension)))?;
+        loaded.fitting.read(
+            &base_path.join(format!("Fitting{}", file_extension)))?;
+        loaded.rack.read(
+            &base_path.join(format!("Rack{}", file_extension)))?;
 
         *self = loaded;
 

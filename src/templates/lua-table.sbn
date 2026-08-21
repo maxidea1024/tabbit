@@ -15,7 +15,45 @@
 {{~ for line in rt.annotations ~}}
 {{ line }}
 {{~ end ~}}
+{{~## An element with a member reaching several tables has methods rather than being only data,
+   which is what the per-target accessor needs: it asks the discriminator and then hands back
+   the slot. Only such an element - one with none keeps `strictType`, so nothing already
+   generated moves. This is the row-level shape one level in.
+   spec/multi-target-accessors.md. ##~}}
+{{~ if rt.multi_members | array.size > 0 ~}}
+local {{ rt.type_name }} = {}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+-- The {{ target.record_name }} row element `at` of `{{ multi.key_member }}` names, or nil when
+-- that element names a row of one of the others.
+---@return {{ target.record_name }}|nil
+function {{ rt.type_name }}:{{ target.method }}(at)
+  if self.{{ multi.target_member }}[at] ~= {{ multi.target_type_name }}.{{ target.label }} then
+    return nil
+  end
+
+  return self.{{ multi.slot_member }}[at]
+end
+{{~ else ~}}
+-- The {{ target.record_name }} row `{{ multi.key_member }}` names, or nil when it names a row of
+-- one of the others.
+---@return {{ target.record_name }}|nil
+function {{ rt.type_name }}:{{ target.method }}()
+  if self.{{ multi.target_member }} ~= {{ multi.target_type_name }}.{{ target.label }} then
+    return nil
+  end
+
+  return self.{{ multi.slot_member }}
+end
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+
+local {{ rt.type_name }}Meta = tcb.strictInstance("{{ if rt.is_outermost }}an element of{{ else }}a record inside{{ end }} {{ rt.owner }}", {{ rt.type_name }}, { {{ rt.field_names }} })
+{{~ else ~}}
 local {{ rt.type_name }}Meta = tcb.strictType("{{ if rt.is_outermost }}an element of{{ else }}a record inside{{ end }} {{ rt.owner }}", { {{ rt.field_names }} })
+{{~ end ~}}
 
 ---@return {{ rt.type_name }}
 local function new{{ rt.type_name }}()

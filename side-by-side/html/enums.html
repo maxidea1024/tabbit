@@ -273,11 +273,19 @@ td.record .clip { max-width: 60ch; }
    because a tuple of three values beside a hundred rows of them is what fits. */
 /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 td.record .mem, td.record .msep { display: none; }
 th /* A workbook's file name beside a sheet's: quieter, so the pair reads as one location
    rather than as two columns crammed into one. */
+/* A column whose keys name rows that are not there. In the flag colour rather than the
+   `?` grey: the `?` on a type is the schema allowing an empty cell, and this is the data
+   being wrong. */
+.broken { color: var(--flag); font-size: 11px; white-space: nowrap; }
 .book { color: var(--muted); }
 .mem { color: var(--faint); }
 .obj { white-space: nowrap; }
@@ -527,7 +535,7 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 </div>
-<p class="foot">생성 시각 2026-08-21 13:53:33</p>
+<p class="foot">생성 시각 2026-08-21 16:00:36</p>
 <script>
 (function () {
   "use strict";
