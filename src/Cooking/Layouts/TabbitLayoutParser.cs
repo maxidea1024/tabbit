@@ -51,6 +51,9 @@ namespace Tabbit.Cooking.Layouts;
     Summary = "Entities declared with `~~table:Name~~` markers, several to a sheet.")]
 public sealed class TabbitLayoutParser : ILayoutParser
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     public class Size
     {
         public int width;

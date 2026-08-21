@@ -36,6 +36,9 @@ public sealed class PruneResult
 /// </summary>
 internal static class HistoryMaintenance
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     /// <summary>Values examined per statement, so one delete cannot lock the pool.</summary>
     private const int CollectBatch = 1000;
 

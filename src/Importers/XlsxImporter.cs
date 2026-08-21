@@ -15,6 +15,9 @@ namespace Tabbit.Importers;
 [TabbitSource("xlsx", "Sources.Xlsx", Order = 10)]
 public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
+
     private RawModel _model = null!;
 
     private string _currentFilename = "";

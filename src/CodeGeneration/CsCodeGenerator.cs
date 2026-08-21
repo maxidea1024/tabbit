@@ -135,6 +135,9 @@ public class CSharpRecipe : IOutputRecipe
 [TabbitTarget("csharp", TargetKind.CodeGeneration, Order = 20)]
 public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;

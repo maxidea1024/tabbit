@@ -30,6 +30,9 @@ public class MySqlRecipe : DatabaseRecipe
 [TabbitTarget("mysql", TargetKind.Export, Order = 30)]
 public class MySqlExporter : DatabaseExporterBase<MySqlRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     protected override string TargetName => "MySQL";
 
     private const int InsertBatchRows = 500;

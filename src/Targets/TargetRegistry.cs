@@ -89,6 +89,9 @@ public readonly struct PlannedTarget
 /// </summary>
 public static class TargetRegistry
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     /// <summary>Field of a `Targets` entry that names the target. Matched case-insensitively.</summary>
     private const string TypeField = "Type";
 

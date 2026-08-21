@@ -40,6 +40,9 @@ namespace Tabbit.Validation;
 /// </remarks>
 internal sealed class RuleAccessor
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Validating;
+
     /// <summary>
     /// Namespace the generated accessor lands in, and the one a rule file's preamble opens.
     /// </summary>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -34,6 +34,9 @@ namespace Tabbit.Cooking.Layouts;
     UsesNamedRanges = true)]
 public sealed class UwoLayoutParser : ILayoutParser
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     /// <summary>Rows of the rectangle, counted from its top.</summary>
     private const int NameRow = 0;
     private const int TypeRow = 1;

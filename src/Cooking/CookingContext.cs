@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -22,6 +22,9 @@ namespace Tabbit.Cooking;
 /// </remarks>
 public sealed class CookingContext
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     /// <summary>Number formats accepted in an integer cell.</summary>
     private const NumberStyles IntegerStyles = NumberStyles.Integer | NumberStyles.AllowThousands;
 

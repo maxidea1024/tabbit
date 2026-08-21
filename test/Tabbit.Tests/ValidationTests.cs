@@ -62,10 +62,7 @@ public class ValidationTests
     {
         var result = TabbitRunner.Convert("invalid");
 
-        var reported = result.StdOut
-            .Split('\n')
-            .Select(line => line.TrimEnd('\r'))
-            .ToArray();
+        var reported = result.MessageLines();
 
         int problems = reported.Count(l => l.TrimStart().StartsWith("["));
 

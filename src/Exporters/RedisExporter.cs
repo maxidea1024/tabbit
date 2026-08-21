@@ -35,6 +35,9 @@ public class RedisRecipe : DatabaseRecipe
 [TabbitTarget("redis", TargetKind.Export, Order = 60)]
 public class RedisExporter : DatabaseExporterBase<RedisRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     protected override string TargetName => "Redis";
 
     /// <summary>Suffix of the set listing a table's primary index values.</summary>

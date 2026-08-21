@@ -40,6 +40,9 @@ namespace Tabbit.Cooking.Layouts;
     Summary = "One table per sheet, named by the sheet tab less its trailing `Table`, with three header rows.")]
 public sealed class RescueLayoutParser : ILayoutParser
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     /// <summary>Row holding each column's description. A `#` here drops the column.</summary>
     private const int CommentRow = 0;
 

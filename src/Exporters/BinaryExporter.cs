@@ -151,6 +151,9 @@ public class BinaryRecipe : IOutputRecipe
 [TabbitTarget("binary", TargetKind.Export, Order = 10)]
 public class BinaryExporter : Target<BinaryRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     private Manifest _manifest = null!;
 
     /// <summary>The key this entry's files are sealed with, or null when they are not.</summary>

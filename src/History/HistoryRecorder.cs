@@ -28,6 +28,9 @@ public enum RecordOutcome
 /// </summary>
 internal static class HistoryRecorder
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     /// <summary>
     /// Whether this conversion can honestly be filed under a commit at all.
     ///

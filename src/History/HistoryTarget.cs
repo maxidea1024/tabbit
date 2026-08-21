@@ -72,6 +72,9 @@ public sealed class HistoryRecipe : IOutputRecipe
 [TabbitTarget("history", TargetKind.Description, Order = 20)]
 public class HistoryTarget : Target<HistoryRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     protected override void Run(TargetContext context, HistoryRecipe recipe)
     {
         // An entry left in the recipe with a blank connection string is switched off,

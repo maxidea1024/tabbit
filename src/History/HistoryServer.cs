@@ -31,6 +31,9 @@ namespace Tabbit.History;
 /// </summary>
 internal static class HistoryServer
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     /// <summary>Where the token is read from, when one is needed.</summary>
     public const string TokenVariable = "TABBIT_SERVE_TOKEN";
 

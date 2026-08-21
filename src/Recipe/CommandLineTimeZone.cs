@@ -20,6 +20,9 @@ namespace Tabbit.Recipe;
 /// </remarks>
 public static class CommandLineTimeZone
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Loading;
+
     /// <summary>
     /// Applies the option, or does nothing when it was not given.
     /// </summary>

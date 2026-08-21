@@ -26,6 +26,9 @@ namespace Tabbit.History;
 /// </summary>
 internal static class HistorySchema
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     /// <summary>
     /// What this build expects. A database at a higher version was written by a newer
     /// Tabbit and is left alone rather than downgraded.

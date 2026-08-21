@@ -1,4 +1,4 @@
-# CLI
+﻿# CLI
 
 빌드하고 실행하는 법, 그리고 명령줄 옵션.
 
@@ -92,6 +92,29 @@ tabbit --recipe recipe.json
 |`--verbose`|디버그 로그까지 출력|
 |`--silent`|ERROR/FATAL 외에는 출력하지 않음|
 |`--debug`|오류 발생 시 콜스택까지 출력|
+
+### 로그 한 줄의 생김새
+
+콘솔과 `logs/tabbit<날짜>.log` 모두 **[수준] [단계] 메시지** 순으로 나갑니다. 콘솔은
+지켜보는 동안 읽는 것이라 수준을 한 글자로, 파일은 나중에 읽는 것이라 시각과 함께 세
+글자로 적습니다.
+
+```
+[I] [Importing ] Optimize sheet: goods.xlsx : TownMatrix : A1
+[W] [Cooking   ] Defined name `INGEX` refers to ``, which is not a range. Skipped.
+[I] [Exporting ] Generating codes for C++ into `out/cpp`
+```
+
+단계는 그 줄을 쓴 클래스가 스스로 밝힌 것입니다. `Loading`(recipe 읽기) ·
+`Importing`(소스 읽기) · `Cooking`(모델 만들기) · `Validating`(검증) ·
+`Exporting`(내보내기와 코드 생성) · `Committing`(스테이징 파일 반영) ·
+`Recording`(기록과 조회) 일곱 가지이고, 밝히지 않은 줄은 `Tabbit`으로 나갑니다.
+
+무엇이 어디서 어긋났는지 찾을 때 이 칸이 먼저 답합니다 — 이름이 풀리지 않는다는 같은
+경고라도 `Importing`에서 나온 것과 `Cooking`에서 나온 것은 다른 이야기입니다.
+
+터미널에서는 수준 표시에 색이 붙습니다 — 경고는 노랑, 오류와 치명은 빨강입니다. 출력을 파일로
+보내거나 파이프로 넘기면 색은 붙지 않으므로, 받아서 검사하는 쪽이 신경 쓸 것이 없습니다.
 
 ### `--env` — 이 실행이 어느 환경의 것인가
 

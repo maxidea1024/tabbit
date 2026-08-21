@@ -21,6 +21,9 @@ namespace Tabbit.Cooking;
 /// </remarks>
 public partial class ModelCooker
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     public Model Cook(Options options, RecipeModel recipeModel, RawModel rawModel)
     {
         var result = new Model();

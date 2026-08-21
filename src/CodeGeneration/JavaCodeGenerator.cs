@@ -100,6 +100,9 @@ public sealed class JavaRecipe : IOutputRecipe
 [TabbitTarget("java", TargetKind.CodeGeneration, Order = 80)]
 public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;

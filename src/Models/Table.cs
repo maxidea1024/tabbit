@@ -13,6 +13,9 @@ namespace Tabbit.Models;
 /// </summary>
 public class Table
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     /// <summary>Cell holding the entity marker that declared this table.</summary>
     [JsonIgnore]
     public required Location Location { get; set; }

@@ -33,6 +33,9 @@ public class PostgreSqlRecipe : DatabaseRecipe
 [TabbitTarget("postgresql", TargetKind.Export, Order = 40)]
 public class PostgreSqlExporter : DatabaseExporterBase<PostgreSqlRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     protected override string TargetName => "PostgreSQL";
 
     private string _schema = "public";

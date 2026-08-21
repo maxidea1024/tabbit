@@ -49,6 +49,9 @@ public sealed class SourceDescriptor
 /// </summary>
 public static class SourceRegistry
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
+
     private static readonly Lazy<IReadOnlyList<SourceDescriptor>> LazyAll =
         new Lazy<IReadOnlyList<SourceDescriptor>>(Discover);
 

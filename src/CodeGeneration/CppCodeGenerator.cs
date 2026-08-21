@@ -129,6 +129,9 @@ public class CppRecipe : IOutputRecipe
 [TabbitTarget("cpp", TargetKind.CodeGeneration, Order = 10)]
 public class CppCodeGenerator : CodeGenerator<CppRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
 
     /// <summary>
     /// A record group generates a plain struct and a vector of it; a member column fills one

@@ -65,6 +65,9 @@ public enum AuthorDisclosure
 [TabbitTarget("summary", TargetKind.Description, Order = 10)]
 public class SummaryTarget : Target<SummaryRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     /// <summary>
     /// camelCase names, string enums, indented, and no `\r`.
     ///

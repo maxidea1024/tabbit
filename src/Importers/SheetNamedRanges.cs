@@ -33,6 +33,9 @@ internal sealed record SheetNamedRange(
 /// </remarks>
 internal static class SheetNamedRanges
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
+
     /// <summary>
     /// Translates each name into the grid's coordinates and attaches it.
     /// </summary>

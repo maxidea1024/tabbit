@@ -23,6 +23,9 @@ namespace Tabbit.Validation;
 /// </remarks>
 public sealed class ValidationPipeline
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Validating;
+
     private readonly Options _options;
     private readonly RecipeModel _fullRecipe;
     private readonly ValidationRecipe _recipe;

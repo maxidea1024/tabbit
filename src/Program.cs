@@ -9,6 +9,7 @@ using Tabbit.Exporters;
 using Tabbit.CodeGeneration;
 using Tabbit.Recipe;
 using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 using System.Diagnostics;
 using Tabbit.Helpers;
 using Tabbit.Extensions;
@@ -262,7 +263,7 @@ class Program
         }
 
         {
-            Log.Information($"Start working with recipe `{Path.GetFullPath(options.RecipeFilename)}`");
+            LogCategory.Loading.Information($"Start working with recipe `{Path.GetFullPath(options.RecipeFilename)}`");
 
             var stopWatch = new Stopwatch();
 
@@ -274,7 +275,7 @@ class Program
             {
                 if (!options.Silent)
                 {
-                    Log.Information($"All work is done successfuly. Total time spent is {stopWatch.ElapsedMilliseconds} ms.");
+                    Log.Information($"All work is done successfully. Total time spent is {stopWatch.Elapsed.TotalSeconds:0.00} s.");
                     //Log.Information($"  Take a look at the `{summaryFilename}` for details on the results.");
                 }
             }
@@ -352,7 +353,7 @@ class Program
 
             if (options.ValidateOnly)
             {
-                Log.Information("Validation passed. Stopping before any output, as --validate-only asks.");
+                LogCategory.Validating.Information("Validation passed. Stopping before any output, as --validate-only asks.");
                 return 0;
             }
 
@@ -373,13 +374,13 @@ class Program
 
             TargetRegistry.RunAll(options, recipeModel, model);
 
-            Log.Information("Now that we have completed all the work, we are copying the generated staging files to the destination folder.");
+            LogCategory.Committing.Information("Now that we have completed all the work, we are copying the generated staging files to the destination folder.");
 
             try
             {
                 StagingFiles.CommitFiles((filename, stagedFilename) =>
                 {
-                    Log.Debug($"Commit staged file `{filename}`");
+                    LogCategory.Committing.Debug($"Commit staged file `{filename}`");
                 });
             }
             catch (Exception ex)
@@ -419,7 +420,6 @@ class Program
             {
                 // Header printed once, ahead of the list. It used to be inside the
                 // loop, so it was repeated before every single entry.
-                Log.Fatal("");
                 Log.Fatal("Details:");
 
                 for (int detailIndex = 0; detailIndex < tabbitEx.Details.Count; detailIndex++)
@@ -435,7 +435,6 @@ class Program
 
         if (options.Debugging && ex.StackTrace is not null)
         {
-            Log.Fatal("");
             Log.Fatal("Callstack:");
             Log.Fatal(ex.StackTrace);
         }
@@ -450,11 +449,41 @@ class Program
         else if (verbose)
             loggingLevel = Serilog.Events.LogEventLevel.Debug;
 
+        // The console gets the level as one letter and the file as three, because the two
+        // are read differently: the console is watched while the run happens, where a
+        // narrow gutter keeps the messages themselves lined up, and the file is read
+        // afterwards beside a timestamp that is wide anyway.
+        //
+        // `,-10` pads the category so the messages line up. Serilog only ever pads, so a
+        // longer name pushes its own line out and leaves the rest alone, and `:l` keeps
+        // it unquoted.
+        const string ConsoleTemplate =
+            "[{Level:u1}] [{Category,-10:l}] {Message:lj}{NewLine}{Exception}";
+
+        const string FileTemplate =
+            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{Category,-10:l}] "
+            + "{Message:lj}{NewLine}{Exception}";
+
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
-            .WriteTo.Console(outputTemplate: "{Message:lj}{NewLine}{Exception}",
+            // Fills in only where nothing else did: an enricher adds a property when it is
+            // absent and leaves it alone otherwise, so a class that declared a category keeps
+            // the one it declared and this covers the classes that declared none.
+            .Enrich.WithProperty(LogCategory.PropertyName, LogCategory.Default)
+            // The theme is named rather than left to the default, because what it colours
+            // is now load-bearing: the level marker is what separates a warning from the
+            // hundred ordinary lines around it. Serilog drops the colour by itself when the
+            // output is redirected, so a piped or captured run stays plain text.
+            //
+            // The system theme rather than the ANSI one: it goes through the console's own
+            // colour API instead of writing escape sequences, so a terminal that does not
+            // interpret them shows the line rather than the codes.
+            .WriteTo.Console(outputTemplate: ConsoleTemplate,
+                            theme: SystemConsoleTheme.Literate,
                             restrictedToMinimumLevel: loggingLevel)
-            .WriteTo.File("logs/tabbit.log", rollingInterval: RollingInterval.Day)
+            .WriteTo.File("logs/tabbit.log",
+                          outputTemplate: FileTemplate,
+                          rollingInterval: RollingInterval.Day)
             .CreateLogger();
     }
 }

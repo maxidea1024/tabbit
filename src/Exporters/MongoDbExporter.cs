@@ -30,6 +30,9 @@ public class MongoDbRecipe : DatabaseRecipe
 [TabbitTarget("mongodb", TargetKind.Export, Order = 50)]
 public class MongoDbExporter : DatabaseExporterBase<MongoDbRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     protected override string TargetName => "MongoDB";
 
     private const int InsertBatchRows = 1000;

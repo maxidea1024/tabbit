@@ -31,6 +31,9 @@ namespace Tabbit.Cooking;
 /// </remarks>
 internal static class TableRowSets
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     /// <summary>The group that names the table, and the group that names the set.</summary>
     private const string TableGroup = "table";
     private const string SetGroup = "set";

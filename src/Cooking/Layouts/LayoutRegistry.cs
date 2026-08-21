@@ -46,6 +46,9 @@ public sealed class LayoutDescriptor
 /// </summary>
 public static class LayoutRegistry
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     private static readonly Lazy<IReadOnlyList<LayoutDescriptor>> LazyAll =
         new Lazy<IReadOnlyList<LayoutDescriptor>>(Discover);
 

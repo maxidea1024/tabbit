@@ -166,6 +166,9 @@ public sealed class TextRecipe : IOutputRecipe
 [TabbitTarget("text", TargetKind.Export, Order = 25)]
 public sealed class TextExporter : Target<TextRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     /// <summary>
     /// How a value is made safe to sit inside the file being written.
     /// </summary>

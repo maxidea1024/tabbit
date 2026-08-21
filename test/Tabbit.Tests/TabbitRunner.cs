@@ -4,6 +4,8 @@ using System.IO;
 using System.Threading;
 using System.Text;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Tabbit.Tests;
 
@@ -17,6 +19,24 @@ internal sealed class RunResult
 
     public string Describe()
         => $"exit code {ExitCode}{Environment.NewLine}--- stdout ---{Environment.NewLine}{StdOut}{Environment.NewLine}--- stderr ---{Environment.NewLine}{StdErr}";
+
+    /// <summary>
+    /// Standard output as lines, with the log gutter taken off each one.
+    /// </summary>
+    /// <remarks>
+    /// Every console line opens with a level and a category - `[F] [Cooking   ] `. That is
+    /// for a person watching the run, and a test looking at the shape of what a message
+    /// says should not have to know about it: without this, a line indented under its
+    /// message no longer starts with what it used to start with.
+    ///
+    /// Only the gutter comes off. What follows, indentation included, is untouched.
+    /// </remarks>
+    public string[] MessageLines()
+        => StdOut.Split('\n')
+                 .Select(line => LogGutter.Replace(line.TrimEnd('\r'), "", 1))
+                 .ToArray();
+
+    private static readonly Regex LogGutter = new(@"^\[[A-Z]\] \[[A-Za-z]+ *\] ", RegexOptions.Compiled);
 }
 
 /// <summary>

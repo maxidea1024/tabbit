@@ -10,6 +10,9 @@ namespace Tabbit.Models.Raw;
 /// </summary>
 public class RawSheet
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
+
     /// <summary>Where the sheet starts, once blank leading rows and columns are trimmed.</summary>
     [JsonIgnore]
     public required Location Location { get; set; }

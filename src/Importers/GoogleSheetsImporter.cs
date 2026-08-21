@@ -22,6 +22,9 @@ namespace Tabbit.Importers;
 [TabbitSource("googlesheets", "Sources.GoogleSheets", Order = 20)]
 public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleSheetsRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
+
     static string ApplicationName = "Tabbit";
     static string[] Scopes = [SheetsService.Scope.SpreadsheetsReadonly];
 

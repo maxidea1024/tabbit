@@ -49,6 +49,9 @@ namespace Tabbit.Exporters;
 /// </summary>
 public class SchemaBaseline
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     /// <summary>What this file is, for whoever opens it without context.</summary>
     public string Comment { get; set; } =
         "Tabbit's record of the columns data was last written with. Commit it: the " +

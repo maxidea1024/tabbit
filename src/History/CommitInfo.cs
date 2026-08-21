@@ -35,6 +35,9 @@ public enum CommitOrigin
 /// </summary>
 public sealed class CommitInfo
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     private CommitInfo(
         string? hash,
         string? branch,

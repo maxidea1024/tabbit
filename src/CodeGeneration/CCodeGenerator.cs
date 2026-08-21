@@ -115,6 +115,9 @@ public sealed class CRecipe : IOutputRecipe
 [TabbitTarget("c", TargetKind.CodeGeneration, Order = 86)]
 public class CCodeGenerator : CodeGenerator<CRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
 
     /// <summary>
     /// A record group generates a struct and either a fixed array or a pointer and a count.

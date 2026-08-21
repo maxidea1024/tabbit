@@ -33,6 +33,9 @@ namespace Tabbit.Importers;
 /// </remarks>
 internal static class GoogleSheetsCredentials
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
+
     /// <summary>
     /// Whether this entry names any credential at all.
     /// </summary>
