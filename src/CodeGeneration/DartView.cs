@@ -220,6 +220,40 @@ internal sealed class DartRecordMemberView
 
     /// <summary>The whole declaration line, type, name and initializer.</summary>
     public required IReadOnlyList<string> Declarations { get; set; }
+
+    /// <summary>
+    /// The slot and the discriminator of a member reaching several tables, so the getters can be
+    /// written on the element class. Null for every other member.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public DartMultiMemberView? Multi { get; set; }
+}
+
+/// <summary>
+/// One record member whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// The member keeps the key it already carried; beside it go one slot for the resolved row and
+/// the discriminator saying which table filled it, at the member's own arity. `Object?` for the
+/// slot, as the row-level shape has it - the target records share no supertype, and the cast
+/// back out sits in the generated getter where the discriminator has already answered.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class DartMultiMemberView
+{
+    /// <summary>The key, the slot and the discriminator, by field name.</summary>
+    public required string KeyMember { get; set; }
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name, and its `None` label.</summary>
+    public required string TargetTypeName { get; set; }
+    public required string NoneLabel { get; set; }
+
+    /// <summary>Whether the member is the array, so the accessor takes an element number.</summary>
+    public required bool IsArray { get; set; }
+
+    public required IReadOnlyList<DartMultiTargetView> Targets { get; set; }
 }
 
 /// <summary>
@@ -244,6 +278,13 @@ internal sealed class DartRecordTypeView
 
     /// <summary>What the class belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }
+
+    /// <summary>
+    /// Those of its members that reach several tables, for the accessors written on the class.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public IReadOnlyList<DartMultiMemberView> MultiMembers { get; set; }
+        = System.Array.Empty<DartMultiMemberView>();
 }
 
 /// <summary>
@@ -378,6 +419,12 @@ internal sealed class DartCrossReferenceView
     /// spec/multi-target-accessors.md.
     /// </summary>
     public required IReadOnlyList<DartMultiReferenceView> MultiFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables that are members of a record, which resolve per
+    /// element. spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<DartMultiRecordReferenceView> MultiRecordFields { get; set; }
 }
 
 /// <summary>
@@ -464,4 +511,31 @@ internal sealed class DartMultiTargetView
 
     /// <summary>The target's lookup, which answers null rather than throwing.</summary>
     public required string Lookup { get; set; }
+}
+
+/// <summary>
+/// One multi-target column that is a member of a record, as the linking pass writes it.
+/// </summary>
+internal sealed class DartMultiRecordReferenceView
+{
+    /// <summary>The key this resolves through, loop variable included.</summary>
+    public required string Key { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string Slot { get; set; }
+    public required string Target { get; set; }
+
+    /// <summary>
+    /// The loop bound, or empty where the group is one record and there is nothing to walk.
+    /// </summary>
+    public required string Count { get; set; }
+
+    /// <summary>The generated enumeration's type name, and its `None` label.</summary>
+    public required string TargetTypeName { get; set; }
+    public required string NoneLabel { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<DartMultiTargetView> Targets { get; set; }
 }
