@@ -121,15 +121,6 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
 
         _settings.Filter.ReportUnmatchedIncludes(context.Section, _workbooksSeen, _sheetsSeen);
 
-        // One line at the end as well as a warning each, because a hundred warnings in a
-        // conversion's output is a thing nobody counts.
-        if (_formulaErrorCount > 0)
-        {
-            Log.Warning(
-                $"Recipe `{context.Section}` read {_formulaErrorCount} cell(s) holding a formula "
-                + "error as empty, because it sets `OnFormulaError: \"empty\"`. Each one is logged "
-                + "above with its cell.");
-        }
     }
 
     private void ImportXlsx(string filename, string workbookName)
@@ -297,11 +288,16 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                 };
 
                 string value;
+                string formulaError = "";
+
                 if (reader.IsFormulaError(colIndex, out string excelText))
                 {
-                    value = InsideATable(rectangles, rowIndex, colIndex)
-                        ? OnFormulaError(location, $"Cell contains the formula error `{excelText}`.")
-                        : "";
+                    // Recorded and not reported. A cell outside every rectangle is nothing to
+                    // anybody; a cell inside one is only something if the layout turns that
+                    // column into a field, and that has not been decided yet.
+                    // spec/formula-errors.md.
+                    value = "";
+                    formulaError = InsideATable(rectangles, rowIndex, colIndex) ? excelText : "";
                 }
                 else
                 {
@@ -312,6 +308,7 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                 {
                     Location = location,
                     Value = value,
+                    FormulaError = formulaError,
                     Note = hasNotes ? package.Note(sheetName, rowIndex, colIndex) : ""
                 });
             }
@@ -458,22 +455,4 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
     /// Warned every time rather than counted quietly, so the run says how many there were
     /// and where, and that can go back to whoever owns the sheet.
     /// </remarks>
-    private string OnFormulaError(Location location, string what)
-    {
-        if (_settings.Layout.OnFormulaError == FormulaErrorPolicy.Error)
-        {
-            throw new TabbitException(location,
-                $"{what} Fix the formula, or replace it with a literal value. "
-                + "The source entry's `OnFormulaError: \"empty\"` reads cells like this as "
-                + "empty instead, for a workbook this run does not own.");
-        }
-
-        _formulaErrorCount++;
-        Log.Warning($"{what} Read as empty.\n    at {location}");
-
-        return "";
-    }
-
-    /// <summary>How many formula errors this run swallowed, for the summary at the end.</summary>
-    private int _formulaErrorCount;
 }

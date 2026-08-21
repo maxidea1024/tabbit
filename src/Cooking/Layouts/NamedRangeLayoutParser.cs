@@ -649,7 +649,8 @@ public sealed class UwoLayoutParser : ILayoutParser
             foreach (var column in columns)
             {
                 var rawCell = CellAt(sheet, named, row, column.RangeColumn);
-                cells.Add(ReadCell(column, rawCell, sheet.Layout?.ArrayDelimiter));
+                cells.Add(ReadCell(column, rawCell, sheet.Layout?.ArrayDelimiter,
+                               sheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error));
             }
 
             table.Data.Add(cells);
@@ -683,9 +684,31 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// which; here a `-` becomes the type's empty value, which is what the exporter's
     /// output holds by omitting the property.
     /// </remarks>
-    private Cell ReadCell(DataColumn column, RawCell rawCell, char? arrayDelimiter)
+    private Cell ReadCell(
+        DataColumn column, RawCell rawCell, char? arrayDelimiter,
+        FormulaErrorPolicy onFormulaError)
     {
         string text = rawCell.Value.Trim();
+
+        // A broken formula before the blank below, because a cell whose formula failed reads as
+        // blank and this layout reports a blank as an author's omission - which it is not. The
+        // core applies the policy and says which error it was. spec/formula-errors.md.
+        if (rawCell.FormulaError.Length > 0)
+        {
+            var broken = _context.ReadCell(
+                column.Field.Type, column.Field.EnumOrNull, "", rawCell.Location, arrayDelimiter,
+                required: column.Field.IsRequired,
+                column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}",
+                formulaError: rawCell.FormulaError,
+                onFormulaError: onFormulaError);
+
+            return new Cell
+            {
+                RawCell = rawCell,
+                Value = broken.Value,
+                HasValue = broken.HasValue,
+            };
+        }
 
         // `-` is no value, and the original exporter answers it by leaving the property out
         // of the row altogether. The judgment itself is the core's, so that one spelling
@@ -732,7 +755,9 @@ public sealed class UwoLayoutParser : ILayoutParser
         var reading = _context.ReadCell(
             column.Field.Type, column.Field.EnumOrNull, text, rawCell.Location, arrayDelimiter,
             required: column.Field.IsRequired,
-            column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}");
+            column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}",
+            formulaError: rawCell.FormulaError,
+            onFormulaError: onFormulaError);
 
         return new Cell
         {

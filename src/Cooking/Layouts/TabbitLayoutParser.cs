@@ -823,7 +823,9 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     onBlankCell: def.rawSheet.Layout?.OnBlankCell ?? BlankCellPolicy.Error,
                     isReference: field.IsRef,
                     column: $"{table.Name}.{field.Name}",
-                    elementsRequired: field.ElementsRequired);
+                    elementsRequired: field.ElementsRequired,
+                    formulaError: rawCell.FormulaError,
+                    onFormulaError: def.rawSheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error);
 
                 // Index uniqueness is checked in ValidateModel rather than here.
                 // Doing it inline compared each new value against every row read

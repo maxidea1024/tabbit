@@ -602,8 +602,40 @@ public sealed class CookingContext
         Models.ValueType type, Models.Enum? enumm, string? rawValue, Location? location,
         char? arrayDelimiter = null, bool required = true,
         BlankCellPolicy onBlankCell = BlankCellPolicy.Error, bool isReference = false,
-        string? column = null, bool elementsRequired = true)
+        string? column = null, bool elementsRequired = true,
+        string formulaError = "", FormulaErrorPolicy onFormulaError = FormulaErrorPolicy.Error)
     {
+        // A cell whose formula ended in an error, reported here because **here is where it is
+        // known that anything reads the cell.** The stage that read the workbook cannot know:
+        // a named rectangle holds the columns a layout keeps and whatever the sheet's authors
+        // put beside them, and one project's sheets hold 10,263 cells of working formulas in
+        // columns with no name. Every one of those was reported before this, and none of them
+        // is in the data. spec/formula-errors.md.
+        if (formulaError.Length > 0)
+        {
+            if (onFormulaError == FormulaErrorPolicy.Error)
+            {
+                throw new TabbitException(location,
+                    $"Cell contains the formula error `{formulaError}`. Fix the formula, or "
+                    + "replace it with a literal value. The source entry's "
+                    + "`OnFormulaError: \"empty\"` reads cells like this as empty instead, for "
+                    + "a workbook this run does not own.");
+            }
+
+            // Counted per column, as the blank concession below is: a column of a trimmed
+            // array can hold thousands of these, and a thousand lines saying one thing is a
+            // thousand lines nobody reads to the end.
+            if (column is not null)
+            {
+                NoteCell($"formula-error:{column}", location,
+                    $"`{column}` holds cells whose formula is an error, read as the type's "
+                    + "empty value because the source entry sets `OnFormulaError: \"empty\"`.");
+            }
+
+            return new CellReading(
+                NoValueOf(type, enumm, location, arrayDelimiter), hasValue: true);
+        }
+
         if (SaysNoValue(rawValue))
             return new CellReading(NoValueOf(type, enumm, location, arrayDelimiter), hasValue: false);
 

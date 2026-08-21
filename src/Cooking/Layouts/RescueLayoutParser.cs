@@ -679,7 +679,9 @@ public sealed class RescueLayoutParser : ILayoutParser
                 sheet.Layout?.ArrayDelimiter,
                 required: field.IsRequired,
                 onBlankCell: sheet.Layout?.OnBlankCell ?? BlankCellPolicy.Error,
-                column: $"{table.Name}.{field.Name}");
+                column: $"{table.Name}.{field.Name}",
+                formulaError: rawCell.FormulaError,
+                onFormulaError: sheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error);
 
             row.Add(new Cell
             {
