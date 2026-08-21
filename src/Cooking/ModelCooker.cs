@@ -260,69 +260,150 @@ public partial class ModelCooker
 
         foreach (var table in tables)
         {
+            // A record group's member first, because its columns are one member: an array of
+            // records spreads it over a column per element, and those elements share the
+            // question "which table is this one in". Named after the member rather than the
+            // column, or a group of two elements would declare two types for one member.
+            // spec/multi-target-accessors.md.
+            foreach (var group in table.SerialFields.Where(g => g.IsRecord))
+            {
+                foreach (var (path, leaf) in LeavesWithPath(group))
+                {
+                    var columns = leaf.Fields
+                                      .Where(f => f.ResolvedRefTables is { Count: > 1 })
+                                      .ToList();
+
+                    if (columns.Count == 0)
+                        continue;
+
+                    string memberName = table.Name.ToPascalCase()
+                        + group.Name.ToPascalCase()
+                        + string.Concat(path.Select(part => part.ToPascalCase()))
+                        + "Target";
+
+                    var shared = DeclareDiscriminator(
+                        model, table, columns[0], memberName, diagnostics);
+
+                    if (shared is null)
+                        continue;
+
+                    // Every element of the member points at the one type.
+                    foreach (var column in columns)
+                        column.MultiTargetEnum = shared;
+                }
+            }
+
             foreach (var field in table.Fields)
             {
-                if (field.ResolvedRefTables is not { Count: > 1 })
+                if (field.ResolvedRefTables is not { Count: > 1 } || field.MultiTargetEnum is not null)
                     continue;
 
                 string name = $"{table.Name.ToPascalCase()}{field.Name.ToPascalCase()}Target";
 
-                // A sheet may already have declared this name, and then two different types
-                // would be generated under it. Reported rather than renamed: a name this
-                // tool made up silently is one nobody can search for.
-                if (model.Enums.Exists(existing => existing.Name == name))
-                {
-                    diagnostics.Error(field.DetailTypeLocation,
-                        $"`{table.Name}.{field.Name}` reaches several tables, so the generated code "
-                        + $"needs an enum named `{name}` to say which one - and an enum of that name "
-                        + $"is already declared. Rename one of them.");
-                    continue;
-                }
+                var declared = DeclareDiscriminator(model, table, field, name, diagnostics);
 
-                var discriminator = new Models.Enum
-                {
-                    Location = field.DetailTypeLocation ?? field.NameLocation,
-                    TargetSide = table.TargetSide,
-                    RawName = name,
-                    Name = name,
-                    Synthesized = true,
-                    Comment =
-                        $"Which table `{table.Name}.{field.Name}` points at. "
-                        + "The column carries one id and the tables it may be a row of take "
-                        + "separate id bands, so exactly one of them answers.",
-                };
-
-                // Zero is "points at nothing", which is what a column with no value holds and
-                // what a key found in none of the targets leaves behind. Every other
-                // enumeration in the model has a zero for the same reason.
-                discriminator.Labels.Add(new Models.Enum.Label
-                {
-                    RawName = "None",
-                    Name = "None",
-                    Value = 0,
-                    Synthesized = true,
-                    Location = discriminator.Location,
-                    Comment = "No row of any of them.",
-                });
-
-                int value = 1;
-                foreach (var target in field.ResolvedRefTables)
-                {
-                    discriminator.Labels.Add(new Models.Enum.Label
-                    {
-                        RawName = target.Name,
-                        Name = target.Name.ToPascalCase(),
-                        Value = value++,
-                        Synthesized = true,
-                        Location = discriminator.Location,
-                        Comment = $"A row of `{target.Name}`.",
-                    });
-                }
-
-                model.Enums.Add(discriminator);
-                field.MultiTargetEnum = discriminator;
+                if (declared is not null)
+                    field.MultiTargetEnum = declared;
             }
         }
+    }
+
+    /// <summary>
+    /// Every leaf of a record group, with the member names that reach it.
+    /// </summary>
+    /// <remarks>
+    /// The leaf itself does not carry its path - a member knows its own name and nothing
+    /// above it - and a name built from the last part alone would collide the moment two
+    /// levels used it. spec/nested-multi-level.md.
+    /// </remarks>
+    private static IEnumerable<(IReadOnlyList<string> Path, RecordMember Leaf)> LeavesWithPath(
+        SerialField group)
+    {
+        var stack = new List<string>();
+
+        IEnumerable<(IReadOnlyList<string>, RecordMember)> Walk(RecordMember member)
+        {
+            stack.Add(member.Name);
+
+            if (member.IsLeaf)
+            {
+                yield return (stack.ToList(), member);
+            }
+            else
+            {
+                foreach (var below in member.Members)
+                foreach (var found in Walk(below))
+                    yield return found;
+            }
+
+            stack.RemoveAt(stack.Count - 1);
+        }
+
+        foreach (var member in group.Members)
+        foreach (var found in Walk(member))
+            yield return found;
+    }
+
+    /// <summary>
+    /// The enumeration for one declaration, or null when the name is taken.
+    /// </summary>
+    private static Models.Enum? DeclareDiscriminator(
+        Model model, Table table, Field field, string name, Diagnostics diagnostics)
+    {
+        // A sheet may already have declared this name, and then two different types
+        // would be generated under it. Reported rather than renamed: a name this
+        // tool made up silently is one nobody can search for.
+        if (model.Enums.Exists(existing => existing.Name == name))
+        {
+            diagnostics.Error(field.DetailTypeLocation,
+                $"`{table.Name}.{field.Name}` reaches several tables, so the generated code "
+                + $"needs an enum named `{name}` to say which one - and an enum of that name "
+                + $"is already declared. Rename one of them.");
+            return null;
+        }
+
+        var discriminator = new Models.Enum
+        {
+            Location = field.DetailTypeLocation ?? field.NameLocation,
+            TargetSide = table.TargetSide,
+            RawName = name,
+            Name = name,
+            Synthesized = true,
+            Comment =
+                $"Which table `{table.Name}.{field.Name}` points at. "
+                + "The column carries one id and the tables it may be a row of take "
+                + "separate id bands, so exactly one of them answers.",
+        };
+
+        // Zero is "points at nothing", which is what a column with no value holds and
+        // what a key found in none of the targets leaves behind. Every other
+        // enumeration in the model has a zero for the same reason.
+        discriminator.Labels.Add(new Models.Enum.Label
+        {
+            RawName = "None",
+            Name = "None",
+            Value = 0,
+            Synthesized = true,
+            Location = discriminator.Location,
+            Comment = "No row of any of them.",
+        });
+
+        int value = 1;
+        foreach (var target in field.ResolvedRefTables!)
+        {
+            discriminator.Labels.Add(new Models.Enum.Label
+            {
+                RawName = target.Name,
+                Name = target.Name.ToPascalCase(),
+                Value = value++,
+                Synthesized = true,
+                Location = discriminator.Location,
+                Comment = $"A row of `{target.Name}`.",
+            });
+        }
+
+        model.Enums.Add(discriminator);
+        return discriminator;
     }
 
     /// <summary>

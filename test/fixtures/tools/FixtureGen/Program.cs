@@ -2858,6 +2858,72 @@ internal static class Program
 
         h.Table(1, 1, holder);
 
+        // ---- the record shapes -------------------------------------------------------
+        //
+        // A member of a record group reaching several tables. Three tables because the
+        // element number sits in three different places - on the group, nowhere, and on the
+        // member - and a linking pass written around one of them compiles for that one.
+        // spec/references-in-records.md.
+
+        var g = new SheetBuilder(workbook.CreateSheet("Groups"));
+
+        var loadout = new TableSpec
+        {
+            Name = "Loadout",
+            Comment = "A record array whose member reaches several tables.",
+        };
+        loadout
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Slot1.Pick", "foreign", "element 1 - two targets",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Slot1.Count", "int", "element 1 - an ordinary member"))
+            .Field(FieldSpec.Of("Slot2.Pick", "foreign", "element 2", detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Slot2.Count", "int", "element 2"));
+        loadout
+            // The two elements at different targets, so an element index taken from the wrong
+            // place shows as the wrong catalogue rather than as a missing row.
+            .Row("1", "10", "1", "20", "2")
+            .Row("2", "21", "3", "11", "4");
+
+        g.Table(1, 1, loadout);
+
+        var single = new TableSpec
+        {
+            Name = "Fitting",
+            Comment = "One record - no element number at all - whose member reaches several.",
+        };
+        single
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Main.Pick", "foreign", "the member, in a record of one",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Main.Count", "int", "an ordinary member beside it"))
+            .Field(FieldSpec.Of("Pad", "int", "padding, so every table is one width"))
+            .Field(FieldSpec.Of("Pad2", "int", "padding, so every table is one width"));
+        single
+            .Row("1", "20", "5", "0", "0")
+            .Row("2", "11", "6", "0", "0");
+
+        g.Table(9, 1, single);
+
+        var bag = new TableSpec
+        {
+            Name = "Rack",
+            Comment = "One record whose members are arrays, one of them reaching several.",
+        };
+        bag
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Slots.Pick1", "foreign", "element 1 of the member",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Slots.Pick2", "foreign", "element 2 of the member",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Slots.Count1", "int", "element 1 beside it"))
+            .Field(FieldSpec.Of("Slots.Count2", "int", "element 2 beside it"));
+        bag
+            .Row("1", "10", "21", "10", "20")
+            .Row("2", "20", "11", "30", "40");
+
+        g.Table(17, 1, bag);
+
         Save(workbook, path);
     }
 
