@@ -337,6 +337,90 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// <summary>
     /// One column whose value is a row of one of several tables.
     /// </summary>
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    private KotlinMultiMemberView? MultiMemberOrNull(RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string name = KotlinName(member.Name);
+
+        return new KotlinMultiMemberView
+        {
+            KeyMember = name,
+            SlotMember = name + "Row",
+            TargetMember = name + "Target",
+            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
+            NoneLabel = ConstantName("None"),
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new KotlinMultiTargetView
+            {
+                Table = KotlinName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = KotlinName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Label = ConstantName(target.Name),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member. spec/references-in-records.md.
+    /// </remarks>
+    private KotlinMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = KotlinName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + KotlinName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{name}{member}"
+            : $"record.{name}[i]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+
+        return new KotlinMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "Row" + subscript,
+            Target = path + "Target" + subscript,
+
+            // Whichever list holds the elements. The key member is that list where the members
+            // are the arrays, so there is no separate key list to measure.
+            Count = isArray
+                ? (wire.Group.MembersAreArrays ? $"{path}.size" : $"record.{name}.size")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            NoneLabel = ConstantName("None"),
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new KotlinMultiTargetView
+            {
+                Table = KotlinName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = "",
+                Label = ConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
+
     private KotlinMultiReferenceView BuildMultiReference(MultiTargetColumn column)
         => new KotlinMultiReferenceView
         {
@@ -452,10 +536,31 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                                     : MemberDefault(member)));
                 }
 
+                // A member reaching several tables keeps the key declared above and gains two
+                // properties: one slot for the resolved row whatever table it came from, and
+                // the discriminator saying which. spec/multi-target-accessors.md.
+                var multi = MultiMemberOrNull(member);
+
+                if (multi is not null)
+                {
+                    declarations.Add(member.IsArray
+                        ? $"var {multi.SlotMember}: MutableList<Any?> = "
+                          + $"MutableList({member.Fields.Count}) {{ null }}"
+                        : $"var {multi.SlotMember}: Any? = null");
+
+                    declarations.Add(member.IsArray
+                        ? $"var {multi.TargetMember}: MutableList<{multi.TargetTypeName}> = "
+                          + $"MutableList({member.Fields.Count}) "
+                          + $"{{ {multi.TargetTypeName}.{multi.NoneLabel} }}"
+                        : $"var {multi.TargetMember}: {multi.TargetTypeName} = "
+                          + $"{multi.TargetTypeName}.{multi.NoneLabel}");
+                }
+
                 result.Add(new KotlinRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     Declarations = declarations,
+                    Multi = multi,
                 });
 
                 continue;
@@ -468,6 +573,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
             declared.Add(new KotlinRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -495,6 +601,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         recordTypes.Add(new KotlinRecordTypeView
         {
+            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -1012,12 +1119,21 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                 // A column reaching several tables is looked up in each of them in turn, so it
                 // is a loop of its own too. spec/multi-target-accessors.md.
                 MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0 || x.MultiFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new KotlinCrossReferenceView
             {
                 Table = KotlinName(x.Table.Name),
                 MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new KotlinReferenceFieldView
                 {
                     Name = KotlinName(sf.Name),

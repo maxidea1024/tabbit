@@ -81,6 +81,35 @@ class {{ table.record_name }} {
         {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## The per-target accessors of every member of this class that reaches several tables. A
+   property where the member is one value; a function taking the element number where the member
+   is the array, which is the third place an element number sits.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+        /**
+         * The {{ target.record_name }} row element [at] of {{ multi.key_member }} names, or null
+         * when that element names a row of one of the others.
+         */
+        fun {{ target.method }}(at: Int): {{ target.record_name }}? =
+            if ({{ multi.target_member }}[at] == {{ multi.target_type_name }}.{{ target.label }})
+                {{ multi.slot_member }}[at] as {{ target.record_name }}
+            else
+                null
+{{~ else ~}}
+        /**
+         * The {{ target.record_name }} row {{ multi.key_member }} names, or null when it names a
+         * row of one of the others.
+         */
+        val {{ target.method }}: {{ target.record_name }}?
+            get() = if ({{ multi.target_member }} == {{ multi.target_type_name }}.{{ target.label }})
+                {{ multi.slot_member }} as {{ target.record_name }}
+            else
+                null
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
     }
 {{~ end ~}}
 {{~ end ~}}
