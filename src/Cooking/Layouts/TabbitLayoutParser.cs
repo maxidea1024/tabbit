@@ -284,7 +284,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 ValueString = valueCol.Value,
                 Value = _context.ParseValue(
                     type, enumm, valueCol.Value, valueCol.Location,
-                    def.rawSheet.Layout?.ArrayDelimiter),
+                    def.rawSheet.Layout?.ArrayDelimiter,
+                    timeZone: def.rawSheet.Layout?.TimeZone),
             });
         }
 
@@ -825,7 +826,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     column: $"{table.Name}.{field.Name}",
                     elementsRequired: field.ElementsRequired,
                     formulaError: rawCell.FormulaError,
-                    onFormulaError: def.rawSheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error);
+                    onFormulaError: def.rawSheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error,
+                    timeZone: def.rawSheet.Layout?.TimeZone);
 
                 // Index uniqueness is checked in ValidateModel rather than here.
                 // Doing it inline compared each new value against every row read

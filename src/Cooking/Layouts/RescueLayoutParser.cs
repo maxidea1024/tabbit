@@ -681,7 +681,8 @@ public sealed class RescueLayoutParser : ILayoutParser
                 onBlankCell: sheet.Layout?.OnBlankCell ?? BlankCellPolicy.Error,
                 column: $"{table.Name}.{field.Name}",
                 formulaError: rawCell.FormulaError,
-                onFormulaError: sheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error);
+                onFormulaError: sheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error,
+                timeZone: sheet.Layout?.TimeZone);
 
             row.Add(new Cell
             {

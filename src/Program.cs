@@ -293,6 +293,11 @@ class Program
             // every workbook has been read.
             CommandLineTargetSide.Of(options);
 
+            // Stamped onto the recipe before anything reads it, so the zone every dated cell
+            // is read in is settled in one place. A zone that names no place stops the run
+            // here, with no workbook opened.
+            CommandLineTimeZone.Apply(options, recipeModel);
+
             // Same reason: a misspelled --commit-date should be reported now rather
             // than after every workbook has been read. Working out which commit this
             // is spawns git, so that part waits until a target asks for it.

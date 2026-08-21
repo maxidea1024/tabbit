@@ -314,7 +314,7 @@ recipe의 `Naming` 섹션이 이것을 검사합니다 — 종류별로 따라�
 |float|`float.Parse`|천단위 구분자 허용. `0x`·`0b`는 정확히 표현되는 값만|
 |double|`double.Parse`|천단위 구분자 허용. `0x`·`0b`는 정확히 표현되는 값만|
 |bool|자체 파싱|아래 참고|
-|datetime|`DateTime.Parse`|엑셀의 날짜 셀은 자동으로 인식됩니다. 텍스트로 적을 경우 `2022-01-24 10:30:00` 형식을 권합니다.|
+|datetime|`DateTime.Parse`|엑셀의 날짜 셀은 자동으로 인식됩니다. 텍스트로 적을 경우 `2022-01-24 10:30:00` 형식을 권합니다. **어느 시간대의 벽시계인지는 recipe의 [`TimeZone`](recipe.md#timezone--시트의-날짜를-어느-시간대로-읽을지)이 정하고, 저장되는 값은 UTC입니다** — 셀에 `Z`나 `+09:00`을 직접 적으면 그것이 우선합니다|
 |timespan|`TimeSpan.Parse`|`1.02:03:04` (일.시:분:초) 형식. [MSDN 참고](https://learn.microsoft.com/dotnet/api/system.timespan.parse)|
 |uuid|`Guid.Parse`|[MSDN 참고](https://learn.microsoft.com/dotnet/api/system.guid.parse)|
 |enum|라벨 이름 또는 값|선언된 표기(`fire_ball`), Pascal 표기(`FireBall`), 숫자(`1`) 모두 허용|

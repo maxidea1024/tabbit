@@ -79,11 +79,13 @@ public sealed class SheetLayout
         bool trimTrailingArrayElements = false,
         bool allowArrayGaps = false,
         string tableRowSets = "",
-        BlankCellPolicy onBlankCell = BlankCellPolicy.Error)
+        BlankCellPolicy onBlankCell = BlankCellPolicy.Error,
+        TimeZoneInfo? timeZone = null)
     {
         Id = id;
         OnDuplicateIndex = onDuplicateIndex;
         ArrayDelimiter = arrayDelimiter;
+        TimeZone = timeZone;
         OnFormulaError = onFormulaError;
         OnBlankCell = onBlankCell;
         FoldSerialFields = foldSerialFields;
@@ -235,6 +237,17 @@ public sealed class SheetLayout
     /// different conventions, and one of them writing `1|2|3` should not force the other to.
     /// </remarks>
     public char? ArrayDelimiter { get; }
+
+    /// <summary>
+    /// The time zone these sheets' wall clocks were written in, or null to use the
+    /// recipe-wide setting.
+    /// </summary>
+    /// <remarks>
+    /// Resolved when the entry was read rather than carried as the text of a name, so a
+    /// setting that names no zone is reported before a sheet is opened, and so the lookup
+    /// happens once an entry instead of once a cell.
+    /// </remarks>
+    public TimeZoneInfo? TimeZone { get; }
 
     public override string ToString() => Id;
 }

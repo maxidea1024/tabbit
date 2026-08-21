@@ -48,6 +48,25 @@ public class Options
     public string? TargetSide { get; set; }
 
     /// <summary>
+    /// Which time zone every sheet's `datetime` cells were written in, overriding whatever
+    /// the recipe says - both its own setting and each source entry's.
+    /// </summary>
+    /// <remarks>
+    /// Forced rather than a default, because what this is for is a run whose recipe is
+    /// wrong about it: sheets that turn out to have been written to another office's clock,
+    /// or a re-conversion of an archive from before the recipe said anything. A default
+    /// would be overridden by the very entries that are wrong.
+    ///
+    /// Takes what the recipe takes - a zone name or a fixed offset - and is reported once at
+    /// the start of the run, because a flag that moves every date in the output should not be
+    /// something a reader has to reconstruct from the command line.
+    /// </remarks>
+    [Option("time-zone", HelpText =
+        "Time zone the sheets' dates were written in, forced over the recipe: "
+        + "`Asia/Seoul` or `+09:00`.")]
+    public string? TimeZone { get; set; }
+
+    /// <summary>
     /// Which environment this run is for.
     /// </summary>
     /// <remarks>

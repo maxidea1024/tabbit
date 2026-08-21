@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Tabbit.Models.Raw;
 using Tabbit.Recipe;
 
@@ -55,7 +55,12 @@ public sealed class SheetImportSettings
                 recipe.TrimTrailingArrayElements,
                 recipe.AllowArrayGaps,
                 (recipe.TableRowSets ?? "").Trim(),
-                ParseBlankCellPolicy(recipe.OnBlankCell, section)));
+                ParseBlankCellPolicy(recipe.OnBlankCell, section),
+
+                // Resolved here so a name no zone answers to is reported before a workbook
+                // is opened, and so the machine's zone list is consulted once for the entry
+                // rather than once for every dated cell in it.
+                Helpers.TimeZones.OfEntry(recipe.TimeZone, section)));
     }
 
     private static BlankCellPolicy ParseBlankCellPolicy(string value, string section)

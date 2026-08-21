@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -90,6 +91,31 @@ public class RecipeModel
 
         /// <summary>Google Sheets sources.</summary>
         public List<GoogleSheetsRecipe> GoogleSheets { get; set; } = new List<GoogleSheetsRecipe>();
+
+        /// <summary>
+        /// Every sheet-reading entry this group holds, whichever source presents it.
+        /// </summary>
+        /// <remarks>
+        /// For the settings that a command-line option forces over the recipe: the override
+        /// has to reach each entry, and an entry's own value is exactly what it has to
+        /// replace. Found by walking this object's own lists rather than naming them, so a
+        /// third source becomes readable here by existing.
+        /// </remarks>
+        public IEnumerable<SheetSourceRecipe> SheetEntries()
+        {
+            foreach (var property in GetType().GetProperties(
+                         BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (property.GetValue(this) is not System.Collections.IEnumerable entries)
+                    continue;
+
+                foreach (object? entry in entries)
+                {
+                    if (entry is SheetSourceRecipe sheets)
+                        yield return sheets;
+                }
+            }
+        }
     }
 
     /// <summary>Where the sheets are read from.</summary>
@@ -115,6 +141,28 @@ public class RecipeModel
     /// element is trimmed, so `1; 2 ;3` reads the same as `1;2;3`.
     /// </summary>
     public string ArrayDelimiter { get; set; } = ";";
+
+    /// <summary>
+    /// Which time zone the wall clock in a `datetime` cell was written in, so the value
+    /// stored for it is the moment it names.
+    ///
+    /// Named as `Asia/Seoul` or `Korea Standard Time`, or written as a fixed offset:
+    /// `+09:00`, `-05:30`, `+0900`, `+09`, or `Z` for UTC itself.
+    ///
+    /// Blank, which reads a cell as already being in UTC. Data leaves this tool in UTC
+    /// whatever this says - the setting decides how a sheet's wall clock is read, not
+    /// what is stored. A source entry may override it for its own sheets.
+    /// </summary>
+    /// <remarks>
+    /// A cell that wrote its own offset - `2022-01-24T10:30:00Z`, or the same with
+    /// `+09:00` - already names a moment, and this does not move it.
+    ///
+    /// A name and an offset are not the same answer. The name carries the region's
+    /// history, so a date from a summer under daylight saving converts by the offset that
+    /// was in force then; a fixed offset is the same all year, which is what sheets
+    /// written to one office's clock usually mean. spec/datetime-timezone.md.
+    /// </remarks>
+    public string TimeZone { get; set; } = "";
 
     /// <summary>
     /// Spelling of the exported data files' names. Blank keeps the table's own name.

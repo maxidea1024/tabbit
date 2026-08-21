@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -33,6 +33,7 @@ public sealed class CookingContext
         Model = model;
         Diagnostics = diagnostics;
         ArrayDelimiter = ResolveArrayDelimiter(recipe);
+        TimeZone = Helpers.TimeZones.OfRecipe(recipe.TimeZone);
         AutoInsertEnumNoneLabel = recipe.AutoInsertEnumNoneLabel;
     }
 
@@ -53,6 +54,16 @@ public sealed class CookingContext
     /// Separator for array cells, taken from the recipe. A source entry may override it.
     /// </summary>
     public char ArrayDelimiter { get; }
+
+    /// <summary>
+    /// The time zone a `datetime` cell's wall clock is read as being in, taken from the
+    /// recipe. Null reads one as already being in UTC. A source entry may override it.
+    /// </summary>
+    /// <remarks>
+    /// What leaves this tool is UTC either way - the zone decides what a sheet's `10:30`
+    /// means, not what is stored. spec/datetime-timezone.md.
+    /// </remarks>
+    public TimeZoneInfo? TimeZone { get; }
 
     /// <summary>Whether to give an enum a zero label it did not declare.</summary>
     public bool AutoInsertEnumNoneLabel { get; }
@@ -603,7 +614,8 @@ public sealed class CookingContext
         char? arrayDelimiter = null, bool required = true,
         BlankCellPolicy onBlankCell = BlankCellPolicy.Error, bool isReference = false,
         string? column = null, bool elementsRequired = true,
-        string formulaError = "", FormulaErrorPolicy onFormulaError = FormulaErrorPolicy.Error)
+        string formulaError = "", FormulaErrorPolicy onFormulaError = FormulaErrorPolicy.Error,
+        TimeZoneInfo? timeZone = null)
     {
         // A cell whose formula ended in an error, reported here because **here is where it is
         // known that anything reads the cell.** The stage that read the workbook cannot know:
@@ -687,13 +699,16 @@ public sealed class CookingContext
         {
             var elements = ParseArrayValue(
                 type, enumm!, rawValue ?? "", location!, arrayDelimiter, elementsRequired,
-                out bool[]? elementHasValue);
+                out bool[]? elementHasValue, timeZone);
 
             return new CellReading(elements, hasValue: true, elementHasValue: elementHasValue);
         }
 
         return new CellReading(
-            ParseValue(type, enumm, ValueTextOf(rawValue), location, arrayDelimiter), hasValue: true);
+            ParseValue(
+                type, enumm, ValueTextOf(rawValue), location, arrayDelimiter,
+                timeZone: timeZone),
+            hasValue: true);
     }
 
     /// <summary>The value a cell carries when it says it has none.</summary>
@@ -773,12 +788,16 @@ public sealed class CookingContext
     /// Whether a blank cell is an error. False for a column whose type ends in `?`, where a
     /// blank reads as the type's empty value instead.
     /// </param>
+    /// <param name="timeZone">
+    /// Which time zone a `datetime` cell's wall clock was written in, when the sheet's own
+    /// entry named one. Null takes the recipe-wide setting, which is the usual case.
+    /// </param>
     public object? ParseValue(
         Models.ValueType type, Models.Enum? enumm, string? rawValue, Location? location,
-        char? arrayDelimiter = null, bool required = true)
+        char? arrayDelimiter = null, bool required = true, TimeZoneInfo? timeZone = null)
     {
         if (Models.ValueTypes.IsArray(type))
-            return ParseArrayValue(type, enumm!, rawValue!, location!, arrayDelimiter);
+            return ParseArrayValue(type, enumm!, rawValue!, location!, arrayDelimiter, timeZone);
 
         // An optional column's blank cell. Only reachable for the types a blank was already
         // refused for - a `string` or a `bool` reads a blank as an empty string or false, and
@@ -832,7 +851,17 @@ public sealed class CookingContext
                     return TimeSpan.Parse(rawValue!, CultureInfo.InvariantCulture);
 
                 case Models.ValueType.DateTime:
-                    return DateTime.Parse(rawValue!, CultureInfo.InvariantCulture);
+                    // AdjustToUniversal, so a cell that wrote its own offset lands on the
+                    // moment it named. Without it, `2022-01-24T10:30:00Z` was read into the
+                    // time zone of whatever machine ran the conversion - the same sheet
+                    // became one value on a designer's PC and another on a build agent.
+                    // A cell with no offset is untouched by it and stays a wall clock,
+                    // which is what the zone below is for.
+                    return ToUtc(
+                        DateTime.Parse(
+                            rawValue!, CultureInfo.InvariantCulture,
+                            DateTimeStyles.AdjustToUniversal),
+                        timeZone, location);
 
                 case Models.ValueType.Uuid:
                     return Guid.Parse(rawValue!);
@@ -860,6 +889,63 @@ public sealed class CookingContext
             // and friends, whose messages name the problem but not the cell.
             throw new TabbitException(location, $"Cannot parse `{authored}` as a value of type `{type}`. ({ex.Message})");
         }
+    }
+
+    /// <summary>
+    /// The moment a dated cell names, in UTC.
+    /// </summary>
+    /// <remarks>
+    /// Data leaves this tool in UTC, and a zone is how a wall clock gets there. Without one
+    /// a sheet's `10:30` is taken to already be UTC, which is what every value written
+    /// before this setting existed was read as - so a recipe that says nothing keeps every
+    /// value it had.
+    ///
+    /// The Kind is dropped on the way out. What is stored is a number of ticks, and the
+    /// exports read it as UTC by contract rather than from a flag: a value marked Utc is
+    /// refused by the PostgreSQL writer for a `timestamp` column, and marking it would make
+    /// the setting change the shape of exports as well as their values.
+    ///
+    /// spec/datetime-timezone.md.
+    /// </remarks>
+    private DateTime ToUtc(DateTime parsed, TimeZoneInfo? zone, Location? location)
+    {
+        // The cell wrote its own offset, so the parse already landed on the moment. `Z` is
+        // an answer, not a question, and reading it again as somebody's wall clock would
+        // move a value that was never ambiguous.
+        if (parsed.Kind != DateTimeKind.Unspecified)
+            return DateTime.SpecifyKind(parsed.ToUniversalTime(), DateTimeKind.Unspecified);
+
+        zone ??= TimeZone;
+
+        if (zone is null || zone.Equals(TimeZoneInfo.Utc))
+            return parsed;
+
+        // A wall clock the region's clocks skipped. There is a right answer here only for
+        // the person who wrote the cell - an hour earlier and an hour later are both
+        // defensible, and picking one silently moves an event by an hour.
+        if (zone.IsInvalidTime(parsed))
+        {
+            throw new TabbitException(location,
+                $"`{parsed:yyyy-MM-dd HH:mm:ss}` is a time that does not exist in "
+                + $"`{zone.Id}` - the clocks there jumped over it when daylight saving "
+                + "began. Write a time on either side of the gap, or set the entry's "
+                + "`TimeZone` to a fixed offset such as `+09:00`, which has no gaps.");
+        }
+
+        // A wall clock the region's clocks passed through twice. Unlike the gap above there
+        // is a value to read, so the run continues on the standard-time reading and says how
+        // many cells it did that to - one hour a year is not worth stopping a conversion for,
+        // and it is worth knowing about.
+        if (zone.IsAmbiguousTime(parsed))
+        {
+            NoteCell($"ambiguous-time:{zone.Id}", location,
+                $"Cells hold a time that occurs twice in `{zone.Id}`, where daylight saving "
+                + "ends, read as the standard-time one. Write the offset in the cell, as "
+                + "`2022-11-06T01:30:00-04:00`, for the other.");
+        }
+
+        return DateTime.SpecifyKind(
+            TimeZoneInfo.ConvertTimeToUtc(parsed, zone), DateTimeKind.Unspecified);
     }
 
     // --------------------------------------------------------- radix literals
@@ -1060,15 +1146,17 @@ public sealed class CookingContext
     /// </summary>
     private object ParseArrayValue(
         Models.ValueType arrayType, Models.Enum enumm, string rawValue, Location location,
-        char? arrayDelimiter)
-        => ParseArrayValue(arrayType, enumm, rawValue, location, arrayDelimiter, true, out _);
+        char? arrayDelimiter, TimeZoneInfo? timeZone = null)
+        => ParseArrayValue(
+            arrayType, enumm, rawValue, location, arrayDelimiter, true, out _, timeZone);
 
     /// <summary>
     /// The same, answering which elements the sheet gave a value.
     /// </summary>
     private object ParseArrayValue(
         Models.ValueType arrayType, Models.Enum enumm, string rawValue, Location location,
-        char? arrayDelimiter, bool elementsRequired, out bool[]? elementHasValue)
+        char? arrayDelimiter, bool elementsRequired, out bool[]? elementHasValue,
+        TimeZoneInfo? timeZone = null)
     {
         elementHasValue = null;
 
@@ -1105,7 +1193,10 @@ public sealed class CookingContext
                 continue;
             }
 
-            result.SetValue(ParseValue(elementType, enumm, ValueTextOf(element), location), i);
+            result.SetValue(
+                ParseValue(
+                    elementType, enumm, ValueTextOf(element), location, timeZone: timeZone),
+                i);
         }
 
         return result;

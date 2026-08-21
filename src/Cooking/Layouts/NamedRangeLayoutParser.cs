@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -650,7 +650,8 @@ public sealed class UwoLayoutParser : ILayoutParser
             {
                 var rawCell = CellAt(sheet, named, row, column.RangeColumn);
                 cells.Add(ReadCell(column, rawCell, sheet.Layout?.ArrayDelimiter,
-                               sheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error));
+                               sheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error,
+                               sheet.Layout?.TimeZone));
             }
 
             table.Data.Add(cells);
@@ -686,7 +687,7 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// </remarks>
     private Cell ReadCell(
         DataColumn column, RawCell rawCell, char? arrayDelimiter,
-        FormulaErrorPolicy onFormulaError)
+        FormulaErrorPolicy onFormulaError, TimeZoneInfo? timeZone)
     {
         string text = rawCell.Value.Trim();
 
@@ -700,7 +701,8 @@ public sealed class UwoLayoutParser : ILayoutParser
                 required: column.Field.IsRequired,
                 column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}",
                 formulaError: rawCell.FormulaError,
-                onFormulaError: onFormulaError);
+                onFormulaError: onFormulaError,
+                timeZone: timeZone);
 
             return new Cell
             {
@@ -757,7 +759,8 @@ public sealed class UwoLayoutParser : ILayoutParser
             required: column.Field.IsRequired,
             column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}",
             formulaError: rawCell.FormulaError,
-            onFormulaError: onFormulaError);
+            onFormulaError: onFormulaError,
+            timeZone: timeZone);
 
         return new Cell
         {

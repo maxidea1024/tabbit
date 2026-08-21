@@ -41,6 +41,20 @@ public abstract class SheetSourceRecipe
     public string ArrayDelimiter { get; set; } = "";
 
     /// <summary>
+    /// Which time zone these sheets' `datetime` cells were written in. Blank takes the
+    /// recipe-wide setting.
+    /// </summary>
+    /// <remarks>
+    /// Here for the reason the delimiter is: it is a property of how a set of sheets was
+    /// written. Two teams' workbooks read in one run were filled in at two desks, and one
+    /// of them keeping a summer clock should not move the other's dates.
+    ///
+    /// Takes what the recipe-wide setting takes - a zone name or a fixed offset - and wins
+    /// over it for this entry only. spec/datetime-timezone.md.
+    /// </remarks>
+    public string TimeZone { get; set; } = "";
+
+    /// <summary>
     /// Workbooks to read. An empty list means every workbook the source presents.
     /// </summary>
     /// <remarks>
