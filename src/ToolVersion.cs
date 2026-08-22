@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -53,8 +54,40 @@ public static class ToolVersion
         $".tcb v{Exporters.TcbFormat.Version} · {RuntimeInformation.FrameworkDescription} "
         + $"({RuntimeInformation.RuntimeIdentifier})";
 
+    /// <summary>
+    /// When this build was made, or null for a build that did not say.
+    /// </summary>
+    /// <remarks>
+    /// Only the release workflow passes it, and that is the whole design rather than an
+    /// omission. A timestamp evaluated at build time is a compile input that differs on
+    /// every build, so stamping it locally would end deterministic builds and make every
+    /// `dotnet build` a full recompile - in front of a test suite that already takes
+    /// twenty-two minutes.
+    ///
+    /// Kept out of <see cref="Current"/> for a harder reason: that string is the build
+    /// cache's key and the `toolVersion` written into every summary and report. A value
+    /// that moved on each build would mean a full conversion every time, and a report
+    /// golden that changes when nothing did.
+    ///
+    /// So a local build has no build time, and the absence is itself the answer: together
+    /// with a version of 0.0.0 it says this binary is not a release. spec/cli-help.md §7.
+    /// </remarks>
+    public static string? Built { get; } = Metadata("BuildTimestamp");
+
     /// <summary>How much of a commit hash is kept. Enough to name one, short enough to read.</summary>
     private const int CommitLength = 12;
+
+    /// <summary>
+    /// One of the `AssemblyMetadata` values the build stamped in, or null.
+    /// </summary>
+    private static string? Metadata(string key)
+    {
+        string? value = typeof(ToolVersion).Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(attribute => attribute.Key == key)?.Value;
+
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
 
     private static string Read()
     {

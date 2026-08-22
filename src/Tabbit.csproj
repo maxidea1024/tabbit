@@ -90,6 +90,27 @@
     <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(BuildTimestamp)' != ''">
+    <!--
+      When this build was made, for the version option to print.
+
+      Passed in rather than evaluated here, and nothing supplies it but the release
+      workflow. `$([System.DateTime]::UtcNow)` written at this spot would be a compile
+      input that differs on every build: deterministic builds would end, and every
+      `dotnet build` would recompile from scratch - in front of a suite that already takes
+      twenty-two minutes. A developer's build says no build time instead, which together
+      with a version of 0.0.0 is the truthful answer that it is not a release.
+
+      An `AssemblyMetadata` item is turned into an `AssemblyMetadataAttribute` by the SDK,
+      so there is no generated file here to keep in step with anything.
+
+      Deliberately not part of the informational version: that string is the build cache's
+      key and the `toolVersion` recorded in every summary, and a value that moved on each
+      build would mean a full conversion every time. spec/cli-help.md section 7.
+    -->
+    <AssemblyMetadata Include="BuildTimestamp" Value="$(BuildTimestamp)" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(SelfContained)' == 'true'">
     <!--
       A self-contained publish is one file that runs on a machine with no .NET at all.

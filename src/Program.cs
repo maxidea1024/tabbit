@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using CommandLine;
 using Tabbit.Models.Raw;
 using Tabbit.Importers;
@@ -44,22 +45,57 @@ class Program
             }
         }
 
-        var parser = new Parser(recipe => recipe.HelpWriter = Console.Out);
+        // Asking how to use this program is answered here rather than by the parser, and
+        // the three cases are deliberately three different answers.
+        //
+        // `--help` and `--version` are requests, not runs, so they succeed - which they
+        // did not before, and `tabbit --help && something` failed on the `&&`. What
+        // `--help` prints is written out in HelpScreen rather than generated from the
+        // options, because what a reader needs from it - the usage forms, the examples,
+        // which options belong to which mode - is what a generated list cannot say.
+        //
+        // A misuse gets three lines and a pointer. Printing the whole screen under an
+        // error message, which is what happened before, pushes the error off the top of
+        // the terminal: the one thing the reader needed is the one thing scrolled away.
+        //
+        // spec/cli-help.md.
         if (args.Length == 0)
         {
-            parser.ParseArguments<Options>(new[] { "--help" });
-            return 1;
+            HelpScreen.WriteUsageError(Console.Error, "no options given");
+            return ExitCode.Failed;
         }
+
+        if (args.Any(IsHelpRequest))
+        {
+            HelpScreen.Write(Console.Out);
+            return ExitCode.Success;
+        }
+
+        if (args.Any(argument => argument == "--version"))
+        {
+            HelpScreen.WriteVersion(Console.Out);
+            return ExitCode.Success;
+        }
+
+        // The parser writes nothing of its own. Its help text is the screen this program
+        // replaced, and `AutoHelp` would answer `--help` with it before the check above
+        // could.
+        var parser = new Parser(settings =>
+        {
+            settings.HelpWriter = null;
+            settings.AutoHelp = false;
+            settings.AutoVersion = false;
+        });
 
         Options? options = null;
         parser.ParseArguments<Options>(args)
-            .WithParsed(r => { options = r; });
+            .WithParsed(r => { options = r; })
+            .WithNotParsed(errors => ReportUsageError(args, errors));
 
         // WithParsed only fires on success, so a rejected argument leaves `options`
         // null. Every path below dereferences it, so bail out here instead.
-        // CommandLineParser has already written the error and the help text.
         if (options is null)
-            return 1;
+            return ExitCode.Failed;
 
         ChooseMessageLanguage(options.Messages);
 
@@ -93,7 +129,7 @@ class Program
         // logger is closed. Every exit below runs through this.
         try
         {
-            return Run(parser, options);
+            return Run(options);
         }
         finally
         {
@@ -101,6 +137,51 @@ class Program
 
             Log.CloseAndFlush();
         }
+    }
+
+    /// <summary>
+    /// Whether an argument is asking for the help screen.
+    /// </summary>
+    /// <remarks>
+    /// The Windows spellings as well as the Unix ones. Most of this tool's users are on
+    /// Windows, where `-?` and `/?` are what a person tries first, and a tool that answers
+    /// those with "unrecognised option" is a tool that has hidden its own documentation.
+    /// </remarks>
+    private static bool IsHelpRequest(string argument)
+        => argument is "--help" or "-h" or "-?" or "/?";
+
+    /// <summary>
+    /// Says what the parser rejected, in one line, and points at `--help` for the rest.
+    /// </summary>
+    /// <remarks>
+    /// The token is looked up in the arguments rather than printed as the parser named it:
+    /// the parser reports `h` for both `-h` and `--h`, and an error that does not quote what
+    /// was typed leaves the reader guessing which of the two it read.
+    ///
+    /// Only the first error. A command line with three mistakes in it is corrected one
+    /// mistake at a time anyway, and the second is often the first one's consequence.
+    /// </remarks>
+    private static void ReportUsageError(string[] args, IEnumerable<Error> errors)
+    {
+        static string Spelled(string[] args, string token)
+            => args.FirstOrDefault(argument => argument.TrimStart('-', '/') == token) ?? token;
+
+        string problem = errors.FirstOrDefault() switch
+        {
+            UnknownOptionError unknown
+                => $"unrecognised option '{Spelled(args, unknown.Token)}'",
+            MissingValueOptionError missing
+                => $"option '--{missing.NameInfo.LongName}' needs a value",
+            BadFormatConversionError bad
+                => $"option '--{bad.NameInfo.LongName}' was given a value of the wrong kind",
+            RepeatedOptionError repeated
+                => $"option '--{repeated.NameInfo.LongName}' was given more than once",
+            MissingRequiredOptionError required
+                => $"option '--{required.NameInfo.LongName}' is required",
+            _ => "the options could not be read",
+        };
+
+        HelpScreen.WriteUsageError(Console.Error, problem);
     }
 
     /// <summary>
@@ -205,7 +286,7 @@ class Program
         return 0;
     }
 
-    private static int Run(Parser parser, Options options)
+    private static int Run(Options options)
     {
         if (!string.IsNullOrEmpty(options.NewRecipeFilename))
         {
@@ -271,8 +352,13 @@ class Program
         }
         else
         {
-            parser.ParseArguments<Options>(new[] { "--help" });
-            return 1;
+            // Nothing to work on: no recipe, and none of the options above that run
+            // without one. This used to print the whole help screen, which buries the
+            // sentence saying what was missing. spec/cli-help.md section 6.
+            HelpScreen.WriteUsageError(
+                Console.Error, "no recipe given, and no option that works without one");
+
+            return ExitCode.Failed;
         }
 
         // Every path to here loaded a recipe: the `else` above returns, and so does the

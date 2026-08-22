@@ -49,7 +49,7 @@ public class Options
     /// </summary>
     [Cache(CacheRelevance.Output)]
     [Option("target-side",
-        HelpText = "Narrow the run to one side: `client`, `server`, or `both` (the default).")]
+        HelpText = "Narrow the run to one side: 'client', 'server', or 'both' (the default).")]
     public string? TargetSide { get; set; }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class Options
     [Cache(CacheRelevance.Output)]
     [Option("time-zone", HelpText =
         "Time zone the sheets' dates were written in, forced over the recipe: "
-        + "`Asia/Seoul` or `+09:00`.")]
+        + "'Asia/Seoul' or '+09:00'.")]
     public string? TimeZone { get; set; }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class Options
     /// than overwritten.
     /// </remarks>
     [Cache(CacheRelevance.Output)]
-    [Option("env", HelpText =
+    [Option('e', "env", HelpText =
         "Environment this run is for. Recorded in the summary, and available as ${TABBIT_ENV}.")]
     public string? EnvironmentName { get; set; }
 
@@ -125,7 +125,7 @@ public class Options
     /// from. Overrides what the commit says.
     /// </summary>
     [Cache(CacheRelevance.Commit)]
-    [Option("commit-author", HelpText = "Author of the change, as `Name <email>`. Overrides git.")]
+    [Option("commit-author", HelpText = "Author of the change, as 'Name <email>'. Overrides git.")]
     public string? CommitAuthor { get; set; }
 
     /// <summary>When the change was made, as an ISO 8601 timestamp. Overrides git.</summary>
@@ -207,12 +207,12 @@ public class Options
 
     /// <summary>How to render a report: `json` or `text`.</summary>
     [Cache(CacheRelevance.NotAConversion)]
-    [Option("format", HelpText = "Report format: `json` or `text`.")]
+    [Option("format", HelpText = "Report format: 'json' or 'text'.")]
     public string? Format { get; set; }
 
     /// <summary>Where to write a report. Standard output when left out.</summary>
     [Cache(CacheRelevance.NotAConversion)]
-    [Option("out", HelpText = "File to write the report to. Standard output when left out.")]
+    [Option('o', "out", HelpText = "File to write the report to. Standard output when left out.")]
     public string? Out { get; set; }
 
     /// <summary>
@@ -245,7 +245,7 @@ public class Options
     /// first time.
     /// </summary>
     [Cache(CacheRelevance.NotAConversion)]
-    [Option("before", HelpText = "Prune snapshots older than this: a date, or an age like `90d`.")]
+    [Option("before", HelpText = "Prune snapshots older than this: a date, or an age like '90d'.")]
     public string? Before { get; set; }
 
     /// <summary>
@@ -431,7 +431,7 @@ public class Options
     /// the state of one machine's files, so it is not something a checkout should carry.
     /// </remarks>
     [Cache(CacheRelevance.Control)]
-    [Option("cache-dir", HelpText = "Where to keep the build cache. `.tabbit/` when left out.")]
+    [Option("cache-dir", HelpText = "Where to keep the build cache. '.tabbit/' when left out.")]
     public string? CacheDirectory { get; set; }
 
     /// <summary>
@@ -474,14 +474,14 @@ public class Options
     public string Messages { get; set; } = "";
 
     [Cache(CacheRelevance.Irrelevant)]
-    [Option("verbose", HelpText = "Sets whether to output debugging log messages.")]
+    [Option('v', "verbose", HelpText = "Print the debug log as well.")]
     public bool Verbose { get; set; }
 
     [Cache(CacheRelevance.Irrelevant)]
-    [Option("silent", HelpText = "Suppress all logging message except ERROR/FATAL.")]
+    [Option('q', "silent", HelpText = "Print nothing below ERROR.")]
     public bool Silent { get; set; }
     
     [Cache(CacheRelevance.Irrelevant)]
-    [Option("debug", HelpText = "Enables or disables internal debugging.")]
+    [Option("debug", HelpText = "Print the call stack when something fails.")]
     public bool Debugging { get; set; }
 }
