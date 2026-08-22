@@ -122,9 +122,9 @@
 /// 한 셀에 `1,2,3` 으로 적을 수 있습니다.
 struct Vector3 (sep=",")
     /// X 성분.
-    field x float@1
-    field y float@2
-    field z float@3
+    field x@1 float
+    field y@2 float
+    field z@3 float
 
 /// 속성.
 enum Element
@@ -155,11 +155,11 @@ line          = doc-comment | declaration | comment | blank ;
 declaration   = struct-decl | field-decl | enum-decl | value-decl ;
 
 struct-decl   = [ "abstract" ] "struct" ident [ "extends" ident ] [ meta ] EOL ;
-field-decl    = "field" ident type [ wtag ] [ "=" literal ] [ meta ] EOL ;
+field-decl    = "field" ident [ wtag ] type [ "=" literal ] [ meta ] EOL ;
 enum-decl     = "enum" ident [ meta ] EOL ;
 value-decl    = "value" ident [ "=" int-literal ] [ meta ] EOL ;
 
-wtag          = "@" positive-int ;
+wtag          = "@" positive-int ;                (* 이름에 붙습니다 - 시트와 같은 자리 *)
 
 type          = element [ "?" ] [ "[]" [ "?" ] ] ;
 element       = builtin-name
@@ -230,7 +230,8 @@ IDE가 성립합니다 — 시트를 읽어야 타입이 결정되면 편집기�
 ### 4.5 와이어 태그 — `@N`
 
 **시트의 [`@N`](../doc/sheets.md#와이어-태그-n)과 같은 것이고, 같은 규칙을 그대로
-물려받습니다.** 이름은 **wtag**입니다 — 메타데이터의 `tag`은 자유 메타데이터이므로(§6.1)
+물려받습니다.** 붙는 자리도 같습니다 — 시트가 `index@1`이라고 적듯이 **이름 뒤, 타입 앞**에
+답니다. 타입 뒤에 두면 배열 표기(`int?[]?`)와 기본값 사이에 끼어 읽기 어려워집니다. 이름은 **wtag**입니다 — 메타데이터의 `tag`은 자유 메타데이터이므로(§6.1)
 그것과 섞이지 않게 부르는 이름을 따로 둡니다.
 
 |규칙|내용|
