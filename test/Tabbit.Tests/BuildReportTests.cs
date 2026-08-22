@@ -564,6 +564,34 @@ public class BuildReportTests : IDisposable
         Assert.Contains("a stray ` and &lt;b&gt;no markup&lt;/b&gt;", page);
     }
 
+    /// <summary>
+    /// The two controls that were doing something other than what they said.
+    /// </summary>
+    /// <remarks>
+    /// `Expand all` only opened the group folds, and a page whose places mostly hold one
+    /// report each has almost none - so the button read as one that did nothing. The rows
+    /// are what folds on this page and it opens those too.
+    ///
+    /// The copy button appeared on hover and also on any row that happened to be open,
+    /// which is a control appearing for a reason the reader cannot see. One trigger.
+    /// </remarks>
+    [Fact]
+    public void The_controls_do_what_they_say()
+    {
+        var options = OptionsFor();
+        var report = BuildReport.Create(options, RecipeWith(new ReportRecipe()))!;
+
+        report.Take(Found((Severity.Error, At("book.xlsx", "Item", 2, 6), "the id is not a number")));
+        report.Write(ExitCode.Failed, null);
+
+        string page = File.ReadAllText(report.HtmlPath);
+
+        Assert.Contains("row.classList.toggle('open', open)", page);
+
+        Assert.Contains(".row:hover .copy { visibility: visible; }", page);
+        Assert.DoesNotContain(".row.open .copy", page);
+    }
+
     // ------------------------------------------------------------------ opening
 
     /// <summary>

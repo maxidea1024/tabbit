@@ -205,8 +205,13 @@ internal static class ReportHtml
                .Append("\"><b>").Append(count.ToString("N0", CultureInfo.InvariantCulture))
                .Append("</b> ").Append(Escaped(label)).Append("</span>");
 
+    /// <remarks>
+    /// The spaces around the separator are written rather than left to a margin. A margin is
+    /// not a character, so a line laid out with one copies as `recipe.jsonc·Tabbit 0.0.0` -
+    /// and this line exists to be pasted into a message saying which run it was.
+    /// </remarks>
     private static void Meta(StringBuilder page, string label, string value, bool first)
-        => page.Append(first ? "" : "<span class=\"dot\">·</span>")
+        => page.Append(first ? "" : "<span class=\"dot\"> · </span>")
                .Append("<span class=\"k\">").Append(Escaped(label)).Append("</span> ")
                .Append(Escaped(value));
 
@@ -593,6 +598,7 @@ internal static class ReportHtml
   --bg:#fff; --fg:#1f2328; --muted:#59636e; --faint:#818b98;
   --line:#d1d9e0; --line-soft:#eaeef2; --head:#f6f8fa; --zebra:#fbfcfd;
   --link:#0969da; --bad:#cf222e; --warn:#9a6700; --ok:#0a7c4a; --bar:#f6f8fa;
+  --code:#8250df; --code-bg:#f3eefc;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -600,6 +606,7 @@ internal static class ReportHtml
     --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --faint:#6e7681;
     --line:#30363d; --line-soft:#21262d; --head:#161b22; --zebra:#11161d;
     --link:#4493f8; --bad:#f85149; --warn:#d29922; --ok:#3fb950; --bar:#161b22;
+    --code:#d2a8ff; --code-bg:#221a35;
     color-scheme: dark;
   }
 }
@@ -607,6 +614,7 @@ internal static class ReportHtml
   --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --faint:#6e7681;
   --line:#30363d; --line-soft:#21262d; --head:#161b22; --zebra:#11161d;
   --link:#4493f8; --bad:#f85149; --warn:#d29922; --ok:#3fb950; --bar:#161b22;
+  --code:#d2a8ff; --code-bg:#221a35;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -629,8 +637,10 @@ a:hover { text-decoration: underline; }
 .id, .at, code { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
 
 /* What a report quotes - a column, a value, a setting - is the part that differs from the
-   report above it, and as plain text it read like the part that does not. */
-code { background: var(--line-soft); border-radius: 4px; padding: 0 4px; }
+   report above it, and as plain text it read like the part that does not. A tint alone was
+   not enough of a difference to find by eye down a page of them, so it carries a colour of
+   its own - and one that is not the link blue already in the row. */
+code { color: var(--code); background: var(--code-bg); border-radius: 4px; padding: 0 4px; }
 * { scrollbar-width: thin; }
 
 /* One scrolling region. The header, tabs and toolbar hold their place because nothing above
@@ -655,7 +665,7 @@ header.bar.warn h1 { color: var(--warn); }
 
 p.meta { margin: 5px 0 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
 p.meta .k { color: var(--faint); }
-p.meta .dot { color: var(--faint); margin: 0 7px; }
+p.meta .dot { color: var(--faint); }
 
 /* ---- tabs: one list at a time ---- */
 .tabs { display: flex; gap: 2px; padding: 0 14px; background: var(--bar);
@@ -729,12 +739,13 @@ details.grp > summary .n { margin-left: auto; color: var(--faint);
          border: 1px solid var(--line); }
 .badge.new { color: var(--bad); border-color: var(--bad); }
 .badge.persisting { color: var(--faint); }
-/* On hover and on the opened row only. A button beside every place is one control
-   fourteen times over, and the place beside it is the thing being looked at. */
+/* On hover, and on hover only. A button beside every place is one control as many times as
+   there are rows; a button that is also there when the row happens to be open is a control
+   that appears for a reason the reader cannot see, which reads as arbitrary. One trigger. */
 .copy { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 5px; background: var(--bg);
         color: var(--muted); font-size: 11px; padding: 0 6px; cursor: pointer;
         visibility: hidden; }
-.row:hover .copy, .row.open .copy { visibility: visible; }
+.row:hover .copy { visibility: visible; }
 
 .defect { border: 1px solid var(--bad); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
 .defect h2 { margin-top: 0; color: var(--bad); font-size: 14px; }
@@ -804,10 +815,15 @@ function filter() {
   document.getElementById('nothing').hidden = any > 0;
 }
 
+/* Both of the things that fold on this page. A page whose places mostly hold one report
+   each has almost no group folds on it, and a control that only worked on those read as a
+   control that did nothing. */
 function fold(open) {
   var host = panel();
   if (!host) return;
+
   host.querySelectorAll('details.grp').forEach(function (group) { group.open = open; });
+  host.querySelectorAll('.row').forEach(function (row) { row.classList.toggle('open', open); });
 }
 
 /* Gathers the problems under the other axis. The rows are moved, not rebuilt: each one
