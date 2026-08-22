@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.Sources;
 
@@ -170,10 +171,11 @@ public sealed class SheetFilter
 
         if (missingWorkbooks.Count > 0)
         {
-            throw new TabbitException(
-                $"Recipe `{section}` asks for {missingWorkbooks.Count} workbook(s) that the source " +
-                $"does not have: {string.Join(", ", missingWorkbooks)}.\n" +
-                $"Workbooks that are there: {Listed(workbooks)}");
+            throw new TabbitException(null,
+                Message.Of(Importers.ImportMessages.WorkbooksNotFound,
+                    ("Section", section), ("Count", missingWorkbooks.Count),
+                    ("Missing", string.Join(", ", missingWorkbooks)),
+                    ("Present", Listed(workbooks))));
         }
 
         var missing = _includes.Where(pattern => !pattern.Matched).ToList();
@@ -188,18 +190,22 @@ public sealed class SheetFilter
         var names = (sheets ?? Enumerable.Empty<(string Workbook, string Sheet)>())
             .Select(seen => qualified ? $"[{seen.Workbook}]{seen.Sheet}" : seen.Sheet);
 
-        var message = new StringBuilder();
-        message.Append(
-            $"Recipe `{section}` asks for {missing.Count} sheet(s) that the source does not have: " +
-            $"{string.Join(", ", missing.Select(pattern => pattern.Text))}.\n" +
-            $"Sheets that are there: {Listed(names)}");
+        // Two ids rather than one message with an optional line appended. The extra line is
+        // what usually explains the report - a pattern matched nothing because the workbook
+        // holding its sheet was never opened - and a list of the sheets that were read cannot
+        // say that.
+        bool skipped = _workbooksDropped.Count > 0;
 
-        // The reason a pattern matched nothing is often that the workbook holding its sheet
-        // was never opened, and a list of the sheets that were read cannot say that.
-        if (_workbooksDropped.Count > 0)
-            message.Append($"\nWorkbooks this entry skips: {Listed(_workbooksDropped)}");
-
-        throw new TabbitException(message.ToString());
+        throw new TabbitException(null, skipped
+            ? Message.Of(Importers.ImportMessages.SheetsNotFoundWithSkipped,
+                ("Section", section), ("Count", missing.Count),
+                ("Missing", string.Join(", ", missing.Select(pattern => pattern.Text))),
+                ("Present", Listed(names)),
+                ("Skipped", Listed(_workbooksDropped)))
+            : Message.Of(Importers.ImportMessages.SheetsNotFound,
+                ("Section", section), ("Count", missing.Count),
+                ("Missing", string.Join(", ", missing.Select(pattern => pattern.Text))),
+                ("Present", Listed(names))));
     }
 
     /// <summary>Sorted, de-duplicated and readable, or `(none)` when there is nothing.</summary>
@@ -260,10 +266,9 @@ public sealed class SheetFilter
         {
             if (text.StartsWith("[", StringComparison.Ordinal))
             {
-                throw new TabbitException(
-                    $"Recipe `{section}` has `{text}` in `{key}`, which reads as a workbook and a " +
-                    "sheet. This list is about workbooks alone, so write the workbook without the " +
-                    "brackets; `[workbook]sheet` belongs in `IncludeSheets` or `ExcludeSheets`.");
+                throw new TabbitException(null,
+                    Message.Of(Recipe.RecipeMessages.WorkbookPatternHasSheet,
+                        ("Section", section), ("Text", text), ("Key", key)));
             }
 
             result.Add(new Pattern { Text = text, Workbook = ToRegex(text) });
@@ -297,9 +302,9 @@ public sealed class SheetFilter
             int close = text.IndexOf(']');
             if (close < 0)
             {
-                throw new TabbitException(
-                    $"Recipe `{section}` has `{text}` in `{key}`, which opens a workbook name with " +
-                    "`[` and never closes it. The form is `[workbook]sheet`.");
+                throw new TabbitException(null,
+                    Message.Of(Recipe.RecipeMessages.SheetPatternUnclosedBracket,
+                        ("Section", section), ("Text", text), ("Key", key)));
             }
 
             string workbook = text.Substring(1, close - 1).Trim();
@@ -307,18 +312,18 @@ public sealed class SheetFilter
 
             if (workbook.Length == 0)
             {
-                throw new TabbitException(
-                    $"Recipe `{section}` has `{text}` in `{key}`, which names no workbook between " +
-                    "its brackets. Leave the brackets off for a pattern that applies to every " +
-                    "workbook.");
+                throw new TabbitException(null,
+                    Message.Of(Recipe.RecipeMessages.SheetPatternNoWorkbook,
+                        ("Section", section), ("Text", text), ("Key", key)));
             }
 
             if (sheet.Length == 0)
             {
-                throw new TabbitException(
-                    $"Recipe `{section}` has `{text}` in `{key}`, which names a workbook and no " +
-                    $"sheet. Use `{(key.StartsWith("Include", StringComparison.Ordinal) ? "Include" : "Exclude")}" +
-                    $"Workbooks` for a whole workbook.");
+                throw new TabbitException(null,
+                    Message.Of(Recipe.RecipeMessages.SheetPatternNoSheet,
+                        ("Section", section), ("Text", text), ("Key", key),
+                        ("Alternative", key.StartsWith("Include", StringComparison.Ordinal)
+                            ? "Include" : "Exclude")));
             }
 
             result.Add(new Pattern

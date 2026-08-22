@@ -85,6 +85,20 @@
   "recipe.row-sets-bad-regex": "`TableRowSets` is `{Pattern}`, which is not a regular expression: {Detail}",
   "recipe.row-sets-missing-groups": "`TableRowSets` is `{Pattern}`, which needs a `{TableGroup}` group naming the table and a `{SetGroup}` group naming the set - for example `^(?<{TableGroup}>.+?)(?<{SetGroup}>_alt)$`.",
 
+  "recipe.entry-array-delimiter-not-one-character": "Recipe `{Section}` sets `ArrayDelimiter` to `{Value}`, but it must be exactly one character.",
+  "recipe.on-blank-cell-unknown": "Recipe `{Section}` sets `OnBlankCell` to `{Value}`. It takes `error` or `empty`.",
+  "recipe.on-formula-error-unknown": "Recipe `{Section}` sets `OnFormulaError` to `{Value}`. It takes `error` or `empty`.",
+  "recipe.on-duplicate-index-unknown": "Recipe `{Section}` sets `OnDuplicateIndex` to `{Value}`. It takes `error`, `keep-first` or `keep-last`.",
+
+  "recipe.workbook-pattern-has-sheet": "Recipe `{Section}` has `{Text}` in `{Key}`, which reads as a workbook and a sheet. This list is about workbooks alone, so write the workbook without the brackets; `[workbook]sheet` belongs in `IncludeSheets` or `ExcludeSheets`.",
+  "recipe.sheet-pattern-unclosed-bracket": "Recipe `{Section}` has `{Text}` in `{Key}`, which opens a workbook name with `[` and never closes it. The form is `[workbook]sheet`.",
+  "recipe.sheet-pattern-no-workbook": "Recipe `{Section}` has `{Text}` in `{Key}`, which names no workbook between its brackets. Leave the brackets off for a pattern that applies to every workbook.",
+  "recipe.sheet-pattern-no-sheet": "Recipe `{Section}` has `{Text}` in `{Key}`, which names a workbook and no sheet. Use `{Alternative}Workbooks` for a whole workbook.",
+
+  "recipe.google-key-file-and-variable": "Recipe section `{Section}` names both `ServiceAccountKeyFile` and `ServiceAccountKeyVariable`. Name one: the file for a key on disk, the variable for one held in a secret store.",
+  "recipe.google-service-account-and-client-secret": "Recipe section `{Section}` names both a service account key and `ClientSecretFilename`. Those authenticate as different identities, so name one: the service account for an unattended run, the client secret for a person at a machine.",
+  "recipe.google-no-credential": "Recipe section `{Section}` names no credential. Set `ServiceAccountKeyFile` or `ServiceAccountKeyVariable` for an unattended run, or `ClientSecretFilename` to authenticate as the person running it.",
+
   "validate.rule-has-no-entry": "[{File}] has nothing to run. A rule file is a class with `public static void {Entry}({Context} context)`, and the context is how it reports. Helpers with no entry belong in `{SharedPath}/`, which is compiled with every rule but never run on its own.",
   "validate.rule-entry-declared-twice": "[{File}] declares `{Entry}()` more than once, so which one is the rule is not decided. Keep one and call the rest from it.",
   "validate.rule-entry-wrong-context": "[{File}] declares `{Owner}.{Entry}` but it does not take a `{Context}`, which is what `{Folder}/` hands over. Write `public static void {Entry}({Context} context)`. A rule moved here from another stage takes the other stage's context, and the two differ in what they carry.",

@@ -10,6 +10,7 @@ using Tabbit.Cooking.Layouts;
 using Tabbit.Helpers;
 using Tabbit.Importers.Xlsx;
 using Serilog;
+using Tabbit.Messages;
 
 namespace Tabbit.Importers;
 
@@ -66,8 +67,9 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
 
         if (!Directory.Exists(xlsx.Path))
         {
-            throw new TabbitException(
-                $"Recipe `{context.Section}` reads workbooks from `{xlsx.Path}`, which does not exist.");
+            throw new TabbitException(null,
+                Message.Of(ImportMessages.WorkbookPathMissing,
+                    ("Section", context.Section), ("Path", xlsx.Path)));
         }
 
         // Which files are candidates is decided in one place, because the build cache asks

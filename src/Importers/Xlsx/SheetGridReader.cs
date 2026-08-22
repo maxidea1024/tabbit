@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Sylvan.Data.Excel;
+using Tabbit.Messages;
 
 namespace Tabbit.Importers.Xlsx;
 
@@ -59,9 +60,8 @@ internal sealed class SheetGridReader : IDisposable
         var type = WorkbookTypeOf(filename);
         if (type == ExcelWorkbookType.Unknown)
         {
-            throw new TabbitException(
-                $"`{filename}` is not a workbook this tool can read. "
-                + "It reads `.xlsx`, `.xlsm`, `.xlsb` and `.xls`.");
+            throw new TabbitException(null,
+                Message.Of(ImportMessages.WorkbookFormatUnsupported, ("Filename", filename)));
         }
 
         var options = new ExcelDataReaderOptions

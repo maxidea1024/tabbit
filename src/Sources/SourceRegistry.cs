@@ -112,7 +112,7 @@ public static class SourceRegistry
 
             if (type.IsAbstract || !typeof(ISource).IsAssignableFrom(type))
             {
-                throw new TabbitException(
+                throw new TabbitDefectException(
                     $"`{type.Name}` is marked [TabbitSource] but is not a concrete {nameof(ISource)}.");
             }
 
@@ -129,7 +129,7 @@ public static class SourceRegistry
         var duplicate = descriptors.GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)
                                    .FirstOrDefault(g => g.Count() > 1);
         if (duplicate is not null)
-            throw new TabbitException($"Two sources both claim the id `{duplicate.Key}`.");
+            throw new TabbitDefectException($"Two sources both claim the id `{duplicate.Key}`.");
 
         descriptors.Sort((left, right) =>
         {

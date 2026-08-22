@@ -107,7 +107,7 @@ public static class LayoutRegistry
         var duplicate = descriptors.GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)
                                    .FirstOrDefault(g => g.Count() > 1);
         if (duplicate is not null)
-            throw new TabbitException($"Two layouts both claim the id `{duplicate.Key}`.");
+            throw new TabbitDefectException($"Two layouts both claim the id `{duplicate.Key}`.");
 
         descriptors.Sort((left, right) => string.CompareOrdinal(left.Id, right.Id));
 
