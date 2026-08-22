@@ -167,7 +167,7 @@ func (t *GuideTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Skill.Step = make([]GuideSkillEntry, elementCount)
+					r.Skill.Step = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
 						r.Skill.Step[j] = cursor.NextI32()
 					}
@@ -179,7 +179,7 @@ func (t *GuideTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Skill.Order = make([]GuideSkillEntry, elementCount)
+					r.Skill.Order = make([]string, elementCount)
 					for j := 0; j < elementCount; j++ {
 						r.Skill.Order[j] = cursor.NextString()
 					}
@@ -219,7 +219,7 @@ func (t *GuideTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Grid[0] = make([]GuideGridEntry, elementCount)
+					r.Grid[0] = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
 						r.Grid[0][j] = cursor.NextI32()
 					}
@@ -231,7 +231,7 @@ func (t *GuideTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Grid[1] = make([]GuideGridEntry, elementCount)
+					r.Grid[1] = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
 						r.Grid[1][j] = cursor.NextI32()
 					}

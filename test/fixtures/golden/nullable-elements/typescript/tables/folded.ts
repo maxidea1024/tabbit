@@ -41,7 +41,7 @@ export class FoldedRecord {
   }
 
   public _index: number = 0
-  public _tagArray: string = ''
+  public _tagArray: string[] = []
   public _tagArrayHasValueAt: boolean[] | null = null
 
   /** Populate field values. */

@@ -71,7 +71,7 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
     {
       int32_t element;
 
-      for (element = 0; element < record->slots_count; ++element) {
+      for (element = 0; element < record->slots.item_id_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
           &data->item, record->slots.item_id_index[element]);
 

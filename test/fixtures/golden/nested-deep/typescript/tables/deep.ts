@@ -63,7 +63,7 @@ export class DeepRecord {
   public get star(): StarEntry[] { return this._star }
 
   public _index: number = 0
-  public _star: StarEntry = Array.from({ length: 2 }, () => ({ id: 0, position: { x: 0, y: 0 } }))
+  public _star: StarEntry[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

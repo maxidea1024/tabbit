@@ -44,8 +44,8 @@ export class LocalizationRecord {
 
   public _index: number = 0
   public _key: string = ''
-  public _textEnArray: string = ''
-  public _textKoArray: string = ''
+  public _textEnArray: string[] = []
+  public _textKoArray: string[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

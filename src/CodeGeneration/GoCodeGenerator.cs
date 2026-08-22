@@ -800,6 +800,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             MemberAt = wire.MemberAt,
             ElementCount = wire.Cells.Count,
             ArrayType = arrayType,
+            ElementSliceType = "[]" + ColumnElementType(wire),
             IsFirstMember = wire.IsFirstMember,
             ReadValue = ValueReadExpression(wire),
             IsNullable = wire.IsNullable,

@@ -241,11 +241,25 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
 {{~ end ~}}
 
         record->{{ column_view.name }}{{ column_view.member_access }}_count = element_count;
+{{~ if column_view.key_type != '' }}
+{{~## A reference member holds one row pointer per element as well as one key, and the read
+   writes into the key - so both are made. spec/references-in-records.md. ##~}}
+        record->{{ column_view.name }}{{ column_view.member_access }} = ({{ column_view.reference_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.member_access }});
+        record->{{ column_view.name }}{{ column_view.member_access }}_index = ({{ column_view.key_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.member_access }}_index);
+
+        if (element_count > 0
+            && (record->{{ column_view.name }}{{ column_view.member_access }} == NULL
+                || record->{{ column_view.name }}{{ column_view.member_access }}_index == NULL))
+          return tb_fail_with(reader, "out of memory allocating a member array");
+{{~ else }}
         record->{{ column_view.name }}{{ column_view.member_access }} = ({{ column_view.element_type }}*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.member_access }});
 
         if (element_count > 0 && record->{{ column_view.name }}{{ column_view.member_access }} == NULL)
           return tb_fail_with(reader, "out of memory allocating a member array");
+{{~ end }}
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
 {{~ if column_view.needs_scratch ~}}

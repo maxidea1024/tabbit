@@ -201,7 +201,14 @@ public final class {{ table.table_name }} {
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
                         int elementCount;
                         {{ column_view.length_read }}
-                        record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = new {{ column_view.element_type }}[elementCount];
+{{~ if column_view.member_ref_suffix != '' ~}}
+{{~## A reference member holds one key per element as well as one row, and the read writes
+   into the key - so both are made. spec/references-in-records.md. ##~}}
+                        record.{{ column_view.name }}{{ column_view.member_access }} = new {{ column_view.element_type }}[elementCount];
+                        record.{{ column_view.name }}{{ column_view.member_access }}Index = new {{ column_view.ref_key_type }}[elementCount];
+{{~ else ~}}
+                        record.{{ column_view.name }}{{ column_view.member_access }} = new {{ column_view.element_type }}[elementCount];
+{{~ end ~}}
                         for (int j = 0; j < elementCount; j++) {
                             record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_element }};
                         }

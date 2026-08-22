@@ -65,7 +65,7 @@ export class MountRecord {
   public get rig(): RigEntry[] { return this._rig }
 
   public _index: number = 0
-  public _rig: RigEntry = Array.from({ length: 2 }, () => ({ core: { itemId: undefined, itemId_index: 0, itemId_F: false, count: 0 } }))
+  public _rig: RigEntry[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

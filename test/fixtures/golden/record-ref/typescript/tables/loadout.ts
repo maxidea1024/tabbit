@@ -59,7 +59,7 @@ export class LoadoutRecord {
   public get slot(): SlotEntry[] { return this._slot }
 
   public _index: number = 0
-  public _slot: SlotEntry = Array.from({ length: 2 }, () => ({ itemId: undefined, itemId_index: 0, itemId_F: false, swapId: undefined, swapId_index: 0, swapId_F: false, count: 0 }))
+  public _slot: SlotEntry[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

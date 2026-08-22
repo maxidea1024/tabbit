@@ -58,7 +58,7 @@ export class ArrayTypesRecord {
   public _costs: number[] = []
   public _weights: number[] = []
   public _grades: Grade[] = []
-  public _slotArray: number = 0
+  public _slotArray: number[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

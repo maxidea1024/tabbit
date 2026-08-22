@@ -122,9 +122,9 @@ function BagTable:readBytes(data)
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
-         = {}
-        for element = 1, element_count do
-           = cursor:nextI32()
+        record.slots.itemIdIndex = {}
+        for element = 1, elementCount do
+          record.slots.itemIdIndex[element] = cursor:nextI32()
         end
       end
     elseif column.tag == 3 then
@@ -133,9 +133,9 @@ function BagTable:readBytes(data)
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
-         = {}
-        for element = 1, element_count do
-           = cursor:nextI32()
+        record.slots.count = {}
+        for element = 1, elementCount do
+          record.slots.count[element] = cursor:nextI32()
         end
       end
     else

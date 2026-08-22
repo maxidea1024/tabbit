@@ -81,9 +81,9 @@ export class LoadoutRecord {
   public _index: number = 0
   public _name: string = ''
   public _pos: PosEntry = { x: 0, y: 0 }
-  public _slot: SlotEntry = Array.from({ length: 2 }, () => ({ id: 0, label: '' }))
+  public _slot: SlotEntry[] = []
   public _note: string = ''
-  public _tagArray: string = ''
+  public _tagArray: string[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

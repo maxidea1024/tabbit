@@ -1359,9 +1359,14 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             Access = path + subscript,
             Key = path + "_index" + subscript,
 
-            // Whichever array holds the elements. Every array carries its own count since
-            // v107, so there is one answer where there used to be three.
-            Count = wire.IsArray ? $"record->{name}_count" : "",
+            // Whichever array holds the elements, and its count sits beside it. The group
+            // owns the array when the number is on the group, the member owns it when the
+            // number is on the member - and the count is a sibling of whichever that is.
+            Count = !wire.IsArray
+                ? ""
+                : wire.Group.MembersAreArrays
+                    ? $"record->{name}{member}_count"
+                    : $"record->{name}_count",
 
             RefTable = CName(refTable!.Name),
             RefLookup = PrimaryLookup(refTable),
@@ -1561,7 +1566,11 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             Target = path + "_target" + subscript,
 
             // Whichever array holds the elements, counted the way the single-target member is.
-            Count = wire.IsArray ? $"record->{name}_count" : "",
+            Count = !wire.IsArray
+                ? ""
+                : wire.Group.MembersAreArrays
+                    ? $"record->{name}{member}_count"
+                    : $"record->{name}_count",
 
             NoneLabel = ConstantName(field.MultiTargetEnum!.Name, "None"),
 

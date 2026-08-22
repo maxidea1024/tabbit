@@ -138,7 +138,8 @@ func (t *BagTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Slots.ItemIdIndex = make([]BagSlotsEntry, elementCount)
+					r.Slots.ItemId = make([]*ItemRecord, elementCount)
+					r.Slots.ItemIdIndex = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
 						r.Slots.ItemIdIndex[j] = cursor.NextI32()
 					}
@@ -150,7 +151,7 @@ func (t *BagTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Slots.Count = make([]BagSlotsEntry, elementCount)
+					r.Slots.Count = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
 						r.Slots.Count[j] = cursor.NextI32()
 					}

@@ -70,7 +70,7 @@ export class LoadoutRecord {
   public get slot(): SlotEntry[] { return this._slot }
 
   public _index: number = 0
-  public _slot: SlotEntry = Array.from({ length: 2 }, () => ({ pick: 0, pickRow: undefined, pickTarget: LoadoutSlotPickTarget.None, count: 0 }))
+  public _slot: SlotEntry[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

@@ -164,7 +164,7 @@ func (t *RackTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Slots.Pick = make([]RackSlotsEntry, elementCount)
+					r.Slots.Pick = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
 						r.Slots.Pick[j] = cursor.NextI32()
 					}
@@ -176,7 +176,7 @@ func (t *RackTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Slots.Count = make([]RackSlotsEntry, elementCount)
+					r.Slots.Count = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
 						r.Slots.Count[j] = cursor.NextI32()
 					}

@@ -69,11 +69,17 @@ static bool RecordRef_BagParse(RecordRef_BagTable_t* table, tb_reader* reader) {
         (void)tb_cursor_next_length(&cursor, &element_count);
 
         record->slots.item_id_count = element_count;
-        record->slots.item_id = (RecordRef_ItemRecord_t*)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->slots.item_id);
 
-        if (element_count > 0 && record->slots.item_id == NULL)
+        record->slots.item_id = (const RecordRef_ItemRecord_t**)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slots.item_id);
+        record->slots.item_id_index = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slots.item_id_index);
+
+        if (element_count > 0
+            && (record->slots.item_id == NULL
+                || record->slots.item_id_index == NULL))
           return tb_fail_with(reader, "out of memory allocating a member array");
+
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->slots.item_id_index[element]);
@@ -93,11 +99,13 @@ static bool RecordRef_BagParse(RecordRef_BagTable_t* table, tb_reader* reader) {
         (void)tb_cursor_next_length(&cursor, &element_count);
 
         record->slots.count_count = element_count;
+
         record->slots.count = (int32_t*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->slots.count);
 
         if (element_count > 0 && record->slots.count == NULL)
           return tb_fail_with(reader, "out of memory allocating a member array");
+
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->slots.count[element]);

@@ -261,6 +261,14 @@ internal sealed class LuaColumnView
     /// <summary>The list a record_var's first member builds: `record.slots`.</summary>
     public required string GroupTarget { get; set; }
 
+    /// <summary>The list this column's elements go in, where the read builds it per row.</summary>
+    /// <remarks>
+    /// Not the group: a member that is itself the array owns its own list, and one inner
+    /// level of an array of arrays is a slot of the outer one. Empty for the kinds that do
+    /// not build a list. spec/tcb-v107-dynamic-arrays.md.
+    /// </remarks>
+    public required string ElementContainer { get; set; }
+
     /// <summary>The element constructor of the record shapes: `newVectorsSlotsEntry`.</summary>
     public required string RecordConstructor { get; set; }
 

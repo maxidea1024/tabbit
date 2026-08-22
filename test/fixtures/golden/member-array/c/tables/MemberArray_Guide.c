@@ -91,11 +91,13 @@ static bool MemberArray_GuideParse(MemberArray_GuideTable_t* table, tb_reader* r
         (void)tb_cursor_next_length(&cursor, &element_count);
 
         record->skill.step_count = element_count;
+
         record->skill.step = (int32_t*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->skill.step);
 
         if (element_count > 0 && record->skill.step == NULL)
           return tb_fail_with(reader, "out of memory allocating a member array");
+
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->skill.step[element]);
@@ -115,11 +117,13 @@ static bool MemberArray_GuideParse(MemberArray_GuideTable_t* table, tb_reader* r
         (void)tb_cursor_next_length(&cursor, &element_count);
 
         record->skill.order_count = element_count;
+
         record->skill.order = (const char**)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->skill.order);
 
         if (element_count > 0 && record->skill.order == NULL)
           return tb_fail_with(reader, "out of memory allocating a member array");
+
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_string(&cursor, &record->skill.order[element]);

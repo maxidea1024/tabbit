@@ -82,8 +82,8 @@ export class GuideRecord {
   public _name: string = ''
   public _skill: SkillEntry = { step: [0, 0], order: ['', ''] }
   public _pos: PosEntry = { x: 0, y: 0 }
-  public _tagArray: string = ''
-  public _grid: number[][] = Array.from({ length: 2 }, () => new Array(3).fill(0))
+  public _tagArray: string[] = []
+  public _grid: number[][] = Array.from({ length: 2 }, () => [])
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

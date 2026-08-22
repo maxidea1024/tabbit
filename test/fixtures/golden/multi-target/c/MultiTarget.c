@@ -202,7 +202,7 @@ static void MultiTarget_SolveCrossReferences(MultiTarget_t* data) {
     {
       int32_t element;
 
-      for (element = 0; element < record->slots_count; ++element) {
+      for (element = 0; element < record->slots.pick_count; ++element) {
         if (record->slots.pick[element] != 0) {
 
           if (record->slots.pick_target[element] == MULTI_TARGET_RACK_SLOTS_PICK_TARGET_NONE) {

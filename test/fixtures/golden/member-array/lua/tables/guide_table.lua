@@ -156,9 +156,9 @@ function GuideTable:readBytes(data)
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
-         = {}
-        for element = 1, element_count do
-           = cursor:nextI32()
+        record.skill.step = {}
+        for element = 1, elementCount do
+          record.skill.step[element] = cursor:nextI32()
         end
       end
     elseif column.tag == 4 then
@@ -167,9 +167,9 @@ function GuideTable:readBytes(data)
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
-         = {}
-        for element = 1, element_count do
-           = cursor:nextString()
+        record.skill.order = {}
+        for element = 1, elementCount do
+          record.skill.order[element] = cursor:nextString()
         end
       end
     elseif column.tag == 5 then
@@ -206,8 +206,8 @@ function GuideTable:readBytes(data)
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
-         = {}
-        for element = 1, element_count do
+        record.grid[1] = {}
+        for element = 1, elementCount do
           record.grid[1][element] = cursor:nextI32()
         end
       end
@@ -217,8 +217,8 @@ function GuideTable:readBytes(data)
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
-         = {}
-        for element = 1, element_count do
+        record.grid[2] = {}
+        for element = 1, elementCount do
           record.grid[2][element] = cursor:nextI32()
         end
       end

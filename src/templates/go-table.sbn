@@ -313,15 +313,22 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~## One inner slice. Which outer element it is, is which column this is - so the outer
    index is fixed here and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
 					{{ column_view.length_read }}
-					r.{{ column_view.name }}[{{ column_view.member_at }}] = make({{ column_view.array_type }}, elementCount)
+					r.{{ column_view.name }}[{{ column_view.member_at }}] = make({{ column_view.element_slice_type }}, elementCount)
 					for j := 0; j < elementCount; j++ {
 						r.{{ column_view.name }}[{{ column_view.member_at }}][j] = {{ column_view.read_value }}
 					}
 {{~ else if column_view.kind == 'record_member_var' ~}}
-{{~## The member is the array: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+{{~## The member is the array: the index goes after its name rather than before, and its
+   length is this row's - see spec/nested-multi-level.md. ##~}}
 					{{ column_view.length_read }}
-					r.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = make({{ column_view.array_type }}, elementCount)
+{{~ if column_view.member_ref_suffix != '' ~}}
+{{~## A reference member holds one key per element as well as one row, and the read writes
+   into the key - so both are made. spec/references-in-records.md. ##~}}
+					r.{{ column_view.name }}{{ column_view.member_access }} = make({{ column_view.element_slice_type }}, elementCount)
+					r.{{ column_view.name }}{{ column_view.member_access }}Index = make([]{{ column_view.ref_key_type }}, elementCount)
+{{~ else ~}}
+					r.{{ column_view.name }}{{ column_view.member_access }} = make({{ column_view.element_slice_type }}, elementCount)
+{{~ end ~}}
 					for j := 0; j < elementCount; j++ {
 						r.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_value }}
 					}

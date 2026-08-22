@@ -562,9 +562,19 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         string elementTarget = kind switch
         {
-            "record_var" or "record_serial" => $"record{groupAccess}[element]{memberTarget}",
-            "record_member_serial" => $"record{groupAccess}{memberTarget}[element]",
+            "record_var" => $"record{groupAccess}[element]{memberTarget}",
+            "record_member_var" => $"record{groupAccess}{memberTarget}[element]",
             "array_of_arrays_member" => $"record{groupAccess}[{wire.MemberAt + 1}][element]",
+            _ => "",
+        };
+
+        // The list those elements go in, for the two kinds that build it per row. The group
+        // is not it: a member that is the array owns its own list, and one inner level of an
+        // array of arrays is a slot of the outer one.
+        string elementContainer = kind switch
+        {
+            "record_member_var" => $"record{groupAccess}{memberTarget}",
+            "array_of_arrays_member" => $"record{groupAccess}[{wire.MemberAt + 1}]",
             _ => "",
         };
 
@@ -594,6 +604,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 ? $"record{groupAccess} = {{}}"
                 : "",
             GroupTarget = "record" + groupAccess,
+            ElementContainer = elementContainer,
             RecordConstructor = wire.Group.IsRecord ? "new" + RecordTypeName(table, wire.Group) : "",
             IsFirstMember = wire.IsFirstMember,
             ElementCount = wire.Cells.Count,

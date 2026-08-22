@@ -69,11 +69,13 @@ static bool MultiTarget_RackParse(MultiTarget_RackTable_t* table, tb_reader* rea
         (void)tb_cursor_next_length(&cursor, &element_count);
 
         record->slots.pick_count = element_count;
+
         record->slots.pick = (int32_t*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->slots.pick);
 
         if (element_count > 0 && record->slots.pick == NULL)
           return tb_fail_with(reader, "out of memory allocating a member array");
+
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->slots.pick[element]);
@@ -93,11 +95,13 @@ static bool MultiTarget_RackParse(MultiTarget_RackTable_t* table, tb_reader* rea
         (void)tb_cursor_next_length(&cursor, &element_count);
 
         record->slots.count_count = element_count;
+
         record->slots.count = (int32_t*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->slots.count);
 
         if (element_count > 0 && record->slots.count == NULL)
           return tb_fail_with(reader, "out of memory allocating a member array");
+
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->slots.count[element]);

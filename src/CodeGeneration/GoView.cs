@@ -420,6 +420,15 @@ internal sealed class GoColumnView
     /// <summary>The slice type a make call needs.</summary>
     public required string ArrayType { get; set; }
 
+    /// <summary>The slice type of this column's own elements, whatever holds them.</summary>
+    /// <remarks>
+    /// <see cref="ArrayType"/> names the group's slice, which is what a record array is made
+    /// as. A member that is itself the array, and one inner level of an array of arrays, are
+    /// made as this instead - the record type it would otherwise name does not exist for an
+    /// unnamed level, and is the wrong type for a member.
+    /// </remarks>
+    public required string ElementSliceType { get; set; }
+
     /// <summary>
     /// Whether this column holds the first member of its record group - the one that
     /// allocates when the element count comes from the row.

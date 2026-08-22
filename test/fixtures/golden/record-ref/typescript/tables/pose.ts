@@ -54,7 +54,7 @@ export class PoseRecord {
   public get step(): StepEntry[] { return this._step }
 
   public _index: number = 0
-  public _step: StepEntry = Array.from({ length: 2 }, () => ({ clipId: undefined, clipId_index: "", clipId_F: false, weight: 0 }))
+  public _step: StepEntry[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

@@ -275,7 +275,7 @@ function {{ table.table_name }}:readBytes(data)
    is written in and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
         {{ column_view.length_read }}
         {{ column_view.element_container }} = {}
-        for element = 1, element_count do
+        for element = 1, elementCount do
           {{ column_view.element_target }} = {{ column_view.read_element }}
         end
 {{~ else if column_view.kind == 'record_member_var' ~}}
@@ -283,7 +283,7 @@ function {{ table.table_name }}:readBytes(data)
    its length is this row's. ##~}}
         {{ column_view.length_read }}
         {{ column_view.element_container }} = {}
-        for element = 1, element_count do
+        for element = 1, elementCount do
           {{ column_view.element_target }} = {{ column_view.read_element }}
         end
 {{~ else ~}}
