@@ -60,10 +60,16 @@ public readonly struct Message
     /// Values are formatted invariantly. The language of a sentence and the notation of a
     /// number are separate questions, and a run whose numbers follow the machine's locale
     /// produces output that differs between machines. spec/message-ids.md §10.
+    ///
+    /// `{{` and `}}` write a literal brace, which several messages need: the `text` target's
+    /// settings are patterns full of `{group}` and `{namespace}`, and its own reports quote
+    /// them. Without an escape those quotes would be read as placeholders and eaten - a
+    /// message about a brace losing its braces. The notation is C#'s and Serilog's, so the
+    /// escape reads the same in a catalog entry as in the code around it.
     /// </remarks>
     public static string Fill(string text, IReadOnlyList<(string Name, object? Value)> values)
     {
-        if (values.Count == 0 || text.IndexOf('{') < 0)
+        if (text.IndexOf('{') < 0 && text.IndexOf('}') < 0)
             return text;
 
         var built = new System.Text.StringBuilder(text.Length + 16);
@@ -71,27 +77,36 @@ public readonly struct Message
 
         while (at < text.Length)
         {
-            int open = text.IndexOf('{', at);
-            if (open < 0)
+            char here = text[at];
+
+            // A doubled brace is one brace, and it is consumed rather than examined - so
+            // `{{group}}` writes `{group}` and no name is looked up for it.
+            if ((here == '{' || here == '}') && at + 1 < text.Length && text[at + 1] == here)
             {
-                built.Append(text, at, text.Length - at);
-                break;
+                built.Append(here);
+                at += 2;
+                continue;
             }
 
-            int close = text.IndexOf('}', open + 1);
+            if (here != '{')
+            {
+                built.Append(here);
+                at++;
+                continue;
+            }
+
+            int close = text.IndexOf('}', at + 1);
             if (close < 0)
             {
                 built.Append(text, at, text.Length - at);
                 break;
             }
 
-            built.Append(text, at, open - at);
-
-            string name = text.Substring(open + 1, close - open - 1);
+            string name = text.Substring(at + 1, close - at - 1);
             if (TryValue(values, name, out object? value))
                 built.Append(Written(value));
             else
-                built.Append(text, open, close - open + 1);
+                built.Append(text, at, close - at + 1);
 
             at = close + 1;
         }

@@ -125,6 +125,13 @@ public class MessageCatalogTests
     [InlineData("{What}: `{Written}`", "group: `text()`")]
     // A name the call site did not supply stays as it is, so the report still arrives.
     [InlineData("`{Written}` wants {Missing}.", "`text()` wants {Missing}.")]
+    // Doubled braces write one brace and are not looked up. Several messages quote the `text`
+    // target's own patterns, which are full of names in braces.
+    [InlineData("Write `{{{{` for a literal brace.", "Write `{{` for a literal brace.")]
+    [InlineData("uses `{{group}}`, not `{Written}`", "uses `{group}`, not `text()`")]
+    [InlineData("{{text}} {{raw}} {{group}}", "{text} {raw} {group}")]
+    // A brace with no closing one is left alone rather than swallowing the rest.
+    [InlineData("opens a `{{` at {What} and never closes", "opens a `{` at group and never closes")]
     public void Fill_puts_named_values_in(string text, string expected)
     {
         var values = new (string Name, object Value)[] { ("Written", "text()"), ("What", "group") };
@@ -195,8 +202,13 @@ public class MessageCatalogTests
         return parts.Length >= 5 ? parts[^2] : "";
     }
 
+    /// <remarks>
+    /// A doubled brace is a literal one, so `{{group}}` names nothing - the lookarounds are
+    /// what keep this from reporting the `text` target's quoted patterns as placeholders that
+    /// every translation has to carry.
+    /// </remarks>
     private static HashSet<string> Placeholders(string text)
-        => Regex.Matches(text, "\\{([A-Za-z0-9_]+)\\}")
+        => Regex.Matches(text, "(?<!\\{)\\{([A-Za-z0-9_]+)\\}(?!\\})")
                 .Select(match => match.Groups[1].Value)
                 .ToHashSet(StringComparer.Ordinal);
 
