@@ -133,4 +133,94 @@ public static class CookingMessages
 
     /// <summary>A set of rows holding a column its owning table does not declare.</summary>
     public const string RowSetColumnsDiffer = "cook.row-set-columns-differ";
+
+    /// <summary>A name that cannot be an identifier in the generated languages.</summary>
+    public const string InvalidIdentifier = "cook.invalid-identifier";
+
+    /// <summary>An unrecognized type whose spelling has a `?` in the wrong place.</summary>
+    public const string UnrecognizedTypeQuestionMark = "cook.unrecognized-type-question-mark";
+
+    /// <summary>An unrecognized type.</summary>
+    public const string UnrecognizedType = "cook.unrecognized-type";
+
+    /// <summary>Brackets after a type that does not take a bracketed name.</summary>
+    public const string TypeTakesNoBrackets = "cook.type-takes-no-brackets";
+
+    /// <summary>A type that cannot be the element type of an array.</summary>
+    public const string TypeNotArrayElement = "cook.type-not-array-element";
+
+    /// <summary>A type name this tool does not map.</summary>
+    public const string UnsupportedType = "cook.unsupported-type";
+
+    /// <summary>A target side that is not one of the ones there are.</summary>
+    public const string IllegalTargetSide = "cook.illegal-target-side";
+
+    /// <summary>A cell holding a formula that evaluated to an error.</summary>
+    public const string FormulaError = "cook.formula-error";
+
+    /// <summary>An empty cell in a required column.</summary>
+    public const string BlankCellRequired = "cook.blank-cell-required";
+
+    /// <summary>An empty cell in an optional column that still needs a mark.</summary>
+    public const string BlankCellOptional = "cook.blank-cell-optional";
+
+    /// <summary>A cell whose text will not read as its column's type.</summary>
+    public const string ValueUnparsable = "cook.value-unparsable";
+
+    /// <summary>A cell that is not any spelling of true or false.</summary>
+    public const string NotABoolean = "cook.not-a-boolean";
+
+    /// <summary>An element marked as having no value where elements are required.</summary>
+    public const string ArrayElementNoValueMark = "cook.array-element-no-value-mark";
+
+    /// <summary>A wall-clock time the zone skipped when daylight saving began.</summary>
+    public const string TimeInDstGap = "cook.time-in-dst-gap";
+
+    /// <summary>A magnitude too large for a signed 64-bit value.</summary>
+    public const string MagnitudeTooLarge = "cook.magnitude-too-large";
+
+    /// <summary>An integer above what the float type holds exactly.</summary>
+    public const string FloatLosesExactness = "cook.float-loses-exactness";
+
+    /// <summary>More digits than 64 bits hold in that base.</summary>
+    public const string RadixTooManyDigits = "cook.radix-too-many-digits";
+
+    /// <summary>A character that is not a digit of the base it was written in.</summary>
+    public const string RadixBadDigit = "cook.radix-bad-digit";
+
+    /// <summary>An empty cell in a required `bitset` column.</summary>
+    public const string BitsetEmpty = "cook.bitset-empty";
+
+    /// <summary>A signed value in a `bitset`, which holds a pattern rather than a magnitude.</summary>
+    public const string BitsetSigned = "cook.bitset-signed";
+
+    /// <summary>A decimal point in a `bitset`.</summary>
+    public const string BitsetDecimalPoint = "cook.bitset-decimal-point";
+
+    /// <summary>A thousands separator in a `bitset`.</summary>
+    public const string BitsetThousandsSeparator = "cook.bitset-thousands-separator";
+
+    /// <summary>Exponent notation in a `bitset`.</summary>
+    public const string BitsetExponent = "cook.bitset-exponent";
+
+    /// <summary>A digit separator in a `bitset`.</summary>
+    public const string BitsetDigitSeparator = "cook.bitset-digit-separator";
+
+    /// <summary>Anything else that is not a decimal digit in a `bitset`.</summary>
+    public const string BitsetNotADigit = "cook.bitset-not-a-digit";
+
+    /// <summary>A `bitset` written in decimal above where a numeric cell stays exact.</summary>
+    public const string BitsetAbove253 = "cook.bitset-above-2-53";
+
+    /// <summary>Formula errors read as the empty value because the source says to.</summary>
+    public const string NoticeFormulaErrorEmpty = "cook.notice-formula-error-empty";
+
+    /// <summary>Blank cells read as the empty value because the source says to.</summary>
+    public const string NoticeBlankFilled = "cook.notice-blank-filled";
+
+    /// <summary>Blank cells now meaning the type's empty value rather than "no value".</summary>
+    public const string NoticeBlankIsEmptyValue = "cook.notice-blank-is-empty-value";
+
+    /// <summary>Times that occur twice in the zone, read as the standard-time one.</summary>
+    public const string NoticeAmbiguousTime = "cook.notice-ambiguous-time";
 }

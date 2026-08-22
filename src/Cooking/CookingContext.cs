@@ -82,8 +82,9 @@ public sealed class CookingContext
 
         if (string.IsNullOrEmpty(delimiter) || delimiter.Length != 1)
         {
-            throw new TabbitException(
-                $"Recipe setting `ArrayDelimiter` is `{delimiter}`, but it must be exactly one character.");
+            throw new TabbitException(null,
+                Message.Of(RecipeMessages.ArrayDelimiterNotOneCharacter,
+                    ("Delimiter", delimiter)));
         }
 
         return delimiter[0];
@@ -103,9 +104,7 @@ public sealed class CookingContext
         if (!name!.IsValidIdentifier())
         {
             throw new TabbitException(location,
-                $"`{name}` is not a valid identifier, so it cannot name a field or an entity. "
-                + $"A name has to start with a letter or underscore and hold only letters, digits "
-                + $"and underscores.");
+                Message.Of(CookingMessages.InvalidIdentifier, ("Name", name)));
         }
     }
 
@@ -120,12 +119,11 @@ public sealed class CookingContext
         if ((typeName ?? "").Contains('?'))
         {
             throw new TabbitException(location,
-                $"type `{typeName}` is an unrecognized type. A `?` goes after the type or "
-                + "after the brackets: `int?` says a row may have no value, `int?[]` says an "
-                + "element may, and `int?[]?` says both.");
+                Message.Of(CookingMessages.UnrecognizedTypeQuestionMark, ("Type", typeName)));
         }
 
-        throw new TabbitException(location, $"type `{typeName}` is an unrecognized type.");
+        throw new TabbitException(location,
+            Message.Of(CookingMessages.UnrecognizedType, ("Type", typeName)));
     }
 
     /// <summary>
@@ -288,8 +286,8 @@ public sealed class CookingContext
             if (group is not null)
             {
                 throw new TabbitException(location,
-                    $"type `{typeName}` names something in brackets, but `{bare}` is not a type "
-                    + $"that takes one. `text` takes a group and `asset` takes a kind.");
+                    Message.Of(CookingMessages.TypeTakesNoBrackets,
+                        ("Type", typeName), ("Bare", bare)));
             }
 
             return bare;
@@ -416,7 +414,8 @@ public sealed class CookingContext
             case "c": return TargetSide.ClientOnly;
         }
 
-        throw new TabbitException(location, $"Illegal target-side '{value}'");
+        throw new TabbitException(location,
+            Message.Of(CookingMessages.IllegalTargetSide, ("Value", value)));
     }
 
     #endregion
@@ -437,7 +436,8 @@ public sealed class CookingContext
 
             var arrayType = Models.ValueTypes.ArrayOf(elementType);
             if (arrayType == Models.ValueType.None)
-                throw new TabbitException(location, $"type `{elementName}` cannot be used as an array element.");
+                throw new TabbitException(location,
+                    Message.Of(CookingMessages.TypeNotArrayElement, ("Type", elementName)));
 
             return arrayType;
         }
@@ -473,7 +473,8 @@ public sealed class CookingContext
         if (Model.ContainsEnum(typeName))
             return Models.ValueType.Enum;
 
-        throw new TabbitException(location, $"unsupported type '{typeName}'");
+        throw new TabbitException(location,
+            Message.Of(CookingMessages.UnsupportedType, ("Type", typeName)));
     }
 
     /// <summary>
@@ -628,10 +629,7 @@ public sealed class CookingContext
             if (onFormulaError == FormulaErrorPolicy.Error)
             {
                 throw new TabbitException(location,
-                    $"Cell contains the formula error `{formulaError}`. Fix the formula, or "
-                    + "replace it with a literal value. The source entry's "
-                    + "`OnFormulaError: \"empty\"` reads cells like this as empty instead, for "
-                    + "a workbook this run does not own.");
+                    Message.Of(CookingMessages.FormulaError, ("Error", formulaError)));
             }
 
             // Counted per column, as the blank concession below is: a column of a trimmed
@@ -640,8 +638,7 @@ public sealed class CookingContext
             if (column is not null)
             {
                 NoteCell($"formula-error:{column}", location,
-                    $"`{column}` holds cells whose formula is an error, read as the type's "
-                    + "empty value because the source entry sets `OnFormulaError: \"empty\"`.");
+                    Message.Of(CookingMessages.NoticeFormulaErrorEmpty, ("Column", column)));
             }
 
             return new CellReading(
@@ -670,8 +667,7 @@ public sealed class CookingContext
                 if (column is not null)
                 {
                     NoteCell($"blank-filled:{column}", location,
-                        $"`{column}` holds cells nobody filled in, read as the type's empty "
-                        + "value because the source entry sets `OnBlankCell: \"empty\"`.");
+                        Message.Of(CookingMessages.NoticeBlankFilled, ("Column", column)));
                 }
 
                 return new CellReading(
@@ -688,8 +684,7 @@ public sealed class CookingContext
         if (blank && !required && column is not null)
         {
             NoteCell($"blank-value:{column}", location,
-                $"`{column}` holds blank cells, which are now the type's empty value rather "
-                + "than \"no value\". Write `-` in the rows that have none.");
+                Message.Of(CookingMessages.NoticeBlankIsEmptyValue, ("Column", column)));
         }
 
         // An array reads its own elements, because the escape and the mark belong to each of
@@ -726,20 +721,23 @@ public sealed class CookingContext
     }
 
     /// <summary>What is wrong with a blank cell, and the ways out of it.</summary>
-    private static string BlankRefusal(Models.ValueType type, bool required)
-    {
-        string absence = required
-            ? "declare the column optional and write `-` to say this row has no value"
-            : "write `-` to say this row has no value";
-
-        return $"This cell is empty, and a value of type `{type}` belongs here. Write one, {absence}, "
-            + "or - for sheets this project cannot correct - read blanks as the type's empty value "
-            + "with the source entry's `OnBlankCell: \"empty\"`.";
-    }
+    /// <remarks>
+    /// Two ids rather than one sentence with a clause chosen for it. The clause was the whole
+    /// difference between the two - what to do instead of writing a value - and a catalog
+    /// entry cannot hold the choice.
+    /// </remarks>
+    private static Message BlankRefusal(Models.ValueType type, bool required)
+        => Message.Of(
+            required ? CookingMessages.BlankCellRequired : CookingMessages.BlankCellOptional,
+            ("Type", type));
 
     private sealed class CellNotice
     {
         public string Message = "";
+
+        /// <summary>Which notice this is, kept beside the text it rendered to.</summary>
+        public string? MessageId;
+
         public Location? First;
         public int Count;
     }
@@ -754,11 +752,17 @@ public sealed class CookingContext
     /// sheet with four hundred blanks in one column has one thing wrong with it, and saying
     /// it four hundred times buries every other report of the run.
     /// </remarks>
-    public void NoteCell(string key, Location? location, string message)
+    public void NoteCell(string key, Location? location, Message message)
     {
         if (!_cellNotices.TryGetValue(key, out var notice))
         {
-            notice = new CellNotice { Message = message, First = location };
+            notice = new CellNotice
+            {
+                Message = message.In(MessageCatalog.Current),
+                MessageId = message.Id,
+                First = location,
+            };
+
             _cellNotices[key] = notice;
         }
 
@@ -892,7 +896,9 @@ public sealed class CookingContext
             // above throws one when it meets a value type nobody taught it, and without the
             // guard that arrived as `Cannot parse ... as a value of type` against a cell
             // whose author had written nothing wrong.
-            throw new TabbitException(location, $"Cannot parse `{authored}` as a value of type `{type}`. ({ex.Message})");
+            throw new TabbitException(location,
+                Message.Of(CookingMessages.ValueUnparsable,
+                    ("Written", authored), ("Type", type), ("Detail", ex.Message)));
         }
     }
 
@@ -931,10 +937,9 @@ public sealed class CookingContext
         if (zone.IsInvalidTime(parsed))
         {
             throw new TabbitException(location,
-                $"`{parsed:yyyy-MM-dd HH:mm:ss}` is a time that does not exist in "
-                + $"`{zone.Id}` - the clocks there jumped over it when daylight saving "
-                + "began. Write a time on either side of the gap, or set the entry's "
-                + "`TimeZone` to a fixed offset such as `+09:00`, which has no gaps.");
+                Message.Of(CookingMessages.TimeInDstGap,
+                    ("Time", parsed.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)),
+                    ("Zone", zone.Id)));
         }
 
         // A wall clock the region's clocks passed through twice. Unlike the gap above there
@@ -944,9 +949,7 @@ public sealed class CookingContext
         if (zone.IsAmbiguousTime(parsed))
         {
             NoteCell($"ambiguous-time:{zone.Id}", location,
-                $"Cells hold a time that occurs twice in `{zone.Id}`, where daylight saving "
-                + "ends, read as the standard-time one. Write the offset in the cell, as "
-                + "`2022-11-06T01:30:00-04:00`, for the other.");
+                Message.Of(CookingMessages.NoticeAmbiguousTime, ("Zone", zone.Id)));
         }
 
         return DateTime.SpecifyKind(
@@ -1007,8 +1010,7 @@ public sealed class CookingContext
         if (magnitude > long.MaxValue)
         {
             throw new TabbitException(location,
-                $"`{text}` does not fit a signed 64-bit value, and `{type}` is a magnitude. "
-                + "A value that uses all 64 bits belongs in a `bitset` column.");
+                Message.Of(CookingMessages.MagnitudeTooLarge, ("Text", text), ("Type", type)));
         }
 
         // A float column takes the literal only where it holds the integer exactly. Above
@@ -1021,8 +1023,8 @@ public sealed class CookingContext
             if (magnitude > exact)
             {
                 throw new TabbitException(location,
-                    $"`{text}` is above what `{type}` holds exactly ({exact}), so it would read back "
-                    + "as a different value.");
+                    Message.Of(CookingMessages.FloatLosesExactness,
+                        ("Text", text), ("Type", type), ("Exact", exact)));
             }
         }
 
@@ -1037,7 +1039,9 @@ public sealed class CookingContext
         if (digits.Length > limit)
         {
             throw new TabbitException(location,
-                $"`{text}` carries {digits.Length} base-{radix} digits, and 64 bits take at most {limit}.");
+                Message.Of(CookingMessages.RadixTooManyDigits,
+                    ("Text", text), ("Digits", digits.Length),
+                    ("Radix", radix), ("Limit", limit)));
         }
 
         foreach (char digit in digits)
@@ -1045,7 +1049,8 @@ public sealed class CookingContext
             if (!IsRadixDigit(digit, radix))
             {
                 throw new TabbitException(location,
-                    $"`{text}` has `{digit}` where a base-{radix} digit belongs.");
+                    Message.Of(CookingMessages.RadixBadDigit,
+                        ("Text", text), ("Digit", digit), ("Radix", radix)));
             }
         }
 
@@ -1084,8 +1089,7 @@ public sealed class CookingContext
     {
         if (string.IsNullOrEmpty(rawValue))
         {
-            throw new TabbitException(location,
-                "a `bitset` cell is empty. Write a value, or type the column `bitset?` to say a blank is expected.");
+            throw new TabbitException(location, Message.Of(CookingMessages.BitsetEmpty));
         }
 
         int radix = RadixLiteralBase(rawValue!);
@@ -1110,34 +1114,35 @@ public sealed class CookingContext
             || value > (1UL << 53))
         {
             throw new TabbitException(location,
-                $"`{rawValue}` is above 2^53, where a spreadsheet's numeric cell has already lost the "
-                + "exact value. Write it as `0x…` or `0b…`.");
+                Message.Of(CookingMessages.BitsetAbove253, ("Text", rawValue)));
         }
 
         return (long)value;
     }
 
-    private static string SignRefusal(string text)
-        => $"`{text}` carries a sign, and a `bitset` holds a bit pattern rather than a magnitude. "
-            + "Every bit set is `0xFFFFFFFFFFFFFFFF`.";
+    private static Message SignRefusal(string text)
+        => Message.Of(CookingMessages.BitsetSigned, ("Text", text));
 
     /// <summary>What is wrong with a decimal `bitset` cell, named by the character that says so.</summary>
-    private static string DecimalRefusal(string text, char character) => character switch
+    /// <remarks>
+    /// The switch stays and what it chooses between changes: it used to pick a sentence and now
+    /// picks an id. Six branches were already six sentences - this only moves where they are
+    /// written down, and makes each one something a translator sees whole.
+    /// </remarks>
+    private static Message DecimalRefusal(string text, char character) => character switch
     {
-        '.' => $"`{text}` has a decimal point, and a flag set has no fractional part. "
-            + "`1.0` is refused with `1.5`, so that neither has to be guessed at.",
+        '.' => Message.Of(CookingMessages.BitsetDecimalPoint, ("Text", text)),
 
-        ',' => $"`{text}` has a thousands separator, which says nothing about a bit pattern.",
+        ',' => Message.Of(CookingMessages.BitsetThousandsSeparator, ("Text", text)),
 
         '-' or '+' => SignRefusal(text),
 
-        'e' or 'E' => $"`{text}` is in exponent notation, which a `bitset` does not read. "
-            + "Write `0x…` or `0b…`.",
+        'e' or 'E' => Message.Of(CookingMessages.BitsetExponent, ("Text", text)),
 
-        '_' => $"`{text}` has a digit separator, which this notation does not take.",
+        '_' => Message.Of(CookingMessages.BitsetDigitSeparator, ("Text", text)),
 
-        _ => $"`{text}` has `{character}` where a decimal digit belongs. "
-            + "A base-16 or base-2 value is written `0x…` or `0b…`.",
+        _ => Message.Of(CookingMessages.BitsetNotADigit,
+            ("Text", text), ("Character", character)),
     };
 
     /// <summary>
@@ -1186,10 +1191,9 @@ public sealed class CookingContext
                 if (elementsRequired)
                 {
                     throw new TabbitException(location,
-                        $"Element {i + 1} of this cell is `{NoValueMark}`, which says it has no "
-                        + "value - and this column's elements are required. Write a value, mark "
-                        + "the elements optional by writing the `?` inside the brackets as in "
-                        + $"`int?[]`, or write `{EscapedNoValueMark}` for the character itself.");
+                        Message.Of(CookingMessages.ArrayElementNoValueMark,
+                            ("Element", i + 1), ("Mark", NoValueMark),
+                            ("Escaped", EscapedNoValueMark)));
                 }
 
                 elementHasValue ??= AllPresent(parts.Length);
@@ -1283,7 +1287,7 @@ public sealed class CookingContext
             return number != 0.0;
 
         throw new TabbitException(location,
-            $"`{value}` is not a boolean. Use Y/N, YES/NO, TRUE/FALSE, 1/0, or leave the cell empty for false.");
+            Message.Of(CookingMessages.NotABoolean, ("Value", value)));
     }
 
     #endregion

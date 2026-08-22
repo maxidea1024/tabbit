@@ -64,10 +64,8 @@ internal static class TableRowSets
         if (patterns.Count > 1)
         {
             throw new TabbitException(null,
-                $"Two source entries declare different `TableRowSets` patterns: "
-                + string.Join(", ", patterns.Select(p => $"`{p}`"))
-                + ". Table names are shared across the whole run, so one pattern has to "
-                + "describe all of them.");
+                Messages.Message.Of(Recipe.RecipeMessages.RowSetsConflictingPatterns,
+                    ("Patterns", string.Join(", ", patterns.Select(p => $"`{p}`")))));
         }
 
         Fold(context, Compile(patterns[0]), diagnostics);
@@ -84,7 +82,8 @@ internal static class TableRowSets
         catch (ArgumentException e)
         {
             throw new TabbitException(null,
-                $"`TableRowSets` is `{pattern}`, which is not a regular expression: {e.Message}");
+                Messages.Message.Of(Recipe.RecipeMessages.RowSetsBadRegex,
+                    ("Pattern", pattern), ("Detail", e.Message)));
         }
 
         // Named groups rather than positions, because the two are easy to write in either
@@ -95,9 +94,9 @@ internal static class TableRowSets
         if (!groups.Contains(TableGroup) || !groups.Contains(SetGroup))
         {
             throw new TabbitException(null,
-                $"`TableRowSets` is `{pattern}`, which needs a `{TableGroup}` group naming the "
-                + $"table and a `{SetGroup}` group naming the set - for example "
-                + $"`^(?<{TableGroup}>.+?)(?<{SetGroup}>_alt)$`.");
+                Messages.Message.Of(Recipe.RecipeMessages.RowSetsMissingGroups,
+                    ("Pattern", pattern), ("TableGroup", TableGroup),
+                    ("SetGroup", SetGroup)));
         }
 
         return compiled;
