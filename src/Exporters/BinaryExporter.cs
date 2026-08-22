@@ -335,8 +335,35 @@ public class BinaryExporter : Target<BinaryRecipe>
         // actually been written out and measured.
         var blocks = new ColumnBlock[columns.Count];
 
-        for (int at = 0; at < columns.Count; at++)
-            blocks[at] = EncodeColumn(table, rows, columns[at], report!);
+        // Encoded in parallel, into their own slots.
+        //
+        // **Every candidate encoding of every column is written out in full and measured**,
+        // which is what makes the choice a measurement rather than a guess - and it is the
+        // largest piece of work the export does. The columns are independent: each reads the
+        // rows and writes one buffer, so nothing here is shared but the reading.
+        //
+        // The slots are what keeps this a refactoring. A block lands at its column's index
+        // whatever order the work finished in, so the file is assembled below exactly as it
+        // was before - which is the property the golden trees check.
+        //
+        // Two things had to be true first, and both are, above: `table.WireColumns` forces
+        // this table's lazily built column lists before any thread reads them, and those
+        // are the only caches in the model that a column encoder touches.
+        if (report is null)
+        {
+            System.Threading.Tasks.Parallel.For(0, columns.Count, at =>
+            {
+                blocks[at] = EncodeColumn(table, rows, columns[at], report!);
+            });
+        }
+        else
+        {
+            // The report is a list in the order the columns were measured, and it is written
+            // to a file. A run that asks for it is asking a question about the encoding
+            // rather than for the fastest export, so it gets the sequential answer.
+            for (int at = 0; at < columns.Count; at++)
+                blocks[at] = EncodeColumn(table, rows, columns[at], report);
+        }
 
         // The signature, the version, and the fields the envelope and the MAC fill in later -
         // reserved here so that applying either of those layers moves nothing.

@@ -121,6 +121,15 @@ public sealed class SheetFilter
     /// Whether a sheet of this name, in this workbook, should be read.
     /// </summary>
     /// <remarks>
+    /// **Asked from several threads at once**, because the workbooks are read in parallel -
+    /// see the import loop. The one thing this writes is `Matched`, and it only ever writes
+    /// `true`: the answer does not depend on which thread got there first, and what it is for
+    /// is the report at the end of the entry saying which patterns matched nothing.
+    ///
+    /// <see cref="IncludesWorkbook"/> is the one that appends to a list, and it is called from
+    /// the sequential loop that decides what to open.
+    /// </remarks>
+    /// <remarks>
     /// The workbook is passed even though <see cref="IncludesWorkbook"/> has already accepted
     /// it, because a sheet pattern may name one - and a sheet name on its own is not an
     /// identity: two workbooks of one directory can both have a `Define` tab.

@@ -254,7 +254,9 @@ public class JsonExporter : Target<JsonRecipe>
             return items;
         }
 
-        var result = new Dictionary<string, object?>();
+        // Sized up front. This is built once per record per row, and a dictionary that has
+        // to grow does it by rehashing everything already in it.
+        var result = new Dictionary<string, object?>(members.Count, StringComparer.Ordinal);
 
         foreach (var member in members)
             result.Add(member.Name.ToCamelCase(), MemberValue(member, row, element));
@@ -364,14 +366,26 @@ public class JsonExporter : Target<JsonRecipe>
         }
         else
         {
-            var writableRows = new List<Dictionary<string, object?>>();
+            var writableRows = new List<Dictionary<string, object?>>(rows.Count);
+
+            // The keys, settled once for the table rather than per row. What a column is
+            // called does not depend on which row is being written, and asking per row made
+            // the export walk every name once for every row it wrote.
+            // spec/conversion-time.md section 4.
+            var serialFields = table.SerialFields;
+            var names = new string[serialFields.Count];
+
+            for (int at = 0; at < names.Length; at++)
+                names[at] = serialFields[at].Name.ToCamelCase();
+
             foreach (var row in rows)
             {
-                var dataRow = new Dictionary<string, object?>();
+                var dataRow = new Dictionary<string, object?>(names.Length, StringComparer.Ordinal);
 
-                foreach (var sf in table.SerialFields)
+                for (int at = 0; at < names.Length; at++)
                 {
-                    string name = sf.Name.ToCamelCase();
+                    var sf = serialFields[at];
+                    string name = names[at];
 
                     // Indexed through each field's own column, not a running
                     // counter over the groups.

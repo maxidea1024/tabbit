@@ -176,6 +176,29 @@ public sealed class Diagnostics
     }
 
     /// <summary>
+    /// Takes everything another collector recorded, keeping the order it recorded it in.
+    /// </summary>
+    /// <remarks>
+    /// **For a stage that checks its units in parallel and wants the report of a sequential
+    /// one.** Each unit reports into a collector of its own, and the caller then absorbs
+    /// those in the order the units are listed - so the reports come out in the same order
+    /// they always did, whatever order the checking finished in.
+    ///
+    /// The alternative for a parallel stage is <see cref="SortByLocation"/>, which is the
+    /// right answer where there is no unit order to appeal to - the rule files, whose order
+    /// on disk is not the order anything else in the run uses. Where there is one, the
+    /// merge preserves it and the sort would replace it.
+    /// spec/conversion-time.md section 5.
+    /// </remarks>
+    public void Absorb(Diagnostics other)
+    {
+        var taken = other.Entries;
+
+        lock (_entries)
+            _entries.AddRange(taken);
+    }
+
+    /// <summary>
     /// Puts the reports in a fixed order: by file, then sheet, then row, then column.
     /// </summary>
     /// <remarks>

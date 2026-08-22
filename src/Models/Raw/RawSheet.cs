@@ -125,6 +125,13 @@ public class RawSheet
             // sheet as soon as one row was already full width.
             var anchor = row[^1].Location;
 
+            // Asked for once rather than grown into. A list that is appended to past its
+            // capacity doubles and copies what it already holds, so padding a row of eight
+            // thousand cells out to sixteen thousand copied the row several times over -
+            // 0.75 s of array copying across the sample project's sheets.
+            // spec/conversion-time.md section 4.
+            row.EnsureCapacity(maxColumnCount);
+
             for (int i = 0; i < fill; i++)
             {
                 RawCell rawCell = new RawCell

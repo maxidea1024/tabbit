@@ -5,6 +5,7 @@ using Tabbit.Models;
 using Tabbit.Recipe;
 using Tabbit.Targets;
 using Tabbit.Messages;
+using System.Threading;
 
 namespace Tabbit.Cooking;
 
@@ -46,6 +47,12 @@ public partial class ModelCooker
     /// sheets are clean" from "the check never ran" - and this check is one whose columns
     /// go unjudged for a legitimate reason, so the two really do have to be told apart.
     /// </remarks>
+    /// <remarks>
+    /// Added to with <see cref="System.Threading.Interlocked"/>, because the tables that count
+    /// into these are checked at the same time. A `++` on a shared field loses increments
+    /// under a race, and a coverage number that is quietly low is worse than none - the whole
+    /// reason these are reported is to tell "nothing was wrong" from "nothing was checked".
+    /// </remarks>
     private int _checkedReferencedTables;
     private int _uncheckedReferencedTables;
     private int _rowsAgainstReferencedTables;
@@ -64,22 +71,40 @@ public partial class ModelCooker
         // setting is reported alongside the rest instead of stopping the run on its own.
         ValidateNaming(model, NamingRules.From(recipeModel.Naming), diagnostics);
 
-        foreach (var table in model.Tables)
+        // Checked one table at a time, at the same time.
+        //
+        // **A table's checks read that table and the tables it points at, and write nothing to
+        // either.** What they produce is reports, and each table's go into a collector of its
+        // own - which is then absorbed below in the model's own table order, so the report
+        // reads exactly as it did when this loop was sequential. That order is the whole of
+        // what a reader of the report relies on, and it is not something a thread schedule
+        // should get to decide. spec/conversion-time.md section 5.
+        var perTable = new Diagnostics[model.Tables.Count];
+
+        System.Threading.Tasks.Parallel.For(0, model.Tables.Count, at =>
         {
+            var table = model.Tables[at];
+            var found = new Diagnostics { PromoteWarnings = diagnostics.PromoteWarnings };
+
+            perTable[at] = found;
+
             // Once per set of rows the table has. A table with one set - nearly all of them -
             // runs this once, and every rule below asks its questions of the set rather than
             // of the table, because a second set is data the first knows nothing about.
             // spec/table-row-sets.md.
             foreach (var rowSet in table.RowSets)
             {
-                ValidateIndexUniqueness(table, rowSet, diagnostics);
-                ValidateReferences(model, table, rowSet, diagnostics);
-                ValidateReferencedTables(model, table, rowSet, diagnostics);
-                ValidateColumnConstraints(table, rowSet, diagnostics);
-                ValidateArrayGaps(table, rowSet, diagnostics);
-                ValidateRequiredInRecord(table, rowSet, diagnostics);
+                ValidateIndexUniqueness(table, rowSet, found);
+                ValidateReferences(model, table, rowSet, found);
+                ValidateReferencedTables(model, table, rowSet, found);
+                ValidateColumnConstraints(table, rowSet, found);
+                ValidateArrayGaps(table, rowSet, found);
+                ValidateRequiredInRecord(table, rowSet, found);
             }
-        }
+        });
+
+        foreach (var found in perTable)
+            diagnostics.Absorb(found);
 
         ReportReferencedTableCoverage();
 
@@ -479,9 +504,7 @@ public partial class ModelCooker
 
         // Whichever form a reference takes, the cell stores the target's primary
         // index, so the keys to match against all live in its first column.
-        var foreignKeys = new HashSet<object>();
-        foreach (var foreignRow in RowsToMatchAgainst(foreignTable, rowSet))
-            foreignKeys.Add(foreignRow[foreignTable.Fields[0].Index].Value!);
+        var foreignKeys = KeysOf(foreignTable, rowSet);
 
         foreach (var row in rowSet.Rows)
         {
@@ -507,6 +530,41 @@ public partial class ModelCooker
                     ("Table", table.Name), ("Field", field.Name),
                     ("Target", foreignTable.Name), ("Value", cell.Value)));
         }
+    }
+
+    /// <summary>
+    /// A referenced table's primary keys, for the set of rows a reference belongs to.
+    /// </summary>
+    /// <remarks>
+    /// **Kept, because a popular table is referenced by many columns.** The set is a
+    /// property of the target and of which set of its rows is in view, and neither of those
+    /// changes as the referencing columns are walked - so building it per column meant
+    /// walking one table's rows once for every column in the project that points at it. On
+    /// the sample project that was 2.71 s of the validation pass.
+    ///
+    /// Keyed by the target itself rather than by its name: two tables with one name is a
+    /// finding somewhere else, and this is not the place that should quietly merge them.
+    /// spec/conversion-time.md section 4.
+    /// </remarks>
+    /// <remarks>
+    /// Concurrent because the tables are checked at the same time, and a popular target is
+    /// exactly the one several of them ask about at once. Two threads may both build the set
+    /// for the same target - which costs one wasted pass and yields the same set either way -
+    /// and only one of them is kept.
+    /// </remarks>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<(Table Target, string RowSet), HashSet<object>> _foreignKeys = new();
+
+    private HashSet<object> KeysOf(Table foreignTable, RowSet rowSet)
+    {
+        if (_foreignKeys.TryGetValue((foreignTable, rowSet.Name), out var cached))
+            return cached;
+
+        var keys = new HashSet<object>();
+
+        foreach (var foreignRow in RowsToMatchAgainst(foreignTable, rowSet))
+            keys.Add(foreignRow[foreignTable.Fields[0].Index].Value!);
+
+        return _foreignKeys.GetOrAdd((foreignTable, rowSet.Name), keys);
     }
 
     /// <summary>
@@ -569,8 +627,8 @@ public partial class ModelCooker
             // depend on which notation was used. spec/multi-target-accessors.md.
             if (field.ResolvedRefTables is { Count: > 0 })
             {
-                _checkedReferencedTables++;
-                _rowsAgainstReferencedTables += rowSet.Rows.Count;
+                Interlocked.Increment(ref _checkedReferencedTables);
+                Interlocked.Add(ref _rowsAgainstReferencedTables, rowSet.Rows.Count);
 
                 CheckKeyBandsDoNotOverlap(table, field, field.ResolvedRefTables, diagnostics);
                 CheckValuesExistIn(table, rowSet, field, field.ResolvedRefTables, diagnostics);
@@ -618,15 +676,15 @@ public partial class ModelCooker
                     ("At", field.Constraints.ReferencedTablesLocation))
                     .In(MessageCatalog.Current));
 
-                _uncheckedReferencedTables++;
+                Interlocked.Increment(ref _uncheckedReferencedTables);
                 continue;
             }
 
             if (targets.Count == 0)
                 continue;
 
-            _checkedReferencedTables++;
-            _rowsAgainstReferencedTables += rowSet.Rows.Count;
+            Interlocked.Increment(ref _checkedReferencedTables);
+            Interlocked.Add(ref _rowsAgainstReferencedTables, rowSet.Rows.Count);
 
             CheckKeyBandsDoNotOverlap(table, field, targets, diagnostics);
             CheckValuesExistIn(table, rowSet, field, targets, diagnostics);

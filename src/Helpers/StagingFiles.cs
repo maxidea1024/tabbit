@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using Newtonsoft.Json;
 using System.Linq;
 
@@ -13,6 +14,31 @@ namespace Tabbit.Helpers;
 public static class StagingFiles
 {
     static readonly List<(string, string)> _stagingFiles = [];
+
+    /// <summary>
+    /// What each staged file holds, measured as it was written.
+    /// </summary>
+    /// <remarks>
+    /// So that nothing has to read a file back to find out what is in it. The manifest
+    /// records a size and an MD5 per file, and it was getting them by opening the file it
+    /// had just been handed - which read every byte of the output a second time. On the
+    /// sample project's full conversion that was 4.59 s for the `json` target and 2.37 s
+    /// for `binary`, spent re-reading bytes that had been in hand a moment earlier.
+    ///
+    /// Keyed by the staging path, because that is what a target passes on. Cleared with the
+    /// staging list itself: past a commit or a rollback these describe files that are no
+    /// longer there.
+    /// </remarks>
+    /// <summary>Which staging paths are already in <see cref="_stagingFiles"/>.</summary>
+    /// <remarks>
+    /// The same membership the list carries, kept as a set so that asking is not a scan.
+    /// Ordinal, because the path has already been folded to the case this filesystem
+    /// compares in - see <see cref="RegisterStagingFile(string, out bool)"/>.
+    /// </remarks>
+    static readonly HashSet<string> _stagedPaths = new HashSet<string>(StringComparer.Ordinal);
+
+    static readonly Dictionary<string, (string Md5, long Size)> _writtenContents =
+        new Dictionary<string, (string, long)>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Directories a target asked to have its stale output removed from.
@@ -116,6 +142,8 @@ public static class StagingFiles
         }
 
         _stagingFiles.Clear();
+        _stagedPaths.Clear();
+        _writtenContents.Clear();
 
         // Nothing is swept either: a run that failed has no business deciding which of
         // the previous run's files are stale.
@@ -205,7 +233,10 @@ public static class StagingFiles
         string tempPath = Path.GetTempPath();
         string stagingFilename = Path.Combine(tempPath, md5 + ".staging");
 
-        alreadyStaged = _stagingFiles.Any(x => x.Item2 == stagingFilename);
+        // Asked of a set rather than by scanning the list. Every file a target writes comes
+        // through here, so a scan makes staging quadratic in the number of files - and a
+        // conversion of five hundred tables into seven targets stages thousands.
+        alreadyStaged = !_stagedPaths.Add(stagingFilename);
 
         if (alreadyStaged)
             return stagingFilename;
@@ -235,36 +266,48 @@ public static class StagingFiles
         // the files the cache decided were already correct.
         written.UnionWith(_keptFiles);
 
-        while (_stagingFiles.Count > 0)
+        // Walked forwards, one at a time, and the committed ones dropped in one go at the end.
+        //
+        // **One at a time is measured rather than assumed.** A commit is thousands of renames
+        // within one volume, so it looks like latency against the filesystem - the shape that
+        // parallelises. It is not: NTFS serialises on the directory metadata these all share,
+        // and moving them across every core took this run's commit from 6.2 s to 9.5 s. The
+        // sequential loop is the fast one. spec/conversion-time.md section 7.
+        //
+        // The list used to be drained with RemoveAt(0) per file, which moves every remaining
+        // entry down one - quadratic in the number of files, and this run commits thousands.
+        // What that per-file removal bought is the invariant the finally block below keeps:
+        // a commit that fails part-way leaves in the list exactly the files that have not
+        // moved yet, so a rollback deletes their staging copies and nothing that is already
+        // at its destination.
+        int committed = 0;
+
+        try
         {
-            var kv = _stagingFiles[0];
-
-            // Progress
-            progressCallback?.Invoke(kv.Item1, kv.Item2);
-
-            try
+            foreach (var kv in _stagingFiles)
             {
-                File.Delete(kv.Item1);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                // Sink exception
-            }
+                // Progress
+                progressCallback?.Invoke(kv.Item1, kv.Item2);
 
-            FileHelper.EnsurePathExists(kv.Item1);
-            File.Move(kv.Item2, kv.Item1);
+                FileHelper.EnsurePathExists(kv.Item1);
 
-            try
-            {
-                File.Delete(kv.Item2);
-            }
-            catch
-            {
-                // Sink exception
-            }
+                // One call rather than a delete and a move. The overload replaces the
+                // destination itself, which is the same outcome with one fewer round trip to
+                // the filesystem per file - and the delete that used to follow the move was
+                // removing a file the move had already taken away.
+                File.Move(kv.Item2, kv.Item1, overwrite: true);
 
-            _stagingFiles.RemoveAt(0);
+                committed++;
+            }
         }
+        finally
+        {
+            _stagingFiles.RemoveRange(0, committed);
+        }
+
+        // These describe files that are no longer in staging.
+        _stagedPaths.Clear();
+        _writtenContents.Clear();
 
         Sweep(written);
     }
@@ -404,20 +447,46 @@ public static class StagingFiles
     /// consumer having to find that out.
     /// </remarks>
     public static string WriteAllTextToFile(string filename, string text, bool withByteOrderMark)
+        => WriteText(filename, text, withByteOrderMark, trailingNewline: false);
+
+    /// <summary>
+    /// The same, optionally ending the file with exactly one newline.
+    /// </summary>
+    /// <remarks>
+    /// The newline is appended as a byte after the text rather than by building a second
+    /// copy of the string to carry it. That is not a micro-optimization at this size: a
+    /// table's JSON reaches hundreds of megabytes, and `text + "\n"` copies all of it.
+    /// spec/conversion-time.md section 4.
+    /// </remarks>
+    private static string WriteText(
+        string filename, string text, bool withByteOrderMark, bool trailingNewline)
     {
         string stagingFilename = RegisterStagingFile(filename, out bool alreadyStaged);
 
-        // ReadAllText strips a BOM, so this compares the text either way.
-        if (alreadyStaged && File.ReadAllText(stagingFilename) != text)
+        // ReadAllText strips a BOM, so this compares the text either way. The newline is put
+        // back for the comparison, because what is on disk is what this wrote.
+        if (alreadyStaged
+            && File.ReadAllText(stagingFilename) != (trailingNewline ? text + "\n" : text))
         {
                 throw new TabbitException(null,
                     Messages.Message.Of(Exporters.ExportMessages.GeneratedFileNameClash,
                         ("Path", Path.GetFullPath(filename))));
         }
 
-        File.WriteAllText(stagingFilename, text, withByteOrderMark ? Utf8WithBom : Utf8WithoutBom);
+        // Encoded here rather than left to File.WriteAllText, so the bytes that go to disk
+        // are the bytes that get measured. A StreamWriter emits the encoding's preamble at
+        // position zero, so preamble-then-body is exactly what the file holds either way.
+        var encoding = withByteOrderMark ? Utf8WithBom : Utf8WithoutBom;
+
+        Write(
+            stagingFilename, encoding.GetPreamble(), encoding.GetBytes(text),
+            trailingNewline ? Newline : ReadOnlySpan<byte>.Empty);
+
         return stagingFilename;
     }
+
+    /// <summary>One LF, for the files that end with exactly one.</summary>
+    private static readonly byte[] Newline = [(byte)'\n'];
 
     private static readonly System.Text.UTF8Encoding Utf8WithBom = new System.Text.UTF8Encoding(true);
     private static readonly System.Text.UTF8Encoding Utf8WithoutBom = new System.Text.UTF8Encoding(false);
@@ -434,8 +503,79 @@ public static class StagingFiles
     public static string WriteAllBytesToFile(string filename, ReadOnlySpan<byte> data)
     {
         string stagingFilename = RegisterStagingFile(filename);
-        File.WriteAllBytes(stagingFilename, data);
+
+        Write(stagingFilename, ReadOnlySpan<byte>.Empty, data);
+
         return stagingFilename;
+    }
+
+    /// <summary>
+    /// Writes a staged file and records its size and MD5 as it goes.
+    /// </summary>
+    /// <remarks>
+    /// The one place a staging file's bytes are written, so that the measurement cannot
+    /// drift from the content. The hash is taken over the same spans that reach the stream,
+    /// which is what makes it the file's hash rather than an approximation of it - and it
+    /// costs one pass over bytes already in memory instead of a second read from disk.
+    ///
+    /// The digest is MD5 because that is what <see cref="Manifest"/> records and what the
+    /// committed manifests hold; the reasoning for that choice is written where the
+    /// manifest states it. Nothing here is a defence against a chosen-prefix attack.
+    /// </remarks>
+    private static void Write(
+        string stagingFilename, ReadOnlySpan<byte> preamble, ReadOnlySpan<byte> body,
+        ReadOnlySpan<byte> tail = default)
+    {
+        using var digest = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
+
+        using (var stream = new FileStream(
+            stagingFilename, FileMode.Create, FileAccess.Write, FileShare.None,
+            bufferSize: 64 * 1024))
+        {
+            // Written out one part at a time rather than joined first. Joining would copy the
+            // body, which is the largest thing this class handles.
+            if (!preamble.IsEmpty)
+            {
+                stream.Write(preamble);
+                digest.AppendData(preamble);
+            }
+
+            stream.Write(body);
+            digest.AppendData(body);
+
+            if (!tail.IsEmpty)
+            {
+                stream.Write(tail);
+                digest.AppendData(tail);
+            }
+        }
+
+        _writtenContents[stagingFilename] = (
+            Convert.ToHexString(digest.GetHashAndReset()).ToLowerInvariant(),
+            preamble.Length + (long)body.Length + tail.Length);
+    }
+
+    /// <summary>
+    /// What a staged file holds, when this run is the one that wrote it.
+    /// </summary>
+    /// <remarks>
+    /// False for a file staged some other way - a copy, or a target reaching past this
+    /// class - and the caller then measures it itself. Answering "I do not know" rather
+    /// than guessing is the whole point: a wrong hash in the manifest is a file that never
+    /// gets copied again.
+    /// </remarks>
+    public static bool TryWrittenContents(string stagingFilename, out string md5, out long size)
+    {
+        if (_writtenContents.TryGetValue(stagingFilename, out var written))
+        {
+            md5 = written.Md5;
+            size = written.Size;
+            return true;
+        }
+
+        md5 = "";
+        size = 0;
+        return false;
     }
 
     /// <summary>
@@ -456,7 +596,15 @@ public static class StagingFiles
     {
         string json = JsonConvert.SerializeObject(obj, indented ? Formatting.Indented : Formatting.None);
 
-        return WriteAllTextToFile(filename, json.Replace("\r\n", "\n").TrimEnd('\n') + "\n");
+        // Asked before it is done. Replace copies the whole string, and the unindented form -
+        // which is what a data export uses - holds no line ending at all, so the copy was of
+        // hundreds of megabytes in order to change nothing. spec/conversion-time.md section 4.
+        if (json.Contains('\r'))
+            json = json.Replace("\r\n", "\n");
+
+        // TrimEnd returns the same string when there is nothing to trim, which is the usual
+        // case; the one newline the file ends with is appended as a byte by the writer.
+        return WriteText(filename, json.TrimEnd('\n'), withByteOrderMark: false, trailingNewline: true);
     }
 
 

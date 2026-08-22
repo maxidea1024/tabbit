@@ -16,6 +16,23 @@
       what it is about.
     -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!--
+      Server GC, because a conversion is one long allocation burst on a machine that has
+      cores to spare. Workstation GC collects on the one thread doing the work, so every
+      collection is time the conversion is stopped; server GC has a heap and a collector
+      thread per core and does that work beside it.
+
+      Measured on the sample project's full conversion, 20 logical cores: 71.3 s to 54.1 s.
+      The usual objection to server GC is that it trades memory for time, and here it
+      barely does - the peak is the live model rather than uncollected garbage, so it went
+      from 10.28 GB to 10.63 GB. What would make this a real trade is a machine with fewer
+      cores than heaps' worth of memory, which is why the number is written down: on a build
+      agent with 2 cores and 4 GB there is nothing here to win and `DOTNET_gcServer=0`
+      switches it off without a rebuild.
+    -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     <ImplicitUsings>disable</ImplicitUsings>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <!--
