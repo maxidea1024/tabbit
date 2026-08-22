@@ -117,11 +117,16 @@ public class ArrayTypeTests
     }
 
     /// <summary>
-    /// The two kinds need different generated readers: a delimited array carries
-    /// its length, a serial field's length is a constant known at generation time.
+    /// The two notations read the same way: both carry their length per row.
     /// </summary>
+    /// <remarks>
+    /// They did not until v107. A serial field's length was a constant known at generation
+    /// time, which is what made adding a column to a group a code deploy rather than a data
+    /// patch - a deployed reader read up to its constant and dropped the rest.
+    /// spec/tcb-v107-dynamic-arrays.md.
+    /// </remarks>
     [Fact]
-    public void Generated_readers_distinguish_the_two_array_kinds()
+    public void Both_array_notations_take_their_length_from_the_row()
     {
         TabbitRunner.Convert("core");
 
@@ -130,30 +135,22 @@ public class ArrayTypeTests
         string cs = File.ReadAllText(Path.Combine(
             RepoLayout.OutputDir("core"), "csharp", "tables", "ArrayTypesTable.cs"));
 
-        // Delimited: the column declares no per-row count, so every row's own count is
-        // read and the array is allocated to it.
-        //
-        // From the cursor rather than from the reader, because where that count sits
-        // depends on how the block is laid out - a raw array states it in front of each
-        // row's elements, an encoded one puts every length in a stream at the head of the
-        // block. The cursor answers the same call either way, which is what keeps this one
-        // line in the generated loop instead of a branch.
-        Assert.Contains("\"ArrayTypes.Tags\", TcbTable.KindVarArray, 0", cs);
+        // Delimited. The count comes from the cursor rather than the reader, because where
+        // it sits depends on how the block is laid out - a raw array states it in front of
+        // each row's elements, an encoded one puts every length in a stream at the head of
+        // the block. The cursor answers the same call either way, which is what keeps this
+        // one line in the generated loop instead of a branch.
+        Assert.Contains("\"ArrayTypes.Tags\", TcbTable.KindArray", cs);
         Assert.Contains("elementCount = cursor.NextLength();", cs);
         Assert.Contains("record._tags = new string[elementCount];", cs);
 
-        // Serial: no counter on the wire per row, and no constant in the page either. One
-        // column owns the whole array, so the descriptor's count is the length and the read
-        // takes it from there - which is what lets a sheet grow a column without regenerating
-        // the code that reads it. spec/nullable-array-elements.md.
+        // Serial, and the same three lines: one kind, one read, one allocation. No constant
+        // in the page and no count in the check - the file states the length row by row, so
+        // a sheet that grew a column is read by code generated before it.
         Assert.DoesNotContain("SlotArray_N", cs);
-        Assert.Contains("record._slotArray = new int[column.Count];", cs);
-
-        // And the check no longer holds the column to a length: -1 says the member claims
-        // none. The kind is still checked, because a scalar column that became an array is a
-        // different shape rather than a longer one.
-        Assert.Contains(
-            "\"ArrayTypes.Slot_array\", TcbTable.KindFixedArray, -1", cs);
+        Assert.DoesNotContain("column.Count", cs);
+        Assert.Contains("record._slotArray = new int[elementCount];", cs);
+        Assert.Contains("\"ArrayTypes.Slot_array\", TcbTable.KindArray", cs);
 
         string ts = File.ReadAllText(
             Path.Combine(RepoLayout.OutputDir("core"), "typescript", "tables", "array-types.ts"));

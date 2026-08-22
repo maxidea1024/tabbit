@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "dc0eedc03a9e7cc6be66670a306fac93",
-  "TotalSize": 1074,
+  "MasterHash": "735e9bfac42a68addcefe77f38c2daa3",
+  "TotalSize": 1076,
   "Items": [
     {
       "Name": "TestFieldTypes.tcb",
@@ -23,8 +23,8 @@
     },
     {
       "Name": "Localization.tcb",
-      "Size": 161,
-      "Hash": "790e968248f1bfc4bb3c4cf5eb4f3a56",
+      "Size": 163,
+      "Hash": "7ef204bd19c130774beb0c54a5bc1172",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {

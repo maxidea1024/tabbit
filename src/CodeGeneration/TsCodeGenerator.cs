@@ -1045,14 +1045,10 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             // A trimmed one starts empty instead: no declaration could know how long this
             // row's array is, so the read creates the elements it turns out to need.
             DefaultValue = sf.MembersAreAnonymous
-                ? $"Array.from({{ length: {sf.Members.Count} }}, () => "
-                  + $"new Array({sf.RecordElementCount}).fill("
-                  + $"{DefaultValueOf(sf.Members[0].ElementType, sf.Members[0].FirstField!)}))"
-                : perRowLength
+                ? $"Array.from({{ length: {sf.Members.Count} }}, () => [])"
+                : sf.IsArray
                     ? "[]"
-                    : sf.IsArray
-                        ? $"Array.from({{ length: {sf.RecordElementCount} }}, () => ({RecordLiteral(members)}))"
-                        : RecordLiteral(members),
+                    : RecordLiteral(members),
 
             // The JSON shape gets an interface of its own, because a member's exported
             // type is not always its member type - a 64-bit integer arrives as a string.
@@ -1062,9 +1058,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             ElementCount = sf.RecordElementCount,
             Kind = sf.MembersAreAnonymous
                 ? "array_of_arrays"
-                : perRowLength
-                    ? "record_var_array"
-                    : sf.IsArray ? "record_array" : "record",
+                : sf.IsArray ? "record_var_array" : "record",
             IsArray = sf.IsArray,
 
             FromNamedRow = RecordNamedRowAssignment(sf, members, field, prop),
@@ -1634,7 +1628,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             if (sf.IsRef)
                 return "array_ref";
 
-            return table.IsVariableLength(sf) ? "var_array" : "array";
+            // One array declaration since v107. Trimming decides how many elements a row
+            // carries, not whether the length is known at generation time.
+            return "var_array";
         }
 
         return sf.IsRef ? "scalar_ref" : "scalar";

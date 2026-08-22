@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "96c18a57f0e0f3d60c712ae736dd7aaa",
-  "TotalSize": 319,
+  "MasterHash": "6f91bd50679c93afb172660a649be823",
+  "TotalSize": 322,
   "Items": [
     {
       "Name": "Listing.tcb",
@@ -11,8 +11,8 @@
     },
     {
       "Name": "Folded.tcb",
-      "Size": 86,
-      "Hash": "688c745a39ccbf72325b5dbc38c95bb5",
+      "Size": 89,
+      "Hash": "6ec7a7c54ac1240b05cb92351a07fccf",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

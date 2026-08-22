@@ -585,6 +585,14 @@ public class BinaryExporter : Target<BinaryRecipe>
                 continue;
             }
 
+            // Every array states its length per row since v107, and the raw layout has to
+            // say it as plainly as the encoded one does. A folded group's is its column
+            // count, the same for every row - and it is still written every row, because
+            // the descriptor no longer has a place to say it once.
+            // spec/tcb-v107-dynamic-arrays.md.
+            if (column.IsArray)
+                raw.WriteCounter32(column.Cells.Count);
+
             foreach (var field in column.Cells)
                 ExportValue(raw, row[field.Index].Value!, field);
         }

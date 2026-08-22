@@ -80,12 +80,14 @@ public class SerialReferenceTests
         string cs = File.ReadAllText(Path.Combine(
             RepoLayout.OutputDir(Scenario), "csharp", "tables", "KitTable.cs"));
 
-        Assert.Contains("record._slotArray = new PieceTable.Record[column.Count];", cs);
-        Assert.Contains("record._slotArray_Piece_index = new int[column.Count];", cs);
-        Assert.Contains("record._slotArray_F = new bool[column.Count];", cs);
+        Assert.Contains("record._slotArray = new PieceTable.Record[elementCount];", cs);
+        Assert.Contains("record._slotArray_Piece_index = new int[elementCount];", cs);
+        Assert.Contains("record._slotArray_F = new bool[elementCount];", cs);
 
-        // And no length in the check, as for any other array one column owns.
-        Assert.Contains("TcbTable.KindFixedArray, -1", cs);
+        // And no length in the check: the shape is the kind, and the length is the row's.
+        // spec/tcb-v107-dynamic-arrays.md.
+        Assert.Contains("TcbTable.KindArray", cs);
+        Assert.DoesNotContain("column.Count", cs);
 
         string accessor = File.ReadAllText(Path.Combine(
             RepoLayout.OutputDir(Scenario), "csharp", "SerialRefAccessor.cs"));

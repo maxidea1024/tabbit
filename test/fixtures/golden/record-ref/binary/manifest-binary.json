@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "49ae66973293651da00d69d528ca00b0",
-  "TotalSize": 994,
+  "MasterHash": "b2a040a86766a3b1891375a2a4c91306",
+  "TotalSize": 996,
   "Items": [
     {
       "Name": "Item.tcb",
@@ -41,8 +41,8 @@
     },
     {
       "Name": "Pose.tcb",
-      "Size": 98,
-      "Hash": "7d04bcfdb421932de71c5fc8a5fc5622",
+      "Size": 100,
+      "Hash": "463ed8aaef05a165d1fe1f37d89e58b5",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {

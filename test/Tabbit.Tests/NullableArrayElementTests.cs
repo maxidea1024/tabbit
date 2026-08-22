@@ -158,7 +158,8 @@ public class NullableArrayElementTests
         byte[] file = File.ReadAllBytes(Path.Combine(
             RepoLayout.OutputDir("nullable-elements-binary"), "binary", "Listing.tcb"));
 
-        Assert.Equal(106u, BitConverter.ToUInt32(file, Tabbit.Exporters.TcbFormat.VersionOffset));
+        Assert.Equal(Tabbit.Exporters.TcbFormat.Version,
+            BitConverter.ToUInt32(file, Tabbit.Exporters.TcbFormat.VersionOffset));
 
         var wires = WireBytes(file);
 
@@ -205,7 +206,6 @@ public class NullableArrayElementTests
             ReadCounter32();                             // tag
             wires.Add(file[at++]);                       // wire
             at++;                                        // encoding
-            ReadCounter32();                             // elements per row
             at += 4;                                     // block length
         }
 
