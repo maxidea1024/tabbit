@@ -237,5 +237,8 @@
   "report.uncompared": "没有可对比的上一份报告，因此未标记新增。",
   "report.badge-new": "新增",
   "report.badge-persisting": "仍存在",
-  "report.defect-note": "这是 tabbit 的缺陷，而不是数据或配方的问题。请连同下方的调用堆栈一起反馈。"
+  "report.defect-note": "这是 tabbit 的缺陷，而不是数据或配方的问题。请连同下方的调用堆栈一起反馈。",
+  "report.group-by": "分组",
+  "report.group-by-sheet": "按表格",
+  "report.group-by-kind": "按类型"
 }

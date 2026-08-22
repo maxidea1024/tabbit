@@ -237,5 +237,8 @@
   "report.uncompared": "There is no earlier report to compare with, so nothing here is marked new.",
   "report.badge-new": "new",
   "report.badge-persisting": "still here",
-  "report.defect-note": "This is a defect in tabbit rather than a problem with the data or the recipe. Please report it with the call stack below."
+  "report.defect-note": "This is a defect in tabbit rather than a problem with the data or the recipe. Please report it with the call stack below.",
+  "report.group-by": "Group by",
+  "report.group-by-sheet": "Sheet",
+  "report.group-by-kind": "Kind"
 }

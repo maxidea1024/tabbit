@@ -421,10 +421,95 @@ public class BuildReportTests : IDisposable
 
         string page = File.ReadAllText(report.HtmlPath);
 
-        // Three places, three groups - and the one with no cell has a group of its own.
-        Assert.Equal(3, page.Split("<details class=\"grp\"").Length - 1);
+        // One heading, over the one place that has more than one report under it.
+        Assert.Equal(1, page.Split("<details class=\"grp\"").Length - 1);
         Assert.Contains("book.xlsx : Item</span>", page);
-        Assert.Contains("book.xlsx : Quest</span>", page);
+    }
+
+    /// <summary>
+    /// A place with one report is a row, not a fold over one thing.
+    /// </summary>
+    /// <remarks>
+    /// A real run put twelve of these on one page, each a heading with a single row under
+    /// it - which is the flat list again, paying a heading per item for the privilege. The
+    /// row carries its whole place instead, so it reads as an item of the list it is in.
+    /// </remarks>
+    [Fact]
+    public void A_place_with_one_report_is_a_row_rather_than_a_group()
+    {
+        var options = OptionsFor();
+        var report = BuildReport.Create(options, RecipeWith(new ReportRecipe()))!;
+
+        report.Take(Found(
+            (Severity.Error, At("book.xlsx", "Item", 2, 6), "one"),
+            (Severity.Error, At("book.xlsx", "Quest", 1, 3), "two")));
+
+        report.Write(ExitCode.Failed, null);
+
+        string page = File.ReadAllText(report.HtmlPath);
+
+        Assert.DoesNotContain("<details class=\"grp\"", page);
+        Assert.Equal(2, page.Split("class=\"row error bare full\"").Length - 1);
+
+        // And each says where it is, which is what the heading would have said.
+        Assert.Contains("book.xlsx : Item : C7", page);
+        Assert.Contains("book.xlsx : Quest : B4", page);
+    }
+
+    /// <summary>
+    /// The four lists are tabs, and one of them is showing.
+    /// </summary>
+    [Fact]
+    public void The_four_lists_are_tabs_rather_than_one_long_page()
+    {
+        var options = OptionsFor();
+        var report = BuildReport.Create(options, RecipeWith(new ReportRecipe()))!;
+
+        report.Take(Found(
+            (Severity.Error, At("book.xlsx", "Item", 2, 6), "a problem"),
+            (Severity.Info, null, "checked 12,000 rows")));
+
+        report.Write(ExitCode.Failed, null);
+
+        string page = File.ReadAllText(report.HtmlPath);
+
+        Assert.Equal(4, page.Split("<section data-panel=").Length - 1);
+
+        // Three of the four start hidden, so the page opens on the problems.
+        Assert.Contains("<section data-panel=\"problems\">", page);
+        Assert.Contains("<section data-panel=\"known\" hidden>", page);
+        Assert.Contains("<section data-panel=\"resolved\" hidden>", page);
+        Assert.Contains("<section data-panel=\"notes\" hidden>", page);
+    }
+
+    /// <summary>
+    /// The id is off the closed row, and the message is one line until it is opened.
+    /// </summary>
+    /// <remarks>
+    /// Both are rendering rules rather than markup, so nothing else can see them: the page
+    /// carries the id and the whole message either way, and what changes is whether they are
+    /// drawn. Pinned as the stylesheet rules themselves for the same reason `[hidden]` is -
+    /// the failure is a page that reads badly, and no assertion on the markup notices it.
+    ///
+    /// The id is what a pipeline filters on and what we grep the catalog for, and repeated
+    /// down the right-hand side of a page written for whoever owns the sheet it is one
+    /// string as many times as there are rows.
+    /// </remarks>
+    [Fact]
+    public void The_closed_row_is_one_line_and_does_not_repeat_the_id()
+    {
+        var options = OptionsFor();
+        var report = BuildReport.Create(options, RecipeWith(new ReportRecipe()))!;
+
+        report.Take(Found((Severity.Error, At("book.xlsx", "Item", 2, 6), "the id is not a number")));
+        report.Write(ExitCode.Failed, null);
+
+        string page = File.ReadAllText(report.HtmlPath);
+
+        Assert.Contains(".id { display: none;", page);
+        Assert.Contains(".row.open .id { display: inline; }", page);
+        Assert.Contains("-webkit-line-clamp: 1;", page);
+        Assert.Contains(".row.open .msg { display: block; }", page);
     }
 
     /// <summary>

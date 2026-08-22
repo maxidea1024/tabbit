@@ -72,6 +72,17 @@ public static class ReportMessages
     public const string SearchPlaceholder = "report.search-placeholder";
     public const string ExpandAll = "report.expand-all";
     public const string CollapseAll = "report.collapse-all";
+
+    /// <summary>Which axis the problems are gathered under.</summary>
+    /// <remarks>
+    /// Two, because they answer different questions. By sheet is the order the work is done
+    /// in - open a workbook, fix its cells. By kind is the order the work is understood in,
+    /// and it is the one that helps when a single kind accounts for most of the page.
+    /// </remarks>
+    public const string GroupBy = "report.group-by";
+
+    public const string GroupBySheet = "report.group-by-sheet";
+    public const string GroupByKind = "report.group-by-kind";
     public const string Copy = "report.copy";
     public const string Copied = "report.copied";
     public const string OpenInSheet = "report.open-in-sheet";

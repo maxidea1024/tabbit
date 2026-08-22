@@ -11,17 +11,26 @@ namespace Tabbit.Reporting;
 /// The half of a report a person reads.
 /// </summary>
 /// <remarks>
-/// **Grouped, not listed.** A run has produced 5,831 reports, and a flat list of that is a
-/// wall: the reader's question is "which sheet do I open first", and a list answers it only
-/// by being read all the way through. So reports sit under the workbook and sheet they came
-/// from, each group folds, and the groups holding the worst thing on the page are the ones
-/// that open by themselves.
+/// **One list at a time.** Problems, the written-down ones, what has been fixed and what was
+/// checked are four different questions, and stacking them down one page means the reader
+/// scrolls past three of them to reach the one they came for. They are tabs.
+///
+/// **A row is one line until it is asked to be more.** A report is a paragraph - it says what
+/// is wrong, what follows from it, and what to do - and fourteen paragraphs is a wall in
+/// which the part that differs between them is buried. What differs is at the front of the
+/// sentence, so every row is clamped to one line and opens on click: the page is scanned
+/// first and read second.
+///
+/// **Grouped, not listed - and not grouped into groups of one.** A run has produced 5,831
+/// reports. They sit under the workbook and sheet they came from, which is the order the work
+/// is done in; a place holding a single report is written as a row rather than as a fold over
+/// one thing. The other axis - by kind - is a click away, because a page where one kind
+/// accounts for everything is read that way instead.
 ///
 /// **The cell is a link where a link exists.** That is the difference between a report and a
 /// log: for a hosted document the location is already a deep link to the cell, so fixing a
-/// problem is a click rather than a search. For a workbook on disk there is no portable url
-/// that opens a cell, and this offers the text and a copy button rather than a link that
-/// does nothing.
+/// problem is a click. For a workbook on disk there is no portable url that opens a cell, and
+/// this offers the text and a copy button rather than a link that does nothing.
 ///
 /// **Nothing is fetched.** One file, styles and script inline, the same closed-network rule
 /// the generated documentation pages keep - and the same colour tokens, so the two look like
@@ -46,11 +55,18 @@ internal static class ReportHtml
 
         var shown = Shown(document, maxEntries, out int total);
 
+        var problems = shown.Where(entry => entry.Severity != "info").ToList();
+        var notes = shown.Where(entry => entry.Severity == "info").ToList();
+
         string title = Say(catalog, ReportMessages.PageTitle,
             ("Recipe", System.IO.Path.GetFileName(document.Recipe)));
 
         Head(page, title, catalog);
         Header(page, document, catalog);
+
+        Tabs(page, catalog, problems.Count, document.KnownProblems.Count,
+            document.Resolved.Count, notes.Count);
+
         Toolbar(page, catalog);
 
         page.Append("<main id=\"scroll\">");
@@ -69,16 +85,11 @@ internal static class ReportHtml
         if (!document.Counts.Compared)
             Note(page, Text(catalog, ReportMessages.Uncompared));
 
-        Problems(page, shown, catalog);
+        Problems(page, problems, catalog);
 
-        Section(page, "known", Text(catalog, ReportMessages.SectionKnown),
-            document.KnownProblems, catalog, open: false);
-
-        Section(page, "resolved", Text(catalog, ReportMessages.SectionResolved),
-            document.Resolved, catalog, open: false);
-
-        Section(page, "notes", Text(catalog, ReportMessages.SectionNotes),
-            shown.Where(entry => entry.Severity == "info").ToList(), catalog, open: false);
+        Panel(page, "known", document.KnownProblems, catalog);
+        Panel(page, "resolved", document.Resolved, catalog);
+        Panel(page, "notes", notes, catalog);
 
         page.Append("<p class=\"empty\" id=\"nothing\" hidden>")
             .Append(Escaped(Text(catalog, ReportMessages.NothingMatches)))
@@ -162,8 +173,9 @@ internal static class ReportHtml
 
         Chip(page, "error", Text(catalog, ReportMessages.LabelErrors), document.Counts.Errors);
         Chip(page, "warning", Text(catalog, ReportMessages.LabelWarnings), document.Counts.Warnings);
-        Chip(page, "info", Text(catalog, ReportMessages.LabelNotes), document.Counts.Notes);
 
+        // The three that answer "is this piling up". Absent on a first run, where they would
+        // all read zero and mean nothing.
         if (document.Counts.Compared)
         {
             Chip(page, "new", Text(catalog, ReportMessages.LabelNew), document.Counts.New);
@@ -173,16 +185,19 @@ internal static class ReportHtml
                 document.Counts.Resolved);
         }
 
-        page.Append("</div><dl class=\"meta\">");
+        // One line rather than a four-row table. What it says is read once, when the reader
+        // checks they are looking at the right run, and four lines of it push the problems
+        // themselves off the first screen.
+        page.Append("</div><p class=\"meta\">");
 
-        Meta(page, Text(catalog, ReportMessages.MetaRecipe), document.Recipe);
-        Meta(page, Text(catalog, ReportMessages.MetaTool), document.Tool);
+        Meta(page, Text(catalog, ReportMessages.MetaRecipe), document.Recipe, first: true);
+        Meta(page, Text(catalog, ReportMessages.MetaTool), document.Tool, first: false);
         Meta(page, Text(catalog, ReportMessages.MetaStarted),
-            document.Started?.ToString("yyyy-MM-dd HH:mm:ss zzz") ?? document.StartedAt);
+            document.Started?.ToString("yyyy-MM-dd HH:mm:ss") ?? document.StartedAt, first: false);
         Meta(page, Text(catalog, ReportMessages.MetaElapsed),
-            document.Elapsed.ToString("0.00", CultureInfo.InvariantCulture) + " s");
+            document.Elapsed.ToString("0.00", CultureInfo.InvariantCulture) + " s", first: false);
 
-        page.Append("</dl></header>");
+        page.Append("</p></header>");
     }
 
     private static void Chip(StringBuilder page, string kind, string label, int count)
@@ -190,9 +205,39 @@ internal static class ReportHtml
                .Append("\"><b>").Append(count.ToString("N0", CultureInfo.InvariantCulture))
                .Append("</b> ").Append(Escaped(label)).Append("</span>");
 
-    private static void Meta(StringBuilder page, string label, string value)
-        => page.Append("<dt>").Append(Escaped(label)).Append("</dt><dd>")
-               .Append(Escaped(value)).Append("</dd>");
+    private static void Meta(StringBuilder page, string label, string value, bool first)
+        => page.Append(first ? "" : "<span class=\"dot\">·</span>")
+               .Append("<span class=\"k\">").Append(Escaped(label)).Append("</span> ")
+               .Append(Escaped(value));
+
+    /// <summary>
+    /// The four lists, as tabs rather than as one page.
+    /// </summary>
+    /// <remarks>
+    /// A list that is empty still gets its tab, dimmed. Removing it would move the others
+    /// about between runs, and a control that is somewhere else every time is one nobody
+    /// learns the position of.
+    /// </remarks>
+    private static void Tabs(
+        StringBuilder page, MessageCatalog catalog, int problems, int known, int resolved, int notes)
+    {
+        page.Append("<nav class=\"tabs\">");
+
+        Tab(page, "problems", Text(catalog, ReportMessages.SectionProblems), problems, first: true);
+        Tab(page, "known", Text(catalog, ReportMessages.SectionKnown), known, first: false);
+        Tab(page, "resolved", Text(catalog, ReportMessages.SectionResolved), resolved, first: false);
+        Tab(page, "notes", Text(catalog, ReportMessages.SectionNotes), notes, first: false);
+
+        page.Append("</nav>");
+    }
+
+    private static void Tab(StringBuilder page, string name, string label, int count, bool first)
+        => page.Append("<button type=\"button\" class=\"tab").Append(first ? " on" : "")
+               .Append(count == 0 ? " zero" : "").Append("\" data-tab=\"").Append(name)
+               .Append("\" onclick=\"tab('").Append(name).Append("')\">")
+               .Append(Escaped(label)).Append("<span class=\"n\">")
+               .Append(count.ToString("N0", CultureInfo.InvariantCulture))
+               .Append("</span></button>");
 
     private static void Toolbar(StringBuilder page, MessageCatalog catalog)
     {
@@ -203,9 +248,15 @@ internal static class ReportHtml
 
         Toggle(page, "error", Text(catalog, ReportMessages.LabelErrors));
         Toggle(page, "warning", Text(catalog, ReportMessages.LabelWarnings));
-        Toggle(page, "info", Text(catalog, ReportMessages.LabelNotes));
 
         page.Append("<span class=\"spacer\"></span>")
+            .Append("<label class=\"by\">").Append(Escaped(Text(catalog, ReportMessages.GroupBy)))
+            .Append(" <select id=\"by\" onchange=\"group(this.value)\">")
+            .Append("<option value=\"sheet\">")
+            .Append(Escaped(Text(catalog, ReportMessages.GroupBySheet))).Append("</option>")
+            .Append("<option value=\"kind\">")
+            .Append(Escaped(Text(catalog, ReportMessages.GroupByKind))).Append("</option>")
+            .Append("</select></label>")
             .Append("<button type=\"button\" onclick=\"fold(true)\">")
             .Append(Escaped(Text(catalog, ReportMessages.ExpandAll))).Append("</button>")
             .Append("<button type=\"button\" onclick=\"fold(false)\">")
@@ -221,17 +272,15 @@ internal static class ReportHtml
 
     /// <summary>The problems, under the workbook and sheet each came from.</summary>
     private static void Problems(
-        StringBuilder page, IReadOnlyList<ReportEntry> shown, MessageCatalog catalog)
+        StringBuilder page, IReadOnlyList<ReportEntry> problems, MessageCatalog catalog)
     {
-        var problems = shown.Where(entry => entry.Severity != "info").ToList();
-
-        page.Append("<h2>").Append(Escaped(Text(catalog, ReportMessages.SectionProblems)))
-            .Append("</h2>");
+        page.Append("<section data-panel=\"problems\">");
 
         if (problems.Count == 0)
         {
             page.Append("<p class=\"empty\">")
-                .Append(Escaped(Text(catalog, ReportMessages.NoProblems))).Append("</p>");
+                .Append(Escaped(Text(catalog, ReportMessages.NoProblems))).Append("</p>")
+                .Append("</section>");
 
             return;
         }
@@ -260,6 +309,15 @@ internal static class ReportHtml
 
         foreach (var group in groups)
         {
+            // A fold over one thing is a heading with nothing under it to justify the click.
+            // The row carries its whole place instead, and reads as an item of the list it
+            // is in rather than as a group of one.
+            if (group.Count() == 1)
+            {
+                Row(page, group.First(), catalog, bare: true);
+                continue;
+            }
+
             bool leads = group.Any(entry => entry.Severity == worst);
             bool open = groups.Count == 1 || (leads && groups.Count <= GroupsBeforeFolding);
 
@@ -274,45 +332,76 @@ internal static class ReportHtml
 
             page.Append("</details>");
         }
+
+        page.Append("</section>");
     }
 
-    /// <summary>A list that is one fold rather than one per place.</summary>
+    /// <summary>
+    /// One of the three lists that are read as lists rather than as work.
+    /// </summary>
     /// <remarks>
-    /// The known, the fixed and the notes are read as lists - "what is on this list" rather
-    /// than "which sheet do I open" - so they are not grouped by place. They also start
-    /// closed: none of the three is what the page was opened for.
+    /// The known, the fixed and the notes answer "what is on this list", not "which sheet do
+    /// I open", so they are not gathered by place - every row carries its own.
     /// </remarks>
-    private static void Section(
-        StringBuilder page, string kind, string label,
-        IReadOnlyList<ReportEntry> entries, MessageCatalog catalog, bool open)
+    private static void Panel(
+        StringBuilder page, string name, IReadOnlyList<ReportEntry> entries, MessageCatalog catalog)
     {
-        if (entries.Count == 0)
-            return;
+        page.Append("<section data-panel=\"").Append(name).Append("\" hidden>");
 
-        page.Append("<details class=\"grp section ").Append(kind).Append("\"")
-            .Append(open ? " open" : "").Append("><summary>")
-            .Append("<span class=\"where\">").Append(Escaped(label)).Append("</span>")
-            .Append("<span class=\"n\">")
-            .Append(entries.Count.ToString("N0", CultureInfo.InvariantCulture))
-            .Append("</span></summary>");
+        if (entries.Count == 0)
+        {
+            page.Append("<p class=\"empty\">")
+                .Append(Escaped(Text(catalog, ReportMessages.NoProblems))).Append("</p>");
+        }
 
         foreach (var entry in entries)
-            Row(page, entry, catalog, withPlace: true);
+            Row(page, entry, catalog, bare: true);
 
-        page.Append("</details>");
+        page.Append("</section>");
     }
 
+    /// <summary>
+    /// One report: where, what, and - once it is opened - which report it is.
+    /// </summary>
+    /// <param name="bare">Whether this row stands on its own rather than inside a group.</param>
+    /// <param name="full">
+    /// Whether it names its whole place rather than just the cell. A row says the part its
+    /// heading does not: under a sheet the cell is enough, under a kind - or under no heading
+    /// at all - the sheet is the thing that tells one row from the next.
+    /// </param>
+    /// <remarks>
+    /// The id is not on the closed row. It is what a build pipeline filters on and what we
+    /// grep the catalog for, and repeating it down the right-hand side of a page written for
+    /// whoever owns the sheet is fourteen copies of a string they cannot act on. It is on the
+    /// opened row, it is the heading when the page is grouped by kind, and the search box
+    /// matches it either way.
+    /// </remarks>
     private static void Row(
-        StringBuilder page, ReportEntry entry, MessageCatalog catalog, bool withPlace = false)
+        StringBuilder page, ReportEntry entry, MessageCatalog catalog,
+        bool bare = false, bool? full = null)
     {
-        string searchable = (entry.Message + " " + (entry.Id ?? "") + " "
-                             + (entry.Location is null ? "" : Where(entry.Location))).ToLowerInvariant();
+        bool whole = full ?? bare;
 
-        page.Append("<div class=\"row ").Append(entry.Severity)
+        string place = entry.Location is null ? "" : Where(entry.Location);
+        string cell = entry.Location is null ? "" : Cell(entry.Location);
+
+        string searchable = (entry.Message + " " + (entry.Id ?? "") + " " + place).ToLowerInvariant();
+
+        page.Append("<div class=\"row ").Append(entry.Severity).Append(bare ? " bare" : "")
+            .Append(whole ? " full" : "")
             .Append("\" data-sev=\"").Append(entry.Severity)
-            .Append("\" data-t=\"").Append(Attribute(searchable)).Append("\">");
+            .Append("\" data-sheet=\"")
+            .Append(Attribute(entry.Location is null
+                ? Text(catalog, ReportMessages.GroupRun)
+                : Sheet(entry.Location)))
+            .Append("\" data-kind=\"").Append(Attribute(entry.Id ?? ""))
+            .Append("\" data-t=\"").Append(Attribute(searchable))
+            .Append("\" onclick=\"open_(this, event)\">");
 
         page.Append("<span class=\"sev\"></span>");
+
+        if (entry.Location is not null)
+            Place(page, entry.Location, catalog, place, cell, whole);
 
         if (entry.Fate == ReportFate.New)
             Badge(page, "new", Text(catalog, ReportMessages.BadgeNew));
@@ -320,9 +409,6 @@ internal static class ReportHtml
             Badge(page, "persisting", Text(catalog, ReportMessages.BadgePersisting));
 
         page.Append("<span class=\"msg\">").Append(Escaped(entry.Message)).Append("</span>");
-
-        if (entry.Location is not null)
-            Place(page, entry.Location, catalog, withPlace);
 
         if (!string.IsNullOrEmpty(entry.Id))
             page.Append("<span class=\"id\">").Append(Escaped(entry.Id!)).Append("</span>");
@@ -337,29 +423,37 @@ internal static class ReportHtml
     /// <summary>
     /// The cell: a link where one exists, and text with a copy button where none does.
     /// </summary>
+    /// <remarks>
+    /// Both spellings of the place travel with it - the cell on its own and the whole path -
+    /// because regrouping the page moves a row into and out of a heading that already names
+    /// its sheet, and the row has to say the part the heading does not.
+    /// </remarks>
     private static void Place(
-        StringBuilder page, ReportLocation location, MessageCatalog catalog, bool withPlace)
+        StringBuilder page, ReportLocation location, MessageCatalog catalog,
+        string place, string cell, bool whole)
     {
-        string shown = withPlace || string.IsNullOrEmpty(location.Cell)
-            ? Where(location)
-            : location.Cell;
+        string shown = whole ? place : cell;
 
         if (!string.IsNullOrEmpty(location.Url))
         {
             page.Append("<a class=\"at\" target=\"_blank\" rel=\"noopener\" title=\"")
                 .Append(Attribute(Text(catalog, ReportMessages.OpenInSheet)))
+                .Append("\" data-cell=\"").Append(Attribute(cell))
+                .Append("\" data-full=\"").Append(Attribute(place))
                 .Append("\" href=\"").Append(Attribute(location.Url)).Append("\">")
                 .Append(Escaped(shown)).Append("</a>");
 
             return;
         }
 
-        page.Append("<span class=\"at plain\">").Append(Escaped(shown)).Append("</span>")
+        page.Append("<span class=\"at plain\" data-cell=\"").Append(Attribute(cell))
+            .Append("\" data-full=\"").Append(Attribute(place)).Append("\">")
+            .Append(Escaped(shown)).Append("</span>")
             .Append("<button type=\"button\" class=\"copy\" data-copy=\"")
-            .Append(Attribute(Where(location)))
+            .Append(Attribute(place))
             .Append("\" data-done=\"")
             .Append(Attribute(Text(catalog, ReportMessages.Copied)))
-            .Append("\" onclick=\"copy(this)\">")
+            .Append("\" onclick=\"copy(this, event)\">")
             .Append(Escaped(Text(catalog, ReportMessages.Copy))).Append("</button>");
     }
 
@@ -375,6 +469,10 @@ internal static class ReportHtml
         => string.IsNullOrEmpty(location.Sheet)
             ? location.File
             : $"{location.File} : {location.Sheet}";
+
+    /// <summary>Just the cell, for a row sitting under a heading that names the sheet.</summary>
+    private static string Cell(ReportLocation location)
+        => string.IsNullOrEmpty(location.Cell) ? location.File : location.Cell;
 
     /// <summary>The place, written the way this tool has always written one.</summary>
     private static string Where(ReportLocation location)
@@ -477,31 +575,32 @@ internal static class ReportHtml
    changes every count on the page and hides nothing - which reads as a filter that found
    more than it did. */
 [hidden] { display: none !important; }
+
 html, body { height: 100%; }
 body {
   margin: 0; display: flex; flex-direction: column; overflow: hidden;
   background: var(--bg); color: var(--fg);
-  font: 14px/1.55 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+  font: 13px/1.5 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
         "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
 }
 a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
-code, .id, .at { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
+.id, .at { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
 * { scrollbar-width: thin; }
 
-/* One scrolling region. The bar and the toolbar hold their place because nothing above
+/* One scrolling region. The header, tabs and toolbar hold their place because nothing above
    them moves, and what scrolls is the one region with more in it than fits. */
-main { flex: 1; overflow-y: auto; padding: 12px 16px 40px; }
+main { flex: 1; overflow-y: auto; padding: 10px 14px 40px; }
 
-header.bar { padding: 14px 16px 10px; background: var(--bar); border-bottom: 1px solid var(--line); }
-header.bar h1 { margin: 0 0 6px; font-size: 17px; font-weight: 600; }
+header.bar { padding: 12px 14px 8px; background: var(--bar); border-bottom: 1px solid var(--line); }
+header.bar h1 { margin: 0 0 5px; font-size: 16px; font-weight: 600; }
 header.bar.bad h1 { color: var(--bad); }
 header.bar.good h1 { color: var(--ok); }
 header.bar.warn h1 { color: var(--warn); }
-.failure { margin: 4px 0; color: var(--fg); }
+.failure { margin: 4px 0; }
 
-.counts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-.chip { padding: 2px 9px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; }
+.counts { display: flex; flex-wrap: wrap; gap: 5px; margin: 7px 0; }
+.chip { padding: 1px 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; }
 .chip b { font-variant-numeric: tabular-nums; }
 .chip.zero { color: var(--faint); }
 .chip.error b { color: var(--bad); }
@@ -509,65 +608,122 @@ header.bar.warn h1 { color: var(--warn); }
 .chip.new b { color: var(--bad); }
 .chip.resolved b { color: var(--ok); }
 
-dl.meta { display: grid; grid-template-columns: auto 1fr; gap: 0 10px; margin: 6px 0 0;
-          font-size: 12px; color: var(--muted); }
-dl.meta dt { color: var(--faint); }
-dl.meta dd { margin: 0; overflow-wrap: anywhere; }
+p.meta { margin: 5px 0 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+p.meta .k { color: var(--faint); }
+p.meta .dot { color: var(--faint); margin: 0 7px; }
+
+/* ---- tabs: one list at a time ---- */
+.tabs { display: flex; gap: 2px; padding: 0 14px; background: var(--bar);
+        border-bottom: 1px solid var(--line); }
+.tab { appearance: none; border: 0; background: none; color: var(--muted); cursor: pointer;
+       padding: 8px 12px; font: inherit; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--fg); }
+.tab.on { color: var(--fg); border-bottom-color: var(--link); font-weight: 600; }
+.tab.zero { color: var(--faint); }
+.tab .n { margin-left: 6px; font-variant-numeric: tabular-nums; font-size: 11px;
+          padding: 1px 6px; border-radius: 999px; background: var(--line-soft); color: var(--muted); }
 
 .tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-         padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--bg); }
-.tools input[type=search] { flex: 1 1 220px; min-width: 160px; padding: 4px 8px;
+         padding: 7px 14px; border-bottom: 1px solid var(--line); background: var(--bg); }
+.tools input[type=search] { flex: 1 1 200px; min-width: 150px; padding: 3px 8px;
   border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
-.tools button { padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px;
+.tools button, .tools select { padding: 3px 8px; border: 1px solid var(--line); border-radius: 6px;
   background: var(--bg); color: var(--fg); cursor: pointer; font-size: 12px; }
 .tools button:hover { background: var(--head); }
-.toggle { font-size: 12px; color: var(--muted); user-select: none; cursor: pointer; }
+.toggle, .by { font-size: 12px; color: var(--muted); user-select: none; cursor: pointer; }
 .toggle input { vertical-align: -1px; margin-right: 3px; }
 .spacer { flex: 1 1 0; }
 
-h2 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); font-weight: 600; }
-.note { margin: 8px 0; padding: 7px 10px; border-left: 3px solid var(--warn);
+.note { margin: 6px 0; padding: 6px 10px; border-left: 3px solid var(--warn);
         background: var(--head); font-size: 12px; color: var(--muted); }
-.empty { color: var(--faint); font-size: 13px; }
+.empty { color: var(--faint); }
 
-details.grp { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 8px; overflow: hidden; }
+details.grp { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 6px; overflow: hidden; }
 details.grp > summary { display: flex; align-items: center; gap: 8px; cursor: pointer;
-  padding: 7px 10px; background: var(--head); font-size: 13px; }
+  padding: 6px 10px; background: var(--head); }
 details.grp > summary .where { overflow-wrap: anywhere; }
 details.grp > summary .n { margin-left: auto; color: var(--faint);
   font-variant-numeric: tabular-nums; font-size: 12px; }
-details.section > summary { background: var(--bg); color: var(--muted); }
 
-.row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
-       padding: 6px 10px 6px 8px; border-top: 1px solid var(--line-soft); }
-.row:nth-child(even) { background: var(--zebra); }
-.row .sev { flex: 0 0 4px; align-self: stretch; border-radius: 2px; background: var(--faint); }
+/* ---- a row is one line until it is asked to be more ---- */
+.row { display: flex; align-items: baseline; gap: 8px;
+       padding: 5px 10px 5px 7px; border-top: 1px solid var(--line-soft); cursor: pointer; }
+.row:hover { background: var(--head); }
+.row:nth-child(even of .row) { background: var(--zebra); }
+.row.bare { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 5px; }
+.row .sev { flex: 0 0 3px; align-self: stretch; border-radius: 2px; background: var(--faint); }
 .row.error .sev { background: var(--bad); }
 .row.warning .sev { background: var(--warn); }
-.msg { flex: 1 1 320px; overflow-wrap: anywhere; }
-.at { color: var(--link); white-space: nowrap; }
-.at.plain { color: var(--muted); white-space: normal; overflow-wrap: anywhere; }
-.id { color: var(--faint); }
-.badge { font-size: 11px; padding: 0 6px; border-radius: 999px; border: 1px solid var(--line); }
+/* A column rather than however wide this one place happens to be, so the sentences start
+   at the same place down the page and can be read by running an eye down them. A place
+   wider than the column pushes past it - the sheet name is the one thing here that must
+   not be cut - and the width is in `rem` rather than `ch`, because `ch` is the width of a
+   zero and a sheet named in Korean is nothing like one. */
+.at { flex: 0 0 auto; color: var(--link); white-space: nowrap; min-width: 3rem; }
+.row.full .at { min-width: 25rem; }
+.at.plain { color: var(--muted); }
+
+/* Clamped, and opened by a click on the row. A report is a paragraph - what is wrong, what
+   follows, what to do - and a page of paragraphs buries the part that differs between them. */
+.msg { flex: 1 1 auto; overflow-wrap: anywhere; min-width: 0;
+       display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.row.open .msg { display: block; }
+
+/* Off the closed row: it is what a pipeline filters on, not something the person holding the
+   sheet can act on, and repeated down the page it is one string fourteen times. */
+.id { display: none; color: var(--faint); }
+.row.open .id { display: inline; }
+
+.badge { flex: 0 0 auto; font-size: 11px; padding: 0 6px; border-radius: 999px;
+         border: 1px solid var(--line); }
 .badge.new { color: var(--bad); border-color: var(--bad); }
 .badge.persisting { color: var(--faint); }
-.copy { border: 1px solid var(--line); border-radius: 5px; background: var(--bg);
-        color: var(--muted); font-size: 11px; padding: 0 6px; cursor: pointer; }
+/* On hover and on the opened row only. A button beside every place is one control
+   fourteen times over, and the place beside it is the thing being looked at. */
+.copy { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 5px; background: var(--bg);
+        color: var(--muted); font-size: 11px; padding: 0 6px; cursor: pointer;
+        visibility: hidden; }
+.row:hover .copy, .row.open .copy { visibility: visible; }
 
 .defect { border: 1px solid var(--bad); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
-.defect h2 { margin-top: 0; color: var(--bad); }
+.defect h2 { margin-top: 0; color: var(--bad); font-size: 14px; }
 .defect pre { overflow-x: auto; font-size: 11px; color: var(--muted); }
 """;
 
     /// <summary>
-    /// Filtering, folding, copying, and the theme control.
+    /// Tabs, folding, filtering, regrouping, copying, and the theme control.
     /// </summary>
     /// <remarks>
     /// A group whose every row is filtered out is hidden rather than left as an empty
     /// heading, and the count on each group is the number still showing - a filter that
     /// leaves the totals as they were is a filter that cannot be trusted.
+    ///
+    /// Regrouping moves the rows rather than re-rendering them, so nothing has to be written
+    /// twice into the page: the row already carries both spellings of its place and both of
+    /// the keys it can be gathered under.
     /// </remarks>
     private const string Behaviour = """
+function panel() {
+  return document.querySelector('section[data-panel]:not([hidden])');
+}
+
+function tab(name) {
+  document.querySelectorAll('section[data-panel]').forEach(function (s) {
+    s.hidden = s.dataset.panel !== name;
+  });
+  document.querySelectorAll('.tab').forEach(function (b) {
+    b.classList.toggle('on', b.dataset.tab === name);
+  });
+  filter();
+}
+
+function open_(row, event) {
+  // A click on the link, the copy button or a selection is not a click on the row.
+  if (event.target.closest('a, button')) return;
+  if (window.getSelection && String(window.getSelection())) return;
+  row.classList.toggle('open');
+}
+
 function filter() {
   var q = document.getElementById('q').value.trim().toLowerCase();
   var on = {};
@@ -575,18 +731,22 @@ function filter() {
     on[box.dataset.sev] = box.checked;
   });
 
+  var host = panel();
+  if (!host) return;
+
   var any = 0;
-  document.querySelectorAll('details.grp').forEach(function (group) {
-    var showing = 0;
-    group.querySelectorAll('.row').forEach(function (row) {
-      var keep = on[row.dataset.sev] !== false && (!q || row.dataset.t.indexOf(q) >= 0);
-      row.hidden = !keep;
-      if (keep) showing++;
-    });
+  host.querySelectorAll('.row').forEach(function (row) {
+    var sev = row.dataset.sev;
+    var keep = (on[sev] !== false) && (!q || row.dataset.t.indexOf(q) >= 0);
+    row.hidden = !keep;
+    if (keep) any++;
+  });
+
+  host.querySelectorAll('details.grp').forEach(function (group) {
+    var showing = group.querySelectorAll('.row:not([hidden])').length;
     group.hidden = showing === 0;
     var n = group.querySelector('summary .n');
     if (n) n.textContent = showing.toLocaleString();
-    any += showing;
     if (q && showing > 0) group.open = true;
   });
 
@@ -594,10 +754,77 @@ function filter() {
 }
 
 function fold(open) {
-  document.querySelectorAll('details.grp').forEach(function (group) { group.open = open; });
+  var host = panel();
+  if (!host) return;
+  host.querySelectorAll('details.grp').forEach(function (group) { group.open = open; });
 }
 
-function copy(button) {
+/* Gathers the problems under the other axis. The rows are moved, not rebuilt: each one
+   already carries the sheet it came from, the kind of report it is, and both spellings of
+   its place - so a row that ends up standing on its own can say the part a heading would
+   have said. */
+function group(axis) {
+  var host = document.querySelector('section[data-panel="problems"]');
+  if (!host) return;
+
+  var rows = Array.prototype.slice.call(host.querySelectorAll('.row'));
+  if (!rows.length) return;
+
+  var order = [], by = {};
+
+  rows.forEach(function (row) {
+    var key = axis === 'kind' ? (row.dataset.kind || '-') : row.dataset.sheet;
+    if (!by[key]) { by[key] = []; order.push(key); }
+    by[key].push(row);
+  });
+
+  host.textContent = '';
+
+  order.forEach(function (key) {
+    var band = by[key];
+
+    // A row says the part its heading does not. Under a kind the sheet is what tells one
+    // row from the next; under a sheet the cell is.
+    var whole = axis === 'kind';
+
+    if (band.length === 1) {
+      place(band[0], true, true);
+      host.appendChild(band[0]);
+      return;
+    }
+
+    var box = document.createElement('details');
+    box.className = 'grp';
+    box.open = true;
+
+    var head = document.createElement('summary');
+    var where = document.createElement('span');
+    where.className = 'where';
+    where.textContent = key;
+    var count = document.createElement('span');
+    count.className = 'n';
+    count.textContent = band.length.toLocaleString();
+    head.appendChild(where);
+    head.appendChild(count);
+    box.appendChild(head);
+
+    band.forEach(function (row) { place(row, false, whole); box.appendChild(row); });
+    host.appendChild(box);
+  });
+
+  filter();
+}
+
+function place(row, bare, whole) {
+  row.classList.toggle('bare', bare);
+  row.classList.toggle('full', whole);
+  var at = row.querySelector('.at');
+  if (at) at.textContent = whole ? at.dataset.full : at.dataset.cell;
+}
+
+function copy(button, event) {
+  event.stopPropagation();
+
   var text = button.dataset.copy;
   var said = button.textContent;
   var done = function () {

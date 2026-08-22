@@ -237,5 +237,8 @@
   "report.uncompared": "대조할 직전 리포트가 없어서 신규 표시를 하지 않았습니다.",
   "report.badge-new": "신규",
   "report.badge-persisting": "지속",
-  "report.defect-note": "이것은 데이터나 레시피의 문제가 아니라 tabbit의 결함입니다. 아래 호출 스택과 함께 알려 주십시오."
+  "report.defect-note": "이것은 데이터나 레시피의 문제가 아니라 tabbit의 결함입니다. 아래 호출 스택과 함께 알려 주십시오.",
+  "report.group-by": "묶기",
+  "report.group-by-sheet": "시트별",
+  "report.group-by-kind": "종류별"
 }
