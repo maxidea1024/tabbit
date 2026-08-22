@@ -9,6 +9,7 @@ using Serilog;
 
 using ValueType = Tabbit.Models.ValueType;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -238,8 +239,9 @@ public class MySqlExporter : DatabaseExporterBase<MySqlRecipe>
             case ValueType.Enum: return "INT NOT NULL";
 
             default:
-                throw new TabbitException(
-                    $"MySQL exporter cannot map type `{sf.Type}` of column `{ColumnName(sf)}`.");
+                throw new TabbitException(null,
+                    Message.Of(ExportMessages.MySqlTypeUnmapped,
+                        ("Type", sf.Type), ("Column", ColumnName(sf))));
         }
     }
 }

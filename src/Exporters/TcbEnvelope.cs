@@ -3,6 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -81,12 +82,13 @@ public static class TcbEnvelope
             throw new TabbitDefectException("A file too short to hold a header cannot be decrypted.");
 
         if ((sealedFile[TcbFormat.FlagsOffset] & TcbFormat.FlagEncrypted) == 0)
-            throw new TabbitException("The file is not encrypted.");
+            throw new TabbitException(null, Message.Of(ExportMessages.FileNotEncrypted));
 
         if (sealedFile[TcbFormat.CipherOffset] != TcbFormat.CipherChaCha20)
         {
-            throw new TabbitException(
-                $"Cipher {sealedFile[TcbFormat.CipherOffset]} is not one this build knows.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.CipherUnknown,
+                    ("Cipher", sealedFile[TcbFormat.CipherOffset])));
         }
 
         var plaintext = sealedFile.ToArray();
@@ -97,8 +99,7 @@ public static class TcbEnvelope
         if (!plaintext.AsSpan(TcbFormat.KeyCheckOffset, TcbFormat.Magic.Length)
                       .SequenceEqual(TcbFormat.Magic))
         {
-            throw new TabbitException(
-                "The file did not decrypt to a table. The key is not the one it was written with.");
+            throw new TabbitException(null, Message.Of(ExportMessages.DecryptFailed));
         }
 
         plaintext[TcbFormat.FlagsOffset] &= unchecked((byte)~TcbFormat.FlagEncrypted);
@@ -149,10 +150,7 @@ public static class TcbEnvelope
         // nothing but a second variable - which is the whole argument for refusing here.
         if (encryption != null && mac != null && encryption.AsSpan().SequenceEqual(mac))
         {
-            throw new TabbitException(
-                "A binary export uses the same key for encryption and for the MAC. "
-                + "Make a second key with `--new-encryption-key`, so that one secret is not "
-                + "doing the work of two.");
+            throw new TabbitException(null, Message.Of(ExportMessages.SameKeyForMac));
         }
     }
 
@@ -165,9 +163,10 @@ public static class TcbEnvelope
 
         if (fromEnvironment && fromFile)
         {
-            throw new TabbitException(
-                $"A binary export names both `{variableSetting}` and `{fileSetting}`. "
-                + $"Name one, so there is no question which {purpose} key the files were written with.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.KeyNamedTwice,
+                    ("VariableSetting", variableSetting), ("FileSetting", fileSetting),
+                    ("Purpose", purpose)));
         }
 
         if (!fromEnvironment && !fromFile)
@@ -179,9 +178,9 @@ public static class TcbEnvelope
 
             if (string.IsNullOrEmpty(text))
             {
-                throw new TabbitException(
-                    $"The binary export asks for the {purpose} key in environment variable "
-                    + $"`{variable}`, which is not set.");
+                throw new TabbitException(null,
+                    Message.Of(ExportMessages.KeyEnvNotSet,
+                        ("Purpose", purpose), ("Variable", variable)));
             }
 
             return Parse(text.Trim(), $"environment variable `{variable}`", purpose);
@@ -191,8 +190,8 @@ public static class TcbEnvelope
 
         if (!File.Exists(path))
         {
-            throw new TabbitException(
-                $"The binary export asks for the {purpose} key in `{path}`, which does not exist.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.KeyFileMissing, ("Purpose", purpose), ("Path", path)));
         }
 
         return Parse(File.ReadAllText(path).Trim(), $"key file `{path}`", purpose);
@@ -210,9 +209,10 @@ public static class TcbEnvelope
     {
         if (text.Length != ChaCha20.KeySize * 2)
         {
-            throw new TabbitException(
-                $"The {purpose} key in {origin} is {text.Length} characters. "
-                + $"It has to be {ChaCha20.KeySize * 2} hexadecimal characters, for {ChaCha20.KeySize} bytes.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.KeyWrongLength,
+                    ("Purpose", purpose), ("Origin", origin), ("Length", text.Length),
+                    ("Expected", ChaCha20.KeySize * 2), ("Bytes", ChaCha20.KeySize)));
         }
 
         try
@@ -221,7 +221,8 @@ public static class TcbEnvelope
         }
         catch (FormatException)
         {
-            throw new TabbitException($"The {purpose} key in {origin} is not hexadecimal.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.KeyNotHexadecimal, ("Purpose", purpose), ("Origin", origin)));
         }
     }
 }

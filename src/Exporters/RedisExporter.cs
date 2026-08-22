@@ -7,6 +7,7 @@ using Tabbit.Recipe;
 using Serilog;
 using StackExchange.Redis;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -167,7 +168,8 @@ public class RedisExporter : DatabaseExporterBase<RedisRecipe>
             pending.Add(transaction.KeyRenameAsync(shadow, live));
 
         if (!transaction.Execute())
-            throw new TabbitException($"Redis refused the swap transaction for `{keys.LiveName}`.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.RedisSwapRefused, ("Key", keys.LiveName)));
 
         Task.WaitAll(pending.ToArray());
 

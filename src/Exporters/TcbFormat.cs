@@ -452,7 +452,7 @@ public static class TcbFormat
             case ValueType.Enum: return ElementVarint;
 
             default:
-                throw new TabbitException(
+                throw new TabbitDefectException(
                     $"The binary exporter cannot map type `{column.Type}` onto a wire element.");
         }
     }

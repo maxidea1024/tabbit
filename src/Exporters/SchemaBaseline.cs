@@ -5,6 +5,7 @@ using Tabbit.Models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -136,12 +137,11 @@ public class SchemaBaseline
 
         if (problems.Count > 0)
         {
-            throw new TabbitException(
-                $"The schema changed in {problems.Count} way(s) that a reader already " +
-                "built from the previous schema would not survive:\n\n  " +
-                string.Join("\n\n  ", problems) +
-                "\n\nNothing was written. The baseline this is compared against is " +
-                $"`{Path.GetFullPath(filename)}`.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.SchemaBrokeReaders,
+                    ("Count", problems.Count),
+                    ("Problems", string.Join("\n\n  ", problems)),
+                    ("Baseline", Path.GetFullPath(filename))));
         }
 
         StagingFiles.WriteToJsonFile(filename, updated);
@@ -308,10 +308,9 @@ public class SchemaBaseline
         }
         catch (JsonException e)
         {
-            throw new TabbitException(
-                $"The schema baseline `{Path.GetFullPath(filename)}` could not be read: " +
-                $"{e.Message}. Fix the file or delete it - deleting it gives up the check " +
-                "for one run and writes a new baseline from this schema.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.SchemaBaselineUnreadable,
+                    ("Baseline", Path.GetFullPath(filename)), ("Detail", e.Message)));
         }
     }
 }

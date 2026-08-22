@@ -174,7 +174,7 @@ public sealed class TcbWriter
     public void Write(Guid value)
     {
         if (!value.TryWriteBytes(Reserve(16)))
-            throw new TabbitException($"Could not write uuid `{value}`.");
+            throw new TabbitDefectException($"Could not write uuid `{value}`.");
     }
 
     // ------------------------------------------------- variable length ints

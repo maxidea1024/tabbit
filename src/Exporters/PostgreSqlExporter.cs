@@ -10,6 +10,7 @@ using Serilog;
 
 using ValueType = Tabbit.Models.ValueType;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -161,8 +162,9 @@ public class PostgreSqlExporter : DatabaseExporterBase<PostgreSqlRecipe>
                 break;
 
             default:
-                throw new TabbitException(
-                    $"PostgreSQL exporter cannot map type `{sf.Type}` of column `{ColumnName(sf)}`.");
+                throw new TabbitException(null,
+                    Message.Of(ExportMessages.PostgreSqlTypeUnmapped,
+                        ("Type", sf.Type), ("Column", ColumnName(sf))));
         }
     }
 
@@ -214,8 +216,9 @@ public class PostgreSqlExporter : DatabaseExporterBase<PostgreSqlRecipe>
             case ValueType.ForeignRecord: return "integer NOT NULL";
 
             default:
-                throw new TabbitException(
-                    $"PostgreSQL exporter cannot map type `{sf.Type}` of column `{ColumnName(sf)}`.");
+                throw new TabbitException(null,
+                    Message.Of(ExportMessages.PostgreSqlTypeUnmapped,
+                        ("Type", sf.Type), ("Column", ColumnName(sf))));
         }
     }
 }

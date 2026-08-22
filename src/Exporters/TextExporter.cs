@@ -8,6 +8,7 @@ using Tabbit.CodeGeneration;
 using Tabbit.Helpers;
 using Tabbit.Models;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -298,20 +299,12 @@ public sealed class TextExporter : Target<TextRecipe>
 
         if (hasFormat && hasTemplate)
         {
-            throw new TabbitException(
-                "The `text` target was given both a `Format` and a `Template`. They are two "
-                + "answers to what a file looks like; name one.");
+            throw new TabbitException(null, Message.Of(ExportMessages.TextFormatAndTemplate));
         }
 
         if (!hasFormat && !hasTemplate)
         {
-            throw new TabbitException(
-                "The `text` target needs a `Format` - one gathered string as a line of the "
-                + "file. For example:\n"
-                + "    \"Format\": \"NSLOCTEXT(\\\"{namespace}\\\", \\\"{group}\\\", \\\"{text}\\\")\"\n"
-                + "  The names in braces are filled in per string: {text} {raw} {group} "
-                + "{namespace} {table} {field} {location} {index}.\n"
-                + "  A shape that is not one line per string is what `Template` is for.");
+            throw new TabbitException(null, Message.Of(ExportMessages.TextNeedsFormat));
         }
 
         var groups = Gather(
@@ -526,13 +519,11 @@ public sealed class TextExporter : Target<TextRecipe>
         var first = group.NamespaceDeclaredBy;
 
         throw new TabbitException(field.TypeLocation,
-            $"Group `{group.Name}` is gathered into two namespaces.\n"
-            + $"  `{table.Name}.{field.Name}` says `{field.RoleNamespace}`.\n"
-            + $"  `{first.OwnerTable?.Name}.{first.Name}` says `{group.Namespace}`. "
-            + $"({first.TypeLocation})\n"
-            + $"  A group is one file and a namespace holds files, so the columns gathering "
-            + $"into one have to agree. Split the group, or name the namespace on one column "
-            + $"and let the rest take it.");
+            Message.Of(ExportMessages.TextGroupTwoNamespaces,
+                ("Group", group.Name), ("Table", table.Name), ("Field", field.Name),
+                ("Says", field.RoleNamespace),
+                ("FirstTable", first.OwnerTable?.Name), ("FirstField", first.Name),
+                ("FirstSays", group.Namespace), ("FirstAt", first.TypeLocation)));
     }
 
     /// <summary>
@@ -811,9 +802,9 @@ public sealed class TextExporter : Target<TextRecipe>
                 int close = pattern.IndexOf('}', at + 1);
                 if (close < 0)
                 {
-                    throw new TabbitException(
-                        $"The `text` target's `{setting}` opens a `{{` at position {at} and never "
-                        + $"closes it: `{pattern}`. Write `{{{{` for a literal brace.");
+                    throw new TabbitException(null,
+                        Message.Of(ExportMessages.TextPatternUnclosedBrace,
+                            ("Setting", setting), ("At", at), ("Pattern", pattern)));
                 }
 
                 if (literal.Length > 0)
@@ -857,23 +848,17 @@ public sealed class TextExporter : Target<TextRecipe>
                 case "count": return forEntry ? Refuse() : Slot.Count;
             }
 
-            throw new TabbitException(
-                $"The `text` target's `{setting}` uses `{{{name}}}`, which is not a name this "
-                + $"target fills in: `{pattern}`.\n"
-                + $"  Per string: {{text}} {{raw}} {{table}} {{field}} {{location}} {{index}}\n"
-                + $"  Per file:   {{group}} {{namespace}} {{count}}\n"
-                + $"  `{{{{{{{{` writes a literal brace.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.TextPatternUnknownName,
+                    ("Setting", setting), ("Name", name), ("Pattern", pattern)));
 
             Slot Refuse()
             {
-                throw new TabbitException(
+                throw new TabbitException(null, Message.Of(
                     forEntry
-                        ? $"The `text` target's `{setting}` uses `{{{name}}}`, which describes the "
-                          + $"file rather than one string, and this pattern is written once per "
-                          + $"string: `{pattern}`."
-                        : $"The `text` target's `{setting}` uses `{{{name}}}`, which describes one "
-                          + $"gathered string. A header and a footer are written once for the "
-                          + $"whole file, so there is no string for it to name: `{pattern}`.");
+                        ? ExportMessages.TextPatternNameIsPerFile
+                        : ExportMessages.TextPatternNameIsPerString,
+                    ("Setting", setting), ("Name", name), ("Pattern", pattern)));
             }
         }
 
@@ -941,9 +926,9 @@ public sealed class TextExporter : Target<TextRecipe>
 
         if (!File.Exists(name))
         {
-            throw new TabbitException(
-                $"The `text` target's template `{name}` is not there. The path is read relative "
-                + $"to the working directory, which is `{Directory.GetCurrentDirectory()}`.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.TextTemplateMissing,
+                    ("Name", name), ("Directory", Directory.GetCurrentDirectory())));
         }
 
         return File.ReadAllText(name);
@@ -961,8 +946,7 @@ public sealed class TextExporter : Target<TextRecipe>
             case "crlf": return "\r\n";
         }
 
-        throw new TabbitException(
-            $"The `text` target's `LineEnding` is `{recipe.LineEnding}`. It has to be `lf` or "
-            + $"`crlf`.");
+        throw new TabbitException(null,
+            Message.Of(ExportMessages.TextLineEndingUnknown, ("LineEnding", recipe.LineEnding)));
     }
 }

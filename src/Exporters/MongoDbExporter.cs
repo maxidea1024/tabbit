@@ -9,6 +9,7 @@ using Serilog;
 
 using ValueType = Tabbit.Models.ValueType;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -47,9 +48,8 @@ public class MongoDbExporter : DatabaseExporterBase<MongoDbRecipe>
         var url = new MongoUrl(connectionString);
         if (string.IsNullOrEmpty(url.DatabaseName))
         {
-            throw new TabbitException(
-                $"Recipe section `{RecipeSection}` connection string must name a database, " +
-                $"as in `mongodb://host:27017/mygame`.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.MongoDbNeedsDatabase, ("Section", RecipeSection)));
         }
 
         var client = new MongoClient(url);
@@ -167,8 +167,8 @@ public class MongoDbExporter : DatabaseExporterBase<MongoDbRecipe>
                 return new BsonInt32((int)value!);
 
             default:
-                throw new TabbitException(
-                    $"MongoDB exporter cannot map element type `{elementType}`.");
+                throw new TabbitException(null,
+                    Message.Of(ExportMessages.MongoDbElementTypeUnmapped, ("Type", elementType)));
         }
     }
 

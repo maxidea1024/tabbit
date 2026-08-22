@@ -140,6 +140,54 @@ public class MessageCatalogTests
     }
 
     /// <summary>
+    /// The entries that quote braces come out with the braces they meant.
+    /// </summary>
+    /// <remarks>
+    /// The `text` target's reports are the awkward case: they are about patterns written in
+    /// braces, so they quote braces, and no test asserted on their wording before. Pinned
+    /// here because nothing else would notice a doubling gained or lost - and one of these
+    /// deliberately shows four braces, which reads like a mistake until you count them
+    /// against the source it came from.
+    ///
+    /// A value that itself holds a brace is checked too. Values are inserted rather than
+    /// re-scanned, so a pattern like `a{b` has to arrive intact.
+    /// </remarks>
+    [Fact]
+    public void Brace_quoting_entries_render_the_braces_they_meant()
+    {
+        var english = MessageCatalog.English;
+
+        Assert.Equal(
+            "The `text` target's `Format` opens a `{` at position 3 and never closes it: "
+            + "`a{b`. Write `{{` for a literal brace.",
+            Message.Of(Tabbit.Exporters.ExportMessages.TextPatternUnclosedBrace,
+                ("Setting", "Format"), ("At", 3), ("Pattern", "a{b")).In(english));
+
+        string unknown = Message.Of(Tabbit.Exporters.ExportMessages.TextPatternUnknownName,
+            ("Setting", "Format"), ("Name", "thing"), ("Pattern", "{thing}")).In(english);
+
+        Assert.StartsWith(
+            "The `text` target's `Format` uses `{thing}`, which is not a name this target "
+            + "fills in: `{thing}`.",
+            unknown);
+
+        Assert.Contains("Per string: {text} {raw} {table} {field} {location} {index}", unknown);
+        Assert.Contains("Per file:   {group} {namespace} {count}", unknown);
+        Assert.EndsWith("`{{{{` writes a literal brace.", unknown);
+
+        string needsFormat =
+            Message.Of(Tabbit.Exporters.ExportMessages.TextNeedsFormat).In(english);
+
+        Assert.Contains("\"Format\": \"NSLOCTEXT(\\\"{namespace}\\\", \\\"{group}\\\", "
+                        + "\\\"{text}\\\")\"", needsFormat);
+
+        Assert.Contains(
+            "filled in per string: {text} {raw} {group} {namespace} {table} {field} "
+            + "{location} {index}.",
+            needsFormat);
+    }
+
+    /// <summary>
     /// Numbers are written invariantly, whatever the machine's locale.
     /// </summary>
     /// <remarks>

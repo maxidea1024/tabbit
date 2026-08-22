@@ -43,7 +43,7 @@ public static class TcbMac
     public static void Sign(Span<byte> file, ReadOnlySpan<byte> key)
     {
         if (file.Length < TcbFormat.HeaderSize)
-            throw new TabbitException("A table file too short to hold a header cannot be signed.");
+            throw new TabbitDefectException("A table file too short to hold a header cannot be signed.");
 
         Compute(file, key, file.Slice(TcbFormat.MacOffset, TcbFormat.MacSize));
     }
@@ -96,7 +96,7 @@ public static class TcbMac
     private static void Compute(ReadOnlySpan<byte> file, ReadOnlySpan<byte> key, Span<byte> destination)
     {
         if (key.Length != KeySize)
-            throw new TabbitException($"A MAC key is {KeySize} bytes, not {key.Length}.");
+            throw new TabbitDefectException($"A MAC key is {KeySize} bytes, not {key.Length}.");
 
         using var hmac = IncrementalHash.CreateHMAC(HashAlgorithmName.SHA256, key);
 

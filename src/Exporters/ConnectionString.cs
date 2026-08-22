@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -33,8 +34,8 @@ public static class ConnectionString
     {
         if (string.IsNullOrWhiteSpace(template))
         {
-            throw new TabbitException(
-                $"Recipe section `{recipeSection}` has no ConnectionString.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.ConnectionStringMissing, ("Section", recipeSection)));
         }
 
         var missing = new List<string>();
@@ -55,10 +56,10 @@ public static class ConnectionString
 
         if (missing.Count > 0)
         {
-            throw new TabbitException(
-                $"Recipe section `{recipeSection}` refers to environment variable(s) " +
-                $"{string.Join(", ", missing)}, which are not set. " +
-                $"Connection secrets are read from the environment so they need not be committed.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.ConnectionStringEnvNotSet,
+                    ("Section", recipeSection),
+                    ("Variables", string.Join(", ", missing))));
         }
 
         return resolved;
