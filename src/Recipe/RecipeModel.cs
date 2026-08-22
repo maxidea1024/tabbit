@@ -182,6 +182,25 @@ public class RecipeModel
     /// `ItemDrop` with set `_alt` into `item_drop_alt`.
     /// </remarks>
     public string DataFileCase { get; set; } = "";
+
+    /// <summary>
+    /// Colour palettes this build knows, each name mapped to the file it is read from.
+    ///
+    /// <code>
+    /// "Palettes": { "material": "art/palettes/material.json" }
+    /// </code>
+    ///
+    /// A palette file is a JSON object of colour name to `#RRGGBB` or `#RRGGBBAA`. A cell
+    /// reaches one by naming it - `material.blue.500` - and a bare name is always the
+    /// built-in `css` palette, which is what keeps two palettes from disagreeing about what
+    /// `red` means.
+    ///
+    /// Data rather than code, so adding one is a file rather than a build of this tool, and
+    /// a project's own palette never reaches this repository. `css` cannot be replaced.
+    ///
+    /// spec/composite-value-types.md section 4.4.
+    /// </summary>
+    public Dictionary<string, string> Palettes { get; set; } = new Dictionary<string, string>();
     #endregion
 
 

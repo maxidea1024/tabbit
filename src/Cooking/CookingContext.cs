@@ -39,6 +39,7 @@ public sealed class CookingContext
         ArrayDelimiter = ResolveArrayDelimiter(recipe);
         TimeZone = Helpers.TimeZones.OfRecipe(recipe.TimeZone);
         AutoInsertEnumNoneLabel = recipe.AutoInsertEnumNoneLabel;
+        Palettes = ResolvePalettes(recipe);
     }
 
     /// <summary>
@@ -53,6 +54,9 @@ public sealed class CookingContext
 
     /// <summary>The model every parser adds to.</summary>
     public Model Model { get; }
+
+    /// <summary>The colour names a cell may write, built in and recipe-declared.</summary>
+    public ColorPalettes Palettes { get; }
 
     /// <summary>
     /// Separator for array cells, taken from the recipe. A source entry may override it.
@@ -88,6 +92,28 @@ public sealed class CookingContext
         }
 
         return delimiter[0];
+    }
+
+    /// <summary>
+    /// Reads the palettes a recipe declared, leaving a run that declared none with the
+    /// built-in one alone.
+    /// </summary>
+    /// <remarks>
+    /// Read once here rather than per cell. A palette file that is missing or malformed is a
+    /// fault in the recipe, and reporting it while the first coloured cell happens to be
+    /// parsed would make it look like a fault in the sheet.
+    /// </remarks>
+    private static ColorPalettes ResolvePalettes(RecipeModel recipeModel)
+    {
+        if (recipeModel.Palettes.Count == 0)
+            return ColorPalettes.BuiltInOnly;
+
+        var loaded = new Dictionary<string, IReadOnlyDictionary<string, uint>>();
+
+        foreach (var (name, path) in recipeModel.Palettes)
+            loaded[name] = ColorPalettes.ReadFile(name, path);
+
+        return ColorPalettes.With(loaded);
     }
 
 
@@ -401,6 +427,12 @@ public sealed class CookingContext
                 return true;
         }
 
+        // One cell holding several named components - a vector, a rotation, a colour. A type
+        // for as long as parsing lasts, like `bitset`; the cooker expands a column of one
+        // into a record. See spec/composite-value-types.md.
+        if (Models.CompositeTypes.ByName(typeName) is not null)
+            return true;
+
         return false;
     }
 
@@ -469,6 +501,12 @@ public sealed class CookingContext
             case "bitset": return Models.ValueType.Bitset;
         }
 
+        // Also the composites. Their names carry the component type - `vec2i` against
+        // `vec2f` - so the type row says what a cell holds rather than leaving it to a
+        // default nobody reading the sheet can see.
+        if (Models.CompositeTypes.ByName(typeName) is { } composite)
+            return composite.Type;
+
         // Also enum.
         if (Model.ContainsEnum(typeName))
             return Models.ValueType.Enum;
@@ -512,8 +550,13 @@ public sealed class CookingContext
             case Models.ValueType.ForeignRecord: return 0;
 
             default:
-                    throw new TabbitException(null,
-                        Message.Of(CookingMessages.TypeHasNoEmptyValue, ("Type", type)));
+                // Zero for most components, and deliberately not for all: a quaternion of
+                // four zeros is not a rotation, so its empty value is the identity one.
+                if (Models.CompositeTypes.Of(type) is { } composite)
+                    return CompositeValues.Empty(composite);
+
+                throw new TabbitException(null,
+                    Message.Of(CookingMessages.TypeHasNoEmptyValue, ("Type", type)));
         }
     }
 
@@ -809,6 +852,12 @@ public sealed class CookingContext
         if (!required && string.IsNullOrEmpty(rawValue))
             return EmptyValueOf(type);
 
+        // A composite reads the whole cell in its own notation - a tuple, a hex colour, a
+        // name - so it comes before the radix rewrite below. `#3366CC` is not a number and
+        // `0x3366CC` in a colour column is six hex digits rather than the integer 3368140.
+        if (Models.CompositeTypes.Of(type) is { } composite)
+            return CompositeValues.Parse(composite, rawValue, location, Palettes);
+
         // What the cell actually holds, kept for the report. A radix literal is rewritten
         // below, and a message naming `4294967295` where the sheet says `0xFFFFFFFF` sends
         // the author looking for a number that is not in their workbook.
@@ -993,6 +1042,20 @@ public sealed class CookingContext
     private static bool TakesRadixLiteral(Models.ValueType type)
         => type is Models.ValueType.Int32 or Models.ValueType.Int64
             or Models.ValueType.Float or Models.ValueType.Double;
+
+    /// <summary>
+    /// One component of a composite cell, with any radix literal already rewritten.
+    /// </summary>
+    /// <remarks>
+    /// A component is a value of its own type, so it reads that type's notation: `(0xFF,
+    /// 0x80, 0x40)` is three integers written in base 16. The whole-cell colour forms are
+    /// read before this and never reach it.
+    /// </remarks>
+    internal static string ComponentLiteral(
+        string text, Models.ValueType componentType, Location? location)
+        => RadixLiteralBase(text) != 0 && TakesRadixLiteral(componentType)
+            ? DecimalOfRadix(text, componentType, location!)
+            : text;
 
     /// <summary>
     /// A `0x` or `0b` literal as the decimal it denotes, for the type's own parser to read.

@@ -52,7 +52,9 @@ public partial class ModelCooker
         context.ReportCellNotices();
 
 
-        // Every cell has been read, so the one type that existed for the reading is done.
+        // Every cell has been read, so the two type kinds that existed for the reading are
+        // done. Both are folds and neither is visible below this line.
+        ExpandCompositeColumns(context, result, diagnostics);
         FoldBitsetIntoInt64(result);
 
         // Tables that are really another set of some table's rows become that, before
