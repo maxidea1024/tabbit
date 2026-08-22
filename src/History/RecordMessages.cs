@@ -91,4 +91,34 @@ public static class RecordMessages
 
     /// <summary>A commit the history holds nothing for, and no checkout to resolve it in.</summary>
     public const string SnapshotNotFound = "record.snapshot-not-found";
+
+    /// <summary>A log line: Branch `{Branch}` of `{Project}` has no snapshots.</summary>
+    public const string LogBranchHasNoSnapshots = "record.log-branch-has-no-snapshots";
+
+    /// <summary>A log line: Commit {Commit} is behind {Head}, which the history already holds for branch `{Branch}`.</summary>
+    public const string LogCommitIsBehind = "record.log-commit-is-behind";
+
+    /// <summary>A log line: The next recorded snapshot will cover this commit's changes as well as its own.</summary>
+    public const string LogNextSnapshotCoversThis = "record.log-next-snapshot-covers-this";
+
+    /// <summary>A log line: This conversion has no commit identity, so its changes cannot be attributed to anyone.</summary>
+    public const string LogNoCommitIdentity = "record.log-no-commit-identity";
+
+    /// <summary>A log line: The history has no snapshot for `{At}` on branch `{Branch}`.</summary>
+    public const string LogNoSnapshotAt = "record.log-no-snapshot-at";
+
+    /// <summary>A log line: Nothing was recorded in the history for this conversion.</summary>
+    public const string LogNothingRecorded = "record.log-nothing-recorded";
+
+    /// <summary>A log line: Nothing was recorded in the history for this conversion.</summary>
+    public const string LogNothingRecordedDirty = "record.log-nothing-recorded-dirty";
+
+    /// <summary>A log line: The history holds nothing for project `{Project}`.</summary>
+    public const string LogProjectEmpty = "record.log-project-empty";
+
+    /// <summary>A log line: The history holds nothing for project `{Project}`.</summary>
+    public const string LogProjectEmptyRunFirst = "record.log-project-empty-run-first";
+
+    /// <summary>A log line: The working copy at `{Path}` has uncommitted changes, so this conversion does not match commit {.</summary>
+    public const string LogWorkingCopyDirty = "record.log-working-copy-dirty";
 }

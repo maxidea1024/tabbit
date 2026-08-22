@@ -181,7 +181,8 @@ public class MySqlExporter : DatabaseExporterBase<MySqlRecipe>
         }
         catch (Exception ex)
         {
-            Log.Warning($"Could not clean up MySQL shadow tables: {ex.Message}");
+            Log.Warning(Message.Of(ExportMessages.LogMysqlCleanupFailed,
+                ("Detail", ex.Message)).In(MessageCatalog.Current));
         }
     }
 

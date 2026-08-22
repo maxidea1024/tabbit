@@ -26,5 +26,16 @@
   "record.bind-not-an-address": "--bind {Bind} is not an address. Use an IP, `localhost`, or `0.0.0.0` for every interface.",
   "record.bind-public-without-token": "--bind {Bind} would serve the history to anything that can reach this machine, and no token is set. Set ${Variable} to a secret and send it as `Authorization: Bearer <token>`, or leave --bind at 127.0.0.1.",
   "record.query-value-not-a-number": "`{Name}={Value}` is not a number.",
-"record.snapshot-not-found": "The history has no snapshot for `{Commit}` on branch `{Branch}` of `{Project}`, and no working copy here could resolve it as a tag or a revision. Either nothing converted that commit, or it is on another branch, or there is no checkout to look the name up in."
+"record.snapshot-not-found": "The history has no snapshot for `{Commit}` on branch `{Branch}` of `{Project}`, and no working copy here could resolve it as a tag or a revision. Either nothing converted that commit, or it is on another branch, or there is no checkout to look the name up in.",
+
+  "record.log-branch-has-no-snapshots": "Branch `{Branch}` of `{Project}` has no snapshots.",
+  "record.log-commit-is-behind": "Commit {Commit} is behind {Head}, which the history already holds for branch `{Branch}`. Recording it would report that commit's work as undone, by this commit's author. Nothing was recorded. Convert the newer commit, or set AllowOutOfOrder if the chain really does go this way.",
+  "record.log-next-snapshot-covers-this": "The next recorded snapshot will cover this commit's changes as well as its own.",
+  "record.log-no-commit-identity": "This conversion has no commit identity, so its changes cannot be attributed to anyone. Pass --commit, or run the conversion inside the working copy the sheets are in.",
+  "record.log-no-snapshot-at": "The history has no snapshot for `{At}` on branch `{Branch}`.",
+  "record.log-nothing-recorded": "Nothing was recorded in the history for this conversion.",
+  "record.log-nothing-recorded-dirty": "Nothing was recorded in the history for this conversion. Commit the sheets and convert again, or set RecordDirty to record it under {Commit} anyway - which also means the clean build of that commit can never be recorded.",
+  "record.log-project-empty": "The history holds nothing for project `{Project}`.",
+  "record.log-project-empty-run-first": "The history holds nothing for project `{Project}`. Run a conversion with the history target enabled first.",
+  "record.log-working-copy-dirty": "The working copy at `{Path}` has uncommitted changes, so this conversion does not match commit {Commit}. What is recorded for it will be marked as not attributable."
 }

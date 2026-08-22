@@ -115,9 +115,9 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         if (named.Height <= TypeRow + 1)
         {
-            Log.Warning(
-                $"Skipping `{rawName}`: the range covers {named.Height} row(s), and a table needs "
-                + $"a name row, a type row and data. ({sheet.Location})");
+            Log.Warning(Message.Of(UwoLayoutMessages.LogSkippingRangeTooShort,
+                ("Name", rawName), ("Rows", named.Height),
+                ("At", sheet.Location)).In(MessageCatalog.Current));
             return null;
         }
 
@@ -255,7 +255,8 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         if (table.Fields.Count == 0)
         {
-            Log.Warning($"Skipping `{table.RawName}`: no column of it has both a name and a type.");
+            Log.Warning(Message.Of(UwoLayoutMessages.LogSkippingTableNoColumns,
+                ("Table", table.RawName)).In(MessageCatalog.Current));
             return null;
         }
 
@@ -734,9 +735,9 @@ public sealed class UwoLayoutParser : ILayoutParser
             // reports the cell and tells the author to write `-`. Reported rather than
             // refused, because refusing would stop a conversion of six hundred tables over
             // a cell whose intent is not in doubt.
-            Log.Warning(
-                $"`{column.Field.OwnerTable.Name}.{column.Field.Name}` is blank. This layout "
-                + $"writes `-` for no value; read as the type's empty value.\n    at {rawCell.Location}");
+            Log.Warning(Message.Of(UwoLayoutMessages.LogBlankReadAsEmpty,
+                ("Table", column.Field.OwnerTable.Name), ("Field", column.Field.Name),
+                ("At", rawCell.Location)).In(MessageCatalog.Current));
 
             return EmptyCell(column, rawCell, arrayDelimiter);
         }

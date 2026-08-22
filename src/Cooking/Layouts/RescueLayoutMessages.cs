@@ -41,4 +41,19 @@ public static class RescueLayoutMessages
 
     /// <summary>A type that cannot be the element type of an array.</summary>
     public const string TypeNotArrayElement = "rescue.type-not-array-element";
+
+    /// <summary>A log line: Dropping row {Row} of `{Table}`: `{Field}` is `{Value}`, which an earlier row already used.</summary>
+    public const string LogDroppingDuplicateRow = "rescue.log-dropping-duplicate-row";
+
+    /// <summary>A log line: Replacing an earlier row of `{Table}` with row {Row}: `{Field}` is `{Value}`, which both use.</summary>
+    public const string LogReplacingDuplicateRow = "rescue.log-replacing-duplicate-row";
+
+    /// <summary>A log line: Skipping sheet `{Sheet}`: row {NameRow} should open with a field name and row {TypeRow} with its.</summary>
+    public const string LogSkippingSheetBadHeader = "rescue.log-skipping-sheet-bad-header";
+
+    /// <summary>A log line: Skipping sheet `{Sheet}`: it has no data rows under a three-row header.</summary>
+    public const string LogSkippingSheetNoData = "rescue.log-skipping-sheet-no-data";
+
+    /// <summary>A log line: Skipping row {Row} of `{Table}`: it has no `{Field}` but is not empty, so it is an unfinished ro.</summary>
+    public const string LogSkippingUnfinishedRow = "rescue.log-skipping-unfinished-row";
 }

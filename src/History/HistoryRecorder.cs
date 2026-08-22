@@ -44,7 +44,7 @@ internal static class HistoryRecorder
         {
             commit.WarnIfNotAttributable();
 
-            Log.Warning("Nothing was recorded in the history for this conversion.");
+            Log.Warning(Message.Of(RecordMessages.LogNothingRecorded).In(MessageCatalog.Current));
             return false;
         }
 
@@ -52,10 +52,8 @@ internal static class HistoryRecorder
         {
             commit.WarnIfNotAttributable();
 
-            Log.Warning(
-                $"Nothing was recorded in the history for this conversion. Commit the sheets and " +
-                $"convert again, or set RecordDirty to record it under {commit.ShortHash} anyway - " +
-                $"which also means the clean build of that commit can never be recorded.");
+            Log.Warning(Message.Of(RecordMessages.LogNothingRecordedDirty,
+                ("Commit", commit.ShortHash)).In(MessageCatalog.Current));
 
             return false;
         }
@@ -143,11 +141,9 @@ internal static class HistoryRecorder
         if (head is null || recipe.AllowOutOfOrder || !IsBehind(head, commit))
             return true;
 
-        Log.Error(
-            $"Commit {commit.ShortHash} is behind {Short(head.CommitHash)}, which the history already " +
-            $"holds for branch `{BranchOf(commit)}`. Recording it would report that commit's work as " +
-            $"undone, by this commit's author. Nothing was recorded. Convert the newer commit, or set " +
-            $"AllowOutOfOrder if the chain really does go this way.");
+        Log.Error(Message.Of(RecordMessages.LogCommitIsBehind,
+            ("Commit", commit.ShortHash), ("Head", Short(head.CommitHash)),
+            ("Branch", BranchOf(commit))).In(MessageCatalog.Current));
 
         return false;
     }

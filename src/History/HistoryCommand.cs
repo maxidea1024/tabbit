@@ -55,8 +55,8 @@ public static class HistoryCommand
 
         if (branch is null)
         {
-            Log.Error($"The history holds nothing for project `{projectKey}`. " +
-                      $"Run a conversion with the history target enabled first.");
+            Log.Error(Message.Of(RecordMessages.LogProjectEmptyRunFirst,
+                ("Project", projectKey)).In(MessageCatalog.Current));
             return 1;
         }
 
@@ -105,8 +105,8 @@ public static class HistoryCommand
 
         if (branch is null)
         {
-            Log.Error($"The history holds nothing for project `{projectKey}`. " +
-                      $"Run a conversion with the history target enabled first.");
+            Log.Error(Message.Of(RecordMessages.LogProjectEmptyRunFirst,
+                ("Project", projectKey)).In(MessageCatalog.Current));
             return 1;
         }
 
@@ -114,9 +114,11 @@ public static class HistoryCommand
 
         if (summary is null)
         {
-            Log.Error(options.At is null
-                ? $"Branch `{branch}` of `{projectKey}` has no snapshots."
-                : $"The history has no snapshot for `{options.At}` on branch `{branch}`.");
+            Log.Error((options.At is null
+                ? Message.Of(RecordMessages.LogBranchHasNoSnapshots,
+                    ("Branch", branch), ("Project", projectKey))
+                : Message.Of(RecordMessages.LogNoSnapshotAt,
+                    ("At", options.At), ("Branch", branch))).In(MessageCatalog.Current));
 
             return 1;
         }
@@ -167,7 +169,8 @@ public static class HistoryCommand
 
         if (branch is null)
         {
-            Log.Error($"The history holds nothing for project `{projectKey}`.");
+            Log.Error(Message.Of(RecordMessages.LogProjectEmpty,
+                ("Project", projectKey)).In(MessageCatalog.Current));
             return 1;
         }
 

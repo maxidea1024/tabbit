@@ -7,5 +7,9 @@
   "named-range.type-unrecognized": "Column `{Column}` of `{Table}` is typed `{Type}`, which this layout does not recognize.",
   "named-range.number-type-option-unknown": "`LayoutOptions.{Option}` is `{Value}`. It takes `double`, which reads a `number` column as the JSON number it means, or `narrow`, which gives it the smallest type its values fit.",
   "named-range.grid-columns-differ-in-type": "Table `{Table}` is a grid - its column names are ids - but its columns are not all one type: `{First}` and `{Second}`. Every column of a grid is one element of one array, so they state one type.",
-  "named-range.grid-column-id-not-int32": "Column id `{Id}` of `{Table}` does not fit a 32-bit integer, and `{Companion}.Id` is one."
+  "named-range.grid-column-id-not-int32": "Column id `{Id}` of `{Table}` does not fit a 32-bit integer, and `{Companion}.Id` is one.",
+
+  "named-range.log-blank-read-as-empty": "`{Table}.{Field}` is blank. This layout writes `-` for no value; read as the type's empty value.\n    at {At}",
+  "named-range.log-skipping-range-too-short": "Skipping `{Name}`: the range covers {Rows} row(s), and a table needs a name row, a type row and data. ({At})",
+  "named-range.log-skipping-table-no-columns": "Skipping `{Table}`: no column of it has both a name and a type."
 }

@@ -141,7 +141,7 @@ public class HistoryTarget : Target<HistoryRecipe>
         // next snapshot's changes will be measured from the last one recorded and
         // attributed to whichever commit finally gets through.
         Log.Error(message);
-        Log.Error("The next recorded snapshot will cover this commit's changes as well as its own.");
+        Log.Error(Message.Of(RecordMessages.LogNextSnapshotCoversThis).In(MessageCatalog.Current));
     }
 
     /// <summary>

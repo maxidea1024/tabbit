@@ -187,7 +187,8 @@ public class RedisExporter : DatabaseExporterBase<RedisRecipe>
         }
         catch (Exception ex)
         {
-            Log.Warning($"Could not clean up Redis shadow keys: {ex.Message}");
+            Log.Warning(Message.Of(ExportMessages.LogRedisCleanupFailed,
+                ("Detail", ex.Message)).In(MessageCatalog.Current));
         }
     }
 

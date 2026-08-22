@@ -302,4 +302,13 @@ public static class CookingMessages
 
     /// <summary>The headline over the reports that stopped a conversion.</summary>
     public const string ValidationFailed = "cook.validation-failed";
+
+    /// <summary>A log line: The build cache could not be written to `{Path}`: {Detail}.</summary>
+    public const string LogCacheSealUnwritable = "cook.log-cache-seal-unwritable";
+
+    /// <summary>A log line: Columns folded into an array are numbered out of order in table `{Table}`.</summary>
+    public const string LogFoldedColumnsOutOfOrder = "cook.log-folded-columns-out-of-order";
+
+    /// <summary>A log line: `{Table}.</summary>
+    public const string LogReferencedTablesUnchecked = "cook.log-referenced-tables-unchecked";
 }

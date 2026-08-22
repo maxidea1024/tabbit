@@ -269,7 +269,8 @@ public sealed class RescueLayoutParser : ILayoutParser
 
         if (sheet.Rows.Count <= FirstDataRow || sheet.ColumnCount == 0)
         {
-            Log.Warning($"Skipping sheet `{sheetName}`: it has no data rows under a three-row header. ({sheet.Location})");
+            Log.Warning(Message.Of(RescueLayoutMessages.LogSkippingSheetNoData,
+                ("Sheet", sheetName), ("At", sheet.Location)).In(MessageCatalog.Current));
             return null;
         }
 
@@ -283,10 +284,10 @@ public sealed class RescueLayoutParser : ILayoutParser
         // on the unknown type `pc` instead of leaving it alone.
         if (!firstName.ToPascalCase().IsValidIdentifier() || !IsTypeSpelling(firstType))
         {
-            Log.Warning(
-                $"Skipping sheet `{sheetName}`: row {NameRow + 1} should open with a field name and " +
-                $"row {TypeRow + 1} with its type, and they hold `{firstName}` and `{firstType}`. " +
-                $"({sheet.Location})");
+            Log.Warning(Message.Of(RescueLayoutMessages.LogSkippingSheetBadHeader,
+                ("Sheet", sheetName), ("NameRow", NameRow + 1), ("TypeRow", TypeRow + 1),
+                ("FirstName", firstName), ("FirstType", firstType),
+                ("At", sheet.Location)).In(MessageCatalog.Current));
             return null;
         }
 
@@ -599,10 +600,9 @@ public sealed class RescueLayoutParser : ILayoutParser
 
             if (indexText.Length == 0)
             {
-                Log.Warning(
-                    $"Skipping row {rowIdx + 1} of `{table.Name}`: it has no `{indexField.Name}` but is " +
-                    $"not empty, so it is an unfinished row rather than the end of the table. " +
-                    $"({rawRow[0].Location})");
+                Log.Warning(Message.Of(RescueLayoutMessages.LogSkippingUnfinishedRow,
+                    ("Row", rowIdx + 1), ("Table", table.Name), ("Field", indexField.Name),
+                    ("At", rawRow[0].Location)).In(MessageCatalog.Current));
                 continue;
             }
 
@@ -638,15 +638,17 @@ public sealed class RescueLayoutParser : ILayoutParser
         switch (policy)
         {
             case DuplicateIndexPolicy.KeepFirst:
-                Log.Warning(
-                    $"Dropping row {sheetRow + 1} of `{table.Name}`: `{indexField.Name}` is `{indexValue}`, " +
-                    $"which an earlier row already used. ({row[indexField.Index].RawCell.Location})");
+                Log.Warning(Message.Of(RescueLayoutMessages.LogDroppingDuplicateRow,
+                    ("Row", sheetRow + 1), ("Table", table.Name), ("Field", indexField.Name),
+                    ("Value", indexValue),
+                    ("At", row[indexField.Index].RawCell.Location)).In(MessageCatalog.Current));
                 return true;
 
             case DuplicateIndexPolicy.KeepLast:
-                Log.Warning(
-                    $"Replacing an earlier row of `{table.Name}` with row {sheetRow + 1}: `{indexField.Name}` " +
-                    $"is `{indexValue}`, which both use. ({row[indexField.Index].RawCell.Location})");
+                Log.Warning(Message.Of(RescueLayoutMessages.LogReplacingDuplicateRow,
+                    ("Table", table.Name), ("Row", sheetRow + 1), ("Field", indexField.Name),
+                    ("Value", indexValue),
+                    ("At", row[indexField.Index].RawCell.Location)).In(MessageCatalog.Current));
                 table.Data[firstDataRow] = row;
                 return true;
 

@@ -227,5 +227,9 @@
   "cook.known-problem-entry-incomplete": "`Validation.KnownProblems` entry {Entry} needs both `At` and `Reason`. An entry without a place covers everything, and one without a reason is a switch rather than a note.",
   "cook.known-problem-matched-nothing": "`Validation.KnownProblems` names `{At}`, and nothing was reported there. Either it is fixed or the place is wrong; both are reasons to take the entry out. (`{Reason}`)",
   "cook.known-problem-count-grew": "`Validation.KnownProblems` says `{At}` accounts for {Expected} report(s) and it accounts for {Found}. Something new is wrong there, so the entry no longer says what is known. (`{Reason}`)",
-  "cook.known-problem-count-shrank": "`Validation.KnownProblems` says `{At}` accounts for {Expected} report(s) and it accounts for {Found}. Some of it is fixed, so the entry no longer says what is known. (`{Reason}`)"
+  "cook.known-problem-count-shrank": "`Validation.KnownProblems` says `{At}` accounts for {Expected} report(s) and it accounts for {Found}. Some of it is fixed, so the entry no longer says what is known. (`{Reason}`)",
+
+  "cook.log-cache-seal-unwritable": "The build cache could not be written to `{Path}`: {Detail}. This run's output is complete; the next one will convert everything.",
+  "cook.log-folded-columns-out-of-order": "Columns folded into an array are numbered out of order in table `{Table}`.\n`{Field}` follows `{Previous}` but carries a lower number, so the array elements will not be in sheet order.\n    at {At}",
+  "cook.log-referenced-tables-unchecked": "`{Table}.{Field}` says its value is a row of `{Missing}`, which this build does not contain. The column is not checked.\n    at {At}"
 }

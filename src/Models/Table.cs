@@ -1011,11 +1011,11 @@ public class Table
             // `{field.Name}`, not `field.Name` - the placeholder used to be written
             // without braces, so every one of these warnings named the literal text
             // "field.Name" instead of the column it was about.
-            Log.Warning(
-                $"Columns folded into an array are numbered out of order in table `{Name}`.\n" +
-                $"`{field.Name}` follows `{output.Fields[^1].Name}` but carries a lower number, " +
-                $"so the array elements will not be in sheet order.\n" +
-                $"    at {field.NameLocation}");
+            Log.Warning(Messages.Message.Of(
+                Cooking.CookingMessages.LogFoldedColumnsOutOfOrder,
+                ("Table", Name), ("Field", field.Name),
+                ("Previous", output.Fields[^1].Name), ("At", field.NameLocation))
+                .In(Messages.MessageCatalog.Current));
         }
 
         var expectedType = output.Fields[0].Type;

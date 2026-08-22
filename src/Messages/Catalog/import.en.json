@@ -9,5 +9,20 @@
   "import.google-key-file-missing": "Recipe section `{Section}` names service account key file `{Path}`, which does not exist.",
   "import.google-key-variable-not-set": "Recipe section `{Section}` reads its service account key from environment variable `{Variable}`, which is not set. The key is held in the environment so it need not be committed.",
   "import.google-key-unreadable": "Recipe section `{Section}` could not read a service account key from {Origin}: {Detail} A service account key has `\"type\": \"service_account\"`; an OAuth client secret goes in `ClientSecretFilename` instead.",
-  "import.google-client-secret-missing": "Recipe section `{Section}` names client secret file `{Path}`, which does not exist."
+  "import.google-client-secret-missing": "Recipe section `{Section}` names client secret file `{Path}`, which does not exist.",
+
+  "import.log-binary-workbook-no-notes": "`{File}` is a binary workbook, whose cell notes are not read.",
+  "import.log-cached-token-predates-scope": "This machine's cached token was issued before Tabbit asked for `{Scope}`, and a cached token is not re-consented on its own. Delete `{TokenStore}` and run again: the next run opens a browser once to ask for it.",
+  "import.log-defined-name-no-range": "Defined name `{Name}` of `{Document}` refers to no range. Skipped.",
+  "import.log-defined-name-not-a-range": "Defined name `{Name}` of `{File}` refers to `{Range}`, which is not a range. Skipped.",
+  "import.log-defined-name-not-one-rectangle": "Defined name `{Name}` of `{Document}` covers {Range}, which this importer cannot read as a single rectangle. Skipped.",
+  "import.log-defined-name-not-readable": "Defined name `{Name}` of `{File}` refers to `{Range}`, which this importer cannot read as a single rectangle. Skipped.",
+  "import.log-defined-name-outside-sheet": "Defined name `{Name}` of `{Source}` covers {Range}, which is outside the cells sheet `{Sheet}` has. Skipped.",
+  "import.log-drive-api-disabled": "The Drive API is not enabled for the project this credential belongs to. Enabling it once is all this needs - Tabbit reads one metadata field and nothing else.",
+  "import.log-rows-read-short": "`{File}` sheet `{Sheet}`: the workbook reader gave {Rows} row(s) fewer cells than the file holds, and {Recovered} cell(s) were read back from it. This is a defect in that reader rather than in the sheet - the cells are there and Excel shows them.",
+  "import.log-scope-not-allowed": "The service account is not allowed `{Scope}`. If your workspace lists which scopes a delegated account may use, an administrator adds it there.",
+  "import.log-sheet-excluded": "Sheet `{Sheet}` is marked as excluded and is ignored.",
+  "import.log-tab-excluded": "Sheet `{Sheet}.{Tab}` is marked as excluded and is ignored.",
+  "import.log-until-granted-imports-everything": "Until it is granted, every run imports the documents whether they changed or not.",
+  "import.log-version-unreadable": "Could not read the version of document `{Document}`, so this run imports it whether or not it changed."
 }

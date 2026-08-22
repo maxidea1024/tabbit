@@ -612,10 +612,11 @@ public partial class ModelCooker
                 // from a table this build does not read, and refusing would stop every
                 // narrow build over a declaration aimed at a wider one. `TreatWarningsAsErrors`
                 // is what a pipeline that wants the stricter reading already has.
-                Log.Warning(
-                    $"`{table.Name}.{field.Name}` says its value is a row of "
-                    + $"`{string.Join("`, `", missing)}`, which this build does not contain. "
-                    + $"The column is not checked.\n    at {field.Constraints.ReferencedTablesLocation}");
+                Log.Warning(Message.Of(CookingMessages.LogReferencedTablesUnchecked,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Missing", string.Join("`, `", missing)),
+                    ("At", field.Constraints.ReferencedTablesLocation))
+                    .In(MessageCatalog.Current));
 
                 _uncheckedReferencedTables++;
                 continue;

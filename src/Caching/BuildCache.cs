@@ -590,9 +590,8 @@ public sealed class BuildCache
         }
         catch (Exception ex)
         {
-            Log.Warning(
-                $"The build cache could not be written to `{_sealPath}`: {ex.Message}. "
-                + "This run's output is complete; the next one will convert everything.");
+            Log.Warning(Messages.Message.Of(Cooking.CookingMessages.LogCacheSealUnwritable,
+                ("Path", _sealPath), ("Detail", ex.Message)).In(Messages.MessageCatalog.Current));
         }
     }
 

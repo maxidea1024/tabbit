@@ -57,4 +57,46 @@ public static class ImportMessages
 
     /// <summary>A named client secret file that is not there.</summary>
     public const string GoogleClientSecretMissing = "import.google-client-secret-missing";
+
+    /// <summary>A log line: `{File}` is a binary workbook, whose cell notes are not read.</summary>
+    public const string LogBinaryWorkbookNoNotes = "import.log-binary-workbook-no-notes";
+
+    /// <summary>A log line: This machine's cached token was issued before Tabbit asked for `{Scope}`, and a cached token is.</summary>
+    public const string LogCachedTokenPredatesScope = "import.log-cached-token-predates-scope";
+
+    /// <summary>A log line: Defined name `{Name}` of `{Document}` refers to no range.</summary>
+    public const string LogDefinedNameNoRange = "import.log-defined-name-no-range";
+
+    /// <summary>A log line: Defined name `{Name}` of `{File}` refers to `{Range}`, which is not a range.</summary>
+    public const string LogDefinedNameNotARange = "import.log-defined-name-not-a-range";
+
+    /// <summary>A log line: Defined name `{Name}` of `{Document}` covers {Range}, which this importer cannot read as a singl.</summary>
+    public const string LogDefinedNameNotOneRectangle = "import.log-defined-name-not-one-rectangle";
+
+    /// <summary>A log line: Defined name `{Name}` of `{File}` refers to `{Range}`, which this importer cannot read as a sing.</summary>
+    public const string LogDefinedNameNotReadable = "import.log-defined-name-not-readable";
+
+    /// <summary>A log line: Defined name `{Name}` of `{Source}` covers {Range}, which is outside the cells sheet `{Sheet}` h.</summary>
+    public const string LogDefinedNameOutsideSheet = "import.log-defined-name-outside-sheet";
+
+    /// <summary>A log line: The Drive API is not enabled for the project this credential belongs to.</summary>
+    public const string LogDriveApiDisabled = "import.log-drive-api-disabled";
+
+    /// <summary>A log line: `{File}` sheet `{Sheet}`: the workbook reader gave {Rows} row(s) fewer cells than the file holds.</summary>
+    public const string LogRowsReadShort = "import.log-rows-read-short";
+
+    /// <summary>A log line: The service account is not allowed `{Scope}`.</summary>
+    public const string LogScopeNotAllowed = "import.log-scope-not-allowed";
+
+    /// <summary>A log line: Sheet `{Sheet}` is marked as excluded and is ignored.</summary>
+    public const string LogSheetExcluded = "import.log-sheet-excluded";
+
+    /// <summary>A log line: Sheet `{Sheet}.</summary>
+    public const string LogTabExcluded = "import.log-tab-excluded";
+
+    /// <summary>A log line: Until it is granted, every run imports the documents whether they changed or not.</summary>
+    public const string LogUntilGrantedImportsEverything = "import.log-until-granted-imports-everything";
+
+    /// <summary>A log line: Could not read the version of document `{Document}`, so this run imports it whether or not it ch.</summary>
+    public const string LogVersionUnreadable = "import.log-version-unreadable";
 }

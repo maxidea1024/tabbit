@@ -6,5 +6,11 @@
   "rescue.table-has-no-columns": "Table `{Table}` has no usable columns.",
   "rescue.enum-name-must-follow-marker": "In case of enum type, the enum name must follow `enum:`.",
   "rescue.enum-not-declared": "Column `{Field}` is typed `{Declared}`, but no enum named `{Enum}` was declared. Enums come from the sheet whose name contains `{Marker}`.",
-  "rescue.type-not-array-element": "type `{Type}` cannot be used as an array element."
+  "rescue.type-not-array-element": "type `{Type}` cannot be used as an array element.",
+
+  "rescue.log-dropping-duplicate-row": "Dropping row {Row} of `{Table}`: `{Field}` is `{Value}`, which an earlier row already used. ({At})",
+  "rescue.log-replacing-duplicate-row": "Replacing an earlier row of `{Table}` with row {Row}: `{Field}` is `{Value}`, which both use. ({At})",
+  "rescue.log-skipping-sheet-bad-header": "Skipping sheet `{Sheet}`: row {NameRow} should open with a field name and row {TypeRow} with its type, and they hold `{FirstName}` and `{FirstType}`. ({At})",
+  "rescue.log-skipping-sheet-no-data": "Skipping sheet `{Sheet}`: it has no data rows under a three-row header. ({At})",
+  "rescue.log-skipping-unfinished-row": "Skipping row {Row} of `{Table}`: it has no `{Field}` but is not empty, so it is an unfinished row rather than the end of the table. ({At})"
 }

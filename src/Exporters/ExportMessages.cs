@@ -116,4 +116,16 @@ public static class ExportMessages
 
     /// <summary>Two model entities whose names reduce to one file name.</summary>
     public const string GeneratedFileNameClash = "export.generated-file-name-clash";
+
+    /// <summary>A log line: Could not clean up MongoDB shadow collections: {Detail}.</summary>
+    public const string LogMongodbCleanupFailed = "export.log-mongodb-cleanup-failed";
+
+    /// <summary>A log line: Could not clean up MySQL shadow tables: {Detail}.</summary>
+    public const string LogMysqlCleanupFailed = "export.log-mysql-cleanup-failed";
+
+    /// <summary>A log line: Could not clean up Redis shadow keys: {Detail}.</summary>
+    public const string LogRedisCleanupFailed = "export.log-redis-cleanup-failed";
+
+    /// <summary>A log line: Enum `{Enum}` label `{Label}` has value {Value}, which does not fit the uint8 a BlueprintType en.</summary>
+    public const string LogUnrealEnumNotBlueprint = "export.log-unreal-enum-not-blueprint";
 }

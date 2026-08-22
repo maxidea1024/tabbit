@@ -162,11 +162,12 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
             // saying so rather than dropping in silence: in real workbooks these are
             // leftovers, and one of them being a table nobody exports any more is a thing
             // to know.
-            Log.Warning(
-                $"Defined name `{skipped.Name}` of `{filename}` refers to `{skipped.Reference}`, "
-                + (skipped.Problem == WorkbookPackage.NameProblem.NotARange
-                    ? "which is not a range. Skipped."
-                    : "which this importer cannot read as a single rectangle. Skipped."));
+            Log.Warning(Message.Of(
+                skipped.Problem == WorkbookPackage.NameProblem.NotARange
+                    ? ImportMessages.LogDefinedNameNotARange
+                    : ImportMessages.LogDefinedNameNotReadable,
+                ("Name", skipped.Name), ("File", filename),
+                ("Range", skipped.Reference)).In(MessageCatalog.Current));
         }
 
         if (package.HasUnreadNotes)
@@ -174,7 +175,8 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
             // Cell notes are not read out of a binary workbook. Said aloud because the
             // notes become doc comments, and a workbook converted to `.xlsb` would lose
             // them with nothing else changing.
-            Log.Warning($"`{filename}` is a binary workbook, whose cell notes are not read.");
+            Log.Warning(Message.Of(ImportMessages.LogBinaryWorkbookNoNotes,
+                ("File", filename)).In(MessageCatalog.Current));
         }
 
         using var reader = SheetGridReader.Open(path);
@@ -354,11 +356,9 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
         if (rows.Count == 0)
             return;
 
-        Log.Warning(
-            $"`{filename}` sheet `{sheetName}`: the workbook reader gave {rows.Count} row(s) "
-            + $"fewer cells than the file holds, and {recovered.Count} cell(s) were read back "
-            + $"from it. This is a defect in that reader rather than in the sheet - the cells "
-            + $"are there and Excel shows them.");
+        Log.Warning(Message.Of(ImportMessages.LogRowsReadShort,
+            ("File", filename), ("Sheet", sheetName), ("Rows", rows.Count),
+            ("Recovered", recovered.Count)).In(MessageCatalog.Current));
     }
 
     /// <summary>

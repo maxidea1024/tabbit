@@ -326,11 +326,9 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
         if (offender is not null)
         {
-            Log.Warning(
-                $"Enum `{enumm.Name}` label `{offender.Name}` has value {offender.Value}, which does " +
-                "not fit the uint8 a BlueprintType enum has to be. Generating it as a plain int32 " +
-                "UENUM instead: readable from C++, not visible in Blueprint, and neither are the " +
-                "fields typed with it.");
+            Log.Warning(Messages.Message.Of(Exporters.ExportMessages.LogUnrealEnumNotBlueprint,
+                ("Enum", enumm.Name), ("Label", offender.Name),
+                ("Value", offender.Value)).In(Messages.MessageCatalog.Current));
         }
 
         return new UnrealEnumView

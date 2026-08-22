@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Serilog;
 using Tabbit.Models.Raw;
 using Tabbit.Sources;
+using Tabbit.Messages;
 
 namespace Tabbit.Importers;
 
@@ -89,9 +90,10 @@ internal static class SheetNamedRanges
 
             if (row < 0 || column < 0 || height <= 0 || width <= 0)
             {
-                Log.Warning(
-                    $"Defined name `{named.Name}` of `{source}` covers {named.Reference}, "
-                    + $"which is outside the cells sheet `{rawSheet.Location.Sheet}` has. Skipped.");
+                Log.Warning(Message.Of(ImportMessages.LogDefinedNameOutsideSheet,
+                    ("Name", named.Name), ("Source", source),
+                    ("Range", named.Reference),
+                    ("Sheet", rawSheet.Location.Sheet)).In(MessageCatalog.Current));
                 continue;
             }
 

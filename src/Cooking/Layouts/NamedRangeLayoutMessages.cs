@@ -42,4 +42,13 @@ public static class UwoLayoutMessages
 
     /// <summary>A grid column id that will not fit the companion table's key.</summary>
     public const string GridColumnIdNotInt32 = "named-range.grid-column-id-not-int32";
+
+    /// <summary>A log line: `{Table}.</summary>
+    public const string LogBlankReadAsEmpty = "named-range.log-blank-read-as-empty";
+
+    /// <summary>A log line: Skipping `{Name}`: the range covers {Rows} row(s), and a table needs a name row, a type row and.</summary>
+    public const string LogSkippingRangeTooShort = "named-range.log-skipping-range-too-short";
+
+    /// <summary>A log line: Skipping `{Table}`: no column of it has both a name and a type.</summary>
+    public const string LogSkippingTableNoColumns = "named-range.log-skipping-table-no-columns";
 }

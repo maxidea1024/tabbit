@@ -195,7 +195,8 @@ public class MongoDbExporter : DatabaseExporterBase<MongoDbRecipe>
         }
         catch (Exception ex)
         {
-            Log.Warning($"Could not clean up MongoDB shadow collections: {ex.Message}");
+            Log.Warning(Message.Of(ExportMessages.LogMongodbCleanupFailed,
+                ("Detail", ex.Message)).In(MessageCatalog.Current));
         }
     }
 }

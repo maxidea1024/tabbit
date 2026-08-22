@@ -16,6 +16,7 @@ using Tabbit.Recipe;
 using Serilog;
 using System.Diagnostics;
 using Tabbit.Sources;
+using Tabbit.Messages;
 
 namespace Tabbit.Importers;
 
@@ -135,7 +136,8 @@ public class GoogleSheetsImporter
         var sheetsTitle = response.Properties.Title;
         if (sheetsTitle.StartsWith("#") || sheetsTitle.StartsWith("//"))
         {
-            Log.Warning($"Sheet `{sheetsTitle}` is marked as excluded and is ignored.");
+            Log.Warning(Message.Of(ImportMessages.LogSheetExcluded,
+                ("Sheet", sheetsTitle)).In(MessageCatalog.Current));
             return;
         }
 
@@ -171,7 +173,8 @@ public class GoogleSheetsImporter
 
             if (sheetTitle.StartsWith("#") || sheetTitle.StartsWith("//"))
             {
-                Log.Warning($"Sheet `{sheetsTitle}.{sheetTitle}` is marked as excluded and is ignored.");
+                Log.Warning(Message.Of(ImportMessages.LogTabExcluded,
+                    ("Sheet", sheetsTitle), ("Tab", sheetTitle)).In(MessageCatalog.Current));
                 continue;
             }
 
@@ -324,8 +327,8 @@ public class GoogleSheetsImporter
             // to know.
             if (range is null || range.SheetId is null)
             {
-                Log.Warning(
-                    $"Defined name `{name}` of `{documentTitle}` refers to no range. Skipped.");
+                Log.Warning(Message.Of(ImportMessages.LogDefinedNameNoRange,
+                    ("Name", name), ("Document", documentTitle)).In(MessageCatalog.Current));
                 continue;
             }
 
@@ -333,9 +336,9 @@ public class GoogleSheetsImporter
                 range.StartColumnIndex is not int firstColumn ||
                 range.EndColumnIndex is not int endColumn)
             {
-                Log.Warning(
-                    $"Defined name `{name}` of `{documentTitle}` covers {Describe(range)}, "
-                    + "which this importer cannot read as a single rectangle. Skipped.");
+                Log.Warning(Message.Of(ImportMessages.LogDefinedNameNotOneRectangle,
+                    ("Name", name), ("Document", documentTitle),
+                    ("Range", Describe(range))).In(MessageCatalog.Current));
                 continue;
             }
 

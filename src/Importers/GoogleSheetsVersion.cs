@@ -7,6 +7,7 @@ using Google.Apis.Services;
 using Newtonsoft.Json.Linq;
 using Serilog;
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.Importers;
 
@@ -148,9 +149,8 @@ internal static class GoogleSheetsVersion
         bool serviceAccount = !string.IsNullOrWhiteSpace(recipe.ServiceAccountKeyFile)
                            || !string.IsNullOrWhiteSpace(recipe.ServiceAccountKeyVariable);
 
-        Log.Warning(
-            $"Could not read the version of document `{document}`, so this run imports it "
-            + $"whether or not it changed.");
+        Log.Warning(Message.Of(ImportMessages.LogVersionUnreadable,
+            ("Document", document)).In(MessageCatalog.Current));
 
         if (_explained)
             return;
@@ -160,30 +160,23 @@ internal static class GoogleSheetsVersion
         if (body.Contains("accessNotConfigured", StringComparison.OrdinalIgnoreCase) ||
             body.Contains("SERVICE_DISABLED", StringComparison.OrdinalIgnoreCase))
         {
-            Log.Warning(
-                "The Drive API is not enabled for the project this credential belongs to. "
-                + "Enabling it once is all this needs - Tabbit reads one metadata field and "
-                + "nothing else.");
+            Log.Warning(Message.Of(ImportMessages.LogDriveApiDisabled).In(MessageCatalog.Current));
 
             return;
         }
 
         if (serviceAccount)
         {
-            Log.Warning(
-                $"The service account is not allowed `{Scope}`. If your workspace lists which "
-                + "scopes a delegated account may use, an administrator adds it there.");
+            Log.Warning(Message.Of(ImportMessages.LogScopeNotAllowed,
+                ("Scope", Scope)).In(MessageCatalog.Current));
 
             return;
         }
 
-        Log.Warning(
-            $"This machine's cached token was issued before Tabbit asked for `{Scope}`, and a "
-            + "cached token is not re-consented on its own. Delete "
-            + $"`{GoogleSheetsCredentials.TokenStore}` and run again: the next run opens a "
-            + "browser once to ask for it.");
+        Log.Warning(Message.Of(ImportMessages.LogCachedTokenPredatesScope,
+            ("Scope", Scope),
+            ("TokenStore", GoogleSheetsCredentials.TokenStore)).In(MessageCatalog.Current));
 
-        Log.Warning(
-            "Until it is granted, every run imports the documents whether they changed or not.");
+        Log.Warning(Message.Of(ImportMessages.LogUntilGrantedImportsEverything).In(MessageCatalog.Current));
     }
 }

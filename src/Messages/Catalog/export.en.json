@@ -35,5 +35,10 @@
   "export.target-no-optional-elements": "Target `{Target}` does not support arrays whose elements may be absent yet.\n  Table `{Table}` column `{Column}` is typed `{Type}?[]`, so an element may have no value.\n  Remove the target from the recipe, or move the `?` outside the brackets and let every element hold a value.",
   "export.target-no-nested-fields": "Target `{Target}` does not support nested fields yet.\n  Table `{Table}` field `{Field}` is a record group of {Count} member(s).\n  Remove the target from the recipe, or write the columns flat without `{Separator}`.",
   "export.target-no-record-in-record": "Target `{Target}` does not support a record inside a record yet.\n  Table `{Table}` field `{Field}` has member `{Member}`, which is a record of {Count} member(s) rather than a value.\n  Remove the target from the recipe, or flatten that level - `{Field}{Separator}{Member}{Inner}` instead of `{Field}{Separator}{Member}{Separator}{Inner}`.",
-  "export.generated-file-name-clash": "Two different files were generated for `{Path}`. A generated file is named after a table, an enum or a constant set, and two of those have names that reduce to the same file name. Rename one of them in the sheets."
+  "export.generated-file-name-clash": "Two different files were generated for `{Path}`. A generated file is named after a table, an enum or a constant set, and two of those have names that reduce to the same file name. Rename one of them in the sheets.",
+
+  "export.log-mongodb-cleanup-failed": "Could not clean up MongoDB shadow collections: {Detail}",
+  "export.log-mysql-cleanup-failed": "Could not clean up MySQL shadow tables: {Detail}",
+  "export.log-redis-cleanup-failed": "Could not clean up Redis shadow keys: {Detail}",
+  "export.log-unreal-enum-not-blueprint": "Enum `{Enum}` label `{Label}` has value {Value}, which does not fit the uint8 a BlueprintType enum has to be. Generating it as a plain int32 UENUM instead: readable from C++, not visible in Blueprint, and neither are the fields typed with it."
 }
