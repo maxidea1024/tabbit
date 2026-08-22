@@ -102,6 +102,9 @@ public sealed class GoRecipe : IOutputRecipe
 [TabbitTarget("go", TargetKind.CodeGeneration, Order = 50)]
 public class GoCodeGenerator : CodeGenerator<GoRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
@@ -133,6 +136,12 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// caller and every value - spec/optional-fields.md has the reasoning.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
+
+    /// <summary>
+    /// `HasXAt(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
 
     protected override void Run(TargetContext context, GoRecipe recipe)
     {
@@ -382,6 +391,8 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         Indexes = Indexes(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
         // A separate list, because declaring a member is per field and reading is per
         // column - and a record group is one column per member of it.
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
@@ -417,6 +428,134 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     private static string PrimaryLookup(Table? refTable)
         => "FindBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
 
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// Zero - or the key type's empty value - is the convention for "points at nothing", and a
+    /// multi-target column has to honour it in every language: the discriminator it produces is
+    /// observable, so a language that resolved a zero where another did not would answer a
+    /// different table for the same row. spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!= \"\"",
+            ValueType.Uuid => "!= (tabbit.UUID{})",
+            _ => "> 0",
+        };
+
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    /// <remarks>
+    /// The element type name is what the methods hang off, so it is passed in: the view has
+    /// flattened the nesting by the time this runs and that name carries the whole path.
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    private static GoMultiMemberView? MultiMemberOrNull(RecordMember member, string elementTypeName)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
+        string name = GoName(member.Name);
+
+        return new GoMultiMemberView
+        {
+            ElementTypeName = elementTypeName,
+            KeyMember = name,
+            SlotMember = name + "Row",
+            TargetMember = name + "Target",
+            TargetTypeName = enumType,
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new GoMultiTargetView
+            {
+                Table = "",
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = GoName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Constant = enumType + target.Name.ToPascalCase(),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member - and the same reason keeps that decision here
+    /// rather than in the template. spec/references-in-records.md.
+    /// </remarks>
+    private GoMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = GoName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + GoName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{name}{member}"
+            : $"record.{name}[k]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[k]" : "";
+
+        return new GoMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "Row" + subscript,
+            Target = path + "Target" + subscript,
+
+            // Whichever slice holds the elements. The key member is that slice where the
+            // members are the arrays, so there is no separate key slice to range over.
+            Range = isArray
+                ? (wire.Group.MembersAreArrays ? path : $"record.{name}")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new GoMultiTargetView
+            {
+                Table = GoName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = "",
+                Constant = field.MultiTargetEnum!.Name.ToPascalCase() + target.Name.ToPascalCase(),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private GoMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new GoMultiReferenceView
+        {
+            KeyMember = GoName(column.Group.Name),
+            SlotMember = GoName(column.Group.Name) + "Row",
+            TargetMember = GoName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new GoMultiTargetView
+            {
+                Table = target.Name.ToPascalCase(),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = GoName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+                Constant = column.Discriminator.Name.ToPascalCase() + target.Name.ToPascalCase(),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+
     private GoFieldView BuildField(Table table, SerialField sf)
     {
         if (sf.IsRecord)
@@ -437,8 +576,10 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             IsFixedRecordArray = false,
             ArrayType = "",
             ElementCount = 0,
-            IsNullable = !sf.Fields[0].IsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = PresenceMember(sf) + "At",
         };
     }
 
@@ -487,8 +628,24 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 if (member.IsRef)
                     declarations.Add($"{GoName(member.Name)}Index {slice}{keyType}");
 
+                // A member reaching several tables keeps the key declared above and gains two
+                // more: one slot for the resolved row whatever table it came from, and the
+                // discriminator saying which. spec/multi-target-accessors.md.
+                var multi = MultiMemberOrNull(member, prefix);
+
+                if (multi is not null)
+                {
+                    declarations.Add($"// The row {GoName(member.Name)} names, as whichever of its target tables holds");
+                    declarations.Add("// it. Read it through the methods below rather than directly: they check the");
+                    declarations.Add("// discriminator first.");
+                    declarations.Add($"{multi.SlotMember} {slice}any");
+                    declarations.Add($"// Which table {GoName(member.Name)} is a row of.");
+                    declarations.Add($"{multi.TargetMember} {slice}{multi.TargetTypeName}");
+                }
+
                 result.Add(new GoRecordMemberView
                 {
+                    Multi = multi,
                     Comment = CommentLines(member.FirstField!.Comment),
 
                     // The array is the member's when the group is one record - same columns,
@@ -510,6 +667,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
             declared.Add(new GoRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -552,6 +710,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
         recordTypes.Add(new GoRecordTypeView
         {
+            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = elementType,
             Members = members,
             IsOutermost = true,
@@ -628,6 +787,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             LengthRead = UsesCursor(wire)
                 ? "elementCount := int(cursor.NextLength())"
                 : "elementCount := int(reader.ReadCounter32())",
+            RefKeyType = wire.IsRef ? ToGoTypeName(wire.RefKeyType, null, null) : "",
             RunCall = RunCall(wire),
             RunSpend = RunSpend(wire),
             Name = name,
@@ -640,10 +800,13 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             MemberAt = wire.MemberAt,
             ElementCount = wire.Cells.Count,
             ArrayType = arrayType,
+            ElementSliceType = "[]" + ColumnElementType(wire),
             IsFirstMember = wire.IsFirstMember,
             ReadValue = ValueReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = PresenceMember(wire.Group) + "At",
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -679,7 +842,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// </remarks>
     private string EmptyValue(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "nil";
 
         // The resolved member is a pointer at the referenced row, and absence there is
@@ -708,9 +871,15 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     {
         if (sf.IsRef)
         {
+            // The key the target is addressed by, not `int32`. The record-member path next
+            // door has always asked; this one wrote the width in, so a reference array whose
+            // target is keyed by anything else declared a slice the read could not fill.
+            // spec/reference-key-types.md.
+            string keyType = ToGoTypeName(sf.FirstField!.RefKeyType, null, null);
+
             return sf.IsArray
-                ? new[] { $"{name} []{elementType}", $"{name}Index []int32" }
-                : new[] { $"{name} {elementType}", $"{name}Index int32" };
+                ? new[] { $"{name} []{elementType}", $"{name}Index []{keyType}" }
+                : new[] { $"{name} {elementType}", $"{name}Index {keyType}" };
         }
 
         return sf.IsArray
@@ -724,11 +893,8 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "tabbit.KindVarArray"
-            : (wire.IsFixedArray ? "tabbit.KindFixedArray" : "tabbit.KindScalar");
+        string kind = wire.IsArray ? "tabbit.KindArray" : "tabbit.KindScalar";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string accepted;
 
@@ -767,7 +933,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                     accepted = "tabbit.ElementI64"; break;
 
                 default:
-                    throw new TabbitException($"The go generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The go generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -776,7 +942,12 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"tabbit.CheckColumn(reader, column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {accepted})";
+        // And the other bitmap, by the same argument as the row one. A call of its own
+        // because Go has no optional parameters and the accepted elements are variadic.
+        string check = wire.HasOptionalElements ? "CheckColumnWithElements" : "CheckColumn";
+
+        return $"tabbit.{check}(reader, column, \"{tableName}.{wire.Name}\", {kind}, "
+            + $"{nullable}, {accepted})";
     }
 
     /// <summary>
@@ -791,10 +962,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the array decides where the index goes, and an unnamed
@@ -802,14 +970,16 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        // A trimmed array of references: the length is the row's and the key still goes in
+        // the array beside the values. Read as a plain `var_array` it assigned an int32 into
+        // the slice of pointers, which is a page that does not compile - and nothing held the
+        // shape, because `foreign[]` is refused and this is only reachable through a folded
+        // group with trimming on. spec/variable-length-record-arrays.md.
+        if (wire.IsArray)
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -830,7 +1000,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -895,7 +1065,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
@@ -958,11 +1128,11 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
         Tables = _model.Tables.Select(table => new GoTableSlotView
         {
-            Name = GoName(table.Name),
+            Name = GoPascalName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables
@@ -979,8 +1149,20 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own again. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new GoCrossReferenceView
             {
                 Table = GoName(x.Table.Name),
@@ -993,6 +1175,8 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                     IsArray = sf.IsArray,
                 }).ToList(),
                 RecordFields = x.RecordFields,
+                MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
             })
             .ToList(),
     };
@@ -1012,7 +1196,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + GoName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -1098,7 +1282,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 // being pointed at. spec/reference-key-types.md.
             ValueType.ForeignRecord => LanguageProfile.Go.ReadCall(wire.RefKeyType),
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             _ => LanguageProfile.Go.ReadCall(wire.ElementType),
         };
     }
@@ -1197,7 +1381,9 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the go generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "go")));
         }
     }
 
@@ -1238,5 +1424,21 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// escaped: every Go keyword is lowercase.
     /// </summary>
     private static string GoName(string name) => LanguageProfile.Go.MemberName(name.ToPascalCase());
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// PascalCase because that is how Go writes an exported identifier, not because a member
+    /// is spelled that way. Sharing one function let the two look like one rule.
+    ///
+    /// Go is the one target with no `MemberCase` setting, so the two can never actually
+    /// diverge here. They are still separate, because which of them a name is remains a fact
+    /// about that name: this one is a table's slot on the accessor. Go has no setting because
+    /// the first letter's case is what exports a member - spelled any other way, the
+    /// generated fields would be unreachable from the package that reads them, which is a
+    /// broken output rather than a differently spelled one.
+    /// </remarks>
+    private static string GoPascalName(string name) => LanguageProfile.Go.MemberName(name.ToPascalCase());
 
 }

@@ -40,6 +40,16 @@ public class ConversionGoldenTests
     // The trailing `?`: every type that refuses a blank cell, paired with the same type
     // marked optional, and rows where all of the marked ones are blank at once.
     [InlineData("optional")]
+    // What a cell says about having nothing: a blank read as the type's own empty value, `-`
+    // read as no value at all, and `\-` as the character itself. JSON holds the three side by
+    // side and the binary tree says which of them the presence bit follows.
+    // spec/blank-and-null-cells.md.
+    [InlineData("blank-and-null")]
+    // The four spellings of an array's optionality, in one table: `int[]`, `int[]?`, `int?[]`
+    // and `int?[]?`, with a `string?[]` beside them where an empty element and an absent one
+    // look the same to a value comparison. JSON only - the format cannot say it yet.
+    // spec/nullable-array-elements.md.
+    [InlineData("nullable-elements")]
     // A record array whose length is each row's: trailing empty elements dropped, a gap in
     // the middle kept, and an authored zero left alone.
     [InlineData("record-trim")]
@@ -53,7 +63,7 @@ public class ConversionGoldenTests
     // the generated lookup keyed by the field's own type in both languages.
     [InlineData("string-index")]
     // Every type a key may be - `bigint`, `uuid`, `enum` - each keying one table and each
-    // also a secondary index beside a different primary. All thirteen languages, because
+    // also a secondary index beside a different primary. Every language, because
     // nothing here is new below the generators and everything is new inside them: each picks
     // the key's spelling from its own type table and builds its own dictionary. Recording it
     // found two languages that did not: PHP subscripted an array with an object, and C++
@@ -85,6 +95,9 @@ public class ConversionGoldenTests
     // the two columns apart. Three languages, because each picks its own spelling for the
     // width and `long`, `bigint` and `int64_t` are three of them. spec/bitset.md.
     [InlineData("bitset")]
+    // A table given its rows twice. What the tree has to show is one type for `Colour` and
+    // none for `Colour_alt`, and one data file each - spec/table-row-sets.md.
+    [InlineData("row-sets")]
     // A reference that is a member of a record group, in every shape a record group has: an
     // array of records, one record, one record of arrays, a reference two levels in, a target
     // keyed by a string, and a trimmed array whose length is the row's. All thirteen
@@ -94,6 +107,20 @@ public class ConversionGoldenTests
     // feature. `Loadout` carries two references to one table in each element, which is what
     // decided that the key lives inside the element. spec/references-in-records.md.
     [InlineData("record-ref")]
+    // An array of references: numbered reference columns folded into one array, in both forms
+    // a reference takes - a whole row and one of that row's values. Every language,
+    // because this is the shape `foreign[]`'s refusal points at and no fixture held one: every
+    // generator emitted code for it that nothing ever read, and two of them wrote the sheet's
+    // column count into the linking pass. spec/nullable-array-elements.md.
+    [InlineData("serial-ref")]
+    // A column whose value is a row of one of several tables, written `Weapon|Armour` - the
+    // notation the core layout grew so this shape could be declared without a project's own
+    // constraint row. Every language, because what each adds is a slot, a discriminator and a
+    // narrowing accessor per target, all of them spelled per language. Both file formats too,
+    // and neither may move: the column already travelled as the target's key, so a diff in the
+    // binary or the JSON here is a defect rather than a feature.
+    // spec/multi-target-accessors.md.
+    [InlineData("multi-target")]
     public void Fixture_matches_golden(string scenario)
     {
         var result = TabbitRunner.Convert(scenario);

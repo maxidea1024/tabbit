@@ -8,15 +8,6 @@
 // ------------------------------------------------------------------------------
 
 using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.Core.Client
 {
@@ -74,5 +65,4 @@ namespace Tabbit.Fixtures.Core.Client
             BuildId = new System.Guid("6f9619ff-8b86-d011-b42d-00c04fc964ff");
         }
     }
-
 } // namespace Tabbit.Fixtures.Core.Client

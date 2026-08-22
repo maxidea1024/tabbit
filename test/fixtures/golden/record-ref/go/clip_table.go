@@ -108,7 +108,7 @@ func (t *ClipTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Clip.Index", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Clip.Index", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Clip.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -119,7 +119,7 @@ func (t *ClipTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Clip.Length", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Clip.Length", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Clip.Length")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -130,7 +130,7 @@ func (t *ClipTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Clip.Pad", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Clip.Pad", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Clip.Pad")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -141,7 +141,7 @@ func (t *ClipTable) Read(filename string) error {
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Clip.Pad2", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Clip.Pad2", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Clip.Pad2")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -152,7 +152,7 @@ func (t *ClipTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Clip.Pad3", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Clip.Pad3", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Clip.Pad3")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)

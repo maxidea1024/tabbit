@@ -1,0 +1,114 @@
+{
+  // `int[]` · `int[]?` · `int?[]` · `int?[]?` side by side, and a `string?[]` beside them.
+  //
+  // JSON only. An absent element is `null` in an array and that is the whole of what this
+  // format needs to say it; the binary and the readers follow in their own step,
+  // and until then they refuse a column of this shape by name.
+  // spec/nullable-array-elements.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/nullable-elements",
+
+        // `Tag1`..`Tag3` fold into one array. Their `?` is the element's answer, which is
+        // what a folded group's type cells can say - spec/nullable-array-elements.md.
+        "FoldSerialFields": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/nullable-elements/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/nullable-elements/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/nullable-elements/cpp",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "go",
+      "Path": "test/fixtures/output/nullable-elements/go",
+      "PackageName": "nullableelements",
+      "ModulePath": "nullableelements"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/nullable-elements/rust",
+      "CrateName": "nullable_elements"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/nullable-elements/java",
+      "PackageName": "tabbit.fixtures.nullableelements",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/nullable-elements/kotlin",
+      "PackageName": "tabbit.fixtures.nullableelements",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "swift",
+      "Path": "test/fixtures/output/nullable-elements/swift",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "lua",
+      "Path": "test/fixtures/output/nullable-elements/lua"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/nullable-elements/python",
+      "PackageName": "nullable_elements_data"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/nullable-elements/ruby",
+      "ModuleName": "NullableElements"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/nullable-elements/php",
+      "Namespace": "Tabbit\\Fixtures\\NullableElements",
+      "AccessorName": "NullableElementsAccessor"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/nullable-elements/dart"
+    },
+    {
+      "Type": "c",
+      "Path": "test/fixtures/output/nullable-elements/c",
+      "AccessorName": "NullableElements"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/nullable-elements/unreal/Source",
+      "ModuleName": "NullableElements",
+      "AccessorName": "FNullableElements",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/nullable-elements/typescript"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/nullable-elements/csharp",
+      "Namespace": "Tabbit.Fixtures.NullableElements",
+      "AccessorName": "NullableElementsAccessor"
+    }
+  ]
+}

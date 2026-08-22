@@ -26,6 +26,30 @@
 {{~ end ~}}
 {{~ end ~}}
     end
+{{~## The per-target methods of every member of this class that reaches several tables. One
+   taking the element number where the member is the array, which is the third place an element
+   number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+    # The {{ target.table }} row element `at` of {{ multi.key_member }} names, or nil when that
+    # element names a row of one of the others.
+    def {{ target.method }}(at)
+      return nil unless @{{ multi.target_member }}[at] == {{ multi.target_type_name }}::{{ target.label }}
+
+      @{{ multi.slot_member }}[at]
+    end
+{{~ else ~}}
+    # The {{ target.table }} row {{ multi.key_member }} names, or nil when it names a row of one of
+    # the others.
+    def {{ target.method }}
+      return nil unless @{{ multi.target_member }} == {{ multi.target_type_name }}::{{ target.label }}
+
+      @{{ multi.slot_member }}
+    end
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
   end
 
 {{~ end ~}}
@@ -47,7 +71,25 @@
       {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One attribute for the resolved
+   row whatever table it came from, and the discriminator saying which - the targets take
+   separate id bands, so at most one of them ever answers.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+      @{{ ref.slot_member }} = nil
+      @{{ ref.target_member }} = {{ ref.target_type_name }}::{{ ref.none_label }}
+{{~ end ~}}
     end
+{{~ for ref in table.multi_references }}
+{{~ for target in ref.targets }}
+    # The {{ target.table }} row this column names, or nil when it names a row of one of the others.
+    def {{ target.method }}
+      return nil unless @{{ ref.target_member }} == {{ ref.target_type_name }}::{{ target.label }}
+
+      @{{ ref.slot_member }}
+    end
+{{~ end ~}}
+{{~ end ~}}
 
   end
 
@@ -125,6 +167,12 @@
           # below stay as they are.
           presence = Tabbit.read_presence(reader, column, count)
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+          # Behind the row bitmap and in front of the values, walked with a counter that
+          # steps once per element of every row. spec/nullable-array-elements.md.
+          element_presence = Tabbit.read_element_presence(reader, column)
+          element_at = 0
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
    as well: its block states an encoding for them and one for the row lengths, and the
    cursor is what decodes both. After the presence bitmap, which sits in front of the block
@@ -149,6 +197,12 @@
 {{~ if column_view.kind == 'var_array' ~}}
             {{ column_view.length_read }}
             record.{{ column_view.name }} = Array.new(element_count) { {{ column_view.read_element }} }
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }} = Array.new(element_count) do |at|
+              Tabbit.present?(element_presence, element_at + at)
+            end
+            element_at += element_count
+{{~ end ~}}
 {{~ else if column_view.kind == 'record_var' ~}}
             {{ column_view.length_read }}
 {{~ if column_view.is_first_member ~}}
@@ -169,24 +223,28 @@
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
    fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-            {{ column_view.element_count }}.times do |element|
-              record.{{ column_view.name }}[{{ column_view.member_at }}][element] = {{ column_view.read_element }}
-            end
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+            {{ column_view.length_read }}
+            record.{{ column_view.name }}[{{ column_view.member_at }}] =
+              Array.new(element_count) { {{ column_view.read_element }} }
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-            {{ column_view.element_count }}.times do |element|
-              record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[element] = {{ column_view.read_element }}
+            {{ column_view.length_read }}
+            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
+              Array.new(element_count) { {{ column_view.read_element }} }
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. The keys go in the array beside the values, at this row's
+   length - which is what `serial_ref` below does from the column count.
+   spec/variable-length-record-arrays.md. ##~}}
+            {{ column_view.length_read }}
+            record.{{ column_view.name }}_index = Array.new(element_count) { {{ column_view.read_element }} }
+            record.{{ column_view.name }} = Array.new(element_count)
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }} = Array.new(element_count) do |at|
+              Tabbit.present?(element_presence, element_at + at)
             end
-{{~ else if column_view.kind == 'record_serial' ~}}
-            {{ column_view.element_count }}.times do |element|
-              record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
-            end
-{{~ else if column_view.kind == 'serial_ref' ~}}
-            record.{{ column_view.name }}_index = Array.new({{ column_view.element_count }}) { {{ column_view.read_element }} }
-            record.{{ column_view.name }} = Array.new({{ column_view.element_count }})
-{{~ else if column_view.kind == 'serial' ~}}
-            record.{{ column_view.name }} = Array.new({{ column_view.element_count }}) { {{ column_view.read_element }} }
+            element_at += element_count
+{{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
             record.{{ column_view.name }}_index = {{ column_view.read_scalar }}
 {{~ else ~}}

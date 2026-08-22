@@ -109,12 +109,13 @@ func (t *LoadoutTable) Read(filename string) error {
 	// the table holds alone - the previous rows and an error, not an empty table.
 	records := make([]LoadoutRecord, count)
 
-	// A record array whose length is the sheet's column count is created with the row
-	// rather than by whichever member column arrives first. A Go struct has no field
-	// initializer, so otherwise the slice would stay nil until that member was read - and
-	// a file that no longer carries it would leave the members after it indexing nothing.
+	// Made with the row rather than by whichever member column arrives first: a Go struct
+	// has no field initializer, so otherwise the slice would stay nil until that member
+	// was read - and a file that no longer carries it would leave nothing behind at all.
+	// Empty rather than the sheet's column count, because the length is the file's since
+	// v107 and a number from here would be one the data need not agree with.
 	for i := int32(0); i < count; i++ {
-		records[i].Slot = make([]LoadoutSlotEntry, 2)
+		records[i].Slot = make([]LoadoutSlotEntry, 0)
 	}
 
 	for _, column := range columns {
@@ -122,7 +123,7 @@ func (t *LoadoutTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Loadout.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -133,31 +134,46 @@ func (t *LoadoutTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Loadout.Slot.ItemId", tabbit.KindFixedArray, 2, false, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Slot.ItemId", tabbit.KindArray, false, tabbit.ElementI32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Slot.ItemId")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					// The first member allocates; the rest check. Allocating again would
+					// discard what the members before it wrote, and taking the shorter of
+					// two counts would shift every value after it.
+					r.Slot = make([]LoadoutSlotEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Slot[j].ItemIdIndex = cursor.NextI32()
 					}
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Loadout.Slot.SwapId", tabbit.KindFixedArray, 2, false, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Slot.SwapId", tabbit.KindArray, false, tabbit.ElementI32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Slot.SwapId")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					if len(r.Slot) != elementCount {
+						return fmt.Errorf(
+							"Loadout: the file gives one member of `Slot` a different element count than another")
+					}
+					for j := 0; j < elementCount; j++ {
 						r.Slot[j].SwapIdIndex = cursor.NextI32()
 					}
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Loadout.Slot.Count", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Slot.Count", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Slot.Count")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					if len(r.Slot) != elementCount {
+						return fmt.Errorf(
+							"Loadout: the file gives one member of `Slot` a different element count than another")
+					}
+					for j := 0; j < elementCount; j++ {
 						r.Slot[j].Count = cursor.NextI32()
 					}
 				}

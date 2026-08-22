@@ -26,6 +26,18 @@ internal static class RepoLayout
     public static string OutputDir(string scenario)
         => Path.Combine(Root, "test", "fixtures", "output", scenario);
 
+    /// <summary>Where a scenario's build cache goes.</summary>
+    /// <remarks>
+    /// Beside the output tree rather than inside it. The golden comparison walks the whole
+    /// output tree and reports anything it does not recognise, so a cache file in there
+    /// would fail every golden test as a new artifact.
+    ///
+    /// And not the default location either, which is `.tabbit/` under the working directory -
+    /// that is the repository root here, so the suite would leave its cache in the checkout.
+    /// </remarks>
+    public static string CacheDir(string scenario)
+        => Path.Combine(Root, "test", "fixtures", "output", "_cache", scenario);
+
     private static string Locate()
     {
         // A file as well as a directory: a linked worktree's `.git` is a file pointing at

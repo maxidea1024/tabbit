@@ -1,0 +1,41 @@
+{
+  "record.commit-date-not-a-date": "--commit-date `{Text}` is not a date. Use an ISO 8601 timestamp, such as `2026-08-03T14:05:00+09:00`.",
+  "record.prune-needs-bound": "--prune with neither --before nor --keep would remove every snapshot's detail. Say how far back to go.",
+  "record.before-not-a-date-or-age": "`--before {Text}` is neither a date nor an age. Use an ISO 8601 date, or a number of days such as `90d`.",
+  "record.format-unknown": "`--format {Format}` is not a format. Use `json`, `text` or `html`.",
+
+  "record.no-history-target": "This recipe has no `history` target, so there is nothing to read. Add one, or point --recipe at the recipe the conversions use.",
+  "record.several-history-targets": "This recipe has {Count} history targets ({Keys}). Name the one to read with --project.",
+  "record.no-target-for-project": "This recipe has no history target for project `{Project}`.",
+  "record.project-unknown": "The history holds no project called `{Project}`.",
+
+  "record.metric-unknown": "`{Metric}` is not a metric. Use rows, cells, contentBytes, tables, fields, or changes.",
+  "record.metric-unknown-per-table": "`{Metric}` is not a metric. Use rows, cells, contentBytes, tables, fields.",
+  "record.commit-ambiguous": "`{Commit}` matches {Count} commits on branch `{Branch}`: {Matches}. Use more of the hash.",
+  "record.range-reversed": "`{From}` comes after `{To}` on branch `{Branch}`, so there is no range between them. Swap them, or leave one out.",
+
+  "record.model-differs-for-commit": "The history already holds a different model for commit {Commit} on branch `{Branch}`. That happens when a snapshot was recorded from a working copy with uncommitted changes, or when --commit named a value already used for other data. The history is not rewritten automatically: whichever of the two is wrong, overwriting hides it.",
+  "record.value-pool-id-missing": "The value pool has no id for a cell holding `{Text}`, which was put there moments ago. Something removed it between the insert and the read - a prune of another branch is the only thing that does. The snapshot has not been written.",
+  "record.unreachable": "The history at `{Section}` could not be reached, so nothing was recorded for this conversion: {Detail}",
+
+  "record.lock-held": "Another process has held `{Name}` for more than {Seconds} seconds. That is another conversion of the same branch, or a prune. Wait for it and try again.",
+  "record.migration-lock-held": "Another process has been migrating the history database for more than {Seconds} seconds. If nothing else is running, the lock is stale and will clear when its connection closes.",
+  "record.schema-newer-than-build": "The history database is at schema version {Current}, and this build of Tabbit understands version {Understood}. Upgrade Tabbit rather than letting an older one write to it.",
+  "record.migration-failed": "Migration {Version} failed at statement {Step} of {Total}: {Detail}\n\n{Statement}",
+
+  "record.bind-not-an-address": "--bind {Bind} is not an address. Use an IP, `localhost`, or `0.0.0.0` for every interface.",
+  "record.bind-public-without-token": "--bind {Bind} would serve the history to anything that can reach this machine, and no token is set. Set ${Variable} to a secret and send it as `Authorization: Bearer <token>`, or leave --bind at 127.0.0.1.",
+  "record.query-value-not-a-number": "`{Name}={Value}` is not a number.",
+"record.snapshot-not-found": "The history has no snapshot for `{Commit}` on branch `{Branch}` of `{Project}`, and no working copy here could resolve it as a tag or a revision. Either nothing converted that commit, or it is on another branch, or there is no checkout to look the name up in.",
+
+  "record.log-branch-has-no-snapshots": "Branch `{Branch}` of `{Project}` has no snapshots.",
+  "record.log-commit-is-behind": "Commit {Commit} is behind {Head}, which the history already holds for branch `{Branch}`. Recording it would report that commit's work as undone, by this commit's author. Nothing was recorded. Convert the newer commit, or set AllowOutOfOrder if the chain really does go this way.",
+  "record.log-next-snapshot-covers-this": "The next recorded snapshot will cover this commit's changes as well as its own.",
+  "record.log-no-commit-identity": "This conversion has no commit identity, so its changes cannot be attributed to anyone. Pass --commit, or run the conversion inside the working copy the sheets are in.",
+  "record.log-no-snapshot-at": "The history has no snapshot for `{At}` on branch `{Branch}`.",
+  "record.log-nothing-recorded": "Nothing was recorded in the history for this conversion.",
+  "record.log-nothing-recorded-dirty": "Nothing was recorded in the history for this conversion. Commit the sheets and convert again, or set RecordDirty to record it under {Commit} anyway - which also means the clean build of that commit can never be recorded.",
+  "record.log-project-empty": "The history holds nothing for project `{Project}`.",
+  "record.log-project-empty-run-first": "The history holds nothing for project `{Project}`. Run a conversion with the history target enabled first.",
+  "record.log-working-copy-dirty": "The working copy at `{Path}` has uncommitted changes, so this conversion does not match commit {Commit}. What is recorded for it will be marked as not attributable."
+}

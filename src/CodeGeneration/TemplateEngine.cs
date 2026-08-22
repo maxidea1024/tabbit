@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -50,14 +51,7 @@ internal static class TemplateEngine
     /// </remarks>
     public static string RenderSource(string templateName, string source, object model)
     {
-        var template = Template.Parse(source, templateName);
-
-        if (template.HasErrors)
-        {
-            throw new TabbitException(
-                $"Template `{templateName}` failed to parse:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, template.Messages));
-        }
+        var template = Parsed(source, templateName);
 
         var context = new TemplateContext
         {
@@ -171,11 +165,48 @@ internal static class TemplateEngine
     /// template and one of the project's own: it needs the shipped text without also needing
     /// to know that shipped means embedded.
     /// </remarks>
+    /// <summary>
+    /// The parsed form of a template, parsed once however many files it renders.
+    /// </summary>
+    /// <remarks>
+    /// **A generator renders its template once per table**, and parsing it again each time is
+    /// the larger half of what rendering costs: of 3.88 s spent rendering on the sample
+    /// project, 2.41 s was Scriban re-reading templates it had already read. Parsing depends
+    /// on the text and nothing else, so it is an answer that can be kept.
+    ///
+    /// Keyed by the text rather than by the name, because one of the names is a path a recipe
+    /// chose - two recipes may point the same name at different files, and a template cached
+    /// under a name would then render the wrong one. The text is the identity; the name is
+    /// only what a parse error is reported against.
+    ///
+    /// A parsed template is the syntax tree, and rendering does not write to it - the state a
+    /// render accumulates lives in the `TemplateContext` built per call below. So one of
+    /// these is safely rendered by several threads, which matters now that the output targets
+    /// run beside each other. spec/conversion-time.md section 4.
+    /// </remarks>
+    private static readonly ConcurrentDictionary<string, Template> ParsedTemplates =
+        new ConcurrentDictionary<string, Template>(StringComparer.Ordinal);
+
+    private static Template Parsed(string source, string templateName)
+        => ParsedTemplates.GetOrAdd(source, text =>
+        {
+            var template = Template.Parse(text, templateName);
+
+            if (template.HasErrors)
+            {
+                throw new TabbitDefectException(
+                    $"Template `{templateName}` failed to parse:{Environment.NewLine}" +
+                    string.Join(Environment.NewLine, template.Messages));
+            }
+
+            return template;
+        });
+
     public static string Load(string templateName)
     {
         string resourceName = "Tabbit.Templates." + templateName;
 
-        using var stream = typeof(TemplateEngine).Assembly.GetManifestResourceStream(resourceName) ?? throw new TabbitException($"Embedded template `{resourceName}` is missing from the build.");
+        using var stream = typeof(TemplateEngine).Assembly.GetManifestResourceStream(resourceName) ?? throw new TabbitDefectException($"Embedded template `{resourceName}` is missing from the build.");
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }

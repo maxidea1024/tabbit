@@ -1,18 +1,18 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "fc0b4bc71d66f06d41138418c333f862",
-  "TotalSize": 209,
+  "MasterHash": "ce3739d5430a6558c158fe5fd0394d79",
+  "TotalSize": 203,
   "Items": [
     {
       "Name": "ItemCategory.tcb",
-      "Size": 111,
-      "Hash": "f015104908b653dcc4000742e790f7ca",
+      "Size": 108,
+      "Hash": "95870d6d36b1ef1370f0798014b3d5d7",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Item.tcb",
-      "Size": 98,
-      "Hash": "5d318c271f0c40a297cbad1b5f452caa",
+      "Size": 95,
+      "Hash": "3d38c1d9ac37775d557bdf07517e2e5f",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

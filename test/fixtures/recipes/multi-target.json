@@ -1,0 +1,68 @@
+{
+  // A column whose value is a row of one of several tables, written `Weapon|Armour`.
+  //
+  // The model has carried this shape for a while - the targets are resolved, the key type is
+  // checked to be the same across them, and an id in two of them is refused - but no
+  // generator ever looked, because `IsRef` means "resolves to exactly one record" and is
+  // false here. This tree is what the generators now emit for it: the key, one property per
+  // target, and the discriminator saying which target the row is in.
+  //
+  // Both file formats, because neither may move: the column already travels as the target's
+  // key, so a diff in the binary or the JSON here would be a defect rather than a feature.
+  //
+  // spec/multi-target-accessors.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/multi-target"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/multi-target/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/multi-target/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/multi-target/csharp",
+      "Namespace": "Tabbit.Fixtures.MultiTarget",
+      "AccessorName": "MultiTargetAccessor"
+    },
+    { "Type": "typescript", "Path": "test/fixtures/output/multi-target/typescript" },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/multi-target/cpp",
+      "Namespace": "multi_target",
+      "AccessorName": "MultiTargetAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+
+    // Every language. The shape is one slot plus a discriminator and a property per target,
+    // and each language spells all three itself - so one that gets the slot's type or the
+    // narrowing wrong emits a page that only its own compiler will say anything about.
+    { "Type": "go", "Path": "test/fixtures/output/multi-target/go", "PackageName": "multitarget", "ModulePath": "multitarget" },
+    { "Type": "rust", "Path": "test/fixtures/output/multi-target/rust", "CrateName": "multi_target" },
+    { "Type": "python", "Path": "test/fixtures/output/multi-target/python", "PackageName": "multi_target_data" },
+    { "Type": "java", "Path": "test/fixtures/output/multi-target/java", "PackageName": "multitarget", "AccessorName": "Tables" },
+    { "Type": "kotlin", "Path": "test/fixtures/output/multi-target/kotlin", "PackageName": "multitarget", "AccessorName": "Tables" },
+    { "Type": "swift", "Path": "test/fixtures/output/multi-target/swift", "AccessorName": "Tables" },
+    { "Type": "lua", "Path": "test/fixtures/output/multi-target/lua" },
+    { "Type": "ruby", "Path": "test/fixtures/output/multi-target/ruby", "ModuleName": "MultiTarget" },
+    { "Type": "dart", "Path": "test/fixtures/output/multi-target/dart" },
+    { "Type": "unreal", "Path": "test/fixtures/output/multi-target/unreal/Source", "ModuleName": "MultiTargetData", "AccessorName": "FMultiTargetData" },
+    { "Type": "c", "Path": "test/fixtures/output/multi-target/c", "AccessorName": "MultiTarget" },
+    { "Type": "php", "Path": "test/fixtures/output/multi-target/php", "Namespace": "Tabbit\\Fixtures\\MultiTarget", "AccessorName": "MultiTargetAccessor" },
+    { "Type": "html", "Path": "test/fixtures/output/multi-target/html" }
+  ]
+}

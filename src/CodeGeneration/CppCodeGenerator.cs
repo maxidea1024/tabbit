@@ -82,6 +82,22 @@ public class CppRecipe : IOutputRecipe
     /// generated reader will not match the data.
     /// </summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -113,6 +129,9 @@ public class CppRecipe : IOutputRecipe
 [TabbitTarget("cpp", TargetKind.CodeGeneration, Order = 10)]
 public class CppCodeGenerator : CodeGenerator<CppRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
 
     /// <summary>
     /// A record group generates a plain struct and a vector of it; a member column fills one
@@ -141,15 +160,25 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// An optional column becomes a `has_{name}` member beside the value.
     /// </summary>
     /// <remarks>
-    /// Not `std::optional`, so that one shape covers thirteen languages and C++ does not
+    /// Not `std::optional`, so that one shape covers every language and C++ does not
     /// split from Unreal - where the member is a UPROPERTY and cannot be optional at all.
     /// spec/optional-fields.md has the reasoning.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
+
+    /// <summary>
+    /// `has_x_at(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private CppRecipe _cppRecipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Snake;
 
     protected override void Run(TargetContext context, CppRecipe cppRecipe)
     {
@@ -163,6 +192,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         // Already narrowed to the side this entry is built for. Both (the default)
         // leaves the model unchanged.
         _model = context.Model;
+        _memberCase = MemberCasing.From(cppRecipe.MemberCase, NameCase.Snake, "cpp");
 
         GenerateModel();
         WriteBinaryReaderRuntime();
@@ -231,7 +261,8 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 Guard("CONST_" + pair.rendered.Name.ToSnakeCase()),
                 StandardHeadersFor(pair.model.Constants.Select(constant => constant.Type))
                     .Concat(NeedsReader(pair.model) ? new[] { ReaderInclude } : Array.Empty<string>())
-                    .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumHeaderFor)),
+                    .Concat(TypeDependencies.EnumsNamedBy(pair.model)
+                            .Select(EnumHeaderFor)),
                 part => part.Set = pair.rendered));
         }
 
@@ -245,7 +276,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 Guard(pair.rendered.RawName.ToSnakeCase()),
                 new[] { "<cstddef>", "<cstdint>", "<string>", "<unordered_map>", "<vector>", ReaderInclude }
                     .Append(ForwardHeader)
-                    .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumHeaderFor)),
+                    .Concat(TypeDependencies.EnumsNamedBy(pair.model)
+                            .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
+                            .Select(EnumHeaderFor)),
                 part => part.Table = pair.rendered));
         }
 
@@ -435,9 +468,11 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+        NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
     };
 
     /// <summary>
@@ -508,6 +543,44 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         => "find_by_" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToSnakeCase();
 
     /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!= \"\"",
+            ValueType.Uuid => "!= tabbit::Uuid{}",
+            _ => "!= 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private CppMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new CppMultiReferenceView
+        {
+            KeyMember = CppName(column.Group.Name),
+            SlotMember = CppName(column.Group.Name + "Row"),
+            TargetMember = CppName(column.Group.Name + "Target"),
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = "None",
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new CppMultiTargetView
+            {
+                Table = CppName(target.Name),
+                RecordName = RecordName(target),
+                Method = CppName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+                Label = target.Name.ToPascalCase(),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+
+    /// <summary>
     /// One declared member of the record: what it is called and what it holds.
     /// </summary>
     /// <remarks>
@@ -544,6 +617,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                     Comment = CommentLines(member.FirstField!.Comment),
                     Name = CppName(member.Name),
                     Declarations = MemberDeclarations(member),
+                    Multi = MultiMemberOrNull(member),
                 });
 
                 continue;
@@ -556,6 +630,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
             declared.Add(new CppRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -608,6 +683,28 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 };
         }
 
+        // A member reaching several tables keeps its key and gains two declarations: one slot
+        // for the resolved row whatever table it came from, and the discriminator saying which.
+        // spec/multi-target-accessors.md.
+        var multi = MultiMemberOrNull(member);
+
+        if (multi is not null)
+        {
+            return member.IsArray
+                ? new[]
+                {
+                    $"std::vector<{ToCppTypeName(member.FirstField)}> {name};",
+                    $"std::vector<const void*> {multi.SlotMember};",
+                    $"std::vector<{multi.TargetTypeName}> {multi.TargetMember};",
+                }
+                : new[]
+                {
+                    $"{ToCppTypeName(member.FirstField)} {name}{DefaultInitializer(member.FirstField)};",
+                    $"const void* {multi.SlotMember} = nullptr;",
+                    $"{multi.TargetTypeName} {multi.TargetMember} = {multi.TargetTypeName}::None;",
+                };
+        }
+
         // The vector is the member's when the group is one record - same columns, same wire,
         // and only which of the two owns it differs.
         return member.IsArray
@@ -617,6 +714,88 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 $"{ToCppTypeName(member.FirstField)} {name}{DefaultInitializer(member.FirstField)};",
             };
     }
+
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    private CppMultiMemberView? MultiMemberOrNull(RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string name = CppName(member.Name);
+
+        return new CppMultiMemberView
+        {
+            KeyMember = name,
+            SlotMember = CppName(member.Name + "Row"),
+            TargetMember = CppName(member.Name + "Target"),
+            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new CppMultiTargetView
+            {
+                Table = CppName(target.Name),
+                RecordName = RecordName(target),
+                Method = CppName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Label = target.Name.ToPascalCase(),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member. spec/references-in-records.md.
+    /// </remarks>
+    private CppMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = CppName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + CppName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{name}{member}"
+            : $"record.{name}[i]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+
+        return new CppMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "_row" + subscript,
+            Target = path + "_target" + subscript,
+
+            // Whichever vector holds the elements. The key member is that vector where the
+            // members are the arrays, so there is no separate key vector to measure.
+            Count = isArray
+                ? (wire.Group.MembersAreArrays ? $"{path}.size()" : $"record.{name}.size()")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new CppMultiTargetView
+            {
+                Table = CppName(target.Name),
+                RecordName = RecordName(target),
+                Method = "",
+                Label = target.Name.ToPascalCase(),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
 
     private CppFieldView BuildField(Table table, SerialField sf)
     {
@@ -632,6 +811,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         {
             recordTypes.Add(new CppRecordTypeView
             {
+                MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = RecordEntryName(table, sf),
                 Members = members,
                 IsOutermost = true,
@@ -660,8 +840,10 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
             // A record group has no presence of its own: absence inside one is the array's
             // length, not a bit per member.
-            IsNullable = !sf.IsRecord && !sf.Fields[0].IsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = "has_" + name,
+            ElementPresenceMember = "has_" + name + "_at_",
         };
     }
 
@@ -710,6 +892,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // sizing only the row left it writing past the end.
             // spec/references-in-records.md.
             MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "_index" : "",
+            MultiTargetTypeName = IsMultiTargetMember(wire)
+                ? wire.TagCarrier.MultiTargetEnum!.Name.ToPascalCase()
+                : "",
             OuterCount = wire.Group.IsRecord ? wire.Group.Members.Count : 0,
             ElementCount = wire.Cells.Count,
             RefDefault = RefDefault(wire.Group),
@@ -726,7 +911,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             IsFirstMember = wire.IsFirstMember,
             RecordTypeName = wire.Group.IsRecord ? RecordEntryName(table, wire.Group) : "",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = "has_" + name,
+            ElementPresenceMember = "has_" + name + "_at_",
             EmptyValue = EmptyValueOf(wire),
         };
     }
@@ -736,7 +923,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// </summary>
     private string EmptyValueOf(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "{}";
 
         return wire.ElementType switch
@@ -812,10 +999,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         // the members before it wrote.
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "record_member";
 
             // Which of the two owns the vector decides where the index goes, and an unnamed
@@ -823,14 +1007,11 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -841,11 +1022,11 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         Tables = _model.Tables.Select(table => new CppTableSlotView
         {
-            Name = CppName(table.Name),
+            Name = CppSnakeName(table.Name),
             TableName = TableName(table),
 
             // Unescaped: this one names the file the exporter wrote, not an identifier.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables
@@ -862,11 +1043,25 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new CppCrossReferenceView
             {
                 Table = CppName(x.Table.Name),
+                MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new CppReferenceFieldView
                 {
                     Name = CppName(sf.Name),
@@ -896,7 +1091,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + CppName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -937,7 +1132,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. It used to be an
@@ -999,7 +1194,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries. `next_same_i32` was the only answer while
@@ -1171,11 +1366,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "tabbit::kKindVarArray"
-            : (wire.IsFixedArray ? "tabbit::kKindFixedArray" : "tabbit::kKindScalar");
-
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
+        string kind = wire.IsArray ? "tabbit::kKindArray" : "tabbit::kKindScalar";
 
         string accepted;
 
@@ -1216,7 +1407,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                     accepted = "tabbit::kElementI64"; break;
 
                 default:
-                    throw new TabbitException($"The cpp generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The cpp generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -1225,7 +1416,11 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         // expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"tabbit::check_column(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {{{accepted}}});";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"tabbit::check_column(column, \"{tableName}.{wire.Name}\", {kind}, "
+            + $"{nullable}, {{{accepted}}}{elements});";
     }
 
     /// <summary>
@@ -1265,7 +1460,16 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// generator used to emit those verbatim - `std::string class;` - and report success,
     /// because nothing compiled the result.
     /// </summary>
-    private static string CppName(string name) => LanguageProfile.Cpp.MemberName(name.ToSnakeCase());
+    private string CppName(string name) => LanguageProfile.Cpp.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// snake_case because that is how C++ writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string CppSnakeName(string name) => LanguageProfile.Cpp.MemberName(name.ToSnakeCase());
 
     /// <summary>
     /// The C++ type a field's values have. A reference's is the key it carries rather than
@@ -1390,7 +1594,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the C++ generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "C++")));
         }
     }
 

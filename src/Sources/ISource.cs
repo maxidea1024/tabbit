@@ -9,13 +9,16 @@ namespace Tabbit.Sources;
 /// </summary>
 public sealed class SourceContext
 {
-    public SourceContext(Options options, RecipeModel recipe, RawModel model, object entry, string section)
+    public SourceContext(
+        Options options, RecipeModel recipe, RawModel model, object entry, string section,
+        Caching.InputLedger? inputs = null)
     {
         Options = options;
         Recipe = recipe;
         Model = model;
         Entry = entry;
         Section = section;
+        Inputs = inputs ?? new Caching.InputLedger();
     }
 
     /// <summary>Command line options for the run.</summary>
@@ -39,6 +42,17 @@ public sealed class SourceContext
     /// Where in the recipe this entry came from, including its index - `Sources.Xlsx[0]`.
     /// </summary>
     public string Section { get; }
+
+    /// <summary>
+    /// Where a source records what it read, so the next run can tell whether it changed.
+    /// </summary>
+    /// <remarks>
+    /// Recorded by the source because only the source knows: which files it opened, and
+    /// which directory listing it opened them from. A run with no cache still gets a ledger
+    /// rather than a null - one that is filled in and then dropped - so a source never has
+    /// to ask whether anybody is listening.
+    /// </remarks>
+    public Caching.InputLedger Inputs { get; }
 }
 
 /// <summary>

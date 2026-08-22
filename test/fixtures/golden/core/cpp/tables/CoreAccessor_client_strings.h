@@ -100,7 +100,7 @@ class ClientStringsTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "ClientStrings.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "ClientStrings.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ClientStrings.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -113,7 +113,7 @@ class ClientStringsTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "ClientStrings.Key", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "ClientStrings.Key", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ClientStrings.Key");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -126,7 +126,7 @@ class ClientStringsTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "ClientStrings.Text", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "ClientStrings.Text", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ClientStrings.Text");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {

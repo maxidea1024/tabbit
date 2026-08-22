@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -192,7 +190,7 @@ namespace Tabbit.Fixtures.Text
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Item.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Item.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Item.Index");
                         for (int i = 0; i < count; )
                         {
@@ -208,7 +206,7 @@ namespace Tabbit.Fixtures.Text
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Item.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Item.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Item.Name");
                         for (int i = 0; i < count; )
                         {
@@ -224,7 +222,7 @@ namespace Tabbit.Fixtures.Text
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Item.Category", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Item.Category", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Item.Category");
                         for (int i = 0; i < count; )
                         {
@@ -240,7 +238,7 @@ namespace Tabbit.Fixtures.Text
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Item.Flavour", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Item.Flavour", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Item.Flavour");
                         for (int i = 0; i < count; )
                         {
@@ -289,5 +287,4 @@ namespace Tabbit.Fixtures.Text
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.Text

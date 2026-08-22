@@ -114,7 +114,7 @@ class DropTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Drop.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Drop.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Drop.Index")
                 at = 0
                 while at < count:
@@ -123,7 +123,7 @@ class DropTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Drop.Hp", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Drop.Hp", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Drop.Hp")
                 at = 0
                 while at < count:
@@ -132,7 +132,7 @@ class DropTable:
                         records[i].hp = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Drop.Bonus", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Drop.Bonus", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -155,7 +155,7 @@ class DropTable:
                     if not record.has_bonus:
                         record.bonus = 0
             elif column.tag == 4:
-                tabbit.check_column(column, "Drop.Weight", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_F64, tabbit.ELEMENT_F32, tabbit.ELEMENT_I32))
+                tabbit.check_column(column, "Drop.Weight", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_F64, tabbit.ELEMENT_F32, tabbit.ELEMENT_I32))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -174,7 +174,7 @@ class DropTable:
                     if not record.has_weight:
                         record.weight = 0.0
             elif column.tag == 5:
-                tabbit.check_column(column, "Drop.Ratio", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_F32,))
+                tabbit.check_column(column, "Drop.Ratio", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_F32,))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -193,7 +193,7 @@ class DropTable:
                     if not record.has_ratio:
                         record.ratio = 0.0
             elif column.tag == 6:
-                tabbit.check_column(column, "Drop.Count", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Drop.Count", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -212,7 +212,7 @@ class DropTable:
                     if not record.has_count:
                         record.count = 0
             elif column.tag == 7:
-                tabbit.check_column(column, "Drop.OpenAt", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_I64,))
+                tabbit.check_column(column, "Drop.OpenAt", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_I64,))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -231,7 +231,7 @@ class DropTable:
                     if not record.has_open_at:
                         record.open_at = 0
             elif column.tag == 8:
-                tabbit.check_column(column, "Drop.Cooldown", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_I64,))
+                tabbit.check_column(column, "Drop.Cooldown", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_I64,))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -250,7 +250,7 @@ class DropTable:
                     if not record.has_cooldown:
                         record.cooldown = 0
             elif column.tag == 9:
-                tabbit.check_column(column, "Drop.Batch", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_UUID,))
+                tabbit.check_column(column, "Drop.Batch", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_UUID,))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -268,7 +268,7 @@ class DropTable:
                     if not record.has_batch:
                         record.batch = tabbit.Uuid()
             elif column.tag == 10:
-                tabbit.check_column(column, "Drop.Grade", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_VARINT,))
+                tabbit.check_column(column, "Drop.Grade", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_VARINT,))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -291,7 +291,7 @@ class DropTable:
                     if not record.has_grade:
                         record.grade = Rarity(0)
             elif column.tag == 11:
-                tabbit.check_column(column, "Drop.Costs", tabbit.KIND_VAR_ARRAY, 0, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Drop.Costs", tabbit.KIND_ARRAY, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -311,7 +311,7 @@ class DropTable:
                     if not record.has_costs:
                         record.costs = []
             elif column.tag == 12:
-                tabbit.check_column(column, "Drop.Label", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Drop.Label", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_STRING,))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -334,7 +334,7 @@ class DropTable:
                     if not record.has_label:
                         record.label = ""
             elif column.tag == 13:
-                tabbit.check_column(column, "Drop.Hidden", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_BOOL,))
+                tabbit.check_column(column, "Drop.Hidden", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_BOOL,))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.

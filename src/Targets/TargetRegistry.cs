@@ -5,6 +5,8 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
+using Tabbit.Caching;
+using Tabbit.Helpers;
 using Tabbit.History;
 using Tabbit.Models;
 using Tabbit.Recipe;
@@ -14,11 +16,12 @@ namespace Tabbit.Targets;
 /// <summary>One registered target and the metadata its attribute declared.</summary>
 public sealed class TargetDescriptor
 {
-    internal TargetDescriptor(string id, TargetKind kind, int order, ITarget target)
+    internal TargetDescriptor(string id, TargetKind kind, int order, bool deterministic, ITarget target)
     {
         Id = id;
         Kind = kind;
         Order = order;
+        Deterministic = deterministic;
         Target = target;
     }
 
@@ -30,6 +33,12 @@ public sealed class TargetDescriptor
 
     /// <summary>Sort key within a kind.</summary>
     public int Order { get; }
+
+    /// <summary>
+    /// Whether the same model produces the same bytes twice.
+    /// See <see cref="TabbitTargetAttribute.Deterministic"/>.
+    /// </summary>
+    public bool Deterministic { get; }
 
     /// <summary>The target itself.</summary>
     public ITarget Target { get; }
@@ -89,6 +98,9 @@ public readonly struct PlannedTarget
 /// </summary>
 public static class TargetRegistry
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     /// <summary>Field of a `Targets` entry that names the target. Matched case-insensitively.</summary>
     private const string TypeField = "Type";
 
@@ -154,7 +166,8 @@ public static class TargetRegistry
     /// The model is narrowed here rather than inside each target, so a target reads
     /// only what its entry is entitled to and none of them can forget to project.
     /// </summary>
-    public static void RunAll(Options options, RecipeModel recipe, Model model)
+    public static void RunAll(
+        Options options, RecipeModel recipe, Model model, RunTimings timings, BuildCache cache)
     {
         var requested = CommandLineTargetSide.Of(options);
 
@@ -165,12 +178,71 @@ public static class TargetRegistry
         // most conversions have no target that records anything.
         var commit = new Lazy<CommitInfo>(() => CommitInfo.Resolve(options, recipe));
 
-        foreach (var planned in Plan(recipe, requested))
-        {
-            var sided = model.ProjectTo(planned.Side);
+        // Asked before anything is built, because narrowing the model is work too. A false
+        // answer has already declared that entry's previous output as still standing -
+        // otherwise the sweep would delete it for not having been written.
+        var building = Plan(recipe, requested).Where(cache.ShouldRun).ToList();
 
-            planned.Descriptor.Target.Run(
-                new TargetContext(options, recipe, sided, model, commit, planned.Entry, planned.Section));
+        // The projections, made once per side rather than once per entry.
+        //
+        // Two reasons, and the second is the one that matters. It is less work - a recipe
+        // naming ten client-side outputs was narrowing the same model ten times - and
+        // `ProjectTo` cannot be called from several threads at once: it publishes the
+        // projected model as `Model.Current` and puts the previous one back when it is done,
+        // which is not a thing two threads can do to one static field.
+        var sided = new Dictionary<TargetSide, Model>();
+
+        foreach (var planned in building)
+        {
+            if (!sided.ContainsKey(planned.Side))
+                sided[planned.Side] = model.ProjectTo(planned.Side);
+        }
+
+        // Every table's derived column lists, built before anything reads them.
+        //
+        // The exporters and the generators all read `WireColumns` and `SerialFields`, and
+        // those are built on first use - which is not something two entries can do at once.
+        // Built here, once, they are read-only for the rest of the run.
+        foreach (var projection in sided.Values)
+        {
+            foreach (var table in projection.Tables)
+                table.BuildDerivedColumns();
+        }
+
+        // Built in parallel, grouped by target.
+        //
+        // **The entries of one target run in order, and the targets run beside each other.**
+        // A target is one object serving every entry that names it - it holds its manifest
+        // and its keys in fields - so two of its entries at once would be two runs sharing
+        // that state. Different targets share nothing but the staging ledger, which locks.
+        //
+        // What each entry staged is attributed by name rather than by counting the ledger
+        // before and after, which is what made this sequential: a slice of a shared list is
+        // an answer only while one entry is writing to it.
+        // spec/conversion-time.md section 5.
+        var byTarget = building.GroupBy(planned => planned.Descriptor).ToList();
+
+        System.Threading.Tasks.Parallel.ForEach(byTarget, group =>
+        {
+            foreach (var planned in group)
+            {
+                using (StagingFiles.Attributing(planned.Section!))
+                using (timings.MeasureEntry($"{planned.Section} {planned.Descriptor.Id}"))
+                {
+                    planned.Descriptor.Target.Run(new TargetContext(
+                        options, recipe, sided[planned.Side], model, commit,
+                        planned.Entry, planned.Section));
+                }
+            }
+        });
+
+        // Told to the cache afterwards, in the order the recipe lists the entries. What goes
+        // into the seal is then the same whichever order the entries finished in.
+        foreach (var planned in building)
+        {
+            cache.Wrote(
+                planned.Section!, StagingFiles.StagedBy(planned.Section!),
+                planned.Descriptor.Deterministic);
         }
     }
 
@@ -237,8 +309,10 @@ public static class TargetRegistry
         }
         catch (JsonException ex)
         {
-            throw new TabbitException(
-                $"Recipe `{section}` sets up target `{descriptor.Id}`, but could not be read: {ex.Message}");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Recipe.RecipeMessages.SectionCouldNotBeRead,
+                        ("Section", section), ("Target", descriptor.Id),
+                        ("Detail", ex.Message)));
         }
     }
 
@@ -264,16 +338,16 @@ public static class TargetRegistry
 
             if (string.IsNullOrWhiteSpace(id))
             {
-                throw new TabbitException(
-                    $"Recipe `Targets[{index}]` has no `Type`, so there is nothing to say which " +
-                    $"target it configures. Use one of: {KnownIds}.");
+                    throw new TabbitException(null,
+                        Messages.Message.Of(Recipe.RecipeMessages.TargetEntryHasNoType,
+                            ("Index", index), ("Known", KnownIds)));
             }
 
             if (!All.Any(d => string.Equals(d.Id, id, StringComparison.OrdinalIgnoreCase)))
             {
-                throw new TabbitException(
-                    $"Recipe `Targets[{index}]` names target `{id}`, which does not exist. " +
-                    $"Use one of: {KnownIds}.");
+                    throw new TabbitException(null,
+                        Messages.Message.Of(Recipe.RecipeMessages.TargetUnknown,
+                            ("Index", index), ("Target", id), ("Known", KnownIds)));
             }
         }
     }
@@ -292,19 +366,20 @@ public static class TargetRegistry
 
             if (type.IsAbstract || !typeof(ITarget).IsAssignableFrom(type))
             {
-                throw new TabbitException(
-                    $"`{type.Name}` is marked [TabbitTarget] but is not a concrete {nameof(ITarget)}.");
+                    throw new TabbitDefectException(
+                        $"`{type.Name}` is marked [TabbitTarget] but is not a concrete {nameof(ITarget)}.");
             }
 
             var target = (ITarget)Activator.CreateInstance(type)!;
 
-            descriptors.Add(new TargetDescriptor(attribute.Id, attribute.Kind, attribute.Order, target));
+            descriptors.Add(new TargetDescriptor(
+                attribute.Id, attribute.Kind, attribute.Order, attribute.Deterministic, target));
         }
 
         var duplicate = descriptors.GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)
                                    .FirstOrDefault(g => g.Count() > 1);
         if (duplicate is not null)
-            throw new TabbitException($"Two targets both claim the id `{duplicate.Key}`.");
+                throw new TabbitDefectException($"Two targets both claim the id `{duplicate.Key}`.");
 
         descriptors.Sort((left, right) =>
         {

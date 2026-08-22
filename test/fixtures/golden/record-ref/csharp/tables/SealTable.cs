@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -199,7 +197,7 @@ namespace Tabbit.Fixtures.RecordRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Seal.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementUuid);
+                        TcbTable.CheckColumn(column, "Seal.Index", TcbTable.KindScalar, false, TcbTable.ElementUuid);
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
@@ -208,7 +206,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Seal.Label", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Seal.Label", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Seal.Label");
                         for (int i = 0; i < count; )
                         {
@@ -224,7 +222,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Seal.Pad", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Seal.Pad", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Seal.Pad");
                         for (int i = 0; i < count; )
                         {
@@ -240,7 +238,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Seal.Pad2", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Seal.Pad2", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Seal.Pad2");
                         for (int i = 0; i < count; )
                         {
@@ -256,7 +254,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Seal.Pad3", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Seal.Pad3", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Seal.Pad3");
                         for (int i = 0; i < count; )
                         {
@@ -305,5 +303,4 @@ namespace Tabbit.Fixtures.RecordRef
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.RecordRef

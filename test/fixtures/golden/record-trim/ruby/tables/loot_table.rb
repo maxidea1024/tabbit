@@ -108,7 +108,7 @@ module RecordTrim
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Loot.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loot.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Index')
           at = 0
           while at < count
@@ -119,7 +119,7 @@ module RecordTrim
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Loot.Name', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Loot.Name', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Name')
           at = 0
           while at < count
@@ -130,7 +130,7 @@ module RecordTrim
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Loot.Slot.Id', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loot.Slot.Id', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Slot.Id')
           records.each do |record|
             element_count = cursor.next_length
@@ -143,7 +143,7 @@ module RecordTrim
             end
           end
         when 4
-          Tabbit.check_column(column, 'Loot.Slot.Count', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loot.Slot.Count', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Slot.Count')
           records.each do |record|
             element_count = cursor.next_length
@@ -157,7 +157,7 @@ module RecordTrim
             end
           end
         when 5
-          Tabbit.check_column(column, 'Loot.Slot.Label', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Loot.Slot.Label', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Slot.Label')
           records.each do |record|
             element_count = cursor.next_length
@@ -171,7 +171,7 @@ module RecordTrim
             end
           end
         when 6
-          Tabbit.check_column(column, 'Loot.Pos.X', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loot.Pos.X', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Pos.X')
           at = 0
           while at < count
@@ -182,7 +182,7 @@ module RecordTrim
             at += n
           end
         when 7
-          Tabbit.check_column(column, 'Loot.Pos.Y', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loot.Pos.Y', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Pos.Y')
           at = 0
           while at < count
@@ -193,7 +193,7 @@ module RecordTrim
             at += n
           end
         when 8
-          Tabbit.check_column(column, 'Loot.Tag_array', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Loot.Tag_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Tag_array')
           records.each do |record|
             element_count = cursor.next_length

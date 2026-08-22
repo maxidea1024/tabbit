@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.Validation;
 
@@ -219,12 +220,9 @@ public sealed class RuleFolders
 
         if (!Directory.Exists(root))
         {
-            throw new TabbitException(
-                $"The recipe's `Validation.Path` is `{recipe.Path}`, which resolves to "
-                + $"`{root}` - and there is no folder there. Create it with the "
-                + $"`{RulesFolder}/pre/` `{RulesFolder}/tables/` `{RulesFolder}/global/` "
-                + $"`{RulesFolder}/runtime/` layout, or clear `Validation.Path` to run without "
-                + $"validation.");
+            throw new TabbitException(null,
+                Message.Of(ValidationMessages.PathFolderMissing,
+                    ("Path", recipe.Path), ("Root", root), ("RulesFolder", RulesFolder)));
         }
 
         var folders = new RuleFolders(root);
@@ -281,9 +279,9 @@ public sealed class RuleFolders
             if (known.Contains(name))
                 continue;
 
-            throw new TabbitException(
-                $"`{parent}` has a subfolder `{name}`, which is not one this layout runs. "
-                + $"{advice} - or prefix it with `#` to have it skipped.");
+            throw new TabbitException(null,
+                Message.Of(ValidationMessages.UnknownSubfolder,
+                    ("Parent", parent), ("Name", name), ("Advice", advice)));
         }
     }
 
@@ -306,11 +304,14 @@ public sealed class RuleFolders
         if (stray.Count == 0)
             return;
 
-        throw new TabbitException(
-            $"The validation folder `{Root}` has {string.Join(", ", stray.Select(name => $"`{name}/`"))} "
-            + $"at its root, which is where the stages were before they moved under "
-            + $"`{RulesFolder}/`. Move {(stray.Count == 1 ? "it" : "them")} there - the rules "
-            + $"themselves need no change.");
+        // One id per number rather than a pronoun chosen inside the sentence. English is the
+        // only one of the five catalogs that needs the distinction, and a catalog entry cannot
+        // hold the choice.
+        throw new TabbitException(null,
+            Message.Of(stray.Count == 1 ? ValidationMessages.StageAtRoot : ValidationMessages.StagesAtRoot,
+                ("Root", Root),
+                ("Stray", string.Join(", ", stray.Select(name => $"`{name}/`"))),
+                ("RulesFolder", RulesFolder)));
     }
 
     /// <summary>Every rule file of every stage.</summary>

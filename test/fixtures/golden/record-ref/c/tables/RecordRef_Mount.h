@@ -39,7 +39,8 @@ struct RecordRef_MountRecord_t {
   /* primary index */
   int32_t index;
   /* element 1, two levels in */
-  struct RecordRef_MountRecord_t_rig_entry rig[2];
+  struct RecordRef_MountRecord_t_rig_entry* rig;
+  int32_t rig_count;
 };
 
 /* Every row of Mount.

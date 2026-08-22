@@ -106,14 +106,15 @@ func (t *BagTable) Read(filename string) error {
 	// the table holds alone - the previous rows and an error, not an empty table.
 	records := make([]BagRecord, count)
 
-	// A record array whose length is the sheet's column count is created with the row
-	// rather than by whichever member column arrives first. A Go struct has no field
-	// initializer, so otherwise the slice would stay nil until that member was read - and
-	// a file that no longer carries it would leave the members after it indexing nothing.
+	// Made with the row rather than by whichever member column arrives first: a Go struct
+	// has no field initializer, so otherwise the slice would stay nil until that member
+	// was read - and a file that no longer carries it would leave nothing behind at all.
+	// Empty rather than the sheet's column count, because the length is the file's since
+	// v107 and a number from here would be one the data need not agree with.
 	for i := int32(0); i < count; i++ {
-		records[i].Slots.ItemId = make([]*ItemRecord, 2)
-		records[i].Slots.ItemIdIndex = make([]int32, 2)
-		records[i].Slots.Count = make([]int32, 2)
+		records[i].Slots.ItemId = make([]*ItemRecord, 0)
+		records[i].Slots.ItemIdIndex = make([]int32, 0)
+		records[i].Slots.Count = make([]int32, 0)
 	}
 
 	for _, column := range columns {
@@ -121,7 +122,7 @@ func (t *BagTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Bag.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Bag.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Bag.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -132,21 +133,26 @@ func (t *BagTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Bag.Slots.ItemId", tabbit.KindFixedArray, 2, false, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Bag.Slots.ItemId", tabbit.KindArray, false, tabbit.ElementI32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Bag.Slots.ItemId")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					r.Slots.ItemId = make([]*ItemRecord, elementCount)
+					r.Slots.ItemIdIndex = make([]int32, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Slots.ItemIdIndex[j] = cursor.NextI32()
 					}
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Bag.Slots.Count", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Bag.Slots.Count", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Bag.Slots.Count")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					r.Slots.Count = make([]int32, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Slots.Count[j] = cursor.NextI32()
 					}
 				}

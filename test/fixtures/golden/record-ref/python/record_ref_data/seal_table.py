@@ -94,11 +94,11 @@ class SealTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Seal.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_UUID,))
+                tabbit.check_column(column, "Seal.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_UUID,))
                 for record in records:
                     record.index = reader.read_uuid()
             elif column.tag == 2:
-                tabbit.check_column(column, "Seal.Label", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Seal.Label", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Seal.Label")
                 at = 0
                 while at < count:
@@ -107,7 +107,7 @@ class SealTable:
                         records[i].label = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Seal.Pad", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Seal.Pad", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Seal.Pad")
                 at = 0
                 while at < count:
@@ -116,7 +116,7 @@ class SealTable:
                         records[i].pad = value
                     at += n
             elif column.tag == 4:
-                tabbit.check_column(column, "Seal.Pad2", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Seal.Pad2", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Seal.Pad2")
                 at = 0
                 while at < count:
@@ -125,7 +125,7 @@ class SealTable:
                         records[i].pad2 = value
                     at += n
             elif column.tag == 5:
-                tabbit.check_column(column, "Seal.Pad3", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Seal.Pad3", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Seal.Pad3")
                 at = 0
                 while at < count:

@@ -108,6 +108,17 @@ public sealed class WireColumn
     /// </remarks>
     public bool IsNullable { get; init; }
 
+    /// <summary>
+    /// Whether the file states, per element, which of an array's places hold a value.
+    /// </summary>
+    /// <remarks>
+    /// True when the sheet wrote the marker inside the brackets. Independent of
+    /// <see cref="IsNullable"/>: `int?[]?` says both, and each is a bit of its own.
+    ///
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    public bool HasOptionalElements { get; init; }
+
     /// <summary>The type of one value.</summary>
     public ValueType ElementType { get; init; }
 
@@ -150,6 +161,16 @@ public sealed class WireColumn
     public bool IsFixedArray
         => !IsVariableLengthArray && (Group.IsArray || AnyLevelIsArray);
 
+    /// <summary>Whether the column holds an array at all, however its length is decided.</summary>
+    /// <remarks>
+    /// What the wire asks since v107, where the only array kind carries its length per row.
+    /// The distinction the two properties above draw is about where the length comes from -
+    /// the sheet's column count or the row's own data - and the file stopped caring: it
+    /// writes the length either way. Generated code asks this one, so that adding a column
+    /// to a group does not change the shape the consumer was built against.
+    /// </remarks>
+    public bool IsArray => IsVariableLengthArray || IsFixedArray;
+
     /// <summary>
     /// Whether any level from the group down to this leaf repeats.
     /// </summary>
@@ -190,7 +211,12 @@ public sealed class WireColumn
                     // columns were elements - the same rule a record group follows.
                     IsVariableLengthArray = table.IsVariableLength(group),
 
-                    IsNullable = NullabilityOf(group.Fields, table, group.Name),
+                    // Which of the two the group's `?` answers depends on where the array was
+                    // written: a delimited cell has a marker for each, and a folded group has
+                    // one cell per element and none for the array.
+                    // spec/nullable-array-elements.md.
+                    IsNullable = group.RowMayBeAbsent,
+                    HasOptionalElements = group.ElementMayBeAbsent,
                 });
 
                 continue;
@@ -292,6 +318,4 @@ public sealed class WireColumn
     /// says is neither ambiguous nor wrong. spec/array-optionality.md has the reasoning
     /// and the notation it came from.
     /// </remarks>
-    private static bool NullabilityOf(IReadOnlyList<Field> fields, Table table, string name)
-        => !fields[0].IsRequired;
 }

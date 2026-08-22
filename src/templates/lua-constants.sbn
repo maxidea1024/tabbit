@@ -1,0 +1,19 @@
+{{~## One constant set. `set` is the single set this file is for. The strict metatable
+   matters most here: a misspelled constant would otherwise be a nil flowing into
+   arithmetic far from the typo. ##~}}
+{{ include 'lua-file-head.sbn' }}
+-- Generated from {{ set.location }}.
+{{~ for line in set.comment ~}}
+-- {{ line }}
+{{~ end ~}}
+---@class {{ set.name }}
+local {{ set.name }} = {
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+  -- {{ line }}
+{{~ end ~}}
+  {{ constant.key }} = {{ constant.value }},
+{{~ end ~}}
+}
+
+return setmetatable({{ set.name }}, tcb.strictType("constant set `{{ set.name }}`", {}))

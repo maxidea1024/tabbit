@@ -19,8 +19,10 @@
 //     THE CODE IS REGENERATED.
 // </auto-generated>
 // ------------------------------------------------------------------------------
+{{~ if usings | array.size > 0 ~}}
 
 {{ include 'csharp-using.sbn' ~}}
+{{~ end ~}}
 {{~ if namespace != '' }}
 namespace {{ namespace }}
 {

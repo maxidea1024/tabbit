@@ -40,7 +40,7 @@ public final class TcbReader {
      * byte - before any 101 file had shipped. 104 is the current one: four encodings
      * joined the nine, and the flags byte gained a meaning.
      */
-    public static final int FORMAT_VERSION = 105;
+    public static final int FORMAT_VERSION = 107;
 
     // The wire's element types and kinds, as a column descriptor spells them.
     public static final int ELEMENT_VARINT = 0;
@@ -53,8 +53,7 @@ public final class TcbReader {
     public static final int ELEMENT_UUID = 7;
 
     public static final int KIND_SCALAR = 0;
-    public static final int KIND_FIXED_ARRAY = 1;
-    public static final int KIND_VAR_ARRAY = 2;
+    public static final int KIND_ARRAY = 1;
 
     // How a block's values are laid out. Raw is the layout 101 had; the others compress
     // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -127,8 +126,6 @@ public final class TcbReader {
         public int kind;
         /** How the block's values are laid out: one of the ENCODING_* constants. */
         public int encoding;
-        /** Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
-        public int count;
         /** Total bytes of the column's block - what a skip advances by. */
         public int byteLength;
         /**
@@ -139,6 +136,14 @@ public final class TcbReader {
          * disagreement the same way it refuses a changed kind.
          */
         public boolean nullable;
+
+        /**
+         * Whether the block states, per element, which of an array's places hold a value.
+         *
+         * <p>Independent of {@code nullable}: a column may say either, or both.
+         * spec/nullable-array-elements.md.
+         */
+        public boolean elementNullable;
     }
 
     /**
@@ -231,7 +236,7 @@ public final class TcbReader {
             if (encoding == ENCODING_ARRAY) {
                 encoding = reader.readUInt8();
 
-                if (column.kind == KIND_VAR_ARRAY) {
+                if (column.kind == KIND_ARRAY) {
                     int lengthEncoding = reader.readUInt8();
                     lengths = readLengths(reader, lengthEncoding, rowCount, fieldName);
 
@@ -247,8 +252,6 @@ public final class TcbReader {
                     }
 
                     rowsRemaining = (int) elements;
-                } else {
-                    rowsRemaining = rowCount * column.count;
                 }
             }
 
@@ -1399,7 +1402,7 @@ public final class TcbReader {
      * The MAC field against the file's own bytes, and against whether a key was given.
      *
      * <p>The tag is HMAC-SHA-256 over every byte but the sixteen it lives in, truncated to
-     * those sixteen. From the platform, like the cipher - seven of the thirteen runtimes
+     * those sixteen. From the platform, like the cipher - several of the other runtimes
      * have HMAC-SHA-256 in their standard library, which is the reason the format's tag is
      * this and not the Poly1305 that pairs with its cipher.
      *
@@ -1526,10 +1529,10 @@ public final class TcbReader {
             column.element = wire & 0x0F;
             column.kind = (wire >> 4) & 0x03;
             column.nullable = (wire & 0x40) != 0;
+            column.elementNullable = (wire & 0x80) != 0;
 
             column.encoding = reader.readUInt8();
 
-            column.count = reader.readCounter32();
             column.byteLength = reader.readInt32();
 
             header.columns[at] = column;
@@ -1559,6 +1562,7 @@ public final class TcbReader {
                     "the row count %d is larger than column tag %d can hold in its %d bytes",
                     header.rowCount, column.tag, column.byteLength));
             }
+
         }
 
         if (declared != available) {
@@ -1595,6 +1599,25 @@ public final class TcbReader {
     }
 
     /**
+     * A column's element bitmap, which sits behind the row bitmap and in front of the values.
+     *
+     * <p>Null for a column that does not carry one. Its length is written ahead of it as a
+     * counter32, because a variable-length column's total is the sum of its row lengths and
+     * those live inside the value block - a reader meeting the bitmap first would have
+     * nothing to size it by. spec/nullable-array-elements.md.
+     */
+    public static byte[] readElementPresence(TcbReader reader, Column column) {
+        if (!column.elementNullable) {
+            return null;
+        }
+
+        int elements = reader.readCounter32();
+        int encoding = reader.readUInt8();
+
+        return reader.readByteStream(encoding, (elements + 7) / 8, "an element presence bitmap");
+    }
+
+    /**
      * Whether a row has a value, for a column that says which do.
      *
      * <p>A null bitmap means the column is not optional, and then every row has one.
@@ -1608,8 +1631,30 @@ public final class TcbReader {
      * Refusal is by name and both types, never by reading anyway.
      */
     public static void checkColumn(
-            Column column, String fieldName, int kind, int count, boolean nullable,
+            Column column, String fieldName, int kind, boolean nullable,
             int... accepted) {
+        checkColumn(column, fieldName, kind, nullable, false, accepted);
+    }
+
+    /** The same, for a member whose array elements may be absent. */
+    public static void checkColumnWithElements(
+            Column column, String fieldName, int kind, boolean nullable,
+            int... accepted) {
+        checkColumn(column, fieldName, kind, nullable, true, accepted);
+    }
+
+    private static void checkColumn(
+            Column column, String fieldName, int kind, boolean nullable,
+            boolean elementNullable, int... accepted) {
+        // The same statement about the other bitmap: code not expecting one would read it as
+        // values. spec/nullable-array-elements.md.
+        if (column.elementNullable != elementNullable) {
+            throw new TcbException(
+                fieldName + ": the file and the generated member disagree about whether this "
+                    + "column's elements are optional. The schema changed; regenerate the code "
+                    + "or rebuild the data.");
+        }
+
         // Nullability is part of the shape: a file that says optional puts a presence bitmap
         // in front of the block, and code not expecting one would read the bitmap as values.
         // So adding or removing a `?` is a schema change like any other, caught here rather
@@ -1621,10 +1666,13 @@ public final class TcbReader {
                     + "the data.");
         }
 
-        if (column.kind != kind || (kind != KIND_VAR_ARRAY && column.count != count)) {
+        // A negative count says the member claims no length: how many elements a row holds
+        // is what the file states. The kind is still the member's claim.
+        // spec/nullable-array-elements.md.
+        if (column.kind != kind) {
             throw new TcbException(
-                fieldName + ": the file's column (kind " + column.kind + ", count " + column.count
-                    + ") does not match the generated member (kind " + kind + ", count " + count
+                fieldName + ": the file's column (kind " + column.kind
+                    + ") does not match the generated member (kind " + kind
                     + "). The schema changed shape; regenerate the code or rebuild the data.");
         }
 

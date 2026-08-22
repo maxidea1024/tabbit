@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Tabbit.Models;
+using Tabbit.Messages;
 
 namespace Tabbit.Validation;
 
@@ -263,17 +264,17 @@ internal sealed class RuleContext : ITableContext, IRuntimeContext
     /// </remarks>
     public object TableSnapshot
         => Scope.Snapshot
-           ?? throw new TabbitException(
-               "This rule reads `Tables` through the context, which holds nothing before the "
-               + $"sheets are read. Move it out of `{RuleFolders.FolderOf(RuleStage.Pre)}/` - the "
-               + $"tables exist from `{RuleFolders.FolderOf(RuleStage.Table)}/` onward.");
+           ?? throw new TabbitException(null,
+               Message.Of(ValidationMessages.TablesBeforeSheetsRead,
+                   ("PreFolder", RuleFolders.FolderOf(RuleStage.Pre)),
+                   ("TableFolder", RuleFolders.FolderOf(RuleStage.Table))));
 
     public ISchemaView Schema
         => Scope.Schema
-           ?? throw new TabbitException(
-               "This rule reads `Schema`, which is not available before the sheets are read. "
-               + $"Move it out of `{RuleFolders.FolderOf(RuleStage.Pre)}/` - the tables exist from "
-               + $"`{RuleFolders.FolderOf(RuleStage.Table)}/` onward.");
+           ?? throw new TabbitException(null,
+               Message.Of(ValidationMessages.SchemaBeforeSheetsRead,
+                   ("PreFolder", RuleFolders.FolderOf(RuleStage.Pre)),
+                   ("TableFolder", RuleFolders.FolderOf(RuleStage.Table))));
 
     /// <summary>Reports against a column, naming the header cell it was declared in.</summary>
     public void Error(IFieldSchema field, string message)
@@ -331,9 +332,8 @@ internal sealed class RuleContext : ITableContext, IRuntimeContext
             ? "the recipe sets none"
             : string.Join(", ", Scope.Options.Keys.OrderBy(name => name, StringComparer.Ordinal));
 
-        throw new TabbitException(
-            $"This rule reads the validation option `{key}`, which the recipe does not set. "
-            + $"Add it under `Validation.Options` ({known}).");
+        throw new TabbitException(null,
+            Message.Of(ValidationMessages.OptionNotSet, ("Key", key), ("Known", known)));
     }
 
     /// <summary>The same, answering <paramref name="fallback"/> when the recipe is silent.</summary>
@@ -390,9 +390,7 @@ internal sealed class RuleContext : ITableContext, IRuntimeContext
 
     private RuntimeStores Stores()
         => Scope.Stores
-           ?? throw new TabbitException(
-               $"This rule opens an external store, which only the "
-               + $"`{RuleFolders.FolderOf(RuleStage.Runtime)}/` rules may do. Move the file there - "
-               + $"it is the folder `--skip-runtime-validation` can leave out, and that only works "
-               + $"if the rules that need a store are in it.");
+           ?? throw new TabbitException(null,
+               Message.Of(ValidationMessages.StoreOutsideRuntimeStage,
+                   ("RuntimeFolder", RuleFolders.FolderOf(RuleStage.Runtime))));
 }

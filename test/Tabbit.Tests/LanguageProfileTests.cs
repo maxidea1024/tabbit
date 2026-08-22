@@ -12,7 +12,7 @@ namespace Tabbit.Tests;
 /// <summary>
 /// Every output language against every type a sheet can hold.
 ///
-/// The thirteen generators each carry their own switch over <see cref="ValueType"/>, and
+/// The the generators each carry their own switch over <see cref="ValueType"/>, and
 /// each ends in a `default:` that throws. That is the right thing at the moment a
 /// conversion asks for a type the generator cannot render - but it means adding a type to
 /// the enum leaves thirteen places that compile perfectly and fail only when somebody's
@@ -23,7 +23,7 @@ namespace Tabbit.Tests;
 /// have not been taught it, rather than reaching a user first.
 ///
 /// The profiles are found by reflection rather than listed, because a list is the other
-/// thing somebody forgets: a fourteenth language whose profile nothing here mentions
+/// thing somebody forgets: a new language whose profile nothing here mentions
 /// would be exactly as unchecked as the types are now.
 /// </summary>
 public class LanguageProfileTests
@@ -80,8 +80,8 @@ public class LanguageProfileTests
         Assert.Equal(
             new[]
             {
-                "c", "cpp", "csharp", "dart", "go", "java", "kotlin", "php", "python",
-                "ruby", "rust", "typescript", "unreal",
+                "c", "cpp", "csharp", "dart", "go", "java", "kotlin", "lua", "php",
+                "python", "ruby", "rust", "swift", "typescript", "unreal",
             },
             ids);
     }
@@ -112,7 +112,7 @@ public class LanguageProfileTests
     /// And every language with a read-call table has a call for every scalar type.
     /// </summary>
     /// <remarks>
-    /// This was ten copies of the same switch, one per generator, each ending in a `default:`
+    /// This was a copy of the same switch, one per generator, each ending in a `default:`
     /// that throws. Adding a value type meant ten edits, and forgetting one still compiled -
     /// it surfaced at runtime in whoever's project reached that field first.
     ///
@@ -165,7 +165,7 @@ public class LanguageProfileTests
             if (profile.ReadCalls == null)
             {
                 // Asking a reader that resolves by overload says so, rather than answering.
-                var overloaded = Assert.Throws<TabbitException>(
+                var overloaded = Assert.Throws<TabbitDefectException>(
                     () => profile.ReadCall(ValueType.Int32));
 
                 Assert.Contains(profile.Id, overloaded.Message);
@@ -173,7 +173,7 @@ public class LanguageProfileTests
                 continue;
             }
 
-            var thrown = Assert.Throws<TabbitException>(
+            var thrown = Assert.Throws<TabbitDefectException>(
                 () => profile.ReadCall(ValueType.Unresolved));
 
             Assert.Contains(profile.Id, thrown.Message);
@@ -230,7 +230,11 @@ public class LanguageProfileTests
     {
         foreach (var profile in Profiles())
         {
-            var ex = Assert.Throws<TabbitException>(
+            // TabbitDefectException, not TabbitException: a type a generator has no case for
+            // is a gap only this repository can close, so it is not a report anybody else can
+            // act on. What the test is about - refused by name rather than answered with
+            // something that looks like a call - is unchanged.
+            var ex = Assert.Throws<TabbitDefectException>(
                 () => profile.ScalarTypeName(ValueType.Unresolved));
 
             Assert.Contains(profile.Id, ex.Message);

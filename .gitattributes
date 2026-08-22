@@ -35,3 +35,10 @@ test/fixtures/validation/**/Validation.csproj text eol=lf
 # 건드리면 「무엇이 틀렸는가」가 아니라 「누가 어디서 클론했는가」로 통과 여부가 갈립니다.
 *.tcb binary
 *.dll binary
+
+# 조판된 전달본과 그것이 담는 것들. `samples/**/out/**` 아래에 놓이므로 위의 넓은 규칙이
+# 텍스트로 잡아가고, 실제로 PDF 하나가 개행 변환으로 한 바이트 어긋난 채 두 번 커밋되었습니다.
+# 열리기는 하므로 리뷰에서 드러나지 않습니다.
+*.pdf binary
+*.woff2 binary
+*.png binary

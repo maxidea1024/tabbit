@@ -1,7 +1,7 @@
 name: .NET
 
 # Documentation-only changes do not run this. The suite converts workbooks and compiles
-# thirteen languages; a markdown edit cannot change what it answers, and it used to spend
+# every language; a markdown edit cannot change what it answers, and it used to spend
 # the whole matrix finding that out. `paths-ignore` rather than `paths`, so anything not
 # named here still runs it - a filter that has to be extended for new source is a filter
 # that eventually stops covering something.
@@ -164,6 +164,18 @@ jobs:
       - name: Verify Kotlin toolchain
         run: kotlinc -version
 
+      # Swift has no first-party action either. The conformance harness builds through
+      # SwiftPM with swift-crypto - the corpus is signed and verifying a MAC needs
+      # HMAC-SHA-256 - and a second gate type-checks the same output with no package at
+      # all, which is the state a consumer who adds nothing gets.
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '6.1'
+
+      - name: Verify Swift toolchain
+        run: swift --version
+
       # The history is recorded into and read back from MySQL, and `--serve` is checked
       # against a real port. Both use the same compose file the exporter tests bring up,
       # so Docker is what they need and nothing else.
@@ -302,6 +314,17 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/JetBrains/kotlin/releases/download/v2.1.0/kotlin-compiler-2.1.0.zip" -OutFile kotlin-compiler.zip
           Expand-Archive kotlin-compiler.zip -DestinationPath "$env:USERPROFILE/tools" -Force
 
+      # macOS gets Swift from Xcode, so only Windows has anything to install. The Windows
+      # toolchain needs the Visual Studio C++ tools and a Windows SDK that still ships
+      # `stdnoreturn.h` - Swift's ucrt module map references it, and an SDK without it fails
+      # as a missing C header rather than as a missing toolchain.
+      # doc/languages/swift.md has that trap written down.
+      - name: Setup Swift
+        if: runner.os == 'Windows'
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '6.1'
+
       # The C and C++ updaters are the only emitted files that link against anything, and
       # neither language has an HTTP client. macOS carries libcurl in its SDK and `-lcurl` is
       # the whole of it; Windows has no such place, so the gate is pointed at a vcpkg prefix.
@@ -332,6 +355,7 @@ jobs:
           ruby --version
           php --version | head -1
           dart --version
+          swift --version
 
       - name: Build
         run: dotnet build Tabbit.slnx -c Release

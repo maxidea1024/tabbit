@@ -24,6 +24,34 @@ type {{ rt.type_name }} struct {
 {{~ end ~}}
 {{~ end ~}}
 }
+{{~## The per-target methods of every member of this struct that reaches several tables. One
+   taking an element number where the member is the array, which is the third place an element
+   number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+// {{ target.method }} returns the {{ target.record_name }} row that element at of {{ multi.key_member }}
+// names, or nil when that element names a row of one of the others.
+func (e *{{ rt.type_name }}) {{ target.method }}(at int) *{{ target.record_name }} {
+	if e.{{ multi.target_member }}[at] != {{ target.constant }} {
+		return nil
+	}
+
+	return e.{{ multi.slot_member }}[at].(*{{ target.record_name }})
+}
+{{~ else ~}}
+// {{ target.method }} returns the {{ target.record_name }} row {{ multi.key_member }} names, or nil when
+// it names a row of one of the others.
+func (e *{{ rt.type_name }}) {{ target.method }}() *{{ target.record_name }} {
+	if e.{{ multi.target_member }} != {{ target.constant }} {
+		return nil
+	}
+
+	return e.{{ multi.slot_member }}.(*{{ target.record_name }})
+}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 
 {{~ end ~}}
 {{~ end ~}}
@@ -45,8 +73,37 @@ type {{ table.record_name }} struct {
 	// and holds the type's empty value when the row had none; this says which it was.
 	{{ field.presence_member }} bool
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+	// Which of {{ field.name }}'s elements have a value. Empty where the file did not carry
+	// the column, and then every index is out of range anyway.
+	{{ field.element_presence_member }} []bool
+{{~ end ~}}
+{{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One slot for the resolved row
+   whatever table it came from, and the discriminator saying which - the targets take separate
+   id bands, so at most one of them ever answers and a member per target would be permanently
+   nil. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+	// The row {{ ref.key_member }} names, as whichever of its target tables holds it. Read it
+	// through the methods below rather than directly: they check the discriminator first.
+	{{ ref.slot_member }} any
+	// Which table {{ ref.key_member }} is a row of.
+	{{ ref.target_member }} {{ ref.target_type_name }}
 {{~ end ~}}
 }
+{{~ for ref in table.multi_references }}
+{{~ for target in ref.targets }}
+// {{ target.method }} returns the {{ target.table }} row {{ ref.key_member }} names, or nil when it
+// names a row of one of the others.
+func (r *{{ table.record_name }}) {{ target.method }}() *{{ target.record_name }} {
+	if r.{{ ref.target_member }} != {{ target.constant }} {
+		return nil
+	}
+
+	return r.{{ ref.slot_member }}.(*{{ target.record_name }})
+}
+{{~ end ~}}
+{{~ end ~}}
 
 // {{ table.table_name }} holds every row of {{ table.raw_name }}.
 type {{ table.table_name }} struct {
@@ -126,29 +183,37 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 	// the table holds alone - the previous rows and an error, not an empty table.
 	records := make([]{{ table.record_name }}, count)
 {{~ if table.needs_record_init }}
-	// A record array whose length is the sheet's column count is created with the row
-	// rather than by whichever member column arrives first. A Go struct has no field
-	// initializer, so otherwise the slice would stay nil until that member was read - and
-	// a file that no longer carries it would leave the members after it indexing nothing.
+	// Made with the row rather than by whichever member column arrives first: a Go struct
+	// has no field initializer, so otherwise the slice would stay nil until that member
+	// was read - and a file that no longer carries it would leave nothing behind at all.
+	// Empty rather than the sheet's column count, because the length is the file's since
+	// v107 and a number from here would be one the data need not agree with.
 	for i := int32(0); i < count; i++ {
 {{~ for field in table.fields ~}}
 {{~ if field.is_fixed_record_array ~}}
-		records[i].{{ field.name }} = make({{ field.array_type }}, {{ field.element_count }})
+		records[i].{{ field.name }} = make({{ field.array_type }}, 0)
 {{~ else if field.members_are_anonymous ~}}
 {{~## An array of arrays: both levels made with the row, for the same reason. ##~}}
 		records[i].{{ field.name }} = make([][]{{ field.element_type_name }}, {{ field.outer_count }})
 		for at := range records[i].{{ field.name }} {
-			records[i].{{ field.name }}[at] = make([]{{ field.element_type_name }}, {{ field.element_count }})
+			records[i].{{ field.name }}[at] = make([]{{ field.element_type_name }}, 0)
 		}
 {{~ else if field.members_are_arrays ~}}
 {{~## One record, and the slices are its members - so each of them is made here for the
    same reason. ##~}}
 {{~ for member in field.members ~}}
-		records[i].{{ field.name }}.{{ member.name }} = make({{ member.slice_type }}, {{ member.element_count }})
+		records[i].{{ field.name }}.{{ member.name }} = make({{ member.slice_type }}, 0)
 {{~ if member.ref_key_slice_type != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are made. spec/references-in-records.md. ##~}}
-		records[i].{{ field.name }}.{{ member.name }}Index = make({{ member.ref_key_slice_type }}, {{ member.element_count }})
+		records[i].{{ field.name }}.{{ member.name }}Index = make({{ member.ref_key_slice_type }}, 0)
+{{~ end ~}}
+{{~ if member.multi ~}}
+{{~## A member reaching several tables holds one slot and one discriminator per element beside
+   the keys, and the linking pass writes into both - so both are made here as well.
+   spec/multi-target-accessors.md. ##~}}
+		records[i].{{ field.name }}.{{ member.multi.slot_member }} = make([]any, 0)
+		records[i].{{ field.name }}.{{ member.multi.target_member }} = make([]{{ member.multi.target_type_name }}, 0)
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -167,6 +232,13 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
 				presence := tabbit.ReadPresence(reader, column, count)
+{{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+				// Behind the row bitmap and in front of the values, walked with a counter
+				// that steps once per element of every row.
+				// spec/nullable-array-elements.md.
+				elementPresence := tabbit.ReadElementPresence(reader, column)
+				elementAt := int32(0)
 {{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
    as well: its block states an encoding for them and one for the row lengths, and the
@@ -192,8 +264,34 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~ if column_view.kind == 'var_array' ~}}
 					{{ column_view.length_read }}
 					r.{{ column_view.name }} = make({{ column_view.array_type }}, elementCount)
+{{~ if column_view.has_optional_elements ~}}
+					r.{{ column_view.element_presence_member }} = make([]bool, elementCount)
+{{~ end ~}}
 					for j := 0; j < elementCount; j++ {
 						r.{{ column_view.name }}[j] = {{ column_view.read_value }}
+{{~ if column_view.has_optional_elements ~}}
+						r.{{ column_view.element_presence_member }}[j] =
+							tabbit.IsPresent(elementPresence, elementAt)
+						elementAt++
+{{~ end ~}}
+					}
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. Same length as the values - this row's - for the keys
+   beside them, which is what `serial_ref` does from the column count.
+   spec/variable-length-record-arrays.md. ##~}}
+					{{ column_view.length_read }}
+					r.{{ column_view.name }} = make({{ column_view.array_type }}, elementCount)
+					r.{{ column_view.name }}Index = make([]{{ column_view.ref_key_type }}, elementCount)
+{{~ if column_view.has_optional_elements ~}}
+					r.{{ column_view.element_presence_member }} = make([]bool, elementCount)
+{{~ end ~}}
+					for j := 0; j < elementCount; j++ {
+						r.{{ column_view.name }}Index[j] = {{ column_view.read_value }}
+{{~ if column_view.has_optional_elements ~}}
+						r.{{ column_view.element_presence_member }}[j] =
+							tabbit.IsPresent(elementPresence, elementAt)
+						elementAt++
+{{~ end ~}}
 					}
 {{~ else if column_view.kind == 'record_var' ~}}
 					{{ column_view.length_read }}
@@ -214,29 +312,25 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner slice. Which outer element it is, is which column this is - so the outer
    index is fixed here and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-					for j := 0; j < {{ column_view.element_count }}; j++ {
+					{{ column_view.length_read }}
+					r.{{ column_view.name }}[{{ column_view.member_at }}] = make({{ column_view.element_slice_type }}, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.{{ column_view.name }}[{{ column_view.member_at }}][j] = {{ column_view.read_value }}
 					}
-{{~ else if column_view.kind == 'record_member_serial' ~}}
-{{~## The member is the array: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-					for j := 0; j < {{ column_view.element_count }}; j++ {
+{{~ else if column_view.kind == 'record_member_var' ~}}
+{{~## The member is the array: the index goes after its name rather than before, and its
+   length is this row's - see spec/nested-multi-level.md. ##~}}
+					{{ column_view.length_read }}
+{{~ if column_view.member_ref_suffix != '' ~}}
+{{~## A reference member holds one key per element as well as one row, and the read writes
+   into the key - so both are made. spec/references-in-records.md. ##~}}
+					r.{{ column_view.name }}{{ column_view.member_access }} = make({{ column_view.element_slice_type }}, elementCount)
+					r.{{ column_view.name }}{{ column_view.member_access }}Index = make([]{{ column_view.ref_key_type }}, elementCount)
+{{~ else ~}}
+					r.{{ column_view.name }}{{ column_view.member_access }} = make({{ column_view.element_slice_type }}, elementCount)
+{{~ end ~}}
+					for j := 0; j < elementCount; j++ {
 						r.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_value }}
-					}
-{{~ else if column_view.kind == 'record_serial' ~}}
-					for j := 0; j < {{ column_view.element_count }}; j++ {
-						r.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_value }}
-					}
-{{~ else if column_view.kind == 'serial_ref' ~}}
-					r.{{ column_view.name }} = make({{ column_view.array_type }}, {{ column_view.element_count }})
-					r.{{ column_view.name }}Index = make([]int32, {{ column_view.element_count }})
-					for j := 0; j < {{ column_view.element_count }}; j++ {
-						r.{{ column_view.name }}Index[j] = {{ column_view.read_value }}
-					}
-{{~ else if column_view.kind == 'serial' ~}}
-					r.{{ column_view.name }} = make({{ column_view.array_type }}, {{ column_view.element_count }})
-					for j := 0; j < {{ column_view.element_count }}; j++ {
-						r.{{ column_view.name }}[j] = {{ column_view.read_value }}
 					}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
 					r.{{ column_view.name }}Index = {{ column_view.read_value }}

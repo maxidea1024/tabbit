@@ -104,7 +104,7 @@ module RecordRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Mount.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Mount.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Mount.Index')
           at = 0
           while at < count
@@ -115,18 +115,29 @@ module RecordRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Mount.Rig.Core.ItemId', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32])
+          Tabbit.check_column(column, 'Mount.Rig.Core.ItemId', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Mount.Rig.Core.ItemId')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            # The first member builds the array; the rest check. Building it again would
+            # discard what the members before it wrote, and taking the shorter of two counts
+            # would shift every value after it.
+            record.rig = Array.new(element_count) { MountRigEntry.new }
+            element_count.times do |element|
               record.rig[element].core.item_id_index = cursor.next_i32
             end
           end
         when 3
-          Tabbit.check_column(column, 'Mount.Rig.Core.Count', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Mount.Rig.Core.Count', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Mount.Rig.Core.Count')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            if record.rig.length != element_count
+              raise Tabbit::TcbError,
+                    'Mount.rig: the file gives one member of this ' \
+                    'record a different element count than another'
+            end
+            element_count.times do |element|
               record.rig[element].core.count = cursor.next_i32
             end
           end

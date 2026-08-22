@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -199,7 +197,7 @@ namespace Tabbit.Fixtures.Bitset
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Flags.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Flags.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Flags.Index");
                         for (int i = 0; i < count; )
                         {
@@ -215,7 +213,7 @@ namespace Tabbit.Fixtures.Bitset
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Flags.Mask", TcbTable.KindScalar, 1, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Flags.Mask", TcbTable.KindScalar, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Flags.Mask");
                         for (int i = 0; i < count; i++)
                         {
@@ -225,7 +223,7 @@ namespace Tabbit.Fixtures.Bitset
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Flags.Same", TcbTable.KindScalar, 1, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Flags.Same", TcbTable.KindScalar, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Flags.Same");
                         for (int i = 0; i < count; i++)
                         {
@@ -235,7 +233,7 @@ namespace Tabbit.Fixtures.Bitset
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Flags.Set", TcbTable.KindVarArray, 0, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Flags.Set", TcbTable.KindArray, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Flags.Set");
                         for (int i = 0; i < count; i++)
                         {
@@ -251,7 +249,7 @@ namespace Tabbit.Fixtures.Bitset
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Flags.Label", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Flags.Label", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Flags.Label");
                         for (int i = 0; i < count; )
                         {
@@ -300,5 +298,4 @@ namespace Tabbit.Fixtures.Bitset
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.Bitset

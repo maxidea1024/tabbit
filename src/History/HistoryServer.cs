@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Tabbit.Exporters;
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -31,6 +32,9 @@ namespace Tabbit.History;
 /// </summary>
 internal static class HistoryServer
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     /// <summary>Where the token is read from, when one is needed.</summary>
     public const string TokenVariable = "TABBIT_SERVE_TOKEN";
 
@@ -106,9 +110,8 @@ internal static class HistoryServer
         if (System.Net.IPAddress.TryParse(bind, out var address))
             return address;
 
-        throw new TabbitException(
-            $"--bind {bind} is not an address. Use an IP, `localhost`, or `0.0.0.0` for every " +
-            $"interface.");
+            throw new TabbitException(null,
+                Message.Of(RecordMessages.BindNotAnAddress, ("Bind", bind)));
     }
 
     /// <summary>
@@ -129,10 +132,9 @@ internal static class HistoryServer
         if (loopback)
             return;
 
-        throw new TabbitException(
-            $"--bind {bind} would serve the history to anything that can reach this machine, " +
-            $"and no token is set. Set ${TokenVariable} to a secret and send it as " +
-            $"`Authorization: Bearer <token>`, or leave --bind at 127.0.0.1.");
+            throw new TabbitException(null,
+                Message.Of(RecordMessages.BindPublicWithoutToken,
+                    ("Bind", bind), ("Variable", TokenVariable)));
     }
 
     // ----------------------------------------------------------------- routes
@@ -429,7 +431,8 @@ internal static class HistoryServer
             return fallback;
 
         if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
-            throw new TabbitException($"`{name}={value}` is not a number.");
+                throw new TabbitException(null,
+                    Message.Of(RecordMessages.QueryValueNotANumber, ("Name", name), ("Value", value)));
 
         return parsed;
     }

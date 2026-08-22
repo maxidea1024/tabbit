@@ -16,7 +16,7 @@ namespace Tabbit.Tests;
 /// by name rather than attempted.
 ///
 /// The gate the format specified from the beginning and that nothing asserted until now: the
-/// refusal existed in all thirteen runtimes and no test had ever seen one fire.
+/// refusal existed in every runtime and no test had ever seen one fire.
 /// </remarks>
 public class UnknownEncodingTests
 {
@@ -32,7 +32,7 @@ public class UnknownEncodingTests
         var column = Column(TcbTable.ElementI32, TcbTable.KindScalar, encoding: 14);
 
         var failure = Assert.Throws<TcbException>(
-            () => TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindScalar, 1, false,
+            () => TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindScalar, false,
                 TcbTable.ElementI32));
 
         Assert.Contains("Table.Field", failure.Message);
@@ -63,7 +63,7 @@ public class UnknownEncodingTests
         var column = Column(element, TcbTable.KindScalar, encoding);
 
         var failure = Assert.Throws<TcbException>(
-            () => TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindScalar, 1, false, element));
+            () => TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindScalar, false, element));
 
         Assert.Contains("Table.Field", failure.Message);
     }
@@ -91,7 +91,7 @@ public class UnknownEncodingTests
     {
         var column = Column(element, TcbTable.KindScalar, encoding);
 
-        TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindScalar, 1, false, element);
+        TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindScalar, false, element);
     }
 
     /// <summary>
@@ -111,18 +111,18 @@ public class UnknownEncodingTests
     [InlineData(TcbTable.EncodingRle, false)]
     public void An_array_column_takes_raw_or_the_composed_encoding(byte encoding, bool accepted)
     {
-        var column = Column(TcbTable.ElementString, TcbTable.KindVarArray, encoding);
+        var column = Column(TcbTable.ElementString, TcbTable.KindArray, encoding);
 
         if (accepted)
         {
-            TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindVarArray, 0, false,
+            TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindArray, false,
                 TcbTable.ElementString);
 
             return;
         }
 
         Assert.Throws<TcbException>(
-            () => TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindVarArray, 0, false,
+            () => TcbTable.CheckColumn(column, "Table.Field", TcbTable.KindArray, false,
                 TcbTable.ElementString));
     }
 
@@ -133,7 +133,6 @@ public class UnknownEncodingTests
         Kind = kind,
         Encoding = encoding,
         Nullable = false,
-        Count = kind == TcbTable.KindVarArray ? 0 : 1,
         ByteLength = 0,
     };
 }

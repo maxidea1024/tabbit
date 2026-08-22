@@ -71,6 +71,86 @@ public class DependencyDocTests
             string.Join(Environment.NewLine, wrongVersion));
     }
 
+    /// <summary>
+    /// Every third-party dependency a generated manifest declares is named in the document.
+    /// </summary>
+    /// <remarks>
+    /// The check above reads this repository's own `PackageReference`s, which is a different
+    /// list: a dependency the generated code carries appears in nobody's csproj. That list
+    /// had drifted - Python's reader needs `cryptography` for an encrypted file and the
+    /// document said the readers use only their standard libraries - and nothing noticed,
+    /// because nothing was looking.
+    ///
+    /// The manifests under side-by-side/ are what is read. They are committed and reviewed
+    /// as output, so a new dependency arrives in a diff either way; this makes it arrive in
+    /// the document as well. A missing manifest fails rather than skips - a gate that turns
+    /// itself off when a path moves is worse than no gate.
+    /// </remarks>
+    [Fact]
+    public void Every_dependency_a_generated_manifest_declares_is_documented()
+    {
+        string text = File.ReadAllText(Doc);
+        var declared = new List<(string Manifest, string Name)>();
+
+        // Cargo.toml: the names under [dependencies], up to the next section.
+        string cargo = Path.Combine(RepoLayout.Root, "side-by-side", "rust", "Cargo.toml");
+
+        Assert.True(File.Exists(cargo), $"{cargo} is not there any more; this gate needs it.");
+
+        bool inDependencies = false;
+
+        foreach (string line in File.ReadAllLines(cargo))
+        {
+            string trimmed = line.Trim();
+
+            if (trimmed.StartsWith("[", StringComparison.Ordinal))
+            {
+                inDependencies = trimmed == "[dependencies]";
+                continue;
+            }
+
+            if (!inDependencies || trimmed.Length == 0 || trimmed.StartsWith("#", StringComparison.Ordinal))
+                continue;
+
+            int equals = trimmed.IndexOf('=');
+
+            if (equals > 0)
+                declared.Add(("Cargo.toml", trimmed.Substring(0, equals).Trim()));
+        }
+
+        // Package.swift: the repository name of each package URL.
+        string manifest = Path.Combine(RepoLayout.Root, "side-by-side", "swift", "Package.swift");
+
+        Assert.True(File.Exists(manifest), $"{manifest} is not there any more; this gate needs it.");
+
+        foreach (Match match in Regex.Matches(
+                     File.ReadAllText(manifest), @"\.package\(\s*url:\s*""(?<url>[^""]+)"""))
+        {
+            string url = match.Groups["url"].Value;
+            string name = url.Split('/')[^1];
+
+            if (name.EndsWith(".git", StringComparison.Ordinal))
+                name = name.Substring(0, name.Length - 4);
+
+            declared.Add(("Package.swift", name));
+        }
+
+        // Without this the test passes when neither manifest declares anything, which is the
+        // one way a gate like this fails silently.
+        Assert.NotEmpty(declared);
+
+        var missing = declared
+            .Where(d => !text.Contains(d.Name, StringComparison.Ordinal))
+            .Select(d => $"{d.Name} (declared by {d.Manifest})")
+            .Distinct()
+            .ToList();
+
+        Assert.True(
+            missing.Count == 0,
+            $"doc/dependencies.md does not name these generated-code dependencies:{Environment.NewLine}"
+            + string.Join(Environment.NewLine, missing.Select(m => "  " + m)));
+    }
+
     [Fact]
     public void The_document_names_no_package_the_repository_does_not_reference()
     {

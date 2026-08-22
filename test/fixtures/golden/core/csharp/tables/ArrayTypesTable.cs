@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -60,7 +58,6 @@ namespace Tabbit.Fixtures.Core
             /// fixed slot 1
             /// </summary>
             public int[] SlotArray => _slotArray;
-            public const int SlotArray_N = 2;
             #endregion
 
             #region Storage
@@ -208,7 +205,7 @@ namespace Tabbit.Fixtures.Core
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "ArrayTypes.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ArrayTypes.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ArrayTypes.Index");
                         for (int i = 0; i < count; )
                         {
@@ -224,7 +221,7 @@ namespace Tabbit.Fixtures.Core
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "ArrayTypes.Tags", TcbTable.KindVarArray, 0, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "ArrayTypes.Tags", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "ArrayTypes.Tags");
                         for (int i = 0; i < count; i++)
                         {
@@ -240,7 +237,7 @@ namespace Tabbit.Fixtures.Core
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "ArrayTypes.Costs", TcbTable.KindVarArray, 0, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ArrayTypes.Costs", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ArrayTypes.Costs");
                         for (int i = 0; i < count; i++)
                         {
@@ -256,7 +253,7 @@ namespace Tabbit.Fixtures.Core
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "ArrayTypes.Weights", TcbTable.KindVarArray, 0, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "ArrayTypes.Weights", TcbTable.KindArray, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "ArrayTypes.Weights");
                         for (int i = 0; i < count; i++)
                         {
@@ -272,7 +269,7 @@ namespace Tabbit.Fixtures.Core
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "ArrayTypes.Grades", TcbTable.KindVarArray, 0, false, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ArrayTypes.Grades", TcbTable.KindArray, false, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ArrayTypes.Grades");
                         for (int i = 0; i < count; i++)
                         {
@@ -288,13 +285,15 @@ namespace Tabbit.Fixtures.Core
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "ArrayTypes.Slot_array", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ArrayTypes.Slot_array", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ArrayTypes.Slot_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._slotArray = new int[Record.SlotArray_N];
-                            for (int j = 0; j < Record.SlotArray_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._slotArray = new int[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slotArray[j] = cursor.NextI32();
                             }
@@ -335,5 +334,4 @@ namespace Tabbit.Fixtures.Core
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.Core

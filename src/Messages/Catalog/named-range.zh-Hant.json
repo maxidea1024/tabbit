@@ -1,0 +1,14 @@
+{
+  "named-range.column-name-clash": "表 `{Table}` 中有兩個名為 `{Field}` 的列。",
+  "named-range.table-has-no-key-column": "表 `{Table}` 沒有 `key` 列。在此佈局中，表的首列是 `key` 類型，每一行都由它來指認。",
+  "named-range.type-takes-no-group": "`{Table}` 的列 `{Column}` 是 `{Type}` 類型，卻用括號指定了群組。只有 `text` 會被收集到群組中。",
+  "named-range.column-name-problem": "`{Table}` 的列 `{Column}` {Detail}",
+  "named-range.list-element-type-unsupported": "`{Table}` 的列 `{Column}` 是 `{Type}` 類型。`{Inner}` 不是此佈局放入列表的元素類型。",
+  "named-range.type-unrecognized": "`{Table}` 的列 `{Column}` 是 `{Type}` 類型，但此佈局不認識這個類型。",
+  "named-range.number-type-option-unknown": "`LayoutOptions.{Option}` 是 `{Value}`。請用 `double`（把 `number` 列按其本意讀作 JSON 數字）或 `narrow`（給出能容納其取值的最小類型）。",
+  "named-range.grid-columns-differ-in-type": "表 `{Table}` 是網格——列名就是 id——但各列的類型並不一致：`{First}` 與 `{Second}`。網格的每一列都是同一個陣列的一個元素，因此只寫一個類型。",
+  "named-range.grid-column-id-not-int32": "`{Table}` 的列 id `{Id}` 放不進 32 位整數，而 `{Companion}.Id` 是 32 位整數。",
+  "named-range.log-blank-read-as-empty": "`{Table}.{Field}` 為空。此佈局在沒有值時寫 `-`，因此按該類型的空值讀取。\n    at {At}",
+  "named-range.log-skipping-range-too-short": "跳過 `{Name}`：該範圍只覆蓋 {Rows} 行，而一個表需要名稱行、類型行和資料。({At})",
+  "named-range.log-skipping-table-no-columns": "跳過 `{Table}`：沒有一列同時具備名稱和類型。"
+}

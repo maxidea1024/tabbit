@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -52,7 +50,7 @@ namespace Tabbit.Fixtures.Text
             public string ScriptId => _scriptId;
 
             /// <summary>
-            /// may be blank
+            /// `-` or blank
             /// </summary>
             public string Hint => _hint;
             /// <summary>Whether this row has a value for <see cref="Hint"/>.</summary>
@@ -210,7 +208,7 @@ namespace Tabbit.Fixtures.Text
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Quest.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Quest.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Quest.Index");
                         for (int i = 0; i < count; )
                         {
@@ -226,7 +224,7 @@ namespace Tabbit.Fixtures.Text
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Quest.Title", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Quest.Title", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Quest.Title");
                         for (int i = 0; i < count; )
                         {
@@ -242,7 +240,7 @@ namespace Tabbit.Fixtures.Text
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Quest.Category", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Quest.Category", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Quest.Category");
                         for (int i = 0; i < count; )
                         {
@@ -258,7 +256,7 @@ namespace Tabbit.Fixtures.Text
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Quest.ScriptId", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Quest.ScriptId", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Quest.ScriptId");
                         for (int i = 0; i < count; )
                         {
@@ -274,7 +272,7 @@ namespace Tabbit.Fixtures.Text
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Quest.Hint", TcbTable.KindScalar, 1, true, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Quest.Hint", TcbTable.KindScalar, true, TcbTable.ElementString);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Quest.Hint");
                         for (int i = 0; i < count; )
@@ -301,7 +299,7 @@ namespace Tabbit.Fixtures.Text
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "Quest.Lines", TcbTable.KindVarArray, 0, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Quest.Lines", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Quest.Lines");
                         for (int i = 0; i < count; i++)
                         {
@@ -350,5 +348,4 @@ namespace Tabbit.Fixtures.Text
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.Text

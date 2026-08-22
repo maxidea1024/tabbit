@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -40,7 +38,6 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, the reference
             /// </summary>
             public PartEntry[] Part => _part;
-            public const int Part_MAX_N = 3;
             #endregion
 
             /// <summary>One element of <see cref="Part"/>.</summary>
@@ -200,7 +197,7 @@ namespace Tabbit.Fixtures.RecordRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Kit.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Kit.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Kit.Index");
                         for (int i = 0; i < count; )
                         {
@@ -216,7 +213,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Kit.Part.ItemId", TcbTable.KindVarArray, 0, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Kit.Part.ItemId", TcbTable.KindArray, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Kit.Part.ItemId");
                         for (int i = 0; i < count; i++)
                         {
@@ -234,7 +231,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Kit.Part.Count", TcbTable.KindVarArray, 0, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Kit.Part.Count", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Kit.Part.Count");
                         for (int i = 0; i < count; i++)
                         {
@@ -290,5 +287,4 @@ namespace Tabbit.Fixtures.RecordRef
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.RecordRef

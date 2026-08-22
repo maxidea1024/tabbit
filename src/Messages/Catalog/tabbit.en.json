@@ -1,0 +1,33 @@
+{
+  "tabbit.enum-label-redefined": "Label '{Label}' is already defined in enum '{Enum}'.",
+  "tabbit.enum-label-value-not-integer": "Label '{Label}' in enum '{Enum}' has value `{Value}`, which is not an integer.",
+
+  "tabbit.constant-redefined": "Constant '{Name}' is already defined in constant-set '{Set}'.",
+  "tabbit.constant-cannot-be-optional": "type `{Type}`: a constant cannot be optional. A constant is a single value, so drop the `?`.",
+  "tabbit.enum-needs-detail-type": "In case of enum type, enum name must be specified in detail-type.",
+  "tabbit.foreign-needs-detail-type": "In case of foreign type, `RefTable[.RefFieldName]` must be specified in detail-type.",
+
+  "tabbit.field-name-ambiguous-element-number": "Field name `{Field}` has more than one run of digits in `{Group}`, so which one numbers the elements is ambiguous. Use a single number, as in `Slot1{Separator}Id` or `Pos{Separator}X1`.",
+  "tabbit.field-name-element-number-not-integer": "Field name `{Field}` has element number `{Digits}`, which is not an integer.",
+  "tabbit.field-name-nesting-problem": "Field name `{Field}` {Detail}",
+  "tabbit.field-name-duplicated": "Field name `{Field}` is a duplicated.",
+  "tabbit.field-name-multiple-index-marks": "Field name `{Field}` has more than one leading `*`. Use a single `*` to mark a secondary index field.",
+
+  "tabbit.primary-index-cannot-be-omitted": "The primary index field cannot be omitted.",
+  "tabbit.primary-index-in-record-group": "The primary index field cannot be part of a record group, but `{Field}` is.",
+  "tabbit.record-member-marked-secondary-index": "Field name `{Field}` marks a record member as a secondary index. An index must be a single value, so `*` cannot be used on a record group.",
+
+  "tabbit.element-optional-mark-on-non-array": "type `{Type}`: the `?` inside the brackets says an element may have no value, and this column is not an array. Write the `?` at the end to say the value itself may be absent.",
+  "tabbit.foreign-array-unsupported": "`foreign[]` is not supported. Use a serial field (Ref1, Ref2, ...) for a fixed number of references, or a plain `foreign` for a single one.",
+  "tabbit.multi-target-names-a-field": "`{Written}` names several tables and also a field of one of them (`{Dotted}`). A reference to one of several tables names the tables alone - drop the field name, or point at them from separate columns.",
+  "tabbit.type-not-array-element": "type `{Type}` cannot be used as an array element.",
+  "tabbit.type-named-twice": "Column type `{Type}` already names `{Names}`, and the detail-type cell beside it says `{Written}`. Write it in one of the two.",
+
+  "tabbit.entity-name-duplicated": "Entity {Kind}'s name `{Name}` is a duplicated.",
+  "tabbit.entity-starts-outside-sheet": "Entity `{Kind}:{Name}` starts outside the sheet: its marker points at column {Column}, row {Row}, and the sheet holds {Columns} column(s) and {Rows} row(s). A marker in the last cell with nothing after it does this.",
+  "tabbit.entity-too-small": "Entity `{Kind}:{Name}` must have cells of at least {MinWidth}x{MinHeight} size. The size of the currently accessible cell is {Width}x{Height}.",
+  "tabbit.unexpected-entity-marker": "Unexpected entity-marker `{Marker}`",
+
+  "tabbit.wire-tag-not-positive-integer": "Field name `{Field}` has an `@` where a wire tag goes, but `{Digits}` is not a positive integer. A tag is written as `Name@3`.",
+  "tabbit.wire-tag-below-one": "Field `{Field}` declares wire tag {Tag}, but a tag starts at 1."
+}

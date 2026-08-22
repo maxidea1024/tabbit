@@ -7,6 +7,7 @@ using Npgsql;
 using Serilog;
 using StackExchange.Redis;
 using Tabbit.Exporters;
+using Tabbit.Messages;
 
 namespace Tabbit.Validation;
 
@@ -106,13 +107,14 @@ public sealed class SqlStore : ISqlStore
 
             read(reader);
         }
-        catch (Exception failure) when (failure is not TabbitException)
+        catch (Exception failure) when (failure is not TabbitException && failure is not TabbitDefectException)
         {
             // A store that cannot answer is not a store that agreed. Reported as the rule's
             // failure so the run stops, with the connection named and its secret masked.
-            throw new TabbitException(
-                $"Validation could not query `{_name}`: {failure.Message} "
-                + $"({ConnectionString.Redact(_connectionString)})");
+            throw new TabbitException(null,
+                Message.Of(ValidationMessages.StoreQueryFailed,
+                    ("Name", _name), ("Detail", failure.Message),
+                    ("Connection", ConnectionString.Redact(_connectionString))));
         }
     }
 
@@ -137,8 +139,8 @@ public sealed class SqlStore : ISqlStore
             return;
         }
 
-        throw new TabbitException(
-            $"Validation may only read: `{head}` is not a query. Use SELECT, WITH or SHOW.");
+        throw new TabbitException(null,
+            Message.Of(ValidationMessages.StoreNotAQuery, ("Head", head)));
     }
 }
 
@@ -177,11 +179,12 @@ public sealed class RedisStore : IRedisStore
 
             return read(connection.GetDatabase(_database));
         }
-        catch (Exception failure) when (failure is not TabbitException)
+        catch (Exception failure) when (failure is not TabbitException && failure is not TabbitDefectException)
         {
-            throw new TabbitException(
-                $"Validation could not read `{_name}`: {failure.Message} "
-                + $"({ConnectionString.Redact(_configuration)})");
+            throw new TabbitException(null,
+                Message.Of(ValidationMessages.StoreReadFailed,
+                    ("Name", _name), ("Detail", failure.Message),
+                    ("Connection", ConnectionString.Redact(_configuration))));
         }
     }
 }
@@ -197,6 +200,9 @@ public sealed class RedisStore : IRedisStore
 /// </remarks>
 internal sealed class RuntimeStores
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Validating;
+
     /// <summary>
     /// How long a query may take.
     /// </summary>
@@ -227,10 +233,9 @@ internal sealed class RuntimeStores
 
             if (!postgres && scheme != "mysql")
             {
-                throw new TabbitException(
-                    $"`Validation.Connections.{name}` is a `{scheme}:` connection, which `Db()` "
-                    + $"does not open. Use `mysql:` or `postgres:` - or `Redis(\"{name}\")` if it "
-                    + $"is a cache.");
+                throw new TabbitException(null,
+                    Message.Of(ValidationMessages.ConnectionNotADatabase,
+                        ("Name", name), ("Scheme", scheme)));
             }
 
             var store = new SqlStore(name, rest, postgres, TimeoutSeconds);
@@ -253,10 +258,9 @@ internal sealed class RuntimeStores
 
             if (scheme != "redis")
             {
-                throw new TabbitException(
-                    $"`Validation.Connections.{name}` is a `{scheme}:` connection, which "
-                    + $"`Redis()` does not open. Use `redis://host:port/db`, or `Db(\"{name}\")` "
-                    + $"if it is a database.");
+                throw new TabbitException(null,
+                    Message.Of(ValidationMessages.ConnectionNotRedis,
+                        ("Name", name), ("Scheme", scheme)));
             }
 
             var (configuration, database) = SplitRedis(rest);
@@ -278,9 +282,8 @@ internal sealed class RuntimeStores
                 ? "the recipe sets none"
                 : string.Join(", ", _connections.Keys.OrderBy(key => key, StringComparer.Ordinal));
 
-            throw new TabbitException(
-                $"This rule opens the connection `{name}`, which the recipe does not have. "
-                + $"Add it under `Validation.Connections` ({known}).");
+            throw new TabbitException(null,
+                Message.Of(ValidationMessages.ConnectionNotConfigured, ("Name", name), ("Known", known)));
         }
 
         string resolved = ConnectionString.Resolve(template, $"Validation.Connections.{name}");
@@ -289,9 +292,8 @@ internal sealed class RuntimeStores
 
         if (colon <= 0)
         {
-            throw new TabbitException(
-                $"`Validation.Connections.{name}` does not say which kind of store it is. Begin "
-                + $"it with `mysql:`, `postgres:` or `redis://`.");
+            throw new TabbitException(null,
+                Message.Of(ValidationMessages.ConnectionNoScheme, ("Name", name)));
         }
 
         string scheme = resolved.Substring(0, colon).ToLowerInvariant();

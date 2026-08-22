@@ -117,7 +117,7 @@ class DeepTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Deep.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Deep.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Deep.Index")
                 at = 0
                 while at < count:
@@ -126,22 +126,38 @@ class DeepTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Deep.Star.Id", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Deep.Star.Id", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Deep.Star.Id")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    # The first member builds the list; the rest check. Building it again
+                    # would discard what the members before it wrote, and taking the shorter
+                    # of two counts would shift every value after it.
+                    record.star = [
+                        DeepStarEntry() for _ in range(element_count)]
+                    for element in range(element_count):
                         record.star[element].id = cursor.next_i32()
             elif column.tag == 3:
-                tabbit.check_column(column, "Deep.Star.Position.X", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Deep.Star.Position.X", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Deep.Star.Position.X")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    if len(record.star) != element_count:
+                        raise tabbit.TcbError(
+                            "Deep.star: the file gives one member of "
+                            "this record a different element count than another")
+                    for element in range(element_count):
                         record.star[element].position.x = cursor.next_i32()
             elif column.tag == 4:
-                tabbit.check_column(column, "Deep.Star.Position.Y", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Deep.Star.Position.Y", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Deep.Star.Position.Y")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    if len(record.star) != element_count:
+                        raise tabbit.TcbError(
+                            "Deep.star: the file gives one member of "
+                            "this record a different element count than another")
+                    for element in range(element_count):
                         record.star[element].position.y = cursor.next_i32()
             else:
                 # A column added after this code was generated.

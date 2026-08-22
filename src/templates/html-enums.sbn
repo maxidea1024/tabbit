@@ -1,0 +1,34 @@
+{{~##
+   Every enum the model declares, as a list, with how many columns use each one.
+
+   The usage count is the column that earns this page: an enum nothing uses is either a
+   leftover or a column typed wrong, and neither is visible from an enum's own page.
+##~}}
+{{~ include 'html-head.sbn' ~}}
+<p class="lead">enum {{ rows | array.size }}개 · 레이블 {{ label_total }}개</p>
+<div data-table>
+<div class="tools">
+<input type="search" data-filter="rows" placeholder="enum 필터">
+<span class="hint" data-shown>{{ rows | array.size }}행 중 {{ rows | array.size }}행</span>
+<span class="hint">제목을 누르면 정렬됩니다.</span>
+</div>
+{{~ if rows | array.size == 0 ~}}
+<p class="none">선언된 것이 없습니다.</p>
+{{~ else ~}}
+<div class="scroll">
+<table data-sortable>
+<thead>
+<tr class="names">
+<th class="sorted"><svg class="i"><use href="#i-enum"></use></svg>enum</th><th>레이블</th><th>사용 컬럼</th><th>선언 위치</th>{{ if has_comments }}<th>설명</th>{{ end }}
+</tr>
+</thead>
+<tbody>
+{{~ for row in rows ~}}
+<tr><td><a href="{{ row.href }}" data-enum="{{ row.name }}"><svg class="i"><use href="#i-enum"></use></svg>{{ row.name }}</a></td><td class="num">{{ row.label_count }}</td><td class="num">{{ row.user_count }}</td><td>{{ row.sheet }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
+{{~ end ~}}
+</tbody>
+</table>
+</div>
+{{~ end ~}}
+</div>
+{{ include 'html-foot.sbn' }}

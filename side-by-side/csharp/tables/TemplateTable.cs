@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -256,7 +254,7 @@ namespace X
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Template.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Template.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Template.Index");
                         for (int i = 0; i < count; )
                         {
@@ -272,7 +270,7 @@ namespace X
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Template.Class", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Template.Class", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Template.Class");
                         for (int i = 0; i < count; )
                         {
@@ -288,7 +286,7 @@ namespace X
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Template.Int", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Template.Int", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Template.Int");
                         for (int i = 0; i < count; )
                         {
@@ -304,7 +302,7 @@ namespace X
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Template.Delete", TcbTable.KindScalar, 1, false, TcbTable.ElementBool);
+                        TcbTable.CheckColumn(column, "Template.Delete", TcbTable.KindScalar, false, TcbTable.ElementBool);
                         cursor = new TcbColumnCursor(reader, column, count, "Template.Delete");
                         for (int i = 0; i < count; i++)
                         {
@@ -314,7 +312,7 @@ namespace X
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Template.Operator", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Template.Operator", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Template.Operator");
                         for (int i = 0; i < count; )
                         {
@@ -330,7 +328,7 @@ namespace X
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "Template.Namespace", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Template.Namespace", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Template.Namespace");
                         for (int i = 0; i < count; )
                         {
@@ -346,7 +344,7 @@ namespace X
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Template.Constructor", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Template.Constructor", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Template.Constructor");
                         for (int i = 0; i < count; )
                         {
@@ -362,7 +360,7 @@ namespace X
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "Template.Function", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Template.Function", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Template.Function");
                         for (int i = 0; i < count; )
                         {
@@ -415,5 +413,4 @@ namespace X
             return sb.ToString();
         }
     }
-
 } // namespace X

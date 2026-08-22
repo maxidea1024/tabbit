@@ -40,7 +40,7 @@ use std::path::Path;
 /// rather than guessing. 102 replaced 101 outright - a descriptor gained its encoding
 /// byte - before any 101 file had shipped. 104 is the current one: four encodings joined
 /// the nine, and the flags byte gained a meaning.
-pub const FORMAT_VERSION: u32 = 105;
+pub const FORMAT_VERSION: u32 = 107;
 
 // The wire element types and kinds, as a column descriptor spells them.
 pub const ELEMENT_VARINT: u8 = 0;
@@ -53,8 +53,7 @@ pub const ELEMENT_STRING: u8 = 6;
 pub const ELEMENT_UUID: u8 = 7;
 
 pub const KIND_SCALAR: u8 = 0;
-pub const KIND_FIXED_ARRAY: u8 = 1;
-pub const KIND_VAR_ARRAY: u8 = 2;
+pub const KIND_ARRAY: u8 = 1;
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
 // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -126,8 +125,6 @@ pub struct Column {
     pub kind: u8,
     /// How the block's values are laid out: one of the ENCODING_* constants.
     pub encoding: u8,
-    /// Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one.
-    pub count: i32,
     /// Total bytes of the column block - what a skip advances by.
     pub byte_length: i32,
     /// Whether the block begins with one presence bit per row, low bit first.
@@ -136,6 +133,12 @@ pub struct Column {
     /// not expect the bitmap reads it as values, so `check_column` refuses a disagreement
     /// the same way it refuses a changed kind.
     pub nullable: bool,
+
+    /// Whether the block states, per element, which of an array's places hold a value.
+    ///
+    /// Independent of `nullable`: a column may say either, or both.
+    /// spec/nullable-array-elements.md.
+    pub element_nullable: bool,
 }
 
 /// A parsed header: the row count and the column descriptors that follow it.
@@ -195,6 +198,7 @@ pub enum Error {
     ColumnLengthImplausible { tag: i32, byte_length: i32 },
     /// The row count is larger than a column block could hold that many rows in.
     RowCountImplausible { rows: i32, tag: i32, byte_length: i32 },
+    /// A fixed array column states more elements per row than its block could hold.
     /// The blocks the columns declare and the bytes after the header do not add up.
     HeaderLengthMismatch { declared: i32, available: i32 },
     /// A lookup for a key no row carries.
@@ -941,7 +945,7 @@ impl<'r, 'a> TcbColumnCursor<'r, 'a> {
         if encoding == ENCODING_ARRAY {
             encoding = reader.read_u8()?;
 
-            if column.kind == KIND_VAR_ARRAY {
+            if column.kind == KIND_ARRAY {
                 let length_encoding = reader.read_u8()?;
                 lengths = read_lengths(reader, length_encoding, row_count, field)?;
                 lengths_decoded = true;
@@ -956,8 +960,6 @@ impl<'r, 'a> TcbColumnCursor<'r, 'a> {
                 }
 
                 rows_remaining = elements as i32;
-            } else {
-                rows_remaining = row_count.saturating_mul(column.count);
             }
         }
 
@@ -1458,7 +1460,6 @@ pub fn read_table_header(reader: &mut Reader<'_>) -> Result<Header> {
         let tag = reader.read_counter32()?;
         let wire = reader.read_u8()?;
         let encoding = reader.read_u8()?;
-        let element_count = reader.read_counter32()?;
         let byte_length = reader.read_u32()? as i32;
 
         columns.push(Column {
@@ -1466,8 +1467,8 @@ pub fn read_table_header(reader: &mut Reader<'_>) -> Result<Header> {
             element: wire & 0x0f,
             kind: (wire >> 4) & 0x03,
             nullable: wire & 0x40 != 0,
+            element_nullable: wire & 0x80 != 0,
             encoding,
-            count: element_count,
             byte_length,
         });
     }
@@ -1499,6 +1500,7 @@ pub fn read_table_header(reader: &mut Reader<'_>) -> Result<Header> {
                 byte_length: column.byte_length,
             });
         }
+
     }
 
     if declared != available {
@@ -1525,6 +1527,27 @@ pub fn read_presence(reader: &mut Reader<'_>, column: &Column, row_count: i32) -
     reader.read_byte_stream(encoding, (row_count.max(0) as usize + 7) / 8, "a presence bitmap")
 }
 
+/// A column's element bitmap, which sits behind the row bitmap and in front of the values.
+///
+/// Empty for a column that does not carry one. Its length is written ahead of it as a
+/// counter32, because a variable-length column's total is the sum of its row lengths and
+/// those live inside the value block - a reader meeting the bitmap first would have nothing
+/// to size it by. spec/nullable-array-elements.md.
+pub fn read_element_presence(reader: &mut Reader<'_>, column: &Column) -> Result<Vec<u8>> {
+    if !column.element_nullable {
+        return Ok(Vec::new());
+    }
+
+    let elements = reader.read_counter32()?;
+    let encoding = reader.read_u8()?;
+
+    reader.read_byte_stream(
+        encoding,
+        (elements.max(0) as usize + 7) / 8,
+        "an element presence bitmap",
+    )
+}
+
 /// Whether a row has a value, for a column that says which do.
 ///
 /// An empty bitmap means the column is not optional, and then every row has one.
@@ -1533,8 +1556,40 @@ pub fn is_present(presence: &[u8], row: usize) -> bool {
 }
 
 /// That a column is what the generated member expects, or a lossless promotion of it.
+/// The same, for a member whose array elements may be absent.
+pub fn check_column_with_elements(
+    column: &Column, field: &'static str, kind: u8,  nullable: bool,
+    accepted: &[u8],
+) -> Result<()> {
+    check_element_nullable(column, field, true)?;
+    check_column_shape(column, field, kind, nullable, accepted)
+}
+
+/// That the file and the generated member agree about the element bitmap.
+///
+/// The same statement `check_column` makes about the row one: code not expecting a bitmap
+/// would read it as values. spec/nullable-array-elements.md.
+fn check_element_nullable(column: &Column, field: &'static str, expected: bool) -> Result<()> {
+    if column.element_nullable != expected {
+        return Err(Error::ColumnMismatch {
+            field,
+            detail: "the file and the generated member disagree about whether this column's                      elements are optional; the schema changed, regenerate the code or                      rebuild the data",
+        });
+    }
+
+    Ok(())
+}
+
 pub fn check_column(
-    column: &Column, field: &'static str, kind: u8, count: i32, nullable: bool,
+    column: &Column, field: &'static str, kind: u8,  nullable: bool,
+    accepted: &[u8],
+) -> Result<()> {
+    check_element_nullable(column, field, false)?;
+    check_column_shape(column, field, kind, nullable, accepted)
+}
+
+fn check_column_shape(
+    column: &Column, field: &'static str, kind: u8,  nullable: bool,
     accepted: &[u8],
 ) -> Result<()> {
     // Nullability is part of the shape: a file that says optional puts a presence bitmap in
@@ -1548,7 +1603,10 @@ pub fn check_column(
         });
     }
 
-    if column.kind != kind || (kind != KIND_VAR_ARRAY && column.count != count) {
+    // A negative count says the member claims no length: how many elements a row holds is
+    // what the file states. The kind is still the member's claim.
+    // spec/nullable-array-elements.md.
+    if column.kind != kind {
         return Err(Error::ColumnMismatch {
             field,
             detail: "the column's shape does not match the generated member; the schema \

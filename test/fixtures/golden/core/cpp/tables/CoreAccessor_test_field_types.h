@@ -117,7 +117,7 @@ class TestFieldTypesTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "TestFieldTypes.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "TestFieldTypes.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -130,7 +130,7 @@ class TestFieldTypesTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "TestFieldTypes.StringField", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "TestFieldTypes.StringField", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.StringField");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -143,7 +143,7 @@ class TestFieldTypesTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "TestFieldTypes.BoolField", tabbit::kKindScalar, 1, false, {tabbit::kElementBool});
+          tabbit::check_column(column, "TestFieldTypes.BoolField", tabbit::kKindScalar, false, {tabbit::kElementBool});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.BoolField");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -152,7 +152,7 @@ class TestFieldTypesTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "TestFieldTypes.IntField", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "TestFieldTypes.IntField", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.IntField");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -165,7 +165,7 @@ class TestFieldTypesTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "TestFieldTypes.BigIntField", tabbit::kKindScalar, 1, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "TestFieldTypes.BigIntField", tabbit::kKindScalar, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.BigIntField");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -174,7 +174,7 @@ class TestFieldTypesTable {
           break;
         }
         case 6: {
-          tabbit::check_column(column, "TestFieldTypes.FloatField", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "TestFieldTypes.FloatField", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.FloatField");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -183,7 +183,7 @@ class TestFieldTypesTable {
           break;
         }
         case 7: {
-          tabbit::check_column(column, "TestFieldTypes.DoubleField", tabbit::kKindScalar, 1, false, {tabbit::kElementF64, tabbit::kElementF32, tabbit::kElementI32});
+          tabbit::check_column(column, "TestFieldTypes.DoubleField", tabbit::kKindScalar, false, {tabbit::kElementF64, tabbit::kElementF32, tabbit::kElementI32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.DoubleField");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -192,7 +192,7 @@ class TestFieldTypesTable {
           break;
         }
         case 8: {
-          tabbit::check_column(column, "TestFieldTypes.DatetimeField", tabbit::kKindScalar, 1, false, {tabbit::kElementI64});
+          tabbit::check_column(column, "TestFieldTypes.DatetimeField", tabbit::kKindScalar, false, {tabbit::kElementI64});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.DatetimeField");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -201,7 +201,7 @@ class TestFieldTypesTable {
           break;
         }
         case 9: {
-          tabbit::check_column(column, "TestFieldTypes.TimespanField", tabbit::kKindScalar, 1, false, {tabbit::kElementI64});
+          tabbit::check_column(column, "TestFieldTypes.TimespanField", tabbit::kKindScalar, false, {tabbit::kElementI64});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.TimespanField");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -210,7 +210,7 @@ class TestFieldTypesTable {
           break;
         }
         case 10: {
-          tabbit::check_column(column, "TestFieldTypes.UuidField", tabbit::kKindScalar, 1, false, {tabbit::kElementUuid});
+          tabbit::check_column(column, "TestFieldTypes.UuidField", tabbit::kKindScalar, false, {tabbit::kElementUuid});
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             reader.read(record.uuid_field);
@@ -218,7 +218,7 @@ class TestFieldTypesTable {
           break;
         }
         case 11: {
-          tabbit::check_column(column, "TestFieldTypes.ValueTypeField", tabbit::kKindScalar, 1, false, {tabbit::kElementVarint});
+          tabbit::check_column(column, "TestFieldTypes.ValueTypeField", tabbit::kKindScalar, false, {tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TestFieldTypes.ValueTypeField");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {

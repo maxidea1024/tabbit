@@ -51,49 +51,33 @@ static bool KeyTypes_SlottingParse(KeyTypes_SlottingTable_t* table, tb_reader* r
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Slotting.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Slotting.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Slotting.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        KeyTypes_SlottingRecord_t* record = &table->records[row];
+        int32_t scratch = 0;
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = (KeyTypes_Slot_t)value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &scratch);
+        record->index = (KeyTypes_Slot_t)scratch;
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Slotting.Capacity", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Slotting.Capacity", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Slotting.Capacity");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        KeyTypes_SlottingRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].capacity = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->capacity);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Slotting.Serial", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I64) | TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Slotting.Serial", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I64) | TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Slotting.Serial");
 

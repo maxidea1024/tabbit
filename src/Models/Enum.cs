@@ -34,6 +34,19 @@ public class Enum
 
         /// <summary>Description from the sheet, emitted as a doc comment.</summary>
         public required string Comment { get; set; }
+
+        /// <summary>
+        /// Whether the tool wrote this label rather than a sheet - the zero label inserted
+        /// into an enum that declared nothing at zero.
+        /// </summary>
+        /// <remarks>
+        /// Kept so that checks about how a sheet is written can leave it out. Holding a
+        /// generated name to a naming convention reports a spelling nobody chose and offers
+        /// nobody a cell to fix, and the label carries its enum's location, so a report about
+        /// it would point at the declaration rather than at any name.
+        /// </remarks>
+        [JsonIgnore]
+        public bool Synthesized { get; set; }
     }
 
     /// <summary>Cell holding the entity marker that declared this enum.</summary>
@@ -61,6 +74,23 @@ public class Enum
     public required string Comment { get; set; }
 
     /// <summary>
+    /// Whether the tool declared this enumeration rather than a sheet.
+    /// </summary>
+    /// <remarks>
+    /// A column reaching several tables carries one of them, and which one is answered by an
+    /// enumeration of its targets. That is a type the generated code needs and no sheet
+    /// writes, so the cooker declares it here - and then every generator emits it through the
+    /// machinery it already has for enumerations, which is the whole reason it lives in the
+    /// model rather than in each generator.
+    ///
+    /// Kept so that reports about how the sheets are written can leave it out: holding a
+    /// generated name to a naming convention names a spelling nobody chose and offers nobody
+    /// a cell to fix. spec/multi-target-accessors.md.
+    /// </remarks>
+    [JsonIgnore]
+    public bool Synthesized { get; set; }
+
+    /// <summary>
     /// Whether a label with this name or value exists.
     /// </summary>
     public bool Contains(object labelNameOrValue) => FindLabel(labelNameOrValue) is not null;
@@ -74,11 +104,17 @@ public class Enum
         if (found is null)
         {
             if (labelNameOrValue is string name)
-                throw new TabbitException(callerLocation, $"Label '{name}' was not found in the enum '{Name}'");
+                    throw new TabbitException(callerLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.EnumLabelNotFound,
+                            ("Label", name), ("Enum", Name)));
             else if (labelNameOrValue is int value)
-                throw new TabbitException(callerLocation, $"Value '{value}' was not found in the enum '{Name}'");
+                    throw new TabbitException(callerLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.EnumValueNotFound,
+                            ("Value", value), ("Enum", Name)));
             else
-                throw new TabbitException();
+                    throw new TabbitDefectException(
+                        "An enum label was looked up with neither a name nor a value, which the "
+                        + "check above is supposed to have refused already.");
         }
 
         return found;
@@ -108,9 +144,9 @@ public class Enum
             return null;
         }
 
-        throw new TabbitException(
-            $"Enum `{Name}` was looked up with a {labelNameOrValue?.GetType().Name ?? "null"}, " +
-            $"but only a label name or an integer value can identify a label.");
+            throw new TabbitDefectException(
+                $"Enum `{Name}` was looked up with a {labelNameOrValue?.GetType().Name ?? "null"}, " +
+                $"but only a label name or an integer value can identify a label.");
     }
 
     /// <summary>

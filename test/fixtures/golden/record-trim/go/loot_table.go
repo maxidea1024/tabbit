@@ -126,7 +126,7 @@ func (t *LootTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Loot.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Loot.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -137,7 +137,7 @@ func (t *LootTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Loot.Name", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Loot.Name", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Name")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -148,7 +148,7 @@ func (t *LootTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Loot.Slot.Id", tabbit.KindVarArray, 0, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Loot.Slot.Id", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Slot.Id")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -163,7 +163,7 @@ func (t *LootTable) Read(filename string) error {
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Loot.Slot.Count", tabbit.KindVarArray, 0, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Loot.Slot.Count", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Slot.Count")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -178,7 +178,7 @@ func (t *LootTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Loot.Slot.Label", tabbit.KindVarArray, 0, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Loot.Slot.Label", tabbit.KindArray, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Slot.Label")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -193,7 +193,7 @@ func (t *LootTable) Read(filename string) error {
 				}
 			}
 		case 6:
-			if tabbit.CheckColumn(reader, column, "Loot.Pos.X", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Loot.Pos.X", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Pos.X")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -204,7 +204,7 @@ func (t *LootTable) Read(filename string) error {
 				}
 			}
 		case 7:
-			if tabbit.CheckColumn(reader, column, "Loot.Pos.Y", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Loot.Pos.Y", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Pos.Y")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -215,7 +215,7 @@ func (t *LootTable) Read(filename string) error {
 				}
 			}
 		case 8:
-			if tabbit.CheckColumn(reader, column, "Loot.Tag_array", tabbit.KindVarArray, 0, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Loot.Tag_array", tabbit.KindArray, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Tag_array")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]

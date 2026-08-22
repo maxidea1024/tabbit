@@ -58,7 +58,7 @@ extern "C" {
  * stops rather than guessing. 102 replaced 101 outright - a descriptor gained its
  * encoding byte - before any 101 file had shipped. 104 is the current one: four
  * encodings joined the nine, and the flags byte gained a meaning. */
-#define TABBIT_BINARY_FILE_FORMAT_VERSION 105u
+#define TABBIT_BINARY_FILE_FORMAT_VERSION 107u
 
 /* The wire element types and kinds, as a column descriptor spells them. */
 #define TB_ELEMENT_VARINT 0
@@ -71,8 +71,10 @@ extern "C" {
 #define TB_ELEMENT_UUID 7
 
 #define TB_KIND_SCALAR 0
-#define TB_KIND_FIXED_ARRAY 1
-#define TB_KIND_VAR_ARRAY 2
+/* The only array kind: every row states its own length. A fixed-length kind sat at 1 until
+ * v107 and was removed rather than kept, because a length stated once is a length the
+ * generated code bakes in - and then a column added to a group needs the consumer rebuilt. */
+#define TB_KIND_ARRAY 1
 
 /* How a block's values are laid out. Raw is the layout 101 had; the others compress
  * a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract. */
@@ -151,10 +153,13 @@ typedef struct tb_column {
    * every row - a row without one carries the type's empty value - so the bitmap says which
    * of those to believe and nothing about the layout after it. */
   bool nullable;
+  /* Whether the block states, per element, which of an array's places hold a value.
+   *
+   * Independent of `nullable`: a column may say either, or both.
+   * spec/nullable-array-elements.md. */
+  bool element_nullable;
   /* How the block's values are laid out: one of the TB_ENCODING_* constants. */
   uint8_t encoding;
-  /* Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
-  int32_t count;
   /* Total bytes of the column block - what a skip advances by. */
   int32_t byte_length;
 } tb_column;
@@ -287,7 +292,12 @@ bool tb_read_f64_as(tb_reader* reader, uint8_t element, double* out);
  * Refusal is by name and both types, never by reading anyway. `accepted` is the set the
  * member can read, built out of TB_ELEMENT_MASK. */
 bool tb_check_column(tb_reader* reader, const tb_column* column, const char* field_name,
-          uint8_t kind, int32_t count, bool nullable, unsigned accepted);
+          uint8_t kind, bool nullable, unsigned accepted);
+
+/* The same, for a member whose array elements may be absent. */
+bool tb_check_column_elements(tb_reader* reader, const tb_column* column,
+          const char* field_name, uint8_t kind, bool nullable,
+          unsigned accepted, bool element_nullable);
 
 /* A nullable column's presence bitmap, read into the caller's buffer.
  *
@@ -295,6 +305,15 @@ bool tb_check_column(tb_reader* reader, const tb_column* column, const char* fie
  * block and the values follow it. One bit per row, low bit first, padded to a byte. The
  * buffer comes from the table's arena, so it dies with the load. */
 bool tb_read_presence(tb_reader* reader, const tb_column* column, int32_t row_count,
+          const uint8_t** out_presence);
+
+/* A column's element bitmap, behind the row bitmap and in front of the values.
+ *
+ * NULL for a column that does not carry one. Its length is written ahead of it as a
+ * counter32, because a variable-length column's total is the sum of its row lengths and
+ * those live inside the value block - a reader meeting the bitmap first would have nothing
+ * to size it by. spec/nullable-array-elements.md. */
+bool tb_read_element_presence(tb_reader* reader, const tb_column* column,
           const uint8_t** out_presence);
 
 /* Whether a row has a value, for a column that says which do.
@@ -1104,12 +1123,12 @@ bool tb_read_table_header(tb_reader* reader, int32_t* out_row_count,
     (void)tb_read_counter32(reader, &columns[at].tag);
     (void)tb_read_fixed8(reader, &wire);
     (void)tb_read_fixed8(reader, &encoding);
-    (void)tb_read_counter32(reader, &columns[at].count);
     (void)tb_read_fixed32(reader, &byte_length);
 
     columns[at].element = (uint8_t)(wire & 0x0f);
     columns[at].kind = (uint8_t)((wire >> 4) & 0x03);
     columns[at].nullable = (wire & 0x40) != 0;
+    columns[at].element_nullable = (wire & 0x80) != 0;
     columns[at].encoding = encoding;
     columns[at].byte_length = (int32_t)byte_length;
   }
@@ -1319,16 +1338,52 @@ bool tb_read_presence(tb_reader* reader, const tb_column* column, int32_t row_co
   return tb_read_byte_stream(reader, encoding, bytes, "a presence bitmap", out_presence);
 }
 
+bool tb_read_element_presence(tb_reader* reader, const tb_column* column,
+          const uint8_t** out_presence) {
+  int32_t elements = 0;
+  uint8_t encoding = 0;
+
+  *out_presence = NULL;
+
+  if (!column->element_nullable || tb_failed(reader))
+    return !tb_failed(reader);
+
+  if (!tb_read_counter32(reader, &elements))
+    return false;
+
+  if (!tb_read_fixed8(reader, &encoding))
+    return false;
+
+  return tb_read_byte_stream(reader, encoding, (elements + 7) / 8,
+            "an element presence bitmap", out_presence);
+}
+
 bool tb_is_present(const uint8_t* presence, int32_t row) {
   return presence == NULL || (presence[row >> 3] & (1u << (row & 7))) != 0;
 }
 
 bool tb_check_column(tb_reader* reader, const tb_column* column, const char* field_name,
-          uint8_t kind, int32_t count, bool nullable, unsigned accepted) {
+          uint8_t kind, bool nullable, unsigned accepted) {
+  return tb_check_column_elements(reader, column, field_name, kind, nullable, accepted,
+            false);
+}
+
+bool tb_check_column_elements(tb_reader* reader, const tb_column* column,
+          const char* field_name, uint8_t kind, bool nullable,
+          unsigned accepted, bool element_nullable) {
   char elements[48];
 
   if (tb_failed(reader))
     return false;
+
+  /* The same statement about the other bitmap: code not expecting one would read it as
+   * values. spec/nullable-array-elements.md. */
+  if (column->element_nullable != element_nullable) {
+    return tb_fail(reader,
+        "%s: the file and the generated member disagree about whether this column's elements"
+        " are optional; the schema changed, regenerate the code or rebuild the data",
+        field_name);
+  }
 
   /* Nullability is part of the shape: a file that says optional puts a presence bitmap at
    * the front of the block, and code not expecting one would read the bitmap as values. */
@@ -1339,12 +1394,14 @@ bool tb_check_column(tb_reader* reader, const tb_column* column, const char* fie
         field_name);
   }
 
-  if (column->kind != kind || (kind != TB_KIND_VAR_ARRAY && column->count != count)) {
+  /* Shape is the kind alone since v107. How many elements a row holds is what the file
+   * states, row by row, so a group that grew a column is read rather than refused. */
+  if (column->kind != kind) {
     return tb_fail(reader,
-           "%s: the file column (kind %d, count %d) does not match the generated "
-           "member (kind %d, count %d). The schema changed shape; regenerate the "
+           "%s: the file column (kind %d) does not match the generated "
+           "member (kind %d). The schema changed shape; regenerate the "
            "code or rebuild the data.",
-           field_name, (int)column->kind, column->count, (int)kind, count);
+           field_name, (int)column->kind, (int)kind);
   }
 
   /* An encoding this build cannot decode - or one the spec does not define for this
@@ -1811,7 +1868,7 @@ bool tb_cursor_init(tb_cursor* cursor, tb_reader* reader, const tb_column* colum
 
     cursor->encoding = element_encoding;
 
-    if (column->kind == TB_KIND_VAR_ARRAY) {
+    {
       uint8_t length_encoding = 0;
       int32_t at;
 
@@ -1828,8 +1885,6 @@ bool tb_cursor_init(tb_cursor* cursor, tb_reader* reader, const tb_column* colum
 
       for (at = 0; at < row_count; ++at)
         elements += cursor->lengths[at];
-    } else {
-      elements = (int64_t)row_count * column->count;
     }
 
     if (elements > INT32_MAX) {

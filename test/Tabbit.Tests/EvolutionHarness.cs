@@ -10,7 +10,7 @@ namespace Tabbit.Tests;
 /// a directory of data written by either.
 ///
 /// Separate from ConformanceHarness because the question is different: that one builds
-/// thirteen languages against the schema that wrote the data, this one builds one
+/// every language against the schema that wrote the data, this one builds one
 /// language against a schema that did not.
 /// </summary>
 internal static class EvolutionHarness

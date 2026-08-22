@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -185,7 +183,7 @@ namespace Tabbit.Fixtures.Core
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "ClientStrings.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ClientStrings.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ClientStrings.Index");
                         for (int i = 0; i < count; )
                         {
@@ -201,7 +199,7 @@ namespace Tabbit.Fixtures.Core
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "ClientStrings.Key", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "ClientStrings.Key", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "ClientStrings.Key");
                         for (int i = 0; i < count; )
                         {
@@ -217,7 +215,7 @@ namespace Tabbit.Fixtures.Core
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "ClientStrings.Text", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "ClientStrings.Text", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "ClientStrings.Text");
                         for (int i = 0; i < count; )
                         {
@@ -266,5 +264,4 @@ namespace Tabbit.Fixtures.Core
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.Core

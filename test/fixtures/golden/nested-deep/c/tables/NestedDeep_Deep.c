@@ -45,64 +45,82 @@ static bool NestedDeep_DeepParse(NestedDeep_DeepTable_t* table, tb_reader* reade
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Deep.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Deep.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Deep.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        NestedDeep_DeepRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Deep.Star.Id", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Deep.Star.Id", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Deep.Star.Id");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         NestedDeep_DeepRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        (void)tb_cursor_next_length(&cursor, &element_count);
+
+        /* The first member allocates; the rest check. Allocating again would discard what
+         * the members before it wrote, and taking the shorter of two counts would shift
+         * every value after it. */
+        record->star_count = element_count;
+        record->star = (struct NestedDeep_DeepRecord_t_star_entry*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->star);
+
+        if (element_count > 0 && record->star == NULL)
+          return tb_fail_with(reader, "out of memory allocating a record array");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->star[element].id);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Deep.Star.Position.X", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Deep.Star.Position.X", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Deep.Star.Position.X");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         NestedDeep_DeepRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        (void)tb_cursor_next_length(&cursor, &element_count);
+
+        if (record->star_count != element_count)
+          return tb_fail_with(reader,
+            "the file gives one member of a record a different element count than another");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->star[element].position.x);
       }
       break;
 
     case 4:
-      (void)tb_check_column(reader, column, "Deep.Star.Position.Y", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Deep.Star.Position.Y", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Deep.Star.Position.Y");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         NestedDeep_DeepRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        (void)tb_cursor_next_length(&cursor, &element_count);
+
+        if (record->star_count != element_count)
+          return tb_fail_with(reader,
+            "the file gives one member of a record a different element count than another");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->star[element].position.y);
       }
       break;

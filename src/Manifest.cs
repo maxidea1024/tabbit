@@ -38,10 +38,18 @@ public class Manifest
 
     public void Add(string name, string filename)
     {
-        long size = FileHelper.GetFileSize(filename);
-        var hash = Helper.CalculateMD5HashFromFile(filename);
+        // Asked of the writer before the filesystem. A target hands this the staging file it
+        // has just written, and reading that file back to measure it read every byte of the
+        // output a second time - 4.59 s of the `json` target's 13.25 s on the sample
+        // project. The fallback stays for a file this run did not write through
+        // StagingFiles. spec/conversion-time.md section 4.
+        if (!StagingFiles.TryWrittenContents(filename, out string hash, out long size))
+        {
+            size = FileHelper.GetFileSize(filename);
+            hash = Helper.CalculateMD5HashFromFile(filename);
+        }
 
-        var existing = Items.Find(x => x.Name == name);
+        var existing = Find(name);
         if (existing is not null)
         {
             existing.Filename = filename;
@@ -69,8 +77,37 @@ public class Manifest
             _dirtyCount++;
 
             Items.Add(item);
+            _byName?.TryAdd(name, item);
         }
     }
+
+    /// <summary>
+    /// The item this name already has, or null.
+    /// </summary>
+    /// <remarks>
+    /// Indexed rather than scanned. A target adds one entry per table and asks this for
+    /// each of them, so a linear scan makes the ledger quadratic in the number of tables -
+    /// which on a project of five hundred is the difference between nothing and something.
+    ///
+    /// Built on first use rather than in the constructor, because <see cref="Items"/>
+    /// arrives from the deserializer after that has run.
+    /// </remarks>
+    private Item? Find(string name)
+    {
+        if (_byName is null)
+        {
+            _byName = new Dictionary<string, Item>(Items.Count, StringComparer.Ordinal);
+
+            // Whichever comes first wins, which is what List.Find answered. A manifest with
+            // two entries for one name is already broken; this is not the place that says so.
+            foreach (var item in Items)
+                _byName.TryAdd(item.Name, item);
+        }
+
+        return _byName.TryGetValue(name, out var found) ? found : null;
+    }
+
+    private Dictionary<string, Item>? _byName;
 
     /// <summary>
     /// Asks for the files this ledger already lists to be removed unless this run writes
@@ -114,7 +151,11 @@ public class Manifest
     public void BuildAndWriteToFile(string filename)
     {
         // Drop what is no longer there.
-        _dirtyCount += Items.RemoveAll(x => x.Filename is null);
+        if (Items.RemoveAll(x => x.Filename is null) is int dropped and > 0)
+        {
+            _dirtyCount += dropped;
+            _byName = null;
+        }
 
         if (_dirtyCount > 0 || Items.Count == 0)
         {

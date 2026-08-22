@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/record-ref/record-ref.xlsx : Records : BN2
 /** A record of one whose members' keys are not numbers. */
@@ -124,7 +125,7 @@ class BadgeTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Badge.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Badge.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Badge.Index")
                     var at = 0
                     while (at < count) {
@@ -138,7 +139,7 @@ class BadgeTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Badge.Mark.ClipId", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Badge.Mark.ClipId", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Badge.Mark.ClipId")
                     var at = 0
                     while (at < count) {
@@ -152,13 +153,13 @@ class BadgeTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Badge.Mark.SealId", KIND_SCALAR, 1, false, ELEMENT_UUID)
+                    checkColumn(column, "Badge.Mark.SealId", KIND_SCALAR, false, ELEMENT_UUID)
                     for (record in loaded) {
                         record.mark.sealIdIndex = reader.readUuid()
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Badge.Mark.Rank", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Badge.Mark.Rank", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Badge.Mark.Rank")
                     var at = 0
                     while (at < count) {
@@ -172,7 +173,7 @@ class BadgeTable {
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Badge.Pad", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Badge.Pad", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Badge.Pad")
                     var at = 0
                     while (at < count) {

@@ -1,0 +1,35 @@
+[
+  {
+    "index": 1,
+    "slotArray": [
+      1,
+      2
+    ],
+    "tierArray": [
+      1,
+      2
+    ]
+  },
+  {
+    "index": 2,
+    "slotArray": [
+      3,
+      1
+    ],
+    "tierArray": [
+      3,
+      1
+    ]
+  },
+  {
+    "index": 3,
+    "slotArray": [
+      2,
+      0
+    ],
+    "tierArray": [
+      2,
+      0
+    ]
+  }
+]

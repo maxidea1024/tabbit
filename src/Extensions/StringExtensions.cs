@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ public enum NameCase
     Pascal,
     Kebab,
     Snake,
+    UpperSnake,
     Train,
     Sentence
 }
@@ -30,7 +32,16 @@ public static class StringExtensions
         if (String.IsNullOrEmpty(identifier))
             return false;
 
-        // definition of a valid C# identifier: http://msdn.microsoft.com/en-us/library/aa664670(v=vs.71).aspx
+        var normalizedIdentifier = identifier.IsNormalized() ? identifier : identifier.Normalize();
+
+        // Check that the identifier match the validIdentifer regex.
+        return ValidIdentifierRegex.IsMatch(normalizedIdentifier);
+    }
+
+    private static readonly Regex ValidIdentifierRegex = BuildValidIdentifierRegex();
+
+    private static Regex BuildValidIdentifierRegex()
+    {
         const string formattingCharacter = @"\p{Cf}";
         const string connectingCharacter = @"\p{Pc}";
         const string decimalDigitCharacter = @"\p{Nd}";
@@ -45,11 +56,8 @@ public static class StringExtensions
         const string identifierStartCharacter = "(" + letterCharacter + "|_)";
         const string identifierOrKeyword = identifierStartCharacter + "(" +
                                            identifierPartCharacters + ")*";
-        var validIdentifierRegex = new Regex("^" + identifierOrKeyword + "$", RegexOptions.Compiled);
-        var normalizedIdentifier = identifier.Normalize();
 
-        // Check that the identifier match the validIdentifer regex.
-        return validIdentifierRegex.IsMatch(normalizedIdentifier);
+        return new Regex("^" + identifierOrKeyword + "$", RegexOptions.Compiled);
     }
 
 
@@ -67,6 +75,8 @@ public static class StringExtensions
                 return ToKebabCase(source);
             case NameCase.Snake:
                 return ToSnakeCase(source);
+            case NameCase.UpperSnake:
+                return ToUpperSnakeCase(source);
             case NameCase.Train:
                 return ToTrainCase(source);
             case NameCase.Sentence:
@@ -76,14 +86,39 @@ public static class StringExtensions
         return source;
     }
 
+    /// <summary>
+    /// What a name has already been converted to, per form.
+    /// </summary>
+    /// <remarks>
+    /// **Memoized because the callers ask the same question once per row.** These take a name
+    /// and return a spelling of it: the answer depends on nothing but the string, and the set
+    /// of strings asked about is the model's names - tens of thousands at most, however many
+    /// rows the tables hold. The `json` exporter was converting every column's name once per
+    /// row, which on the sample project is 1.18 s of walking names it had already walked.
+    ///
+    /// The conversion itself is not cheap - <see cref="SymbolsPipe"/> takes substrings, runs a
+    /// delegate per character, and that delegate allocates an array per character. Making it
+    /// cheap is a separate job; not doing it twice is this one.
+    ///
+    /// Concurrent, because the stages that ask are the ones meant to run beside each other.
+    /// Never invalidated: a name's camel spelling does not change during a run.
+    /// spec/conversion-time.md section 4.
+    /// </remarks>
+    private static readonly ConcurrentDictionary<string, string> CamelCased =
+        new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
+
+    /// <summary>The same, for the Pascal form. See <see cref="CamelCased"/>.</summary>
+    private static readonly ConcurrentDictionary<string, string> PascalCased =
+        new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
+
     [return: NotNullIfNotNull(nameof(source))]
     public static string? ToCamelCase(this string? source)
     {
         if (source is null)
             return null;
 
-        return SymbolsPipe(
-            source,
+        return CamelCased.GetOrAdd(source, static key => SymbolsPipe(
+            key,
             '\0',
             (s, disableFrontDelimeter) =>
             {
@@ -91,7 +126,7 @@ public static class StringExtensions
                     return [char.ToLowerInvariant(s)];
 
                 return [char.ToUpperInvariant(s)];
-            });
+            }));
     }
 
     [return: NotNullIfNotNull(nameof(source))]
@@ -100,10 +135,10 @@ public static class StringExtensions
         if (source is null)
             return null;
 
-        return SymbolsPipe(
-            source,
+        return PascalCased.GetOrAdd(source, static key => SymbolsPipe(
+            key,
             '\0',
-            (s, i) => [char.ToUpperInvariant(s)]);
+            (s, i) => [char.ToUpperInvariant(s)]));
     }
 
     [return: NotNullIfNotNull(nameof(source))]
@@ -142,6 +177,39 @@ public static class StringExtensions
                 return ['_', char.ToLowerInvariant(s)];
             },
             Lower);
+    }
+
+    /// <summary>
+    /// Snake case with every letter upper - the spelling most languages give a constant.
+    /// </summary>
+    /// <remarks>
+    /// Its own form rather than <c>ToSnakeCase().ToUpperInvariant()</c>, which is what the
+    /// generators wanting this spelling used to build by hand. Upper-casing afterwards is
+    /// right only while the answer is going straight into a file: judging whether a name
+    /// already follows a convention means spelling it and comparing it against the original,
+    /// so the spelling and the judging have to be one function - two would spell an acronym
+    /// the same way only until somebody edited one of them.
+    ///
+    /// The generators were moved onto this, so there is one answer rather than a matching
+    /// pair. `NameCaseTests` pins the equivalence that made moving them a no-op.
+    /// </remarks>
+    [return: NotNullIfNotNull(nameof(source))]
+    public static string? ToUpperSnakeCase(this string? source)
+    {
+        if (source is null)
+            return null;
+
+        return SymbolsPipe(
+            source,
+            '_',
+            (s, disableFrontDelimeter) =>
+            {
+                if (disableFrontDelimeter)
+                    return [char.ToUpperInvariant(s)];
+
+                return ['_', char.ToUpperInvariant(s)];
+            },
+            Upper);
     }
 
     [return: NotNullIfNotNull(nameof(source))]

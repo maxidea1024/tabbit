@@ -31,7 +31,7 @@ public class StagingCollisionTests
             () => StagingFiles.WriteAllTextToFile(path, "two"));
 
         Assert.Contains(path, thrown.Message);
-        Assert.Contains("same file name", thrown.Message);
+        Assert.Equal(Tabbit.Exporters.ExportMessages.GeneratedFileNameClash, thrown.MessageId);
     }
 
     /// <summary>

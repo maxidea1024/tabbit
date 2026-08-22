@@ -127,9 +127,9 @@ impl GuideTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.skill.step = vec![<i32>::default(); 2];
-            record.skill.order = vec![<String>::default(); 2];
-            record.grid = vec![vec![<i32>::default(); 3]; 2];
+            record.skill.step = Vec::new();
+            record.skill.order = Vec::new();
+            record.grid = vec![Vec::new(); 2];
         }
 
         for column in &header.columns {
@@ -137,7 +137,7 @@ impl GuideTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Guide.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Guide.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -149,7 +149,7 @@ impl GuideTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Guide.Name", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Guide.Name", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Name")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -161,62 +161,79 @@ impl GuideTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Guide.Skill.Step", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Guide.Skill.Step", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Skill.Step")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
-                            record.skill.step[element] = cursor.next_i32()?;
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        record.skill.step =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = cursor.next_i32()?;
+                            record.skill.step.push(value);
                         }
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Guide.Skill.Order", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Guide.Skill.Order", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Skill.Order")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
-                            record.skill.order[element] = cursor.next_string()?;
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        record.skill.order =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = cursor.next_string()?;
+                            record.skill.order.push(value);
                         }
                     }
                 }
                 5 => {
-                    tabbit::check_column(column, "Guide.Pos.X", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_F32])?;
+                    tabbit::check_column(column, "Guide.Pos.X", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_F32])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Pos.X")?;
                     for record in records.iter_mut() {
                         record.pos.x = cursor.next_f32()?;
                     }
                 }
                 6 => {
-                    tabbit::check_column(column, "Guide.Pos.Y", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_F32])?;
+                    tabbit::check_column(column, "Guide.Pos.Y", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_F32])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Pos.Y")?;
                     for record in records.iter_mut() {
                         record.pos.y = cursor.next_f32()?;
                     }
                 }
                 7 => {
-                    tabbit::check_column(column, "Guide.Tag_array", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Guide.Tag_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Tag_array")?;
                     for record in records.iter_mut() {
-                        record.tag_array = Vec::with_capacity(2);
-                        for _ in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        record.tag_array = Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
                             record.tag_array.push(cursor.next_string()?);
                         }
                     }
                 }
                 8 => {
-                    tabbit::check_column(column, "Guide.Grid.1", tabbit::KIND_FIXED_ARRAY, 3, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Guide.Grid.1", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Grid.1")?;
                     for record in records.iter_mut() {
-                        for element in 0..3 {
-                            record.grid[0][element] = cursor.next_i32()?;
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        record.grid[0] =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = cursor.next_i32()?;
+                            record.grid[0].push(value);
                         }
                     }
                 }
                 9 => {
-                    tabbit::check_column(column, "Guide.Grid.2", tabbit::KIND_FIXED_ARRAY, 3, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Guide.Grid.2", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Grid.2")?;
                     for record in records.iter_mut() {
-                        for element in 0..3 {
-                            record.grid[1][element] = cursor.next_i32()?;
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        record.grid[1] =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = cursor.next_i32()?;
+                            record.grid[1].push(value);
                         }
                     }
                 }

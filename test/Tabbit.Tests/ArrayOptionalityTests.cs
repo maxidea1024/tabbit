@@ -71,6 +71,12 @@ public class ArrayOptionalityTests
     }
 
     /// <summary>And the wire says the same thing, because it reads the same answer.</summary>
+    /// <remarks>
+    /// What the answer is *about* is the element, not the array. A folded group's type cells
+    /// each declare one element and none of them declares the array, so a `?` there says an
+    /// element may be absent - and the array itself has no marker, because its columns exist
+    /// in every row. spec/nullable-array-elements.md.
+    /// </remarks>
     [Theory]
     [InlineData(true, false, false)]
     [InlineData(false, true, true)]
@@ -80,7 +86,11 @@ public class ArrayOptionalityTests
 
         var name = WireColumn.Of(table).Single(wire => wire.Cells.Count > 1);
 
-        Assert.Equal(!first, name.IsNullable);
+        Assert.Equal(!first, name.HasOptionalElements);
+
+        // And nothing says the array as a whole is absent. The reading that did say it
+        // answered from element 0's cell, which took the values after it down with it.
+        Assert.False(name.IsNullable);
     }
 
     /// <summary>

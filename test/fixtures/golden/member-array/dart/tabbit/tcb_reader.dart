@@ -45,7 +45,7 @@ import 'dart:typed_data';
 // 102 replaced 101 outright - a descriptor gained its encoding byte - before any
 // 101 file had shipped. 104 is the current one: four encodings joined the nine, and the
 // flags byte gained a meaning.
-const int formatVersion = 105;
+const int formatVersion = 107;
 
 // The wire element types and kinds, as a column descriptor spells them.
 const int elementVarint = 0;
@@ -58,8 +58,7 @@ const int elementString = 6;
 const int elementUuid = 7;
 
 const int kindScalar = 0;
-const int kindFixedArray = 1;
-const int kindVarArray = 2;
+const int kindArray = 1;
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
 // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -124,8 +123,8 @@ const int cipherChaCha20 = 1;
 
 /// One column as the file describes it.
 class Column {
-  Column(this.tag, this.element, this.kind, this.encoding, this.count, this.byteLength,
-      this.nullable);
+  Column(this.tag, this.element, this.kind, this.encoding, this.byteLength,
+      this.nullable, this.elementNullable);
 
   /// What identifies the column, instead of its position.
   final int tag;
@@ -135,8 +134,6 @@ class Column {
   final int encoding;
   final int kind;
 
-  /// Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one.
-  final int count;
 
   /// Total bytes of the column block - what a skip advances by.
   final int byteLength;
@@ -147,6 +144,12 @@ class Column {
   /// not expect the bitmap reads it as values, so checkColumn refuses a disagreement the
   /// same way it refuses a changed kind.
   final bool nullable;
+
+  /// Whether the block states, per element, which of an array's places hold a value.
+  ///
+  /// Independent of [nullable]: a column may say either, or both.
+  /// spec/nullable-array-elements.md.
+  final bool elementNullable;
 }
 
 /// A parsed header: the row count and the column descriptors that follow it.
@@ -521,7 +524,7 @@ class TcbColumnCursor {
     if (_encoding == encodingArray) {
       _encoding = _reader.readUint8();
 
-      if (column.kind == kindVarArray) {
+      if (column.kind == kindArray) {
         final lengthEncoding = _reader.readUint8();
         final lengths = _readLengths(_reader, lengthEncoding, rowCount, _fieldName);
 
@@ -538,8 +541,6 @@ class TcbColumnCursor {
 
         _lengths = lengths;
         _rowsRemaining = elements;
-      } else {
-        _rowsRemaining = rowCount * column.count;
       }
     }
 
@@ -1334,11 +1335,10 @@ Header readTableHeader(TcbReader reader) {
     final tag = reader.readCounter32();
     final wire = reader.readUint8();
     final encoding = reader.readUint8();
-    final elementCount = reader.readCounter32();
     final byteLength = reader.readUint32();
     columns.add(
-        Column(tag, wire & 0x0f, (wire >> 4) & 0x03, encoding, elementCount, byteLength,
-            (wire & 0x40) != 0));
+        Column(tag, wire & 0x0f, (wire >> 4) & 0x03, encoding, byteLength,
+            (wire & 0x40) != 0, (wire & 0x80) != 0));
   }
 
   // What the descriptors say about the file, checked before anybody allocates for the
@@ -1365,6 +1365,7 @@ Header readTableHeader(TcbReader reader) {
           'the row count $count is larger than column tag ${column.tag} can hold in its '
           '${column.byteLength} bytes');
     }
+
   }
 
   if (declared != available) {
@@ -1392,6 +1393,24 @@ List<int> readPresence(TcbReader reader, Column column, int rowCount) {
   return reader.readByteStream(encoding, (rowCount + 7) ~/ 8, 'a presence bitmap');
 }
 
+/// A column's element bitmap, behind the row bitmap and in front of the values.
+///
+/// Empty for a column that does not carry one. Its length is written ahead of it as a
+/// counter32, because a variable-length column's total is the sum of its row lengths and
+/// those live inside the value block - a reader meeting the bitmap first would have nothing
+/// to size it by. spec/nullable-array-elements.md.
+List<int> readElementPresence(TcbReader reader, Column column) {
+  if (!column.elementNullable) {
+    return const <int>[];
+  }
+
+  final elements = reader.readCounter32();
+  final encoding = reader.readUint8();
+
+  return reader.readByteStream(
+      encoding, (elements + 7) ~/ 8, 'an element presence bitmap');
+}
+
 /// Whether a row has a value, for a column that says which do.
 ///
 /// An empty bitmap means the column is not optional, and then every row has one.
@@ -1400,8 +1419,16 @@ bool isPresent(List<int> presence, int row) =>
 
 /// That a column is what the generated member expects, or a lossless promotion of it.
 /// Refusal is by name and both types, never by reading anyway.
-void checkColumn(Column column, String fieldName, int kind, int count, bool nullable,
-    List<int> accepted) {
+void checkColumn(Column column, String fieldName, int kind, bool nullable,
+    List<int> accepted, [bool elementNullable = false]) {
+  // The same statement about the other bitmap: code not expecting one would read it as
+  // values. spec/nullable-array-elements.md.
+  if (column.elementNullable != elementNullable) {
+    throw TcbException(
+        "$fieldName: the file and the generated member disagree about whether this column's "
+        'elements are optional. The schema changed; regenerate the code or rebuild the data.');
+  }
+
   // Nullability is part of the shape: a file that says optional puts a presence bitmap in
   // front of the block, and code not expecting one would read the bitmap as values. So
   // adding or removing a `?` is a schema change like any other, caught here rather than in
@@ -1412,10 +1439,13 @@ void checkColumn(Column column, String fieldName, int kind, int count, bool null
         'is optional. The schema changed; regenerate the code or rebuild the data.');
   }
 
-  if (column.kind != kind || (kind != kindVarArray && column.count != count)) {
+  // A negative count says the member claims no length: how many elements a row holds is
+  // what the file states. The kind is still the member's claim.
+  // spec/nullable-array-elements.md.
+  if (column.kind != kind) {
     throw TcbException(
-        '$fieldName: the file column (kind ${column.kind}, count ${column.count}) does not '
-        'match the generated member (kind $kind, count $count). The schema changed shape; '
+        '$fieldName: the file column (kind ${column.kind}) does not match the '
+        'generated member (kind $kind). The schema changed shape; '
         'regenerate the code or rebuild the data.');
   }
 

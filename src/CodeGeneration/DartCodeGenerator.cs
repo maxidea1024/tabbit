@@ -58,6 +58,22 @@ public sealed class DartRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -75,10 +91,17 @@ public sealed class DartRecipe : IOutputRecipe
 [TabbitTarget("dart", TargetKind.CodeGeneration, Order = 95)]
 public class DartCodeGenerator : CodeGenerator<DartRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private DartRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates a class and a list of it; a member column fills one of its
@@ -109,6 +132,12 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, DartRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -118,6 +147,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Camel, "dart");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -238,7 +268,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             DefaultLabel = DartName(fallback.Name),
             Labels = enumm.Labels.Select((label, index) => new DartEnumLabelView
             {
-                Name = DartName(label.Name),
+                Name = DartCamelName(label.Name),
                 Value = label.Value.ToString(CultureInfo.InvariantCulture),
                 Comment = CommentLines(label.Comment),
 
@@ -256,7 +286,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         Comment = CommentLines(constantSet.Comment),
         Constants = constantSet.Constants.Select(constant => new DartConstantView
         {
-            Name = DartName(constant.Name),
+            Name = DartCamelName(constant.Name),
             Type = ToDartTypeName(constant.Type, constant.Enum, null),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
@@ -271,6 +301,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -283,6 +314,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         NeedsCursor = table.WireColumns.Any(UsesCursor),
 
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+        NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
     };
 
     /// <summary>
@@ -311,13 +343,135 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     private static string PrimaryLookup(Table? refTable)
         => "findBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
 
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => ".isNotEmpty",
+            ValueType.Uuid => "!= null",
+            _ => "!= 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    private DartMultiMemberView? MultiMemberOrNull(RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string name = DartName(member.Name);
+
+        return new DartMultiMemberView
+        {
+            KeyMember = name,
+            SlotMember = name + "Row",
+            TargetMember = name + "Target",
+            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
+            NoneLabel = DartCamelName("None"),
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new DartMultiTargetView
+            {
+                Table = DartName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = DartName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Label = DartCamelName(target.Name),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member. spec/references-in-records.md.
+    /// </remarks>
+    private DartMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = DartName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + DartName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{name}{member}"
+            : $"record.{name}[i]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+
+        return new DartMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "Row" + subscript,
+            Target = path + "Target" + subscript,
+
+            // Whichever list holds the elements. The key member is that list where the members
+            // are the arrays, so there is no separate key list to measure.
+            Count = isArray
+                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{name}.length")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            NoneLabel = DartCamelName("None"),
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new DartMultiTargetView
+            {
+                Table = DartName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = "",
+                Label = DartCamelName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
+
+    private DartMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new DartMultiReferenceView
+        {
+            KeyMember = DartName(column.Group.Name),
+            SlotMember = DartName(column.Group.Name) + "Row",
+            TargetMember = DartName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = DartCamelName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new DartMultiTargetView
+            {
+                Table = DartName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = DartName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+                Label = DartCamelName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+
     private DartFieldView BuildField(Table table, SerialField sf)
     {
         if (sf.IsRecord)
             return BuildRecordField(table, sf);
 
         string name = DartName(sf.Name);
-        bool nullable = !sf.Fields[0].IsRequired;
+        bool nullable = sf.RowMayBeAbsent;
 
         var declarations = Declarations(sf, name).ToList();
 
@@ -325,6 +479,12 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         // leaves the property absent rather than claiming a value it never got.
         if (nullable)
             declarations.Add($"bool {PresenceMember(sf)} = false;");
+
+        // And the per-element answer, empty until the read fills it: an index into an empty
+        // list is out of range, and the answer there is that the element has a value.
+        // spec/nullable-array-elements.md.
+        if (sf.ElementMayBeAbsent)
+            declarations.Add($"List<bool> {ElementPresenceMember(sf)} = const <bool>[];");
 
         return new DartFieldView
         {
@@ -335,7 +495,9 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             RecordTypeName = "",
             Members = Array.Empty<DartRecordMemberView>(),
             IsNullable = nullable,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = ElementPresenceMember(sf),
         };
     }
 
@@ -412,10 +574,31 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                                 + ";");
                 }
 
+                // A member reaching several tables keeps the key declared above and gains two
+                // fields: one slot for the resolved row whatever table it came from, and the
+                // discriminator saying which. spec/multi-target-accessors.md.
+                var multi = MultiMemberOrNull(member);
+
+                if (multi is not null)
+                {
+                    declarations.Add(member.IsArray
+                        ? $"List<Object?> {multi.SlotMember} = "
+                          + $"List.filled({member.Fields.Count}, null);"
+                        : $"Object? {multi.SlotMember};");
+
+                    declarations.Add(member.IsArray
+                        ? $"List<{multi.TargetTypeName}> {multi.TargetMember} = "
+                          + $"List.filled({member.Fields.Count}, "
+                          + $"{multi.TargetTypeName}.{multi.NoneLabel});"
+                        : $"{multi.TargetTypeName} {multi.TargetMember} = "
+                          + $"{multi.TargetTypeName}.{multi.NoneLabel};");
+                }
+
                 result.Add(new DartRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     Declarations = declarations,
+                    Multi = multi,
                 });
 
                 continue;
@@ -428,6 +611,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
             declared.Add(new DartRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -455,6 +639,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         recordTypes.Add(new DartRecordTypeView
         {
+            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -535,7 +720,9 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             ReadElement = ElementReadExpression(wire),
             LengthRead = UsesCursor(wire) ? "cursor.nextLength()" : "reader.readCounter32()",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = ElementPresenceMember(wire.Group),
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -557,8 +744,12 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : DartName("has_" + sf.Name);
+
+    /// <summary>The member holding which of an array's elements have a value.</summary>
+    private string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : DartName("has_" + sf.Name + "_at");
 
     /// <summary>What one record member starts at, for the same reason an ordinary one does.</summary>
     /// <summary>What a stored key holds before a row is read.</summary>
@@ -605,7 +796,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// </remarks>
     private string EmptyValue(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "[]";
 
         // The resolved property is a nullable reference to the target row, and absence there
@@ -645,7 +836,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -705,7 +896,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
@@ -735,7 +926,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// The line assigning one row from `value`, the run's decoded value, inside the loop
     /// the template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -818,11 +1009,8 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "kindVarArray"
-            : (wire.IsFixedArray ? "kindFixedArray" : "kindScalar");
+        string kind = wire.IsArray ? "kindArray" : "kindScalar";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string accepted;
 
@@ -858,7 +1046,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                     accepted = "elementI64"; break;
 
                 default:
-                    throw new TabbitException($"The dart generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The dart generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -867,7 +1055,11 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"checkColumn(column, '{tableName}.{wire.Name}', {kind}, {count}, {nullable}, [{accepted}]);";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"checkColumn(column, '{tableName}.{wire.Name}', {kind}, "
+            + $"{nullable}, [{accepted}]{elements});";
     }
 
     /// <summary>
@@ -883,10 +1075,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the list decides where the index goes, and an unnamed
@@ -894,14 +1083,16 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            // A trimmed array of references: the length is the row's, and the key still goes
+            // in the list beside the values. Read as a plain `var_array` it built the list of
+            // rows out of keys, which does not compile - and nothing held the shape, because
+            // `foreign[]` is refused and this is only reachable through a folded group with
+            // trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -912,11 +1103,11 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         Tables = _model.Tables.Select(table => new DartTableSlotView
         {
-            Name = DartName(table.Name),
+            Name = DartCamelName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables
@@ -933,11 +1124,25 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new DartCrossReferenceView
             {
                 Table = DartName(x.Table.Name),
+                MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new DartReferenceFieldView
                 {
                     Name = DartName(sf.Name),
@@ -968,7 +1173,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + DartName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -1057,7 +1262,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                     return LanguageProfile.Dart.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Dart.ReadCall(wire.ElementType);
         }
     }
@@ -1123,12 +1328,14 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             case ValueType.Enum:
             {
                 var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
-                return $"{constant.Enum.Name.ToPascalCase()}.{DartName(label.Name)}";
+                return $"{constant.Enum.Name.ToPascalCase()}.{DartCamelName(label.Name)}";
             }
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the dart generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "dart")));
         }
     }
 
@@ -1177,6 +1384,13 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// camelCase, and escaped with a trailing underscore when it lands on a reserved
     /// word. Not a leading one: that would make the member private to its library.
     /// </summary>
-    private static string DartName(string name) => LanguageProfile.Dart.MemberName(name.ToCamelCase());
+    private string DartName(string name) => LanguageProfile.Dart.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for the names that are not members - an enum label, a constant,
+    /// an accessor's per-table slot. They share a member's casing because Dart writes every
+    /// identifier that way, not because they are members.
+    /// </summary>
+    private static string DartCamelName(string name) => LanguageProfile.Dart.MemberName(name.ToCamelCase());
 
 }

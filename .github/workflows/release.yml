@@ -74,9 +74,18 @@ jobs:
           # the informational version. `v1.2.0-rc1` is assembly 1.2.0, informational 1.2.0-rc1.
           numeric="${version%%-*}"
 
+          # When this build was made, for `--version` to print. UTC, so two runners
+          # building the same tag do not disagree about the day.
+          #
+          # Only here. A developer's build stamps nothing, because a timestamp evaluated
+          # during a build differs on every build - which would end deterministic builds
+          # and make every local `dotnet build` a full recompile.
+          built="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
           echo "tag=$tag"         >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "numeric=$numeric" >> "$GITHUB_OUTPUT"
+          echo "built=$built"     >> "$GITHUB_OUTPUT"
 
       - name: Publish
         run: >
@@ -87,6 +96,7 @@ jobs:
           -p:Version=${{ steps.version.outputs.version }}
           -p:AssemblyVersion=${{ steps.version.outputs.numeric }}
           -p:FileVersion=${{ steps.version.outputs.numeric }}
+          -p:BuildTimestamp=${{ steps.version.outputs.built }}
           -o published
 
       # A binary nothing has run is a guess. Both of these are what a first-time user does,

@@ -68,6 +68,42 @@ public class KotlinNestedAndOptionalTests
     [Fact]
     public void A_reference_inside_a_record_compiles() => AssertCompiles("record-ref");
 
+    /// <summary>
+    /// An array of references: numbered reference columns folded into one array.
+    /// </summary>
+    /// <remarks>
+    /// The shape `foreign[]`'s refusal points at, and nothing in the corpus held one - so this
+    /// page was generated for every language and never compiled. Both forms of a reference
+    /// are in the fixture, because they resolve to different types: a whole row and one of that
+    /// row's values. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void An_array_of_references_compiles() => AssertCompiles("serial-ref");
+
+    /// <summary>
+    /// An array whose elements may be absent, which reads a second bitmap per column.
+    /// </summary>
+    /// <remarks>
+    /// The read walks the bitmap with a counter that steps once per element of every row, and
+    /// the per-element answer beside the value is a shape the page did not have before.
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void Optional_array_elements_compile()
+        => AssertCompiles("nullable-elements");
+
+    /// <summary>
+    /// A column whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// The shape is one slot holding the resolved row whatever table it came from, the
+    /// discriminator saying which, and one accessor per target that narrows the slot back to
+    /// that table's type. Every part of that is spelled by this generator, and the narrowing is
+    /// the part a compiler has something to say about. spec/multi-target-accessors.md.
+    /// </remarks>
+    [Fact]
+    public void A_multi_target_column_compiles() => AssertCompiles("multi-target");
+
     private static void AssertCompiles(string scenario)
     {
         var conversion = TabbitRunner.Convert(scenario);

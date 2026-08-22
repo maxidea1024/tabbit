@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>cs-check-serial-ref</AssemblyName>
+    <RootNamespace>Tabbit.CsCheckSerialRef</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The generated output, compiled from wherever the test harness put it. Both the
+      accessor and the emitted reader are picked up, which is the point: the output is
+      self-contained and needs nothing else to build.
+    -->
+    <Compile Include="$(GeneratedDir)\**\*.cs" />
+  </ItemGroup>
+
+</Project>

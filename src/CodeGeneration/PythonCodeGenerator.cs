@@ -72,6 +72,22 @@ public sealed class PythonRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -89,10 +105,17 @@ public sealed class PythonRecipe : IOutputRecipe
 [TabbitTarget("python", TargetKind.CodeGeneration, Order = 70)]
 public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private PythonRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting
+    // is reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Snake;
 
     /// <summary>
     /// A record group generates a class and a list of it; a member column fills one of its
@@ -123,6 +146,12 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, PythonRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -132,6 +161,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Snake, "python");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -155,7 +185,16 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         Write(_recipe.ModuleName + ".py", "python-accessor.sbn", new PythonPartView
         {
             AccessorName = AccessorType,
-            Imports = _model.Tables.Select(table => TableImport(table)).ToList(),
+
+            // And the discriminator of every column reaching several tables: linking compares
+            // against it, so the accessor names that type as well as the table classes.
+            // spec/multi-target-accessors.md.
+            Imports = _model.Tables.Select(table => TableImport(table))
+                            .Concat(_model.Tables
+                                          .SelectMany(TypeDependencies.MultiTargetDiscriminatorsOf)
+                                          .Select(EnumImport)
+                                          .Distinct())
+                            .ToList(),
             Accessor = view.Accessor,
         });
 
@@ -167,7 +206,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             Write(TableModule(pair.model) + ".py", "python-table.sbn", new PythonPartView
             {
                 AccessorName = AccessorType,
-                Imports = TypeDependencies.EnumsNamedBy(pair.model).Select(EnumImport).ToList(),
+                Imports = TypeDependencies.EnumsNamedBy(pair.model)
+                                          .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
+                                          .Select(EnumImport).ToList(),
                 AccessorModule = _recipe.ModuleName,
                 Table = pair.rendered,
             });
@@ -190,7 +231,8 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             Write(ConstantsModule(pair.model) + ".py", "python-constants.sbn", new PythonPartView
             {
                 AccessorName = AccessorType,
-                Imports = TypeDependencies.EnumsNamedBy(pair.model).Select(EnumImport).ToList(),
+                Imports = TypeDependencies.EnumsNamedBy(pair.model)
+                                          .Select(EnumImport).ToList(),
                 Set = pair.rendered,
             });
         }
@@ -243,7 +285,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // The subpackage's `__init__`, so `from . import tabbit` keeps naming the
         // reader's own symbols - which is what every generated module reaches for.
         // Two lines rather than making the reader itself the `__init__`: the file is
-        // called tcb_reader in all thirteen languages, and it should be here
+        // called tcb_reader in every language, and it should be here
         // too.
         StagingFiles.WriteAllTextToFile(
             System.IO.Path.GetFullPath(System.IO.Path.Combine(runtime, "__init__.py")),
@@ -364,7 +406,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             DefaultValue = fallback.Value.ToString(CultureInfo.InvariantCulture),
             Labels = enumm.Labels.Select(label => new PythonEnumLabelView
             {
-                Name = PythonName(label.Name),
+                Name = PythonSnakeName(label.Name),
                 Value = label.Value.ToString(CultureInfo.InvariantCulture),
                 Comment = CommentLines(label.Comment),
             }).ToList(),
@@ -379,7 +421,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         Constants = constantSet.Constants.Select(constant => new PythonConstantView
         {
             // Python constants are SCREAMING_SNAKE_CASE by convention.
-            Name = constant.Name.ToSnakeCase().ToUpperInvariant(),
+            Name = constant.Name.ToUpperSnakeCase(),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
         }).ToList(),
@@ -399,8 +441,23 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             if (sf.IsRef)
                 slots.Add(PythonName(sf.Name) + "_index");
 
-            if (!sf.IsRecord && !sf.Fields[0].IsRequired)
+            if (sf.RowMayBeAbsent)
                 slots.Add(PresenceMember(sf));
+
+            // And the per-element answer, which is a list rather than a flag.
+            // spec/nullable-array-elements.md.
+            if (sf.ElementMayBeAbsent)
+                slots.Add(ElementPresenceMember(sf));
+        }
+
+        // A column reaching several tables adds the resolved row and the discriminator beside
+        // the key. spec/multi-target-accessors.md.
+        var multiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList();
+
+        foreach (var reference in multiReferences)
+        {
+            slots.Add(reference.SlotMember);
+            slots.Add(reference.TargetMember);
         }
 
         return new PythonTableView
@@ -414,6 +471,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             TableSlotNames = Tuple(
                 new[] { "records" }.Concat(Indexes(table).Select(index => index.MapName)).ToList()),
             SlotNames = Tuple(slots),
+            MultiReferences = multiReferences,
             ReprFormat = string.Join(", ", table.SerialFields.Select(sf => PythonName(sf.Name) + "=%r")),
             ReprValues = Tuple(table.SerialFields.Select(sf => "self." + PythonName(sf.Name)).ToList(),
                                quote: false),
@@ -450,13 +508,50 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     private static string PrimaryLookup(Table? refTable)
         => "find_by_" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToSnakeCase();
 
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// that in every language: the discriminator is a value a consumer reads, so a language
+    /// that resolved a zero where another did not would answer a different table for the same
+    /// row. spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType == ValueType.String ? "!= \"\"" : "!= 0";
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private PythonMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new PythonMultiReferenceView
+        {
+            KeyMember = PythonName(column.Group.Name),
+            SlotMember = PythonName(column.Group.Name) + "_row",
+            TargetMember = PythonName(column.Group.Name) + "_target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = PythonSnakeName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new PythonMultiTargetView
+            {
+                Table = PythonName(target.Name),
+                Property = PythonName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+
+                // Spelled the way this generator spells every other label, which is not the
+                // model's spelling: the label list is snake cased here. Reading the model name
+                // straight would name a member the enum module does not declare.
+                Label = PythonSnakeName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+
     private PythonFieldView BuildField(Table table, SerialField sf)
     {
         if (sf.IsRecord)
             return BuildRecordField(table, sf);
 
         string name = PythonName(sf.Name);
-        bool nullable = !sf.Fields[0].IsRequired;
+        bool nullable = sf.RowMayBeAbsent;
 
         var initializers = Initializers(sf, name).ToList();
 
@@ -464,6 +559,11 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // leaves the attribute absent rather than claiming a value it never got.
         if (nullable)
             initializers.Add($"self.{PresenceMember(sf)} = False");
+
+        // Empty until the read fills it, for the same reason. An index into an empty list is
+        // out of range, and `has_x_at` answers true there.
+        if (sf.ElementMayBeAbsent)
+            initializers.Add($"self.{ElementPresenceMember(sf)} = []");
 
         return new PythonFieldView
         {
@@ -477,7 +577,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             RecordReprFormat = "",
             RecordReprValues = "",
             IsNullable = nullable,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = ElementPresenceMember(sf),
         };
     }
 
@@ -521,6 +623,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                     // The list is the member's when the group is one record - same columns,
                     // same wire, and only which of the two owns it differs.
                     Initializers = MemberInitializers(member),
+                    Multi = MultiMemberOrNull(member),
                 });
 
                 continue;
@@ -533,6 +636,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
             declared.Add(new PythonRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -565,6 +669,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         recordTypes.Add(new PythonRecordTypeView
         {
+            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -652,7 +757,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 ? "element_count = cursor.next_length()"
                 : "element_count = reader.read_counter32()",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = ElementPresenceMember(wire.Group),
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -674,8 +781,12 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : PythonName("has_" + sf.Name);
+
+    /// <summary>The attribute holding which of an array's elements have a value.</summary>
+    private string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : PythonName("has_" + sf.Name + "_at");
 
     /// <summary>What one record member starts at, for the same reason an ordinary one does.</summary>
     /// <summary>
@@ -712,12 +823,121 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 };
         }
 
+        // A member reaching several tables keeps its key and gains two attributes: one slot
+        // for the resolved row whatever table it came from, and the discriminator saying
+        // which. At the member's own arity. spec/multi-target-accessors.md.
+        var multi = MultiMemberOrNull(member);
+
+        if (multi is not null)
+        {
+            string none = $"{multi.TargetTypeName}.{multi.NoneLabel}";
+
+            return member.IsArray
+                ? new[]
+                {
+                    $"self.{name} = [{MemberDefault(member)}] * {member.Fields.Count}",
+                    $"self.{multi.SlotMember} = [None] * {member.Fields.Count}",
+                    $"self.{multi.TargetMember} = [{none}] * {member.Fields.Count}",
+                }
+                : new[]
+                {
+                    $"self.{name} = {MemberDefault(member)}",
+                    $"self.{multi.SlotMember} = None",
+                    $"self.{multi.TargetMember} = {none}",
+                };
+        }
+
         // The list is the member's when the group is one record - same columns, same wire,
         // and only which of the two owns it differs.
         return member.IsArray
             ? new[] { $"self.{name} = [{MemberDefault(member)}] * {member.Fields.Count}" }
             : new[] { $"self.{name} = {MemberDefault(member)}" };
     }
+
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    private PythonMultiMemberView? MultiMemberOrNull(RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string name = PythonName(member.Name);
+
+        return new PythonMultiMemberView
+        {
+            KeyMember = name,
+            SlotMember = name + "_row",
+            TargetMember = name + "_target",
+            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
+            NoneLabel = PythonSnakeName("None"),
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new PythonMultiTargetView
+            {
+                Table = PythonName(target.Name),
+                Property = PythonName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+
+                // Snake cased here, as the enum module spells its labels - reading the
+                // model name straight would name a member that module does not declare.
+                Label = PythonSnakeName(target.Name),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member. spec/references-in-records.md.
+    /// </remarks>
+    private PythonMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = PythonName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + PythonName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{name}{member}"
+            : $"record.{name}[i]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+
+        return new PythonMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "_row" + subscript,
+            Target = path + "_target" + subscript,
+
+            // Whichever list holds the elements. The key member is that list where the
+            // members are the arrays, so there is no separate key list to count.
+            Range = isArray
+                ? (wire.Group.MembersAreArrays ? $"range(len({path}))" : $"range(len(record.{name}))")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            NoneLabel = PythonSnakeName("None"),
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new PythonMultiTargetView
+            {
+                Table = PythonName(target.Name),
+                Property = "",
+                Label = PythonSnakeName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
 
     /// <summary>What a stored key holds before a row is read.</summary>
     private static string RefKeyDefault(ValueType keyType)
@@ -742,7 +962,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + PythonName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -786,6 +1006,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
             if (member.IsLeaf && member.IsRef)
                 result.Add(PythonName(member.Name) + "_index");
+
+            // The slot and the discriminator of a member reaching several tables, for the same
+            // reason: the linking pass assigns to both. spec/multi-target-accessors.md.
+            if (member.IsLeaf && member.FirstField is { IsMultiRef: true, MultiTargetEnum: not null })
+            {
+                result.Add(PythonName(member.Name) + "_row");
+                result.Add(PythonName(member.Name) + "_target");
+            }
         }
 
         return result;
@@ -815,7 +1043,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// </remarks>
     private string EmptyValue(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "[]";
 
         // The resolved attribute points at the target row, and absence there is what None
@@ -849,7 +1077,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // Arrays go through it too. An array block states an encoding for its elements and
         // one for its rows' lengths, and the cursor is what decodes both - so an array's
         // elements are read exactly the way a scalar column's are, one level down.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -908,7 +1136,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row
         // does not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
@@ -938,7 +1166,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// The line assigning one row from the value the run decoded, inside the loop the
     /// template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -1048,11 +1276,8 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "tabbit.KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "tabbit.KIND_FIXED_ARRAY" : "tabbit.KIND_SCALAR");
+        string kind = wire.IsArray ? "tabbit.KIND_ARRAY" : "tabbit.KIND_SCALAR";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string accepted;
 
@@ -1091,7 +1316,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                     accepted = "tabbit.ELEMENT_I64,"; break;
 
                 default:
-                    throw new TabbitException($"The python generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The python generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -1100,7 +1325,11 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "True" : "False";
 
-        return $"tabbit.check_column(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, ({accepted}))";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", True" : "";
+
+        return $"tabbit.check_column(column, \"{tableName}.{wire.Name}\", {kind}, "
+            + $"{nullable}, ({accepted}){elements})";
     }
 
     /// <summary>
@@ -1116,10 +1345,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the list decides where the index goes, and an unnamed
@@ -1127,14 +1353,17 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            // A trimmed array of references: the length is the row's, and the key still goes
+            // in the array beside the values. Read as a plain `var_array` it put the keys where
+            // the resolved rows belong, and the linking pass then found nothing to resolve -
+            // silently, because this language does not type them apart. Nothing held the shape:
+            // `foreign[]` is refused, so it is only reachable through a folded group with
+            // trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -1142,15 +1371,15 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     private PythonAccessorView BuildAccessor() => new PythonAccessorView
     {
         FileExtension = _recipe.BinaryTableFileExtension,
-        SlotNames = Tuple(_model.Tables.Select(table => PythonName(table.Name)).ToList()),
+        SlotNames = Tuple(_model.Tables.Select(table => PythonSnakeName(table.Name)).ToList()),
 
         Tables = _model.Tables.Select(table => new PythonTableSlotView
         {
-            Name = PythonName(table.Name),
+            Name = PythonSnakeName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables
@@ -1167,12 +1396,26 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new PythonCrossReferenceView
             {
                 Table = PythonName(x.Table.Name),
                 RecordFields = x.RecordFields,
+                MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new PythonReferenceFieldView
                 {
                     Name = PythonName(sf.Name),
@@ -1205,7 +1448,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                     return LanguageProfile.Python.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Python.ReadCall(wire.ElementType);
         }
     }
@@ -1247,12 +1490,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             case ValueType.Enum:
             {
                 var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
-                return $"{constant.Enum.Name.ToPascalCase()}.{PythonName(label.Name)}";
+                return $"{constant.Enum.Name.ToPascalCase()}.{PythonSnakeName(label.Name)}";
             }
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the python generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "python")));
         }
     }
 
@@ -1302,7 +1547,18 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// snake_case, and escaped when it lands on a keyword - which it can, because
     /// Python members are lowercase and so is nearly every Python keyword.
     /// </summary>
-    private static string PythonName(string name) => LanguageProfile.Python.MemberName(name.ToSnakeCase());
+    private string PythonName(string name) => LanguageProfile.Python.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for the names that are not members.
+    /// </summary>
+    /// <remarks>
+    /// An enum label and an accessor's per-table slot are snake_case here because that is
+    /// how Python writes an identifier, not because a member is. They read the same
+    /// function today and would follow a member's spelling anywhere - which is a
+    /// coincidence of shared code rather than an intention, so it is spelled out.
+    /// </remarks>
+    private static string PythonSnakeName(string name) => LanguageProfile.Python.MemberName(name.ToSnakeCase());
 
     // `new`, and not the base one: each line goes through this target's own doc
     // escaping on the way out.

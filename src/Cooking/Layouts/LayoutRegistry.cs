@@ -46,6 +46,9 @@ public sealed class LayoutDescriptor
 /// </summary>
 public static class LayoutRegistry
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     private static readonly Lazy<IReadOnlyList<LayoutDescriptor>> LazyAll =
         new Lazy<IReadOnlyList<LayoutDescriptor>>(Discover);
 
@@ -64,9 +67,9 @@ public static class LayoutRegistry
         if (found is not null)
             return found;
 
-        throw new TabbitException(
-            $"A recipe source asks for the sheet layout `{id}`, which does not exist. " +
-            $"Use one of: {KnownIds}.");
+            throw new TabbitException(null,
+                Messages.Message.Of(Recipe.RecipeMessages.LayoutUnknown,
+                    ("Layout", id), ("Known", KnownIds)));
     }
 
     /// <summary>
@@ -93,7 +96,7 @@ public static class LayoutRegistry
 
             if (type.IsAbstract || !typeof(ILayoutParser).IsAssignableFrom(type))
             {
-                throw new TabbitException(
+                throw new TabbitDefectException(
                     $"`{type.Name}` is marked [TabbitLayout] but is not a concrete {nameof(ILayoutParser)}.");
             }
 
@@ -104,7 +107,7 @@ public static class LayoutRegistry
         var duplicate = descriptors.GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)
                                    .FirstOrDefault(g => g.Count() > 1);
         if (duplicate is not null)
-            throw new TabbitException($"Two layouts both claim the id `{duplicate.Key}`.");
+            throw new TabbitDefectException($"Two layouts both claim the id `{duplicate.Key}`.");
 
         descriptors.Sort((left, right) => string.CompareOrdinal(left.Id, right.Id));
 

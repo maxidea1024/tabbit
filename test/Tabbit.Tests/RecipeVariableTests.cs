@@ -153,6 +153,7 @@ public class RecipeVariableTests : IDisposable
         var ex = Assert.Throws<TabbitException>(() => RecipeModel.LoadFromFile(Write(
             @"{ ""Sources"": { ""Xlsx"": [ { ""Path"": ""./${TABBIT_TEST_NOT_SET}"" } ] } }")));
 
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.VariablesNotSet, ex.MessageId);
         Assert.Contains("TABBIT_TEST_NOT_SET", ex.Message);
         Assert.Contains("Sources.Xlsx[0].Path", ex.Message);
     }
@@ -168,6 +169,7 @@ public class RecipeVariableTests : IDisposable
             @"{ ""Sources"": { ""Xlsx"": [ { ""Path"": ""./${TABBIT_TEST_ONE}"" } ] },
                  ""Targets"": [ { ""Type"": ""json"", ""Path"": ""./${TABBIT_TEST_TWO}"" } ] }")));
 
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.VariablesNotSet, ex.MessageId);
         Assert.Contains("TABBIT_TEST_ONE", ex.Message);
         Assert.Contains("TABBIT_TEST_TWO", ex.Message);
     }
@@ -184,8 +186,7 @@ public class RecipeVariableTests : IDisposable
         var ex = Assert.Throws<TabbitException>(() => RecipeModel.LoadFromFile(Write(
             @"{ ""Sources"": { ""Xlsx"": [ { ""Path"": ""./sheets/${TABBIT_ENV}"" } ] } }")));
 
-        Assert.Contains("--env", ex.Message);
-        Assert.Contains("one person", ex.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.VariablesNotSetWithEnvironment, ex.MessageId);
     }
 
     // -------------------------------------------------- what is left for later

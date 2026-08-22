@@ -117,7 +117,7 @@ class MountTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Mount.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Mount.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Mount.Index")
                 at = 0
                 while at < count:
@@ -126,16 +126,27 @@ class MountTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Mount.Rig.Core.ItemId", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32,))
+                tabbit.check_column(column, "Mount.Rig.Core.ItemId", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Mount.Rig.Core.ItemId")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    # The first member builds the list; the rest check. Building it again
+                    # would discard what the members before it wrote, and taking the shorter
+                    # of two counts would shift every value after it.
+                    record.rig = [
+                        MountRigEntry() for _ in range(element_count)]
+                    for element in range(element_count):
                         record.rig[element].core.item_id_index = cursor.next_i32()
             elif column.tag == 3:
-                tabbit.check_column(column, "Mount.Rig.Core.Count", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Mount.Rig.Core.Count", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Mount.Rig.Core.Count")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    if len(record.rig) != element_count:
+                        raise tabbit.TcbError(
+                            "Mount.rig: the file gives one member of "
+                            "this record a different element count than another")
+                    for element in range(element_count):
                         record.rig[element].core.count = cursor.next_i32()
             else:
                 # A column added after this code was generated.

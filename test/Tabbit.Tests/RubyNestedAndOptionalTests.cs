@@ -38,6 +38,24 @@ raise 'tags' unless rows[0].tag_array == %w[a b]
 ");
 
     /// <summary>
+    /// An array whose elements may be absent: the per-element answer beside the value.
+    /// </summary>
+    /// <remarks>
+    /// Read rather than compiled, which is what this gate is for: the bitmap is walked with a
+    /// counter that steps once per element of every row, and a reader that stepped per row
+    /// would still run. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void Optional_array_elements_read()
+        => AssertReads("nullable-elements", "NullableElements", @"
+rows = accessor.listing.records
+raise 'row count' unless rows.length == 5
+raise 'holes' unless rows[1].has_holes_at == [true, false, true]
+raise 'words' unless rows[3].words == ['a', '', 'c']
+raise 'words presence' unless rows[3].has_words_at == [true, true, true]
+");
+
+    /// <summary>
     /// A record array whose length is each row's - including the row that filled in none of
     /// it, and the one whose gap is a value rather than an end.
     /// </summary>
@@ -141,6 +159,73 @@ raise unless accessor.mount.records[0].rig[0].core.item_id.name == 'sword'
 raise unless accessor.pose.records[0].step[0].clip_id.index == 'Idle_01'
 raise unless accessor.kit.records.map { |r| r.part.length } == [3, 2, 0]
 raise unless accessor.kit.records[1].part[0].item_id.name == 'shield'
+");
+
+    /// <summary>
+    /// An array of references: numbered reference columns folded into one array.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only compiling, because the failure this guards against is code that
+    /// runs and resolves nothing: the keys arrive on the wire and the values are written by the
+    /// linking pass, which walks the array it was given. Element 0 and element 1 point at
+    /// different rows, so a loop that resolved the first and left the rest shows as the wrong
+    /// value. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void An_array_of_references_reads()
+        => AssertReads("serial-ref", "SerialRef", @"
+rows = accessor.kit.records
+raise unless rows.map { |r| r.slot_array.length } == [2, 2, 2]
+raise unless rows[0].slot_array[0].name == 'sword'
+raise unless rows[0].slot_array[1].name == 'shield'
+raise unless rows[1].slot_array[0].name == 'ring'
+raise unless rows[2].slot_array[1].nil?
+raise unless rows[0].tier_array == [3, 5]
+raise unless rows[2].tier_array[1].nil?
+trimmed = accessor.trim_kit.records
+raise unless trimmed.map { |r| r.slot_array.length } == [3, 2, 0]
+raise unless trimmed[0].slot_array[2].name == 'ring'
+raise unless trimmed[1].slot_array[0].name == 'ring'
+raise unless trimmed[0].tier_array[2] == 8
+");
+
+    /// <summary>
+    /// A column whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
+    /// discriminator are written by the same assignment, and one set a target late hands out a
+    /// row of the wrong table. The wide column is checked at its first and last target, which
+    /// is where an off-by-one shows. spec/multi-target-accessors.md.
+    /// </remarks>
+    [Fact]
+    public void A_multi_target_column_reads()
+        => AssertReads("multi-target", "MultiTarget", @"
+rows = accessor.holder.records
+raise unless rows[0].weapon_by_pick.name == 'weapon-a'
+raise unless rows[0].armour_by_pick.nil?
+raise unless rows[1].armour_by_pick.name == 'armour-b'
+raise unless rows[1].weapon_by_pick.nil?
+raise unless rows[0].trinket_by_wide.name == 'trinket-a'
+raise unless rows[1].banner_by_wide.name == 'banner-b'
+raise unless rows[2].weapon_by_wide.name == 'weapon-a'
+raise unless rows[1].maybe_target == MultiTarget::HolderMaybeTarget::NONE
+raise unless rows[1].weapon_by_maybe.nil? && rows[1].armour_by_maybe.nil?
+raise unless rows[0].only.name == 'weapon-a'
+groups = accessor.loadout.records
+raise unless groups[0].slot[0].weapon_by_pick.name == 'weapon-a'
+raise unless groups[0].slot[1].armour_by_pick.name == 'armour-a'
+raise unless groups[0].slot[0].armour_by_pick.nil?
+raise unless groups[1].slot[0].armour_by_pick.name == 'armour-b'
+fittings = accessor.fitting.records
+raise unless fittings[0].main.armour_by_pick.name == 'armour-a'
+raise unless fittings[1].main.weapon_by_pick.name == 'weapon-b'
+raise unless fittings[0].main.weapon_by_pick.nil?
+racks = accessor.rack.records
+raise unless racks[0].slots.weapon_by_pick(0).name == 'weapon-a'
+raise unless racks[0].slots.armour_by_pick(1).name == 'armour-b'
+raise unless racks[0].slots.weapon_by_pick(1).nil?
+raise unless racks[1].slots.armour_by_pick(0).name == 'armour-a'
 ");
 
     private static void AssertReads(string scenario, string module, string body)

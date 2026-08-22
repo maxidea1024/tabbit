@@ -116,12 +116,12 @@ module KeyTypes
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Asset.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_UUID])
+          Tabbit.check_column(column, 'Asset.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_UUID])
           records.each do |record|
             record.index = reader.read_uuid
           end
         when 2
-          Tabbit.check_column(column, 'Asset.Path', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Asset.Path', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Asset.Path')
           at = 0
           while at < count
@@ -132,7 +132,7 @@ module KeyTypes
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Asset.Slot', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Asset.Slot', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Asset.Slot')
           at = 0
           while at < count

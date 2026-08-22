@@ -140,7 +140,7 @@ final class BadgeTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Badge.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Badge.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Badge.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -151,7 +151,7 @@ final class BadgeTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Badge.Mark.ClipId', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Badge.Mark.ClipId', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Badge.Mark.ClipId');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -162,14 +162,14 @@ final class BadgeTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Badge.Mark.SealId', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_UUID]);
+                    TcbReader::checkColumn($column, 'Badge.Mark.SealId', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_UUID]);
                     foreach ($records as $record) {
                         $record->mark->sealIdIndex = $reader->readUuid();
                     }
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Badge.Mark.Rank', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Badge.Mark.Rank', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Badge.Mark.Rank');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -180,7 +180,7 @@ final class BadgeTable
                     break;
 
                 case 5:
-                    TcbReader::checkColumn($column, 'Badge.Pad', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Badge.Pad', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Badge.Pad');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);

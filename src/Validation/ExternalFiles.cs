@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Tabbit.Messages;
 
 namespace Tabbit.Validation;
 
@@ -84,7 +85,7 @@ internal sealed class ExternalFiles
     internal FileMap Map(string root, string pattern)
     {
         if (string.IsNullOrWhiteSpace(root))
-            throw new TabbitException("`Files()` needs a folder to scan. Pass one - `Option(\"ContentRoot\")` is where it usually comes from.");
+            throw new TabbitException(null, Message.Of(ValidationMessages.FilesNeedsFolder));
 
         string full = System.IO.Path.GetFullPath(root);
         string key = $"{full}|{pattern}";
@@ -96,10 +97,9 @@ internal sealed class ExternalFiles
 
             if (!Directory.Exists(full))
             {
-                throw new TabbitException(
-                    $"`Files(\"{root}\", \"{pattern}\")` found no folder at `{full}`. A rule that "
-                    + $"checks assets needs the content root, which the recipe passes through "
-                    + $"`Validation.Options`.");
+                throw new TabbitException(null,
+                    Message.Of(ValidationMessages.FilesFolderMissing,
+                        ("Root", root), ("Pattern", pattern), ("Full", full)));
             }
 
             var map = new FileMap(full, pattern,
@@ -126,7 +126,8 @@ internal sealed class ExternalFiles
                 return found;
 
             if (!File.Exists(full))
-                throw new TabbitException($"`Json(\"{path}\")` found no file at `{full}`.");
+                throw new TabbitException(null,
+                    Message.Of(ValidationMessages.JsonFileMissing, ("Path", path), ("Full", full)));
 
             JToken parsed;
 
@@ -134,9 +135,11 @@ internal sealed class ExternalFiles
             {
                 parsed = JToken.Parse(File.ReadAllText(full));
             }
-            catch (Exception failure)
+            catch (Exception failure) when (failure is not TabbitDefectException)
             {
-                throw new TabbitException($"`{full}` is not readable as JSON: {failure.Message}");
+                throw new TabbitException(null,
+                    Message.Of(ValidationMessages.JsonUnreadable,
+                        ("Full", full), ("Detail", failure.Message)));
             }
 
             _json.Add(full, parsed);

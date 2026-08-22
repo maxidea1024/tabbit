@@ -96,7 +96,7 @@ public final class KitTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Kit.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Kit.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,7 +107,7 @@ public final class KitTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Kit.Part.ItemId", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumn(column, "Kit.Part.ItemId", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Part.ItemId");
                     for (KitRecord record : loaded) {
                         int elementCount;
@@ -125,7 +125,7 @@ public final class KitTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Kit.Part.Count", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Kit.Part.Count", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Part.Count");
                     for (KitRecord record : loaded) {
                         int elementCount;

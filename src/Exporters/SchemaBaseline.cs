@@ -5,6 +5,7 @@ using Tabbit.Models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -49,13 +50,32 @@ namespace Tabbit.Exporters;
 /// </summary>
 public class SchemaBaseline
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     /// <summary>What this file is, for whoever opens it without context.</summary>
     public string Comment { get; set; } =
         "Tabbit's record of the columns data was last written with. Commit it: the " +
         "converter compares the schema against this and refuses a change that would " +
         "break a reader already deployed. See doc/binary-format.md.";
 
-    public int BaselineVersion { get; set; } = 1;
+    /// <summary>
+    /// What this file's numbers mean, which is not the same question as what it holds.
+    /// </summary>
+    /// <remarks>
+    /// `Kind` is stored as the wire's own number, so the meaning of a baseline is tied to the
+    /// table format version. v107 renumbered the array kinds, and a v1 baseline compared
+    /// against a v107 build reported every variable-length array as a scalar that had become
+    /// an array - a breaking change that had not happened.
+    ///
+    /// An older baseline is therefore replaced rather than compared. Nothing is lost by it:
+    /// the question this file asks is whether an already-deployed reader would break, and a
+    /// reader from before a format version bump cannot read the new files at all. It is
+    /// refused by version at the header, so the answer is already yes and unavoidable.
+    /// </remarks>
+    public const int CurrentBaselineVersion = 2;
+
+    public int BaselineVersion { get; set; } = CurrentBaselineVersion;
 
     /// <summary>Table name to its columns, keyed by tag.</summary>
     public Dictionary<string, Dictionary<string, Column>> Tables { get; set; }
@@ -70,11 +90,14 @@ public class SchemaBaseline
         /// <summary>The wire element, as the descriptor's low nibble.</summary>
         public byte Element { get; set; }
 
-        /// <summary>Scalar, fixed array or variable array.</summary>
+        /// <summary>Scalar or array.</summary>
+        /// <remarks>
+        /// An element count used to sit beside this. It said how many elements a fixed
+        /// array held per row, and a change to it was a breaking change; since v107 there
+        /// is no fixed array and a length is per row, so adding an element to a group is
+        /// no longer a schema change at all. spec/tcb-v107-dynamic-arrays.md.
+        /// </remarks>
         public byte Kind { get; set; }
-
-        /// <summary>Elements per row: 1, N, or 0 for a variable array.</summary>
-        public int Count { get; set; }
 
         /// <summary>
         /// Whether the column is gone and the tag is spent.
@@ -133,12 +156,11 @@ public class SchemaBaseline
 
         if (problems.Count > 0)
         {
-            throw new TabbitException(
-                $"The schema changed in {problems.Count} way(s) that a reader already " +
-                "built from the previous schema would not survive:\n\n  " +
-                string.Join("\n\n  ", problems) +
-                "\n\nNothing was written. The baseline this is compared against is " +
-                $"`{Path.GetFullPath(filename)}`.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.SchemaBrokeReaders,
+                    ("Count", problems.Count),
+                    ("Problems", string.Join("\n\n  ", problems)),
+                    ("Baseline", Path.GetFullPath(filename))));
         }
 
         StagingFiles.WriteToJsonFile(filename, updated);
@@ -196,7 +218,7 @@ public class SchemaBaseline
                 continue;
             }
 
-            if (before.Element == now.Element && before.Kind == now.Kind && before.Count == now.Count)
+            if (before.Element == now.Element && before.Kind == now.Kind)
                 continue;
 
             if (accepted.Contains($"{table.Name}.{now.Name}"))
@@ -252,7 +274,6 @@ public class SchemaBaseline
                 Name = column.Name,
                 Element = TcbFormat.ElementFor(column),
                 Kind = TcbFormat.KindFor(column),
-                Count = TcbFormat.CountFor(column),
                 ExplicitTag = table.HasExplicitTags,
             };
         }
@@ -278,8 +299,7 @@ public class SchemaBaseline
 
         return column.Kind switch
         {
-            TcbFormat.KindFixedArray => $"{column.Count} of {element}",
-            TcbFormat.KindVarArray => $"a variable length array of {element}",
+            TcbFormat.KindArray => $"an array of {element}",
             _ => element,
         };
     }
@@ -300,15 +320,28 @@ public class SchemaBaseline
 
         try
         {
-            return JsonConvert.DeserializeObject<SchemaBaseline>(File.ReadAllText(filename))
-                   ?? new SchemaBaseline();
+            var loaded = JsonConvert.DeserializeObject<SchemaBaseline>(File.ReadAllText(filename))
+                         ?? new SchemaBaseline();
+
+            if (loaded.BaselineVersion != CurrentBaselineVersion)
+            {
+                Log.Warning(
+                    $"The schema baseline at '{Path.GetFullPath(filename)}' was written by an " +
+                    $"older build (baseline version {loaded.BaselineVersion}, this build writes " +
+                    $"{CurrentBaselineVersion}). Its column shapes are recorded as wire numbers " +
+                    "and those have moved, so it is replaced rather than compared - review the " +
+                    "new file and commit it.");
+
+                return new SchemaBaseline();
+            }
+
+            return loaded;
         }
         catch (JsonException e)
         {
-            throw new TabbitException(
-                $"The schema baseline `{Path.GetFullPath(filename)}` could not be read: " +
-                $"{e.Message}. Fix the file or delete it - deleting it gives up the check " +
-                "for one run and writes a new baseline from this schema.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.SchemaBaselineUnreadable,
+                    ("Baseline", Path.GetFullPath(filename)), ("Detail", e.Message)));
         }
     }
 }

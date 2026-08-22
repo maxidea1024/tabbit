@@ -79,6 +79,23 @@ public class TypescriptRecipe : IOutputRecipe
     /// generated reader will not match the data.
     /// </summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
+
     
     /// <summary>
     /// Emits enums as string unions rather than numeric enums.
@@ -106,6 +123,10 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private TypescriptRecipe _typescriptRecipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates an element interface and a member of it, in both read
@@ -136,6 +157,12 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// `hasXAt(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, TypescriptRecipe typescriptRecipe)
     {
         // A blank path means the entry is inert, as it is in the skeleton recipe.
@@ -152,6 +179,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // Already narrowed to the side this entry is built for. Both (the default)
         // leaves the model unchanged.
         _model = context.Model;
+        _memberCase = MemberCasing.From(typescriptRecipe.MemberCase, NameCase.Camel, "typescript");
 
         GenerateModel();
     }
@@ -190,7 +218,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 AccessorFile = AccessorFile,
                 Tables = _model.Tables.Select(table => new TsTableSlotView
                 {
-                    Member = TsName(table.Name),
+                    Member = TsCamelName(table.Name),
+                    DataFileName = table.DataFileName,
                     Local = TsLocalName(table.Name),
                     Name = table.Name,
                     File = TsFileName(table.Name),
@@ -198,6 +227,17 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
                 BinaryFileExtension = _typescriptRecipe.BinaryTableFileExtension,
                 CrossReferences = BuildCrossReferences(),
+
+                // Both kinds: a plain column reaching several tables and a record member
+                // doing the same. The linking compares against either discriminator, so this
+                // module names both types. spec/multi-target-accessors.md.
+                Imports = _model.Tables
+                                .SelectMany(DiscriminatorsOf)
+                                .Select(discriminator =>
+                                    $"import {{ {discriminator.Name.ToPascalCase()} }} "
+                                    + $"from './enums/{TsFileName(discriminator.Name)}'")
+                                .Distinct()
+                                .ToList(),
             });
 
         }
@@ -307,7 +347,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         Constants = constantSet.Constants.Select(constant => new TsConstantView
         {
-            Name = TsName(constant.Name),
+            Name = TsCamelName(constant.Name),
             Type = ToTypescriptTypename(constant.Type, constant.Enum, null),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
@@ -338,13 +378,29 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                                          .Where(wire => wire.Member is not null && wire.IsRef)
                                          .Select(BuildRecordReference)
                                          .ToList(),
+
+                     // A column reaching several tables is looked up in each of them in turn,
+                     // so it is a loop of its own too. spec/multi-target-accessors.md.
+                     MultiFields = MultiTargetColumns.Of(table)
+                                                     .Select(BuildMultiReference)
+                                                     .ToList(),
+
+                     // A member is resolved per element, so it is a loop of its own.
+                     // spec/multi-target-accessors.md.
+                     MultiRecordFields = table.WireColumns
+                                              .Where(IsMultiTargetMember)
+                                              .Select(BuildMultiRecordReference)
+                                              .ToList(),
                  })
-                 .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+                 .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                             || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
                  .Select(x => new TsCrossReferenceView
                  {
                      Table = TsName(x.Table.Name),
                      Fields = x.Fields.Select(BuildReferenceField).ToList(),
                      RecordFields = x.RecordFields,
+                     MultiFields = x.MultiFields,
+                     MultiRecordFields = x.MultiRecordFields,
                  })
                  .ToList();
 
@@ -366,7 +422,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         string member = string.Concat(wire.MemberPath.Select(name => "." + TsName(name)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         // Where the element number goes is the whole difference between the record shapes -
         // the group's array, the member's, or neither. spec/nested-multi-level.md.
@@ -458,6 +514,218 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     private static string PrimaryLookup(Models.Table refTable)
         => "getBy" + refTable.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase() + "OrThrow";
 
+    /// <summary>
+    /// The lookup that answers with undefined rather than throwing.
+    /// </summary>
+    /// <remarks>
+    /// What a multi-target column resolves through. A key absent from one of its targets is
+    /// the ordinary case - the row is in another of them - so the miss has to be an answer.
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    private static string PrimaryFind(Models.Table refTable)
+        => "findBy" + refTable.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// One record member whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// The member keeps its key; beside it go one slot for the resolved row and the
+    /// discriminator saying which table filled it, at the member's own arity. The slot is
+    /// typed as the union of the target records, which is more than most languages can say -
+    /// and the accessors are functions beside the element rather than members of it, because
+    /// this language's element type is an interface. spec/multi-target-accessors.md.
+    /// </remarks>
+    /// <summary>
+    /// Every discriminator one table's page names - the plain columns' and the record
+    /// members'. spec/multi-target-accessors.md.
+    /// </summary>
+    private static IEnumerable<Models.Enum> DiscriminatorsOf(Models.Table table)
+        => MultiTargetColumns.Of(table)
+                             .Select(column => column.Discriminator)
+                             .Concat(table.SerialFields
+                                          .Where(group => group.IsRecord)
+                                          .SelectMany(group => group.Leaves)
+                                          .Select(leaf => leaf.FirstField)
+                                          .Where(field => field is not null
+                                                          && field.IsMultiRef
+                                                          && field.MultiTargetEnum is not null)
+                                          .Select(field => field!.MultiTargetEnum!));
+
+    private TsRecordMemberView FillMultiTargetMember(TsRecordMemberView view, RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return view;
+
+        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
+
+        var targets = field.ResolvedRefTables!
+            .Select(target => new TsMultiMemberTargetView
+            {
+                RecordTypeName = target.Name.ToPascalCase() + "Record",
+                Function = TsName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Label = target.Name.ToPascalCase(),
+            })
+            .ToList();
+
+        string union = string.Join(" | ", targets.Select(t => t.RecordTypeName)) + " | undefined";
+
+        view.MultiTargetTypeName = enumType;
+        view.MultiIsArray = member.IsArray;
+        view.MultiSlotName = view.PropName + "Row";
+        view.MultiTargetName = view.PropName + "Target";
+        view.MultiSlotType = member.IsArray ? $"({union})[]" : union;
+        view.MultiTargetDeclaredType = member.IsArray ? enumType + "[]" : enumType;
+        view.MultiSlotDefault = member.IsArray
+            ? "[" + string.Join(", ", Enumerable.Repeat("undefined", member.Fields.Count)) + "]"
+            : "undefined";
+        view.MultiTargetDefault = member.IsArray
+            ? "[" + string.Join(", ", Enumerable.Repeat(enumType + ".None", member.Fields.Count)) + "]"
+            : enumType + ".None";
+        view.MultiTargets = targets;
+
+        return view;
+    }
+
+    /// <summary>
+    /// The multi-target members of a table's record groups, one entry per member.
+    /// </summary>
+    private IReadOnlyList<TsMultiMemberView> BuildMultiMembers(Models.Table table)
+    {
+        var result = new List<TsMultiMemberView>();
+
+        // The element type a leaf belongs to is the one its own level declares, so the walk
+        // carries the prefix the declaration is built from - `Rig` then `RigCore`. A name
+        // taken from the group alone is right only for a leaf directly under it.
+        // spec/nested-multi-level.md.
+        void Walk(string prefix, List<RecordMember> members)
+        {
+            foreach (var member in members)
+            {
+                if (!member.IsLeaf)
+                {
+                    Walk(prefix + member.Name.ToPascalCase(), member.Members);
+                    continue;
+                }
+
+                Collect(prefix + "Entry", member);
+            }
+        }
+
+        foreach (var group in table.SerialFields.Where(sf => sf.IsRecord))
+            Walk(group.Name.ToPascalCase(), group.Members);
+
+        return result;
+
+        void Collect(string elementTypeName, RecordMember leaf)
+        {
+            {
+                var field = leaf.FirstField;
+
+                if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+                    return;
+
+                string enumType = field.MultiTargetEnum.Name.ToPascalCase();
+
+                result.Add(new TsMultiMemberView
+                {
+                    ElementTypeName = elementTypeName,
+                    KeyName = TsName(leaf.Name),
+                    SlotName = TsName(leaf.Name) + "Row",
+                    TargetName = TsName(leaf.Name) + "Target",
+                    TargetTypeName = enumType,
+                    IsArray = leaf.IsArray,
+                    Targets = field.ResolvedRefTables!
+                        .Select(target => new TsMultiMemberTargetView
+                        {
+                            RecordTypeName = target.Name.ToPascalCase() + "Record",
+                            Function = TsName(target.Name.ToPascalCase() + "By" + leaf.Name.ToPascalCase()),
+                            Label = target.Name.ToPascalCase(),
+                        })
+                        .ToList(),
+                });
+            }
+        }
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    private TsMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string fieldName = "_" + TsName(wire.Group.Name);
+        string memberAccess = string.Concat(wire.MemberPath.Select(name => "." + TsName(name)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsArray;
+
+        // Where the element number goes is the whole difference between the record shapes -
+        // the group's array, the member's, or neither. spec/nested-multi-level.md.
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{fieldName}{memberAccess}"
+            : $"record.{fieldName}[i]{memberAccess}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+
+        return new TsMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "Row" + subscript,
+            Target = path + "Target" + subscript,
+            Count = isArray
+                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{fieldName}.length")
+                : "",
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            RefIsSet = RefIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new TsMultiTargetView
+            {
+                Table = TsName(target.Name),
+                RecordTypeName = target.Name.ToPascalCase() + "Record",
+                Prop = "",
+                Label = target.Name.ToPascalCase(),
+                Lookup = PrimaryFind(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private TsMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+    {
+        var targets = column.Targets.Select(target => new TsMultiTargetView
+        {
+            Table = TsName(target.Name),
+            RecordTypeName = target.Name.ToPascalCase() + "Record",
+            Prop = TsName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+            Label = target.Name.ToPascalCase(),
+            Lookup = PrimaryFind(target),
+        }).ToList();
+
+        return new TsMultiReferenceView
+        {
+            KeyProp = TsName(column.Group.Name),
+            KeyField = "_" + column.Group.Name.ToCamelCase(),
+            SlotField = "_" + column.Group.Name.ToCamelCase() + "Row",
+            TargetField = "_" + column.Group.Name.ToCamelCase() + "Target",
+            TargetProp = TsName(column.Group.Name + "Target"),
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+
+            // A union rather than `unknown`: the discriminator already tells a reader which
+            // of them it is, and saying so in the type lets the getters narrow instead of
+            // asserting.
+            SlotTypeName = string.Join(" | ", targets.Select(t => t.RecordTypeName)) + " | undefined",
+            RefIsSet = RefIsSetSuffix(column.Field.RefKeyType),
+            Targets = targets,
+        };
+    }
+
     private TsTableView BuildTable(Models.Table table)
     {
         var fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList();
@@ -485,11 +753,17 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                                    .Select(x => x.view)
                                    .ToList(),
 
+            MultiReferenceFields = MultiTargetColumns.Of(table)
+                                                     .Select(BuildMultiReference)
+                                                     .ToList(),
+            MultiMembers = BuildMultiMembers(table),
+
             // One cursor variable for the whole method: switch cases share a scope in
             // JavaScript too, so each encodable column assigns it rather than declaring
             // its own.
             NeedsCursor = table.WireColumns.Any(UsesCursor),
             NeedsPresence = table.WireColumns.Any(c => c.IsNullable),
+            NeedsElementPresence = table.WireColumns.Any(c => c.HasOptionalElements),
         };
     }
 
@@ -527,7 +801,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             RefTable = wire.TagCarrier.RefTableName.ToPascalCase() ?? "",
             IsFirstMember = wire.IsFirstMember,
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceField = "_" + TsName(wire.Group.Name) + "HasValue",
+            ElementPresenceField = "_" + TsName(wire.Group.Name) + "HasValueAt",
             EmptyValue = wire.Group.IsArray ? "[]" : DefaultValue(wire.Group),
             QualifiedGroupName = $"{table.Name.ToPascalCase()}.{wire.Group.Name.ToPascalCase()}",
 
@@ -552,24 +828,25 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var_array_member";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "record_member";
 
             // Which of the two owns the array decides where the index goes.
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_array" : "record_array_member";
+            return wire.Group.MembersAreArrays
+                ? "record_member_array"
+                : "record_var_array_member";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "array_ref" : "array";
+        // A trimmed array of references: the length is the row's, and the keys still arrive in
+        // the array beside the values. Read as a plain `var_array` it pushed a number into the
+        // array of rows, which `tsc` refuses - and nothing held the shape, because `foreign[]`
+        // is refused and this is only reachable through a folded group with trimming on.
+        // spec/variable-length-record-arrays.md.
+        if (wire.IsArray)
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -613,6 +890,43 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             }
         }
 
+        // A column reaching several tables names all of them and the enumeration that says
+        // which one answered. Asked separately because the loop above reads the element type,
+        // and such a column's element type is the key it carries - it says nothing about the
+        // tables. spec/multi-target-accessors.md.
+        foreach (var column in MultiTargetColumns.Of(table))
+        {
+            Add($"import {{ {column.Discriminator.Name.ToPascalCase()} }} "
+                + $"from '../enums/{TsFileName(column.Discriminator.Name)}'");
+
+            foreach (var target in column.Targets)
+            {
+                if (target.Name != table.Name)
+                    Add($"import {{ {target.Name.ToPascalCase()}Record }} from './{TsFileName(target.Name)}'");
+            }
+        }
+
+        // The same for a record member reaching several tables: the element declares the slot
+        // as the union of those records, and the accessors beside it name each one.
+        // spec/multi-target-accessors.md.
+        foreach (var leaf in table.SerialFields.Where(group => group.IsRecord)
+                                  .SelectMany(group => group.Leaves))
+        {
+            var member = leaf.FirstField;
+
+            if (member is null || !member.IsMultiRef || member.MultiTargetEnum is null)
+                continue;
+
+            Add($"import {{ {member.MultiTargetEnum.Name.ToPascalCase()} }} "
+                + $"from '../enums/{TsFileName(member.MultiTargetEnum.Name)}'");
+
+            foreach (var target in member.ResolvedRefTables!)
+            {
+                if (target.Name != table.Name)
+                    Add($"import {{ {target.Name.ToPascalCase()}Record }} from './{TsFileName(target.Name)}'");
+            }
+        }
+
         return imports;
 
         void Add(string statement)
@@ -634,8 +948,10 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         return new TsFieldView
         {
             IsRecord = false,
-            IsNullable = !sf.Fields[0].IsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceField = "_" + prop + "HasValue",
+            ElementPresenceField = "_" + prop + "HasValueAt",
             RecordTypeName = "",
             Members = Array.Empty<TsRecordMemberView>(),
             Comment = CommentLines(sf.FirstField!.Comment),
@@ -729,14 +1045,10 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             // A trimmed one starts empty instead: no declaration could know how long this
             // row's array is, so the read creates the elements it turns out to need.
             DefaultValue = sf.MembersAreAnonymous
-                ? $"Array.from({{ length: {sf.Members.Count} }}, () => "
-                  + $"new Array({sf.RecordElementCount}).fill("
-                  + $"{DefaultValueOf(sf.Members[0].ElementType, sf.Members[0].FirstField!)}))"
-                : perRowLength
+                ? $"Array.from({{ length: {sf.Members.Count} }}, () => [])"
+                : sf.IsArray
                     ? "[]"
-                    : sf.IsArray
-                        ? $"Array.from({{ length: {sf.RecordElementCount} }}, () => ({RecordLiteral(members)}))"
-                        : RecordLiteral(members),
+                    : RecordLiteral(members),
 
             // The JSON shape gets an interface of its own, because a member's exported
             // type is not always its member type - a 64-bit integer arrives as a string.
@@ -746,9 +1058,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             ElementCount = sf.RecordElementCount,
             Kind = sf.MembersAreAnonymous
                 ? "array_of_arrays"
-                : perRowLength
-                    ? "record_var_array"
-                    : sf.IsArray ? "record_array" : "record",
+                : sf.IsArray ? "record_var_array" : "record",
             IsArray = sf.IsArray,
 
             FromNamedRow = RecordNamedRowAssignment(sf, members, field, prop),
@@ -801,7 +1111,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                         : $"{ToTypescriptTypename(member.FirstField)} | undefined")
                     : ToTypescriptTypename(member.FirstField) + (member.IsArray ? "[]" : "");
 
-                result.Add(new TsRecordMemberView
+                result.Add(FillMultiTargetMember(new TsRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     PropName = TsName(member.Name),
@@ -835,7 +1145,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                             ? "[" + string.Join(", ", Enumerable.Repeat("false", member.Fields.Count)) + "]"
                             : "false")
                         : "",
-                });
+                }, member));
 
                 continue;
             }
@@ -876,14 +1186,30 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// every property of the interface it satisfies. spec/references-in-records.md.
     /// </remarks>
     private static string RecordLiteral(IReadOnlyList<TsRecordMemberView> members)
-        => "{ " + string.Join(", ", members.SelectMany(m => m.RefKeyTypeName.Length > 0
-            ? new[]
-            {
-                $"{m.PropName}: {m.DefaultValue}",
-                $"{m.PropName}_index: {m.RefKeyDefault}",
-                $"{m.PropName}_F: {m.RefFlagDefault}",
-            }
-            : new[] { $"{m.PropName}: {m.DefaultValue}" })) + " }";
+        => "{ " + string.Join(", ", members.SelectMany(MemberLiteralParts)) + " }";
+
+    /// <summary>What one member contributes to that literal.</summary>
+    /// <remarks>
+    /// A reference member gives three properties and one reaching several tables gives three
+    /// as well - the key, the slot and the discriminator - because a literal has to give every
+    /// property of the interface it satisfies. spec/multi-target-accessors.md.
+    /// </remarks>
+    private static IEnumerable<string> MemberLiteralParts(TsRecordMemberView member)
+    {
+        yield return $"{member.PropName}: {member.DefaultValue}";
+
+        if (member.RefKeyTypeName.Length > 0)
+        {
+            yield return $"{member.PropName}_index: {member.RefKeyDefault}";
+            yield return $"{member.PropName}_F: {member.RefFlagDefault}";
+        }
+
+        if (member.MultiTargetTypeName.Length > 0)
+        {
+            yield return $"{member.MultiSlotName}: {member.MultiSlotDefault}";
+            yield return $"{member.MultiTargetName}: {member.MultiTargetDefault}";
+        }
+    }
 
     /// <summary>
     /// The assignment reading a record group out of a named JSON row.
@@ -923,6 +1249,32 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// A member that is itself the array maps its own elements: the JSON holds
     /// `{ m: [a, b] }` rather than `[{ m: a }, { m: b }]` - see spec/nested-multi-level.md.
     /// </remarks>
+    /// <summary>
+    /// What a multi-target member adds to a JSON literal: the slot and the discriminator, at
+    /// the member's own arity and both starting empty.
+    /// </summary>
+    private static IEnumerable<string> MultiTargetLiteralParts(
+        RecordMember member, string accessor, string prop)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            yield break;
+
+        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
+
+        if (member.IsArray)
+        {
+            yield return $"{prop}Row: {accessor}.{prop}.map(() => undefined)";
+            yield return $"{prop}Target: {accessor}.{prop}.map(() => {enumType}.None)";
+        }
+        else
+        {
+            yield return $"{prop}Row: undefined";
+            yield return $"{prop}Target: {enumType}.None";
+        }
+    }
+
     private string NamedRowLiteral(List<RecordMember> members, string accessor)
     {
         var parts = members.SelectMany(member =>
@@ -958,12 +1310,19 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
             string element = FromJsonExpressionOf(member.ElementType, "v");
 
+            // A member reaching several tables: the JSON holds its key under the member's own
+            // name, exactly as an ordinary member does, and the slot and the discriminator are
+            // what the linking pass fills - so they start where the binary path leaves them.
+            // The literal has to give them all the same: it satisfies the element interface.
+            // spec/multi-target-accessors.md.
+            var multi = MultiTargetLiteralParts(member, accessor, prop);
+
             return new[]
             {
                 member.IsArray
                     ? $"{prop}: {accessor}.{prop}.map((v: any) => {element})"
                     : $"{prop}: {FromJsonExpressionOf(member.ElementType, $"{accessor}.{prop}")}",
-            };
+            }.Concat(multi);
         });
 
         return "{ " + string.Join(", ", parts) + " }";
@@ -1057,6 +1416,23 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
                 string element = FromJsonExpressionOf(member.ElementType, "v");
 
+                // A member reaching several tables: the run holds its keys, and the slot and
+                // the discriminator are what the linking fills - one of each per element, so
+                // they are sized from the same run. spec/multi-target-accessors.md.
+                var field2 = member.FirstField;
+
+                if (field2 is not null && field2.IsMultiRef && field2.MultiTargetEnum is not null)
+                {
+                    string enumType = field2.MultiTargetEnum.Name.ToPascalCase();
+
+                    return new[]
+                    {
+                        $"{prop}: {slice}.map((v: any) => {element})",
+                        $"{prop}Row: {slice}.map(() => undefined)",
+                        $"{prop}Target: {slice}.map(() => {enumType}.None)",
+                    };
+                }
+
                 return new[] { $"{prop}: {slice}.map((v: any) => {element})" };
             });
 
@@ -1093,6 +1469,21 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// are evaluated in source order, and source order is leaf order, which is the order the
     /// exporter wrote the entries in.
     /// </remarks>
+    /// <summary>
+    /// The same two properties where the member holds one value, so neither is mapped over
+    /// anything. spec/multi-target-accessors.md.
+    /// </summary>
+    private static IEnumerable<string> MultiTargetScalarLiteralParts(RecordMember member, string prop)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            yield break;
+
+        yield return $"{prop}Row: undefined";
+        yield return $"{prop}Target: {field.MultiTargetEnum.Name.ToPascalCase()}.None";
+    }
+
     private string CompactRowLiteral(List<RecordMember> members)
     {
         var parts = members.SelectMany(member =>
@@ -1118,7 +1509,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             return new[]
             {
                 $"{prop}: {FromJsonExpressionOf(member.ElementType, "dataRow[offset++]")}",
-            };
+            }.Concat(MultiTargetScalarLiteralParts(member, prop));
         });
 
         return "{ " + string.Join(", ", parts) + " }";
@@ -1178,7 +1569,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             return new[]
             {
                 $"{prop}: {FromJsonExpressionOf(member.ElementType, $"{field}_{prefix}{prop}[k]")}",
-            };
+            }.Concat(MultiTargetScalarLiteralParts(member, prop));
         });
 
         return "{ " + string.Join(", ", parts) + " }";
@@ -1237,7 +1628,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             if (sf.IsRef)
                 return "array_ref";
 
-            return table.IsVariableLength(sf) ? "var_array" : "array";
+            // One array declaration since v107. Trimming decides how many elements a row
+            // carries, not whether the length is known at generation time.
+            return "var_array";
         }
 
         return sf.IsRef ? "scalar_ref" : "scalar";
@@ -1257,15 +1650,23 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         {
             string index = $"{field}_{sf.FirstField!.ResolvedRefTable!.Name.ToPascalCase()}_index";
 
-            return $"this.{index} = "
-                 + FromJsonExpressionOf(sf.FirstField!.RefKeyType, $"dataRow.{prop}");
+            string keys = $"this.{index} = "
+                        + FromJsonExpressionOf(sf.FirstField!.RefKeyType, $"dataRow.{prop}");
+
+            // An array of them: the resolved array and the flag are as long as the keys, which
+            // is the length the data states. Left to the linking pass they would hold only the
+            // elements that resolved, and a row whose second reference points at nothing would
+            // have a one-element array. spec/nullable-array-elements.md.
+            return sf.IsArray
+                ? $"{keys}; {SizedFromKeys(field, index)}"
+                : keys;
         }
 
         // An optional column arrives as `null` when the row had no value, and the member
         // keeps the type's empty one - so the two read paths agree about both halves. The
         // conversion is skipped for a null, because a converter given one would produce a
         // value rather than leave the default alone.
-        if (!sf.Fields[0].IsRequired)
+        if (sf.RowMayBeAbsent)
         {
             string present = $"dataRow.{prop} !== null && dataRow.{prop} !== undefined";
 
@@ -1275,6 +1676,19 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         return ValueFromNamedRow(sf, field, prop);
     }
+
+    /// <summary>
+    /// The resolved array and its flag, made as long as the keys just read.
+    /// </summary>
+    /// <remarks>
+    /// The values are filled in by the linking pass, and only for the keys that point at
+    /// something - so nothing else gives these two arrays their length. Every other language
+    /// sizes them where it reads, and a shorter array here is a hole a `for ... of` walks past
+    /// without a sign. spec/nullable-array-elements.md.
+    /// </remarks>
+    private static string SizedFromKeys(string field, string index)
+        => $"this.{field} = new Array(this.{index}.length).fill(undefined); "
+         + $"this.{field}_F = new Array(this.{index}.length).fill(false)";
 
     /// <summary>The assignment itself, without the presence handling around it.</summary>
     private string ValueFromNamedRow(SerialField sf, string field, string prop)
@@ -1315,6 +1729,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 ? new[]
                 {
                     $"this.{index} = dataRow.slice(offset, offset + {sf.Fields.Count}){keyConvert}",
+                    SizedFromKeys(field, index),
                     $"offset += {sf.Fields.Count}",
                 }
                 : new[]
@@ -1347,7 +1762,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // An optional scalar: the entry is `null` where the row had no value, and the
         // member keeps the type's empty one. Read into a local first, because the offset
         // must advance exactly once whichever branch is taken.
-        if (!sf.Fields[0].IsRequired)
+        if (sf.RowMayBeAbsent)
         {
             string local = $"{field}_raw";
             string converted = NeedsJsonConversion(sf) ? FromJsonExpression(sf, local) : local;
@@ -1377,11 +1792,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "tabbit.KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "tabbit.KIND_FIXED_ARRAY" : "tabbit.KIND_SCALAR");
-
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
+        string kind = wire.IsArray ? "tabbit.KIND_ARRAY" : "tabbit.KIND_SCALAR";
 
         string accepted;
 
@@ -1420,7 +1831,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                     accepted = "tabbit.ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The typescript generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The typescript generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -1428,7 +1839,11 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // bitmap in front of the block, and code not expecting one reads it as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"tabbit.checkColumn(column, '{tableName}.{wire.Name}', {kind}, {count}, {nullable}, [{accepted}])";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"tabbit.checkColumn(column, '{tableName}.{wire.Name}', {kind}, "
+            + $"{nullable}, [{accepted}]{elements})";
     }
 
     /// <summary>
@@ -1447,7 +1862,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -1507,7 +1922,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries. `nextSameI32` was the only answer while a
@@ -1740,7 +2155,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the TypeScript generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "TypeScript")));
         }
     }
 
@@ -1782,7 +2199,13 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// legal as member names, so only the few that genuinely are not get renamed -
     /// `constructor` above all, which a class may not declare as an accessor.
     /// </summary>
-    private static string TsName(string name) => LanguageProfile.Typescript.MemberName(name.ToCamelCase());
+    private string TsName(string name) => LanguageProfile.Typescript.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for the names that are not members - a constant, an accessor's
+    /// per-table slot.
+    /// </summary>
+    private static string TsCamelName(string name) => LanguageProfile.Typescript.MemberName(name.ToCamelCase());
 
     /// <summary>
     /// The same name, but usable where TypeScript binds rather than where it names a
@@ -1797,7 +2220,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// accessor failed to parse; nothing caught it because the fixture had no table
     /// named after a keyword.
     /// </remarks>
-    private static string TsLocalName(string name)
+    private string TsLocalName(string name)
     {
         string local = TsName(name);
 

@@ -96,7 +96,7 @@ public final class LoadoutTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Loadout.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Loadout.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,7 +107,7 @@ public final class LoadoutTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Loadout.Name", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Loadout.Name", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Name");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -118,7 +118,7 @@ public final class LoadoutTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Loadout.Pos.X", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_F32);
+                    TcbReader.checkColumn(column, "Loadout.Pos.X", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_F32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Pos.X");
                     for (LoadoutRecord record : loaded) {
                         record.pos.x = cursor.nextF32();
@@ -126,7 +126,7 @@ public final class LoadoutTable {
                     break;
                 }
                 case 4: {
-                    TcbReader.checkColumn(column, "Loadout.Pos.Y", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_F32);
+                    TcbReader.checkColumn(column, "Loadout.Pos.Y", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_F32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Pos.Y");
                     for (LoadoutRecord record : loaded) {
                         record.pos.y = cursor.nextF32();
@@ -134,27 +134,43 @@ public final class LoadoutTable {
                     break;
                 }
                 case 5: {
-                    TcbReader.checkColumn(column, "Loadout.Slot.Id", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Loadout.Slot.Id", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Slot.Id");
                     for (LoadoutRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.slot = new LoadoutRecord.SlotEntry[elementCount];
+
+                        for (int j = 0; j < elementCount; j++) {
+                            record.slot[j] = new LoadoutRecord.SlotEntry();
                             record.slot[j].id = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 6: {
-                    TcbReader.checkColumn(column, "Loadout.Slot.Label", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Loadout.Slot.Label", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Slot.Label");
                     for (LoadoutRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        if (record.slot.length != elementCount) {
+                            throw new TcbReader.TcbException(
+                                "Loadout.slot: the file gives one member of "
+                                + "this record a different element count than another");
+                        }
+
+                        for (int j = 0; j < elementCount; j++) {
                             record.slot[j].label = cursor.nextString();
                         }
                     }
                     break;
                 }
                 case 7: {
-                    TcbReader.checkColumn(column, "Loadout.Note", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Loadout.Note", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Note");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -165,11 +181,13 @@ public final class LoadoutTable {
                     break;
                 }
                 case 8: {
-                    TcbReader.checkColumn(column, "Loadout.Tag_array", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Loadout.Tag_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Tag_array");
                     for (LoadoutRecord record : loaded) {
-                        record.tagArray = new String[2];
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.tagArray = new String[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.tagArray[j] = cursor.nextString();
                         }
                     }

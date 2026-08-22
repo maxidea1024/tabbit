@@ -9,6 +9,7 @@ using Serilog;
 
 using ValueType = Tabbit.Models.ValueType;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -30,6 +31,9 @@ public class MySqlRecipe : DatabaseRecipe
 [TabbitTarget("mysql", TargetKind.Export, Order = 30)]
 public class MySqlExporter : DatabaseExporterBase<MySqlRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     protected override string TargetName => "MySQL";
 
     private const int InsertBatchRows = 500;
@@ -177,7 +181,8 @@ public class MySqlExporter : DatabaseExporterBase<MySqlRecipe>
         }
         catch (Exception ex)
         {
-            Log.Warning($"Could not clean up MySQL shadow tables: {ex.Message}");
+            Log.Warning(Message.Of(ExportMessages.LogMysqlCleanupFailed,
+                ("Detail", ex.Message)).In(MessageCatalog.Current));
         }
     }
 
@@ -235,8 +240,9 @@ public class MySqlExporter : DatabaseExporterBase<MySqlRecipe>
             case ValueType.Enum: return "INT NOT NULL";
 
             default:
-                throw new TabbitException(
-                    $"MySQL exporter cannot map type `{sf.Type}` of column `{ColumnName(sf)}`.");
+                throw new TabbitException(null,
+                    Message.Of(ExportMessages.MySqlTypeUnmapped,
+                        ("Type", sf.Type), ("Column", ColumnName(sf))));
         }
     }
 }

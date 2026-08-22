@@ -154,7 +154,7 @@ final class LedgerTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Ledger.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I64, TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Ledger.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I64, TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Ledger.Index');
                     foreach ($records as $record) {
                         $record->index = $cursor->nextI64();
@@ -162,7 +162,7 @@ final class LedgerTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Ledger.Amount', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Ledger.Amount', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Ledger.Amount');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -173,7 +173,7 @@ final class LedgerTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Ledger.Batch', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_UUID]);
+                    TcbReader::checkColumn($column, 'Ledger.Batch', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_UUID]);
                     foreach ($records as $record) {
                         $record->batch = $reader->readUuid();
                     }

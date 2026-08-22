@@ -106,7 +106,7 @@ class LoadoutTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Loadout.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Loadout.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -116,7 +116,7 @@ class LoadoutTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Loadout.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Loadout.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -126,39 +126,51 @@ class LoadoutTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Loadout.Pos.X', kindScalar, 1, false, [elementF32]);
+          checkColumn(column, 'Loadout.Pos.X', kindScalar, false, [elementF32]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Pos.X');
           for (final record in loaded) {
             record.pos.x = cursor.nextF32();
           }
           break;
         case 4:
-          checkColumn(column, 'Loadout.Pos.Y', kindScalar, 1, false, [elementF32]);
+          checkColumn(column, 'Loadout.Pos.Y', kindScalar, false, [elementF32]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Pos.Y');
           for (final record in loaded) {
             record.pos.y = cursor.nextF32();
           }
           break;
         case 5:
-          checkColumn(column, 'Loadout.Slot.Id', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Loadout.Slot.Id', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Slot.Id');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            // The first member builds the list; the rest check. Building it again would
+            // discard what the members before it wrote, and taking the shorter of two
+            // counts would shift every value after it.
+            record.slot =
+                List.generate(elementCount, (_) => LoadoutSlotEntry());
+            for (var j = 0; j < elementCount; j++) {
               record.slot[j].id = cursor.nextI32();
             }
           }
           break;
         case 6:
-          checkColumn(column, 'Loadout.Slot.Label', kindFixedArray, 2, false, [elementString]);
+          checkColumn(column, 'Loadout.Slot.Label', kindArray, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Slot.Label');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            if (record.slot.length != elementCount) {
+              throw TcbException(
+                  'Loadout.slot: the file gives one member of this '
+                  'record a different element count than another');
+            }
+            for (var j = 0; j < elementCount; j++) {
               record.slot[j].label = cursor.nextString();
             }
           }
           break;
         case 7:
-          checkColumn(column, 'Loadout.Note', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Loadout.Note', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Note');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -168,10 +180,11 @@ class LoadoutTable {
           }
           break;
         case 8:
-          checkColumn(column, 'Loadout.Tag_array', kindFixedArray, 2, false, [elementString]);
+          checkColumn(column, 'Loadout.Tag_array', kindArray, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Tag_array');
           for (final record in loaded) {
-            record.tagArray = List.generate(2, (_) => cursor.nextString());
+            final elementCount = cursor.nextLength();
+            record.tagArray = List.generate(elementCount, (_) => cursor.nextString());
           }
           break;
         default:

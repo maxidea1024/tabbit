@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using Tabbit.Models.Raw;
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.Sources;
 
@@ -53,7 +54,32 @@ public sealed class SheetImportSettings
 
                 recipe.FoldSerialFields,
                 recipe.TrimTrailingArrayElements,
-                recipe.AllowArrayGaps));
+                recipe.AllowArrayGaps,
+                (recipe.TableRowSets ?? "").Trim(),
+                ParseBlankCellPolicy(recipe.OnBlankCell, section),
+
+                // Resolved here so a name no zone answers to is reported before a workbook
+                // is opened, and so the machine's zone list is consulted once for the entry
+                // rather than once for every dated cell in it.
+                Helpers.TimeZones.OfEntry(recipe.TimeZone, section)));
+    }
+
+    private static BlankCellPolicy ParseBlankCellPolicy(string value, string section)
+    {
+        // Blank is the strict default rather than an error, as above: an entry written
+        // before this setting existed holds it.
+        string text = (value ?? "").Trim();
+        if (text.Length == 0)
+            return BlankCellPolicy.Error;
+
+        switch (text.ToLowerInvariant())
+        {
+            case "error": return BlankCellPolicy.Error;
+            case "empty": return BlankCellPolicy.Empty;
+        }
+
+        throw new TabbitException(null,
+            Message.Of(Recipe.RecipeMessages.OnBlankCellUnknown, ("Section", section), ("Value", text)));
     }
 
     private static FormulaErrorPolicy ParseFormulaErrorPolicy(string value, string section)
@@ -70,9 +96,8 @@ public sealed class SheetImportSettings
             case "empty": return FormulaErrorPolicy.Empty;
         }
 
-        throw new TabbitException(
-            $"Recipe `{section}` sets `OnFormulaError` to `{text}`. " +
-            "It takes `error` or `empty`.");
+        throw new TabbitException(null,
+            Message.Of(Recipe.RecipeMessages.OnFormulaErrorUnknown, ("Section", section), ("Value", text)));
     }
 
     /// <summary>
@@ -92,9 +117,9 @@ public sealed class SheetImportSettings
 
         if (text.Length != 1)
         {
-            throw new TabbitException(
-                $"Recipe `{section}` sets `ArrayDelimiter` to `{text}`, " +
-                "but it must be exactly one character.");
+            throw new TabbitException(null,
+                Message.Of(Recipe.RecipeMessages.EntryArrayDelimiterNotOneCharacter,
+                    ("Section", section), ("Value", text)));
         }
 
         return text[0];
@@ -115,8 +140,7 @@ public sealed class SheetImportSettings
             case "keep-last": return DuplicateIndexPolicy.KeepLast;
         }
 
-        throw new TabbitException(
-            $"Recipe `{section}` sets `OnDuplicateIndex` to `{text}`. " +
-            "It takes `error`, `keep-first` or `keep-last`.");
+        throw new TabbitException(null,
+            Message.Of(Recipe.RecipeMessages.OnDuplicateIndexUnknown, ("Section", section), ("Value", text)));
     }
 }

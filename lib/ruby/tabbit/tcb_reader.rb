@@ -29,7 +29,7 @@ module Tabbit
   # 102 replaced 101 outright - a descriptor gained its encoding byte - before any
   # 101 file had shipped. 104 is the current one: four encodings joined the nine, and
   # the flags byte gained a meaning.
-  FORMAT_VERSION = 105
+  FORMAT_VERSION = 107
 
   # The wire element types and kinds, as a column descriptor spells them.
   ELEMENT_VARINT = 0
@@ -42,8 +42,7 @@ module Tabbit
   ELEMENT_UUID = 7
 
   KIND_SCALAR = 0
-  KIND_FIXED_ARRAY = 1
-  KIND_VAR_ARRAY = 2
+  KIND_ARRAY = 1
 
   # How a block's values are laid out. Raw is the layout 101 had; the others compress
   # a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -111,7 +110,11 @@ module Tabbit
   # the column's shape rather than a detail of its contents: a reader that does not expect
   # the bitmap reads it as values, so check_column refuses a disagreement the same way it
   # refuses a changed kind.
-  Column = Struct.new(:tag, :element, :kind, :encoding, :count, :byte_length, :nullable)
+  # `element_nullable` says the block states, per element, which of an array's places hold
+  # a value. Independent of `nullable`: a column may say either, or both.
+  # spec/nullable-array-elements.md.
+  Column = Struct.new(:tag, :element, :kind, :encoding, :byte_length, :nullable,
+                      :element_nullable)
 
   # A table file is truncated, malformed, or not a table file.
   class TcbError < StandardError; end
@@ -498,12 +501,10 @@ module Tabbit
       if @encoding == ENCODING_ARRAY
         @encoding = reader.read_uint8
 
-        if column.kind == KIND_VAR_ARRAY
+        if column.kind == KIND_ARRAY
           length_encoding = reader.read_uint8
           @lengths = read_lengths(reader, length_encoding, row_count, field_name)
           @rows_remaining = @lengths.sum
-        else
-          @rows_remaining = row_count * column.count
         end
       end
 
@@ -1026,10 +1027,9 @@ module Tabbit
       tag = reader.read_counter32
       wire = reader.read_uint8
       encoding = reader.read_uint8
-      element_count = reader.read_counter32
       byte_length = reader.read_uint32
-      Column.new(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, element_count, byte_length,
-                 (wire & 0x40) != 0)
+      Column.new(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, byte_length,
+                 (wire & 0x40) != 0, (wire & 0x80) != 0)
     end
 
     # What the descriptors say about the file, checked before anybody allocates for the
@@ -1082,6 +1082,21 @@ module Tabbit
     reader.read_byte_stream(encoding, (row_count + 7) / 8, 'a presence bitmap')
   end
 
+  # A column's element bitmap, behind the row bitmap and in front of the values.
+  #
+  # Empty for a column that does not carry one. Its length is written ahead of it as a
+  # counter32, because a variable-length column's total is the sum of its row lengths and
+  # those live inside the value block - a reader meeting the bitmap first would have nothing
+  # to size it by. spec/nullable-array-elements.md.
+  def self.read_element_presence(reader, column)
+    return [] unless column.element_nullable
+
+    elements = reader.read_counter32
+    encoding = reader.read_uint8
+
+    reader.read_byte_stream(encoding, (elements + 7) / 8, 'an element presence bitmap')
+  end
+
   # Whether a row has a value, for a column that says which do.
   #
   # An empty bitmap means the column is not optional, and then every row has one.
@@ -1091,7 +1106,17 @@ module Tabbit
 
   # That a column is what the generated member expects, or a lossless promotion of it.
   # Refusal is by name and both types, never by reading anyway.
-  def self.check_column(column, field_name, kind, count, nullable, accepted)
+  def self.check_column(column, field_name, kind, nullable, accepted,
+                        element_nullable = false)
+    # The same statement about the other bitmap: code not expecting one would read it as
+    # values. spec/nullable-array-elements.md.
+    if column.element_nullable != element_nullable
+      raise TcbError,
+            "#{field_name}: the file and the generated member disagree about whether this " \
+            "column's elements are optional. The schema changed; regenerate the code or " \
+            'rebuild the data.'
+    end
+
     # Nullability is part of the shape: a file that says optional puts a presence bitmap in
     # front of the block, and code not expecting one would read the bitmap as values. So
     # adding or removing a `?` is a schema change like any other, caught here rather than in
@@ -1102,11 +1127,14 @@ module Tabbit
             'column is optional. The schema changed; regenerate the code or rebuild the data.'
     end
 
-    if column.kind != kind || (kind != KIND_VAR_ARRAY && column.count != count)
+    # A negative count says the member claims no length: how many elements a row holds is
+    # what the file states. The kind is still the member's claim.
+    # spec/nullable-array-elements.md.
+    if column.kind != kind
       raise TcbError,
-            "#{field_name}: the file column (kind #{column.kind}, count #{column.count}) " \
-            "does not match the generated member (kind #{kind}, count #{count}). The schema " \
-            'changed shape; regenerate the code or rebuild the data.'
+            "#{field_name}: the file column (kind #{column.kind}) does not match the " \
+            "generated member (kind #{kind}). The schema changed shape; regenerate the " \
+            'code or rebuild the data.'
     end
 
     # An encoding this build cannot decode - or one the spec does not define for

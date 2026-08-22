@@ -122,7 +122,7 @@ class TemplateTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Template.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Template.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Template.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -132,7 +132,7 @@ class TemplateTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Template.Class', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Template.Class', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Template.Class');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -142,7 +142,7 @@ class TemplateTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Template.Int', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Template.Int', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Template.Int');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -152,14 +152,14 @@ class TemplateTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Template.Delete', kindScalar, 1, false, [elementBool]);
+          checkColumn(column, 'Template.Delete', kindScalar, false, [elementBool]);
           cursor = TcbColumnCursor(reader, column, count, 'Template.Delete');
           for (final record in loaded) {
             record.delete = cursor.nextBool();
           }
           break;
         case 5:
-          checkColumn(column, 'Template.Operator', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Template.Operator', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Template.Operator');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -169,7 +169,7 @@ class TemplateTable {
           }
           break;
         case 6:
-          checkColumn(column, 'Template.Namespace', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Template.Namespace', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Template.Namespace');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -179,7 +179,7 @@ class TemplateTable {
           }
           break;
         case 7:
-          checkColumn(column, 'Template.Constructor', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Template.Constructor', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Template.Constructor');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -189,7 +189,7 @@ class TemplateTable {
           }
           break;
         case 8:
-          checkColumn(column, 'Template.Function', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Template.Function', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Template.Function');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);

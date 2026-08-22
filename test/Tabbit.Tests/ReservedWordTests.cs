@@ -173,6 +173,56 @@ public class ReservedWordTests
     }
 
     /// <summary>
+    /// Swift escapes with backticks, as Kotlin does, so the generated member really is
+    /// called `class`.
+    /// </summary>
+    /// <remarks>
+    /// This gate carries two more things with it. The recipe turns the updater on, so the
+    /// only check that compiles `Updater.swift` at all is this one. And `CompileSwift`
+    /// type-checks in both language modes with warnings as errors, which is what a keyword
+    /// name would fail loudly rather than subtly.
+    /// </remarks>
+    [Fact]
+    public void Generated_swift_compiles_with_keyword_named_fields()
+    {
+        Assert.True(ConformanceHarness.SwiftIsAvailable(out string why), why);
+
+        Convert();
+
+        var result = ConformanceHarness.CompileSwift(Scenario);
+
+        Assert.True(result.Succeeded, $"Generated Swift does not compile.{Environment.NewLine}{result.Output}");
+    }
+
+    /// <summary>
+    /// Lua keeps a keyword-named field's name and reaches it with bracket syntax, so the
+    /// question is not whether the file loads but whether `row["function"]` really holds
+    /// the sheet's value - a load runs every constructor, and the read runs the column
+    /// dispatch over the bracketed targets. spec/lua-language-support.md.
+    /// </summary>
+    [Fact]
+    public void Generated_lua_reads_keyword_named_fields()
+    {
+        Assert.True(ConformanceHarness.LuaIsAvailable(out string why), why);
+
+        Convert();
+
+        var result = ConformanceHarness.RunLuaSnippet(Scenario, @"
+local t = require('tables').new()
+t:readAll(arg[1])
+local rows = t.template.records
+assert(#rows == 2, #rows)
+assert(rows[1]['function'] == 'fn-a' and rows[2]['function'] == 'fn-b')
+assert(rows[1].class == 'first' and rows[1].int == 10 and rows[1].delete == true)
+assert(rows[2].operator == 'minus' and rows[2].namespace == 'beta')
+assert(t.package.records[2].label == 'two')
+", System.IO.Path.Combine(RepoLayout.OutputDir(Scenario), "binary"));
+
+        Assert.True(result.Succeeded,
+            $"Generated Lua does not read keyword-named fields.{Environment.NewLine}{result.Output}");
+    }
+
+    /// <summary>
     /// Ruby members are snake_case and nearly every Ruby keyword is lower case, so this
     /// is the language with the most ways to collide.
     /// </summary>

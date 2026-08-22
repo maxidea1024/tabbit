@@ -91,7 +91,7 @@ class KitTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Kit.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Kit.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Kit.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -101,7 +101,7 @@ class KitTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Kit.Part.ItemId', kindVarArray, 0, false, [elementI32]);
+          checkColumn(column, 'Kit.Part.ItemId', kindArray, false, [elementI32]);
           cursor = TcbColumnCursor(reader, column, count, 'Kit.Part.ItemId');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
@@ -116,7 +116,7 @@ class KitTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Kit.Part.Count', kindVarArray, 0, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Kit.Part.Count', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Kit.Part.Count');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();

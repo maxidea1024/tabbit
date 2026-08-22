@@ -77,6 +77,10 @@ public final class {{ table.table_name }} {
       Java, so a declaration inside two of them collides. ##~}}
         byte[] presence;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+        byte[] elementPresence;
+        int elementAt;
+{{~ end ~}}
 
         // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
         List<{{ table.record_name }}> loaded = new ArrayList<>(count);
@@ -101,6 +105,13 @@ public final class {{ table.table_name }} {
                     // lets the read shapes below stay as they are.
                     presence = TcbReader.readPresence(reader, column, count);
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+                    // Behind the row bitmap and in front of the values, walked with a counter
+                    // that steps once per element of every row.
+                    // spec/nullable-array-elements.md.
+                    elementPresence = TcbReader.readElementPresence(reader, column);
+                    elementAt = 0;
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
       as well: its block states an encoding for them and one for the row lengths, and the
       cursor is what decodes both. After the presence bitmap, which sits in front of the
@@ -124,8 +135,33 @@ public final class {{ table.table_name }} {
                         int elementCount;
                         {{ column_view.length_read }}
                         record.{{ column_view.name }} = new {{ column_view.element_type }}[elementCount];
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} = new boolean[elementCount];
+{{~ end ~}}
                         for (int j = 0; j < elementCount; j++) {
                             record.{{ column_view.name }}[j] = {{ column_view.read_element }};
+{{~ if column_view.has_optional_elements ~}}
+                            record.{{ column_view.element_presence_member }}[j] =
+                                TcbReader.isPresent(elementPresence, elementAt++);
+{{~ end ~}}
+                        }
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. Same length as the values - this row's - for the keys
+   beside them, which is what `serial_ref` does from the column count.
+   spec/variable-length-record-arrays.md. ##~}}
+                        int elementCount;
+                        {{ column_view.length_read }}
+                        record.{{ column_view.name }} = new {{ column_view.element_type }}[elementCount];
+                        record.{{ column_view.name }}Index = new {{ column_view.ref_key_type }}[elementCount];
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} = new boolean[elementCount];
+{{~ end ~}}
+                        for (int j = 0; j < elementCount; j++) {
+                            record.{{ column_view.name }}Index[j] = {{ column_view.read_element }};
+{{~ if column_view.has_optional_elements ~}}
+                            record.{{ column_view.element_presence_member }}[j] =
+                                TcbReader.isPresent(elementPresence, elementAt++);
+{{~ end ~}}
                         }
 {{~ else if column_view.kind == 'record_var' ~}}
                         int elementCount;
@@ -154,29 +190,27 @@ public final class {{ table.table_name }} {
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
    fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
+                        int elementCount;
+                        {{ column_view.length_read }}
+                        record.{{ column_view.name }}[{{ column_view.member_at }}] = new {{ column_view.element_type }}[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.{{ column_view.name }}[{{ column_view.member_at }}][j] = {{ column_view.read_element }};
                         }
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
+                        int elementCount;
+                        {{ column_view.length_read }}
+{{~ if column_view.member_ref_suffix != '' ~}}
+{{~## A reference member holds one key per element as well as one row, and the read writes
+   into the key - so both are made. spec/references-in-records.md. ##~}}
+                        record.{{ column_view.name }}{{ column_view.member_access }} = new {{ column_view.element_type }}[elementCount];
+                        record.{{ column_view.name }}{{ column_view.member_access }}Index = new {{ column_view.ref_key_type }}[elementCount];
+{{~ else ~}}
+                        record.{{ column_view.name }}{{ column_view.member_access }} = new {{ column_view.element_type }}[elementCount];
+{{~ end ~}}
+                        for (int j = 0; j < elementCount; j++) {
                             record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_element }};
-                        }
-{{~ else if column_view.kind == 'record_serial' ~}}
-                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
-                            record.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
-                        }
-{{~ else if column_view.kind == 'serial_ref' ~}}
-                        record.{{ column_view.name }} = new {{ column_view.element_type }}[{{ column_view.element_count }}];
-                        record.{{ column_view.name }}Index = new int[{{ column_view.element_count }}];
-                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
-                            record.{{ column_view.name }}Index[j] = {{ column_view.read_element }};
-                        }
-{{~ else if column_view.kind == 'serial' ~}}
-                        record.{{ column_view.name }} = new {{ column_view.element_type }}[{{ column_view.element_count }}];
-                        for (int j = 0; j < {{ column_view.element_count }}; j++) {
-                            record.{{ column_view.name }}[j] = {{ column_view.read_element }};
                         }
 {{~ else if column_view.kind == 'scalar_ref' ~}}
                         record.{{ column_view.name }}Index = {{ column_view.read_element }};

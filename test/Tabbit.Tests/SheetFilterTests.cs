@@ -208,6 +208,7 @@ public class SheetFilterTests
         var thrown = Assert.Throws<TabbitException>(() =>
             filter.ReportUnmatchedIncludes(Section, ["Items.xlsx", "Npc.xlsx"], []));
 
+        Assert.Equal(Tabbit.Importers.ImportMessages.WorkbooksNotFound, thrown.MessageId);
         Assert.Contains("Monsters.xlsx", thrown.Message);
 
         // With what is there, so the answer to a typo is in the message.
@@ -230,6 +231,7 @@ public class SheetFilterTests
                 ["Items.xlsx", "Monsters.xlsx"],
                 [("Monsters.xlsx", "ItemTable"), ("Items.xlsx", "Define")]));
 
+        Assert.Equal(Tabbit.Importers.ImportMessages.SheetsNotFound, thrown.MessageId);
         Assert.Contains("[Monsters.xlsx]ItemTable", thrown.Message);
         Assert.Contains("[Items.xlsx]Define", thrown.Message);
     }
@@ -246,6 +248,7 @@ public class SheetFilterTests
         var thrown = Assert.Throws<TabbitException>(() =>
             filter.ReportUnmatchedIncludes(Section, ["Items.xlsx"], [("Items.xlsx", "ItemTable")]));
 
+        Assert.Equal(Tabbit.Importers.ImportMessages.SheetsNotFound, thrown.MessageId);
         Assert.Contains("StageTable", thrown.Message);
         Assert.Contains("Sheets that are there: ItemTable", thrown.Message);
     }
@@ -266,6 +269,7 @@ public class SheetFilterTests
         var thrown = Assert.Throws<TabbitException>(() =>
             filter.ReportUnmatchedIncludes(Section, ["백업/Items.xlsx"], []));
 
+        Assert.Equal(Tabbit.Importers.ImportMessages.SheetsNotFoundWithSkipped, thrown.MessageId);
         Assert.Contains("Workbooks this entry skips: 백업/Items.xlsx", thrown.Message);
     }
 
@@ -298,7 +302,7 @@ public class SheetFilterTests
     {
         var thrown = Assert.Throws<TabbitException>(() => Filter(excludeSheets: ["[Items.xlsx"]));
 
-        Assert.Contains("`[workbook]sheet`", thrown.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.SheetPatternUnclosedBracket, thrown.MessageId);
         Assert.Contains(Section, thrown.Message);
     }
 
@@ -317,6 +321,7 @@ public class SheetFilterTests
     {
         var thrown = Assert.Throws<TabbitException>(() => Filter(excludeSheets: ["[Items.xlsx]"]));
 
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.SheetPatternNoSheet, thrown.MessageId);
         Assert.Contains("ExcludeWorkbooks", thrown.Message);
     }
 
@@ -326,7 +331,7 @@ public class SheetFilterTests
         var thrown = Assert.Throws<TabbitException>(
             () => Filter(excludeWorkbooks: ["[Items.xlsx]Define"]));
 
-        Assert.Contains("ExcludeSheets", thrown.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.WorkbookPatternHasSheet, thrown.MessageId);
     }
 
     /// <summary>

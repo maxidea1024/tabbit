@@ -47,22 +47,31 @@ public class TroubleshootingDocTests
                 .Where(run => run.Length >= 12);
 
     /// <summary>
-    /// Every C# file under src/, with adjacent string literals joined.
+    /// Everywhere a message this tool prints can be written down, with adjacent string
+    /// literals joined.
     /// </summary>
     /// <remarks>
     /// A message longer than a line is written as two literals and a `+`, which puts a seam
     /// in the middle of a sentence that is one sentence when printed. Searching the source as
     /// written would miss any quoted message that happens to span the seam - and the longer
     /// the message, the more likely that is, which is backwards.
+    ///
+    /// The message catalogs are read too, because a report that has been given an id no longer
+    /// has its words in any `.cs` file - they are in `src/Messages/Catalog/`. This test found
+    /// that the moment the first batch moved, which is what it is for: it asks whether the page
+    /// quotes something the tool really says, and where the saying lives is not its business.
     /// </remarks>
     private static string Sources()
     {
         // `lib/` as well as `src/`, because the page documents what the runtime readers say
         // and not only what the converter says - and a reader's message is exactly the kind a
         // user meets without the converter anywhere in sight. Every extension, since the
-        // readers are written in thirteen languages.
+        // readers are written in every language.
         var files = Directory
             .EnumerateFiles(Path.Combine(RepoLayout.Root, "src"), "*.cs", SearchOption.AllDirectories)
+            .Concat(Directory.EnumerateFiles(
+                Path.Combine(RepoLayout.Root, "src", "Messages", "Catalog"), "*.json",
+                SearchOption.AllDirectories))
             .Concat(Directory.EnumerateFiles(Path.Combine(RepoLayout.Root, "lib"), "*.*", SearchOption.AllDirectories))
             .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
                         && !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")

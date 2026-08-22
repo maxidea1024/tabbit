@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
 /** A record whose members are arrays, and an array of arrays beside it. */
@@ -134,7 +135,7 @@ class GuideTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Guide.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Guide.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Index")
                     var at = 0
                     while (at < count) {
@@ -148,7 +149,7 @@ class GuideTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Guide.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Guide.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Name")
                     var at = 0
                     while (at < count) {
@@ -162,59 +163,72 @@ class GuideTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Guide.Skill.Step", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Guide.Skill.Step", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Skill.Step")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        record.skill.step =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        for (element in 0 until elementCount) {
                             record.skill.step[element] = cursor.nextI32()
                         }
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Guide.Skill.Order", KIND_FIXED_ARRAY, 2, false, ELEMENT_STRING)
+                    checkColumn(column, "Guide.Skill.Order", KIND_ARRAY, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Skill.Order")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        record.skill.order =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        for (element in 0 until elementCount) {
                             record.skill.order[element] = cursor.nextString()
                         }
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Guide.Pos.X", KIND_SCALAR, 1, false, ELEMENT_F32)
+                    checkColumn(column, "Guide.Pos.X", KIND_SCALAR, false, ELEMENT_F32)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Pos.X")
                     for (record in loaded) {
                         record.pos.x = cursor.nextF32()
                     }
                 }
                 6 -> {
-                    checkColumn(column, "Guide.Pos.Y", KIND_SCALAR, 1, false, ELEMENT_F32)
+                    checkColumn(column, "Guide.Pos.Y", KIND_SCALAR, false, ELEMENT_F32)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Pos.Y")
                     for (record in loaded) {
                         record.pos.y = cursor.nextF32()
                     }
                 }
                 7 -> {
-                    checkColumn(column, "Guide.Tag_array", KIND_FIXED_ARRAY, 2, false, ELEMENT_STRING)
+                    checkColumn(column, "Guide.Tag_array", KIND_ARRAY, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Tag_array")
                     for (record in loaded) {
-                        record.tagArray = ArrayList(2)
-                        repeat(2) { record.tagArray.add(cursor.nextString()) }
+                        val elementCount = cursor.nextLength()
+                        record.tagArray = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.tagArray.add(cursor.nextString()) }
                     }
                 }
                 8 -> {
-                    checkColumn(column, "Guide.Grid.1", KIND_FIXED_ARRAY, 3, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Guide.Grid.1", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Grid.1")
                     for (record in loaded) {
-                        for (element in 0 until 3) {
+                        val elementCount = cursor.nextLength()
+                        record.grid[0] =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        for (element in 0 until elementCount) {
                             record.grid[0][element] = cursor.nextI32()
                         }
                     }
                 }
                 9 -> {
-                    checkColumn(column, "Guide.Grid.2", KIND_FIXED_ARRAY, 3, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Guide.Grid.2", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Guide.Grid.2")
                     for (record in loaded) {
-                        for (element in 0 until 3) {
+                        val elementCount = cursor.nextLength()
+                        record.grid[1] =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        for (element in 0 until elementCount) {
                             record.grid[1][element] = cursor.nextI32()
                         }
                     }

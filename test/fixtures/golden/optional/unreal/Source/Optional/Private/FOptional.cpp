@@ -110,7 +110,7 @@ bool FDropTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Index"));
 
             {
@@ -134,7 +134,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Hp"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Hp"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Hp"));
 
             {
@@ -158,7 +158,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Bonus"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Bonus"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Bonus"));
 
@@ -193,7 +193,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Weight"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementF64) | Tabbit::ElementMask(Tabbit::ElementF32) | Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Weight"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementF64) | Tabbit::ElementMask(Tabbit::ElementF32) | Tabbit::ElementMask(Tabbit::ElementI32));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Weight"));
 
@@ -215,7 +215,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Ratio"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementF32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Ratio"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementF32));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Ratio"));
 
@@ -237,7 +237,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 6:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Count"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementI64) | Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Count"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementI64) | Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Count"));
 
@@ -259,7 +259,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 7:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.OpenAt"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementI64));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.OpenAt"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementI64));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.OpenAt"));
 
@@ -281,7 +281,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 8:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Cooldown"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementI64));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Cooldown"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementI64));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Cooldown"));
 
@@ -303,7 +303,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 9:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Batch"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementUuid));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Batch"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementUuid));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
 
             for (FDropRow& Record : Loaded)
@@ -324,7 +324,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 10:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Grade"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Grade"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementVarint));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Grade"));
 
@@ -359,7 +359,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 11:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Costs"), Tabbit::KindVarArray, 0, true, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Costs"), Tabbit::KindArray, true, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Costs"));
 
@@ -391,7 +391,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 12:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Label"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Label"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementString));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Label"));
 
@@ -426,7 +426,7 @@ bool FDropTable::Read(const FString& Filename)
             break;
 
         case 13:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Hidden"), Tabbit::KindScalar, 1, true, Tabbit::ElementMask(Tabbit::ElementBool));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Hidden"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementBool));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Hidden"));
 

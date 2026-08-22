@@ -187,8 +187,8 @@ public class NestedFieldFoldingTests
             ("Slot2Id", "Slot", "Id", 2));
 
         var ex = Assert.Throws<TabbitException>(() => _ = table.SerialFields);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RecordMemberElementCountsDiffer, ex.MessageId);
         Assert.Contains("Slot", ex.Message);
-        Assert.Contains("Count", ex.Message);
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class NestedFieldFoldingTests
             ("Slot3Count", "Slot", "Count", 3));
 
         var ex = Assert.Throws<TabbitException>(() => _ = table.SerialFields);
-        Assert.Contains("numbered inconsistently", ex.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RecordNumberedInconsistently, ex.MessageId);
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public class NestedFieldFoldingTests
         table.Fields[2].TargetSide = TargetSide.ServerOnly;
 
         var ex = Assert.Throws<TabbitException>(() => _ = table.SerialFields);
-        Assert.Contains("target side", ex.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RecordMixesTargetSides, ex.MessageId);
     }
 
     [Fact]

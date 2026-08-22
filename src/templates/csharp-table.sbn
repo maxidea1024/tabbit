@@ -44,30 +44,30 @@
             /// </summary>
 {{~ end ~}}
 {{~ end ~}}
+{{~## **No length in the public API.** A number published here could only be the one the
+      sheet had when this code was generated, and a consumer holding to it would be holding
+      to something the data no longer has to agree with - `Length` on the array is the answer
+      and it cannot go stale.
+
+      Where several columns fill one array - a record group, an array of arrays - the length
+      is still a number this code has to know, because no single column owns the array and
+      the columns have to agree on how long it is. Those keep it as a private constant, used
+      by the allocation and by nothing else. Where one column owns the array, the length is
+      read from that column's descriptor and there is no constant at all.
+      spec/nullable-array-elements.md. ##~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
 {{~## No element type: the outer level has no name to be a property of, so it is an array
-      too. `_N` is the outer count and `_M` the inner one. spec/nested-multi-level.md. ##~}}
+      too. `_N` is the outer count, which is how many columns fill this field rather than
+      how long any of them is - the inner length is the row's and is read from the file.
+      spec/nested-multi-level.md. ##~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            public const int {{ field.prop_name }}_N = {{ field.outer_count }};
-            public const int {{ field.prop_name }}_M = {{ field.element_count }};
-{{~ else if field.kind == 'record_array' ~}}
-            public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            public const int {{ field.prop_name }}_N = {{ field.element_count }};
+            internal const int {{ field.pascal_name }}_N = {{ field.outer_count }};
 {{~ else if field.kind == 'record_var_array' ~}}
-{{~## No `_N`: the length is this row's, so there is no one number to expose. The sheet's
-      column count is still the most it can be. ##~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            public const int {{ field.prop_name }}_MAX_N = {{ field.element_count }};
 {{~ else if field.kind == 'record' ~}}
             public {{ field.field_type }} {{ field.prop_name }} => {{ field.field_name }};
-{{~ if field.members_are_arrays ~}}
-{{~## One record, and the arrays are its members - so the length belongs to the group all
-      the same, because the folding requires every member to agree on it. ##~}}
-            public const int {{ field.prop_name }}_N = {{ field.element_count }};
-{{~ end ~}}
-{{~ else if field.kind == 'array_ref' || field.kind == 'array' ~}}
+{{~ else if field.kind == 'array_ref' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            public const int {{ field.prop_name }}_N = {{ field.element_count }};
 {{~ else if field.kind == 'var_array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
 {{~ else ~}}
@@ -78,7 +78,38 @@
       none; this says which it was. One shape for every type, which `T?` is not - a
       nullable reference needs a nullable context the generated C# 8 does not have. ##~}}
             /// <summary>Whether this row has a value for <see cref="{{ field.prop_name }}"/>.</summary>
-            public bool Has{{ field.prop_name }} => {{ field.presence_field }};
+            public bool Has{{ field.pascal_name }} => {{ field.presence_field }};
+{{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+{{~## The same answer one level in. `true` where the row never got a bitmap - a column the
+      file does not carry leaves the array empty, and an index into it is out of range
+      whatever this said. ##~}}
+            /// <summary>Whether element <paramref name="index"/> of <see cref="{{ field.prop_name }}"/> has a value.</summary>
+            public bool Has{{ field.pascal_name }}At(int index)
+                => {{ field.element_presence_field }} == null
+                    || index < 0 || index >= {{ field.element_presence_field }}.Length
+                    || {{ field.element_presence_field }}[index];
+{{~ end ~}}
+{{~ end ~}}
+{{~## A column whose value is a row of one of several tables. The key above is the value;
+      these say which table it is in and hand back that table's row.
+
+      One slot behind them all rather than one per target: the tables take separate id
+      bands, so at most one target ever answers and the rest would be permanently null.
+      The cast is safe by construction - the discriminator was set by the same assignment
+      that filled the slot. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_reference_fields }}
+            /// <summary>Which table <see cref="{{ ref.key_property }}"/> is a row of.</summary>
+            public {{ ref.target_type_name }} {{ ref.target_property }} => {{ ref.target_field }};
+{{~ for target in ref.targets ~}}
+            /// <summary>
+            /// The <c>{{ target.table }}</c> row <see cref="{{ ref.key_property }}"/> names, or null
+            /// when it names a row of one of the others.
+            /// </summary>
+            public {{ target.record_type_name }} {{ target.property }}
+                => {{ ref.target_field }} == {{ ref.target_type_name }}.{{ target.label }}
+                    ? ({{ target.record_type_name }}){{ ref.slot_field }}
+                    : null;
 {{~ end ~}}
 {{~ end ~}}
             #endregion
@@ -87,19 +118,15 @@
       exactly what a member column's read does. See spec/nested-fields.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.kind == 'array_of_arrays' }}
-{{~## Both levels allocated with the row: nothing else creates them, and a file that no
-      longer carries a column would otherwise leave the read indexing null. ##~}}
-            private static {{ field.field_type }}[] New{{ field.prop_name }}()
+{{~## The outer level only: each column fills one of its elements and nothing else can
+      create it, so its length is how many columns there are. The inner arrays are the
+      read's, at whatever length the row gives - empty until then, so a file that does not
+      carry the column leaves something indexable. spec/nested-multi-level.md. ##~}}
+            private static {{ field.field_type }}[] New{{ field.pascal_name }}()
             {
-                var result = new {{ field.element_type_name }}[{{ field.prop_name }}_N][];
+                var result = new {{ field.element_type_name }}[{{ field.pascal_name }}_N][];
                 for (int i = 0; i < result.Length; i++)
-                {
-                    result[i] = new {{ field.element_type_name }}[{{ field.prop_name }}_M];
-{{~ if field.element_initializer != '' ~}}
-                    for (int k = 0; k < result[i].Length; k++)
-                        result[i][k]{{ field.element_initializer }};
-{{~ end ~}}
-                }
+                    result[i] = System.Array.Empty<{{ field.element_type_name }}>();
                 return result;
             }
 {{~ else if field.is_record }}
@@ -129,6 +156,40 @@
    a group may hold more than one reference - and all three at the member's own arity. ##~}}
                 public {{ member.ref_key_type_name }} {{ member.prop_name }}_index;
                 public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
+{{~ end ~}}
+{{~ if member.multi_target_type_name != '' ~}}
+{{~## A member reaching several tables keeps the key above and gains these: one slot for the
+   resolved row whatever table it came from, and the discriminator saying which. At the
+   member's own arity, so a record of arrays holds one of each per element.
+   spec/multi-target-accessors.md. ##~}}
+                public {{ member.multi_slot_type }} {{ member.multi_slot_name }};
+                public {{ member.multi_target_declared_type }} {{ member.multi_target_name }};
+{{~ end ~}}
+{{~ end ~}}
+{{~## The per-target accessors of every member that reaches several tables. A property where
+   the member is one value; a method taking the element number where the member is the array,
+   which is the third place an element number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for member in rt.members ~}}
+{{~ for target in member.multi_targets ~}}
+{{~ if member.multi_is_array ~}}
+                /// <summary>
+                /// Element <paramref name="at"/> of <c>{{ member.prop_name }}</c> as a
+                /// <c>{{ target.record_type_name }}</c>, or null when it is a row of one of the others.
+                /// </summary>
+                public {{ target.record_type_name }} {{ target.accessor }}(int at)
+                    => {{ member.multi_target_name }}[at] == {{ member.multi_target_type_name }}.{{ target.label }}
+                        ? ({{ target.record_type_name }}){{ member.multi_slot_name }}[at]
+                        : null;
+{{~ else ~}}
+                /// <summary>
+                /// <c>{{ member.prop_name }}</c> as a <c>{{ target.record_type_name }}</c>, or null
+                /// when it is a row of one of the others.
+                /// </summary>
+                public {{ target.record_type_name }} {{ target.accessor }}
+                    => {{ member.multi_target_name }} == {{ member.multi_target_type_name }}.{{ target.label }}
+                        ? ({{ target.record_type_name }}){{ member.multi_slot_name }}
+                        : null;
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 
@@ -166,6 +227,13 @@
                 result.{{ member.prop_name }}_index{{ member.ref_key_initializer }};
                 result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
 {{~ end ~}}
+{{~ if member.multi_slot_initializer != '' ~}}
+{{~## A record of arrays holds one slot and one discriminator per element, and a struct cannot
+      size them at their declaration - the same reason the key and flag arrays above are
+      sized here. spec/multi-target-accessors.md. ##~}}
+                result.{{ member.multi_slot_name }}{{ member.multi_slot_initializer }};
+                result.{{ member.multi_target_name }}{{ member.multi_target_initializer }};
+{{~ end ~}}
 {{~ end ~}}
                 return result;
             }
@@ -176,7 +244,7 @@
       other string member of a generated record has. It matters when a file predates the
       member: no column, so nothing writes the field, and null is a crash one field later.
       A struct cannot say so itself, so this does. ##~}}
-{{~ if field.kind == 'record_array' || field.kind == 'record_var_array' ~}}
+{{~ if field.kind == 'record_var_array' ~}}
 {{~## Takes the length, because a trimmed group's is this row's rather than the sheet's
       column count - and the fixed kind passes its constant. ##~}}
 {{~## Internal, not private: a trimmed group's read calls this from the table class, which is
@@ -215,6 +283,13 @@
                 result.{{ member.prop_name }}_index{{ member.ref_key_initializer }};
                 result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
 {{~ end ~}}
+{{~ if member.multi_slot_initializer != '' ~}}
+{{~## A record of arrays holds one slot and one discriminator per element, and a struct cannot
+      size them at their declaration - the same reason the key and flag arrays above are
+      sized here. spec/multi-target-accessors.md. ##~}}
+                result.{{ member.multi_slot_name }}{{ member.multi_slot_initializer }};
+                result.{{ member.multi_target_name }}{{ member.multi_target_initializer }};
+{{~ end ~}}
 {{~ end ~}}
                 return result;
             }
@@ -228,10 +303,23 @@
       away from the values above because a consumer never calls one. ##~}}
 {{~ for field in table.reference_fields ~}}
 {{~ if field.kind == 'array_ref' ~}}
-            public void SetReference_{{ field.prop_name }}_INTERNAL(int index, {{ field.reference_setter_type }} value) => {{ field.field_name }}[index] = value;
+            public void SetReference_{{ field.pascal_name }}_INTERNAL(int index, {{ field.reference_setter_type }} value) => {{ field.field_name }}[index] = value;
 {{~ else ~}}
-            public void SetReference_{{ field.prop_name }}_INTERNAL({{ field.reference_setter_type }} value) => {{ field.field_name }} = value;
+            public void SetReference_{{ field.pascal_name }}_INTERNAL({{ field.reference_setter_type }} value) => {{ field.field_name }} = value;
 {{~ end ~}}
+{{~ end ~}}
+            #endregion
+{{~ end ~}}
+{{~ if table.multi_reference_fields | array.size > 0 }}
+            #region Multi-target reference wiring
+{{~## The row and which table it came from arrive together, because either without the
+      other is a state the properties above would read wrongly. ##~}}
+{{~ for ref in table.multi_reference_fields ~}}
+            public void SetReference_{{ ref.pascal_name }}_INTERNAL({{ ref.target_type_name }} target, object row)
+            {
+                {{ ref.target_field }} = target;
+                {{ ref.slot_field }} = row;
+            }
 {{~ end ~}}
             #endregion
 {{~ end ~}}
@@ -241,15 +329,7 @@
       resolves references - hence `internal` and `public` rather than `private`. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.prop_name }}();
-{{~ else if field.kind == 'record_array' ~}}
-{{~## Allocated with the record, not by the read. Each member column fills one field of
-      each element, so allocating per column would discard what the previous one wrote. ##~}}
-{{~ if field.needs_element_init ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.record_type_name }}Array({{ field.prop_name }}_N);
-{{~ else ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = new {{ field.field_type }}[{{ field.prop_name }}_N];
-{{~ end ~}}
+            internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.pascal_name }}();
 {{~ else if field.kind == 'record_var_array' ~}}
 {{~## Empty, not sized: the read allocates once it knows this row's length. Empty rather
       than null so a file that does not carry the column leaves something indexable. ##~}}
@@ -261,10 +341,10 @@
             internal {{ field.field_type }} {{ field.field_name }};
 {{~ end ~}}
 {{~ else if field.kind == 'array_ref' ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = new {{ field.field_type }}[{{ field.prop_name }}_N];
-            public {{ field.ref_key_type_name }}[] {{ field.field_name }}_{{ field.ref_table }}_index = new {{ field.ref_key_type_name }}[{{ field.prop_name }}_N];
-            public bool[] {{ field.field_name }}_F = new bool[{{ field.prop_name }}_N];
-{{~ else if field.kind == 'var_array' || field.kind == 'array' ~}}
+            internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
+            public {{ field.ref_key_type_name }}[] {{ field.field_name }}_{{ field.ref_table }}_index = System.Array.Empty<{{ field.ref_key_type_name }}>();
+            public bool[] {{ field.field_name }}_F = System.Array.Empty<bool>();
+{{~ else if field.kind == 'var_array' ~}}
             internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
 {{~ else if field.kind == 'scalar_ref' ~}}
             internal {{ field.field_type }} {{ field.field_name }};
@@ -278,6 +358,17 @@
       the member absent rather than claiming a value it never got. ##~}}
             internal bool {{ field.presence_field }};
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+            internal bool[] {{ field.element_presence_field }};
+{{~ end ~}}
+{{~ end ~}}
+{{~## One slot for the resolved row whatever table it came from, and the discriminator that
+      says which. `object` because the tables have no common type and inventing one would be
+      a sum type in every language; the cast back out lives in the property above, where the
+      discriminator has already answered. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_reference_fields ~}}
+            internal object {{ ref.slot_field }};
+            internal {{ ref.target_type_name }} {{ ref.target_field }};
 {{~ end ~}}
             #endregion
 
@@ -329,8 +420,8 @@
         private List<Record> _records = new List<Record>();
 {{~ for field in table.indexed_fields }}
         #region Indexing by '{{ field.prop_name }}'
-        public Dictionary<{{ field.field_type }}, Record> RecordsBy{{ field.prop_name }} => _recordsBy{{ field.prop_name }};
-        private Dictionary<{{ field.field_type }}, Record> _recordsBy{{ field.prop_name }} = new Dictionary<{{ field.field_type }}, Record>();
+        public Dictionary<{{ field.field_type }}, Record> RecordsBy{{ field.pascal_name }} => _recordsBy{{ field.pascal_name }};
+        private Dictionary<{{ field.field_type }}, Record> _recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.field_type }}, Record>();
 
         /// <summary>
         /// The row with this `{{ field.prop_name }}`, or null when the table has none.
@@ -340,8 +431,8 @@
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBy{{ field.prop_name }}({{ field.field_type }} key)
-            => _recordsBy{{ field.prop_name }}.TryGetValue(key, out Record record) ? record : null;
+        public Record FindBy{{ field.pascal_name }}({{ field.field_type }} key)
+            => _recordsBy{{ field.pascal_name }}.TryGetValue(key, out Record record) ? record : null;
 
         /// <summary>
         /// The row with this `{{ field.prop_name }}`, or a thrown exception naming what was
@@ -349,19 +440,19 @@
         /// </summary>
         /// <remarks>
         /// For a key that has to be there - one from another table, or a constant. The name
-        /// says it throws, because a caller reading `GetBy{{ field.prop_name }}(id).Name` at
+        /// says it throws, because a caller reading `GetBy{{ field.pascal_name }}(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetBy{{ field.prop_name }}OrThrow({{ field.field_type }} key)
+        public Record GetBy{{ field.pascal_name }}OrThrow({{ field.field_type }} key)
         {
-            if (!_recordsBy{{ field.prop_name }}.TryGetValue(key, out Record record))
+            if (!_recordsBy{{ field.pascal_name }}.TryGetValue(key, out Record record))
                 throw new TabbitException($"There is no record in table `{{ table.raw_name }}` that corresponds to field `{{ field.prop_name }}` value {key}");
 
             return record;
         }
 
         /// <summary>Whether the table holds a row with this `{{ field.prop_name }}`.</summary>
-        public bool Contains{{ field.prop_name }}({{ field.field_type }} key) => _recordsBy{{ field.prop_name }}.ContainsKey(key);
+        public bool Contains{{ field.pascal_name }}({{ field.field_type }} key) => _recordsBy{{ field.pascal_name }}.ContainsKey(key);
         #endregion // Indexing by `{{ field.prop_name }}`
 {{~ end ~}}
 
@@ -406,6 +497,10 @@
       in C#, so a `var` inside two of them collides. ##~}}
             byte[] presence;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+            byte[] elementPresence;
+            int elementAt;
+{{~ end ~}}
 
             // Read into storage of its own and published at the end, which is what makes a
             // refresh atomic: nothing here touches what the table is currently holding, so a
@@ -439,6 +534,13 @@
       type's empty value - which is what lets the read shapes below stay as they are. ##~}}
                         presence = TcbTable.ReadPresence(reader, column, count);
 {{~ end ~}}
+{{~ if column.has_optional_elements ~}}
+{{~## Behind the row bitmap and in front of the values, so it is read here and walked with a
+      counter that steps once per element of every row - the order the block wrote them in.
+      spec/nullable-array-elements.md. ##~}}
+                        elementPresence = TcbTable.ReadElementPresence(reader, column);
+                        elementAt = 0;
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
       as well: its block states an encoding for them and one for the row lengths, and the
       cursor is what decodes both. After the presence bitmap, which sits in front of the
@@ -453,20 +555,22 @@
                             int elementCount;
                             {{ column.length_read }}
                             record.{{ column.field_name }} = new {{ column.field_type }}[elementCount];
+{{~## The key and the resolved-flag arrays beside the values, at the length this row gave -
+      the same three arrays the fixed-length branch allocates from the column count. Left out
+      here, so a trimmed array of references wrote its first key past the end of an empty
+      array. spec/variable-length-record-arrays.md. ##~}}
+{{~ for line in column.parallel_arrays ~}}
+                            {{ line }}
+{{~ end ~}}
+{{~ if column.has_optional_elements ~}}
+                            record.{{ column.element_presence_field }} = new bool[elementCount];
+{{~ end ~}}
                             for (int j = 0; j < elementCount; ++j)
                             {
-{{~ for line in column.element_read ~}}
-                                {{ line }}
+{{~ if column.has_optional_elements ~}}
+                                record.{{ column.element_presence_field }}[j] =
+                                    TcbTable.IsPresent(elementPresence, elementAt++);
 {{~ end ~}}
-                            }
-                        }
-{{~ else if column.read_kind == 'serial' ~}}
-                        for (int i = 0; i < count; i++)
-                        {
-                            var record = records[i];
-                            record.{{ column.field_name }} = new {{ column.field_type }}[Record.{{ column.prop_name }}_N];
-                            for (int j = 0; j < Record.{{ column.prop_name }}_N; ++j)
-                            {
 {{~ for line in column.element_read ~}}
                                 {{ line }}
 {{~ end ~}}
@@ -507,27 +611,35 @@
 {{~ end ~}}
                             }
                         }
-{{~ else if column.read_kind == 'array_of_arrays_member' ~}}
-{{~## One inner array of an array of arrays. The outer index is fixed for this column -
-      it is which column this is - and the loop runs over the inner length, which is a
-      different constant from the outer one. spec/nested-multi-level.md. ##~}}
+{{~ else if column.read_kind == 'record_member_var' ~}}
+{{~## One record whose members are arrays: the member is the array, so it is sized here at
+      the length this row states rather than the record being re-created. ##~}}
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.{{ column.prop_name }}_M; ++j)
+                            int elementCount;
+                            {{ column.length_read }}
+                            record.{{ column.field_name }}{{ column.member_access }} =
+                                new {{ column.field_type }}[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
 {{~ for line in column.element_read ~}}
                                 {{ line }}
 {{~ end ~}}
                             }
                         }
-{{~ else if column.read_kind == 'record_serial' ~}}
-{{~## One member of an array-valued record. No allocation: the struct array came with
-      the record, and re-creating it here would discard the members read before this one. ##~}}
+{{~ else if column.read_kind == 'array_of_arrays_member' ~}}
+{{~## One inner array of an array of arrays. The outer index is fixed for this column - it is
+      which column this is - and the loop runs over the inner length, which this row states
+      and the outer level does not. spec/nested-multi-level.md. ##~}}
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.{{ column.prop_name }}_N; ++j)
+                            int elementCount;
+                            {{ column.length_read }}
+                            record.{{ column.field_name }}[{{ column.member_at }}] =
+                                new {{ column.field_type }}[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
 {{~ for line in column.element_read ~}}
                                 {{ line }}
@@ -588,9 +700,9 @@
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
 {{~ for field in table.indexed_fields ~}}
-            var recordsBy{{ field.prop_name }} = new Dictionary<{{ field.field_type }}, Record>(count);
+            var recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.field_type }}, Record>(count);
             foreach (var record in records)
-                recordsBy{{ field.prop_name }}.Add(record.{{ field.prop_name }}, record);
+                recordsBy{{ field.pascal_name }}.Add(record.{{ field.prop_name }}, record);
 {{~ end ~}}
 {{~ end }}
             // Published. Everything above succeeded, and the barrier is what keeps the writes
@@ -600,7 +712,7 @@
 
             _records = records;
 {{~ for field in table.indexed_fields ~}}
-            _recordsBy{{ field.prop_name }} = recordsBy{{ field.prop_name }};
+            _recordsBy{{ field.pascal_name }} = recordsBy{{ field.pascal_name }};
 {{~ end ~}}
 
             return Task.CompletedTask;

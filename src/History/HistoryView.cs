@@ -57,7 +57,7 @@ internal static class HistoryView
         using var stream = typeof(HistoryView).Assembly.GetManifestResourceStream(resource);
 
         if (stream is null)
-            throw new TabbitException($"Embedded resource `{resource}` is missing from the build.");
+            throw new TabbitDefectException($"Embedded resource `{resource}` is missing from the build.");
 
         using var reader = new StreamReader(stream, new UTF8Encoding(false));
 

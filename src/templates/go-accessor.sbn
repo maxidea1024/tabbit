@@ -123,6 +123,57 @@ func (t *{{ accessor_name }}) solveCrossReferences() {
 		}
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column reaching several tables is looked up in each of them in the order they were
+   named, stopping at the first that has the key. The tables take separate id bands - an id in
+   two of them is refused at conversion - so the order only decides which lookup runs.
+
+   Guarded on the key being set, which the single-target linking above does not do. It has to
+   be: the discriminator this produces is a value a consumer reads, so a language that resolved
+   a zero where another did not would answer a different table for the same row.
+   spec/multi-target-accessors.md. ##~}}
+{{~## A column reaching several tables that is a member of a record resolves inside the element,
+   so the elements are walked and each one's own key is looked up. Which slice that is - the
+   group's or the member's - the view decided, and a record of one has neither.
+   spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
+{{~ for ref in reference.multi_record_fields ~}}
+{{~ if ref.range != '' ~}}
+		for k := range {{ ref.range }} {
+			if {{ ref.key }} {{ ref.key_is_set }} {
+{{~ for target in ref.targets ~}}
+				if {{ ref.target }} == {{ ref.target_type_name }}None {
+					if found := t.{{ target.table }}.{{ target.lookup }}({{ ref.key }}); found != nil {
+						{{ ref.slot }} = found
+						{{ ref.target }} = {{ target.constant }}
+					}
+				}
+{{~ end ~}}
+			}
+		}
+{{~ else ~}}
+		if {{ ref.key }} {{ ref.key_is_set }} {
+{{~ for target in ref.targets ~}}
+			if {{ ref.target }} == {{ ref.target_type_name }}None {
+				if found := t.{{ target.table }}.{{ target.lookup }}({{ ref.key }}); found != nil {
+					{{ ref.slot }} = found
+					{{ ref.target }} = {{ target.constant }}
+				}
+			}
+{{~ end ~}}
+		}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for ref in reference.multi_fields ~}}
+		if record.{{ ref.key_member }} {{ ref.key_is_set }} {
+{{~ for target in ref.targets ~}}
+			if record.{{ ref.target_member }} == {{ ref.target_type_name }}None {
+				if target := t.{{ target.table }}.{{ target.lookup }}(record.{{ ref.key_member }}); target != nil {
+					record.{{ ref.slot_member }} = target
+					record.{{ ref.target_member }} = {{ target.constant }}
+				}
+			}
+{{~ end ~}}
+		}
+{{~ end ~}}
 	}
 {{~ end ~}}
 {{~ end ~}}

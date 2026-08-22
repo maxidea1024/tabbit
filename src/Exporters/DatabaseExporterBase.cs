@@ -61,6 +61,9 @@ public abstract class DatabaseRecipe : IOutputRecipe
 public abstract class DatabaseExporterBase<TEntry> : Target<TEntry>
     where TEntry : DatabaseRecipe
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     /// <summary>
     /// Suffix of the shadow table, collection or key namespace that a run loads
     /// into before swapping it over the live one.

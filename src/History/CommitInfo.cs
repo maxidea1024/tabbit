@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Serilog;
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -35,6 +36,9 @@ public enum CommitOrigin
 /// </summary>
 public sealed class CommitInfo
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     private CommitInfo(
         string? hash,
         string? branch,
@@ -197,20 +201,15 @@ public sealed class CommitInfo
     {
         if (!IsIdentified)
         {
-            Log.Warning(
-                "This conversion has no commit identity, so its changes cannot be attributed " +
-                "to anyone. Pass --commit, or run the conversion inside the working copy the " +
-                "sheets are in.");
+            Log.Warning(Message.Of(RecordMessages.LogNoCommitIdentity).In(MessageCatalog.Current));
 
             return;
         }
 
         if (IsDirty)
         {
-            Log.Warning(
-                $"The working copy at `{RepositoryPath}` has uncommitted changes, so this " +
-                $"conversion does not match commit {ShortHash}. What is recorded for it will " +
-                $"be marked as not attributable.");
+            Log.Warning(Message.Of(RecordMessages.LogWorkingCopyDirty,
+                ("Path", RepositoryPath), ("Commit", ShortHash)).In(MessageCatalog.Current));
         }
     }
 
@@ -301,9 +300,8 @@ public sealed class CommitInfo
             return parsed;
         }
 
-        throw new TabbitException(
-            $"--commit-date `{text}` is not a date. Use an ISO 8601 timestamp, such as " +
-            $"`2026-08-03T14:05:00+09:00`.");
+            throw new TabbitException(null,
+                Message.Of(RecordMessages.CommitDateNotADate, ("Text", text)));
     }
 
     private static string? Trimmed(string? value)

@@ -1,0 +1,78 @@
+{
+  // An array of references: numbered columns folded into one array.
+  //
+  // `foreign[]` is refused and its message names this shape instead, so it is the only way a
+  // sheet can point at several rows from one field - and nothing in the corpus held one. The
+  // code for it was generated for every language and never read a byte, which is how the
+  // C# page came to allocate the resolved array and not the keys beside it.
+  //
+  // Both forms of a reference are here, because they resolve to different types: `Slot` is a
+  // whole row and `Tier` is one of that row's values.
+  //
+  // spec/nullable-array-elements.md · spec/references-in-records.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/serial-ref",
+
+        // The whole point: without this the columns are five separate fields and there is no
+        // array to get wrong.
+        "FoldSerialFields": true
+      },
+
+      // The same shape with the length trimmed to each row's. A second entry rather than a
+      // second recipe, because trimming is a property of the entry and what has to be pinned
+      // is the pair: the untrimmed array's length is the sheet's column count and the trimmed
+      // one's is the row's, and a read that allocates from the wrong one passes on one table
+      // and not the other. One layout turns trimming on for every table it reads, which is
+      // how this combination arrived and where it crashed.
+      {
+        "Path": "test/fixtures/xlsx/serial-ref-trim",
+        "FoldSerialFields": true,
+        "TrimTrailingArrayElements": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    { "Type": "binary", "Path": "test/fixtures/output/serial-ref/binary", "FileExtension": ".tcb" },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/serial-ref/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/serial-ref/csharp",
+      "Namespace": "Tabbit.Fixtures.SerialRef",
+      "AccessorName": "SerialRefAccessor"
+    },
+    { "Type": "typescript", "Path": "test/fixtures/output/serial-ref/typescript" },
+
+    // The rest of the languages. A reference array is two arrays and a flag array in every
+    // one of them, and each declares the resolved one from the type the reference resolves
+    // to - so generating them all is what says which got the pair wrong.
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/serial-ref/cpp",
+      "Namespace": "serial_ref",
+      "AccessorName": "SerialRefAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    { "Type": "go", "Path": "test/fixtures/output/serial-ref/go", "PackageName": "serialref", "ModulePath": "serialref" },
+    { "Type": "rust", "Path": "test/fixtures/output/serial-ref/rust", "CrateName": "serial_ref" },
+    { "Type": "python", "Path": "test/fixtures/output/serial-ref/python", "PackageName": "serial_ref_data" },
+    { "Type": "java", "Path": "test/fixtures/output/serial-ref/java", "PackageName": "serialref", "AccessorName": "Tables" },
+    { "Type": "kotlin", "Path": "test/fixtures/output/serial-ref/kotlin", "PackageName": "serialref", "AccessorName": "Tables" },
+    { "Type": "swift", "Path": "test/fixtures/output/serial-ref/swift", "AccessorName": "Tables" },
+    { "Type": "lua", "Path": "test/fixtures/output/serial-ref/lua" },
+    { "Type": "ruby", "Path": "test/fixtures/output/serial-ref/ruby", "ModuleName": "SerialRef" },
+    { "Type": "dart", "Path": "test/fixtures/output/serial-ref/dart" },
+    { "Type": "unreal", "Path": "test/fixtures/output/serial-ref/unreal/Source", "ModuleName": "SerialRefData", "AccessorName": "FSerialRefData" },
+    { "Type": "c", "Path": "test/fixtures/output/serial-ref/c", "AccessorName": "SerialRef" },
+    { "Type": "php", "Path": "test/fixtures/output/serial-ref/php", "Namespace": "Tabbit\\Fixtures\\SerialRef", "AccessorName": "SerialRefAccessor" }
+  ]
+}

@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -191,7 +189,7 @@ namespace Tabbit.Fixtures.X
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Item.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Item.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Item.Index");
                         for (int i = 0; i < count; )
                         {
@@ -207,7 +205,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Item.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Item.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Item.Name");
                         for (int i = 0; i < count; )
                         {
@@ -223,7 +221,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Item.CategoryName", TcbTable.KindScalar, 1, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Item.CategoryName", TcbTable.KindScalar, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Item.CategoryName");
                         for (int i = 0; i < count; )
                         {
@@ -274,5 +272,4 @@ namespace Tabbit.Fixtures.X
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.X

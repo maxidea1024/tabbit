@@ -97,7 +97,7 @@ module RecordRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Holder.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Holder.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Holder.Index')
           at = 0
           while at < count
@@ -108,7 +108,7 @@ module RecordRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Holder.Main.ItemId', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32])
+          Tabbit.check_column(column, 'Holder.Main.ItemId', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Holder.Main.ItemId')
           at = 0
           while at < count
@@ -119,7 +119,7 @@ module RecordRef
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Holder.Main.Count', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Holder.Main.Count', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Holder.Main.Count')
           at = 0
           while at < count
@@ -130,7 +130,7 @@ module RecordRef
             at += n
           end
         when 4
-          Tabbit.check_column(column, 'Holder.Pad', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Holder.Pad', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Holder.Pad')
           at = 0
           while at < count
@@ -141,7 +141,7 @@ module RecordRef
             at += n
           end
         when 5
-          Tabbit.check_column(column, 'Holder.Pad2', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Holder.Pad2', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Holder.Pad2')
           at = 0
           while at < count

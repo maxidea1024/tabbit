@@ -112,7 +112,7 @@ class MountTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Mount.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Mount.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Mount.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -125,25 +125,32 @@ class MountTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Mount.Rig.Core.ItemId", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32});
+          tabbit::check_column(column, "Mount.Rig.Core.ItemId", tabbit::kKindArray, false, {tabbit::kElementI32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Mount.Rig.Core.ItemId");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.rig.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.rig[j].core.item_id_index = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            record.rig.assign(static_cast<std::size_t>(element_count), MountRecord_rig_entry());
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.rig[static_cast<std::size_t>(j)].core.item_id_index = cursor.next_i32();
             }
           }
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Mount.Rig.Core.Count", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Mount.Rig.Core.Count", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Mount.Rig.Core.Count");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.rig.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.rig[j].core.count = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            if (record.rig.size() != static_cast<std::size_t>(element_count)) {
+              throw tabbit::TcbError(
+                  "Mount.rig: the file gives this row a different "
+                  "element count for one member of the record than for another; every member of a "
+                  "record carries the same count, so the file is damaged");
+            }
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.rig[static_cast<std::size_t>(j)].core.count = cursor.next_i32();
             }
           }
           break;

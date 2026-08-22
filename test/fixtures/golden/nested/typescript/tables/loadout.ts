@@ -71,19 +71,17 @@ export class LoadoutRecord {
 
   /** element 1, first member */
   public get slot(): SlotEntry[] { return this._slot }
-  public static readonly slot_N: number = 2
 
   /** plain column inside the group's span */
   public get note(): string { return this._note }
 
   /** scalar serial field */
   public get tagArray(): string[] { return this._tagArray }
-  public static readonly tagArray_N: number = 2
 
   public _index: number = 0
   public _name: string = ''
   public _pos: PosEntry = { x: 0, y: 0 }
-  public _slot: SlotEntry[] = Array.from({ length: 2 }, () => ({ id: 0, label: '' }))
+  public _slot: SlotEntry[] = []
   public _note: string = ''
   public _tagArray: string[] = []
 
@@ -229,7 +227,7 @@ export class LoadoutTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Loadout.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loadout.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -238,7 +236,7 @@ export class LoadoutTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Loadout.Name', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Loadout.Name', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Name')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -247,7 +245,7 @@ export class LoadoutTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Loadout.Pos.X', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Loadout.Pos.X', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Pos.X')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -255,7 +253,7 @@ export class LoadoutTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Loadout.Pos.Y', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Loadout.Pos.Y', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Pos.Y')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -263,25 +261,30 @@ export class LoadoutTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Loadout.Slot.Id', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loadout.Slot.Id', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Slot.Id')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            record._slot = Array.from({ length: elementCount }, () => ({ id: 0, label: '' }))
+            for (let j = 0; j < elementCount; ++j)
               record._slot[j].id = cursor.nextI32()
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'Loadout.Slot.Label', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Loadout.Slot.Label', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Slot.Label')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            if (record._slot.length !== elementCount)
+              throw new Error(`Loadout.Slot: the file gives this row ${elementCount} elements for one member of the record and ${record._slot.length} for another. Every member of a record carries the same element count, so the file is damaged.`)
+            for (let j = 0; j < elementCount; ++j)
               record._slot[j].label = cursor.nextString()
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'Loadout.Note', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Loadout.Note', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Note')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -290,13 +293,15 @@ export class LoadoutTable {
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Loadout.Tag_array', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Loadout.Tag_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Tag_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
+            const elementCount = cursor.nextLength()
             record._tagArray = []
-            for (let j = 0; j < 2; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._tagArray.push(cursor.nextString())
+            }
           }
           break
         default:

@@ -121,7 +121,7 @@ class GuideTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Guide.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Guide.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Index")
                 at = 0
                 while at < count:
@@ -130,7 +130,7 @@ class GuideTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Guide.Name", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Guide.Name", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Name")
                 at = 0
                 while at < count:
@@ -139,43 +139,52 @@ class GuideTable:
                         records[i].name = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Guide.Skill.Step", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Guide.Skill.Step", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Skill.Step")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    record.skill.step = [None] * element_count
+                    for element in range(element_count):
                         record.skill.step[element] = cursor.next_i32()
             elif column.tag == 4:
-                tabbit.check_column(column, "Guide.Skill.Order", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Guide.Skill.Order", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Skill.Order")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    record.skill.order = [None] * element_count
+                    for element in range(element_count):
                         record.skill.order[element] = cursor.next_string()
             elif column.tag == 5:
-                tabbit.check_column(column, "Guide.Pos.X", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_F32,))
+                tabbit.check_column(column, "Guide.Pos.X", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_F32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Pos.X")
                 for record in records:
                     record.pos.x = cursor.next_f32()
             elif column.tag == 6:
-                tabbit.check_column(column, "Guide.Pos.Y", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_F32,))
+                tabbit.check_column(column, "Guide.Pos.Y", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_F32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Pos.Y")
                 for record in records:
                     record.pos.y = cursor.next_f32()
             elif column.tag == 7:
-                tabbit.check_column(column, "Guide.Tag_array", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Guide.Tag_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Tag_array")
                 for record in records:
-                    record.tag_array = [cursor.next_string() for _ in range(2)]
+                    element_count = cursor.next_length()
+                    record.tag_array = [cursor.next_string() for _ in range(element_count)]
             elif column.tag == 8:
-                tabbit.check_column(column, "Guide.Grid.1", tabbit.KIND_FIXED_ARRAY, 3, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Guide.Grid.1", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Grid.1")
                 for record in records:
-                    for element in range(3):
+                    element_count = cursor.next_length()
+                    record.grid[0] = [None] * element_count
+                    for element in range(element_count):
                         record.grid[0][element] = cursor.next_i32()
             elif column.tag == 9:
-                tabbit.check_column(column, "Guide.Grid.2", tabbit.KIND_FIXED_ARRAY, 3, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Guide.Grid.2", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Guide.Grid.2")
                 for record in records:
-                    for element in range(3):
+                    element_count = cursor.next_length()
+                    record.grid[1] = [None] * element_count
+                    for element in range(element_count):
                         record.grid[1][element] = cursor.next_i32()
             else:
                 # A column added after this code was generated.

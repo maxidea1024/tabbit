@@ -1,18 +1,15 @@
 {{~##
-   The usings every generated C# file shares.
+   The usings one generated file needs, decided by the writer rather than shared.
+
+   It used to be one list every file got: an enum file opened with six namespaces and the
+   binary reader to declare a handful of names, and none of them were reachable from it. The
+   list is per file now - `usings` on the view - so what a file opens with is what it uses.
 
    No UniTask. There used to be a `using Cysharp.Threading.Tasks;` behind `#if !NO_UNITY`,
    and nothing in the generated code referenced it - so it bought a hard dependency on a
    third-party package, or a compile error for anyone without it, in exchange for nothing.
    The generated code awaits `Task`, which every platform has.
 ##~}}
-using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
+{{~ for line in usings ~}}
+{{ line }}
+{{~ end ~}}

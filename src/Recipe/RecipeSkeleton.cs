@@ -77,10 +77,10 @@ internal static class RecipeSkeleton
 
         if (stream is null)
         {
-            throw new TabbitException(
-                $"There is no starting recipe called `{template}`. " +
-                $"Use one of: {string.Join(", ", TemplateNames)} - or leave --template off " +
-                "for one holding every setting at its default.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(RecipeMessages.TemplateUnknown,
+                        ("Template", template),
+                        ("Known", string.Join(", ", TemplateNames))));
         }
 
         using var reader = new StreamReader(stream);
@@ -107,7 +107,7 @@ internal static class RecipeSkeleton
     /// From the registry rather than from the model, because the model no longer names
     /// any target - which is the point of the `Targets` list, and the reason this had to
     /// stop being a reflection walk. It is also what makes the skeleton complete: while
-    /// ten targets had a section of their own and thirteen did not, walking the model
+    /// some targets had a section of their own and others did not, walking the model
     /// showed the settings of the ten and left the rest to a line of prose in the header.
     /// </remarks>
     private static void FillTargets(RecipeModel recipe)

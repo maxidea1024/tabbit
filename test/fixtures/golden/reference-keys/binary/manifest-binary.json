@@ -1,30 +1,30 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "7cbdc10df33f9a230255162cb5d8381b",
-  "TotalSize": 481,
+  "MasterHash": "8b15e5204931827239a56778dadde2a0",
+  "TotalSize": 465,
   "Items": [
     {
       "Name": "Animation.tcb",
-      "Size": 110,
-      "Hash": "a168e93ee18c532cc8c3d3362ba79079",
+      "Size": 106,
+      "Hash": "a15e075f615c867100f5a7cc50266b49",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Ledger.tcb",
-      "Size": 104,
-      "Hash": "9146771bd4c4f24fa3455e47940d805b",
+      "Size": 100,
+      "Hash": "b00d2e422cb9d6840473f1869cc362d6",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Art.tcb",
-      "Size": 124,
-      "Hash": "2ec047ca63d36baa26ccd4af5a22b7d3",
+      "Size": 120,
+      "Hash": "476e7cac2bdc3a1935fa4fd73c296f84",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Clip.tcb",
-      "Size": 143,
-      "Hash": "eafe8bd236dec636ab91fca44b8d5ad3",
+      "Size": 139,
+      "Hash": "9fa8db7ca9c933f1a378477d41627764",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

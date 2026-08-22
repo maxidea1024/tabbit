@@ -139,7 +139,7 @@ public class CommitInfoTests : IDisposable
         var ex = Assert.Throws<TabbitException>(
             () => CommitInfo.ValidateOptions(WithCommitOptions(date: "last tuesday")));
 
-        Assert.Contains("--commit-date", ex.Message);
+        Assert.Equal(Tabbit.History.RecordMessages.CommitDateNotADate, ex.MessageId);
     }
 
     [Fact]

@@ -1,0 +1,48 @@
+{
+  // A table given its rows twice, which is one table with two sets of them.
+  //
+  // What this tree pins is chiefly what is *not* here: no second type for `Colour_alt` in
+  // any of the three languages. The sheets said "these rows, also", and a generated
+  // `ColourAlt` would be a type nobody declared.
+  //
+  // The tail is spelled `_alt` and the pattern that recognizes it is written below rather
+  // than known anywhere in the program - a fixture built around one project's spelling
+  // would be pinning that spelling instead of the mechanism.
+  //
+  // Three languages rather than thirteen, for the same reason as the other scenarios: what
+  // differs between them is how a table's type is named and filed, and these three spell it
+  // three ways.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/row-sets",
+        "TableRowSets": "^(?<table>.+?)(?<set>_alt)$"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/row-sets/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/row-sets/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/row-sets/csharp",
+      "Namespace": "Tabbit.Fixtures.RowSets",
+      "AccessorName": "RowSetsAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/row-sets/typescript"
+    }
+  ]
+}

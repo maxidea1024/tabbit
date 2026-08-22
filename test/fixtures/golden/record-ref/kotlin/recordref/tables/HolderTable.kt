@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/record-ref/record-ref.xlsx : Records : R2
 /** A single record whose first member is a reference. */
@@ -123,7 +124,7 @@ class HolderTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Holder.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Holder.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Holder.Index")
                     var at = 0
                     while (at < count) {
@@ -137,7 +138,7 @@ class HolderTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Holder.Main.ItemId", KIND_SCALAR, 1, false, ELEMENT_I32)
+                    checkColumn(column, "Holder.Main.ItemId", KIND_SCALAR, false, ELEMENT_I32)
                     val cursor = ColumnCursor(reader, column, count, "Holder.Main.ItemId")
                     var at = 0
                     while (at < count) {
@@ -151,7 +152,7 @@ class HolderTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Holder.Main.Count", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Holder.Main.Count", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Holder.Main.Count")
                     var at = 0
                     while (at < count) {
@@ -165,7 +166,7 @@ class HolderTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Holder.Pad", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Holder.Pad", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Holder.Pad")
                     var at = 0
                     while (at < count) {
@@ -179,7 +180,7 @@ class HolderTable {
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Holder.Pad2", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Holder.Pad2", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Holder.Pad2")
                     var at = 0
                     while (at < count) {

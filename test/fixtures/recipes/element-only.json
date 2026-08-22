@@ -1,0 +1,34 @@
+{
+  // One column whose elements may be absent, handed to a target that cannot say so.
+  // Expected to fail during generation, naming the target and the column.
+  //
+  // `text` is that target: it gathers the values of localizable columns into a file whose
+  // shape the recipe writes, and a line of that file has nowhere to say that one element of
+  // an array is absent rather than empty.
+  //
+  // It used to be `html`, on the reasoning that a page could never carry a bit per element.
+  // That turned out to be the wrong reading of what a page does - it draws absence as a dash
+  // and an empty value as a pair of quotes, which is the distinction the marker exists to
+  // make - so the documentation target now accepts these columns and this gate moved to one
+  // that still refuses.
+  //
+  // Nothing here is optional at the row level, so what the target meets is the element
+  // refusal rather than the one beside it. spec/nullable-array-elements.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/element-only"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "text",
+      "Path": "test/fixtures/output/element-only/text",
+      "Format": "{index},\"{text}\""
+    }
+  ]
+}

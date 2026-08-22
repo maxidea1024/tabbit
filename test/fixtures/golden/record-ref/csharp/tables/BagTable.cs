@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -40,7 +38,6 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1 of the member
             /// </summary>
             public SlotsEntry Slots => _slots;
-            public const int Slots_N = 2;
             #endregion
 
             /// <summary>One element of <see cref="Slots"/>.</summary>
@@ -210,7 +207,7 @@ namespace Tabbit.Fixtures.RecordRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Bag.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Bag.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Bag.Index");
                         for (int i = 0; i < count; )
                         {
@@ -226,12 +223,16 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Bag.Slots.ItemId", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Bag.Slots.ItemId", TcbTable.KindArray, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Bag.Slots.ItemId");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slots_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._slots.ItemId =
+                                new ItemTable.Record[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slots.ItemId_index[j] = cursor.NextI32();
                                 record._slots.ItemId[j] = default(ItemTable.Record); // will be assigned.
@@ -241,12 +242,16 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Bag.Slots.Count", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Bag.Slots.Count", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Bag.Slots.Count");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slots_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._slots.Count =
+                                new int[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slots.Count[j] = cursor.NextI32();
                             }
@@ -287,5 +292,4 @@ namespace Tabbit.Fixtures.RecordRef
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.RecordRef

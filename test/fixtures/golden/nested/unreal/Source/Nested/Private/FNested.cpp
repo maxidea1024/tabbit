@@ -107,7 +107,7 @@ bool FLoadoutTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Index"));
 
             {
@@ -131,7 +131,7 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Name"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Name"));
 
             {
@@ -155,7 +155,7 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Pos.X"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Pos.X"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Pos.X"));
 
             for (FLoadoutRow& Record : Loaded)
@@ -166,7 +166,7 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Pos.Y"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Pos.Y"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Pos.Y"));
 
             for (FLoadoutRow& Record : Loaded)
@@ -177,13 +177,18 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.Id"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.Id"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Slot.Id"));
 
             for (FLoadoutRow& Record : Loaded)
             {
-                Record.Slot.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Slot.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Slot.SetNum(ElementCount);
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Slot[ElementAt].Id);
                 }
@@ -192,13 +197,23 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 6:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.Label"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.Label"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Slot.Label"));
 
             for (FLoadoutRow& Record : Loaded)
             {
-                Record.Slot.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Slot.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Loadout.Slot: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Slot[ElementAt].Label);
                 }
@@ -207,7 +222,7 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 7:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Note"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Note"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Note"));
 
             {
@@ -231,13 +246,19 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 8:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Tag_array"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Tag_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Tag_array"));
 
             for (FLoadoutRow& Record : Loaded)
             {
-                Record.TagArray.Empty(2);
-                while (Record.TagArray.Num() < 2)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                // Bounded, because the count came out of the file. The array grows past
+                // this if the elements really are there.
+                Record.TagArray.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.TagArray.Num() < ElementCount && !Reader.HasFailed())
                 {
                     Cursor.NextAs(Column.Element, Record.TagArray.AddDefaulted_GetRef());
                 }

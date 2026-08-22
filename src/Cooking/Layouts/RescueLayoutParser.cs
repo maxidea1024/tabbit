@@ -4,6 +4,7 @@ using Serilog;
 using Tabbit.Extensions;
 using Tabbit.Models;
 using Tabbit.Models.Raw;
+using Tabbit.Messages;
 
 namespace Tabbit.Cooking.Layouts;
 
@@ -40,6 +41,9 @@ namespace Tabbit.Cooking.Layouts;
     Summary = "One table per sheet, named by the sheet tab less its trailing `Table`, with three header rows.")]
 public sealed class RescueLayoutParser : ILayoutParser
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     /// <summary>Row holding each column's description. A `#` here drops the column.</summary>
     private const int CommentRow = 0;
 
@@ -81,7 +85,7 @@ public sealed class RescueLayoutParser : ILayoutParser
                 if (Model.ContainsEnum(enumm.Name))
                 {
                     throw new TabbitException(enumm.Location,
-                        $"Enum `{enumm.Name}` is already defined.");
+                        Message.Of(RescueLayoutMessages.EnumRedefined, ("Enum", enumm.Name)));
                 }
 
                 Model.Enums.Add(enumm);
@@ -105,9 +109,7 @@ public sealed class RescueLayoutParser : ILayoutParser
             if (Model.ContainsTable(table.Name))
             {
                 throw new TabbitException(table.Location,
-                    $"Table `{table.Name}` is already defined. In this layout a table is named by its " +
-                    "sheet tab, less any trailing `Table`, so two tabs whose names agree once that " +
-                    "word is dropped collide.");
+                    Message.Of(RescueLayoutMessages.TableRedefined, ("Table", table.Name)));
             }
 
             Model.Tables.Add(table);
@@ -220,7 +222,8 @@ public sealed class RescueLayoutParser : ILayoutParser
             if (result.Contains(labelName))
             {
                 throw new TabbitException(labelCell.Location,
-                    $"Label '{labelName}' is already defined in enum '{result.Name}'.");
+                    Message.Of(RescueLayoutMessages.EnumLabelRedefined,
+                        ("Label", labelName), ("Enum", result.Name)));
             }
 
             // `None` takes zero wherever it sits, so a default-constructed field of this
@@ -266,7 +269,8 @@ public sealed class RescueLayoutParser : ILayoutParser
 
         if (sheet.Rows.Count <= FirstDataRow || sheet.ColumnCount == 0)
         {
-            Log.Warning($"Skipping sheet `{sheetName}`: it has no data rows under a three-row header. ({sheet.Location})");
+            Log.Warning(Message.Of(RescueLayoutMessages.LogSkippingSheetNoData,
+                ("Sheet", sheetName), ("At", sheet.Location)).In(MessageCatalog.Current));
             return null;
         }
 
@@ -280,10 +284,10 @@ public sealed class RescueLayoutParser : ILayoutParser
         // on the unknown type `pc` instead of leaving it alone.
         if (!firstName.ToPascalCase().IsValidIdentifier() || !IsTypeSpelling(firstType))
         {
-            Log.Warning(
-                $"Skipping sheet `{sheetName}`: row {NameRow + 1} should open with a field name and " +
-                $"row {TypeRow + 1} with its type, and they hold `{firstName}` and `{firstType}`. " +
-                $"({sheet.Location})");
+            Log.Warning(Message.Of(RescueLayoutMessages.LogSkippingSheetBadHeader,
+                ("Sheet", sheetName), ("NameRow", NameRow + 1), ("TypeRow", TypeRow + 1),
+                ("FirstName", firstName), ("FirstType", firstType),
+                ("At", sheet.Location)).In(MessageCatalog.Current));
             return null;
         }
 
@@ -403,11 +407,9 @@ public sealed class RescueLayoutParser : ILayoutParser
                     : $"`{clash.RawName}` and `{fieldRawName}`, which differ only in punctuation or case";
 
                 throw new TabbitException(nameCell.Location,
-                    $"Table `{table.Name}` has two columns called `{fieldName}`: it uses {how}. " +
-                    $"Names are normalized so that every language gets the same member out of them, " +
-                    $"and two columns cannot share one. Rename one of them, or put a `#` on the " +
-                    $"description of the column that is no longer used. " +
-                    $"(the other is at {clash.NameLocation})");
+                    Message.Of(RescueLayoutMessages.ColumnNameClash,
+                        ("Table", table.Name), ("Field", fieldName), ("How", how),
+                        ("Other", clash.NameLocation)));
             }
 
             var field = new Field
@@ -441,7 +443,8 @@ public sealed class RescueLayoutParser : ILayoutParser
         }
 
         if (table.Fields.Count == 0)
-            throw new TabbitException(sheet.Location, $"Table `{table.Name}` has no usable columns.");
+            throw new TabbitException(sheet.Location,
+                Message.Of(RescueLayoutMessages.TableHasNoColumns, ("Table", table.Name)));
 
         _context.CheckPrimaryIndexValidity(table.Fields[0]);
 
@@ -475,14 +478,15 @@ public sealed class RescueLayoutParser : ILayoutParser
             if (enumName.Length == 0)
             {
                 throw new TabbitException(typeCell.Location,
-                    "In case of enum type, the enum name must follow `enum:`.");
+                    Message.Of(RescueLayoutMessages.EnumNameMustFollowMarker));
             }
 
             if (!Model.ContainsEnum(enumName))
             {
                 throw new TabbitException(typeCell.Location,
-                    $"Column `{field.Name}` is typed `{declared}`, but no enum named `{enumName}` was " +
-                    $"declared. Enums come from the sheet whose name contains `{EnumSheetMarker}`.");
+                    Message.Of(RescueLayoutMessages.EnumNotDeclared,
+                        ("Field", field.Name), ("Declared", declared),
+                        ("Enum", enumName), ("Marker", EnumSheetMarker)));
             }
 
             field.TypeName = enumName;
@@ -504,7 +508,8 @@ public sealed class RescueLayoutParser : ILayoutParser
 
         var arrayType = Models.ValueTypes.ArrayOf(elementType);
         if (arrayType == Models.ValueType.None)
-            throw new TabbitException(typeCell.Location, $"type `{spelling.Name}` cannot be used as an array element.");
+            throw new TabbitException(typeCell.Location,
+                Message.Of(RescueLayoutMessages.TypeNotArrayElement, ("Type", spelling.Name)));
 
         field.Type = arrayType;
     }
@@ -595,10 +600,9 @@ public sealed class RescueLayoutParser : ILayoutParser
 
             if (indexText.Length == 0)
             {
-                Log.Warning(
-                    $"Skipping row {rowIdx + 1} of `{table.Name}`: it has no `{indexField.Name}` but is " +
-                    $"not empty, so it is an unfinished row rather than the end of the table. " +
-                    $"({rawRow[0].Location})");
+                Log.Warning(Message.Of(RescueLayoutMessages.LogSkippingUnfinishedRow,
+                    ("Row", rowIdx + 1), ("Table", table.Name), ("Field", indexField.Name),
+                    ("At", rawRow[0].Location)).In(MessageCatalog.Current));
                 continue;
             }
 
@@ -634,15 +638,17 @@ public sealed class RescueLayoutParser : ILayoutParser
         switch (policy)
         {
             case DuplicateIndexPolicy.KeepFirst:
-                Log.Warning(
-                    $"Dropping row {sheetRow + 1} of `{table.Name}`: `{indexField.Name}` is `{indexValue}`, " +
-                    $"which an earlier row already used. ({row[indexField.Index].RawCell.Location})");
+                Log.Warning(Message.Of(RescueLayoutMessages.LogDroppingDuplicateRow,
+                    ("Row", sheetRow + 1), ("Table", table.Name), ("Field", indexField.Name),
+                    ("Value", indexValue),
+                    ("At", row[indexField.Index].RawCell.Location)).In(MessageCatalog.Current));
                 return true;
 
             case DuplicateIndexPolicy.KeepLast:
-                Log.Warning(
-                    $"Replacing an earlier row of `{table.Name}` with row {sheetRow + 1}: `{indexField.Name}` " +
-                    $"is `{indexValue}`, which both use. ({row[indexField.Index].RawCell.Location})");
+                Log.Warning(Message.Of(RescueLayoutMessages.LogReplacingDuplicateRow,
+                    ("Table", table.Name), ("Row", sheetRow + 1), ("Field", indexField.Name),
+                    ("Value", indexValue),
+                    ("At", row[indexField.Index].RawCell.Location)).In(MessageCatalog.Current));
                 table.Data[firstDataRow] = row;
                 return true;
 
@@ -669,15 +675,25 @@ public sealed class RescueLayoutParser : ILayoutParser
                 {
                     Location = rawRow[0].Location,
                     Value = (table.Data.Count + 1).ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    Note = "",
                 };
+
+            // `-` is no value and `\-` is the one character `-`, read where every layout
+            // reads them. spec/blank-and-null-cells.md.
+            var reading = _context.ReadCell(
+                field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
+                sheet.Layout?.ArrayDelimiter,
+                required: field.IsRequired,
+                onBlankCell: sheet.Layout?.OnBlankCell ?? BlankCellPolicy.Error,
+                column: $"{table.Name}.{field.Name}",
+                formulaError: rawCell.FormulaError,
+                onFormulaError: sheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error,
+                timeZone: sheet.Layout?.TimeZone);
 
             row.Add(new Cell
             {
                 RawCell = rawCell,
-                Value = _context.ParseValue(
-                    field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
-                    sheet.Layout?.ArrayDelimiter),
+                Value = reading.Value,
+                HasValue = reading.HasValue,
             });
         }
 

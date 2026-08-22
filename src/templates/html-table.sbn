@@ -1,0 +1,77 @@
+{{~##
+   One table per page: the header rows describing its columns, then its data.
+
+   It used to be every table on one page. A workbook whose largest table has 100,000
+   rows made that page 37 MB, so the other 66 tables in it could not be read at all -
+   and the size is the data's, not something to tune away. One page per table means the
+   page a reader opens is the size of the table they asked for.
+
+   The header shows the sheet's own columns rather than the folded groups, so the page
+   reads like the workbook it documents. A column that folded into a group names that
+   group in a tooltip.
+
+   What refers to this table comes with it. The type column has always linked outward -
+   this column points at that table - and the question a reader actually arrives with is
+   the other direction: what points here.
+##~}}
+{{~ include 'html-head.sbn' ~}}
+<p class="lead"><svg class="i"><use href="#i-table"></use></svg>{{ source_link }} &middot; 행 {{ record_count }}개 &middot; 컬럼 {{ column_count }}개{{ if sheet_column_count != '' }} <span class="hint">(시트 컬럼 {{ sheet_column_count }}개)</span>{{ end }}{{ if source_cell != '' }} <span class="hint">&middot; {{ source_cell }}</span>{{ end }}</p>
+{{~ if comment != '' ~}}
+<p class="comment">{{ comment }}</p>
+{{~ end ~}}
+{{~ if referenced_by | array.size > 0 ~}}
+<p class="hint">이 테이블을 가리키는 컬럼:
+{{~ for item in referenced_by ~}}
+<a href="{{ item.href }}">{{ item.name }}</a>{{ if !for.last }}, {{ end }}
+{{~ end ~}}
+</p>
+{{~ end ~}}
+<div data-table>
+<div class="tools">
+<input type="search" data-filter="rows" placeholder="행 필터">
+<span class="hint" data-shown>{{ shown_count }}행 중 {{ shown_count }}행</span>
+{{~ if truncated ~}}
+<span class="warn">{{ record_count }}행 중 처음 {{ shown_count }}행입니다. 더 보려면 recipe의 MaxRowsPerTable을 올리세요.</span>
+{{~ end ~}}
+</div>
+<div class="scroll">
+<table id="table_{{ name }}"{{ if sortable }} data-sortable{{ end }}>
+<thead>
+<tr class="names">
+{{~ for cell in name_cells ~}}
+{{ cell }}
+{{~ end ~}}
+</tr>
+{{~ if has_column_comments ~}}
+<tr class="about">
+{{~ for cell in comment_cells ~}}
+{{ cell }}
+{{~ end ~}}
+</tr>
+{{~ end ~}}
+<tr class="types">
+{{~ for cell in type_cells ~}}
+{{ cell }}
+{{~ end ~}}
+</tr>
+<tr class="side">
+{{~ for cell in side_cells ~}}
+{{ cell }}
+{{~ end ~}}
+</tr>
+</thead>
+<tbody>
+{{~ for row in rows ~}}
+<tr>{{ row.cells | array.join '' }}</tr>
+{{~ end ~}}
+</tbody>
+</table>
+</div>
+</div>
+{{~ if row_previews != '' ~}}
+{{~## The rows this page's references name, for the panel that shows one without following
+     the link. In a hidden element rather than a script tag: a sheet value may read like a
+     url, and the check that no page fetches anything looks at script tags. ##~}}
+<div id="rowdefs" hidden>{{ row_previews }}</div>
+{{~ end ~}}
+{{ include 'html-foot.sbn' }}

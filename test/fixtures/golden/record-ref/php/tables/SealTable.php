@@ -117,14 +117,14 @@ final class SealTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Seal.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_UUID]);
+                    TcbReader::checkColumn($column, 'Seal.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_UUID]);
                     foreach ($records as $record) {
                         $record->index = $reader->readUuid();
                     }
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Seal.Label', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Seal.Label', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Seal.Label');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -135,7 +135,7 @@ final class SealTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Seal.Pad', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Seal.Pad', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Seal.Pad');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -146,7 +146,7 @@ final class SealTable
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Seal.Pad2', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Seal.Pad2', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Seal.Pad2');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -157,7 +157,7 @@ final class SealTable
                     break;
 
                 case 5:
-                    TcbReader::checkColumn($column, 'Seal.Pad3', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Seal.Pad3', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Seal.Pad3');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);

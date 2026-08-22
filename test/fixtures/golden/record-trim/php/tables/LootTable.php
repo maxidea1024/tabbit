@@ -151,7 +151,7 @@ final class LootTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Loot.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Loot.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -162,7 +162,7 @@ final class LootTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Loot.Name', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Loot.Name', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Name');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -173,7 +173,7 @@ final class LootTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Loot.Slot.Id', TcbReader::KIND_VAR_ARRAY, 0, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Loot.Slot.Id', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Slot.Id');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
@@ -191,7 +191,7 @@ final class LootTable
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Loot.Slot.Count', TcbReader::KIND_VAR_ARRAY, 0, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Loot.Slot.Count', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Slot.Count');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
@@ -207,7 +207,7 @@ final class LootTable
                     break;
 
                 case 5:
-                    TcbReader::checkColumn($column, 'Loot.Slot.Label', TcbReader::KIND_VAR_ARRAY, 0, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Loot.Slot.Label', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Slot.Label');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
@@ -223,7 +223,7 @@ final class LootTable
                     break;
 
                 case 6:
-                    TcbReader::checkColumn($column, 'Loot.Pos.X', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Loot.Pos.X', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Pos.X');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -234,7 +234,7 @@ final class LootTable
                     break;
 
                 case 7:
-                    TcbReader::checkColumn($column, 'Loot.Pos.Y', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Loot.Pos.Y', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Pos.Y');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -245,7 +245,7 @@ final class LootTable
                     break;
 
                 case 8:
-                    TcbReader::checkColumn($column, 'Loot.Tag_array', TcbReader::KIND_VAR_ARRAY, 0, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Loot.Tag_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Tag_array');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();

@@ -145,8 +145,10 @@ constexpr std::uint8_t kElementString = 6;
 constexpr std::uint8_t kElementUuid = 7;
 
 constexpr std::uint8_t kKindScalar = 0;
-constexpr std::uint8_t kKindFixedArray = 1;
-constexpr std::uint8_t kKindVarArray = 2;
+// The only array kind: every row states its own length. A fixed-length kind sat at 1 until
+// v107 and was removed rather than kept, because a length stated once is a length the
+// generated code bakes in - and then a column added to a group needs the consumer rebuilt.
+constexpr std::uint8_t kKindArray = 1;
 
 /// The little-endian scalars, read out of bytes the caller already holds.
 ///
@@ -383,7 +385,7 @@ inline std::vector<std::uint8_t> read_all_bytes(const std::string& filename) {
 // rather than guessing. 102 replaced 101 outright - a descriptor gained its encoding
 // byte - before any 101 file had shipped. 104 is the current one: four encodings joined
 // the nine, and the flags byte gained a meaning.
-constexpr std::uint32_t kBinaryFileFormatVersion = 105;
+constexpr std::uint32_t kBinaryFileFormatVersion = 107;
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
 // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -836,10 +838,13 @@ struct Column {
   // every row - a row without one carries the type's empty value - so the bitmap says which
   // of those to believe and nothing about the layout after it.
   bool nullable;
+
+  // Whether the block states, per element, which of an array's places hold a value.
+  // Independent of `nullable`: a column may say either, or both.
+  // spec/nullable-array-elements.md.
+  bool element_nullable;
   // How the block's values are laid out: one of the kEncoding* constants.
   std::uint8_t encoding;
-  // Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one.
-  std::int32_t count;
   // Total bytes of the column block - what a skip advances by.
   std::int32_t byte_length;
 };
@@ -945,6 +950,9 @@ inline std::int32_t as_byte(std::int32_t value, const char* field_name) {
 inline std::vector<std::uint8_t> read_presence(
     TcbReader& reader, const Column& column, std::size_t row_count);
 
+inline std::vector<std::uint8_t> read_element_presence(
+    TcbReader& reader, const Column& column);
+
 // Whether a row has a value, for a column that says which do.
 //
 // An empty bitmap means the column is not optional and every row has one, so the generated
@@ -1007,10 +1015,10 @@ inline Header read_table_header(TcbReader& reader) {
     column.element = static_cast<std::uint8_t>(wire & 0x0f);
     column.kind = static_cast<std::uint8_t>((wire >> 4) & 0x03);
     column.nullable = (wire & 0x40) != 0;
+    column.element_nullable = (wire & 0x80) != 0;
 
     column.encoding = reader.read_fixed8();
 
-    column.count = reader.read_counter32();
     column.byte_length = static_cast<std::int32_t>(reader.read_fixed32());
 
     header.columns.push_back(column);
@@ -1040,6 +1048,7 @@ inline Header read_table_header(TcbReader& reader) {
                             " is larger than column tag " + std::to_string(column.tag) +
                             " can hold in its " + std::to_string(column.byte_length) + " bytes");
     }
+
   }
 
   if (declared != available) {
@@ -1098,8 +1107,18 @@ inline bool encoding_supported(const Column& column) {
 // That a column is what the generated member expects, or a lossless promotion of it.
 // Refusal is by name and both types, never by reading anyway.
 inline void check_column(const Column& column, const char* field_name, std::uint8_t kind,
-                         std::int32_t count, bool nullable,
-                         std::initializer_list<std::uint8_t> accepted) {
+                         bool nullable,
+                         std::initializer_list<std::uint8_t> accepted,
+                         bool element_nullable = false) {
+  // The same statement about the other bitmap: generated code not expecting one would read
+  // it as values. spec/nullable-array-elements.md.
+  if (column.element_nullable != element_nullable) {
+    throw TcbError(std::string(field_name) +
+                   ": the file and the generated member disagree about whether this column's"
+                   " elements are optional. The schema changed; regenerate the code or"
+                   " rebuild the data.");
+  }
+
   // Nullability is part of the shape: a file that says optional puts a presence bitmap at
   // the front of the block, and generated code not expecting one would read the bitmap as
   // values. Adding or removing a `?` is a schema change like any other.
@@ -1109,7 +1128,9 @@ inline void check_column(const Column& column, const char* field_name, std::uint
                    "; the schema changed, regenerate the code or rebuild the data");
   }
 
-  if (column.kind != kind || (kind != kKindVarArray && column.count != count)) {
+  // Shape is the kind alone since v107. How many elements a row holds is what the file
+  // states, row by row, so a group that grew a column is read rather than refused.
+  if (column.kind != kind) {
     throw TcbError(std::string(field_name) +
                           ": the file's column does not match the generated member's shape; "
                           "the schema changed shape, regenerate the code or rebuild the data");
@@ -1160,22 +1181,18 @@ class TcbColumnCursor {
     if (encoding_ == kEncodingArray) {
       encoding_ = reader.read_fixed8();
 
-      if (column.kind == kKindVarArray) {
-        const std::uint8_t length_encoding = reader.read_fixed8();
-        read_lengths(reader, length_encoding, row_count, field_name);
+      const std::uint8_t length_encoding = reader.read_fixed8();
+      read_lengths(reader, length_encoding, row_count, field_name);
 
-        std::int64_t elements = 0;
-        for (const std::int32_t length : lengths_) elements += length;
+      std::int64_t elements = 0;
+      for (const std::int32_t length : lengths_) elements += length;
 
-        if (elements > static_cast<std::int64_t>(INT32_MAX)) {
-          throw TcbError(std::string(field_name) +
-                         ": the column declares more elements than can be held");
-        }
-
-        rows_remaining_ = static_cast<std::int32_t>(elements);
-      } else {
-        rows_remaining_ = row_count * column.count;
+      if (elements > static_cast<std::int64_t>(INT32_MAX)) {
+        throw TcbError(std::string(field_name) +
+                       ": the column declares more elements than can be held");
       }
+
+      rows_remaining_ = static_cast<std::int32_t>(elements);
     }
 
     // A bit-packed column states the width its range needs, the base subtracted from
@@ -1847,6 +1864,25 @@ inline std::vector<std::uint8_t> read_presence(
   const std::uint8_t encoding = reader.read_fixed8();
 
   return read_byte_stream(reader, encoding, (row_count + 7) / 8, "a presence bitmap");
+}
+
+// A column's element bitmap, or an empty vector for a column that has none.
+//
+// Behind the row bitmap and in front of the values. Its length is written ahead of it as a
+// counter32, because a variable-length column's total is the sum of row lengths and those
+// live inside the value block - a reader meeting the bitmap first would have nothing to
+// size it by. One bit per element written, in the order the block wrote them.
+inline std::vector<std::uint8_t> read_element_presence(
+    TcbReader& reader, const Column& column) {
+  if (!column.element_nullable) {
+    return {};
+  }
+
+  const std::int32_t elements = reader.read_counter32();
+  const std::uint8_t encoding = reader.read_fixed8();
+
+  return read_byte_stream(reader, encoding, (static_cast<std::size_t>(elements) + 7) / 8,
+                          "an element presence bitmap");
 }
 
 inline void check_block_end(const TcbReader& reader, const Column& column,

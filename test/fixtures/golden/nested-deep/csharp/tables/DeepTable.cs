@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -40,7 +38,6 @@ namespace Tabbit.Fixtures.NestedDeep
             /// element 1, a value beside a record
             /// </summary>
             public StarEntry[] Star => _star;
-            public const int Star_N = 2;
             #endregion
 
             /// <summary>A record inside <see cref="Star"/>.</summary>
@@ -80,9 +77,18 @@ namespace Tabbit.Fixtures.NestedDeep
                 }
             }
 
+            internal static StarEntry[] NewStarEntryArray(int length)
+            {
+                var result = new StarEntry[length];
+                for (int i = 0; i < result.Length; i++)
+                {
+                }
+                return result;
+            }
+
             #region Storage
             internal int _index;
-            internal StarEntry[] _star = new StarEntry[Star_N];
+            internal StarEntry[] _star = System.Array.Empty<StarEntry>();
             #endregion
 
             #region ToString
@@ -216,7 +222,7 @@ namespace Tabbit.Fixtures.NestedDeep
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Deep.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Deep.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Deep.Index");
                         for (int i = 0; i < count; )
                         {
@@ -232,12 +238,15 @@ namespace Tabbit.Fixtures.NestedDeep
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Deep.Star.Id", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Deep.Star.Id", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Deep.Star.Id");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Star_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._star = Record.NewStarEntryArray(elementCount);
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._star[j].Id = cursor.NextI32();
                             }
@@ -245,12 +254,22 @@ namespace Tabbit.Fixtures.NestedDeep
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Deep.Star.Position.X", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Deep.Star.Position.X", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Deep.Star.Position.X");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Star_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            if (record._star.Length != elementCount)
+                            {
+                                throw new TcbException(
+                                    "Deep.Star: the file gives this row "
+                                    + elementCount + " elements for one member of the record and "
+                                    + record._star.Length + " for another. Every member of a "
+                                    + "record carries the same element count, so the file is damaged.");
+                            }
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._star[j].Position.X = cursor.NextI32();
                             }
@@ -258,12 +277,22 @@ namespace Tabbit.Fixtures.NestedDeep
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Deep.Star.Position.Y", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Deep.Star.Position.Y", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Deep.Star.Position.Y");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Star_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            if (record._star.Length != elementCount)
+                            {
+                                throw new TcbException(
+                                    "Deep.Star: the file gives this row "
+                                    + elementCount + " elements for one member of the record and "
+                                    + record._star.Length + " for another. Every member of a "
+                                    + "record carries the same element count, so the file is damaged.");
+                            }
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._star[j].Position.Y = cursor.NextI32();
                             }
@@ -304,5 +333,4 @@ namespace Tabbit.Fixtures.NestedDeep
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.NestedDeep

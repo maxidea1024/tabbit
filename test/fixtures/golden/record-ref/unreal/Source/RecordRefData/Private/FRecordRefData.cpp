@@ -107,7 +107,7 @@ bool FItemTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Item.Index"));
 
             {
@@ -131,7 +131,7 @@ bool FItemTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Name"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Item.Name"));
 
             {
@@ -155,7 +155,7 @@ bool FItemTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Pad"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Pad"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Item.Pad"));
 
             {
@@ -179,7 +179,7 @@ bool FItemTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Pad2"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Pad2"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Item.Pad2"));
 
             {
@@ -203,7 +203,7 @@ bool FItemTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Pad3"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Item.Pad3"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Item.Pad3"));
 
             {
@@ -359,7 +359,7 @@ bool FLoadoutTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Index"));
 
             {
@@ -383,13 +383,18 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.ItemId"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.ItemId"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Slot.ItemId"));
 
             for (FLoadoutRow& Record : Loaded)
             {
-                Record.Slot.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Slot.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Slot.SetNum(ElementCount);
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Slot[ElementAt].ItemIdIndex);
                 }
@@ -398,13 +403,23 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.SwapId"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.SwapId"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Slot.SwapId"));
 
             for (FLoadoutRow& Record : Loaded)
             {
-                Record.Slot.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Slot.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Loadout.Slot: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Slot[ElementAt].SwapIdIndex);
                 }
@@ -413,13 +428,23 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.Count"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Slot.Count"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Slot.Count"));
 
             for (FLoadoutRow& Record : Loaded)
             {
-                Record.Slot.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Slot.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Loadout.Slot: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Slot[ElementAt].Count);
                 }
@@ -560,7 +585,7 @@ bool FHolderTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Holder.Index"));
 
             {
@@ -584,7 +609,7 @@ bool FHolderTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Main.ItemId"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Main.ItemId"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Holder.Main.ItemId"));
 
             {
@@ -608,7 +633,7 @@ bool FHolderTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Main.Count"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Main.Count"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Holder.Main.Count"));
 
             {
@@ -632,7 +657,7 @@ bool FHolderTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Pad"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Pad"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Holder.Pad"));
 
             {
@@ -656,7 +681,7 @@ bool FHolderTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Pad2"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Holder.Pad2"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Holder.Pad2"));
 
             {
@@ -812,7 +837,7 @@ bool FBagTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Bag.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Bag.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Bag.Index"));
 
             {
@@ -836,13 +861,17 @@ bool FBagTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Bag.Slots.ItemId"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Bag.Slots.ItemId"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Bag.Slots.ItemId"));
 
             for (FBagRow& Record : Loaded)
             {
-                Record.Slots.ItemIdIndex.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Slots.ItemIdIndex.SetNum(
+                    Tabbit::ReserveBound(ElementCount));
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Slots.ItemIdIndex[ElementAt]);
                 }
@@ -851,13 +880,17 @@ bool FBagTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Bag.Slots.Count"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Bag.Slots.Count"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Bag.Slots.Count"));
 
             for (FBagRow& Record : Loaded)
             {
-                Record.Slots.Count.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Slots.Count.SetNum(
+                    Tabbit::ReserveBound(ElementCount));
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Slots.Count[ElementAt]);
                 }
@@ -998,7 +1031,7 @@ bool FMountTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Mount.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Mount.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Mount.Index"));
 
             {
@@ -1022,13 +1055,18 @@ bool FMountTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Mount.Rig.Core.ItemId"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Mount.Rig.Core.ItemId"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Mount.Rig.Core.ItemId"));
 
             for (FMountRow& Record : Loaded)
             {
-                Record.Rig.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Rig.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Rig.SetNum(ElementCount);
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Rig[ElementAt].Core.ItemIdIndex);
                 }
@@ -1037,13 +1075,23 @@ bool FMountTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Mount.Rig.Core.Count"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Mount.Rig.Core.Count"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Mount.Rig.Core.Count"));
 
             for (FMountRow& Record : Loaded)
             {
-                Record.Rig.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Rig.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Mount.Rig: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Rig[ElementAt].Core.Count);
                 }
@@ -1184,7 +1232,7 @@ bool FClipTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Clip.Index"));
 
             {
@@ -1208,7 +1256,7 @@ bool FClipTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Length"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Length"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Clip.Length"));
 
             {
@@ -1232,7 +1280,7 @@ bool FClipTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Pad"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Pad"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Clip.Pad"));
 
             {
@@ -1256,7 +1304,7 @@ bool FClipTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Pad2"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Pad2"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Clip.Pad2"));
 
             {
@@ -1280,7 +1328,7 @@ bool FClipTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Pad3"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Clip.Pad3"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Clip.Pad3"));
 
             {
@@ -1436,7 +1484,7 @@ bool FPoseTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Pose.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Pose.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Pose.Index"));
 
             {
@@ -1460,13 +1508,18 @@ bool FPoseTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Pose.Step.ClipId"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Pose.Step.ClipId"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Pose.Step.ClipId"));
 
             for (FPoseRow& Record : Loaded)
             {
-                Record.Step.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Step.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Step.SetNum(ElementCount);
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Step[ElementAt].ClipIdIndex);
                 }
@@ -1475,13 +1528,23 @@ bool FPoseTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Pose.Step.Weight"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Pose.Step.Weight"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Pose.Step.Weight"));
 
             for (FPoseRow& Record : Loaded)
             {
-                Record.Step.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Step.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Pose.Step: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Step[ElementAt].Weight);
                 }
@@ -1622,7 +1685,7 @@ bool FSealTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementUuid));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementUuid));
 
             for (FSealRow& Record : Loaded)
             {
@@ -1632,7 +1695,7 @@ bool FSealTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Label"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Label"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Seal.Label"));
 
             {
@@ -1656,7 +1719,7 @@ bool FSealTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Pad"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Pad"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Seal.Pad"));
 
             {
@@ -1680,7 +1743,7 @@ bool FSealTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Pad2"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Pad2"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Seal.Pad2"));
 
             {
@@ -1704,7 +1767,7 @@ bool FSealTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Pad3"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Seal.Pad3"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Seal.Pad3"));
 
             {
@@ -1860,7 +1923,7 @@ bool FBadgeTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Badge.Index"));
 
             {
@@ -1884,7 +1947,7 @@ bool FBadgeTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Mark.ClipId"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Mark.ClipId"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Badge.Mark.ClipId"));
 
             {
@@ -1908,7 +1971,7 @@ bool FBadgeTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Mark.SealId"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementUuid));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Mark.SealId"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementUuid));
 
             for (FBadgeRow& Record : Loaded)
             {
@@ -1918,7 +1981,7 @@ bool FBadgeTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Mark.Rank"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Mark.Rank"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Badge.Mark.Rank"));
 
             {
@@ -1942,7 +2005,7 @@ bool FBadgeTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Pad"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Badge.Pad"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Badge.Pad"));
 
             {
@@ -2098,7 +2161,7 @@ bool FKitTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Index"));
 
             {
@@ -2122,7 +2185,7 @@ bool FKitTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Part.ItemId"), Tabbit::KindVarArray, 0, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Part.ItemId"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Part.ItemId"));
 
             for (FKitRow& Record : Loaded)
@@ -2142,7 +2205,7 @@ bool FKitTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Part.Count"), Tabbit::KindVarArray, 0, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Part.Count"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Part.Count"));
 
             for (FKitRow& Record : Loaded)

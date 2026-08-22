@@ -116,7 +116,7 @@ module KeyTypes
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Slotting.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Slotting.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Slotting.Index')
           at = 0
           while at < count
@@ -127,7 +127,7 @@ module KeyTypes
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Slotting.Capacity', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Slotting.Capacity', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Slotting.Capacity')
           at = 0
           while at < count
@@ -138,7 +138,7 @@ module KeyTypes
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Slotting.Serial', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I64, Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Slotting.Serial', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I64, Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Slotting.Serial')
           records.each do |record|
             record.serial = cursor.next_i64

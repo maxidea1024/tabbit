@@ -97,6 +97,16 @@ internal sealed class GoTableView
     public required IReadOnlyList<GoFieldView> Fields { get; set; }
 
     /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// Separate from <see cref="Fields"/>: such a column is not one record and keeps carrying
+    /// the key, and what is added beside it is a method per target.
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    public required IReadOnlyList<GoMultiReferenceView> MultiReferences { get; set; }
+
+    /// <summary>
     /// The columns of a data file, which is what the read switch dispatches on.
     /// </summary>
     /// <remarks>
@@ -106,7 +116,7 @@ internal sealed class GoTableView
     public required IReadOnlyList<GoColumnView> Columns { get; set; }
 
     /// <summary>
-    /// Whether any field is a fixed-length record array, and so the read creates those
+    /// Whether any field is a record array, and so the read creates those
     /// arrays with the rows.
     /// </summary>
     public required bool NeedsRecordInit { get; set; }
@@ -211,6 +221,12 @@ internal sealed class GoFieldView
 
     /// <summary>The member the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 }
 
 /// <summary>One member of a record group's generated struct.</summary>
@@ -244,6 +260,40 @@ internal sealed class GoRecordMemberView
     /// spec/references-in-records.md.
     /// </summary>
     public string RefKeySliceType { get; set; } = "";
+
+    /// <summary>
+    /// The slot and the discriminator of a member reaching several tables, so the methods can
+    /// be written beside the struct. Empty for every other member.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public GoMultiMemberView? Multi { get; set; }
+}
+
+/// <summary>
+/// One record member whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// The member keeps the key it already carried; beside it go one slot for the resolved row and
+/// the discriminator saying which table filled it, at the member's own arity. `any` for the
+/// slot, for the reason the row-level view gives. spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class GoMultiMemberView
+{
+    /// <summary>The struct the methods hang off.</summary>
+    public required string ElementTypeName { get; set; }
+
+    /// <summary>The key, the slot and the discriminator, by member name.</summary>
+    public required string KeyMember { get; set; }
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>Whether the member is the array, so a method takes an element number.</summary>
+    public required bool IsArray { get; set; }
+
+    public required IReadOnlyList<GoMultiTargetView> Targets { get; set; }
 }
 
 /// <summary>
@@ -268,6 +318,13 @@ internal sealed class GoRecordTypeView
 
     /// <summary>What the struct is called in its doc comment.</summary>
     public required string Owner { get; set; }
+
+    /// <summary>
+    /// Those of its members that reach several tables, for the methods written beside the
+    /// struct. spec/multi-target-accessors.md.
+    /// </summary>
+    public IReadOnlyList<GoMultiMemberView> MultiMembers { get; set; }
+        = System.Array.Empty<GoMultiMemberView>();
 }
 
 /// <summary>
@@ -303,6 +360,16 @@ internal sealed class GoColumnView
     /// a branch in the emitted loop.
     /// </remarks>
     public required string LengthRead { get; set; }
+
+    /// <summary>
+    /// The Go spelling of the key a reference array stores, for the read to allocate.
+    /// </summary>
+    /// <remarks>
+    /// Written into the template as `int32` before, which is the assumption
+    /// spec/reference-key-types.md removed everywhere a scalar reference reads and left
+    /// standing where an array of them allocates. Empty for a column that is not one.
+    /// </remarks>
+    public required string RefKeyType { get; set; }
 
     /// <summary>
     /// The cursor's run method for a scalar whose column can arrive run-length encoded -
@@ -353,6 +420,15 @@ internal sealed class GoColumnView
     /// <summary>The slice type a make call needs.</summary>
     public required string ArrayType { get; set; }
 
+    /// <summary>The slice type of this column's own elements, whatever holds them.</summary>
+    /// <remarks>
+    /// <see cref="ArrayType"/> names the group's slice, which is what a record array is made
+    /// as. A member that is itself the array, and one inner level of an array of arrays, are
+    /// made as this instead - the record type it would otherwise name does not exist for an
+    /// unnamed level, and is the wrong type for a member.
+    /// </remarks>
+    public required string ElementSliceType { get; set; }
+
     /// <summary>
     /// Whether this column holds the first member of its record group - the one that
     /// allocates when the element count comes from the row.
@@ -367,6 +443,12 @@ internal sealed class GoColumnView
 
     /// <summary>The member the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 
     /// <summary>What an absent row's value is put back to, so both read paths agree.</summary>
     public required string EmptyValue { get; set; }
@@ -396,6 +478,92 @@ internal sealed class GoCrossReferenceView
     /// than beside it. spec/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<GoRecordReferenceView> RecordFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables, which resolve by trying each in turn.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<GoMultiReferenceView> MultiFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables that are members of a record, which resolve per
+    /// element. spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<GoMultiRecordReferenceView> MultiRecordFields { get; set; }
+}
+
+/// <summary>
+/// One multi-target column that is a member of a record, as the linking pass writes it.
+/// </summary>
+internal sealed class GoMultiRecordReferenceView
+{
+    /// <summary>The key this resolves through, loop variable included.</summary>
+    public required string Key { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string Slot { get; set; }
+    public required string Target { get; set; }
+
+    /// <summary>
+    /// What the loop ranges over, or empty where the group is one record and there is nothing
+    /// to walk.
+    /// </summary>
+    public required string Range { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<GoMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// The key stays the column's value. Beside it: one slot for the resolved row whatever table
+/// it came from, and the discriminator saying which. `any` for the slot, because the target
+/// records share no interface and giving them one would be a sum type - the assertion back out
+/// lives in the generated method, where the discriminator has already answered.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class GoMultiReferenceView
+{
+    /// <summary>The member holding the key.</summary>
+    public required string KeyMember { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<GoMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class GoMultiTargetView
+{
+    /// <summary>The accessor member holding the table.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The record type a resolved row has.</summary>
+    public required string RecordName { get; set; }
+
+    /// <summary>The method this target is read through.</summary>
+    public required string Method { get; set; }
+
+    /// <summary>The enum constant for this target, already carrying the type's name.</summary>
+    public required string Constant { get; set; }
+
+    /// <summary>The target's lookup, which answers nil rather than an error.</summary>
+    public required string Lookup { get; set; }
 }
 
 /// <summary>

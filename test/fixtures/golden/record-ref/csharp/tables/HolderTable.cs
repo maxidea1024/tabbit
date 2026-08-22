@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -213,7 +211,7 @@ namespace Tabbit.Fixtures.RecordRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Holder.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Holder.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Index");
                         for (int i = 0; i < count; )
                         {
@@ -229,7 +227,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Holder.Main.ItemId", TcbTable.KindScalar, 1, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Holder.Main.ItemId", TcbTable.KindScalar, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Main.ItemId");
                         for (int i = 0; i < count; )
                         {
@@ -247,7 +245,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Holder.Main.Count", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Holder.Main.Count", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Main.Count");
                         for (int i = 0; i < count; )
                         {
@@ -263,7 +261,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Holder.Pad", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Holder.Pad", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Pad");
                         for (int i = 0; i < count; )
                         {
@@ -279,7 +277,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Holder.Pad2", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Holder.Pad2", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Pad2");
                         for (int i = 0; i < count; )
                         {
@@ -328,5 +326,4 @@ namespace Tabbit.Fixtures.RecordRef
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.RecordRef

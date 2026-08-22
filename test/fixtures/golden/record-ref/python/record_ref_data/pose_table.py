@@ -105,7 +105,7 @@ class PoseTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Pose.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Pose.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Pose.Index")
                 at = 0
                 while at < count:
@@ -114,16 +114,27 @@ class PoseTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Pose.Step.ClipId", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Pose.Step.ClipId", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Pose.Step.ClipId")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    # The first member builds the list; the rest check. Building it again
+                    # would discard what the members before it wrote, and taking the shorter
+                    # of two counts would shift every value after it.
+                    record.step = [
+                        PoseStepEntry() for _ in range(element_count)]
+                    for element in range(element_count):
                         record.step[element].clip_id_index = cursor.next_string()
             elif column.tag == 3:
-                tabbit.check_column(column, "Pose.Step.Weight", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Pose.Step.Weight", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Pose.Step.Weight")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    if len(record.step) != element_count:
+                        raise tabbit.TcbError(
+                            "Pose.step: the file gives one member of "
+                            "this record a different element count than another")
+                    for element in range(element_count):
                         record.step[element].weight = cursor.next_i32()
             else:
                 # A column added after this code was generated.

@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -221,7 +219,7 @@ namespace Tabbit.Fixtures.KeyTypes
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Slotting.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Slotting.Index", TcbTable.KindScalar, false, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Slotting.Index");
                         for (int i = 0; i < count; )
                         {
@@ -237,7 +235,7 @@ namespace Tabbit.Fixtures.KeyTypes
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Slotting.Capacity", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Slotting.Capacity", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Slotting.Capacity");
                         for (int i = 0; i < count; )
                         {
@@ -253,7 +251,7 @@ namespace Tabbit.Fixtures.KeyTypes
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Slotting.Serial", TcbTable.KindScalar, 1, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Slotting.Serial", TcbTable.KindScalar, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Slotting.Serial");
                         for (int i = 0; i < count; i++)
                         {
@@ -300,5 +298,4 @@ namespace Tabbit.Fixtures.KeyTypes
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.KeyTypes

@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -90,6 +91,31 @@ public class RecipeModel
 
         /// <summary>Google Sheets sources.</summary>
         public List<GoogleSheetsRecipe> GoogleSheets { get; set; } = new List<GoogleSheetsRecipe>();
+
+        /// <summary>
+        /// Every sheet-reading entry this group holds, whichever source presents it.
+        /// </summary>
+        /// <remarks>
+        /// For the settings that a command-line option forces over the recipe: the override
+        /// has to reach each entry, and an entry's own value is exactly what it has to
+        /// replace. Found by walking this object's own lists rather than naming them, so a
+        /// third source becomes readable here by existing.
+        /// </remarks>
+        public IEnumerable<SheetSourceRecipe> SheetEntries()
+        {
+            foreach (var property in GetType().GetProperties(
+                         BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (property.GetValue(this) is not System.Collections.IEnumerable entries)
+                    continue;
+
+                foreach (object? entry in entries)
+                {
+                    if (entry is SheetSourceRecipe sheets)
+                        yield return sheets;
+                }
+            }
+        }
     }
 
     /// <summary>Where the sheets are read from.</summary>
@@ -115,6 +141,47 @@ public class RecipeModel
     /// element is trimmed, so `1; 2 ;3` reads the same as `1;2;3`.
     /// </summary>
     public string ArrayDelimiter { get; set; } = ";";
+
+    /// <summary>
+    /// Which time zone the wall clock in a `datetime` cell was written in, so the value
+    /// stored for it is the moment it names.
+    ///
+    /// Named as `Asia/Seoul` or `Korea Standard Time`, or written as a fixed offset:
+    /// `+09:00`, `-05:30`, `+0900`, `+09`, or `Z` for UTC itself.
+    ///
+    /// Blank, which reads a cell as already being in UTC. Data leaves this tool in UTC
+    /// whatever this says - the setting decides how a sheet's wall clock is read, not
+    /// what is stored. A source entry may override it for its own sheets.
+    /// </summary>
+    /// <remarks>
+    /// A cell that wrote its own offset - `2022-01-24T10:30:00Z`, or the same with
+    /// `+09:00` - already names a moment, and this does not move it.
+    ///
+    /// A name and an offset are not the same answer. The name carries the region's
+    /// history, so a date from a summer under daylight saving converts by the offset that
+    /// was in force then; a fixed offset is the same all year, which is what sheets
+    /// written to one office's clock usually mean. spec/datetime-timezone.md.
+    /// </remarks>
+    public string TimeZone { get; set; } = "";
+
+    /// <summary>
+    /// Spelling of the exported data files' names. Blank keeps the table's own name.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`.
+    ///
+    /// Here rather than on a target, which is the one thing about it worth explaining. Every
+    /// other spelling setting belongs to whatever reads it, but this name is a contract
+    /// between programs: the exporter writes the file and the reader generated for each
+    /// language opens it, and the two computing it separately is how a build comes to produce
+    /// data that its own reader cannot find. One setting for the whole recipe is what makes
+    /// that impossible to get wrong.
+    ///
+    /// A row set's suffix is appended after the spelling is applied, as the sheet wrote it -
+    /// separator included, which is the existing rule for those. So `snake` turns table
+    /// `ItemDrop` with set `_alt` into `item_drop_alt`.
+    /// </remarks>
+    public string DataFileCase { get; set; } = "";
 
     /// <summary>
     /// Colour palettes this build knows, each name mapped to the file it is read from.
@@ -154,7 +221,7 @@ public class RecipeModel
     /// what keeps this class from growing one member per language and keeps a target
     /// deletable by deleting its file.
     ///
-    /// There used to be a section per target for the ten that predate this list, and
+    /// There used to be a section per target for the targets that predate this list, and
     /// nothing distinguished those ten but their age. Two ways to say the same thing is
     /// one more than a reader of a recipe can derive a rule from.
     ///
@@ -181,6 +248,23 @@ public class RecipeModel
     #endregion
 
 
+    #region Naming group
+
+    /// <summary>
+    /// Which spelling the names in the sheets have to follow.
+    /// </summary>
+    /// <remarks>
+    /// Top level rather than per source, because a name belongs to the model: the case
+    /// worth reporting is the same name written one way in one workbook and another way
+    /// in the next, and a setting held per source could not see it.
+    ///
+    /// Leaving the section out still leaves two checks running - see
+    /// <see cref="NamingRecipe"/> for which and why.
+    /// </remarks>
+    public NamingRecipe Naming { get; set; } = new NamingRecipe();
+    #endregion
+
+
     #region Validation group
 
     /// <summary>
@@ -191,6 +275,15 @@ public class RecipeModel
     /// to switch it off.
     /// </summary>
     public ValidationRecipe Validation { get; set; } = new ValidationRecipe();
+
+    /// <summary>
+    /// What a run does with the problems it found: where the report goes, and when it
+    /// opens itself.
+    ///
+    /// Written whether the run succeeded or not, because a run that stopped is the one
+    /// whose report is worth reading. spec/build-report.md.
+    /// </summary>
+    public ReportRecipe Report { get; set; } = new ReportRecipe();
     #endregion
 
 
@@ -205,8 +298,21 @@ public class RecipeModel
     /// holding a quote would then produce a file that no longer parses rather than a
     /// wrong setting.
     /// </remarks>
-    public static RecipeModel? LoadFromFile(string filename)
+    public static RecipeModel? LoadFromFile(string filename) => LoadFromFile(filename, out _);
+
+    /// <param name="document">
+    /// The parsed recipe, after substitution and with its comments already gone.
+    /// </param>
+    /// <remarks>
+    /// Handed out for the build cache, which keys on the document rather than on this object.
+    /// Two things follow from that choice and both are wanted: a setting added to the recipe
+    /// schema later is in the key without anybody putting it there, and editing a comment
+    /// costs nothing because the parser has dropped them by now.
+    /// </remarks>
+    public static RecipeModel? LoadFromFile(string filename, out JObject? document)
     {
+        document = null;
+
         string json = File.ReadAllText(filename);
 
         if (string.IsNullOrWhiteSpace(json))
@@ -214,14 +320,16 @@ public class RecipeModel
 
         // Comments dropped rather than kept as tokens: they are here to explain the
         // recipe to whoever opens it, and nothing downstream reads them.
-        var document = JObject.Parse(json, new JsonLoadSettings
+        var parsed = JObject.Parse(json, new JsonLoadSettings
         {
             CommentHandling = CommentHandling.Ignore,
         });
 
-        RecipeVariables.Expand(document, filename);
+        RecipeVariables.Expand(parsed, filename);
 
-        return document.ToObject<RecipeModel>();
+        document = parsed;
+
+        return parsed.ToObject<RecipeModel>();
     }
 
     /// <summary>

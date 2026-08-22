@@ -121,7 +121,7 @@ module X
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Template.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Template.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Template.Index')
           at = 0
           while at < count
@@ -132,7 +132,7 @@ module X
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Template.Class', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Template.Class', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Template.Class')
           at = 0
           while at < count
@@ -143,7 +143,7 @@ module X
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Template.Int', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Template.Int', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Template.Int')
           at = 0
           while at < count
@@ -154,13 +154,13 @@ module X
             at += n
           end
         when 4
-          Tabbit.check_column(column, 'Template.Delete', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_BOOL])
+          Tabbit.check_column(column, 'Template.Delete', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_BOOL])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Template.Delete')
           records.each do |record|
             record.delete = cursor.next_bool
           end
         when 5
-          Tabbit.check_column(column, 'Template.Operator', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Template.Operator', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Template.Operator')
           at = 0
           while at < count
@@ -171,7 +171,7 @@ module X
             at += n
           end
         when 6
-          Tabbit.check_column(column, 'Template.Namespace', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Template.Namespace', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Template.Namespace')
           at = 0
           while at < count
@@ -182,7 +182,7 @@ module X
             at += n
           end
         when 7
-          Tabbit.check_column(column, 'Template.Constructor', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Template.Constructor', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Template.Constructor')
           at = 0
           while at < count
@@ -193,7 +193,7 @@ module X
             at += n
           end
         when 8
-          Tabbit.check_column(column, 'Template.Function', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Template.Function', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Template.Function')
           at = 0
           while at < count

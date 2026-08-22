@@ -53,7 +53,7 @@ public class GeneratedFileEndingTests
     /// continues the comment over the declaration below and reports a syntax error on a
     /// line that is correct. The rescue sample's C++ did exactly that.
     ///
-    /// The other ten targets are checked for the absence of the mark, because it is not
+    /// The other targets are checked for the absence of the mark, because it is not
     /// free: it shows up in diffs, and a shell that reads a generated file expecting it to
     /// begin with `#!` or `&lt;?php` gets three bytes it did not want.
     /// </remarks>

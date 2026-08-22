@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Text;
 
@@ -223,6 +224,11 @@ internal static class TcbColumnEncoder
         var whole = new int[stream.Count];
         bool single = stream.Element == TcbFormat.ElementF32;
 
+        // One buffer for the loop below, which compares the bytes of every value in the
+        // column. Outside the loop because a stackalloc inside one grows the frame per
+        // iteration.
+        Span<byte> scratch = stackalloc byte[8];
+
         for (int at = 0; at < stream.Count; at++)
         {
             double value = stream.Numbers![at];
@@ -232,14 +238,25 @@ internal static class TcbColumnEncoder
 
             int integer = (int)value;
 
-            var scratch = new TcbWriter();
+            // Written into the stack buffer rather than through a TcbWriter. This runs once
+            // per value of every float column, and a writer starts at 64 KB - so the
+            // measurement was allocating that much to compare four bytes.
+            int width;
 
             if (single)
-                scratch.Write((float)integer);
+            {
+                BinaryPrimitives.WriteInt32LittleEndian(
+                    scratch, BitConverter.SingleToInt32Bits((float)integer));
+                width = 4;
+            }
             else
-                scratch.Write((double)integer);
+            {
+                BinaryPrimitives.WriteInt64LittleEndian(
+                    scratch, BitConverter.DoubleToInt64Bits((double)integer));
+                width = 8;
+            }
 
-            if (!scratch.WrittenSpan.SequenceEqual(stream.Fixed![at]))
+            if (!scratch.Slice(0, width).SequenceEqual(stream.Fixed![at]))
                 return;
 
             whole[at] = integer;
@@ -276,23 +293,18 @@ internal static class TcbColumnEncoder
     /// chosen for any varint column - raw, which is a counter32 apiece, or runs. A column
     /// whose rows are all the same length, which is most of them, becomes one run.
     ///
-    /// A column of a fixed number of elements per row has no length stream at all: the count
-    /// is in the descriptor, and writing it again per row would be the format restating what
-    /// it already said.
+    /// That last sentence is why v107 could drop the fixed-length kind. Its whole saving was
+    /// the length stream, and the length stream of a column that never varies is a single
+    /// run - so the format was carrying a second array shape, and a count in every
+    /// descriptor, to save a handful of bytes per column.
     /// </remarks>
-    public static TcbWriter EncodeArray(Stream elements, int[] lengths, bool varying)
+    public static TcbWriter EncodeArray(Stream elements, int[] lengths)
     {
         var chosen = Choose(elements);
 
 
         var payload = new TcbWriter();
         payload.Write(chosen.Best.Encoding);
-
-        if (!varying)
-        {
-            payload.Write(chosen.Best.Payload.WrittenSpan);
-            return payload;
-        }
 
         var lengthRaw = new TcbWriter();
         foreach (int length in lengths)
@@ -461,9 +473,27 @@ internal static class TcbColumnEncoder
 
     // -------------------------------------------------------------- integers
 
+    /// <summary>
+    /// A buffer for one candidate encoding, sized from how many values it will hold.
+    /// </summary>
+    /// <remarks>
+    /// **Because a column of ten values was being measured in a 64 KB buffer.** Every
+    /// candidate needs a buffer of its own - that is what "encode it every way and keep the
+    /// smallest" means - and <see cref="TcbWriter"/>'s own default is the size of a table's
+    /// output rather than of a column's candidate. With four to eight candidates per column
+    /// and tens of thousands of columns, the default was most of what the export allocated.
+    ///
+    /// An estimate, not a limit: the writer grows by doubling, so a short guess costs a copy
+    /// and a long one costs nothing but the slack. The floor keeps a tiny column from
+    /// paying for a resize on its first value.
+    /// spec/conversion-time.md section 4.
+    /// </remarks>
+    private static TcbWriter Candidate(int values, int bytesPerValue = 5)
+        => new TcbWriter(Math.Clamp(values * bytesPerValue + 16, 256, 64 * 1024));
+
     public static TcbWriter Varint(int[] values)
     {
-        var payload = new TcbWriter();
+        var payload = Candidate(values.Length);
 
         foreach (int value in values)
             payload.WriteOptimalInt32(value);
@@ -481,7 +511,7 @@ internal static class TcbColumnEncoder
     /// </remarks>
     public static TcbWriter Delta(int[] values)
     {
-        var payload = new TcbWriter();
+        var payload = Candidate(values.Length);
 
         if (values.Length == 0)
             return payload;
@@ -497,7 +527,9 @@ internal static class TcbColumnEncoder
     /// <summary>(run length, value) pairs whose run lengths sum to the value count.</summary>
     public static TcbWriter Rle(int[] values)
     {
-        var payload = new TcbWriter();
+        // A run is a count and a value, so the worst case - no repeats at all - is wider
+        // than the plain varint stream rather than narrower.
+        var payload = Candidate(values.Length, bytesPerValue: 10);
 
         for (int at = 0; at < values.Length;)
         {
@@ -520,7 +552,7 @@ internal static class TcbColumnEncoder
     /// </summary>
     public static TcbWriter DeltaRle(int[] values)
     {
-        var payload = new TcbWriter();
+        var payload = Candidate(values.Length, bytesPerValue: 10);
 
         if (values.Length == 0)
             return payload;
@@ -557,7 +589,7 @@ internal static class TcbColumnEncoder
     /// </remarks>
     public static TcbWriter Dictionary(string[] values, bool runLength)
     {
-        var payload = new TcbWriter();
+        var payload = Candidate(values.Length);
 
         var seen = new Dictionary<string, int>();
         var entries = new List<string>();
@@ -594,7 +626,7 @@ internal static class TcbColumnEncoder
     /// </remarks>
     public static TcbWriter ValueDictionary(byte[][] values, bool runLength)
     {
-        var payload = new TcbWriter();
+        var payload = Candidate(values.Length);
 
         var seen = new Dictionary<string, int>();
         var entries = new List<byte[]>();

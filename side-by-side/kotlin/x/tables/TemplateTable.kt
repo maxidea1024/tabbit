@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/reserved-words/reserved-words.xlsx : ReservedWords : B2
 /** Named after a C++ keyword. */
@@ -147,7 +148,7 @@ class TemplateTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Template.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Template.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Template.Index")
                     var at = 0
                     while (at < count) {
@@ -161,7 +162,7 @@ class TemplateTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Template.Class", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Template.Class", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Template.Class")
                     var at = 0
                     while (at < count) {
@@ -175,7 +176,7 @@ class TemplateTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Template.Int", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Template.Int", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Template.Int")
                     var at = 0
                     while (at < count) {
@@ -189,14 +190,14 @@ class TemplateTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Template.Delete", KIND_SCALAR, 1, false, ELEMENT_BOOL)
+                    checkColumn(column, "Template.Delete", KIND_SCALAR, false, ELEMENT_BOOL)
                     val cursor = ColumnCursor(reader, column, count, "Template.Delete")
                     for (record in loaded) {
                         record.delete = cursor.nextBool()
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Template.Operator", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Template.Operator", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Template.Operator")
                     var at = 0
                     while (at < count) {
@@ -210,7 +211,7 @@ class TemplateTable {
                     }
                 }
                 6 -> {
-                    checkColumn(column, "Template.Namespace", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Template.Namespace", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Template.Namespace")
                     var at = 0
                     while (at < count) {
@@ -224,7 +225,7 @@ class TemplateTable {
                     }
                 }
                 7 -> {
-                    checkColumn(column, "Template.Constructor", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Template.Constructor", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Template.Constructor")
                     var at = 0
                     while (at < count) {
@@ -238,7 +239,7 @@ class TemplateTable {
                     }
                 }
                 8 -> {
-                    checkColumn(column, "Template.Function", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Template.Function", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Template.Function")
                     var at = 0
                     while (at < count) {

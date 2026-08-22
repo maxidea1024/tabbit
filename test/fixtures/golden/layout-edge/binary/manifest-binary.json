@@ -1,18 +1,18 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "7c933ba14fa19a8f705dc7ae3982217d",
-  "TotalSize": 159,
+  "MasterHash": "8a4a1368bd93041c3ba1b953c913dee9",
+  "TotalSize": 153,
   "Items": [
     {
       "Name": "OffsetTable.tcb",
-      "Size": 83,
-      "Hash": "c56c2a638ab0bce28b6841dc59d5fe95",
+      "Size": 80,
+      "Hash": "d5c5997c58b1e038e5e6ddd4e1967367",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "SecondTable.tcb",
-      "Size": 76,
-      "Hash": "ac3bb2073697b8c7db6fb714812246f7",
+      "Size": 73,
+      "Hash": "718393fd493bd8d5c3614c84486376ab",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

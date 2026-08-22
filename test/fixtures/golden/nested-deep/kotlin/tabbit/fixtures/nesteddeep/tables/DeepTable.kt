@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/nested-deep/nested-deep.xlsx : Deep : B2
 /** A record whose member is a record. */
@@ -125,7 +126,7 @@ class DeepTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Deep.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Deep.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Deep.Index")
                     var at = 0
                     while (at < count) {
@@ -139,28 +140,46 @@ class DeepTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Deep.Star.Id", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Deep.Star.Id", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Deep.Star.Id")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.star =
+                            MutableList(elementCount.coerceAtLeast(0)) { DeepRecord.StarEntry() }
+                        for (element in 0 until elementCount) {
                             record.star[element].id = cursor.nextI32()
                         }
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Deep.Star.Position.X", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Deep.Star.Position.X", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Deep.Star.Position.X")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        if (record.star.size != elementCount) {
+                            throw TcbException(
+                                "Deep.star: the file gives one member of " +
+                                    "this record a different element count than another")
+                        }
+                        for (element in 0 until elementCount) {
                             record.star[element].position.x = cursor.nextI32()
                         }
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Deep.Star.Position.Y", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Deep.Star.Position.Y", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Deep.Star.Position.Y")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        if (record.star.size != elementCount) {
+                            throw TcbException(
+                                "Deep.star: the file gives one member of " +
+                                    "this record a different element count than another")
+                        }
+                        for (element in 0 until elementCount) {
                             record.star[element].position.y = cursor.nextI32()
                         }
                     }

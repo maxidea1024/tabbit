@@ -138,7 +138,7 @@ final class HolderTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Holder.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Holder.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Holder.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -149,7 +149,7 @@ final class HolderTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Holder.Main.ItemId', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32]);
+                    TcbReader::checkColumn($column, 'Holder.Main.ItemId', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Holder.Main.ItemId');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -160,7 +160,7 @@ final class HolderTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Holder.Main.Count', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Holder.Main.Count', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Holder.Main.Count');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -171,7 +171,7 @@ final class HolderTable
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Holder.Pad', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Holder.Pad', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Holder.Pad');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -182,7 +182,7 @@ final class HolderTable
                     break;
 
                 case 5:
-                    TcbReader::checkColumn($column, 'Holder.Pad2', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Holder.Pad2', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Holder.Pad2');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);

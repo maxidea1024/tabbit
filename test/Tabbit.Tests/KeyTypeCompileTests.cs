@@ -7,7 +7,7 @@ namespace Tabbit.Tests;
 /// That a table keyed by something other than `int` or `string` compiles.
 /// </summary>
 /// <remarks>
-/// The `key-types` golden records what the thirteen generators emit for a `bigint`, `uuid` or
+/// The `key-types` golden records what the generators emit for a `bigint`, `uuid` or
 /// `enum` key. A golden cannot say whether it builds, and this is the one feature where that
 /// gap is the whole risk: every generator declares a dictionary over the key's own type, so
 /// the failure mode is not a wrong value but a type that the language will not accept as a
@@ -51,6 +51,34 @@ public class KeyTypeCompileTests
 
         Assert.True(result.Succeeded,
             $"Generated C# for a non-int key does not compile.{Environment.NewLine}{result.Output}");
+    }
+
+    /// <summary>
+    /// The same in Swift, whose dictionary keys have to be `Hashable`.
+    /// </summary>
+    /// <remarks>
+    /// The same shape of question C++ answered with a missing `std::hash`: a Swift
+    /// `[Key: Record]` will not compile unless `Key` conforms, and the two keys that could
+    /// fail it are the reader's `Uuid` and a generated enum. Both conform on purpose - the
+    /// enum through its raw value and `Uuid` because it says so - and this is what would
+    /// notice either of them losing it.
+    ///
+    /// Type-checked in both language modes with warnings as errors, like the other Swift
+    /// compile gates.
+    /// </remarks>
+    [Fact]
+    public void Generated_swift_compiles_for_every_key_type()
+    {
+        Assert.True(ConformanceHarness.SwiftIsAvailable(out string why), why);
+
+        var conversion = TabbitRunner.Convert(Scenario);
+        Assert.True(conversion.Succeeded,
+            $"Conversion failed.{Environment.NewLine}{conversion.Describe()}");
+
+        var result = ConformanceHarness.CompileSwift(Scenario);
+
+        Assert.True(result.Succeeded,
+            $"Generated Swift for a non-int key does not compile.{Environment.NewLine}{result.Output}");
     }
 
     /// <summary>

@@ -94,23 +94,26 @@ public static class Helper
     /// </summary>
     public static string CalculateMD5HashFromFiles(string[] filenames)
     {
-        MD5 md5 = MD5.Create();
+        // Streamed rather than read whole. The digest is the same either way - it is one
+        // hash over the files' bytes in the order given - but reading a file into an array
+        // first meant the manifest's master hash allocated the whole of the output it was
+        // summarising: on the sample project's `json` target, 288 MB of arrays for a value
+        // sixteen bytes long. spec/conversion-time.md section 4.
+        using var digest = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
 
-        for (int i = 0; i < filenames.Length; i++)
+        byte[] buffer = new byte[64 * 1024];
+
+        foreach (var filename in filenames)
         {
-            var filename = filenames[i];
+            using var stream = new FileStream(
+                filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite,
+                buffer.Length, FileOptions.SequentialScan);
 
-            byte[] data = File.ReadAllBytes(filename);
-
-            if (i == filenames.Length - 1)
-                md5.TransformFinalBlock(data, 0, data.Length);
-            else
-                md5.TransformBlock(data, 0, data.Length, data, 0);
+            int read;
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                digest.AppendData(buffer, 0, read);
         }
 
-        if (md5.Hash is null)
-            return "";
-
-        return BitConverter.ToString(md5.Hash).Replace("-", "").ToLowerInvariant();
+        return Convert.ToHexString(digest.GetHashAndReset()).ToLowerInvariant();
     }
 }

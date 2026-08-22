@@ -1,0 +1,23 @@
+{
+  // A blank where a number belongs, with the strict default. Expected to fail during
+  // cooking, so the output below is never reached. `blank-cell-empty` is the same workbook
+  // read the other way. spec/blank-and-null-cells.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/blank-cell"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/blank-cell-strict/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}

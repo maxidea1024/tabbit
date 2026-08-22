@@ -112,7 +112,7 @@ class SlottingTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Slotting.Index', kindScalar, 1, false, [elementVarint]);
+          checkColumn(column, 'Slotting.Index', kindScalar, false, [elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Slotting.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -122,7 +122,7 @@ class SlottingTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Slotting.Capacity', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Slotting.Capacity', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Slotting.Capacity');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -132,7 +132,7 @@ class SlottingTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Slotting.Serial', kindScalar, 1, false, [elementI64, elementI32, elementVarint]);
+          checkColumn(column, 'Slotting.Serial', kindScalar, false, [elementI64, elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Slotting.Serial');
           for (final record in loaded) {
             record.serial = cursor.nextI64();

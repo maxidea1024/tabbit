@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/record-trim/record-trim.xlsx : Trim : B2
 /** A record array trimmed at the last element the row filled in. */
@@ -134,7 +135,7 @@ class LootTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Loot.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Loot.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Loot.Index")
                     var at = 0
                     while (at < count) {
@@ -148,7 +149,7 @@ class LootTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Loot.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Loot.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Loot.Name")
                     var at = 0
                     while (at < count) {
@@ -162,7 +163,7 @@ class LootTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Loot.Slot.Id", KIND_VAR_ARRAY, 0, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Loot.Slot.Id", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Loot.Slot.Id")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
@@ -177,7 +178,7 @@ class LootTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Loot.Slot.Count", KIND_VAR_ARRAY, 0, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Loot.Slot.Count", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Loot.Slot.Count")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
@@ -192,7 +193,7 @@ class LootTable {
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Loot.Slot.Label", KIND_VAR_ARRAY, 0, false, ELEMENT_STRING)
+                    checkColumn(column, "Loot.Slot.Label", KIND_ARRAY, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Loot.Slot.Label")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
@@ -207,7 +208,7 @@ class LootTable {
                     }
                 }
                 6 -> {
-                    checkColumn(column, "Loot.Pos.X", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Loot.Pos.X", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Loot.Pos.X")
                     var at = 0
                     while (at < count) {
@@ -221,7 +222,7 @@ class LootTable {
                     }
                 }
                 7 -> {
-                    checkColumn(column, "Loot.Pos.Y", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Loot.Pos.Y", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Loot.Pos.Y")
                     var at = 0
                     while (at < count) {
@@ -235,7 +236,7 @@ class LootTable {
                     }
                 }
                 8 -> {
-                    checkColumn(column, "Loot.Tag_array", KIND_VAR_ARRAY, 0, false, ELEMENT_STRING)
+                    checkColumn(column, "Loot.Tag_array", KIND_ARRAY, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Loot.Tag_array")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()

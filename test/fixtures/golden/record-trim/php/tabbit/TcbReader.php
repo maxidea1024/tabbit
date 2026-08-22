@@ -122,7 +122,7 @@ final class TcbReader
      */
     // 102 replaced 101 outright - a descriptor gained its encoding byte - before any
     // 101 file had shipped.
-    public const FILE_FORMAT_VERSION = 105;
+    public const FILE_FORMAT_VERSION = 107;
 
     // The wire element types and kinds, as a column descriptor spells them.
     public const ELEMENT_VARINT = 0;
@@ -135,8 +135,7 @@ final class TcbReader
     public const ELEMENT_UUID = 7;
 
     public const KIND_SCALAR = 0;
-    public const KIND_FIXED_ARRAY = 1;
-    public const KIND_VAR_ARRAY = 2;
+    public const KIND_ARRAY = 1;
 
     // How a block's values are laid out. Raw is the layout 101 had; the others compress
     // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -808,7 +807,6 @@ final class TcbReader
             $tag = $this->readCounter32();
             $wire = $this->readFixed8();
             $encoding = $this->readFixed8();
-            $count = $this->readCounter32();
             $byteLength = $this->readFixed32();
 
             $columns[] = [
@@ -822,8 +820,12 @@ final class TcbReader
                 // a disagreement the same way it refuses a changed kind.
                 'nullable' => ($wire & 0x40) !== 0,
 
+                // Whether the block states, per element, which of an array's places hold a
+                // value. Independent of the above: a column may say either, or both.
+                // spec/nullable-array-elements.md.
+                'elementNullable' => ($wire & 0x80) !== 0,
+
                 'encoding' => $encoding,
-                'count' => $count,
                 'byteLength' => $byteLength,
             ];
         }
@@ -852,6 +854,7 @@ final class TcbReader
                     "The row count {$rowCount} is larger than column tag {$column['tag']} can " .
                     "hold in its {$column['byteLength']} bytes.");
             }
+
         }
 
         if ($declared !== $available) {
@@ -892,6 +895,29 @@ final class TcbReader
      *
      * @param list<int> $presence
      */
+    /**
+     * A column's element bitmap, behind the row bitmap and in front of the values.
+     *
+     * Empty for a column that does not carry one. Its length is written ahead of it as a
+     * counter32, because a variable-length column's total is the sum of its row lengths and
+     * those live inside the value block - a reader meeting the bitmap first would have
+     * nothing to size it by. spec/nullable-array-elements.md.
+     *
+     * @return int[]
+     */
+    public function readElementPresence(array $column): array
+    {
+        if (!$column['elementNullable']) {
+            return [];
+        }
+
+        $elements = $this->readCounter32();
+        $encoding = $this->readFixed8();
+
+        return $this->readByteStream($encoding, intdiv($elements + 7, 8),
+                                     'an element presence bitmap');
+    }
+
     public static function isPresent(array $presence, int $row): bool
     {
         return $presence === [] || ($presence[$row >> 3] & (1 << ($row & 7))) !== 0;
@@ -901,8 +927,17 @@ final class TcbReader
      * That a column is what the generated member expects, or a lossless promotion of it.
      * Refusal is by name and both types, never by reading anyway.
      */
-    public static function checkColumn(array $column, string $fieldName, int $kind, int $count, bool $nullable, array $accepted): void
+    public static function checkColumn(array $column, string $fieldName, int $kind, bool $nullable, array $accepted, bool $elementNullable = false): void
     {
+        // The same statement about the other bitmap: code not expecting one would read it as
+        // values. spec/nullable-array-elements.md.
+        if ($column['elementNullable'] !== $elementNullable) {
+            throw new TcbException(
+                $fieldName . ": the file and the generated member disagree about whether this "
+                . "column's elements are optional. The schema changed; regenerate the code or "
+                . 'rebuild the data.');
+        }
+
         // Nullability is part of the shape: a file that says optional puts a presence bitmap
         // in front of the block, and code not expecting one would read the bitmap as values.
         // So adding or removing a `?` is a schema change like any other, caught here rather
@@ -914,10 +949,14 @@ final class TcbReader
                 . 'data.');
         }
 
-        if ($column['kind'] !== $kind || ($kind !== self::KIND_VAR_ARRAY && $column['count'] !== $count)) {
+        // A negative count says the member claims no length: how many elements a row holds
+        // is what the file states. The kind is still the member's claim.
+        // spec/nullable-array-elements.md.
+        if ($column['kind'] !== $kind
+) {
             throw new TcbException(
-                "{$fieldName}: the file column (kind {$column['kind']}, count {$column['count']}) "
-                . "does not match the generated member (kind {$kind}, count {$count}). The schema "
+                "{$fieldName}: the file column (kind {$column['kind']}) does not match the "
+                . "generated member (kind {$kind}). The schema "
                 . 'changed shape; regenerate the code or rebuild the data.'
             );
         }
@@ -1167,14 +1206,12 @@ final class TcbColumnCursor
         if ($this->encoding === TcbReader::ENCODING_ARRAY) {
             $this->encoding = $reader->readEncoding();
 
-            if ($column['kind'] === TcbReader::KIND_VAR_ARRAY) {
+            if ($column['kind'] === TcbReader::KIND_ARRAY) {
                 $lengthEncoding = $reader->readEncoding();
                 $this->lengths = self::readLengths($reader, $lengthEncoding, $rowCount, $fieldName);
 
                 // What the cursor now has left to hand out is elements, not rows.
                 $this->rowsRemaining = \array_sum($this->lengths);
-            } else {
-                $this->rowsRemaining = $rowCount * $column['count'];
             }
         }
 

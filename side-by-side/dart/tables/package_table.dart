@@ -84,7 +84,7 @@ class PackageTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Package.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Package.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Package.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -94,7 +94,7 @@ class PackageTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Package.Label', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Package.Label', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Package.Label');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -104,7 +104,7 @@ class PackageTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Package.Kind', kindScalar, 1, false, [elementVarint]);
+          checkColumn(column, 'Package.Kind', kindScalar, false, [elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Package.Kind');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);

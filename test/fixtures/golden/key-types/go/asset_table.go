@@ -140,14 +140,14 @@ func (t *AssetTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Asset.Index", tabbit.KindScalar, 1, false, tabbit.ElementUUID) {
+			if tabbit.CheckColumn(reader, column, "Asset.Index", tabbit.KindScalar, false, tabbit.ElementUUID) {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					r.Index = reader.ReadUUID()
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Asset.Path", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Asset.Path", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Asset.Path")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -158,7 +158,7 @@ func (t *AssetTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Asset.Slot", tabbit.KindScalar, 1, false, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Asset.Slot", tabbit.KindScalar, false, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Asset.Slot")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)

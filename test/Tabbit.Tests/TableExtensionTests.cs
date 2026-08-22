@@ -92,7 +92,7 @@ public class TableExtensionTests
     /// written for, so it is worth one run.
     ///
     /// Python because it needs an interpreter and nothing else. The same wiring is the same
-    /// three lines in every target, and the twelve are checked as text.
+    /// three lines in every target, and they are checked as text.
     /// </remarks>
     [Fact]
     public void An_extension_passed_at_the_call_reads_files_with_that_extension()
@@ -186,7 +186,7 @@ public class TableExtensionTests
         new System.Text.RegularExpressions.Regex(@"\.tcb(?![A-Za-z0-9_])");
 
     /// <summary>
-    /// A comment in any of the twelve languages, near enough.
+    /// A comment in any of the every language, near enough.
     /// </summary>
     /// <remarks>
     /// Line-leading only. A trailing comment after code would be missed, and a string holding

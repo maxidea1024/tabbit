@@ -129,7 +129,7 @@ class AssetTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Asset.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementUuid});
+          tabbit::check_column(column, "Asset.Index", tabbit::kKindScalar, false, {tabbit::kElementUuid});
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             reader.read(record.index);
@@ -137,7 +137,7 @@ class AssetTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Asset.Path", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Asset.Path", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Asset.Path");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -150,7 +150,7 @@ class AssetTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Asset.Slot", tabbit::kKindScalar, 1, false, {tabbit::kElementVarint});
+          tabbit::check_column(column, "Asset.Slot", tabbit::kKindScalar, false, {tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Asset.Slot");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {

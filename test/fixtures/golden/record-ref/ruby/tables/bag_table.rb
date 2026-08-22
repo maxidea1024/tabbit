@@ -95,7 +95,7 @@ module RecordRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Bag.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Bag.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Bag.Index')
           at = 0
           while at < count
@@ -106,20 +106,20 @@ module RecordRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Bag.Slots.ItemId', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32])
+          Tabbit.check_column(column, 'Bag.Slots.ItemId', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Bag.Slots.ItemId')
           records.each do |record|
-            2.times do |element|
-              record.slots.item_id_index[element] = cursor.next_i32
-            end
+            element_count = cursor.next_length
+            record.slots.item_id_index =
+              Array.new(element_count) { cursor.next_i32 }
           end
         when 3
-          Tabbit.check_column(column, 'Bag.Slots.Count', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Bag.Slots.Count', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Bag.Slots.Count')
           records.each do |record|
-            2.times do |element|
-              record.slots.count[element] = cursor.next_i32
-            end
+            element_count = cursor.next_length
+            record.slots.count =
+              Array.new(element_count) { cursor.next_i32 }
           end
         else
           # A column added after this code was generated.

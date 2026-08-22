@@ -106,7 +106,7 @@ module Optional
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Drop.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Drop.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Drop.Index')
           at = 0
           while at < count
@@ -117,7 +117,7 @@ module Optional
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Drop.Hp', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Drop.Hp', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Drop.Hp')
           at = 0
           while at < count
@@ -128,7 +128,7 @@ module Optional
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Drop.Bonus', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Drop.Bonus', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -152,7 +152,7 @@ module Optional
             record.bonus = 0 unless record.has_bonus
           end
         when 4
-          Tabbit.check_column(column, 'Drop.Weight', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_F64, Tabbit::ELEMENT_F32, Tabbit::ELEMENT_I32])
+          Tabbit.check_column(column, 'Drop.Weight', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_F64, Tabbit::ELEMENT_F32, Tabbit::ELEMENT_I32])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -171,7 +171,7 @@ module Optional
             record.weight = 0.0 unless record.has_weight
           end
         when 5
-          Tabbit.check_column(column, 'Drop.Ratio', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_F32])
+          Tabbit.check_column(column, 'Drop.Ratio', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_F32])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -190,7 +190,7 @@ module Optional
             record.ratio = 0.0 unless record.has_ratio
           end
         when 6
-          Tabbit.check_column(column, 'Drop.Count', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_I64, Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Drop.Count', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_I64, Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -209,7 +209,7 @@ module Optional
             record.count = 0 unless record.has_count
           end
         when 7
-          Tabbit.check_column(column, 'Drop.OpenAt', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_I64])
+          Tabbit.check_column(column, 'Drop.OpenAt', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_I64])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -228,7 +228,7 @@ module Optional
             record.open_at = 0 unless record.has_open_at
           end
         when 8
-          Tabbit.check_column(column, 'Drop.Cooldown', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_I64])
+          Tabbit.check_column(column, 'Drop.Cooldown', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_I64])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -247,7 +247,7 @@ module Optional
             record.cooldown = 0 unless record.has_cooldown
           end
         when 9
-          Tabbit.check_column(column, 'Drop.Batch', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_UUID])
+          Tabbit.check_column(column, 'Drop.Batch', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_UUID])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -265,7 +265,7 @@ module Optional
             record.batch = Tabbit::Uuid.new unless record.has_batch
           end
         when 10
-          Tabbit.check_column(column, 'Drop.Grade', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Drop.Grade', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_VARINT])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -289,7 +289,7 @@ module Optional
             record.grade = 0 unless record.has_grade
           end
         when 11
-          Tabbit.check_column(column, 'Drop.Costs', Tabbit::KIND_VAR_ARRAY, 0, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Drop.Costs', Tabbit::KIND_ARRAY, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -309,7 +309,7 @@ module Optional
             record.costs = [] unless record.has_costs
           end
         when 12
-          Tabbit.check_column(column, 'Drop.Label', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Drop.Label', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_STRING])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -333,7 +333,7 @@ module Optional
             record.label = '' unless record.has_label
           end
         when 13
-          Tabbit.check_column(column, 'Drop.Hidden', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_BOOL])
+          Tabbit.check_column(column, 'Drop.Hidden', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_BOOL])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.

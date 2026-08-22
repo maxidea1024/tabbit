@@ -13,7 +13,7 @@ namespace Tabbit.Tests;
 public class NormalizerTests
 {
     private const string HtmlFooter =
-        "<div>x</div>\n<br><h4>This file was created at 2026-08-03 12:05:46</h4></body></html>\n";
+        "<div>x</div>\n<p class=\"foot\">생성 시각 2026-08-03 12:05:46</p></body></html>\n";
 
     private const string Summary =
         "{\n  \"schemaVersion\": 1,\n" +

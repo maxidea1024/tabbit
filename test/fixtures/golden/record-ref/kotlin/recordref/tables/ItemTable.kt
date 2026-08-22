@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/record-ref/record-ref.xlsx : Records : B2
 /** What the members point at. */
@@ -116,7 +117,7 @@ class ItemTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Item.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Item.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Item.Index")
                     var at = 0
                     while (at < count) {
@@ -130,7 +131,7 @@ class ItemTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Item.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Item.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Item.Name")
                     var at = 0
                     while (at < count) {
@@ -144,7 +145,7 @@ class ItemTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Item.Pad", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Item.Pad", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Item.Pad")
                     var at = 0
                     while (at < count) {
@@ -158,7 +159,7 @@ class ItemTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Item.Pad2", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Item.Pad2", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Item.Pad2")
                     var at = 0
                     while (at < count) {
@@ -172,7 +173,7 @@ class ItemTable {
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Item.Pad3", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Item.Pad3", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Item.Pad3")
                     var at = 0
                     while (at < count) {

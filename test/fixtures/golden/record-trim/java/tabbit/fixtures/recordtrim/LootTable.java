@@ -96,7 +96,7 @@ public final class LootTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Loot.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Loot.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,7 +107,7 @@ public final class LootTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Loot.Name", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Loot.Name", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Name");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -118,7 +118,7 @@ public final class LootTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Loot.Slot.Id", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Loot.Slot.Id", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Slot.Id");
                     for (LootRecord record : loaded) {
                         int elementCount;
@@ -136,7 +136,7 @@ public final class LootTable {
                     break;
                 }
                 case 4: {
-                    TcbReader.checkColumn(column, "Loot.Slot.Count", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Loot.Slot.Count", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Slot.Count");
                     for (LootRecord record : loaded) {
                         int elementCount;
@@ -154,7 +154,7 @@ public final class LootTable {
                     break;
                 }
                 case 5: {
-                    TcbReader.checkColumn(column, "Loot.Slot.Label", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Loot.Slot.Label", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Slot.Label");
                     for (LootRecord record : loaded) {
                         int elementCount;
@@ -172,7 +172,7 @@ public final class LootTable {
                     break;
                 }
                 case 6: {
-                    TcbReader.checkColumn(column, "Loot.Pos.X", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Loot.Pos.X", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Pos.X");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -183,7 +183,7 @@ public final class LootTable {
                     break;
                 }
                 case 7: {
-                    TcbReader.checkColumn(column, "Loot.Pos.Y", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Loot.Pos.Y", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Pos.Y");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -194,7 +194,7 @@ public final class LootTable {
                     break;
                 }
                 case 8: {
-                    TcbReader.checkColumn(column, "Loot.Tag_array", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Loot.Tag_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Tag_array");
                     for (LootRecord record : loaded) {
                         int elementCount;

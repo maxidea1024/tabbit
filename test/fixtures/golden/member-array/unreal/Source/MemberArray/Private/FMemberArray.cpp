@@ -107,7 +107,7 @@ bool FGuideTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Index"));
 
             {
@@ -131,7 +131,7 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Name"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Name"));
 
             {
@@ -155,13 +155,17 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Skill.Step"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Skill.Step"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Skill.Step"));
 
             for (FGuideRow& Record : Loaded)
             {
-                Record.Skill.Step.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Skill.Step.SetNum(
+                    Tabbit::ReserveBound(ElementCount));
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Skill.Step[ElementAt]);
                 }
@@ -170,13 +174,17 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Skill.Order"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Skill.Order"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Skill.Order"));
 
             for (FGuideRow& Record : Loaded)
             {
-                Record.Skill.Order.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Skill.Order.SetNum(
+                    Tabbit::ReserveBound(ElementCount));
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Skill.Order[ElementAt]);
                 }
@@ -185,7 +193,7 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Pos.X"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Pos.X"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Pos.X"));
 
             for (FGuideRow& Record : Loaded)
@@ -196,7 +204,7 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 6:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Pos.Y"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Pos.Y"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Pos.Y"));
 
             for (FGuideRow& Record : Loaded)
@@ -207,13 +215,19 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 7:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Tag_array"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Tag_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Tag_array"));
 
             for (FGuideRow& Record : Loaded)
             {
-                Record.TagArray.Empty(2);
-                while (Record.TagArray.Num() < 2)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                // Bounded, because the count came out of the file. The array grows past
+                // this if the elements really are there.
+                Record.TagArray.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.TagArray.Num() < ElementCount && !Reader.HasFailed())
                 {
                     Cursor.NextAs(Column.Element, Record.TagArray.AddDefaulted_GetRef());
                 }
@@ -222,14 +236,18 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 8:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Grid.1"), Tabbit::KindFixedArray, 3, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Grid.1"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Grid.1"));
 
             for (FGuideRow& Record : Loaded)
             {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
                 Record.Grid.SetNum(2);
-                Record.Grid[0].SetNum(3);
-                for (int32 ElementAt = 0; ElementAt < 3 && !Reader.HasFailed(); ++ElementAt)
+                Record.Grid[0].SetNum(
+                    Tabbit::ReserveBound(ElementCount));
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Grid[0][ElementAt]);
                 }
@@ -238,14 +256,18 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 9:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Grid.2"), Tabbit::KindFixedArray, 3, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Grid.2"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Grid.2"));
 
             for (FGuideRow& Record : Loaded)
             {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
                 Record.Grid.SetNum(2);
-                Record.Grid[1].SetNum(3);
-                for (int32 ElementAt = 0; ElementAt < 3 && !Reader.HasFailed(); ++ElementAt)
+                Record.Grid[1].SetNum(
+                    Tabbit::ReserveBound(ElementCount));
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Grid[1][ElementAt]);
                 }

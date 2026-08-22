@@ -62,7 +62,7 @@ public sealed class LanguageProfile
     /// destination where the language passes one.
     /// </summary>
     /// <remarks>
-    /// This was ten copies of the same switch, one per generator, each with a `default:` that
+    /// This was a copy of the same switch, one per generator, each with a `default:` that
     /// throws. So adding a value type meant ten edits and forgetting one still compiled - it
     /// surfaced at runtime in whoever's project reached that field first.
     ///
@@ -94,14 +94,14 @@ public sealed class LanguageProfile
     public string ReadCall(ValueType type, string? destination = null)
     {
         if (ReadCalls is null)
-            throw new TabbitException($"The {Id} reader resolves reads by overload, so it has no call table.");
+                throw new TabbitDefectException($"The {Id} reader resolves reads by overload, so it has no call table.");
 
         var element = ValueTypes.ElementOf(type);
 
         if (ReadCalls.TryGetValue(element, out string? call))
             return string.Format(call, destination);
 
-        throw new TabbitException($"The {Id} generator cannot read type `{type}`.");
+            throw new TabbitDefectException($"The {Id} generator cannot read type `{type}`.");
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public sealed class LanguageProfile
         if (ScalarTypes.TryGetValue(element, out string? name))
             return name;
 
-        throw new TabbitException($"The {Id} generator cannot render type `{type}`.");
+            throw new TabbitDefectException($"The {Id} generator cannot render type `{type}`.");
     }
 
     /// <summary>Wraps an already-rendered element type as an array.</summary>
@@ -360,17 +360,37 @@ public sealed class LanguageProfile
         },
         "{0}[]",
 
-        // Never used: the list below is empty, so nothing is ever escaped. Kept as the
-        // place the answer would go if that changed.
+        // `@class` is what C# itself offers for a name that is also a keyword, and it is a
+        // name rather than a rename: the member is still called `class` to anything reading
+        // it by reflection or by name.
         "@{0}",
 
         // No read-call table: the C# reader has one `Read(out T)` overload per type.
-        null!
-        // No reserved names. C# renders members PascalCase and every C# keyword is
-        // lowercase, so a field called `class` becomes `Class` and cannot collide. The
-        // reserved-words fixture compiles a table whose fields are named after keywords
-        // in all three languages, which is what turns that from an argument into a fact.
-        );
+        null!,
+
+        // Every C# keyword, all of them lower case.
+        //
+        // This list used to be empty, with a comment saying why: members are rendered
+        // PascalCase, so `class` arrives as `Class` and nothing can collide. That was true
+        // and it stays true - at Pascal case not one entry below is ever reached, which is
+        // why filling it in changes no output. It was also an argument that held only while
+        // the spelling was fixed, and a list that is empty for a reason nobody can see from
+        // the list is a trap for whoever changes that.
+        //
+        // Contextual keywords are left out. `value`, `var`, `record` and the rest are
+        // keywords only where the grammar expects one, and a member named `Value` is
+        // ordinary C# - escaping it would be noise in every generated file. What the
+        // grammar reserves outright is what is here.
+        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char",
+        "checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
+        "double", "else", "enum", "event", "explicit", "extern", "false", "finally",
+        "fixed", "float", "for", "foreach", "goto", "if", "implicit", "in", "int",
+        "interface", "internal", "is", "lock", "long", "namespace", "new", "null",
+        "object", "operator", "out", "override", "params", "private", "protected",
+        "public", "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof",
+        "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true",
+        "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using",
+        "virtual", "void", "volatile", "while");
 
     /// <summary>
     /// Go.
@@ -670,6 +690,60 @@ public sealed class LanguageProfile
         "throw", "true", "try", "typealias", "typeof", "val", "var", "when", "while");
 
     /// <summary>
+    /// Swift.
+    ///
+    /// Widths are spelled out - `Int32` rather than `Int` - because nine of the thirteen
+    /// languages before it do and because a reference key that lost its width is a defect
+    /// this repository has already had once. spec/reference-key-types.md.
+    ///
+    /// The reader's names are all under `Tcb`, so this table carries that prefix where a
+    /// type is named. A file copied into somebody else's module cannot put thirty constants
+    /// called `magic` and `headerSize` at its top level.
+    /// </summary>
+    public static readonly LanguageProfile Swift = new LanguageProfile(
+        "swift",
+        new Dictionary<ValueType, string>
+        {
+            { ValueType.String, "String" },
+            { ValueType.Bool, "Bool" },
+            { ValueType.Int32, "Int32" },
+            { ValueType.Int64, "Int64" },
+            { ValueType.Float, "Float" },
+            { ValueType.Double, "Double" },
+            { ValueType.DateTime, "Int64" },
+            { ValueType.TimeSpan, "Int64" },
+            { ValueType.Uuid, "Tcb.Uuid" },
+        },
+        "[{0}]",
+
+        // Backticks, the same escape Kotlin has: the name stays what the sheet called it.
+        "`{0}`",
+
+        new Dictionary<ValueType, string>
+        {
+            { ValueType.String, "reader.readString()" },
+            { ValueType.Bool, "reader.readBool()" },
+            { ValueType.Int32, "reader.readI32As(column.element)" },
+            { ValueType.Int64, "reader.readI64As(column.element)" },
+            { ValueType.Float, "reader.readFloat()" },
+            { ValueType.Double, "reader.readF64As(column.element)" },
+            { ValueType.DateTime, "reader.readDateTimeTicks()" },
+            { ValueType.TimeSpan, "reader.readDurationTicks()" },
+            { ValueType.Uuid, "reader.readUuid()" },
+        },
+
+        // https://docs.swift.org/swift-book - the keywords used in declarations, in
+        // statements and in expressions. Swift lets a member be named after one of these
+        // in backticks, so the escape above is what this list feeds.
+        "Any", "as", "associatedtype", "await", "break", "case", "catch", "class",
+        "continue", "default", "defer", "deinit", "do", "else", "enum", "extension",
+        "fallthrough", "false", "fileprivate", "for", "func", "guard", "if", "import",
+        "in", "init", "inout", "internal", "is", "let", "nil", "operator", "precedencegroup",
+        "private", "protocol", "public", "repeat", "rethrows", "return", "self", "Self",
+        "static", "struct", "subscript", "super", "switch", "throw", "throws", "true",
+        "try", "typealias", "var", "where", "while");
+
+    /// <summary>
     /// Ruby.
     ///
     /// The names are documentation only - Ruby is not annotated here - but they record
@@ -829,4 +903,57 @@ public sealed class LanguageProfile
         // what the compiler said about the reserved-words fixture, TS1341 - and the
         // other two because they are how an object's own machinery is reached.
         "constructor", "prototype", "__proto__");
+
+    /// <summary>
+    /// Lua - LuaJIT 2.1 and Lua 5.3+.
+    ///
+    /// The scalar names are lua-language-server annotation types rather than
+    /// declarations: Lua declares nothing, and the annotations are where a generated
+    /// field's type is written down. int64 is `integer`, which both supported runtimes
+    /// hold losslessly - 5.3+ natively, LuaJIT as FFI cdata - and which is why plain
+    /// Lua 5.1 is not a target. spec/lua-language-support.md.
+    ///
+    /// The escape does not rename: a keyword-named field keeps its name as a table key
+    /// and the generated code reaches it with bracket syntax, `row["end"]`. The escape
+    /// format spells that bracket form; the generator decides per position whether the
+    /// dotted or the bracketed access applies.
+    /// </summary>
+    public static readonly LanguageProfile Lua = new LanguageProfile(
+        "lua",
+        new Dictionary<ValueType, string>
+        {
+            { ValueType.String, "string" },
+            { ValueType.Bool, "boolean" },
+            { ValueType.Int32, "integer" },
+            { ValueType.Int64, "integer" },
+            { ValueType.Float, "number" },
+            { ValueType.Double, "number" },
+            { ValueType.DateTime, "integer" },
+            { ValueType.TimeSpan, "integer" },
+            { ValueType.Uuid, "string" },
+        },
+        "{0}[]",
+
+        // Bracket-string access, which is Lua's way of keeping a keyword-named key.
+        "[\"{0}\"]",
+
+        new Dictionary<ValueType, string>
+        {
+            { ValueType.String, "reader:readString()" },
+            { ValueType.Bool, "reader:readBool()" },
+            { ValueType.Int32, "reader:readI32As(column.element)" },
+            { ValueType.Int64, "reader:readI64As(column.element)" },
+            { ValueType.Float, "reader:readF32()" },
+            { ValueType.Double, "reader:readF64As(column.element)" },
+            { ValueType.DateTime, "reader:readDateTimeTicks()" },
+            { ValueType.TimeSpan, "reader:readDurationTicks()" },
+            { ValueType.Uuid, "reader:readUuid()" },
+        },
+
+        // https://www.lua.org/manual/5.4/manual.html#3.1 - every keyword is lowercase,
+        // so a camelCase member lands on one exactly when the sheet's name is a single
+        // lowercase word.
+        "and", "break", "do", "else", "elseif", "end", "false", "for", "function",
+        "goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then",
+        "true", "until", "while");
 }

@@ -75,7 +75,7 @@
             var snapshot = new Snapshot();
             var tasks = new List<Task>();
 {{~ for table in tables ~}}
-            tasks.Add(snapshot.{{ table.name }}.ReadAsync(System.IO.Path.Combine(basePath, $"{{ table.raw_name }}{fileExtension}")));
+            tasks.Add(snapshot.{{ table.name }}.ReadAsync(System.IO.Path.Combine(basePath, $"{{ table.data_file_name }}{fileExtension}")));
 {{~ end ~}}
 
             await Task.WhenAll(tasks);
@@ -133,18 +133,22 @@
             {
 {{~ for field in table.reference_fields ~}}
 {{~ if field.kind == 'array_ref' ~}}
-                for (int i = 0; i < {{ field.element_count }}; i++)
+{{~## The keys' own length rather than the sheet's column count: the read sized this array
+      from the file, so a number written in here would leave the last element unresolved on a
+      file with one more - and index past the end on a file with one fewer.
+      spec/nullable-array-elements.md. ##~}}
+                for (int i = 0; i < record.{{ field.field_name }}_{{ field.ref_table }}_index.Length; i++)
                 {
 {{~ if field.references_field ~}}
                     if (record.{{ field.field_name }}_{{ field.ref_table }}_index[i] {{ field.ref_is_set }})
                     {
-                        record.SetReference_{{ field.prop_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]).{{ field.ref_field }});
+                        record.SetReference_{{ field.pascal_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]).{{ field.ref_field }});
                         record.{{ field.field_name }}_F[i] = true;
                     }
 {{~ else ~}}
                     if (record.{{ field.field_name }}_{{ field.ref_table }}_index[i] {{ field.ref_is_set }})
                     {
-                        record.SetReference_{{ field.prop_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]));
+                        record.SetReference_{{ field.pascal_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]));
                         record.{{ field.field_name }}_F[i] = true;
                     }
 {{~ end ~}}
@@ -153,9 +157,9 @@
                 if (record.{{ field.field_name }}_{{ field.ref_table }}_index {{ field.ref_is_set }})
                 {
 {{~ if field.references_field ~}}
-                    record.SetReference_{{ field.prop_name }}_INTERNAL(snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index).{{ field.ref_field }});
+                    record.SetReference_{{ field.pascal_name }}_INTERNAL(snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index).{{ field.ref_field }});
 {{~ else ~}}
-                    record.SetReference_{{ field.prop_name }}_INTERNAL(snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index));
+                    record.SetReference_{{ field.pascal_name }}_INTERNAL(snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index));
 {{~ end ~}}
                     record.{{ field.field_name }}_F = true;
                 }
@@ -183,9 +187,70 @@
                 }
 {{~ end ~}}
 {{~ end ~}}
+{{~## A column reaching several tables is looked up in each of them in the order they were
+   named, and stops at the first that has the key. The tables take separate id bands - an id
+   in two of them is refused at conversion - so "the first that has it" is "the one that has
+   it", and the order only decides which lookup runs.
+
+   A miss is not a fault: it means the row belongs to one of the others. So this resolves
+   through the non-throwing lookup, and a key none of them holds leaves the discriminator at
+   `None` rather than stopping the load. spec/multi-target-accessors.md. ##~}}
+{{~## A member reaching several tables resolves inside the element, so the array is walked and
+   each element's own key is looked up. Which array that is - the group's or the member's -
+   the view decided, and a record of one has neither.
+   spec/multi-target-accessors.md · spec/references-in-records.md. ##~}}
+{{~ for ref in table.multi_record_reference_fields ~}}
+{{~ if ref.count != '' ~}}
+                for (int j = 0; j < {{ ref.count }}; j++)
+                {
+                    if ({{ ref.key }} {{ ref.ref_is_set }})
+                    {
+{{~ for target in ref.targets ~}}
+                        if ({{ ref.target }} == {{ ref.target_type_name }}.None)
+                        {
+                            var found = snapshot.{{ target.table }}.{{ target.lookup }}({{ ref.key }});
+                            if (found != null)
+                            {
+                                {{ ref.slot }} = found;
+                                {{ ref.target }} = {{ ref.target_type_name }}.{{ target.label }};
+                            }
+                        }
+{{~ end ~}}
+                    }
+                }
+{{~ else ~}}
+                if ({{ ref.key }} {{ ref.ref_is_set }})
+                {
+{{~ for target in ref.targets ~}}
+                    if ({{ ref.target }} == {{ ref.target_type_name }}.None)
+                    {
+                        var found = snapshot.{{ target.table }}.{{ target.lookup }}({{ ref.key }});
+                        if (found != null)
+                        {
+                            {{ ref.slot }} = found;
+                            {{ ref.target }} = {{ ref.target_type_name }}.{{ target.label }};
+                        }
+                    }
+{{~ end ~}}
+                }
+{{~ end ~}}
+{{~ end ~}}
+{{~ for ref in table.multi_reference_fields ~}}
+                if (record.{{ ref.key_property }} {{ ref.ref_is_set }})
+                {
+{{~ for target in ref.targets ~}}
+                    if (record.{{ ref.target_property }} == {{ ref.target_type_name }}.None)
+                    {
+                        var found = snapshot.{{ target.table }}.{{ target.lookup }}(record.{{ ref.key_property }});
+                        if (found != null)
+                            record.SetReference_{{ ref.pascal_name }}_INTERNAL({{ ref.target_type_name }}.{{ target.label }}, found);
+                    }
+{{~ end ~}}
+                }
+{{~ end ~}}
             }
 {{~ end ~}}
         }
-{{~ end }}
+{{~ end ~}}
     }
 {{ include 'csharp-file-foot.sbn' ~}}

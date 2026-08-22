@@ -97,7 +97,7 @@ class MountTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Mount.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Mount.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Mount.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -107,19 +107,31 @@ class MountTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Mount.Rig.Core.ItemId', kindFixedArray, 2, false, [elementI32]);
+          checkColumn(column, 'Mount.Rig.Core.ItemId', kindArray, false, [elementI32]);
           cursor = TcbColumnCursor(reader, column, count, 'Mount.Rig.Core.ItemId');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            // The first member builds the list; the rest check. Building it again would
+            // discard what the members before it wrote, and taking the shorter of two
+            // counts would shift every value after it.
+            record.rig =
+                List.generate(elementCount, (_) => MountRigEntry());
+            for (var j = 0; j < elementCount; j++) {
               record.rig[j].core.itemIdIndex = cursor.nextI32();
             }
           }
           break;
         case 3:
-          checkColumn(column, 'Mount.Rig.Core.Count', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Mount.Rig.Core.Count', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Mount.Rig.Core.Count');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            if (record.rig.length != elementCount) {
+              throw TcbException(
+                  'Mount.rig: the file gives one member of this '
+                  'record a different element count than another');
+            }
+            for (var j = 0; j < elementCount; j++) {
               record.rig[j].core.count = cursor.nextI32();
             }
           }

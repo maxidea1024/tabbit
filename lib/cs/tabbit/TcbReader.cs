@@ -459,7 +459,7 @@ namespace Tabbit.Binary
         /// <summary>Element type: one of the Element* constants.</summary>
         public byte Element;
 
-        /// <summary>Kind: scalar, fixed array or variable array.</summary>
+        /// <summary>Kind: scalar or array.</summary>
         public byte Kind;
 
         /// <summary>How the block's values are laid out: one of the Encoding* constants.</summary>
@@ -475,8 +475,14 @@ namespace Tabbit.Binary
         /// </remarks>
         public bool Nullable;
 
-        /// <summary>Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one.</summary>
-        public int Count;
+        /// <summary>
+        /// Whether the block states, per element, which of an array's places hold a value.
+        /// </summary>
+        /// <remarks>
+        /// Independent of <see cref="Nullable"/>: a column may say a row has no array, that
+        /// an element of one has no value, or both. spec/nullable-array-elements.md.
+        /// </remarks>
+        public bool ElementNullable;
 
         /// <summary>Total bytes of the column's data block - what a skip advances by.</summary>
         public int ByteLength;
@@ -583,24 +589,17 @@ namespace Tabbit.Binary
                 reader.Read(out byte elementEncoding);
                 _encoding = elementEncoding;
 
-                if (column.Kind == TcbTable.KindVarArray)
-                {
-                    reader.Read(out byte lengthEncoding);
-                    _lengths = ReadLengths(reader, lengthEncoding, rowCount, fieldName);
+                reader.Read(out byte lengthEncoding);
+                _lengths = ReadLengths(reader, lengthEncoding, rowCount, fieldName);
 
-                    long elements = 0;
-                    foreach (int length in _lengths)
-                        elements += length;
+                long elements = 0;
+                foreach (int length in _lengths)
+                    elements += length;
 
-                    if (elements > int.MaxValue)
-                        throw new TcbException($"{fieldName}: the column declares more elements than can be held");
+                if (elements > int.MaxValue)
+                    throw new TcbException($"{fieldName}: the column declares more elements than can be held");
 
-                    _rowsRemaining = (int)elements;
-                }
-                else
-                {
-                    _rowsRemaining = rowCount * column.Count;
-                }
+                _rowsRemaining = (int)elements;
             }
 
             // A float column whose values are all whole numbers carries them as integers and
@@ -1275,7 +1274,7 @@ namespace Tabbit.Binary
         /// encoding byte - before any 101 file had shipped. 104 is the current one: four
         /// encodings joined the nine, and the flags byte gained a meaning.
         /// </remarks>
-        public const uint FormatVersion = 105;
+        public const uint FormatVersion = 107;
 
         public const byte ElementVarint = 0;
         public const byte ElementBool = 1;
@@ -1287,8 +1286,14 @@ namespace Tabbit.Binary
         public const byte ElementUuid = 7;
 
         public const byte KindScalar = 0;
-        public const byte KindFixedArray = 1;
-        public const byte KindVarArray = 2;
+
+        /// <summary>
+        /// The only array kind: every row states its own length. A fixed-length kind sat at
+        /// 1 until v107 and was removed rather than kept beside this one, because a length
+        /// stated once is a length the generated code bakes in - and then a column added to
+        /// a group needs the consumer rebuilt.
+        /// </summary>
+        public const byte KindArray = 1;
 
         // How a block's values are laid out. Raw is the layout 101 had; the others
         // compress a column that repeats itself, which static game data does
@@ -1538,10 +1543,9 @@ namespace Tabbit.Binary
                 columns[at].Element = (byte)(wire & 0x0F);
                 columns[at].Kind = (byte)((wire >> 4) & 0x03);
                 columns[at].Nullable = (wire & 0x40) != 0;
+                columns[at].ElementNullable = (wire & 0x80) != 0;
 
                 reader.Read(out columns[at].Encoding);
-
-                columns[at].Count = reader.ReadCounter32();
 
                 reader.Read(out uint byteLength);
                 columns[at].ByteLength = (int)byteLength;
@@ -1575,6 +1579,7 @@ namespace Tabbit.Binary
                         $"the row count {rowCount} is larger than column tag {column.Tag} can " +
                         $"hold in its {column.ByteLength} bytes");
                 }
+
             }
 
             if (declared != available)
@@ -1602,29 +1607,30 @@ namespace Tabbit.Binary
         /// for a list that is never longer than three and is known at generation time.
         /// </remarks>
         public static void CheckColumn(
-            in TcbColumn column, string fieldName, byte kind, int count, bool nullable, byte accepted)
+            in TcbColumn column, string fieldName, byte kind, bool nullable, byte accepted,
+            bool elementNullable = false)
         {
-            CheckShape(column, fieldName, kind, count, nullable);
+            CheckShape(column, fieldName, kind, nullable, elementNullable);
 
             if (column.Element != accepted)
                 throw ElementMismatch(column, fieldName);
         }
 
         public static void CheckColumn(
-            in TcbColumn column, string fieldName, byte kind, int count, bool nullable,
-            byte accepted, byte alsoAccepted)
+            in TcbColumn column, string fieldName, byte kind, bool nullable,
+            byte accepted, byte alsoAccepted, bool elementNullable = false)
         {
-            CheckShape(column, fieldName, kind, count, nullable);
+            CheckShape(column, fieldName, kind, nullable, elementNullable);
 
             if (column.Element != accepted && column.Element != alsoAccepted)
                 throw ElementMismatch(column, fieldName);
         }
 
         public static void CheckColumn(
-            in TcbColumn column, string fieldName, byte kind, int count, bool nullable,
-            byte accepted, byte alsoAccepted, byte andAccepted)
+            in TcbColumn column, string fieldName, byte kind, bool nullable,
+            byte accepted, byte alsoAccepted, byte andAccepted, bool elementNullable = false)
         {
-            CheckShape(column, fieldName, kind, count, nullable);
+            CheckShape(column, fieldName, kind, nullable, elementNullable);
 
             if (column.Element != accepted && column.Element != alsoAccepted
                 && column.Element != andAccepted)
@@ -1658,6 +1664,30 @@ namespace Tabbit.Binary
             return reader.ReadByteStream(encoding, (rowCount + 7) / 8, "a presence bitmap");
         }
 
+        /// <summary>
+        /// The element bitmap at the front of a block, or null where there is none.
+        /// </summary>
+        /// <remarks>
+        /// Behind the row bitmap and in front of the values. Its length is written ahead of
+        /// it as a counter32, because a variable-length column's total is the sum of row
+        /// lengths and those live inside the value block - a reader meeting the bitmap first
+        /// would have nothing to size it by.
+        ///
+        /// One bit per element written, in the order the block wrote them, so a reader walks
+        /// it with a counter that steps once per element of every row.
+        /// </remarks>
+        public static byte[] ReadElementPresence(TcbReader reader, in TcbColumn column)
+        {
+            if (!column.ElementNullable)
+                return null;
+
+            int elements = reader.ReadCounter32();
+
+            reader.Read(out byte encoding);
+
+            return reader.ReadByteStream(encoding, (elements + 7) / 8, "an element presence bitmap");
+        }
+
         /// <summary>Whether a row has a value, for a column that says which do.</summary>
         /// <remarks>
         /// A null bitmap means the column is not optional, and then every row has one - so
@@ -1667,8 +1697,20 @@ namespace Tabbit.Binary
             => presence is null || (presence[row >> 3] & (1 << (row & 7))) != 0;
 
         private static void CheckShape(
-            in TcbColumn column, string fieldName, byte kind, int count, bool nullable)
+            in TcbColumn column, string fieldName, byte kind, bool nullable,
+            bool elementNullable = false)
         {
+            // The same statement the nullability check below makes, about the other bitmap:
+            // generated code that was not expecting one would read it as values.
+            if (column.ElementNullable != elementNullable)
+            {
+                throw new TcbException(
+                    $"{fieldName}: the file and the generated member disagree about whether this column's elements are optional" +
+                    $" (file: {(column.ElementNullable ? "optional" : "required")}, " +
+                    $"member: {(elementNullable ? "optional" : "required")}). " +
+                    "The schema changed; regenerate the code or rebuild the data.");
+            }
+
             // Nullability is part of the shape: a file that says a column is optional puts a
             // presence bitmap at the front of its block, and generated code that was not
             // expecting one would read the bitmap as values. Adding or removing a `?` is
@@ -1683,11 +1725,14 @@ namespace Tabbit.Binary
                     "The schema changed; regenerate the code or rebuild the data.");
             }
 
-            if (column.Kind != kind || (kind != KindVarArray && column.Count != count))
+            // Shape is the kind alone since v107. How many elements a row holds is what the
+            // file states, row by row, so a group that grew a column is read rather than
+            // refused - while a scalar that became an array is still a different shape.
+            if (column.Kind != kind)
             {
                 throw new TcbException(
-                    $"{fieldName}: the file's column (kind {column.Kind}, count {column.Count}) does not " +
-                    $"match the generated member (kind {kind}, count {count}). The schema changed shape; " +
+                    $"{fieldName}: the file's column (kind {column.Kind}) does not " +
+                    $"match the generated member (kind {kind}). The schema changed shape; " +
                     "regenerate the code or rebuild the data.");
             }
 
@@ -1766,10 +1811,10 @@ namespace Tabbit.Binary
         /// The general form, for an accepted list longer than three. Nothing emits one today.
         /// </summary>
         public static void CheckColumn(
-            in TcbColumn column, string fieldName, byte kind, int count, bool nullable,
+            in TcbColumn column, string fieldName, byte kind, bool nullable,
             params byte[] acceptedElements)
         {
-            CheckShape(column, fieldName, kind, count, nullable);
+            CheckShape(column, fieldName, kind, nullable);
 
             for (int at = 0; at < acceptedElements.Length; at++)
             {
@@ -1807,10 +1852,10 @@ namespace Tabbit.Binary
     /// </summary>
     /// <remarks>
     /// From the platform here, unlike the cipher - .NET has HMAC-SHA-256 and does not have a
-    /// bare ChaCha20. Seven of the thirteen runtimes are in the same position, which is the
+    /// bare ChaCha20. Several of the other runtimes are in the same position, which is the
     /// reason the format's tag is HMAC-SHA-256 rather than the Poly1305 that pairs with its
     /// cipher: no platform exposes Poly1305 outside an AEAD, so that choice would have meant
-    /// thirteen hand-written implementations instead of six.
+    /// a hand-written implementation in every runtime instead of only where one is needed.
     ///
     /// What it catches is what the structural checks cannot. A block length that does not add
     /// up is a malformed file; four other bytes in an f32 column is a well-formed file holding

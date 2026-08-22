@@ -1,0 +1,31 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "de88df0ddc3a0064f6cb17123de8d725",
+  "TotalSize": 358,
+  "Items": [
+    {
+      "Name": "Piece.tcb",
+      "Size": 89,
+      "Hash": "7f6968c5df485fc4be375bf5bbbf4761",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Kit.tcb",
+      "Size": 86,
+      "Hash": "296dc490f6bd792368836da753a18752",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Bit.tcb",
+      "Size": 89,
+      "Hash": "7f6968c5df485fc4be375bf5bbbf4761",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "TrimKit.tcb",
+      "Size": 94,
+      "Hash": "02c7c3c3fdeca7e4e4e0431a9524d187",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

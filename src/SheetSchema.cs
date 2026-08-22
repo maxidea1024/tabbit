@@ -27,6 +27,9 @@ namespace Tabbit;
 /// </remarks>
 public sealed class SheetSchema
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     [JsonProperty("tool")]
     public string Tool { get; set; } = "";
 

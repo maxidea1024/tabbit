@@ -154,7 +154,7 @@ final class LoadoutTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Loadout.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Loadout.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -165,7 +165,7 @@ final class LoadoutTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Loadout.Name', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Loadout.Name', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Name');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -176,7 +176,7 @@ final class LoadoutTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Loadout.Pos.X', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_F32]);
+                    TcbReader::checkColumn($column, 'Loadout.Pos.X', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_F32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Pos.X');
                     foreach ($records as $record) {
                         $record->pos->x = $cursor->nextF32();
@@ -184,7 +184,7 @@ final class LoadoutTable
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Loadout.Pos.Y', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_F32]);
+                    TcbReader::checkColumn($column, 'Loadout.Pos.Y', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_F32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Pos.Y');
                     foreach ($records as $record) {
                         $record->pos->y = $cursor->nextF32();
@@ -192,27 +192,41 @@ final class LoadoutTable
                     break;
 
                 case 5:
-                    TcbReader::checkColumn($column, 'Loadout.Slot.Id', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Loadout.Slot.Id', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Slot.Id');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        // The first member builds the list; the rest check. Building it
+                        // again would discard what the members before it wrote, and taking
+                        // the shorter of two counts would shift every value after it.
+                        $record->slot = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
+                            $record->slot[] = new LoadoutSlotEntry();
+                        }
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->slot[$j]->id = $cursor->nextI32();
                         }
                     }
                     break;
 
                 case 6:
-                    TcbReader::checkColumn($column, 'Loadout.Slot.Label', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Loadout.Slot.Label', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Slot.Label');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        if (\count($record->slot) !== $elementCount) {
+                            throw new \Tabbit\TcbException(
+                                'Loadout.slot: the file gives one member of '
+                                . 'this record a different element count than another.');
+                        }
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->slot[$j]->label = $cursor->nextString();
                         }
                     }
                     break;
 
                 case 7:
-                    TcbReader::checkColumn($column, 'Loadout.Note', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Loadout.Note', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Note');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -223,11 +237,12 @@ final class LoadoutTable
                     break;
 
                 case 8:
-                    TcbReader::checkColumn($column, 'Loadout.Tag_array', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Loadout.Tag_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Tag_array');
                     foreach ($records as $record) {
+                        $elementCount = $cursor->nextLength();
                         $record->tagArray = [];
-                        for ($j = 0; $j < 2; $j++) {
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->tagArray[] = $cursor->nextString();
                         }
                     }

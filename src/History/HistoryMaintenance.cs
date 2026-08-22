@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using MySqlConnector;
 using Serilog;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -36,6 +37,9 @@ public sealed class PruneResult
 /// </summary>
 internal static class HistoryMaintenance
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     /// <summary>Values examined per statement, so one delete cannot lock the pool.</summary>
     private const int CollectBatch = 1000;
 
@@ -51,7 +55,8 @@ internal static class HistoryMaintenance
         MySqlConnection connection, string project, string branch, DateTime? before, int keep)
     {
         int projectId = ProjectId(connection, project)
-            ?? throw new TabbitException($"The history holds no project called `{project}`.");
+                ?? throw new TabbitException(null,
+                    Message.Of(RecordMessages.ProjectUnknown, ("Project", project)));
 
         string lockName = HistorySchema.WriteLockFor(projectId, branch ?? "");
 
@@ -307,8 +312,7 @@ internal static class HistoryMaintenance
             return parsed.UtcDateTime;
         }
 
-        throw new TabbitException(
-            $"`--before {text}` is neither a date nor an age. Use an ISO 8601 date, or a " +
-            $"number of days such as `90d`.");
+            throw new TabbitException(null,
+                Message.Of(RecordMessages.BeforeNotADateOrAge, ("Text", text)));
     }
 }

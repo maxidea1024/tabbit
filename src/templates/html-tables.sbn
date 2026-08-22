@@ -1,47 +1,39 @@
-﻿{{~##
-   Every table on one page: four header rows describing the columns, then the data.
+{{~##
+   Every table the model declares, as a list.
 
-   The header shows the sheet's own columns rather than the folded groups, so the page
-   reads like the workbook it documents. A column that folded into a group names that
-   group in a tooltip.
+   This used to be every table's data on one page, which is what made it 37 MB for a
+   workbook whose largest table has 100,000 rows. What a reader wants from a page called
+   `tables.html` is the list - which tables there are, how big each is, which sheet it
+   came from - and the data is one click away, per table.
 
-   Two rows here run their cells together on a single line - the type row and each data
-   row - because the printer this replaced used Print rather than PrintLine for them,
-   which also lands the closing tag at the end of that same line. Reproduced rather
-   than tidied, so the golden pages do not move.
+   Sortable, because "which table is largest" and "which sheet holds most of them" are
+   questions the same list answers once the column headings work.
 ##~}}
 {{~ include 'html-head.sbn' ~}}
-<br>
-{{~ for table in tables ~}}
-<div class="definition">
-<h3 id="table_{{ table.name }}"><i>Table: {{ table.source_link }} - {{ table.record_count }} Record(s)</i></h3>
-{{~ if table.comment != '' ~}}
-<div class="comment">{{ table.comment }}</div>
-{{~ end ~}}
-<table>
+<p class="lead">테이블 {{ rows | array.size }}개 · 행 {{ record_total }}개 · 컬럼 {{ column_total }}개</p>
+<div data-table>
+<div class="tools">
+<input type="search" data-filter="rows" placeholder="테이블 필터">
+<span class="hint" data-shown>{{ rows | array.size }}행 중 {{ rows | array.size }}행</span>
+<span class="hint">제목을 누르면 정렬됩니다.</span>
+</div>
+{{~ if rows | array.size == 0 ~}}
+<p class="none">선언된 것이 없습니다.</p>
+{{~ else ~}}
+<div class="scroll">
+<table data-sortable>
 <thead>
-{{~ for cell in table.name_cells ~}}
-{{ cell }}
-{{~ end ~}}
+<tr class="names">
+<th class="sorted"><svg class="i"><use href="#i-table"></use></svg>테이블</th><th>행</th><th>컬럼</th><th>선언 위치</th>{{ if has_comments }}<th>설명</th>{{ end }}
+</tr>
 </thead>
-<thead>
-{{~ for cell in table.comment_cells ~}}
-{{ cell }}
+<tbody>
+{{~ for row in rows ~}}
+<tr><td><a href="{{ row.href }}"><svg class="i"><use href="#i-table"></use></svg>{{ row.name }}</a></td><td class="num">{{ row.record_count }}</td><td class="num">{{ row.column_count }}</td><td>{{ row.sheet }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
 {{~ end ~}}
-</thead>
-<thead>
-{{ table.type_cells | array.join '' }}</thead>
-<thead>
-{{~ for cell in table.side_cells ~}}
-{{ cell }}
-{{~ end ~}}
-</thead>
-{{~ for row in table.rows ~}}
-<tr>
-{{ row.cells | array.join '' }}</tr>
-{{~ end ~}}
+</tbody>
 </table>
 </div>
-<br>
 {{~ end ~}}
+</div>
 {{ include 'html-foot.sbn' }}

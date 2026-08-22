@@ -1,66 +1,66 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "235f7ab21dd281e0ec3d960d2ae9e076",
-  "TotalSize": 1010,
+  "MasterHash": "b2a040a86766a3b1891375a2a4c91306",
+  "TotalSize": 996,
   "Items": [
     {
       "Name": "Item.tcb",
-      "Size": 105,
-      "Hash": "2c1eea9bdee102983c47f775ba4c0906",
+      "Size": 100,
+      "Hash": "60ac5904b8dfd6f5184e4eaa816d57d5",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Loadout.tcb",
-      "Size": 93,
-      "Hash": "8a194873ea1d03a1a284a9f1651e4d61",
+      "Size": 98,
+      "Hash": "2111138b0d2a3571cf94878f46520ab0",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Holder.tcb",
-      "Size": 94,
-      "Hash": "1068003b160797327c1624e7a34c7b19",
+      "Size": 89,
+      "Hash": "b13d73908d9b7fda4357d67c8aca196e",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Bag.tcb",
-      "Size": 80,
-      "Hash": "b8a882d1ea030d2e0d1d14337e1db158",
+      "Size": 83,
+      "Hash": "c1d08d2f868ce53fd6c34a10398556bd",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Mount.tcb",
-      "Size": 80,
-      "Hash": "b8a882d1ea030d2e0d1d14337e1db158",
+      "Size": 83,
+      "Hash": "c1d08d2f868ce53fd6c34a10398556bd",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Clip.tcb",
-      "Size": 107,
-      "Hash": "8980af8c1825e2663b4c054bc270c5ce",
+      "Size": 102,
+      "Hash": "b5e55df211018701dd53df263cf6b020",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Pose.tcb",
-      "Size": 97,
-      "Hash": "babd2d6d6bb300addb7765c8e21eb173",
+      "Size": 100,
+      "Hash": "463ed8aaef05a165d1fe1f37d89e58b5",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Seal.tcb",
-      "Size": 133,
-      "Hash": "a4ebb69dd88da512d8e442d725fcb20a",
+      "Size": 128,
+      "Hash": "a96c62dd1c07299525d6026959f6c02d",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Badge.tcb",
-      "Size": 133,
-      "Hash": "271fb680d7533c4ea22d6a2bf52326b6",
+      "Size": 128,
+      "Hash": "f4c762177358779d398623d3a2b60d5a",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Kit.tcb",
-      "Size": 88,
-      "Hash": "32f6450defd46f99c4c180259b5715b3",
+      "Size": 85,
+      "Hash": "7e26225e017fa30f52466ac45a7d9620",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

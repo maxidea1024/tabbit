@@ -35,6 +35,29 @@ public enum FormulaErrorPolicy
 }
 
 /// <summary>
+/// What to do about a blank cell in a column whose type has no reading for one.
+/// </summary>
+/// <remarks>
+/// A `string`, a `bool` and an array read a blank as a value they already have - the empty
+/// string, false, no elements - and this does not apply to them. It is about the types where
+/// a blank is nothing at all: the numbers, the dates, a uuid, an enum label.
+///
+/// Saying a row has no value is a different statement, written `-`, and neither setting here
+/// changes that. spec/blank-and-null-cells.md.
+/// </remarks>
+public enum BlankCellPolicy
+{
+    /// <summary>Report it and name the cell, which is what a blank where a number belongs is for.</summary>
+    Error,
+
+    /// <summary>
+    /// Read it as the type's empty value and warn once per column, for workbooks another
+    /// team maintains and this one cannot correct.
+    /// </summary>
+    Empty,
+}
+
+/// <summary>
 /// How a sheet is to be read, carried from the recipe entry that imported it.
 /// </summary>
 /// <remarks>
@@ -54,17 +77,34 @@ public sealed class SheetLayout
         IReadOnlyDictionary<string, string>? options = null,
         bool foldSerialFields = false,
         bool trimTrailingArrayElements = false,
-        bool allowArrayGaps = false)
+        bool allowArrayGaps = false,
+        string tableRowSets = "",
+        BlankCellPolicy onBlankCell = BlankCellPolicy.Error,
+        TimeZoneInfo? timeZone = null)
     {
         Id = id;
         OnDuplicateIndex = onDuplicateIndex;
         ArrayDelimiter = arrayDelimiter;
+        TimeZone = timeZone;
         OnFormulaError = onFormulaError;
+        OnBlankCell = onBlankCell;
         FoldSerialFields = foldSerialFields;
         TrimTrailingArrayElements = trimTrailingArrayElements;
         AllowArrayGaps = allowArrayGaps;
+        TableRowSets = tableRowSets;
         _options = options ?? new Dictionary<string, string>();
     }
+
+    /// <summary>
+    /// The pattern that recognizes a table name as another set of some table's rows, or
+    /// blank when this source has no such names.
+    /// </summary>
+    /// <remarks>
+    /// Carried as the recipe wrote it. It is applied after every layout has parsed, because
+    /// the names it pairs up can be read in either order, so nothing here interprets it -
+    /// see <see cref="Tabbit.Cooking.TableRowSets"/>.
+    /// </remarks>
+    public string TableRowSets { get; }
 
     /// <summary>
     /// Whether a record array drops the elements at its end that a row left empty.
@@ -141,9 +181,10 @@ public sealed class SheetLayout
             if (known.Contains(key, StringComparer.OrdinalIgnoreCase))
                 continue;
 
-            throw new TabbitException(
-                $"Recipe `{section}` sets `LayoutOptions.{key}`, which the `{Id}` layout does "
-                + $"not read. It takes: {(known.Length == 0 ? "none" : string.Join(", ", known))}.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Recipe.RecipeMessages.LayoutOptionUnknown,
+                        ("Section", section), ("Key", key), ("Layout", Id),
+                        ("Known", known.Length == 0 ? "none" : string.Join(", ", known))));
         }
     }
 
@@ -175,6 +216,20 @@ public sealed class SheetLayout
     public FormulaErrorPolicy OnFormulaError { get; }
 
     /// <summary>
+    /// What a blank cell does where the column's type has no reading for one.
+    /// </summary>
+    /// <remarks>
+    /// Per source entry for the reason the two policies above are: it says whether these
+    /// sheets are ours to correct. A workbook this team owns should stop on a blank where a
+    /// number belongs, and one another team maintains cannot be stopped on for the same
+    /// reason its broken formula cannot.
+    ///
+    /// It does not decide what absence is. A row saying it has no value writes `-`, in every
+    /// layout and whatever this holds.
+    /// </remarks>
+    public BlankCellPolicy OnBlankCell { get; }
+
+    /// <summary>
     /// Separator for array cells in these sheets, or null to use the recipe-wide one.
     /// </summary>
     /// <remarks>
@@ -183,6 +238,17 @@ public sealed class SheetLayout
     /// different conventions, and one of them writing `1|2|3` should not force the other to.
     /// </remarks>
     public char? ArrayDelimiter { get; }
+
+    /// <summary>
+    /// The time zone these sheets' wall clocks were written in, or null to use the
+    /// recipe-wide setting.
+    /// </summary>
+    /// <remarks>
+    /// Resolved when the entry was read rather than carried as the text of a name, so a
+    /// setting that names no zone is reported before a sheet is opened, and so the lookup
+    /// happens once an entry instead of once a cell.
+    /// </remarks>
+    public TimeZoneInfo? TimeZone { get; }
 
     public override string ToString() => Id;
 }

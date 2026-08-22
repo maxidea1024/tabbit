@@ -22,6 +22,10 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
    * switch's cases share its scope either way. */
   const uint8_t* presence = NULL;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+  const uint8_t* element_presence = NULL;
+  int32_t element_at = 0;
+{{~ end ~}}
 
   if (!tb_read_table_header(reader, &table->count, &columns, &column_count))
     return false;
@@ -50,17 +54,10 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
     {{ table.record_name }}* record = &table->records[row];
 
 {{~ for field in table.fields ~}}
-{{~ if field.is_string && !field.is_var_array ~}}
-{{~ if field.is_fixed_array ~}}
-    {
-      int32_t element;
-
-      for (element = 0; element < {{ field.element_count }}; ++element)
-        record->{{ field.name }}[element] = "";
-    }
-{{~ else ~}}
+{{~## The scalars only. An array is a pointer, so a column the file does not carry leaves it
+   NULL with a count of zero - an empty array rather than a row of NULL strings. ##~}}
+{{~ if field.is_string && !field.is_array ~}}
     record->{{ field.name }} = "";
-{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
   }
@@ -83,6 +80,12 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
        * values are written for every row either way, which is what lets the read shapes
        * below stay as they are. */
       (void)tb_read_presence(reader, column, table->count, &presence);
+{{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+      /* Behind the row bitmap and in front of the values, walked with a counter that steps
+       * once per element of every row. spec/nullable-array-elements.md. */
+      (void)tb_read_element_presence(reader, column, &element_presence);
+      element_at = 0;
 {{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
    as well: its block states an encoding for them and one for the row lengths, and the
@@ -113,6 +116,25 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
         if (element_count > 0 && record->{{ column_view.name }} == NULL)
           return tb_fail_with(reader, "out of memory allocating an array");
 
+{{~ if column_view.has_optional_elements ~}}
+{{~## One bool per element, in the arena beside the values: the record hands out a pointer,
+      and a pointer into the arena lives exactly as long as the table does. ##~}}
+        {
+          bool* element_presence_out = (bool*)tb_arena_alloc(
+            &table->arena, (size_t)element_count * sizeof(bool));
+
+          if (element_count > 0 && element_presence_out == NULL)
+            return tb_fail_with(reader, "out of memory allocating an element presence array");
+
+          record->{{ column_view.element_presence_member }} = element_presence_out;
+
+          for (element = 0; element < element_count; ++element)
+            element_presence_out[element] = tb_is_present(element_presence, element_at + element);
+        }
+
+        element_at += element_count;
+
+{{~ end ~}}
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
 {{~ if column_view.needs_scratch ~}}
         {
@@ -168,12 +190,29 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
       }
 {{~ else if column_view.kind == 'array_of_arrays_member' }}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
-   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+   fixed and the loop runs the inner length, which this row states. ##~}}
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         {{ table.record_name }}* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < {{ column_view.element_count }}; ++element)
+        {{ column_view.length_read }}
+{{~ if column_view.cursor_open == '' }}
+        /* The count came off the wire, and in a raw block one element is at least one
+         * byte. An encoded one has no such floor - a run covers any number of elements -
+         * so there the allocation itself is what refuses a count too large to honour. */
+        if (!tb_row_count_is_plausible(reader, element_count, 1))
+          return tb_fail_with(reader, "an array is longer than the file can hold");
+{{~ end ~}}
+
+        record->{{ column_view.name }}_count[{{ column_view.member_at }}] = element_count;
+        record->{{ column_view.name }}[{{ column_view.member_at }}] = ({{ column_view.element_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof **record->{{ column_view.name }});
+
+        if (element_count > 0 && record->{{ column_view.name }}[{{ column_view.member_at }}] == NULL)
+          return tb_fail_with(reader, "out of memory allocating an inner array");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
 {{~ if column_view.needs_scratch ~}}
         {
           int32_t scratch = 0;
@@ -184,14 +223,45 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
           (void){{ column_view.read_element }};
 {{~ end ~}}
       }
-{{~ else if column_view.kind == 'record_member_serial' }}
-{{~## The member is the array: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+{{~ else if column_view.kind == 'record_member_var' }}
+{{~## The member is the array: the index goes after its name rather than before, and its
+   length is this row's - see spec/nested-multi-level.md. ##~}}
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         {{ table.record_name }}* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < {{ column_view.element_count }}; ++element)
+        {{ column_view.length_read }}
+{{~ if column_view.cursor_open == '' }}
+        /* The count came off the wire, and in a raw block one element is at least one
+         * byte. An encoded one has no such floor - a run covers any number of elements -
+         * so there the allocation itself is what refuses a count too large to honour. */
+        if (!tb_row_count_is_plausible(reader, element_count, 1))
+          return tb_fail_with(reader, "an array is longer than the file can hold");
+{{~ end ~}}
+
+        record->{{ column_view.name }}{{ column_view.member_access }}_count = element_count;
+{{~ if column_view.key_type != '' }}
+{{~## A reference member holds one row pointer per element as well as one key, and the read
+   writes into the key - so both are made. spec/references-in-records.md. ##~}}
+        record->{{ column_view.name }}{{ column_view.member_access }} = ({{ column_view.reference_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.member_access }});
+        record->{{ column_view.name }}{{ column_view.member_access }}_index = ({{ column_view.key_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.member_access }}_index);
+
+        if (element_count > 0
+            && (record->{{ column_view.name }}{{ column_view.member_access }} == NULL
+                || record->{{ column_view.name }}{{ column_view.member_access }}_index == NULL))
+          return tb_fail_with(reader, "out of memory allocating a member array");
+{{~ else }}
+        record->{{ column_view.name }}{{ column_view.member_access }} = ({{ column_view.element_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.member_access }});
+
+        if (element_count > 0 && record->{{ column_view.name }}{{ column_view.member_access }} == NULL)
+          return tb_fail_with(reader, "out of memory allocating a member array");
+{{~ end }}
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
 {{~ if column_view.needs_scratch ~}}
         {
           int32_t scratch = 0;
@@ -202,63 +272,52 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
           (void){{ column_view.read_element }};
 {{~ end ~}}
       }
-{{~ else if column_view.kind == 'record_serial' }}
+{{~ else if column_view.kind == 'var_array_ref' }}
+{{~## The same two arrays as `serial_ref` below, at the length this row gave rather than the
+   one the column states. spec/variable-length-record-arrays.md. ##~}}
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         {{ table.record_name }}* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < {{ column_view.element_count }}; ++element)
-{{~ if column_view.needs_scratch ~}}
-        {
-          int32_t scratch = 0;
-          (void){{ column_view.read_scratch }};
-          record->{{ column_view.name }}[element]{{ column_view.member_access }} = ({{ column_view.enum_type }})scratch;
-        }
-{{~ else ~}}
-          (void){{ column_view.read_element }};
+        {{ column_view.length_read }}
+{{~ if column_view.cursor_open == '' }}
+        /* The count came off the wire, and in a raw block one element is at least one
+         * byte. An encoded one has no such floor - a run covers any number of elements -
+         * so there the allocation itself is what refuses a count too large to honour. */
+        if (!tb_row_count_is_plausible(reader, element_count, 1))
+          return tb_fail_with(reader, "an array is longer than the file can hold");
 {{~ end ~}}
-      }
-{{~ else if column_view.kind == 'serial_ref' }}
-      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
-        {{ table.record_name }}* record = &table->records[row];
-        int32_t element;
 
-        for (element = 0; element < {{ column_view.element_count }}; ++element)
-          (void){{ column_view.read_element }};
-      }
-{{~ else if column_view.kind == 'serial' }}
-      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
-        {{ table.record_name }}* record = &table->records[row];
-        int32_t element;
+        record->{{ column_view.name }}_count = element_count;
+        record->{{ column_view.name }} = ({{ column_view.reference_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }});
+        record->{{ column_view.name }}_index = ({{ column_view.key_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}_index);
 
-        for (element = 0; element < {{ column_view.element_count }}; ++element)
-{{~ if column_view.needs_scratch ~}}
+        if (element_count > 0
+            && (record->{{ column_view.name }} == NULL || record->{{ column_view.name }}_index == NULL))
+          return tb_fail_with(reader, "out of memory allocating an array");
+
+{{~ if column_view.has_optional_elements ~}}
         {
-          int32_t scratch = 0;
-          (void){{ column_view.read_scratch }};
-          record->{{ column_view.name }}[element] = ({{ column_view.enum_type }})scratch;
+          bool* element_presence_out = (bool*)tb_arena_alloc(
+            &table->arena, (size_t)element_count * sizeof(bool));
+
+          if (element_count > 0 && element_presence_out == NULL)
+            return tb_fail_with(reader, "out of memory allocating an element presence array");
+
+          record->{{ column_view.element_presence_member }} = element_presence_out;
+
+          for (element = 0; element < element_count; ++element)
+            element_presence_out[element] = tb_is_present(element_presence, element_at + element);
         }
-{{~ else ~}}
-          (void){{ column_view.read_element }};
+
+        element_at += element_count;
+
 {{~ end ~}}
-      }
-{{~ else if column_view.run_call != '' }}
-{{~## A run of equal values costs one call and then plain assignments, rather than one
-   call per row that each re-dispatch on the encoding. An encoding with no run to give
-   answers 1, so this loop is correct over all of them. ##~}}
-      {
-        int32_t run_length = 0;
-        {{ column_view.run_value_declaration }}
-
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!{{ column_view.run_call }}(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            {{ column_view.run_spend }}
-        }
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
+          (void){{ column_view.read_element }};
       }
 {{~ else if column_view.kind == 'scalar_ref' }}
 {{~## The read is the column view's, not spelled here: a reference carries the key its
@@ -408,4 +467,46 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
   const {{ table.table_name }}* table, {{ index.key_type }} key) {
   return {{ index.find_call }}(table->{{ index.array_name }}, table->count, key) >= 0;
 }
+{{~ end ~}}
+{{~## The same for a member of a record, which takes the element rather than the row.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for field in table.fields ~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~ for rt in field.record_types ~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+const {{ target.record_name }}* {{ target.function }}(
+  const struct {{ multi.element_type_name }}* element, int32_t at) {
+  if (element->{{ multi.target_member }}[at] != {{ target.label }})
+    return NULL;
+
+  return (const {{ target.record_name }}*)element->{{ multi.slot_member }}[at];
+}
+{{~ else ~}}
+const {{ target.record_name }}* {{ target.function }}(
+  const struct {{ multi.element_type_name }}* element) {
+  if (element->{{ multi.target_member }} != {{ target.label }})
+    return NULL;
+
+  return (const {{ target.record_name }}*)element->{{ multi.slot_member }};
+}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~## The per-target accessors of a column reaching several tables. The cast is safe by
+   construction: the discriminator was set by the same assignment that filled the slot.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+{{~ for target in ref.targets }}
+const {{ target.record_name }}* {{ target.function }}(const {{ table.record_name }}* record) {
+  if (record->{{ ref.target_member }} != {{ target.label }})
+    return NULL;
+
+  return (const {{ target.record_name }}*)record->{{ ref.slot_member }};
+}
+{{~ end ~}}
 {{~ end ~}}

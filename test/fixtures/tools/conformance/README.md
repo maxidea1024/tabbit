@@ -66,7 +66,7 @@ compare against.
 It is there so that every language's constants file is generated and then compiled, or
 required, or imported. Nothing did that before: neither this corpus nor `reserved-words` -
 the only other scenario generating for all twelve - had a constant set, so splitting each
-target's output into a file per table produced a constants file in twelve languages that
+target's output into a file per table produced a constants file in every language that
 nothing ever built. Rust proved the cost of that: a constant typed with an enum names that
 enum, the dependency graph did not say so, and the crate did not compile.
 
@@ -94,11 +94,11 @@ right values, in the target most likely to end up in a shipped game.
 ## Adding a value type
 
 `CorpusCoverageTests` reads the `ValueType` enum and requires the corpus to have a field of
-every one, so adding a type fails that test the same day - before any of the twelve generators
+every one, so adding a type fails that test the same day - before any of the generators
 have been touched. The bill it prints is the real one: a column in `WriteConformance`, a
-regenerated workbook, and a line in each of the twelve harnesses.
+regenerated workbook, and a line in each of the harnesses.
 
-That is the point. Twelve generators each carry their own switch deciding which reader call a
+That is the point. The generators each carry their own switch deciding which reader call a
 field turns into, and forgetting one still compiles - the `default:` throws at runtime, in
 whoever's project reaches that field first. What keeps that from happening is that the corpus
-has every type and twelve harnesses read it. Which only holds while the corpus really does.
+has every type and the harnesses read it. Which only holds while the corpus really does.

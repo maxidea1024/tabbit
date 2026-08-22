@@ -32,6 +32,84 @@ public class UwoLayoutTests
     private static Table Parse(params string[][] rows) => Assert.Single(ParseModel(rows).Tables);
 
     /// <summary>
+    /// Two rectangles side by side on one sheet, named `T` and `T_alt`, folded as two sets of
+    /// one table's rows.
+    /// </summary>
+    /// <remarks>
+    /// The fold is a separate pass over every layout's output, so a test that wants it has to
+    /// run it - and a grid is the one shape whose columns it cannot match by name.
+    /// spec/table-row-sets.md.
+    /// </remarks>
+    private static Model ParseTwoSets(string[][] left, string[][] right)
+    {
+        int height = System.Math.Max(left.Length, right.Length);
+        int gap = 1;
+        int width = left[0].Length + gap + right[0].Length;
+
+        string CellAt(int row, int column)
+        {
+            if (column < left[0].Length)
+                return row < left.Length ? left[row][column] : "";
+
+            int at = column - left[0].Length - gap;
+
+            return at >= 0 && row < right.Length ? right[row][at] : "";
+        }
+
+        var sheet = new RawSheet
+        {
+            Location = new Location { Filename = "book.xlsx", Sheet = "Sheet1" },
+            ColumnCount = width,
+            Layout = new SheetLayout(
+                "named-range", DuplicateIndexPolicy.Error,
+                tableRowSets: "^(?<table>.+?)(?<set>_alt)$"),
+            Rows = Enumerable.Range(0, height).Select(row =>
+                Enumerable.Range(0, width).Select(column => new RawCell
+                {
+                    Location = new Location
+                    {
+                        Filename = "book.xlsx",
+                        Sheet = "Sheet1",
+                        Row = row,
+                        Column = column,
+                    },
+                    Value = CellAt(row, column),
+                }).ToList()).ToList(),
+            NamedRanges =
+            {
+                new RawNamedRange
+                {
+                    Name = "T",
+                    Row = 0,
+                    Column = 0,
+                    Height = left.Length,
+                    Width = left[0].Length,
+                },
+                new RawNamedRange
+                {
+                    Name = "T_alt",
+                    Row = 0,
+                    Column = left[0].Length + gap,
+                    Height = right.Length,
+                    Width = right[0].Length,
+                },
+            },
+        };
+
+        _refusals = new Diagnostics();
+
+        var context = new CookingContext(new Model(), new RecipeModel(), _refusals);
+        var parser = new UwoLayoutParser();
+
+        parser.ParseDeclarations(context, new[] { sheet });
+        parser.ParseTables(context, new[] { sheet });
+
+        TableRowSets.Fold(context, new[] { sheet }, _refusals);
+
+        return context.Model;
+    }
+
+    /// <summary>
     /// The same, kept whole - a grid produces a second table beside the one it was asked for.
     /// </summary>
     private static Model ParseModel(params string[][] rows)
@@ -50,7 +128,6 @@ public class UwoLayoutTests
                     Column = column,
                 },
                 Value = text,
-                Note = "",
             }).ToList()).ToList(),
             NamedRanges =
             {
@@ -65,7 +142,9 @@ public class UwoLayoutTests
             },
         };
 
-        var context = new CookingContext(new Model(), new RecipeModel());
+        _refusals = new Diagnostics();
+
+        var context = new CookingContext(new Model(), new RecipeModel(), _refusals);
         var parser = new UwoLayoutParser();
 
         parser.ParseDeclarations(context, new[] { sheet });
@@ -73,6 +152,20 @@ public class UwoLayoutTests
 
         return context.Model;
     }
+
+    /// <summary>
+    /// What the parser refused about the sheet just read.
+    /// </summary>
+    /// <remarks>
+    /// A table this layout cannot read is reported and left out rather than ending the run,
+    /// so a refusal is a diagnostic and not an exception - which is what lets one bad shape
+    /// among six hundred tables be a line in a list.
+    /// </remarks>
+    private static Diagnostics _refusals = new Diagnostics();
+
+    /// <summary>The single refusal the sheet produced, which is what these tests assert on.</summary>
+    private static string Refusal()
+        => Assert.Single(_refusals.Entries).Detail.Message;
 
     /// <summary>The cell of a row that has a value, by field name.</summary>
     private static object ValueOf(Table table, int row, string field)
@@ -220,6 +313,133 @@ public class UwoLayoutTests
     }
 
     /// <summary>
+    /// Each element of a grid says it is matched by its column id.
+    /// </summary>
+    /// <remarks>
+    /// The element names are positional, and another set of the table's rows is laid onto its
+    /// columns by name - so a set with fewer columns of that axis would be shifted from its
+    /// first missing id onwards. The id is what identifies the column, so the id is what the
+    /// fold matches by. spec/table-row-sets.md.
+    /// </remarks>
+    [Fact]
+    public void A_grids_elements_are_matched_by_their_column_id()
+    {
+        var model = ParseModel(
+            new[] { "id", "700", "701" },
+            new[] { "key", "number", "number" },
+            new[] { "1", "10", "20" });
+
+        var value = model.Tables.Single(t => t.Name == "T").SerialFields
+                         .Single(sf => sf.Name == "Value");
+
+        Assert.Equal(new[] { "Value#700", "Value#701" },
+                     value.Fields.Select(f => f.SetAlignName).ToArray());
+    }
+
+    /// <summary>
+    /// Two sets of a grid's rows line up by column id, not by position.
+    /// </summary>
+    /// <remarks>
+    /// The set here holds `700` and `702` and not `701`, which is the shape a real one has -
+    /// a locale with fewer towns of the other axis. Laid out positionally, its `702` would
+    /// land where `701` is and every consumer reading that element would get another column's
+    /// value with nothing to say so. Measured on a real grid: two elements of 735.
+    /// spec/table-row-sets.md · spec/matrix-tables.md.
+    /// </remarks>
+    [Fact]
+    public void A_grids_sets_line_up_by_column_id()
+    {
+        var model = ParseTwoSets(
+            new[]
+            {
+                new[] { "id", "700", "701", "702" },
+                new[] { "key", "number", "number", "number" },
+                new[] { "1", "10", "20", "30" },
+            },
+            new[]
+            {
+                new[] { "id", "700", "702" },
+                new[] { "key", "number", "number" },
+                new[] { "1", "11", "33" },
+            });
+
+        var grid = model.Tables.Single(t => t.Name == "T");
+        var value = grid.SerialFields.Single(sf => sf.Name == "Value");
+        var set = grid.RowSets.Single(rowSet => rowSet.Name.Length > 0);
+
+        Assert.Equal(3, value.Fields.Count);
+
+        // Element 1 is `701`, which this set does not have, and element 2 is `702` - not
+        // element 1, which is where a positional layout would have put it.
+        var row = set.Rows[0];
+
+        Assert.Equal(11d, row[value.Fields[0].Index].Value);
+        Assert.False(row[value.Fields[1].Index].HasValue);
+        Assert.Equal(33d, row[value.Fields[2].Index].Value);
+    }
+
+    /// <summary>
+    /// A grid that is another set of some table's rows declares no column table.
+    /// </summary>
+    /// <remarks>
+    /// Once folded the positions are the table's, so a column table of its own would state
+    /// positions nothing holds. Which names are sets is the source's setting, and this layout
+    /// reads it. spec/table-row-sets.md.
+    /// </remarks>
+    [Fact]
+    public void A_grid_that_is_another_sets_rows_declares_no_column_table()
+    {
+        var model = ParseTwoSets(
+            new[]
+            {
+                new[] { "id", "700", "701" },
+                new[] { "key", "number", "number" },
+                new[] { "1", "10", "20" },
+            },
+            new[]
+            {
+                new[] { "id", "700" },
+                new[] { "key", "number" },
+                new[] { "1", "11" },
+            });
+
+        Assert.Single(model.Tables, t => t.Name.EndsWith("Column"));
+        Assert.Equal(2, model.Tables.Single(t => t.Name == "TColumn").Data.Count);
+    }
+
+    /// <summary>
+    /// A column one set does not declare may have no value.
+    /// </summary>
+    /// <remarks>
+    /// The fold writes `HasValue` false into those cells deliberately, so a required column
+    /// would have validation report the value the fold just wrote. spec/table-row-sets.md.
+    /// </remarks>
+    [Fact]
+    public void A_column_a_set_does_not_declare_becomes_optional()
+    {
+        var model = ParseTwoSets(
+            new[]
+            {
+                new[] { "id", "kept", "dropped" },
+                new[] { "key", "number", "number" },
+                new[] { ":required", "1", "1" },
+                new[] { "1", "10", "100" },
+            },
+            new[]
+            {
+                new[] { "id", "kept" },
+                new[] { "key", "number" },
+                new[] { ":required", "1" },
+                new[] { "1", "11" },
+            });
+
+        var table = model.Tables.Single(t => t.Name == "T");
+
+        Assert.False(table.Fields.Single(f => f.Name == "Dropped").IsRequired);
+        Assert.True(table.Fields.Single(f => f.Name == "Kept").IsRequired);
+    }
+
+    /// <summary>
     /// A column whose name is a name stays a column.
     /// </summary>
     /// <remarks>
@@ -271,12 +491,12 @@ public class UwoLayoutTests
     [Fact]
     public void A_grid_whose_columns_disagree_on_type_is_refused()
     {
-        var thrown = Assert.Throws<TabbitException>(() => ParseModel(
+        ParseModel(
             new[] { "id", "700", "701" },
             new[] { "key", "number", "string" },
-            new[] { "1", "10", "x" }));
+            new[] { "1", "10", "x" });
 
-        Assert.Contains("not all one type", thrown.Message);
+        Assert.Contains("not all one type", Refusal());
     }
 
     /// <summary>
@@ -333,12 +553,12 @@ public class UwoLayoutTests
     [Fact]
     public void A_group_that_names_one_outer_level_and_numbers_another_is_refused()
     {
-        var thrown = Assert.Throws<TabbitException>(() => Parse(
+        ParseModel(
             new[] { "id", "tag[0][0]", "tag[\"M\"][0]" },
             new[] { "key", "string", "string" },
-            new[] { "1", "a", "b" }));
+            new[] { "1", "a", "b" });
 
-        Assert.Contains("element number", thrown.Message);
+        Assert.Contains("element number", Refusal());
     }
 
     /// <summary>
@@ -357,7 +577,7 @@ public class UwoLayoutTests
             new[] { "key", "number", "string" },
             new[] { ":min", "1", "-" },
             new[] { ":max", "99", "-" },
-            new[] { ":enum", "-", "a;b" },
+            new[] { ":enum", "-", "\"a\",\"b\"" },
             new[] { "1", "5", "a" });
 
         var level = table.Fields.Single(f => f.Name == "Level");
@@ -366,6 +586,42 @@ public class UwoLayoutTests
 
         var kind = table.Fields.Single(f => f.Name == "Kind");
         Assert.Equal(new[] { "a", "b" }, kind.Constraints.AllowedValues);
+    }
+
+    /// <summary>
+    /// An unquoted `:enum` cell on a text column declares nothing.
+    /// </summary>
+    /// <remarks>
+    /// The rule the sheets' own exporter follows: it pulls the quoted runs out of the cell,
+    /// and a cell with none contributes no list. Read any other way, a cell holding a bare
+    /// `1` says the only value allowed is `1` - which one real sheet has, and which turned
+    /// every row of that column into a finding.
+    /// </remarks>
+    [Fact]
+    public void An_unquoted_enum_cell_on_a_text_column_declares_nothing()
+    {
+        var table = Parse(
+            new[] { "id", "Kind" },
+            new[] { "key", "string" },
+            new[] { ":enum", "1" },
+            new[] { "1", "a" });
+
+        Assert.Null(table.Fields.Single(f => f.Name == "Kind").Constraints.AllowedValues);
+    }
+
+    /// <summary>
+    /// A column of any other type carries one value rather than a quoted list.
+    /// </summary>
+    [Fact]
+    public void An_enum_cell_on_a_number_column_is_the_one_value_it_holds()
+    {
+        var table = Parse(
+            new[] { "id", "Level" },
+            new[] { "key", "number" },
+            new[] { ":enum", "7" },
+            new[] { "1", "7" });
+
+        Assert.Equal(new[] { "7" }, table.Fields.Single(f => f.Name == "Level").Constraints.AllowedValues);
     }
 
     /// <summary>
@@ -427,12 +683,12 @@ public class UwoLayoutTests
             new[] { "2", "10", "-" });
 
         var diagnostics = new Diagnostics();
-        Tabbit.Cooking.ModelCooker.ValidateRequiredInRecord(table, diagnostics);
+        Tabbit.Cooking.ModelCooker.ValidateRequiredInRecord(table, table.RowSets.First(), diagnostics);
 
         var reported = Assert.Single(diagnostics.Entries);
 
         Assert.Equal(Severity.Error, reported.Severity);
-        Assert.Contains("required", reported.Detail.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RecordMemberRequiredEmpty, reported.Detail.MessageId);
         Assert.Contains("Count", reported.Detail.Message);
 
         // And it points at the cell the author left empty rather than at the constraint row.
@@ -452,7 +708,7 @@ public class UwoLayoutTests
             new[] { "1", "-", "-" });
 
         var diagnostics = new Diagnostics();
-        Tabbit.Cooking.ModelCooker.ValidateRequiredInRecord(table, diagnostics);
+        Tabbit.Cooking.ModelCooker.ValidateRequiredInRecord(table, table.RowSets.First(), diagnostics);
 
         Assert.Empty(diagnostics.Entries);
     }

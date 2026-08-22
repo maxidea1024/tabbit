@@ -19,7 +19,10 @@ namespace Tabbit.Tests;
 /// the reference and says how to fix it, which is the whole of what these gates check on
 /// that side.
 ///
-/// spec/reference-optionality.md.
+/// A row says it points at none by writing `-`. A blank cell does not say it - it is a cell
+/// nobody filled in, and it is refused in an optional column as readily as in a required one.
+///
+/// spec/reference-optionality.md · spec/blank-and-null-cells.md.
 /// </remarks>
 public class ReferenceOptionalityTests
 {
@@ -28,34 +31,61 @@ public class ReferenceOptionalityTests
             Path.Combine(RepoLayout.OutputDir(scenario), "json-named", "Holder.json"))).RootElement;
 
     /// <summary>
-    /// A required reference nobody filled in is refused, at the cell, in words that say what
-    /// to do about it.
+    /// A reference nobody filled in is refused, at the cell, in words that say what to do
+    /// about it.
     /// </summary>
     /// <remarks>
-    /// The two ways out are both named because which one is right is the author's call: the
-    /// row may be missing a target, or the column may have been marked required by habit. A
-    /// message that offers only the first sends anyone in the second case looking for a row
-    /// to invent.
+    /// Refused whatever the column declared. A blank is not a way of saying "no target" -
+    /// that is `-`, and a column allowing it says so with `?` - so what a blank reference
+    /// cell says is that a row was left unfinished. spec/blank-and-null-cells.md.
+    ///
+    /// The message names both the key and `-`, because which one belongs there is the
+    /// author's to decide and the message is the only place either is offered.
+    /// </remarks>
+    [Fact]
+    public void A_reference_left_empty_is_refused()
+    {
+        var result = TabbitRunner.Convert("reference-required-blank");
+
+        Assert.False(result.Succeeded, "A reference left empty was accepted.");
+
+        Assert.Contains("`Holder.Must` references `Target`", result.StdOut);
+        Assert.Contains("leaves the cell empty", result.StdOut);
+
+        Assert.Contains("Write the key of a row to point at", result.StdOut);
+        Assert.Contains("`-` to say this row points at none", result.StdOut);
+
+        // And the cell, because a blank is not something an author finds by re-reading.
+        Assert.Contains("reference-required-blank.xlsx : Refs : J10", result.StdOut);
+    }
+
+    /// <summary>
+    /// A required reference saying it points at none is refused against its declaration.
+    /// </summary>
+    /// <remarks>
+    /// The other half of the rule, and a different finding from the one above: here the row
+    /// did say something - it said there is no target - and the column is what makes it
+    /// wrong. The two ways out are both named because which one is right is the author's
+    /// call: the row may be missing a target, or the column may have been marked required by
+    /// habit.
     ///
     /// The notation for declaring a column optional is a layout's own, so the message stops
     /// at "declare the column optional" rather than spelling one.
     /// </remarks>
     [Fact]
-    public void A_required_reference_left_empty_is_refused()
+    public void A_required_reference_pointing_at_none_is_refused()
     {
         var result = TabbitRunner.Convert("reference-required-blank");
 
-        Assert.False(result.Succeeded, "A required reference left empty was accepted.");
+        Assert.False(result.Succeeded, "A required reference pointing at none was accepted.");
 
-        Assert.Contains("`Holder.Must` references `Target`", result.StdOut);
-        Assert.Contains("leaves it empty, but the column is declared required", result.StdOut);
+        Assert.Contains("says it points at none, but the column is declared required", result.StdOut);
 
-        // Both ways out, since the message is the only place they are offered.
         Assert.Contains("Give it a row to point at", result.StdOut);
         Assert.Contains("declare the column optional", result.StdOut);
 
-        // And the cell, because a blank is not something an author finds by re-reading.
-        Assert.Contains("reference-required-blank.xlsx : Refs : J10", result.StdOut);
+        // The `-` row, which is the one after the blank.
+        Assert.Contains("reference-required-blank.xlsx : Refs : J11", result.StdOut);
     }
 
     /// <summary>
@@ -77,10 +107,10 @@ public class ReferenceOptionalityTests
     }
 
     /// <summary>
-    /// Where the column says a blank may mean absence, it does, and it travels as null.
+    /// Where the column allows it, a row saying it points at none travels as null.
     /// </summary>
     [Fact]
-    public void An_optional_reference_left_empty_is_absence()
+    public void An_optional_reference_pointing_at_none_is_absence()
     {
         var result = TabbitRunner.Convert("reference-optional");
 

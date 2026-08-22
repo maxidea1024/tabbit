@@ -1,0 +1,14 @@
+{
+  "named-range.column-name-clash": "テーブル `{Table}` に `{Field}` という列が 2 つあります。",
+  "named-range.table-has-no-key-column": "テーブル `{Table}` に `key` 列がありません。このレイアウトではテーブルの先頭列が `key` 型で、すべての行はそれで指し示されます。",
+  "named-range.type-takes-no-group": "`{Table}` の列 `{Column}` が `{Type}` 型なのに括弧でグループを指定しています。グループにまとめられるのは `text` だけです。",
+  "named-range.column-name-problem": "`{Table}` の列 `{Column}` {Detail}",
+  "named-range.list-element-type-unsupported": "`{Table}` の列 `{Column}` が `{Type}` 型です。`{Inner}` はこのレイアウトがリストに入れる要素型ではありません。",
+  "named-range.type-unrecognized": "`{Table}` の列 `{Column}` が `{Type}` 型ですが、このレイアウトの知らない型です。",
+  "named-range.number-type-option-unknown": "`LayoutOptions.{Option}` が `{Value}` です。`double`（`number` 列を JSON の数値そのままとして読む）か `narrow`（値が収まる最小の型を与える）のいずれかを指定します。",
+  "named-range.grid-columns-differ-in-type": "テーブル `{Table}` はグリッドです — 列名がそのまま id です — ところが列の型が 1 つではありません: `{First}` と `{Second}`。グリッドのすべての列は 1 つの配列の要素なので、型は 1 つだけ書きます。",
+  "named-range.grid-column-id-not-int32": "`{Table}` の列 id `{Id}` が 32 ビット整数に収まりません。`{Companion}.Id` は 32 ビット整数です。",
+  "named-range.log-blank-read-as-empty": "`{Table}.{Field}` が空です。このレイアウトは値がないとき `-` を書くので、型の空値として読みました。\n    at {At}",
+  "named-range.log-skipping-range-too-short": "`{Name}` を飛ばします: 範囲が {Rows} 行しか覆っておらず、テーブルには名前行・型行・データが必要です。({At})",
+  "named-range.log-skipping-table-no-columns": "`{Table}` を飛ばします: 名前と型の両方を持つ列がありません。"
+}

@@ -65,6 +65,9 @@ public class JsonRecipe : IOutputRecipe
 [TabbitTarget("json", TargetKind.Export, Order = 20)]
 public class JsonExporter : Target<JsonRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     private Manifest _manifest = null!;
 
     /// <summary>
@@ -86,6 +89,13 @@ public class JsonExporter : Target<JsonRecipe>
 
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// An absent element is `null` in an array, which is the whole of what this format needs
+    /// to say it. The binary and the readers follow in their own step -
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, JsonRecipe recipe)
     {
         // An entry left in the recipe with a blank path is treated as switched off.
@@ -102,10 +112,102 @@ public class JsonExporter : Target<JsonRecipe>
             _manifest.PruneStaleFiles(recipe.Path);
 
         // context.Model is already narrowed to this entry's target side.
-        foreach (var table in context.Model.Tables)
-            ExportTable(recipe, table);
+        //
+        // Planned first, then written at once, then recorded. **The plan is what makes the
+        // parallel write a refactoring**: the staging list's order reaches the build cache's
+        // seal and the manifest's order is the manifest file, so both are settled here, in
+        // table order, before any thread starts. spec/conversion-time.md section 5.
+        var planned = Plan(recipe, context.Model);
+
+        if (planned is null)
+        {
+            // Something else holds one of these files, or two of this entry's tables want
+            // one. Whether that is allowed is a question the sequential writer answers - it
+            // compares the text - and that comparison needs a file to compare against, which
+            // a claimed-but-unwritten staging path does not have.
+            foreach (var table in context.Model.Tables)
+                ExportTable(recipe, table);
+        }
+        else
+        {
+            System.Threading.Tasks.Parallel.ForEach(planned, job =>
+            {
+                Log.Information($"Exporting json file `{job.Destination}`");
+
+                StagingFiles.WriteJsonInto(job.Staged, Composed(recipe, job.Table, job.Set), recipe.Indented);
+            });
+
+            foreach (var job in planned)
+                _manifest.Add(job.Name, job.Staged);
+        }
 
         _manifest.BuildAndWriteToFile(manifestFilename);
+    }
+
+    /// <summary>One file this entry will write, and the staging file it will write it into.</summary>
+    private sealed class Job
+    {
+        public required Table Table { get; init; }
+        public required RowSet Set { get; init; }
+
+        /// <summary>File name as the manifest records it, extension included.</summary>
+        public required string Name { get; init; }
+
+        /// <summary>Where it will end up, for the log line.</summary>
+        public required string Destination { get; init; }
+
+        /// <summary>Where it is written first, claimed in table order.</summary>
+        public required string Staged { get; init; }
+    }
+
+    /// <summary>
+    /// Every file this entry will write, in table order - or null when one of them cannot be
+    /// claimed.
+    /// </summary>
+    /// <remarks>
+    /// The claiming is all-or-nothing, and it has to be: a partial claim would leave the
+    /// ledger holding files the sequential path is about to claim again, and that path's own
+    /// check reads what is already there. <see cref="StagingFiles.ClaimAll"/>.
+    /// </remarks>
+    private static List<Job>? Plan(JsonRecipe recipe, Model model)
+    {
+        var names = new List<(Table Table, RowSet Set, string Name, string Destination)>();
+
+        foreach (var table in model.Tables)
+        {
+            foreach (var rowSet in table.RowSets)
+            {
+                string name = table.DataFileName + rowSet.Name + ".json";
+
+                names.Add((
+                    table, rowSet, name,
+                    Path.GetFullPath(Path.Combine(recipe.Path, name))));
+            }
+        }
+
+        // All of them or none. What comes back is the staging file for each, in this order -
+        // and null means something else has one of these files, which the sequential path
+        // reports properly.
+        var staged = StagingFiles.ClaimAll(names.ConvertAll(planned => planned.Destination));
+
+        if (staged is null)
+            return null;
+
+        var jobs = new List<Job>(names.Count);
+
+        for (int at = 0; at < names.Count; at++)
+        {
+            jobs.Add(new Job
+            {
+                Table = names[at].Table,
+                Set = names[at].Set,
+                Name = names[at].Name,
+                Destination = names[at].Destination,
+                Staged = staged[at],
+            });
+        }
+
+        return jobs;
     }
 
     /// <summary>
@@ -127,6 +229,23 @@ public class JsonExporter : Target<JsonRecipe>
         // value - it just does not reach the output as an absence.
         if (!field.IsRequired && !cell.HasValue && !field.IsRecordMember)
             return null;
+
+        // An array whose elements may be absent: the array is there and some of its places
+        // are not, which JSON writes the same way it writes an absent value.
+        // spec/nullable-array-elements.md.
+        if (cell.ElementHasValue is { } present && cell.Value is Array elements)
+        {
+            var items = new object?[elements.Length];
+
+            for (int at = 0; at < elements.Length; at++)
+            {
+                items[at] = at < present.Length && !present[at]
+                    ? null
+                    : ForJson(elements.GetValue(at));
+            }
+
+            return items;
+        }
 
         return ForJson(cell.Value);
     }
@@ -227,7 +346,9 @@ public class JsonExporter : Target<JsonRecipe>
             return items;
         }
 
-        var result = new Dictionary<string, object?>();
+        // Sized up front. This is built once per record per row, and a dictionary that has
+        // to grow does it by rehashing everything already in it.
+        var result = new Dictionary<string, object?>(members.Count, StringComparer.Ordinal);
 
         foreach (var member in members)
             result.Add(member.Name.ToCamelCase(), MemberValue(member, row, element));
@@ -260,12 +381,46 @@ public class JsonExporter : Target<JsonRecipe>
             : Compose(member.Members, row, element);
     }
 
+    /// <summary>
+    /// One file per set of rows the table has.
+    /// </summary>
+    /// <remarks>
+    /// A table with one set - which is nearly all of them - yields one file, so this is the
+    /// ordinary path rather than a branch around it. spec/table-row-sets.md.
+    /// </remarks>
     private void ExportTable(JsonRecipe recipe, Table table)
     {
-        var filename = Path.Combine(recipe.Path, table.Name + ".json");
+        foreach (var rowSet in table.RowSets)
+            ExportRowSet(recipe, table, rowSet);
+    }
+
+    private void ExportRowSet(JsonRecipe recipe, Table table, RowSet rowSet)
+    {
+        string fileName = table.DataFileName + rowSet.Name;
+
+        var filename = Path.Combine(recipe.Path, fileName + ".json");
         filename = Path.GetFullPath(filename);
 
         Log.Information($"Exporting json file `{filename}`");
+
+        string stagingFilename = StagingFiles.WriteToJsonFile(
+            filename, Composed(recipe, table, rowSet), recipe.Indented);
+
+        _manifest.Add(fileName + ".json", stagingFilename);
+    }
+
+    /// <summary>
+    /// One set of rows as the objects the serializer will write, and nothing else.
+    /// </summary>
+    /// <remarks>
+    /// Split out from writing them because this half is where the work is - a row becomes a
+    /// dictionary or a positional array per column - and it is the half that runs for every
+    /// table at once. It touches the model and produces a new object graph, so there is
+    /// nothing in here for two tables to share. spec/conversion-time.md section 5.
+    /// </remarks>
+    private static object Composed(JsonRecipe recipe, Table table, RowSet rowSet)
+    {
+        var rows = rowSet.Rows;
 
         object? sourceRows = null;
 
@@ -292,7 +447,7 @@ public class JsonExporter : Target<JsonRecipe>
             // block instead of a fixed run. A positional format has no other way to say it:
             // a reader walking with a running offset cannot advance past a count it was never
             // told, so the count has to be the array's own length.
-            foreach (var row in table.Data)
+            foreach (var row in rows)
             {
                 var rawData = new List<object?>();
 
@@ -321,14 +476,26 @@ public class JsonExporter : Target<JsonRecipe>
         }
         else
         {
-            var writableRows = new List<Dictionary<string, object?>>();
-            foreach (var row in table.Data)
-            {
-                var dataRow = new Dictionary<string, object?>();
+            var writableRows = new List<Dictionary<string, object?>>(rows.Count);
 
-                foreach (var sf in table.SerialFields)
+            // The keys, settled once for the table rather than per row. What a column is
+            // called does not depend on which row is being written, and asking per row made
+            // the export walk every name once for every row it wrote.
+            // spec/conversion-time.md section 4.
+            var serialFields = table.SerialFields;
+            var names = new string[serialFields.Count];
+
+            for (int at = 0; at < names.Length; at++)
+                names[at] = serialFields[at].Name.ToCamelCase();
+
+            foreach (var row in rows)
+            {
+                var dataRow = new Dictionary<string, object?>(names.Length, StringComparer.Ordinal);
+
+                for (int at = 0; at < names.Length; at++)
                 {
-                    string name = sf.Name.ToCamelCase();
+                    var sf = serialFields[at];
+                    string name = names[at];
 
                     // Indexed through each field's own column, not a running
                     // counter over the groups.
@@ -379,9 +546,14 @@ public class JsonExporter : Target<JsonRecipe>
                         // the columns its author left empty at the end.
                         int elements = table.ElementCountIn(sf, row);
 
-                        dataRow.Add(name, sf.Fields[0].IsRequired || row[sf.FirstField!.Index].HasValue
-                            ? sf.Fields.Take(elements).Select(f => ForJson(row, f)).ToArray()
-                            : null);
+                        // Every element answers for itself. A folded array has no cell that
+                        // stands for the array, so there is nothing here that could say the
+                        // array as a whole is absent - and the reading that did say it took
+                        // element 0's cell for the array's, losing elements 1..N with it.
+                        // spec/nullable-array-elements.md.
+                        dataRow.Add(name, sf.Fields.Take(elements)
+                            .Select(f => ForJson(row, f))
+                            .ToArray());
                     }
                     else
                     {
@@ -395,7 +567,6 @@ public class JsonExporter : Target<JsonRecipe>
             sourceRows = writableRows;
         }
 
-        string stagingFilename = StagingFiles.WriteToJsonFile(filename, sourceRows, recipe.Indented);
-        _manifest.Add(table.Name + ".json", stagingFilename);
+        return sourceRows;
     }
 }

@@ -38,6 +38,24 @@ assert($rows[0]->tagArray === ['a', 'b']);
 ");
 
     /// <summary>
+    /// An array whose elements may be absent: the per-element answer beside the value.
+    /// </summary>
+    /// <remarks>
+    /// Read rather than compiled, which is what this gate is for: the bitmap is walked with a
+    /// counter that steps once per element of every row, and a reader that stepped per row
+    /// would still run. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void Optional_array_elements_read()
+        => AssertReads("nullable-elements", "NullableElementsAccessor", @"
+$rows = $accessor->listing->records;
+assert(count($rows) === 5);
+assert($rows[1]->hasHolesAt === [true, false, true]);
+assert($rows[3]->words === ['a', '', 'c']);
+assert($rows[3]->hasWordsAt === [true, true, true]);
+");
+
+    /// <summary>
     /// A record array whose length is each row's - including the row that filled in none of
     /// it, and the one whose gap is a value rather than an end.
     /// </summary>
@@ -144,6 +162,67 @@ assert($accessor->mount->records[0]->rig[0]->core->itemId->name === 'sword');
 assert($accessor->pose->records[0]->step[0]->clipId->index === 'Idle_01');
 assert(array_map(fn($r) => count($r->part), $accessor->kit->records) === [3, 2, 0]);
 assert($accessor->kit->records[1]->part[0]->itemId->name === 'shield');
+");
+
+    /// <summary>
+    /// An array of references: numbered reference columns folded into one array.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only compiling, because the failure this guards against is code that
+    /// runs and resolves nothing: the keys arrive on the wire and the values are written by the
+    /// linking pass, which walks the array it was given. Element 0 and element 1 point at
+    /// different rows, so a loop that resolved the first and left the rest shows as the wrong
+    /// value. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void An_array_of_references_reads()
+        => AssertReads("serial-ref", "SerialRefAccessor", @"
+$rows = $accessor->kit->records;
+assert(array_map(fn($r) => count($r->slotArray), $rows) === [2, 2, 2]);
+assert($rows[0]->slotArray[0]->name === 'sword');
+assert($rows[0]->slotArray[1]->name === 'shield');
+assert($rows[1]->slotArray[0]->name === 'ring');
+assert($rows[2]->slotArray[1] === null);
+assert($rows[0]->tierArray === [3, 5]);
+assert($rows[2]->tierArray[1] === null);
+");
+
+    /// <summary>
+    /// A column whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
+    /// discriminator are written by the same assignment, and one set a target late hands out a
+    /// row of the wrong table. The wide column is checked at its first and last target, which
+    /// is where an off-by-one shows. spec/multi-target-accessors.md.
+    /// </remarks>
+    [Fact]
+    public void A_multi_target_column_reads()
+        => AssertReads("multi-target", "MultiTargetAccessor", @"
+$rows = $accessor->holder->records;
+if ($rows[0]->weaponByPick()->name !== 'weapon-a') { throw new \Exception('pick 0'); }
+if ($rows[0]->armourByPick() !== null) { throw new \Exception('pick 0 armour'); }
+if ($rows[1]->armourByPick()->name !== 'armour-b') { throw new \Exception('pick 1'); }
+if ($rows[1]->weaponByPick() !== null) { throw new \Exception('pick 1 weapon'); }
+if ($rows[0]->trinketByWide()->name !== 'trinket-a') { throw new \Exception('wide 0'); }
+if ($rows[1]->bannerByWide()->name !== 'banner-b') { throw new \Exception('wide 1'); }
+if ($rows[2]->weaponByWide()->name !== 'weapon-a') { throw new \Exception('wide 2'); }
+if ($rows[1]->maybeTarget->value !== 0) { throw new \Exception('maybe 1'); }
+if ($rows[0]->only->name !== 'weapon-a') { throw new \Exception('only 0'); }
+$groups = $accessor->loadout->records;
+if ($groups[0]->slot[0]->weaponByPick()->name !== 'weapon-a') { throw new \Exception('group 0 0'); }
+if ($groups[0]->slot[1]->armourByPick()->name !== 'armour-a') { throw new \Exception('group 0 1'); }
+if ($groups[0]->slot[0]->armourByPick() !== null) { throw new \Exception('group 0 0 armour'); }
+if ($groups[1]->slot[0]->armourByPick()->name !== 'armour-b') { throw new \Exception('group 1 0'); }
+$fittings = $accessor->fitting->records;
+if ($fittings[0]->main->armourByPick()->name !== 'armour-a') { throw new \Exception('fitting 0'); }
+if ($fittings[1]->main->weaponByPick()->name !== 'weapon-b') { throw new \Exception('fitting 1'); }
+if ($fittings[0]->main->weaponByPick() !== null) { throw new \Exception('fitting 0 weapon'); }
+$racks = $accessor->rack->records;
+if ($racks[0]->slots->weaponByPick(0)->name !== 'weapon-a') { throw new \Exception('rack 0 0'); }
+if ($racks[0]->slots->armourByPick(1)->name !== 'armour-b') { throw new \Exception('rack 0 1'); }
+if ($racks[0]->slots->weaponByPick(1) !== null) { throw new \Exception('rack 0 1 weapon'); }
+if ($racks[1]->slots->armourByPick(0)->name !== 'armour-a') { throw new \Exception('rack 1 0'); }
 ");
 
     private static void AssertReads(string scenario, string accessor, string body)

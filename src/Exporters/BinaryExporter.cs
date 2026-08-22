@@ -151,6 +151,9 @@ public class BinaryRecipe : IOutputRecipe
 [TabbitTarget("binary", TargetKind.Export, Order = 10)]
 public class BinaryExporter : Target<BinaryRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     private Manifest _manifest = null!;
 
     /// <summary>The key this entry's files are sealed with, or null when they are not.</summary>
@@ -164,7 +167,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// </summary>
     /// <remarks>
     /// Nothing was added to the format for it. Because the file is column oriented, an
-    /// array of records is a struct of arrays - and `KindFixedArray` with the member's
+    /// array of records is a struct of arrays - and an array column with the member's
     /// element type is exactly that. So no new kind, no version bump, and the column
     /// encodings keep applying per member, which storing a record as one blob would have
     /// defeated. spec/nested-fields.md has the layout.
@@ -181,6 +184,12 @@ public class BinaryExporter : Target<BinaryRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     protected override bool SupportsOptionalFields => true;
+
+    /// <summary>
+    /// A second bitmap, one bit per element written, in front of a value block no encoding
+    /// had to learn about. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
 
     protected override void Run(TargetContext context, BinaryRecipe binaryRecipe)
     {
@@ -217,8 +226,40 @@ public class BinaryExporter : Target<BinaryRecipe>
         var report = string.IsNullOrEmpty(binaryRecipe.EncodingReport) ? null : new TcbEncodingReport();
 
         // context.Model is already narrowed to this entry's target side.
-        foreach (var table in context.Model.Tables)
-            ExportTable(binaryRecipe, table, report!);
+        //
+        // Planned first, then written at once, then recorded - the same three steps the json
+        // export takes and for the same reason: the staging list's order reaches the build
+        // cache's seal and the manifest's order is the manifest file, so both are settled
+        // here in table order before any thread starts.
+        //
+        // A run that asked for the encoding report takes the sequential path. The report is a
+        // list in the order the columns were measured and it is written to a file, so a run
+        // asking for it is asking a question about the encoding rather than for the fastest
+        // export. spec/conversion-time.md section 5.
+        var planned = report is null ? Plan(binaryRecipe, context.Model) : null;
+
+        if (planned is null)
+        {
+            foreach (var table in context.Model.Tables)
+                ExportTable(binaryRecipe, table, report!);
+        }
+        else
+        {
+            System.Threading.Tasks.Parallel.ForEach(planned, job =>
+            {
+                var writer = Encode(job.Table, job.Set.Rows, null, Spread.Nothing);
+
+                Seal(writer);
+
+                ReadOnlySpan<byte> bytes = writer.WrittenSpan;
+
+                Log.Information($"Exporting binary file '{job.Destination}' ({bytes.Length} bytes)");
+                StagingFiles.WriteBytesInto(job.Staged, bytes);
+            });
+
+            foreach (var job in planned)
+                _manifest.Add(job.Name, job.Staged);
+        }
 
         _manifest.BuildAndWriteToFile(manifestFilename);
 
@@ -248,26 +289,116 @@ public class BinaryExporter : Target<BinaryRecipe>
         Log.Information($"Wrote the encoding report for {report.ColumnCount} columns to '{filename}'");
     }
 
-    private void ExportTable(
-        BinaryRecipe recipe, Table table, TcbEncodingReport report)
+    /// <summary>
+    /// One file per set of rows the table has.
+    /// </summary>
+    /// <remarks>
+    /// A table with one set - which is nearly all of them - yields one file, so this is the
+    /// ordinary path rather than a branch around it. The schema is the table's and is written
+    /// into each file identically; only the rows differ. spec/table-row-sets.md.
+    /// </remarks>
+    /// <summary>One file this entry will write, and the staging file it will write it into.</summary>
+    private sealed class Job
     {
-        var writer = Encode(table, report);
+        public required Table Table { get; init; }
+        public required RowSet Set { get; init; }
 
-        var filename = Path.Combine(recipe.Path, table.Name + recipe.FileExtension);
-        filename = Path.GetFullPath(filename);
+        /// <summary>File name as the manifest records it, extension included.</summary>
+        public required string Name { get; init; }
 
-        // Encryption and the MAC are the outermost layers, so they happen here rather than
-        // inside the encoder: what they work over is a finished file, and the encoder stays
-        // the one path that both the export and the validation pipeline go through.
-        //
-        // In that order. The tag is computed over the bytes as they will be stored, so a
-        // reader can refuse an altered file before it decrypts one, and so that the nonce
-        // this just wrote is covered by it.
+        /// <summary>Where it will end up, for the log line.</summary>
+        public required string Destination { get; init; }
+
+        /// <summary>Where it is written first, claimed in table order.</summary>
+        public required string Staged { get; init; }
+    }
+
+    /// <summary>
+    /// Every file this entry will write, in table order - or null when one of them cannot be
+    /// claimed.
+    /// </summary>
+    /// <remarks>
+    /// The claiming is all-or-nothing, and it has to be: a partial claim would leave the
+    /// ledger holding files the sequential path is about to claim again, and that path's own
+    /// check reads what is already there. <see cref="StagingFiles.ClaimAll"/>.
+    /// </remarks>
+    private static List<Job>? Plan(BinaryRecipe recipe, Model model)
+    {
+        var names = new List<(Table Table, RowSet Set, string Name, string Destination)>();
+
+        foreach (var table in model.Tables)
+        {
+            foreach (var rowSet in table.RowSets)
+            {
+                string name = table.DataFileName + rowSet.Name + recipe.FileExtension;
+
+                names.Add((
+                    table, rowSet, name,
+                    Path.GetFullPath(Path.Combine(recipe.Path, name))));
+            }
+        }
+
+        // All of them or none. What comes back is the staging file for each, in this order -
+        // and null means something else has one of these files, which the sequential path
+        // reports properly.
+        var staged = StagingFiles.ClaimAll(names.ConvertAll(planned => planned.Destination));
+
+        if (staged is null)
+            return null;
+
+        var jobs = new List<Job>(names.Count);
+
+        for (int at = 0; at < names.Count; at++)
+        {
+            jobs.Add(new Job
+            {
+                Table = names[at].Table,
+                Set = names[at].Set,
+                Name = names[at].Name,
+                Destination = names[at].Destination,
+                Staged = staged[at],
+            });
+        }
+
+        return jobs;
+    }
+
+    /// <summary>
+    /// Applies the outermost layers to a finished table, in the order a reader undoes them.
+    /// </summary>
+    /// <remarks>
+    /// Encryption then the tag, so a reader can refuse an altered file before it decrypts
+    /// one - and so that the nonce the encryption just wrote is covered by the tag. Here
+    /// rather than inside the encoder because what they work over is a finished file, and the
+    /// encoder stays the one path that both the export and the validation pipeline go through.
+    /// </remarks>
+    private void Seal(TcbWriter writer)
+    {
         if (_key != null)
             TcbEnvelope.Seal(writer.WrittenBytes, _key);
 
         if (_macKey != null)
             TcbMac.Sign(writer.WrittenBytes, _macKey);
+    }
+
+    private void ExportTable(
+        BinaryRecipe recipe, Table table, TcbEncodingReport report)
+    {
+        foreach (var rowSet in table.RowSets)
+            ExportRowSet(recipe, table, rowSet, report);
+    }
+
+    private void ExportRowSet(
+        BinaryRecipe recipe, Table table, RowSet rowSet, TcbEncodingReport report)
+    {
+        var writer = Encode(table, rowSet.Rows, report);
+
+        string name = table.DataFileName + rowSet.Name;
+
+        var filename = Path.Combine(recipe.Path, name + recipe.FileExtension);
+        filename = Path.GetFullPath(filename);
+
+        Seal(writer);
 
         ReadOnlySpan<byte> bytes = writer.WrittenSpan;
 
@@ -276,7 +407,7 @@ public class BinaryExporter : Target<BinaryRecipe>
         Log.Information($"Exporting binary file '{filename}' ({bytes.Length} bytes)");
         string stagingFilename = StagingFiles.WriteAllBytesToFile(filename, bytes);
 
-        _manifest.Add(table.Name + recipe.FileExtension, stagingFilename);
+        _manifest.Add(name + recipe.FileExtension, stagingFilename);
     }
 
     /// <summary>
@@ -289,12 +420,32 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// encoder written for validation could differ from this one, and the difference would show
     /// up as a rule passing on data the game reads differently.
     /// </remarks>
-    internal static TcbWriter Encode(Table table) => Encode(table, null);
+    internal static TcbWriter Encode(Table table) => Encode(table, table.Data, null);
+
+    /// <summary>
+    /// Whether this call may spread a table's columns across threads.
+    /// </summary>
+    /// <remarks>
+    /// **Off when the caller is already running a table per thread.** Both axes are real -
+    /// a project has more tables than a table has columns, and one table encoded on its own
+    /// still has columns to spread - but only the outer one should be taken, or every table
+    /// pays to set up a fan-out that has no core to run on.
+    ///
+    /// The export takes the tables; the validation pipeline encodes one table at a time and
+    /// takes the columns. spec/conversion-time.md section 5.
+    /// </remarks>
+    internal enum Spread
+    {
+        Columns,
+        Nothing,
+    }
 
     /// <summary>
     /// The same, recording what every candidate measured into <paramref name="report"/>.
     /// </summary>
-    internal static TcbWriter Encode(Table table, TcbEncodingReport? report)
+    internal static TcbWriter Encode(
+        Table table, List<List<Cell>> rows, TcbEncodingReport? report,
+        Spread spread = Spread.Columns)
     {
         TcbWriter writer = new TcbWriter();
 
@@ -309,14 +460,43 @@ public class BinaryExporter : Target<BinaryRecipe>
         // actually been written out and measured.
         var blocks = new ColumnBlock[columns.Count];
 
-        for (int at = 0; at < columns.Count; at++)
-            blocks[at] = EncodeColumn(table, columns[at], report!);
+        // Encoded in parallel, into their own slots.
+        //
+        // **Every candidate encoding of every column is written out in full and measured**,
+        // which is what makes the choice a measurement rather than a guess - and it is the
+        // largest piece of work the export does. The columns are independent: each reads the
+        // rows and writes one buffer, so nothing here is shared but the reading.
+        //
+        // The slots are what keeps this a refactoring. A block lands at its column's index
+        // whatever order the work finished in, so the file is assembled below exactly as it
+        // was before - which is the property the golden trees check.
+        //
+        // Two things had to be true first, and both are, above: `table.WireColumns` forces
+        // this table's lazily built column lists before any thread reads them, and those
+        // are the only caches in the model that a column encoder touches.
+        if (report is null && spread == Spread.Columns)
+        {
+            System.Threading.Tasks.Parallel.For(0, columns.Count, at =>
+            {
+                blocks[at] = EncodeColumn(table, rows, columns[at], report);
+            });
+        }
+        else
+        {
+            // Sequential for two reasons that arrive separately. A report is a list in the
+            // order the columns were measured and it is written to a file, so a run that asks
+            // for one is asking a question about the encoding rather than for the fastest
+            // export. And a caller already running a table per thread has taken the outer
+            // axis - see `Spread`.
+            for (int at = 0; at < columns.Count; at++)
+                blocks[at] = EncodeColumn(table, rows, columns[at], report);
+        }
 
         // The signature, the version, and the fields the envelope and the MAC fill in later -
         // reserved here so that applying either of those layers moves nothing.
         TcbFormat.WriteHeader(writer);
 
-        writer.WriteCounter32(table.Data.Count);
+        writer.WriteCounter32(rows.Count);
 
         // The descriptors: one per logical column, so the file says what it holds. A
         // reader matches columns by tag rather than position, skips a tag it does not
@@ -330,15 +510,15 @@ public class BinaryExporter : Target<BinaryRecipe>
 
             writer.WriteCounter32(column.TagCarrier.Tag!.Value);
             writer.Write(TcbFormat.Wire(
-                TcbFormat.ElementFor(column), TcbFormat.KindFor(column), TcbFormat.NullableFor(column)));
+                TcbFormat.ElementFor(column), TcbFormat.KindFor(column), TcbFormat.NullableFor(column),
+                TcbFormat.ElementNullableFor(column)));
             writer.Write(blocks[at].Encoding);
-            writer.WriteCounter32(TcbFormat.CountFor(column));
             writer.Write((uint)blocks[at].Payload.Length);
         }
 
         // Column-oriented: each column's rows are one contiguous block. That is what
         // lets an unknown column be skipped in a single advance, with no per-type skip
-        // logic for thirteen readers to each get subtly wrong.
+        // logic for the readers to each get subtly wrong.
         for (int at = 0; at < columns.Count; at++)
             writer.Write(blocks[at].Payload.WrittenSpan);
 
@@ -370,11 +550,12 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// measured byte count is the one selector that is never wrong. The candidates
     /// and their layouts are spec/tcb-v102-column-encoding.md.
     /// </summary>
-    private static ColumnBlock EncodeColumn(Table table, WireColumn column, TcbEncodingReport report)
+    private static ColumnBlock EncodeColumn(
+        Table table, List<List<Cell>> rows, WireColumn column, TcbEncodingReport? report)
     {
         var raw = new TcbWriter();
 
-        foreach (var row in table.Data)
+        foreach (var row in rows)
         {
             // A group whose length the row decides: a record member in a trimming table, or
             // a serial array in one. The count comes from how many of the group's columns the
@@ -404,11 +585,19 @@ public class BinaryExporter : Target<BinaryRecipe>
                 continue;
             }
 
+            // Every array states its length per row since v107, and the raw layout has to
+            // say it as plainly as the encoded one does. A folded group's is its column
+            // count, the same for every row - and it is still written every row, because
+            // the descriptor no longer has a place to say it once.
+            // spec/tcb-v107-dynamic-arrays.md.
+            if (column.IsArray)
+                raw.WriteCounter32(column.Cells.Count);
+
             foreach (var field in column.Cells)
                 ExportValue(raw, row[field.Index].Value!, field);
         }
 
-        var (lengths, values) = CollectElements(table, column);
+        var (lengths, values) = CollectElements(table, rows, column);
 
         var stream = BuildStream(column, values);
         var kind = TcbFormat.KindFor(column);
@@ -435,12 +624,11 @@ public class BinaryExporter : Target<BinaryRecipe>
             {
                 selection.Offer(
                     TcbFormat.EncodingArray,
-                    TcbColumnEncoder.EncodeArray(
-                        stream, lengths.ToArray(), kind == TcbFormat.KindVarArray));
+                    TcbColumnEncoder.EncodeArray(stream, lengths.ToArray()));
             }
         }
 
-        var chosen = WithPresence(table, column,
+        var chosen = WithPresence(table, rows, column,
             new ColumnBlock(selection.Best.Encoding, selection.Best.Payload));
 
         report?.Add(new TcbEncodingReport.ColumnEntry
@@ -450,7 +638,7 @@ public class BinaryExporter : Target<BinaryRecipe>
             Element = TcbFormat.ElementFor(column),
             Kind = TcbFormat.KindFor(column),
             Nullable = TcbFormat.NullableFor(column),
-            Rows = table.Data.Count,
+            Rows = rows.Count,
             Encoding = chosen.Encoding,
             Bytes = chosen.Payload.Length,
             Candidates = selection.Measured,
@@ -469,13 +657,13 @@ public class BinaryExporter : Target<BinaryRecipe>
             Structure = stream.Strings == null
                 ? null
                 : TcbStringStructure.Measure(Distinct(stream.Strings!)),
-            Layers = report == null ? null : MeasureLayers(table, column),
+            Layers = report == null ? null : MeasureLayers(table, rows, column),
 
             // What the presence bitmap would come to if it were encoded rather than left
             // raw. v103 decided to leave it raw and said the bitmap of a column whose
             // presence varies is close to incompressible - which was a judgement, never a
             // measurement. This is the measurement.
-            PresenceEncodedBytes = report == null ? 0 : MeasurePresence(table, column),
+            PresenceEncodedBytes = report == null ? 0 : MeasurePresence(table, rows, column),
         });
 
         return chosen;
@@ -501,12 +689,13 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// because a spreadsheet has no other number, and eight bytes for a value of 3 is the
     /// largest single thing a measurement can find.
     /// </remarks>
-    private static TcbEncodingReport.LayerEntry MeasureLayers(Table table, WireColumn column)
+    private static TcbEncodingReport.LayerEntry MeasureLayers(
+        Table table, List<List<Cell>> rows, WireColumn column)
     {
-        var (lengths, values) = CollectElements(table, column);
+        var (lengths, values) = CollectElements(table, rows, column);
 
         byte element = TcbFormat.ElementFor(column);
-        bool varying = TcbFormat.KindFor(column) == TcbFormat.KindVarArray;
+        bool varying = TcbFormat.KindFor(column) == TcbFormat.KindArray;
 
         // A row's own length is a small ascending-ish integer stream, which is exactly what
         // the integer encodings are for.
@@ -698,13 +887,13 @@ public class BinaryExporter : Target<BinaryRecipe>
     ///
     /// Zero for a required column, which has no bitmap to encode.
     /// </remarks>
-    private static int MeasurePresence(Table table, WireColumn column)
+    private static int MeasurePresence(Table table, List<List<Cell>> rows, WireColumn column)
     {
         if (!TcbFormat.NullableFor(column))
             return 0;
 
         // The encoding byte and the bitmap, which is what the block now holds.
-        return 1 + TcbColumnEncoder.EncodeByteStream(PresenceBits(table, column)).Payload.Length;
+        return 1 + TcbColumnEncoder.EncodeByteStream(PresenceBits(table, rows, column)).Payload.Length;
     }
 
     /// <summary>
@@ -760,12 +949,13 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// The same three cases the raw block is written from, so the flattening cannot disagree
     /// with what the file holds about which values belong to which row.
     /// </remarks>
-    private static (List<int> Lengths, List<object> Values) CollectElements(Table table, WireColumn column)
+    private static (List<int> Lengths, List<object> Values) CollectElements(
+        Table table, List<List<Cell>> rows, WireColumn column)
     {
-        var lengths = new List<int>(table.Data.Count);
+        var lengths = new List<int>(rows.Count);
         var values = new List<object>();
 
-        foreach (var row in table.Data)
+        foreach (var row in rows)
         {
             if (column.IsVariableLengthArray && !column.Group.IsVariableLengthArray)
             {
@@ -929,43 +1119,134 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// about it; and the values are still written for every row, so the decode of each
     /// encoding is untouched. A row without a value carries the type's empty one, which
     /// costs bytes a compacted layout would not - and buys not rewriting nine decode paths
-    /// in thirteen languages to count only the rows that are present.
+    /// in every language to count only the rows that are present.
     ///
     /// One bit per row, low bit first, padded to a byte. Raw, because the bitmap of a column
     /// where presence varies is close to incompressible and the bitmap of one where it does
     /// not should not have been written at all.
     /// </remarks>
-    private static ColumnBlock WithPresence(Table table, WireColumn column, ColumnBlock block)
+    private static ColumnBlock WithPresence(
+        Table table, List<List<Cell>> rows, WireColumn column, ColumnBlock block)
     {
-        if (!TcbFormat.NullableFor(column))
-            return block;
+        bool rowBitmap = TcbFormat.NullableFor(column);
+        bool elementBitmap = TcbFormat.ElementNullableFor(column);
 
-        var (encoding, bitmap) = TcbColumnEncoder.EncodeByteStream(PresenceBits(table, column));
+        if (!rowBitmap && !elementBitmap)
+            return block;
 
         var payload = new TcbWriter();
 
-        payload.Write(encoding);
-        payload.Write(bitmap.WrittenSpan);
+        if (rowBitmap)
+        {
+            var (encoding, bitmap) = TcbColumnEncoder.EncodeByteStream(PresenceBits(table, rows, column));
+
+            payload.Write(encoding);
+            payload.Write(bitmap.WrittenSpan);
+        }
+
+        // After the row bitmap and before the values, which is the order a reader meets them
+        // in: whether a row has an array at all, then which of that array's places hold a
+        // value, then the values. spec/nullable-array-elements.md.
+        if (elementBitmap)
+        {
+            var bits = ElementPresenceBits(table, rows, column, out int elements);
+            var (encoding, bitmap) = TcbColumnEncoder.EncodeByteStream(bits);
+
+            // How many bits the bitmap holds, ahead of it. A variable-length column's total
+            // is the sum of its row lengths, and those lengths are inside the value block -
+            // behind the bitmap - so a reader that met the bitmap first could not size it.
+            // Five bytes at most, once per column. spec/nullable-array-elements.md.
+            payload.WriteCounter32(elements);
+
+            payload.Write(encoding);
+            payload.Write(bitmap.WrittenSpan);
+        }
+
         payload.Write(block.Payload.WrittenSpan);
 
         return new ColumnBlock(block.Encoding, payload);
     }
 
     /// <summary>One bit per row saying whether that row has a value, low bit first.</summary>
-    private static byte[] PresenceBits(Table table, WireColumn column)
+    private static byte[] PresenceBits(Table table, List<List<Cell>> rows, WireColumn column)
     {
-        int rows = table.Data.Count;
-        var bitmap = new byte[(rows + 7) / 8];
+        int rowCount = rows.Count;
+        var bitmap = new byte[(rowCount + 7) / 8];
 
-        for (int at = 0; at < rows; at++)
+        for (int at = 0; at < rowCount; at++)
         {
-            if (table.Data[at][column.TagCarrier.Index].HasValue)
+            if (rows[at][column.TagCarrier.Index].HasValue)
                 bitmap[at >> 3] |= (byte)(1 << (at & 7));
         }
 
         return bitmap;
     }
 
+
+    /// <summary>
+    /// One bit per element written, low bit first, in the order the value block wrote them.
+    /// </summary>
+    /// <remarks>
+    /// As long as the elements the block actually holds rather than as long as the columns:
+    /// a variable-length row writes its own count and an absent array writes none, so a
+    /// reader accumulates as it walks the rows it is already walking.
+    ///
+    /// The three branches are the value writer's three, and they are here rather than shared
+    /// with it because the two answer different questions about the same walk - what to write
+    /// and whether the sheet wrote it.
+    /// </remarks>
+    private static byte[] ElementPresenceBits(
+        Table table, List<List<Cell>> rows, WireColumn column, out int elements)
+    {
+        var bits = new List<bool>();
+
+        foreach (var row in rows)
+        {
+            // A group whose length the row decides. Every element is a column of its own, so
+            // its own cell answers.
+            if (column.IsVariableLengthArray && !column.Group.IsVariableLengthArray)
+            {
+                int filled = table.ElementCountIn(column.Group, row);
+
+                for (int at = 0; at < filled; at++)
+                    bits.Add(row[column.Cells[at].Index].HasValue);
+
+                continue;
+            }
+
+            // A delimited cell, where the elements and their presence are both inside one
+            // cell. A row whose array is absent wrote no elements and therefore no bits.
+            if (column.IsVariableLengthArray)
+            {
+                var cell = row[column.TagCarrier.Index];
+                int length = (cell.Value as System.Array)?.Length ?? 0;
+
+                for (int at = 0; at < length; at++)
+                {
+                    bits.Add(cell.ElementHasValue is not { } present
+                        || at >= present.Length
+                        || present[at]);
+                }
+
+                continue;
+            }
+
+            foreach (var field in column.Cells)
+                bits.Add(row[field.Index].HasValue);
+        }
+
+        elements = bits.Count;
+
+        var bitmap = new byte[(bits.Count + 7) / 8];
+
+        for (int at = 0; at < bits.Count; at++)
+        {
+            if (bits[at])
+                bitmap[at >> 3] |= (byte)(1 << (at & 7));
+        }
+
+        return bitmap;
+    }
 
     /// <summary>
     /// Writes a delimited array cell: element count first, then the elements.
@@ -1030,7 +1311,7 @@ public class BinaryExporter : Target<BinaryRecipe>
                 writer.Write((int)value!);
                 break;
             default:
-                throw new TabbitException($"unsupported type  `{valueType}`");
+                throw new TabbitDefectException($"unsupported type  `{valueType}`");
         }
     }
 }

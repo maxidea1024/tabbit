@@ -50,9 +50,16 @@ internal static class Program
         WriteStringIndex(Prepare(outputDir, "string-index", "string-index.xlsx"));
         WriteReferenceKeys(Prepare(outputDir, "reference-keys", "reference-keys.xlsx"));
         WriteRecordRef(Prepare(outputDir, "record-ref", "record-ref.xlsx"));
+        WriteSerialRef(Prepare(outputDir, "serial-ref", "serial-ref.xlsx"));
         WriteRecordRefTrim(Prepare(outputDir, "record-ref-trim", "record-ref-trim.xlsx"));
         WriteKeyTypes(Prepare(outputDir, "key-types", "key-types.xlsx"));
         WriteOptional(Prepare(outputDir, "optional", "optional.xlsx"));
+        WriteBlankAndNull(Prepare(outputDir, "blank-and-null", "blank-and-null.xlsx"));
+        WriteBlankCell(Prepare(outputDir, "blank-cell", "blank-cell.xlsx"));
+        WriteNoValueRefused(Prepare(outputDir, "no-value-refused", "no-value-refused.xlsx"));
+        WriteNoValueElement(Prepare(outputDir, "no-value-element", "no-value-element.xlsx"));
+        WriteNullableElements(Prepare(outputDir, "nullable-elements", "nullable-elements.xlsx"));
+        WriteElementOnly(Prepare(outputDir, "element-only", "element-only.xlsx"));
         WriteOptionalIndex(Prepare(outputDir, "optional-index", "optional-index.xlsx"));
         WriteFormulaError(Prepare(outputDir, "formula-error", "formula-error.xlsx"));
         WriteEnumByValue(Prepare(outputDir, "enum-by-value", "enum-by-value.xlsx"));
@@ -73,6 +80,9 @@ internal static class Program
         WriteReferenceRequiredBlank(
             Prepare(outputDir, "reference-required-blank", "reference-required-blank.xlsx"));
         WriteAsset(Prepare(outputDir, "asset", "asset.xlsx"));
+        WriteRowSets(Prepare(outputDir, "row-sets", "row-sets.xlsx"));
+        WriteMultiTarget(Prepare(outputDir, "multi-target", "multi-target.xlsx"));
+        WriteSerialRefTrim(Prepare(outputDir, "serial-ref-trim", "serial-ref-trim.xlsx"));
         // The corpus and the corpus one generation later, from one description. The skew
         // scenario is the same tables with a column appended, and the only thing the gate
         // asks of it is that nothing else differs - so nothing else may be maintained
@@ -807,16 +817,17 @@ internal static class Program
         };
         holder
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Maybe", "foreign?", "optional - a blank is absence",
+            .Field(FieldSpec.Of("Maybe", "foreign?", "optional - `-` is no target",
                                 detailType: "Target"))
             .Field(FieldSpec.Of("Zero", "foreign", "required, and a written zero is a value",
                                 detailType: "Target"));
         holder
             // Both filled, which is the ordinary row.
             .Row("1", "1", "1")
-            // The optional one left empty, and a written zero beside it. Neither is a
-            // finding: one says absence where absence is allowed and the other is a value.
-            .Row("2", "", "0")
+            // The optional one saying it points at none, and a written zero beside it.
+            // Neither is a finding: one says absence where absence is allowed and the other
+            // is a value.
+            .Row("2", "-", "0")
             // A written zero in the optional column too, so that "a zero passes" is pinned
             // on both kinds of column and not only on the required one. It has to keep
             // meaning what it means beside a column that can also say absence.
@@ -828,11 +839,16 @@ internal static class Program
     }
 
     /// <summary>
-    /// The same shape with the empty cell in a column that does not allow it.
+    /// The same shape with the cells a required reference may not hold.
     /// </summary>
     /// <remarks>
     /// A separate workbook rather than a second recipe over the first, because what has to
     /// differ is the column's own declaration and that lives in the sheet.
+    ///
+    /// Two rows, because a required reference has two ways to say nothing and they are not
+    /// the same finding: a blank cell is one nobody filled in, refused whatever the column
+    /// declared, and `-` is a row saying it points at none, refused because this column says
+    /// every row points at something. spec/blank-and-null-cells.md.
     /// </remarks>
     private static void WriteReferenceRequiredBlank(string path)
     {
@@ -859,12 +875,15 @@ internal static class Program
         };
         holder
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Must", "foreign", "required, and row 2 leaves it empty",
+            .Field(FieldSpec.Of("Must", "foreign", "required, and the rows below say nothing",
                                 detailType: "Target"))
             .Field(FieldSpec.Of("Label", "string", "a third column, so both tables are the same width"));
         holder
             .Row("1", "1", "x")
-            .Row("2", "", "y");
+            // Nobody filled this one in.
+            .Row("2", "", "y")
+            // And this one says it points at none, which this column does not allow either.
+            .Row("3", "-", "z");
 
         b.Table(8, 1, holder);
 
@@ -989,6 +1008,108 @@ internal static class Program
     }
 
     /// <summary>
+    /// A table whose rows are given twice, and the shapes the fold has to answer for.
+    /// </summary>
+    /// <remarks>
+    /// The tail `_alt` rather than anything a real project uses: the pattern that recognizes
+    /// it is the recipe's, so a fixture written around one project's spelling would be
+    /// testing that spelling instead of the mechanism.
+    ///
+    /// Four tables, and each is one of the questions in spec/table-row-sets.md:
+    ///
+    ///   Colour, Colour_alt      the base case - one type, two files
+    ///   Paint,  Paint_alt       a reference; the `_alt` rows point at ids only `Colour_alt`
+    ///                           has, so a set resolving against the base would fail
+    ///   Brush,  (none)          a table with one set, referenced from `Paint_alt` - the
+    ///                           fallback, which is the common case rather than a leniency
+    ///   Narrow, Narrow_alt      the set that holds fewer columns, which is allowed: the
+    ///                           cells it does not have read as absent
+    ///
+    /// A set holding a column the table does not is refused, and that is a unit test rather
+    /// than a fixture - it is about the message, and a workbook that cannot be converted has
+    /// no golden to compare.
+    /// </remarks>
+    private static void WriteRowSets(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Tables"));
+
+        // The ids differ between the two sets on purpose: 1..2 in one and 11..12 in the
+        // other, so a reference resolved against the wrong set finds nothing.
+        // The ids differ between the two sets on purpose: 1..2 in one and 11..12 in the
+        // other, so a reference resolved against the wrong set finds nothing.
+        var colour = new TableSpec { Name = "Colour", Comment = "Given its rows twice." };
+        colour
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "what it is called"))
+            .Field(FieldSpec.Of("Ordinal", "int", "anything"));
+        colour.Row("1", "red", "1").Row("2", "green", "2");
+
+        var colourAlt = new TableSpec { Name = "Colour_alt", Comment = "Given its rows twice." };
+        colourAlt
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "what it is called"))
+            .Field(FieldSpec.Of("Ordinal", "int", "anything"));
+        colourAlt.Row("11", "crimson", "1").Row("12", "jade", "2");
+
+        var brush = new TableSpec { Name = "Brush", Comment = "One set of rows only." };
+        brush
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Width", "int", "anything"))
+            .Field(FieldSpec.Of("Bristles", "int", "anything"));
+        brush.Row("1", "4", "40").Row("2", "8", "80");
+
+        var paint = new TableSpec { Name = "Paint", Comment = "Points at both kinds." };
+        paint
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("ColourId", "foreign", "the same set first", detailType: "Colour"))
+            .Field(FieldSpec.Of("BrushId", "foreign", "falls back to the one set", detailType: "Brush"));
+        paint.Row("1", "1", "1").Row("2", "2", "2");
+
+        var paintAlt = new TableSpec { Name = "Paint_alt", Comment = "Points at both kinds." };
+        paintAlt
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("ColourId", "foreign", "the same set first", detailType: "Colour"))
+            .Field(FieldSpec.Of("BrushId", "foreign", "falls back to the one set", detailType: "Brush"));
+
+        // 11 and 12 exist only in `Colour_alt`, and 1 and 2 only in `Brush`.
+        paintAlt.Row("1", "11", "1").Row("2", "12", "2");
+
+        // `Firm` is declared required and only this set has it, which is the case the fold
+        // turns optional: the projection writes `HasValue` false into those cells, and a
+        // required column would have validation report the value the fold just wrote.
+        // `Dropped` is the same shape already marked optional by the sheet, so the two
+        // together say that the rule is about the set and not about the marker.
+        // spec/table-row-sets.md.
+        var narrow = new TableSpec { Name = "Narrow", Comment = "One set holds fewer columns." };
+        narrow
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Kept", "int", "in both sets"))
+            .Field(FieldSpec.Of("Also", "int", "in both sets"))
+            .Field(FieldSpec.Of("Dropped", "int?", "in this set only"))
+            .Field(FieldSpec.Of("Firm", "int", "in this set only, and required"));
+        narrow.Row("1", "10", "1", "100", "1000").Row("2", "20", "2", "200", "2000");
+
+        var narrowAlt = new TableSpec { Name = "Narrow_alt", Comment = "One set holds fewer columns." };
+        narrowAlt
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Kept", "int", "in both sets"))
+            .Field(FieldSpec.Of("Also", "int", "in both sets"));
+        narrowAlt.Row("1", "11", "1").Row("2", "21", "2");
+
+        // Side by side rather than stacked, which is how the other multi-table fixtures do
+        // it: these tables are not all the same width, and a narrower one above a wider one
+        // leaves the grid holding a blank cell where its field row ends.
+        int column = 1;
+        // The widest table last: a table at the right edge needs room for the marker row
+        // beside its columns, and a two-column one there does not have it.
+        foreach (var spec in new[] { colour, colourAlt, brush, narrowAlt, narrow, paint, paintAlt })
+            column = b.Table(column, 1, spec) is var _ ? column + spec.Fields.Count + 1 : column;
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
     /// Every type a key may be, in both index positions.
     /// </summary>
     /// <remarks>
@@ -1101,6 +1222,73 @@ internal static class Program
     ///
     /// spec/references-in-records.md.
     /// </remarks>
+    /// <summary>
+    /// Numbered reference columns folded into one array of references.
+    /// </summary>
+    /// <remarks>
+    /// The shape `foreign[]`'s refusal points at: a delimited cell would mean a different
+    /// number of targets per row, and this is the fixed-length answer. Nothing in the corpus
+    /// held one, so the code that reads it was only ever compiled.
+    ///
+    /// Both forms of a reference, because they resolve to different types: a whole row and one
+    /// of that row's values. Every generated page declares the resolved array from that type,
+    /// and the read allocates the stored keys beside it - so a page that gets the pair wrong
+    /// either fails to compile or resolves into the wrong array.
+    /// </remarks>
+    private static void WriteSerialRef(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Refs"));
+
+        var piece = new TableSpec
+        {
+            Name = "Piece",
+            Comment = "What the references point at.",
+        };
+        piece
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "the name a whole-row reference reaches"))
+            .Field(FieldSpec.Of("Tier", "int", "the value a field reference borrows"));
+        piece
+            .Row("1", "sword", "3")
+            .Row("2", "shield", "5")
+            .Row("3", "ring", "8");
+
+        b.Table(1, 1, piece);
+
+        var kit = new TableSpec
+        {
+            Name = "Kit",
+            Comment = "Numbered reference columns, folded into arrays.",
+        };
+        kit
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+
+            // A whole row per element. The resolved member is a pointer to the other table's
+            // row, and the key that came off the wire sits in an array beside it.
+            .Field(FieldSpec.Of("Slot1", "foreign", "element 1 - the row it points at",
+                                detailType: "Piece"))
+            .Field(FieldSpec.Of("Slot2", "foreign", "element 2", detailType: "Piece"))
+
+            // One of that row's values per element, which resolves to the value's own type
+            // rather than to a row - the other half of what a reference can be.
+            .Field(FieldSpec.Of("Tier1", "foreign", "element 1 - the target's own value",
+                                detailType: "Piece.Tier"))
+            .Field(FieldSpec.Of("Tier2", "foreign", "element 2", detailType: "Piece.Tier"));
+        kit
+            // The two elements pointing at different rows, so an element index read from the
+            // wrong place shows in the values.
+            .Row("1", "1", "2", "1", "2")
+            .Row("2", "3", "1", "3", "1")
+            // A written zero, which is the convention for "points at nothing" and has to stay
+            // that beside a resolved element.
+            .Row("3", "2", "0", "2", "0");
+
+        b.Table(9, 1, kit);
+
+        Save(workbook, path);
+    }
+
     private static void WriteRecordRef(string path)
     {
         var workbook = new XSSFWorkbook();
@@ -1290,9 +1478,9 @@ internal static class Program
             .Field(FieldSpec.Of("Step2.Weight", "int", "element 2, an ordinary member"));
         rig
             .Row("1", "Idle_01", "1", "Run_01", "2")
-            // An empty cell rather than a zero: a string key has no zero, so this is what
-            // "points at nothing" looks like for one. spec/reference-optionality.md.
-            .Row("2", "Run_01", "3", "", "0");
+            // `-` rather than a zero: a string key has no zero, so this is what "points at
+            // nothing" looks like for one. spec/reference-optionality.md.
+            .Row("2", "Run_01", "3", "-", "0");
 
         b.Table(49, 1, rig);
 
@@ -1339,8 +1527,8 @@ internal static class Program
             // Three, two and none: the lengths a linking loop taking the sheet's column count
             // rather than the row's would walk past.
             .Row("1", "1", "10", "2", "20", "1", "30")
-            .Row("2", "2", "40", "1", "50", "", "")
-            .Row("3", "", "", "", "", "", "");
+            .Row("2", "2", "40", "1", "50", "-", "-")
+            .Row("3", "-", "-", "-", "-", "-", "-");
 
         b.Table(1, 1, kit);
 
@@ -1447,7 +1635,7 @@ internal static class Program
             .Field(FieldSpec.Of("Name", "string", "plain column, must not move"))
 
             // Optional, because that is how a cell says it has no value - which is what the
-            // trim reads. Required members would refuse the blank before it got this far.
+            // trim reads. A required member would refuse the `-` before it got this far.
             .Field(FieldSpec.Of("Slot1.Id", "int?", "element 1"))
             .Field(FieldSpec.Of("Slot1.Count", "int?", "element 1"))
             .Field(FieldSpec.Of("Slot1.Label", "string?",
@@ -1475,19 +1663,23 @@ internal static class Program
         spec
             // All three filled.
             .Row("1", "full",    "10", "1", "sword", "20", "2", "shield", "30", "3", "bow", "5", "6", "a", "b", "c")
-            // The last one empty: two elements.
-            .Row("2", "two",     "10", "1", "sword", "20", "2", "shield", "",   "",  "",    "5", "6", "a", "b", "")
+            // The last one saying it has no value: two elements. `-` and not a blank, because
+            // a blank `string?` is the empty string - a value, which would keep the element.
+            // The `Tag` columns beside them stay blank on purpose: that group's first element
+            // is required, so every element of it is, and a blank there is the empty string
+            // it has always been. spec/blank-and-null-cells.md · spec/array-optionality.md.
+            .Row("2", "two",     "10", "1", "sword", "20", "2", "shield", "-",  "-", "-",   "5", "6", "a", "b", "")
             // A gap in the middle, so this row keeps all three - element 2 stays at index 1
             // holding nothing, because moving it would make the index mean something else on
             // this row than on the row above. The `Tag` array has the same shape of hole.
-            .Row("3", "gap",     "10", "1", "sword", "",   "",  "",       "30", "3", "bow", "5", "6", "a", "",  "c")
+            .Row("3", "gap",     "10", "1", "sword", "-",  "-", "-",      "30", "3", "bow", "5", "6", "a", "",  "c")
             // Nothing at all: an empty record array, which is the case a fixed length cannot
             // say. `Tag` still has its one required element, which is the difference between
             // the two array kinds.
-            .Row("4", "none",    "",   "",  "",      "",   "",  "",       "",   "",  "",    "",  "",  "a", "",  "")
-            // A zero the author wrote, which must survive - it is a value, and only a blank
-            // cell is absence. Without HasValue this row would trim to one element.
-            .Row("5", "zeroes",  "10", "1", "sword", "0",  "0", "",       "",   "",  "",    "0", "0", "a", "z", "");
+            .Row("4", "none",    "-",  "-", "-",     "-",  "-", "-",      "-",  "-", "-",   "-", "-", "a", "",  "")
+            // A zero the author wrote, which must survive - it is a value, and only `-` is
+            // absence. Without HasValue this row would trim to one element.
+            .Row("5", "zeroes",  "10", "1", "sword", "0",  "0", "-",      "-",  "-", "-",   "0", "0", "a", "z", "");
 
         b.Table(1, 1, spec);
 
@@ -1543,13 +1735,297 @@ internal static class Program
         spec
             .Row("1", "100", "5", "1.5", "0.25", "9000000000", "2026-01-02 03:04:05",
                  "01:02:03", "3f2504e0-4f89-11d3-9a0c-0305e82c3301", "Rare", "10;20", "first", "true")
-            // Every optional column blank at once, which is the row the marker exists for.
-            .Row("2", "100", "", "", "", "", "", "", "", "", "", "", "")
+            // Every optional column saying it has no value at once, which is the row the
+            // marker exists for. `-` and not a blank cell: a blank is the type's empty value
+            // and this row is about the absence of one. spec/blank-and-null-cells.md.
+            .Row("2", "100", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-")
             // And a second such row, so each column has a run of equal values for the
             // encodings to find.
-            .Row("3", "100", "", "", "", "", "", "", "", "", "", "", "");
+            .Row("3", "100", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-");
 
         b.Table(5, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// What a cell says about having nothing: a blank, a `-`, and the escape for a literal one.
+    /// </summary>
+    /// <remarks>
+    /// Three answers that used to be two. A blank cell is whatever the column's type reads a
+    /// blank as - the empty string, false, an array of no elements - and `-` is the row saying
+    /// it has no value at all. `\-` writes the one character `-` where a string column needs
+    /// it.
+    ///
+    /// The rows holding `-5`, `A-1` and `--` are the other half of the claim: `-` is special
+    /// as a whole cell and nowhere else, so a column of ranges or negative numbers reads the
+    /// way it always did.
+    ///
+    /// spec/blank-and-null-cells.md.
+    /// </remarks>
+    private static void WriteBlankAndNull(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Cells"));
+
+        var spec = new TableSpec
+        {
+            Name = "Cell",
+            Comment = "A blank, a `-` and a `\\-` in each type that can hold them.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "what the row is about"))
+
+            // The type the whole distinction was invented for: before this, an optional
+            // string column had no way to hold the empty string.
+            .Field(FieldSpec.Of("Text", "string?", "blank is `\"\"`, `-` is no value"))
+            .Field(FieldSpec.Of("Count", "int?", "no reading for a blank, so `-` or a number"))
+            .Field(FieldSpec.Of("Flag", "bool?", "blank is false, `-` is no value"))
+
+            // Both array kinds, because the element rule differs from the cell rule: the cell
+            // as a whole can say `-`, and an element cannot.
+            .Field(FieldSpec.Of("Tags", "string[]?", "blank is no elements, `-` is no array"))
+            .Field(FieldSpec.Of("Costs", "int[]?", "the same for a numeric array"));
+
+        spec
+            // Ordinary values, so the rows below are read against something.
+            .Row("1", "values", "hello", "7", "true", "a;b", "10;20")
+            // Every column saying it has no value.
+            .Row("2", "no value", "-", "-", "-", "-", "-")
+            // Every column that has a reading for a blank, blank. `Count` cannot be one -
+            // there is no number a blank could be - so it holds the zero this row is here to
+            // be told apart from.
+            .Row("3", "blank", "", "0", "", "", "")
+            // The escape, in the cell and in an element. `-5` beside it: a sign is not the
+            // mark, and never was.
+            .Row("4", "escaped", "\\-", "-5", "false", "a;\\-;b", "-1;-2")
+            // Text that merely contains the character, which nothing here touches.
+            .Row("5", "literal", "A-1", "5", "true", "--;-x", "3");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// A blank cell where the column's type has no reading for one.
+    /// </summary>
+    /// <remarks>
+    /// Converted twice: once with the strict default, where it is refused and names the cell,
+    /// and once with `OnBlankCell: "empty"`, where it becomes the type's empty value and is
+    /// warned about. One workbook, because what differs is the recipe rather than the sheet -
+    /// which is the whole of what that setting says.
+    ///
+    /// The column is required on purpose. Optional would answer a different question: `-`
+    /// is how a row says it has none, and this setting is about a cell nobody filled in.
+    /// </remarks>
+    private static void WriteBlankCell(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Sparse"));
+
+        var spec = new TableSpec
+        {
+            Name = "Reading",
+            Comment = "A number column with a cell nobody filled in.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Value", "int", "required, and row 2 is blank"))
+            .Field(FieldSpec.Of("Name", "string", "so the row holds something either way"));
+        spec
+            .Row("1", "10", "first")
+            .Row("2", "", "unfinished");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// `-` in the two places a column does not allow it.
+    /// </summary>
+    /// <remarks>
+    /// Both are reported by validation rather than by the reader, so one workbook holds both
+    /// and one run says both things: a required column has no absence to express, and an
+    /// index has none either - it identifies the row.
+    /// </remarks>
+    private static void WriteNoValueRefused(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Bad"));
+
+        var required = new TableSpec
+        {
+            Name = "Needed",
+            Comment = "A required column with a row saying it has no value.",
+        };
+        required
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Hp", "int", "required, and row 2 says it has none"))
+            .Field(FieldSpec.Of("Name", "string", "a third column, which an entity needs"));
+        required
+            .Row("1", "100", "first")
+            .Row("2", "-", "second");
+
+        b.Table(1, 1, required);
+
+        var keyless = new TableSpec
+        {
+            Name = "Keyless",
+            Comment = "An index saying it has no value.",
+        };
+        keyless
+            .Field(FieldSpec.Of("index", "int", "primary index, and row 2 says it has none"))
+            .Field(FieldSpec.Of("Name", "string", "anything"))
+            .Field(FieldSpec.Of("Note", "string", "a third column, which an entity needs"));
+        keyless
+            .Row("1", "first", "a")
+            .Row("-", "second", "b");
+
+        b.Table(6, 1, keyless);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// `-` as one element of an array cell.
+    /// </summary>
+    /// <remarks>
+    /// A workbook of its own because this one is refused while the cell is being read, and a
+    /// refusal there stops the sheet - so a second table beside it would never be reached.
+    ///
+    /// The elements of one cell are all there or all not, which is why `?` goes after the
+    /// brackets: the array is what can be absent, not an element of it.
+    /// spec/optional-fields.md · spec/blank-and-null-cells.md.
+    /// </remarks>
+    private static void WriteNoValueElement(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Bad"));
+
+        var spec = new TableSpec
+        {
+            Name = "Listing",
+            Comment = "An array cell with `-` between two values.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Tags", "string[]?", "and one element says it has no value"))
+            .Field(FieldSpec.Of("Name", "string", "a third column, which an entity needs"));
+        spec
+            .Row("1", "a;b", "first")
+            .Row("2", "a;-;b", "second");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// The four spellings of an array's optionality, side by side.
+    /// </summary>
+    /// <remarks>
+    /// `int[]` requires both, `int[]?` lets the array be absent, `int?[]` lets an element be,
+    /// and `int?[]?` both - the reading C# gives the same four. A `string?[]` beside them,
+    /// because that is where the distinction is invisible to a value comparison: an empty
+    /// string element and an absent one look the same until the presence is read.
+    ///
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    private static void WriteNullableElements(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Arrays"));
+
+        var spec = new TableSpec
+        {
+            Name = "Listing",
+            Comment = "Every combination of an array and its elements being optional.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "what the row is about"))
+            .Field(FieldSpec.Of("Plain", "int[]", "both required"))
+            .Field(FieldSpec.Of("Maybe", "int[]?", "the array may be absent"))
+            .Field(FieldSpec.Of("Holes", "int?[]", "an element may be absent"))
+            .Field(FieldSpec.Of("Both", "int?[]?", "either may be"))
+            .Field(FieldSpec.Of("Words", "string?[]", "where a value comparison cannot see it"));
+
+        spec
+            // Ordinary values, so the rows below are read against something.
+            .Row("1", "values", "1;2;3", "1;2;3", "1;2;3", "1;2;3", "a;b;c")
+            // One element saying it has no value, in each column that allows one to.
+            .Row("2", "holes", "1;2;3", "1;2;3", "1;-;3", "1;-;3", "a;-;c")
+            // The array itself absent, which is the other marker's answer.
+            .Row("3", "no array", "1;2;3", "-", "1;2;3", "-", "a;b;c")
+            // A blank element, which is the empty string and not an absence - the rule the
+            // cell follows, applied to an element. `int` has no reading for one, so the
+            // numeric columns hold values here.
+            .Row("4", "blank element", "1;2;3", "1;2;3", "1;2;3", "1;2;3", "a;;c")
+            // And the escape, so `-` can still be a value of a string element.
+            .Row("5", "escaped", "1;2;3", "1;2;3", "1;2;3", "1;2;3", "a;\\-;c");
+
+        b.Table(1, 1, spec);
+
+        var folded = new TableSpec
+        {
+            Name = "Folded",
+            Comment = "Numbered columns that fold into one array whose elements may be absent.",
+        };
+        folded
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+
+            // The `?` is on the element, because that is what the cell declares: a folded
+            // group has one type cell per element and none for the array.
+            // spec/nullable-array-elements.md.
+            .Field(FieldSpec.Of("Tag1", "string?", "element 1 - and the group's answer"))
+            .Field(FieldSpec.Of("Tag2", "string?", "element 2"))
+            .Field(FieldSpec.Of("Tag3", "string?", "element 3"));
+        folded
+            .Row("1", "a", "b", "c")
+            // The middle element has no value, and the ones around it are untouched - the
+            // reading this replaces reported the whole array absent from element 0's cell.
+            .Row("2", "a", "-", "c")
+            // Element 0 absent, and `b` must survive it.
+            .Row("3", "-", "b", "c")
+            // A blank element is the empty string, as it is in a delimited cell.
+            .Row("4", "a", "", "c");
+
+        b.Table(9, 1, folded);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// One column whose elements may be absent, and nothing else that is optional.
+    /// </summary>
+    /// <remarks>
+    /// For the targets that will never carry a bit per element - `html` and the databases,
+    /// which refuse an optional column for the same reason. Nothing here is optional at the
+    /// row level, so what such a target meets first is the element refusal rather than the
+    /// one beside it. spec/nullable-array-elements.md.
+    /// </remarks>
+    private static void WriteElementOnly(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Arrays"));
+
+        var spec = new TableSpec
+        {
+            Name = "Holder",
+            Comment = "Its one array may have an element with no value.",
+        };
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Holes", "int?[]", "an element may be absent"))
+            .Field(FieldSpec.Of("Name", "string", "a third column, which an entity needs"));
+        spec
+            .Row("1", "1;2;3", "first")
+            .Row("2", "1;-;3", "second");
+
+        b.Table(1, 1, spec);
 
         Save(workbook, path);
     }
@@ -1720,7 +2196,7 @@ internal static class Program
     /// snake_cased method - hence a table called Template.
     ///
     /// The point of the fixture is that the toolchain gates answer the question rather
-    /// than anybody reasoning about it: the thirteen generated languages are compiled,
+    /// than anybody reasoning about it: the generated languages are compiled,
     /// linted or type-checked, and the side-by-side comparison reads this same workbook.
     ///
     /// A table name, an enum and its labels are all identifiers too, so all three are in
@@ -1777,9 +2253,10 @@ internal static class Program
             // Not gathered. Same type on the wire, and the gathered files must not hold it.
             .Field(FieldSpec.Of("ScriptId", "string", "an identifier, not prose"))
 
-            // An optional text column: a blank cell contributes nothing rather than an
-            // empty entry.
-            .Field(FieldSpec.Of("Hint", "text?", "may be blank"))
+            // An optional text column, holding both of the things a cell can say about
+            // having nothing: `-` for no value at all, and a blank cell for the empty string.
+            // Neither contributes an entry to the gathered file.
+            .Field(FieldSpec.Of("Hint", "text?", "`-` or blank"))
 
             // A list of gathered strings. Every element is gathered, not the joined cell.
             .Field(FieldSpec.Of("Lines", "text[]", "several strings in one cell"));
@@ -1787,7 +2264,7 @@ internal static class Program
         quest
             // Row 2 repeats row 1's title on purpose: a gathered file lists it once.
             .Row("1", "Lost Cargo", "Delivery", "quest_lost_cargo", "Ask at the docks.", "Hello;Goodbye")
-            .Row("2", "Lost Cargo", "Delivery", "quest_lost_cargo_2", "", "Hello;Farewell")
+            .Row("2", "Lost Cargo", "Delivery", "quest_lost_cargo_2", "-", "Hello;Farewell")
             .Row("3", "The \"Blue\" Whale", "Hunt", "quest_blue_whale", "Head south.", "Onward")
 
             // Braces in the value. Real display strings are full of them - `{0} 애호가` is an
@@ -2094,7 +2571,7 @@ internal static class Program
 
         // The encoding rows: enough of each shape that every column encoding of
         // spec/tcb-v102-column-encoding.md wins somewhere in this corpus, so all
-        // thirteen readers decode all seven layouts - not just the ones their own
+        // the readers decode all seven layouts - not just the ones their own
         // fixture data happened to trigger. What wins where is pinned by the
         // encoding-selection test in BinaryFormatTests, so a drift in the writer's
         // choices is a failure with a column name rather than a quiet coverage hole.
@@ -2241,7 +2718,7 @@ internal static class Program
         // Nothing gated one before. The corpus had no constant set, and neither did
         // reserved-words - the only other scenario generating for every language - so
         // splitting the output into a file per table produced a constants file per set in
-        // twelve languages that nothing ever built. Rust proved the point: a constant typed
+        // every language that nothing ever built. Rust proved the point: a constant typed
         // with an enum names that enum, the dependency graph did not say so, and the crate
         // did not compile. It took building an unrelated corpus by hand to find out.
         //
@@ -2408,6 +2885,234 @@ internal static class Program
     }
 
     // ------------------------------------------------------------- helpers
+
+    // -------------------------------------------------------- multi-target
+
+    /// <summary>
+    /// A column whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// Written `Weapon|Armour` - the notation the core layout grew so that this shape could
+    /// be declared without a project's own constraint row. Before it, the only way in was
+    /// one project layout, which would have made this feature's gate that project's
+    /// workbook. spec/multi-target-accessors.md section 4.
+    ///
+    /// What the fixture has to hold, beyond one such column:
+    ///
+    ///   a wide one       five targets, because a two-target column exercises none of the
+    ///                    per-target layout - a pair could be special-cased and pass.
+    ///   both ends        a row resolving to the first target and a row resolving to the
+    ///                    last, so an off-by-one in the discriminator shows.
+    ///   a single target  the same notation with one name, which must generate exactly what
+    ///                    a plain `foreign` generates and move no golden byte.
+    ///   an absent one    `foreign?` with `-`, which is the `None` discriminator.
+    ///
+    /// The catalogues take separate id bands. That is not decoration: two targets holding one
+    /// id is already an error, because the accessors would answer together and which row the
+    /// column meant would not be in the data.
+    /// </remarks>
+    private static void WriteMultiTarget(string path)
+    {
+        var workbook = new XSSFWorkbook();
+
+        // The catalogues on their own sheet, so they can be three columns wide while the
+        // table pointing at them is five. Tables sharing a sheet are kept one width, since a
+        // narrower one reads rightward until a cell is blank.
+        var c = new SheetBuilder(workbook.CreateSheet("Catalogues"));
+
+        int row = 1;
+        foreach (var (name, band, comment) in new[]
+                 {
+                     ("Weapon", 10, "first target of every column below"),
+                     ("Armour", 20, "second target"),
+                     ("Trinket", 30, "only the wide column names this"),
+                     ("Mount", 40, "only the wide column names this"),
+                     ("Banner", 50, "the wide column's last target"),
+                 })
+        {
+            var catalogue = new TableSpec { Name = name, Comment = comment };
+            catalogue
+                .Field(FieldSpec.Of("index", "int", "primary index, in this table's own band"))
+                .Field(FieldSpec.Of("Name", "string", "so the resolved row has something to read"))
+                .Field(FieldSpec.Of("Note", "string", "a third column, so every table is one width"));
+            catalogue
+                .Row((band + 0).ToString(), name.ToLowerInvariant() + "-a", "a")
+                .Row((band + 1).ToString(), name.ToLowerInvariant() + "-b", "b");
+
+            c.Table(row, 1, catalogue);
+            row += 8;
+        }
+
+        var h = new SheetBuilder(workbook.CreateSheet("Holders"));
+
+        var holder = new TableSpec
+        {
+            Name = "Holder",
+            Comment = "One column per case the spec states.",
+        };
+        holder
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Pick", "foreign", "two targets - the ordinary case",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Wide", "foreign", "five targets, and the value picks one",
+                                detailType: "Weapon|Armour|Trinket|Mount|Banner"))
+            .Field(FieldSpec.Of("Only", "foreign", "the same notation with one name",
+                                detailType: "Weapon"))
+            .Field(FieldSpec.Of("Maybe", "foreign?", "two targets, and `-` is none of them",
+                                detailType: "Weapon|Armour"));
+        holder
+            // Resolves to the first target in one column and the third in the other.
+            .Row("1", "10", "30", "10", "20")
+            // The second target, and the wide column's last one - so a discriminator that
+            // stopped one short of the end is visible here rather than nowhere.
+            .Row("2", "21", "51", "11", "-")
+            // The wide column at its own first target, which is the one a loop that never
+            // advanced would also answer. It differs from row 1's third target for that
+            // reason.
+            .Row("3", "11", "10", "10", "21");
+
+        h.Table(1, 1, holder);
+
+        // ---- the record shapes -------------------------------------------------------
+        //
+        // A member of a record group reaching several tables. Three tables because the
+        // element number sits in three different places - on the group, nowhere, and on the
+        // member - and a linking pass written around one of them compiles for that one.
+        // spec/references-in-records.md.
+
+        var g = new SheetBuilder(workbook.CreateSheet("Groups"));
+
+        var loadout = new TableSpec
+        {
+            Name = "Loadout",
+            Comment = "A record array whose member reaches several tables.",
+        };
+        loadout
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Slot1.Pick", "foreign", "element 1 - two targets",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Slot1.Count", "int", "element 1 - an ordinary member"))
+            .Field(FieldSpec.Of("Slot2.Pick", "foreign", "element 2", detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Slot2.Count", "int", "element 2"));
+        loadout
+            // The two elements at different targets, so an element index taken from the wrong
+            // place shows as the wrong catalogue rather than as a missing row.
+            .Row("1", "10", "1", "20", "2")
+            .Row("2", "21", "3", "11", "4");
+
+        g.Table(1, 1, loadout);
+
+        var single = new TableSpec
+        {
+            Name = "Fitting",
+            Comment = "One record - no element number at all - whose member reaches several.",
+        };
+        single
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Main.Pick", "foreign", "the member, in a record of one",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Main.Count", "int", "an ordinary member beside it"))
+            .Field(FieldSpec.Of("Pad", "int", "padding, so every table is one width"))
+            .Field(FieldSpec.Of("Pad2", "int", "padding, so every table is one width"));
+        single
+            .Row("1", "20", "5", "0", "0")
+            .Row("2", "11", "6", "0", "0");
+
+        g.Table(9, 1, single);
+
+        var bag = new TableSpec
+        {
+            Name = "Rack",
+            Comment = "One record whose members are arrays, one of them reaching several.",
+        };
+        bag
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Slots.Pick1", "foreign", "element 1 of the member",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Slots.Pick2", "foreign", "element 2 of the member",
+                                detailType: "Weapon|Armour"))
+            .Field(FieldSpec.Of("Slots.Count1", "int", "element 1 beside it"))
+            .Field(FieldSpec.Of("Slots.Count2", "int", "element 2 beside it"));
+        bag
+            .Row("1", "10", "21", "10", "20")
+            .Row("2", "20", "11", "30", "40");
+
+        g.Table(17, 1, bag);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// A folded array of references whose length is each row's.
+    /// </summary>
+    /// <remarks>
+    /// The shape between the two that were covered. `serial-ref` folds reference columns into
+    /// an array of a fixed length, and `record-ref-trim` trims a record array whose member is
+    /// a reference - where the key lives inside the element and the record allocates it. This
+    /// is the one where the key lives in an array beside the values **and** the length is the
+    /// row's, so the read has to allocate both from the same per-row count.
+    ///
+    /// Nothing held it, and it is not a shape a sheet reaches by accident: `foreign[]` is
+    /// refused, so a folded group is the only way in, and trimming has to be turned on for the
+    /// entry. One layout turns trimming on for every table it reads, which is how the
+    /// combination arrived - and the generated C# read allocated the values and the presence
+    /// bitmap per row while leaving the key array empty.
+    ///
+    /// spec/variable-length-record-arrays.md · spec/references-in-records.md.
+    /// </remarks>
+    private static void WriteSerialRefTrim(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Refs"));
+
+        var piece = new TableSpec
+        {
+            Name = "Bit",
+            Comment = "What the references point at.",
+        };
+        piece
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "the name a whole-row reference reaches"))
+            .Field(FieldSpec.Of("Tier", "int", "the value a field reference borrows"));
+        piece
+            .Row("1", "sword", "3")
+            .Row("2", "shield", "5")
+            .Row("3", "ring", "8");
+
+        b.Table(1, 1, piece);
+
+        var kit = new TableSpec
+        {
+            Name = "TrimKit",
+            Comment = "Numbered reference columns folded into an array the row's length.",
+        };
+        kit
+            // Optional, because that is how a cell says it has no value - which is what the
+            // trim reads. A required element would refuse the `-` before the trim saw it.
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Slot1", "foreign?", "element 1 - the row it points at",
+                                detailType: "Bit"))
+            .Field(FieldSpec.Of("Slot2", "foreign?", "element 2", detailType: "Bit"))
+            .Field(FieldSpec.Of("Slot3", "foreign?", "element 3", detailType: "Bit"))
+
+            // One of that row's values per element, so the other form of a reference is
+            // trimmed here too - it resolves to a value rather than to a row.
+            .Field(FieldSpec.Of("Tier1", "foreign?", "element 1 - the target's own value",
+                                detailType: "Bit.Tier"))
+            .Field(FieldSpec.Of("Tier2", "foreign?", "element 2", detailType: "Bit.Tier"))
+            .Field(FieldSpec.Of("Tier3", "foreign?", "element 3", detailType: "Bit.Tier"));
+        kit
+            // Three, two and none. A read that sized the key array from the sheet's column
+            // count would pass the first row and nothing else; one that sized it from nothing
+            // fails on the first.
+            .Row("1", "1", "2", "3", "1", "2", "3")
+            .Row("2", "3", "1", "-", "3", "1", "-")
+            .Row("3", "-", "-", "-", "-", "-", "-");
+
+        b.Table(9, 1, kit);
+
+        Save(workbook, path);
+    }
 
     private static void Save(XSSFWorkbook workbook, string path)
     {

@@ -107,7 +107,7 @@ class HolderTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Holder.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Holder.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Holder.Index")
                 at = 0
                 while at < count:
@@ -116,7 +116,7 @@ class HolderTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Holder.Main.ItemId", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32,))
+                tabbit.check_column(column, "Holder.Main.ItemId", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Holder.Main.ItemId")
                 at = 0
                 while at < count:
@@ -125,7 +125,7 @@ class HolderTable:
                         records[i].main.item_id_index = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Holder.Main.Count", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Holder.Main.Count", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Holder.Main.Count")
                 at = 0
                 while at < count:
@@ -134,7 +134,7 @@ class HolderTable:
                         records[i].main.count = value
                     at += n
             elif column.tag == 4:
-                tabbit.check_column(column, "Holder.Pad", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Holder.Pad", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Holder.Pad")
                 at = 0
                 while at < count:
@@ -143,7 +143,7 @@ class HolderTable:
                         records[i].pad = value
                     at += n
             elif column.tag == 5:
-                tabbit.check_column(column, "Holder.Pad2", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Holder.Pad2", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Holder.Pad2")
                 at = 0
                 while at < count:

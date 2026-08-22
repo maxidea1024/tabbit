@@ -116,7 +116,7 @@ func (t *BadgeTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Badge.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Badge.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Badge.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -127,7 +127,7 @@ func (t *BadgeTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Badge.Mark.ClipId", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Badge.Mark.ClipId", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Badge.Mark.ClipId")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -138,14 +138,14 @@ func (t *BadgeTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Badge.Mark.SealId", tabbit.KindScalar, 1, false, tabbit.ElementUUID) {
+			if tabbit.CheckColumn(reader, column, "Badge.Mark.SealId", tabbit.KindScalar, false, tabbit.ElementUUID) {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					r.Mark.SealIdIndex = reader.ReadUUID()
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Badge.Mark.Rank", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Badge.Mark.Rank", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Badge.Mark.Rank")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -156,7 +156,7 @@ func (t *BadgeTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Badge.Pad", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Badge.Pad", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Badge.Pad")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)

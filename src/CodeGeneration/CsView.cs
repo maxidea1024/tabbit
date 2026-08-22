@@ -12,6 +12,16 @@ namespace Tabbit.CodeGeneration;
 /// </summary>
 internal sealed class CsFileView
 {
+    /// <summary>
+    /// The `using` lines this file opens with, already written out.
+    /// </summary>
+    /// <remarks>
+    /// Per file rather than one list every file shares. An enum declares names from no
+    /// namespace at all, and a constant set only from `System`; opening both with the six the
+    /// accessor needs is six lines a reader has to check against nothing.
+    /// </remarks>
+    public required IReadOnlyList<string> Usings { get; set; }
+
     /// <summary>The namespace, or empty. The template wraps the file in it when set.</summary>
     public required string Namespace { get; set; }
 
@@ -71,6 +81,9 @@ internal sealed class CsPartView
     /// <summary>The namespace, or empty. The head template wraps the file in it when set.</summary>
     public string? Namespace { get; set; }
 
+    /// <summary>The `using` lines this file opens with. See <see cref="CsFileView.Usings"/>.</summary>
+    public IReadOnlyList<string>? Usings { get; set; }
+
     /// <summary>What the accessor type is called. A table's read reaches it for the keys.</summary>
     public string? AccessorName { get; set; }
 
@@ -89,8 +102,20 @@ internal sealed class CsTableView
     /// <summary>Table name in Pascal case; the class is this plus `Table`.</summary>
     public required string Name { get; set; }
 
-    /// <summary>Table name as the sheet spelled it, used in the data file name.</summary>
+    /// <summary>Table name as the sheet spelled it, for a message that has to quote it.</summary>
     public required string RawName { get; set; }
+
+    /// <summary>
+    /// What the exported data file is called, without extension - the name the model settled
+    /// so that this reader and the exporter cannot disagree.
+    /// </summary>
+    /// <remarks>
+    /// The accessor used to join <see cref="RawName"/> to the extension, which is the sheet's
+    /// spelling rather than the exporter's. A table written `item_drop` was exported as
+    /// `ItemDrop.tcb` and looked for as `item_drop.tcb`; every fixture happened to have a
+    /// table name that was already Pascal, so nothing said so.
+    /// </remarks>
+    public required string DataFileName { get; set; }
 
     /// <summary>Doc-comment lines, already split. Empty when the sheet had no comment.</summary>
     public required IReadOnlyList<string> Comment { get; set; }
@@ -128,6 +153,26 @@ internal sealed class CsTableView
     public required IReadOnlyList<CsRecordReferenceView> RecordReferenceFields { get; set; }
 
     /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// A third list rather than a branch inside <see cref="ReferenceFields"/>, because such a
+    /// column is not one record and must not present itself as one - the value stays the key
+    /// and what is added beside it is a property per target. spec/multi-target-accessors.md.
+    /// </remarks>
+    public required IReadOnlyList<CsMultiReferenceView> MultiReferenceFields { get; set; }
+
+    /// <summary>
+    /// The multi-target columns that are members of a record, for the linking pass.
+    /// </summary>
+    /// <remarks>
+    /// Separate from <see cref="MultiReferenceFields"/> because the loop differs: a member is
+    /// resolved per element, so the generated code walks the array before it looks anything
+    /// up. spec/multi-target-accessors.md.
+    /// </remarks>
+    public required IReadOnlyList<CsMultiRecordReferenceView> MultiRecordReferenceFields { get; set; }
+
+    /// <summary>
     /// Whether the read needs a scratch int for enum casting.
     ///
     /// The reader hands back an int and the field is an enum, so one temporary is
@@ -150,6 +195,9 @@ internal sealed class CsTableView
     /// </remarks>
     public required bool NeedsPresence { get; set; }
 
+    /// <summary>Whether any column of this table carries an element bitmap.</summary>
+    public bool NeedsElementPresence { get; set; }
+
     /// <summary>`"A", "B"` - the field-name array literal's contents.</summary>
     public required string FieldNameLiterals { get; set; }
 
@@ -168,6 +216,13 @@ internal sealed class CsTableView
 /// </remarks>
 internal sealed class CsColumnView
 {
+    /// <summary>The dotted path from the group to this member, empty for a plain column.</summary>
+    /// <remarks>
+    /// What the allocation of a member-owned array is written against - the read of a record
+    /// whose members are arrays sizes `record._pos.X` rather than `record._pos`.
+    /// </remarks>
+    public string MemberAccess { get; init; } = "";
+
     /// <summary>The column's wire tag, which is how the read matches it in a file.</summary>
     public required int Tag { get; set; }
 
@@ -206,6 +261,22 @@ internal sealed class CsColumnView
     /// loop, and each row records what it said.
     /// </remarks>
     public required bool IsNullable { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>
+    /// Which element of the outer level this column is, for an array of arrays.
+    /// </summary>
+    /// <remarks>
+    /// The outer index is which column this is rather than something read per row, so the
+    /// read fills that one element and the array itself came with the record.
+    /// spec/nested-multi-level.md.
+    /// </remarks>
+    public int MemberAt { get; set; }
+
+    /// <summary>The field holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceField { get; set; } = "";
 
     /// <summary>The backing field the presence flag lands in, for a nullable column.</summary>
     public required string PresenceField { get; set; }
@@ -253,17 +324,32 @@ internal sealed class CsColumnView
     /// </summary>
     public required IReadOnlyList<string> RunRead { get; set; }
 
+    /// <summary>
+    /// The arrays a reference column fills beside its values, allocated by the read.
+    /// </summary>
+    /// <remarks>
+    /// A reference holds the key that came off the wire and whether it resolved, and an array
+    /// of references holds one of each per element. The declaration cannot size them - how
+    /// many elements a row holds is the file's answer now - so the read allocates them where
+    /// it allocates the values. Empty for every column that is not one.
+    /// </remarks>
+    public IReadOnlyList<string> ParallelArrays { get; set; } = System.Array.Empty<string>();
+
     /// <summary>Backing field this column fills, including its leading underscore.</summary>
     public required string FieldName { get; set; }
 
     /// <summary>Element type name of that member.</summary>
     public required string FieldType { get; set; }
 
-    /// <summary>
-    /// Property name of the member, which is how the generated element-count constant
-    /// (`Record.{PropName}_N`) is reached.
-    /// </summary>
+    /// <summary>Property name of the member.</summary>
     public required string PropName { get; set; }
+
+    /// <summary>
+    /// The same name in Pascal case, which is how the generated element-count constants
+    /// (`Record.{PascalName}_N` and `_M`) are reached. See
+    /// <see cref="CsFieldView.PascalName"/> for why the two are separate.
+    /// </summary>
+    public required string PascalName { get; set; }
 }
 
 /// <summary>
@@ -273,8 +359,14 @@ internal sealed class CsRecordMemberView
 {
     public required IReadOnlyList<string> Comment { get; set; }
 
-    /// <summary>Field name on the element type, Pascal cased.</summary>
+    /// <summary>Field name on the element type.</summary>
     public required string PropName { get; set; }
+
+    /// <summary>
+    /// The same name in Pascal case, for the identifiers built out of it rather than for the
+    /// member. See <see cref="CsFieldView.PascalName"/>.
+    /// </summary>
+    public required string PascalName { get; set; }
 
     /// <summary>That field's type name.</summary>
     public required string FieldType { get; set; }
@@ -358,6 +450,40 @@ internal sealed class CsRecordMemberView
     /// See spec/nested-multi-level.md.
     /// </remarks>
     public bool IsRecord { get; set; }
+
+    /// <summary>
+    /// The discriminator's type, when this member reaches several tables. Empty otherwise.
+    /// </summary>
+    /// <remarks>
+    /// Such a member keeps the key it already had and gains two things beside it, inside the
+    /// element: one slot for the resolved row whatever table it came from, and this. Same
+    /// arity as the member - a record of arrays holds one of each per element, just as it
+    /// holds one key per element. spec/multi-target-accessors.md.
+    /// </remarks>
+    public string MultiTargetTypeName { get; set; } = "";
+
+    /// <summary>The slot and the discriminator, declared beside the key.</summary>
+    public string MultiSlotName { get; set; } = "";
+    public string MultiTargetName { get; set; } = "";
+
+    /// <summary>Their declared types, which carry the brackets when the member is an array.</summary>
+    public string MultiSlotType { get; set; } = "";
+    public string MultiTargetDeclaredType { get; set; } = "";
+
+    /// <summary>What each is set to at declaration, for the array case.</summary>
+    public string MultiSlotInitializer { get; set; } = "";
+    public string MultiTargetInitializer { get; set; } = "";
+
+    /// <summary>
+    /// Whether the member is the array, which decides whether an accessor takes an element
+    /// number. spec/nested-multi-level.md.
+    /// </summary>
+    public bool MultiIsArray { get; set; }
+
+    /// <summary>One entry per table the member may be a row of.</summary>
+    public IReadOnlyList<CsMultiMemberTargetView> MultiTargets { get; set; }
+        = System.Array.Empty<CsMultiMemberTargetView>();
+
 }
 
 /// <summary>
@@ -412,6 +538,12 @@ internal sealed class CsFieldView
     /// </remarks>
     public required bool IsNullable { get; set; }
 
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The field holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceField { get; set; } = "";
+
     /// <summary>The backing field the presence flag lands in. Empty when not optional.</summary>
     public required string PresenceField { get; set; }
 
@@ -460,6 +592,23 @@ internal sealed class CsFieldView
 
     /// <summary>Public property name.</summary>
     public required string PropName { get; set; }
+
+    /// <summary>
+    /// The field's name in Pascal case, for the identifiers built out of it rather than for
+    /// the member itself.
+    /// </summary>
+    /// <remarks>
+    /// The generated code joins this name into a dozen other identifiers - `HasFoo`,
+    /// `NewFoo()`, `Foo_N`, `FindByFoo`, `SetReference_Foo_INTERNAL` - and none of those is
+    /// the member. They are compound names in which the field is one word, so they read
+    /// correctly only if that word is capitalized whatever the member itself is called.
+    ///
+    /// Equal to <see cref="PropName"/> while the member spelling is Pascal, which it is by
+    /// default. The two exist separately so that changing the member spelling cannot produce
+    /// `HasfooBar` and `FindByfooBar`. TypeScript has kept the pair for the same reason since
+    /// its members became camel case.
+    /// </remarks>
+    public required string PascalName { get; set; }
 
     /// <summary>Private backing field name, including its leading underscore.</summary>
     public required string FieldName { get; set; }
@@ -557,6 +706,70 @@ internal sealed class CsFieldView
     public required bool ReferencesField { get; set; }
 }
 
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// What is stored is a key, one slot for the resolved row whatever table it came from, and
+/// the discriminator saying which table that was. The slot is `object` rather than a property
+/// per target: the tables take separate id bands, so at most one target ever answers, and a
+/// property per target would leave every other one permanently null - fifteen of sixteen in
+/// the widest declaration measured, carried inside an element struct that gets copied.
+///
+/// The cast back out is inside the generated property, where the discriminator has already
+/// said which type it is. spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class CsMultiReferenceView
+{
+    /// <summary>The member holding the key, which is the column's own value.</summary>
+    public required string KeyProperty { get; set; }
+
+    /// <summary>The name the setter is spelled with, matching the other reference setters.</summary>
+    public required string PascalName { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotField { get; set; }
+    public required string TargetField { get; set; }
+
+    /// <summary>The property the discriminator is read through.</summary>
+    public required string TargetProperty { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string RefIsSet { get; set; }
+
+    /// <summary>One entry per table the value may be a row of, in the order named.</summary>
+    public required IReadOnlyList<CsMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class CsMultiTargetView
+{
+    /// <summary>The table as the accessor names it, which is also the enum label.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The record type a resolved row has.</summary>
+    public required string RecordTypeName { get; set; }
+
+    /// <summary>The property this target is read through.</summary>
+    public required string Property { get; set; }
+
+    /// <summary>The enum label for this target.</summary>
+    public required string Label { get; set; }
+
+    /// <summary>
+    /// The target's non-throwing lookup.
+    /// </summary>
+    /// <remarks>
+    /// Not the throwing one every other reference resolves through. A key that is not in this
+    /// target is the ordinary case here - it means the row belongs to one of the others - so
+    /// a miss has to be an answer rather than an exception.
+    /// </remarks>
+    public required string Lookup { get; set; }
+}
+
 internal sealed class CsEnumView
 {
     public required string Name { get; set; }
@@ -622,4 +835,46 @@ internal sealed class CsRecordReferenceView
 
     /// <summary>What follows the stored key to ask whether it points anywhere.</summary>
     public required string RefIsSet { get; set; }
+}
+
+/// <summary>One table a multi-target record member may point at.</summary>
+internal sealed class CsMultiMemberTargetView
+{
+    /// <summary>The record type a resolved row has.</summary>
+    public required string RecordTypeName { get; set; }
+
+    /// <summary>The member this target is read through.</summary>
+    public required string Accessor { get; set; }
+
+    /// <summary>The enum label for this target.</summary>
+    public required string Label { get; set; }
+}
+
+/// <summary>
+/// One multi-target column that is a member of a record, as the linking pass writes it.
+/// </summary>
+/// <remarks>
+/// Whole expressions rather than the parts, for the reason the single-target one gives: which
+/// of the three record shapes this is decides where the element number sits, and the template
+/// should not be the place that knows. spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class CsMultiRecordReferenceView
+{
+    /// <summary>The key this resolves through, loop variable included.</summary>
+    public required string Key { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string Slot { get; set; }
+    public required string Target { get; set; }
+
+    /// <summary>The loop bound, or empty where the group is one record.</summary>
+    public required string Count { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string RefIsSet { get; set; }
+
+    public required IReadOnlyList<CsMultiTargetView> Targets { get; set; }
 }

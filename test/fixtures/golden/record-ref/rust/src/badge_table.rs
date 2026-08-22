@@ -114,7 +114,7 @@ impl BadgeTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Badge.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Badge.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Badge.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -126,7 +126,7 @@ impl BadgeTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Badge.Mark.ClipId", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Badge.Mark.ClipId", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Badge.Mark.ClipId")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -138,13 +138,13 @@ impl BadgeTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Badge.Mark.SealId", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_UUID])?;
+                    tabbit::check_column(column, "Badge.Mark.SealId", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_UUID])?;
                     for record in records.iter_mut() {
                         record.mark.seal_id_index = reader.read_uuid()?;
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Badge.Mark.Rank", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Badge.Mark.Rank", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Badge.Mark.Rank")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -156,7 +156,7 @@ impl BadgeTable {
                     }
                 }
                 5 => {
-                    tabbit::check_column(column, "Badge.Pad", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Badge.Pad", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Badge.Pad")?;
                     let mut at = 0usize;
                     while at < records.len() {

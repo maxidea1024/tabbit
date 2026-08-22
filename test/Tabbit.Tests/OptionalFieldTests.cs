@@ -20,7 +20,7 @@ namespace Tabbit.Tests;
 public class OptionalFieldTests
 {
     private static CookingContext Context()
-        => new CookingContext(new Tabbit.Models.Model(), new Tabbit.Recipe.RecipeModel());
+        => new CookingContext(new Tabbit.Models.Model(), new Tabbit.Recipe.RecipeModel(), new Diagnostics());
 
     private static Tabbit.Models.Location Where()
         => new Tabbit.Models.Location { Filename = "memory.xlsx", Sheet = "T", Column = 1, Row = 1 };
@@ -121,6 +121,6 @@ public class OptionalFieldTests
         field.IsRequired = false;
 
         var error = Assert.Throws<TabbitException>(() => context.CheckPrimaryIndexValidity(field));
-        Assert.Contains("index field cannot be optional", error.Message, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.IndexFieldOptional, error.MessageId);
     }
 }

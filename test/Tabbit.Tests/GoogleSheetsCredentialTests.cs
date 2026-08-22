@@ -104,8 +104,7 @@ public class GoogleSheetsCredentialTests
         var ex = Assert.Throws<TabbitException>(
             () => GoogleSheetsCredentials.Acquire(entry, "Sources.GoogleSheets[0]", Scopes, "Tabbit"));
 
-        Assert.Contains("ServiceAccountKeyFile", ex.Message);
-        Assert.Contains("ServiceAccountKeyVariable", ex.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.GoogleKeyFileAndVariable, ex.MessageId);
     }
 
     /// <summary>
@@ -122,6 +121,7 @@ public class GoogleSheetsCredentialTests
         var ex = Assert.Throws<TabbitException>(
             () => GoogleSheetsCredentials.Acquire(entry, "Sources.GoogleSheets[0]", Scopes, "Tabbit"));
 
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.GoogleServiceAccountAndClientSecret, ex.MessageId);
         Assert.Contains("different identities", ex.Message);
     }
 
@@ -135,8 +135,7 @@ public class GoogleSheetsCredentialTests
         var ex = Assert.Throws<TabbitException>(
             () => GoogleSheetsCredentials.Acquire(Entry(), "Sources.GoogleSheets[0]", Scopes, "Tabbit"));
 
-        Assert.Contains("ServiceAccountKeyFile", ex.Message);
-        Assert.Contains("ClientSecretFilename", ex.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.GoogleNoCredential, ex.MessageId);
     }
 
     // ------------------------------------------------------------ what is not there
@@ -150,8 +149,8 @@ public class GoogleSheetsCredentialTests
         var ex = Assert.Throws<TabbitException>(
             () => GoogleSheetsCredentials.Acquire(entry, "Sources.GoogleSheets[0]", Scopes, "Tabbit"));
 
+        Assert.Equal(Tabbit.Importers.ImportMessages.GoogleKeyFileMissing, ex.MessageId);
         Assert.Contains("no/such/key.json", ex.Message);
-        Assert.Contains("does not exist", ex.Message);
     }
 
     /// <summary>
@@ -167,8 +166,8 @@ public class GoogleSheetsCredentialTests
         var ex = Assert.Throws<TabbitException>(
             () => GoogleSheetsCredentials.Acquire(entry, "Sources.GoogleSheets[0]", Scopes, "Tabbit"));
 
+        Assert.Equal(Tabbit.Importers.ImportMessages.GoogleKeyVariableNotSet, ex.MessageId);
         Assert.Contains("TABBIT_TEST_KEY_THAT_IS_NOT_SET", ex.Message);
-        Assert.Contains("not set", ex.Message);
     }
 
     // ------------------------------------------------------------ the key itself
@@ -244,8 +243,7 @@ public class GoogleSheetsCredentialTests
             var ex = Assert.Throws<TabbitException>(
                 () => GoogleSheetsCredentials.Acquire(entry, "Sources.GoogleSheets[0]", Scopes, "Tabbit"));
 
-            Assert.Contains("service_account", ex.Message);
-            Assert.Contains("ClientSecretFilename", ex.Message);
+            Assert.Equal(Tabbit.Importers.ImportMessages.GoogleKeyUnreadable, ex.MessageId);
         }
         finally
         {
@@ -266,7 +264,7 @@ public class GoogleSheetsCredentialTests
         var ex = Assert.Throws<TabbitException>(
             () => GoogleSheetsCredentials.Acquire(entry, "Sources.GoogleSheets[0]", Scopes, "Tabbit"));
 
+        Assert.Equal(Tabbit.Importers.ImportMessages.GoogleClientSecretMissing, ex.MessageId);
         Assert.Contains("no/such/secret.json", ex.Message);
-        Assert.Contains("does not exist", ex.Message);
     }
 }

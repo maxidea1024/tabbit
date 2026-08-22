@@ -132,7 +132,7 @@ public final class SlottingTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Slotting.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Slotting.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Slotting.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -143,7 +143,7 @@ public final class SlottingTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Slotting.Capacity", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Slotting.Capacity", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Slotting.Capacity");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -154,7 +154,7 @@ public final class SlottingTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Slotting.Serial", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I64, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Slotting.Serial", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I64, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Slotting.Serial");
                     for (SlottingRecord record : loaded) {
                         record.serial = cursor.nextI64();

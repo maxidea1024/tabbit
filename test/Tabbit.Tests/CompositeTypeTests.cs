@@ -22,7 +22,7 @@ namespace Tabbit.Tests;
 public class CompositeTypeTests
 {
     private static CookingContext Context()
-        => new CookingContext(new Model(), new Tabbit.Recipe.RecipeModel());
+        => new CookingContext(new Model(), new Tabbit.Recipe.RecipeModel(), new Diagnostics());
 
     private static Location Where()
         => new Location { Filename = "memory.xlsx", Sheet = "T", Column = 1, Row = 1 };

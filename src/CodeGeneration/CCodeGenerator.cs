@@ -70,6 +70,22 @@ public sealed class CRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -99,9 +115,12 @@ public sealed class CRecipe : IOutputRecipe
 [TabbitTarget("c", TargetKind.CodeGeneration, Order = 86)]
 public class CCodeGenerator : CodeGenerator<CRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
 
     /// <summary>
-    /// A record group generates a struct and either a fixed array or a pointer and a count.
+    /// A record group generates a struct, and a pointer and a count beside it.
     /// </summary>
     /// <remarks>
     /// The fifth of the thirteen, following the same split - declaration per field, reading
@@ -124,10 +143,20 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
     /// <summary>An optional column becomes a `has_{name}` member beside the value.</summary>
     protected override bool SupportsOptionalFields => true;
+
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private CRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Snake;
 
     protected override void Run(TargetContext context, CRecipe recipe)
     {
@@ -138,6 +167,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Snake, "c");
 
         Generate();
 
@@ -177,7 +207,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // enum has linkage, so no extern "C" either.
             Write(EnumHeader(enumm), "c-enum.sbn", new CPartView
             {
-                Guard = Guard("ENUM_" + enumm.RawName.ToSnakeCase().ToUpperInvariant()),
+                Guard = Guard("ENUM_" + enumm.RawName.ToUpperSnakeCase()),
                 Includes = Array.Empty<string>(),
                 Forwards = Array.Empty<string>(),
                 Enumm = enumm,
@@ -192,10 +222,11 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // its complete type. extern "C" because an `extern const` has linkage.
             Write(ConstantsHeader(pair.rendered), "c-constants-header.sbn", new CPartView
             {
-                Guard = Guard("CONST_" + pair.rendered.Name.ToSnakeCase().ToUpperInvariant()),
+                Guard = Guard("CONST_" + pair.rendered.Name.ToUpperSnakeCase()),
                 Includes = Includes(
                     reader: NamesUuid(pair.model),
-                    headers: TypeDependencies.EnumsNamedBy(pair.model).Select(EnumHeaderFor)),
+                    headers: TypeDependencies.EnumsNamedBy(pair.model)
+                        .Select(EnumHeaderFor)),
                 Forwards = Array.Empty<string>(),
                 ExternC = anyExtern,
                 Set = pair.rendered,
@@ -220,11 +251,13 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // enum member is a value, not a pointer, so an incomplete type will not do.
             Write(TableHeader(pair.rendered), "c-table-header.sbn", new CPartView
             {
-                Guard = Guard(pair.rendered.RawName.ToSnakeCase().ToUpperInvariant()),
+                Guard = Guard(pair.rendered.RawName.ToUpperSnakeCase()),
                 Includes = Includes(
                     reader: true,
                     headers: new[] { ForwardHeader }
-                        .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumHeaderFor))),
+                        .Concat(TypeDependencies.EnumsNamedBy(pair.model)
+                                .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
+                                .Select(EnumHeaderFor))),
                 Forwards = Array.Empty<string>(),
                 ExternC = true,
                 Table = pair.rendered,
@@ -366,7 +399,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     private string FileBase => _recipe.AccessorName;
 
     /// <summary>The include guard and the constant names.</summary>
-    private string UpperPrefix => _recipe.AccessorName.ToSnakeCase().ToUpperInvariant();
+    private string UpperPrefix => _recipe.AccessorName.ToUpperSnakeCase();
 
     private void Write(string filename, string templateName, CPartView view)
     {
@@ -454,9 +487,15 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table)
+                                            .Select(column => BuildMultiReference(table, column))
+                                            .ToList(),
 
+        // Only the scalars. An array is a pointer now, so a column the file does not carry
+        // leaves it NULL with a count of zero - which is an empty array rather than a row of
+        // NULL strings, and there is nothing to pre-fill.
         HasStringFields = table.SerialFields.Any(
-            sf => !sf.IsRef && sf.ElementType == ValueType.String && !table.IsVariableLength(sf)),
+            sf => !sf.IsRef && !sf.IsArray && sf.ElementType == ValueType.String),
 
         // One cursor variable for the whole parse rather than one per column: the
         // declarations sit at the top of the function, and each encodable column
@@ -464,6 +503,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         NeedsCursor = table.WireColumns.Any(UsesCursor),
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+        NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
 
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
     };
@@ -530,6 +570,48 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
            + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
 
     /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!= NULL && record->$KEY$[0] != 0",
+            _ => "!= 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private CMultiReferenceView BuildMultiReference(Table table, MultiTargetColumn column)
+        => new CMultiReferenceView
+        {
+            KeyMember = CName(column.Group.Name),
+            SlotMember = CName(column.Group.Name + "Row"),
+            TargetMember = CName(column.Group.Name + "Target"),
+            TargetTypeName = EnumName(column.Discriminator),
+            NoneLabel = ConstantName(column.Discriminator.Name, "None"),
+
+            // The string case names the key twice - C has no truthiness - so the suffix
+            // carries the member rather than being appended blindly.
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType)
+                .Replace("$KEY$", CName(column.Group.Name)),
+            Targets = column.Targets.Select(target => new CMultiTargetView
+            {
+                Table = CName(target.Name),
+                RecordName = RecordName(target),
+                Function = FunctionPrefix(table)
+                    + (target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()).ToPascalCase(),
+                Label = ConstantName(column.Discriminator.Name, target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+
+    /// <summary>
     /// Members of one level of a record, declaring a struct for each member that is itself a
     /// record.
     /// </summary>
@@ -539,12 +621,12 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// prefers: a struct has to be complete before another declares a member of it.
     ///
     /// A nested member is the struct by value, so it is the record's own storage and nothing
-    /// frees it - the same choice a fixed-length array member here already made.
+    /// frees it - the same choice every array member here makes.
     /// spec/nested-multi-level.md.
     /// </remarks>
     private List<CRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<CRecordTypeView> declared)
+        List<CRecordTypeView> declared, string ownerPath)
     {
         var result = new List<CRecordMemberView>();
 
@@ -560,6 +642,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                     // same wire, and only which of the two owns it differs. A fixed length, so
                     // it is the member's own storage and nothing frees it.
                     Declaration = MemberDeclaration(member),
+                    Multi = MultiMemberOrNull(member, prefix, ownerPath),
                 });
 
                 continue;
@@ -568,10 +651,13 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // A level below. The tag carries the path: C has one namespace for struct tags, so
             // two records each holding a `Position` would otherwise name one struct twice.
             string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared);
+            var nested = BuildRecordMembers(
+                member.Members, typeName, table, group, declared,
+                ownerPath + member.Name.ToPascalCase());
 
             declared.Add(new CRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -595,13 +681,15 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         var recordTypes = new List<CRecordTypeView>();
 
         var members = sf.IsRecord
-            ? BuildRecordMembers(sf.Members, RecordEntryName(table, sf), table, sf, recordTypes)
+            ? BuildRecordMembers(sf.Members, RecordEntryName(table, sf), table, sf, recordTypes,
+                                 table.Name.ToPascalCase() + sf.Name.ToPascalCase())
             : new List<CRecordMemberView>();
 
         if (sf.IsRecord)
         {
             recordTypes.Add(new CRecordTypeView
             {
+                MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = RecordEntryName(table, sf),
                 Members = members,
                 IsOutermost = true,
@@ -617,8 +705,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 sf.IsRecord ? sf.Members[0].FirstField!.Comment : sf.FirstField!.Comment),
             Name = name,
             IsString = !sf.IsRecord && !sf.IsRef && sf.ElementType == ValueType.String,
-            IsFixedArray = !table.IsVariableLength(sf) && sf.IsArray,
-            IsVarArray = table.IsVariableLength(sf),
+            IsArray = sf.IsArray,
             ElementCount = sf.IsRecord ? sf.RecordElementCount : sf.Fields.Count,
             Declarations = Declarations(table, sf, name),
             IsRecord = sf.IsRecord,
@@ -629,8 +716,10 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
             // A record group has no presence of its own: absence inside one is the array's
             // length, not a bit per member.
-            IsNullable = !sf.IsRecord && !sf.Fields[0].IsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = "has_" + name,
+            ElementPresenceMember = "has_" + name + "_at",
         };
     }
 
@@ -670,6 +759,12 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             MemberAt = wire.MemberAt,
             ElementCount = wire.Cells.Count,
             ElementType = ResolvedElementType(wire),
+            ReferenceType = wire.IsRef
+                ? (wire.ElementType == ValueType.ForeignRecord
+                    ? $"const {ResolvedElementType(wire)}*"
+                    : ResolvedElementType(wire))
+                : "",
+            KeyType = wire.IsRef ? ScalarTypeName(wire.TagCarrier.RefKeyType, null) : "",
             RecordTypeName = wire.Group.IsRecord ? RecordEntryName(table, wire.Group) : "",
             IsFirstMember = wire.IsFirstMember,
             NeedsScratch = isEnum,
@@ -685,7 +780,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 ? "tb_cursor_next_i32(&cursor, &scratch)"
                 : "tb_read_enum(reader, &scratch)",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = "has_" + name,
+            ElementPresenceMember = "has_" + name + "_at",
             EmptyAssignment = EmptyAssignmentOf(wire, $"table->records[row].{name}"),
         };
     }
@@ -701,10 +798,22 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     ///
     /// A string goes back to `""` rather than NULL, which is the guarantee the rest of this
     /// output makes - a NULL is a crash one printf later.
+    ///
+    /// An array is a pointer and a count, so both go back: zeroing the pointer alone would
+    /// leave a count saying how many elements are behind a NULL, and a consumer walking the
+    /// count is then one dereference from a crash. A reference array carries its keys in a
+    /// second pointer, which goes with them.
     /// </remarks>
     private string EmptyAssignmentOf(WireColumn wire, string target)
     {
-        if (wire.ElementType == ValueType.Uuid || wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
+        {
+            string keys = wire.IsRef ? $" {target}_index = NULL;" : "";
+
+            return $"{{ {target} = NULL;{keys} {target}_count = 0; }}";
+        }
+
+        if (wire.ElementType == ValueType.Uuid)
             return $"memset(&{target}, 0, sizeof {target});";
 
         string value = wire.ElementType switch
@@ -725,11 +834,8 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "TB_KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "TB_KIND_FIXED_ARRAY" : "TB_KIND_SCALAR");
+        string kind = wire.IsArray ? "TB_KIND_ARRAY" : "TB_KIND_SCALAR";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string[] accepted;
 
@@ -769,7 +875,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                     accepted = new[] { "TB_ELEMENT_I64" }; break;
 
                 default:
-                    throw new TabbitException($"The c generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The c generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -779,8 +885,16 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         // bitmap in front of the block, and code not expecting one reads it as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
+        // And the other bitmap, by the same argument. A function of its own because C has
+        // no default arguments. spec/nullable-array-elements.md.
+        if (wire.HasOptionalElements)
+        {
+            return $"(void)tb_check_column_elements(reader, column, \"{tableName}.{wire.Name}\", " +
+                   $"{kind}, {nullable}, {mask}, true);";
+        }
+
         return $"(void)tb_check_column(reader, column, \"{tableName}.{wire.Name}\", " +
-               $"{kind}, {count}, {nullable}, {mask});";
+               $"{kind}, {nullable}, {mask});";
     }
 
     /// <summary>
@@ -799,7 +913,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional
@@ -859,7 +973,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries. `tb_cursor_next_same_i32` was the only
@@ -945,7 +1059,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     private static (string Path, string Subscript) MemberPlace(
         WireColumn wire, string name, string member, string element)
     {
-        if (!wire.IsFixedArray && !wire.IsVariableLengthArray)
+        if (!wire.IsArray)
             return ($"record->{name}{member}", "");
 
         if (wire.Group.MembersAreAnonymous)
@@ -1051,16 +1165,20 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     private IReadOnlyList<string> Declarations(Table table, SerialField sf, string name)
     {
         // A record group declares the element type above the row struct, so the member is of
-        // that type - a fixed array of it, or a pointer and a count when the table trims.
+        // that type - a pointer to it and a count, whatever the sheet's column count is.
         if (sf.IsRecord)
         {
             // An array of arrays declares no element type: the outer level has no name for
-            // one to belong to, so it is a plain two-dimensional array. Fixed on both levels,
-            // so it is the record's own storage and nothing frees it.
+            // one to belong to. The outer level is how many columns fill the field and is
+            // fixed; each inner one is the row's, so it is a pointer and a count.
             if (sf.MembersAreAnonymous)
             {
                 string inner = ScalarTypeName(sf.Members[0].ElementType, sf.Members[0].FirstField!.EnumOrNull);
-                return new[] { $"{inner} {name}[{sf.Members.Count}][{sf.RecordElementCount}];" };
+                return new[]
+                {
+                    $"{inner}* {name}[{sf.Members.Count}];",
+                    $"int32_t {name}_count[{sf.Members.Count}];",
+                };
             }
 
             string entry = "struct " + RecordEntryName(table, sf);
@@ -1068,9 +1186,10 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             if (!sf.IsArray)
                 return new[] { $"{entry} {name};" };
 
-            return table.TrimTrailingArrayElements
-                ? new[] { $"{entry}* {name};", $"int32_t {name}_count;" }
-                : new[] { $"{entry} {name}[{sf.RecordElementCount}];" };
+            // A pointer and a count whether or not the table trims: since v107 the file
+            // states every array's length per row, so there is no number to build into the
+            // struct. spec/tcb-v107-dynamic-arrays.md.
+            return new[] { $"{entry}* {name};", $"int32_t {name}_count;" };
         }
 
         string elementType = ResolvedElementType(sf);
@@ -1098,11 +1217,15 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // else from being pointed at. spec/reference-key-types.md.
             string keyType = ScalarTypeName(sf.FirstField!.RefKeyType, null);
 
+            // A pointer and a count, for the reason below: how many elements a row holds
+            // is what the file states. Both arrays are the same length, so one count answers
+            // for the pair.
             return sf.IsArray
                 ? new[]
                 {
-                    $"{resolved} {name}[{sf.Fields.Count}];",
-                    $"{keyType} {name}_index[{sf.Fields.Count}];",
+                    $"{resolved}* {name};",
+                    $"{keyType}* {name}_index;",
+                    $"int32_t {name}_count;",
                 }
                 : new[]
                 {
@@ -1111,11 +1234,11 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 };
         }
 
-        // Asked of the table, not the group: a delimited cell is variable by itself, and a
-        // serial array becomes variable the moment the table trims. Reading the group alone
-        // declared a fixed array whose read then assigned a count to a member nobody had
-        // declared - the two sides have to ask the same question.
-        if (table.IsVariableLength(sf))
+        // Every array is a pointer and a count. The file writes the length per row since
+        // v107, and a length written in here would be the one this sheet had when the code
+        // was generated - built into the size of the struct, where the data cannot reach it.
+        // spec/tcb-v107-dynamic-arrays.md.
+        if (sf.IsArray)
         {
             return new[]
             {
@@ -1123,9 +1246,6 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 $"int32_t {name}_count;",
             };
         }
-
-        if (sf.IsArray)
-            return new[] { $"{elementType} {name}[{sf.Fields.Count}];" };
 
         return new[] { $"{elementType} {name};" };
     }
@@ -1136,10 +1256,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         // each rather than re-creating them.
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "record_member";
 
             // Which of the two owns the array decides where the index goes, and an unnamed
@@ -1147,14 +1264,16 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            // A trimmed array of references: the length is the row's, and the keys still go in
+            // an array beside the resolved rows. Read as a plain `var_array` it allocated one
+            // array and wrote keys into a pointer array, which does not compile - and nothing
+            // held the shape, because `foreign[]` is refused and this is only reachable through
+            // a folded group with trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -1167,12 +1286,12 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         Tables = _model.Tables.Select(table => new CTableSlotView
         {
-            Name = CName(table.Name),
+            Name = CSnakeName(table.Name),
             TableName = TableTypeName(table),
             FunctionPrefix = FunctionPrefix(table),
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables
@@ -1189,8 +1308,22 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table)
+                                                .Select(column => BuildMultiReference(table, column))
+                                                .ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new CCrossReferenceView
             {
                 Table = CName(x.Table.Name),
@@ -1198,6 +1331,8 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 RecordName = RecordName(x.Table),
                 Fields = x.Fields.Select(BuildReferenceField).ToList(),
                 RecordFields = x.RecordFields,
+                MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
             })
             .ToList(),
     };
@@ -1224,13 +1359,14 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             Access = path + subscript,
             Key = path + "_index" + subscript,
 
-            // Whichever array holds the elements - and the row's own count where the table
-            // trims, because then the sheet's column count is not this row's length.
-            Count = wire.IsVariableLengthArray
-                ? $"record->{name}_count"
-                : wire.IsFixedArray
-                    ? wire.Cells.Count.ToString(CultureInfo.InvariantCulture)
-                    : "",
+            // Whichever array holds the elements, and its count sits beside it. The group
+            // owns the array when the number is on the group, the member owns it when the
+            // number is on the member - and the count is a sibling of whichever that is.
+            Count = !wire.IsArray
+                ? ""
+                : wire.Group.MembersAreArrays
+                    ? $"record->{name}{member}_count"
+                    : $"record->{name}_count",
 
             RefTable = CName(refTable!.Name),
             RefLookup = PrimaryLookup(refTable),
@@ -1261,9 +1397,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
             IsArray = sf.IsArray,
 
-            CountExpression = sf.IsVariableLengthArray
-                ? $"record->{name}_count"
-                : sf.Fields.Count.ToString(CultureInfo.InvariantCulture),
+            // The array's own count either way: a reference array is one column's, so its
+            // length is the file's. spec/nullable-array-elements.md.
+            CountExpression = $"record->{name}_count",
         };
     }
 
@@ -1341,17 +1477,125 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             string key = ScalarTypeName(member.FirstField!.RefKeyType, null);
 
             return member.IsArray
-                ? $"{row} {name}[{member.Fields.Count}]; "
-                  + $"{key} {name}_index[{member.Fields.Count}];"
+                ? $"{row}* {name}; {key}* {name}_index; int32_t {name}_count;"
                 : $"{row} {name}; {key} {name}_index;";
         }
 
         string type = ScalarTypeName(member.ElementType, member.FirstField!.EnumOrNull);
 
+        // A member reaching several tables keeps its key and gains two more: one slot for the
+        // resolved row whatever table it came from, and the discriminator saying which. On one
+        // line, as the reference member above has it. spec/multi-target-accessors.md.
+        if (member.FirstField is { IsMultiRef: true, MultiTargetEnum: not null } multi)
+        {
+            string enumType = EnumName(multi.MultiTargetEnum!);
+
+            return member.IsArray
+                ? $"{type}* {name}; const void** {name}_row; "
+                  + $"{enumType}* {name}_target; int32_t {name}_count;"
+                : $"{type} {name}; const void* {name}_row; {enumType} {name}_target;";
+        }
+
         return member.IsArray
-            ? $"{type} {name}[{member.Fields.Count}];"
+            ? $"{type}* {name}; int32_t {name}_count;"
             : $"{type} {name};";
     }
+
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    /// <remarks>
+    /// The struct tag is passed in: the view has flattened the nesting by the time this runs,
+    /// and that tag carries the whole path - which it has to, because this language has one
+    /// namespace for struct tags. spec/multi-target-accessors.md.
+    /// </remarks>
+    private CMultiMemberView? MultiMemberOrNull(
+        RecordMember member, string elementTypeName, string ownerPath)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string name = CName(member.Name);
+        var discriminator = field.MultiTargetEnum!;
+
+        // The function name carries the group's path as well as the table's, for the reason the
+        // struct tag does: every generated function shares one namespace.
+        string prefix = $"{Prefix}_{ownerPath}";
+
+        return new CMultiMemberView
+        {
+            KeyMember = name,
+            SlotMember = name + "_row",
+            TargetMember = name + "_target",
+            TargetTypeName = EnumName(discriminator),
+            ElementTypeName = elementTypeName,
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new CMultiTargetView
+            {
+                Table = CName(target.Name),
+                RecordName = RecordName(target),
+                Function = prefix + target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase(),
+                Label = ConstantName(discriminator.Name, target.Name),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member. spec/references-in-records.md.
+    /// </remarks>
+    private CMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = CName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + CName(part)));
+        var field = wire.TagCarrier;
+
+        var (path, subscript) = MemberPlace(wire, name, member, "element");
+
+        return new CMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "_row" + subscript,
+            Target = path + "_target" + subscript,
+
+            // Whichever array holds the elements, counted the way the single-target member is.
+            Count = !wire.IsArray
+                ? ""
+                : wire.Group.MembersAreArrays
+                    ? $"record->{name}{member}_count"
+                    : $"record->{name}_count",
+
+            NoneLabel = ConstantName(field.MultiTargetEnum!.Name, "None"),
+
+            // The whole condition rather than a suffix. The row-level one is written against
+            // `record->key`, and the string case names that key twice - C has no truthiness -
+            // so a member's longer path has to be substituted into both halves.
+            KeyIsSet = wire.RefKeyType == ValueType.String
+                ? $"{path}{subscript} != NULL && {path}{subscript}[0] != 0"
+                : $"{path}{subscript} != 0",
+            Targets = field.ResolvedRefTables!.Select(target => new CMultiTargetView
+            {
+                Table = CName(target.Name),
+                RecordName = RecordName(target),
+                Function = "",
+                Label = ConstantName(field.MultiTargetEnum!.Name, target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
 
     private string ScalarTypeName(ValueType type, Models.Enum? enumm)
     {
@@ -1407,7 +1651,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the c generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "c")));
         }
     }
 
@@ -1474,6 +1720,15 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
            .ToUpperInvariant();
 
     /// <summary>A member name, snake_case as Doom writes them.</summary>
-    private static string CName(string? name) => LanguageProfile.C.MemberName(name!.ToSnakeCase());
+    private string CName(string? name) => LanguageProfile.C.MemberName(name!.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// snake_case because that is how C writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string CSnakeName(string name) => LanguageProfile.C.MemberName(name.ToSnakeCase());
 
 }

@@ -121,12 +121,12 @@ class LedgerTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Ledger.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Ledger.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Ledger.Index")
                 for record in records:
                     record.index = cursor.next_i64()
             elif column.tag == 2:
-                tabbit.check_column(column, "Ledger.Amount", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Ledger.Amount", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Ledger.Amount")
                 at = 0
                 while at < count:
@@ -135,7 +135,7 @@ class LedgerTable:
                         records[i].amount = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Ledger.Batch", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_UUID,))
+                tabbit.check_column(column, "Ledger.Batch", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_UUID,))
                 for record in records:
                     record.batch = reader.read_uuid()
             else:

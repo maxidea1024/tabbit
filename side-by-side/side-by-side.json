@@ -1,9 +1,9 @@
 {
-  // One workbook, all thirteen code generators, output committed next to this file.
+  // One workbook, every code generator, output committed next to this file.
   //
   // This is a reading aid, not a gate - which is what the directory is named for. The
   // regression suite already compiles all of this; what it cannot do is let somebody see,
-  // side by side and in a diff, what the thirteen generators actually emit. That turns out
+  // side by side and in a diff, what the generators actually emit. That turns out
   // to matter: the Unreal target shipped for a while with the plain C++ reader inside it,
   // and nothing in the suite could tell, because every gate it had was still green. It was
   // reading side-by-side/cpp/A.h next to side-by-side/unreal that made it obvious.
@@ -30,7 +30,7 @@
 
   // The validation pipeline over the same workbook, because a rule file is another view of
   // these tables and this directory is where the views are read next to each other. It is
-  // also the only view written by hand: the thirteen below are emitted, and this one is what
+  // also the only view written by hand: the ones below are emitted, and this one is what
   // somebody types to read what they emit.
   //
   // Committed are the rules themselves. The run also writes the accessor into `.generated/` and
@@ -63,6 +63,8 @@
     { "Type": "python", "Path": "side-by-side/python", "PackageName": "x", "WriteUpdater": true },
     { "Type": "java", "Path": "side-by-side/java", "PackageName": "x", "AccessorName": "A", "WriteUpdater": true },
     { "Type": "kotlin", "Path": "side-by-side/kotlin", "PackageName": "x", "AccessorName": "A", "WriteUpdater": true },
+    { "Type": "swift", "Path": "side-by-side/swift", "AccessorName": "A", "WriteUpdater": true, "WriteManifest": true, "ModuleName": "X" },
+    { "Type": "lua", "Path": "side-by-side/lua", "WriteUpdater": true },
     { "Type": "ruby", "Path": "side-by-side/ruby", "ModuleName": "X", "AccessorName": "a", "WriteUpdater": true },
     { "Type": "dart", "Path": "side-by-side/dart", "AccessorName": "a", "WriteUpdater": true },
     { "Type": "unreal", "Path": "side-by-side/unreal", "ModuleName": "X", "AccessorName": "A", "WriteUpdater": true },

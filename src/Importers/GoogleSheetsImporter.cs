@@ -16,14 +16,54 @@ using Tabbit.Recipe;
 using Serilog;
 using System.Diagnostics;
 using Tabbit.Sources;
+using Tabbit.Messages;
 
 namespace Tabbit.Importers;
 
 [TabbitSource("googlesheets", "Sources.GoogleSheets", Order = 20)]
-public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleSheetsRecipe>
+public class GoogleSheetsImporter
+    : Source<RecipeModel.SourceRecipeGroup.GoogleSheetsRecipe>, ISourceVersions
 {
+    /// <summary>
+    /// What Drive says this entry's document is at, for the build cache.
+    /// </summary>
+    /// <remarks>
+    /// One request, before anything is imported. An entry that is switched off yields
+    /// nothing, and a document whose version cannot be read yields a null version - which
+    /// the cache reads as "fetch it and see".
+    /// </remarks>
+    IEnumerable<SourceVersion> ISourceVersions.Versions(SourceContext context)
+    {
+        var recipe = (RecipeModel.SourceRecipeGroup.GoogleSheetsRecipe)context.Entry;
+
+        if (string.IsNullOrWhiteSpace(recipe.SheetsId) ||
+            !GoogleSheetsCredentials.IsConfigured(recipe))
+        {
+            yield break;
+        }
+
+        yield return new SourceVersion(
+            "googlesheets", recipe.SheetsId, GoogleSheetsVersion.Read(recipe, context.Section));
+    }
+
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
+
     static string ApplicationName = "Tabbit";
-    static string[] Scopes = [SheetsService.Scope.SpreadsheetsReadonly];
+
+    /// <summary>
+    /// What the credential is asked to cover.
+    /// </summary>
+    /// <remarks>
+    /// The second scope is metadata only, and it is what lets a run find out that a document
+    /// has not changed without downloading it - the difference between a re-run that costs a
+    /// fetch and one that costs a single request. It reads no cell of any file.
+    ///
+    /// Asking for it does not break a machine that has not granted it: the sheets themselves
+    /// are read under the first scope, and the version request failing means the document is
+    /// imported the way it always was. spec/build-cache.md §6.5.
+    /// </remarks>
+    static string[] Scopes = [SheetsService.Scope.SpreadsheetsReadonly, GoogleSheetsVersion.Scope];
 
     private RawModel _model = null!;
 
@@ -51,6 +91,15 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
         _settings = SheetImportSettings.From(googleSheets, context.Section);
 
         var sheetsService = AcquireSheetsService(googleSheets, context.Section);
+        // Recorded before the fetch, so a run that reads the document also records what
+        // version it read - which is what the next run compares against. A version that
+        // cannot be read is not recorded at all, and the next run then has nothing to
+        // compare and fetches, which is the right answer.
+        string? version = GoogleSheetsVersion.Read(googleSheets, context.Section);
+
+        if (version is not null)
+            context.Inputs.Remote("googlesheets", googleSheets.SheetsId, version);
+
         ImportSheets(sheetsService, googleSheets, context.Section);
     }
 
@@ -74,6 +123,20 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
         var request = sheetsService.Spreadsheets.Get(sheetsId);
         request.IncludeGridData = true;
 
+        // **What comes back is stated rather than left to the API.** Without a mask, grid
+        // data arrives with everything Google holds about every cell - the formula, the
+        // effective value, the number format, the borders, the note - and the response for a
+        // real document is many times the size of what is read from it.
+        //
+        // Written as the list of what this importer actually reads, which is also where the
+        // decision not to read a cell's note is enforced: it is not filtered out after
+        // arriving, it never comes over the wire. See `RawCell` for why.
+        request.Fields =
+            "properties.title,"
+            + "namedRanges,"
+            + "sheets(properties(sheetId,title),"
+            + "data(startRow,startColumn,rowData(values(formattedValue))))";
+
         Log.Information($"Importing google-spreadsheets `{sheetsId}`");
 
         // Timed because this is the one step that can take tens of seconds, and a run
@@ -87,7 +150,8 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
         var sheetsTitle = response.Properties.Title;
         if (sheetsTitle.StartsWith("#") || sheetsTitle.StartsWith("//"))
         {
-            Log.Warning($"Sheet `{sheetsTitle}` is marked as excluded and is ignored.");
+            Log.Warning(Message.Of(ImportMessages.LogSheetExcluded,
+                ("Sheet", sheetsTitle)).In(MessageCatalog.Current));
             return;
         }
 
@@ -123,7 +187,8 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
 
             if (sheetTitle.StartsWith("#") || sheetTitle.StartsWith("//"))
             {
-                Log.Warning($"Sheet `{sheetsTitle}.{sheetTitle}` is marked as excluded and is ignored.");
+                Log.Warning(Message.Of(ImportMessages.LogTabExcluded,
+                    ("Sheet", sheetsTitle), ("Tab", sheetTitle)).In(MessageCatalog.Current));
                 continue;
             }
 
@@ -193,7 +258,6 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
                     foreach (var v in r.Values)
                     {
                         string value = v.FormattedValue.SafeTrim();
-                        string note = v.Note.SafeTrim();
 
                         RawCell rawCell = new RawCell
                         {
@@ -204,7 +268,6 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
                                 Row = rowIndex
                             },
                             Value = value,
-                            Note = note
                         };
 
                         rawCell.Location.Filename = $"googlesheets.{sheetsTitle}";///{sheetTitle}",
@@ -276,8 +339,8 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
             // to know.
             if (range is null || range.SheetId is null)
             {
-                Log.Warning(
-                    $"Defined name `{name}` of `{documentTitle}` refers to no range. Skipped.");
+                Log.Warning(Message.Of(ImportMessages.LogDefinedNameNoRange,
+                    ("Name", name), ("Document", documentTitle)).In(MessageCatalog.Current));
                 continue;
             }
 
@@ -285,9 +348,9 @@ public class GoogleSheetsImporter : Source<RecipeModel.SourceRecipeGroup.GoogleS
                 range.StartColumnIndex is not int firstColumn ||
                 range.EndColumnIndex is not int endColumn)
             {
-                Log.Warning(
-                    $"Defined name `{name}` of `{documentTitle}` covers {Describe(range)}, "
-                    + "which this importer cannot read as a single rectangle. Skipped.");
+                Log.Warning(Message.Of(ImportMessages.LogDefinedNameNotOneRectangle,
+                    ("Name", name), ("Document", documentTitle),
+                    ("Range", Describe(range))).In(MessageCatalog.Current));
                 continue;
             }
 

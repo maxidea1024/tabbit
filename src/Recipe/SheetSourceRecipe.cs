@@ -41,6 +41,20 @@ public abstract class SheetSourceRecipe
     public string ArrayDelimiter { get; set; } = "";
 
     /// <summary>
+    /// Which time zone these sheets' `datetime` cells were written in. Blank takes the
+    /// recipe-wide setting.
+    /// </summary>
+    /// <remarks>
+    /// Here for the reason the delimiter is: it is a property of how a set of sheets was
+    /// written. Two teams' workbooks read in one run were filled in at two desks, and one
+    /// of them keeping a summer clock should not move the other's dates.
+    ///
+    /// Takes what the recipe-wide setting takes - a zone name or a fixed offset - and wins
+    /// over it for this entry only. spec/datetime-timezone.md.
+    /// </remarks>
+    public string TimeZone { get; set; } = "";
+
+    /// <summary>
     /// Workbooks to read. An empty list means every workbook the source presents.
     /// </summary>
     /// <remarks>
@@ -131,6 +145,55 @@ public abstract class SheetSourceRecipe
     /// is visible in the run and can be handed back to whoever owns the sheet.
     /// </remarks>
     public string OnFormulaError { get; set; } = "error";
+
+    /// <summary>
+    /// What to do about a blank cell where the column's type has no reading for one:
+    /// `error` or `empty`.
+    /// </summary>
+    /// <remarks>
+    /// `error` is the default and the strict one. A blank in a number, date, uuid or enum
+    /// column is usually a row somebody stopped filling in, and reading it as zero puts a
+    /// value in the data that cannot be told from a zero somebody typed - the human error
+    /// this tool exists to catch, passing through it.
+    ///
+    /// `empty` reads such a cell as the type's empty value and warns once per column, for
+    /// the case `OnFormulaError: "empty"` exists for: sheets another team maintains, where
+    /// one unfinished cell would otherwise refuse every table in the workbook.
+    ///
+    /// **Neither setting decides what absence is.** A row that has no value writes `-`, and
+    /// that is only allowed where the column's type ends in `?`. This setting answers a
+    /// different question - whether a cell nobody filled in stops the run - and a blank read
+    /// as empty is a cell with a value, presence bit and all. spec/blank-and-null-cells.md.
+    /// </remarks>
+    public string OnBlankCell { get; set; } = "error";
+
+    /// <summary>
+    /// How a table name says it is another set of some table's rows, as a regular expression
+    /// with a `table` group and a `set` group. Blank, which is the default, means no table
+    /// here has more than one set.
+    /// </summary>
+    /// <remarks>
+    /// Some sheets fill a table's columns in more than once - the same schema with a second
+    /// set of rows, so that a build can be made with one or the other - and say so by naming
+    /// the extra sets after the table. What the tail looks like is the sheets' own convention,
+    /// so it is written here rather than known anywhere in this program:
+    ///
+    ///     "TableRowSets": "^(?&lt;table&gt;.+?)(?&lt;set&gt;_BC[A-Z]+)$"
+    ///
+    /// reads `Admiral_BCCN` as another set of `Admiral`'s rows, named `_BCCN`. The `set` group
+    /// is captured rather than composed, so the separator is whatever the sheets wrote and
+    /// the file comes out spelled the way the rest of that project spells it.
+    ///
+    /// A canonical property rather than a layout option, because "does this project's table
+    /// have more than one set of rows" is a question about the sheets and not about how a
+    /// table is found in them - a marker layout and a defined-name layout can both have it.
+    ///
+    /// **What it is not**: a way to make two tables. A matched name contributes rows to the
+    /// table it points at, and its schema has to be that table's. It produces no type of its
+    /// own, and a name matching this whose table is absent is an error rather than a new
+    /// table - see spec/table-row-sets.md.
+    /// </remarks>
+    public string TableRowSets { get; set; } = "";
 
     /// <summary>
     /// Whether consecutively numbered columns fold into one array-valued field.

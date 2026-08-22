@@ -16,6 +16,23 @@
       what it is about.
     -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!--
+      Server GC, because a conversion is one long allocation burst on a machine that has
+      cores to spare. Workstation GC collects on the one thread doing the work, so every
+      collection is time the conversion is stopped; server GC has a heap and a collector
+      thread per core and does that work beside it.
+
+      Measured on the sample project's full conversion, 20 logical cores: 71.3 s to 54.1 s.
+      The usual objection to server GC is that it trades memory for time, and here it
+      barely does - the peak is the live model rather than uncollected garbage, so it went
+      from 10.28 GB to 10.63 GB. What would make this a real trade is a machine with fewer
+      cores than heaps' worth of memory, which is why the number is written down: on a build
+      agent with 2 cores and 4 GB there is nothing here to win and `DOTNET_gcServer=0`
+      switches it off without a rebuild.
+    -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     <ImplicitUsings>disable</ImplicitUsings>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <!--
@@ -73,6 +90,27 @@
     <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(BuildTimestamp)' != ''">
+    <!--
+      When this build was made, for the version option to print.
+
+      Passed in rather than evaluated here, and nothing supplies it but the release
+      workflow. `$([System.DateTime]::UtcNow)` written at this spot would be a compile
+      input that differs on every build: deterministic builds would end, and every
+      `dotnet build` would recompile from scratch - in front of a suite that already takes
+      twenty-two minutes. A developer's build says no build time instead, which together
+      with a version of 0.0.0 is the truthful answer that it is not a release.
+
+      An `AssemblyMetadata` item is turned into an `AssemblyMetadataAttribute` by the SDK,
+      so there is no generated file here to keep in step with anything.
+
+      Deliberately not part of the informational version: that string is the build cache's
+      key and the `toolVersion` recorded in every summary, and a value that moved on each
+      build would mean a full conversion every time. spec/cli-help.md section 7.
+    -->
+    <AssemblyMetadata Include="BuildTimestamp" Value="$(BuildTimestamp)" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(SelfContained)' == 'true'">
     <!--
       A self-contained publish is one file that runs on a machine with no .NET at all.
@@ -127,6 +165,10 @@
                       LogicalName="Tabbit.Runtime.Kotlin.TcbReader.kt" />
     <EmbeddedResource Include="..\lib\kotlin\tabbit\TabbitUpdater.kt"
                       LogicalName="Tabbit.Runtime.Kotlin.TabbitUpdater.kt" />
+    <EmbeddedResource Include="..\lib\swift\tabbit\TcbReader.swift"
+                      LogicalName="Tabbit.Runtime.Swift.TcbReader.swift" />
+    <EmbeddedResource Include="..\lib\swift\tabbit\Updater.swift"
+                      LogicalName="Tabbit.Runtime.Swift.Updater.swift" />
     <EmbeddedResource Include="..\lib\ruby\tabbit\tcb_reader.rb"
                       LogicalName="Tabbit.Runtime.Ruby.tcb_reader.rb" />
     <EmbeddedResource Include="..\lib\ruby\tabbit\updater.rb"
@@ -143,6 +185,22 @@
                       LogicalName="Tabbit.Runtime.Php.TcbReader.php" />
     <EmbeddedResource Include="..\lib\php\tabbit\TabbitUpdater.php"
                       LogicalName="Tabbit.Runtime.Php.TabbitUpdater.php" />
+
+    <!--
+      Lua ships four files: the reader, its two numeric backends - LuaJIT and 5.3+ spell
+      low-level numeric work in mutually unparsable syntax - and the native C module's
+      source, which is the encryption, MAC and manifest-hash path.
+    -->
+    <EmbeddedResource Include="..\lib\lua\tabbit\tcb_reader.lua"
+                      LogicalName="Tabbit.Runtime.Lua.tcb_reader.lua" />
+    <EmbeddedResource Include="..\lib\lua\tabbit\tcb_ops_jit.lua"
+                      LogicalName="Tabbit.Runtime.Lua.tcb_ops_jit.lua" />
+    <EmbeddedResource Include="..\lib\lua\tabbit\tcb_ops_53.lua"
+                      LogicalName="Tabbit.Runtime.Lua.tcb_ops_53.lua" />
+    <EmbeddedResource Include="..\lib\lua\tabbit\native\tabbit_native.c"
+                      LogicalName="Tabbit.Runtime.Lua.tabbit_native.c" />
+    <EmbeddedResource Include="..\lib\lua\tabbit\updater.lua"
+                      LogicalName="Tabbit.Runtime.Lua.updater.lua" />
 
     <!--
       Unreal gets its own rather than the C++ one, because the engine already has every
@@ -167,6 +225,25 @@
     -->
     <EmbeddedResource Include="recipes\*.jsonc"
                       LogicalName="Tabbit.Recipes.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The text of this tool's own reports, one file per owner and language: `core.en.json`
+      is the core's English. A wildcard rather than a list, so that adding a language is
+      adding a file and deleting a layout is deleting its file - there is nothing here to
+      keep in step with either. The logical name is what MessageCatalog scans for.
+
+      WithCulture is off, and it has to be. `name.<something>.ext` is how MSBuild spells a
+      culture-specific resource, so AssignCulture reads the `en` in `core.en.json` as a
+      culture and moves the file into a satellite assembly - `en/tabbit.resources.dll` -
+      where GetManifestResourceNames on this assembly cannot see it. It builds and it runs;
+      the catalog is simply empty. Which is the build doing the localization itself, in the
+      one way this design ruled out: a language axis nobody can open a file to read.
+    -->
+    <EmbeddedResource Include="Messages\Catalog\*.json"
+                      LogicalName="Tabbit.Messages.%(Filename)%(Extension)"
+                      WithCulture="false" />
   </ItemGroup>
 
   <ItemGroup>

@@ -132,14 +132,14 @@ public final class AssetTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Asset.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_UUID);
+                    TcbReader.checkColumn(column, "Asset.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_UUID);
                     for (AssetRecord record : loaded) {
                         record.index = reader.readUuid();
                     }
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Asset.Path", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Asset.Path", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Asset.Path");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -150,7 +150,7 @@ public final class AssetTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Asset.Slot", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Asset.Slot", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Asset.Slot");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);

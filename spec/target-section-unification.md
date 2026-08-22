@@ -10,7 +10,7 @@
 
 ## 1. 현재 상태 — 실측
 
-등록된 타깃 23개 중 10개가 전용 섹션을 가지고 있고, 13개는 `Targets`로만 지정됩니다.
+등록된 타깃 23개 중 10개가 전용 섹션을 가지고 있고, 나머지는 `Targets`로만 지정됩니다.
 
 |섹션이 있는 타깃|섹션|
 |--|--|
@@ -47,7 +47,7 @@
 
 `RecipeSkeleton`은 모델을 반사로 순회해 리스트마다 기본 항목 하나를 채웁니다. `Targets`는 원소
 타입이 `JObject`라 채울 것이 없어 건너뜁니다(`RecipeSkeleton.cs:162`). 따라서 지금
-`--new-recipe`가 설정을 보여주는 타깃은 **섹션이 있는 10개뿐이고, 13개는 헤더의 주석 한 줄로만
+`--new-recipe`가 설정을 보여주는 타깃은 **섹션이 있는 10개뿐이고, 나머지는 헤더의 주석 한 줄로만
 언급됩니다.**
 
 통일하면 이 골격을 레지스트리 순회로 바꿔야 하고, 그 결과 **23개 전부가 각자의 설정과 함께**
@@ -57,7 +57,7 @@
 
 타깃을 추가할 때 `RecipeModel`을 고치지 않아도 되는 것이 `Targets`의 도입 목적이었습니다. 섹션
 10개가 남아 있는 한 그 목적은 절반만 달성된 상태입니다. entry 클래스가 `RecipeModel` 안에
-중첩되어 있는 것도 같은 결합입니다 — 신규 타깃 13개는 이미 자기 파일에 entry 클래스를 두고
+중첩되어 있는 것도 같은 결합입니다 — 신규 타깃 나머지는 이미 자기 파일에 entry 클래스를 두고
 있습니다(`GoRecipe`·`DartRecipe`·`TextRecipe` 등).
 
 ---
@@ -68,7 +68,7 @@
 
 |무엇|어떻게|
 |--|--|
-|`TabbitTargetAttribute`의 `Section`|10개 타깃에서 제거. 어트리뷰트의 `Section` 프로퍼티와 `TargetDescriptor.Section`·`SectionEntries` 경로도 함께 삭제|
+|`TabbitTargetAttribute`의 `Section`|타깃들에서 제거. 어트리뷰트의 `Section` 프로퍼티와 `TargetDescriptor.Section`·`SectionEntries` 경로도 함께 삭제|
 |`RecipeSectionReader`|**타깃 쪽 용도 소멸.** 소스 레지스트리가 계속 사용하므로 파일은 존치|
 |entry 클래스 10개 + `DatabaseRecipe`|`RecipeModel` 밖으로, 각자의 타깃 파일 옆으로. 신규 13개와 같은 배치|
 |`RecipeModel.Exports`·`CodeGenerations`|그룹 클래스째 삭제|
@@ -107,7 +107,7 @@
 따라서 **골든이 바뀌면 그 diff가 결함입니다.**
 
 > **실측 결과 — 무변경.** 골든 픽스처가 한 바이트도 움직이지 않았습니다. `samples/rescue/out/`을
-> 재생성한 결과도 67개 테이블 · 13개 언어 · 바이너리 · JSON 전부 동일하고, 달라진 것은 HTML의
+> 재생성한 결과도 67개 테이블 · 모든 언어 · 바이너리 · JSON 전부 동일하고, 달라진 것은 HTML의
 > 생성 시각 줄과 summary의 커밋 해시뿐이었습니다.
 
 ---

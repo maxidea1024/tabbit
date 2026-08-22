@@ -106,7 +106,7 @@ class PoseTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Pose.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Pose.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Pose.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -119,25 +119,32 @@ class PoseTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Pose.Step.ClipId", tabbit::kKindFixedArray, 2, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Pose.Step.ClipId", tabbit::kKindArray, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Pose.Step.ClipId");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.step.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.step[j].clip_id_index = cursor.next_string();
+            const std::int32_t element_count = cursor.next_length();
+            record.step.assign(static_cast<std::size_t>(element_count), PoseRecord_step_entry());
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.step[static_cast<std::size_t>(j)].clip_id_index = cursor.next_string();
             }
           }
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Pose.Step.Weight", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Pose.Step.Weight", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Pose.Step.Weight");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.step.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.step[j].weight = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            if (record.step.size() != static_cast<std::size_t>(element_count)) {
+              throw tabbit::TcbError(
+                  "Pose.step: the file gives this row a different "
+                  "element count for one member of the record than for another; every member of a "
+                  "record carries the same count, so the file is damaged");
+            }
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.step[static_cast<std::size_t>(j)].weight = cursor.next_i32();
             }
           }
           break;

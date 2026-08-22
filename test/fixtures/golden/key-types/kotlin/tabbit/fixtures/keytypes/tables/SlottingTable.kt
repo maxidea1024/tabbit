@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/key-types/key-types.xlsx : Slotting : B2
 /** Keyed by an enum: one row per label, which is a shape sheets have. */
@@ -137,7 +138,7 @@ class SlottingTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Slotting.Index", KIND_SCALAR, 1, false, ELEMENT_VARINT)
+                    checkColumn(column, "Slotting.Index", KIND_SCALAR, false, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Slotting.Index")
                     var at = 0
                     while (at < count) {
@@ -151,7 +152,7 @@ class SlottingTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Slotting.Capacity", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Slotting.Capacity", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Slotting.Capacity")
                     var at = 0
                     while (at < count) {
@@ -165,7 +166,7 @@ class SlottingTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Slotting.Serial", KIND_SCALAR, 1, false, ELEMENT_I64, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Slotting.Serial", KIND_SCALAR, false, ELEMENT_I64, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Slotting.Serial")
                     for (record in loaded) {
                         record.serial = cursor.nextI64()

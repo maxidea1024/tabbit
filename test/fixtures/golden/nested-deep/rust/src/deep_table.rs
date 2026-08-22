@@ -119,7 +119,7 @@ impl DeepTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.star = vec![DeepStarEntry::default(); 2];
+            record.star = Vec::new();
         }
 
         for column in &header.columns {
@@ -127,7 +127,7 @@ impl DeepTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Deep.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Deep.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Deep.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -139,28 +139,59 @@ impl DeepTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Deep.Star.Id", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Deep.Star.Id", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    let bytes_left = reader.remaining();
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Deep.Star.Id")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        // The count came off the wire, and one element is at least one byte,
+                        // so this is checked before anything is allocated for it.
+                        if element_count > bytes_left {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Deep.star",
+                                detail: "a record array is longer than the file can hold",
+                            });
+                        }
+
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.star = vec![DeepStarEntry::default(); element_count];
+                        for element in 0..element_count {
                             record.star[element].id = cursor.next_i32()?;
                         }
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Deep.Star.Position.X", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Deep.Star.Position.X", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Deep.Star.Position.X")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        if record.star.len() != element_count {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Deep.star",
+                                detail: "the file gives one member of this record a different \
+                                         element count than another",
+                            });
+                        }
+                        for element in 0..element_count {
                             record.star[element].position.x = cursor.next_i32()?;
                         }
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Deep.Star.Position.Y", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Deep.Star.Position.Y", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Deep.Star.Position.Y")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        if record.star.len() != element_count {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Deep.star",
+                                detail: "the file gives one member of this record a different \
+                                         element count than another",
+                            });
+                        }
+                        for element in 0..element_count {
                             record.star[element].position.y = cursor.next_i32()?;
                         }
                     }

@@ -69,4 +69,20 @@ public sealed class TabbitTargetAttribute : Attribute
     /// to keep output stable rather than to satisfy a dependency.
     /// </summary>
     public int Order { get; set; }
+
+    /// <summary>
+    /// Whether the same model produces the same bytes twice.
+    /// </summary>
+    /// <remarks>
+    /// True for every target that writes only what the model says, which is nearly all of
+    /// them - and it is what lets the build cache verify that a previous run's output is
+    /// still intact, by hashing what is there and comparing.
+    ///
+    /// A target that writes when the run happened cannot be checked that way: its output is
+    /// supposed to differ, so a hash that matches would be the surprising outcome. Declaring
+    /// it here rather than listing the exceptions elsewhere keeps the fact next to the code
+    /// that causes it - a target that stops stamping the time deletes one line and is
+    /// verified from then on.
+    /// </remarks>
+    public bool Deterministic { get; set; } = true;
 }

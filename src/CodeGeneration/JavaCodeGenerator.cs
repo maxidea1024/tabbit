@@ -66,6 +66,22 @@ public sealed class JavaRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -84,10 +100,17 @@ public sealed class JavaRecipe : IOutputRecipe
 [TabbitTarget("java", TargetKind.CodeGeneration, Order = 80)]
 public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private JavaRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates a nested class and an array of it; a member column fills one
@@ -116,6 +139,12 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, JavaRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -125,6 +154,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Camel, "java");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -329,6 +359,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
         // One cursor variable for the whole read method, assigned per column before its
         // row loop rather than declared once per case. Asked of the columns, because that
@@ -336,6 +367,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         NeedsCursor = table.WireColumns.Any(UsesCursor),
 
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+        NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
 
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
@@ -388,6 +420,144 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     private static string PrimaryLookup(Table? refTable)
         => "findBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
 
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!= null && !$KEY$.isEmpty()",
+            ValueType.Uuid => "!= null",
+            _ => "!= 0",
+        };
+
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    private JavaMultiMemberView? MultiMemberOrNull(RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string name = JavaName(member.Name);
+        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
+        string none = JavaConstantName("None");
+
+        return new JavaMultiMemberView
+        {
+            KeyMember = name,
+            SlotMember = name + "Row",
+            TargetMember = name + "Target",
+            TargetTypeName = enumType,
+            NoneLabel = none,
+            IsArray = member.IsArray,
+            Fill = member.IsArray
+                ? $"for (int i = 0; i < {member.Fields.Count}; i++) "
+                  + $"{name}Target[i] = {enumType}.{none};"
+                : "",
+            Targets = field.ResolvedRefTables!.Select(target => new JavaMultiTargetView
+            {
+                Table = JavaName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = JavaName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Label = JavaConstantName(target.Name),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member. spec/references-in-records.md.
+    /// </remarks>
+    private JavaMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = JavaName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + JavaName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{name}{member}"
+            : $"record.{name}[i]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+
+        return new JavaMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "Row" + subscript,
+            Target = path + "Target" + subscript,
+
+            // Whichever array holds the elements. The key member is that array where the
+            // members are the arrays, so there is no separate key array to measure.
+            Count = isArray
+                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{name}.length")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            NoneLabel = JavaConstantName("None"),
+
+            // The string case needs the key twice - Java has no truthiness - so the suffix is
+            // written with the expression substituted in rather than appended blindly.
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType).Replace("$KEY$", path + subscript),
+            Targets = field.ResolvedRefTables!.Select(target => new JavaMultiTargetView
+            {
+                Table = JavaName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = "",
+                Label = JavaConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private JavaMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+    {
+        string key = "record." + JavaName(column.Group.Name);
+
+        return new JavaMultiReferenceView
+        {
+            KeyMember = JavaName(column.Group.Name),
+            SlotMember = JavaName(column.Group.Name) + "Row",
+            TargetMember = JavaName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = JavaConstantName("None"),
+
+            // The string case needs the key twice - Java has no truthiness - so the suffix is
+            // written with the expression substituted in rather than appended blindly.
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType).Replace("$KEY$", key),
+            Targets = column.Targets.Select(target => new JavaMultiTargetView
+            {
+                Table = JavaName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = JavaName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+                Label = JavaConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
     private JavaFieldView BuildField(Table table, SerialField sf)
     {
         if (sf.IsRecord)
@@ -406,8 +576,10 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             Members = Array.Empty<JavaRecordMemberView>(),
             IsFixedRecordArray = false,
             ElementCount = 0,
-            IsNullable = !sf.Fields[0].IsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = PresenceMember(sf) + "At",
         };
     }
 
@@ -463,9 +635,31 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                         + ";");
                 }
 
+                // A member reaching several tables keeps the key declared above and gains two
+                // fields: one slot for the resolved row whatever table it came from, and the
+                // discriminator saying which. spec/multi-target-accessors.md.
+                var multi = MultiMemberOrNull(member);
+
+                if (multi is not null)
+                {
+                    declarations.Add(
+                        (member.IsArray
+                            ? $"Object[] {multi.SlotMember} = new Object[{member.Fields.Count}]"
+                            : $"Object {multi.SlotMember}")
+                        + ";");
+                    declarations.Add(
+                        (member.IsArray
+                            ? $"{multi.TargetTypeName}[] {multi.TargetMember} "
+                              + $"= new {multi.TargetTypeName}[{member.Fields.Count}]"
+                            : $"{multi.TargetTypeName} {multi.TargetMember} "
+                              + $"= {multi.TargetTypeName}.{multi.NoneLabel}")
+                        + ";");
+                }
+
                 result.Add(new JavaRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
+                    Multi = multi,
 
                     // The array is the member's when the group is one record - same columns,
                     // same wire, and only which of the two owns it differs.
@@ -486,6 +680,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
             declared.Add(new JavaRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -528,6 +723,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
         recordTypes.Add(new JavaRecordTypeView
         {
+            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -594,6 +790,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             LengthRead = UsesCursor(wire)
                 ? "elementCount = cursor.nextLength();"
                 : "elementCount = reader.readCounter32();",
+            RefKeyType = wire.IsRef ? ToJavaTypeName(wire.RefKeyType, null, null) : "",
             RunCall = RunCall(wire),
             RunSpend = RunSpend(wire),
             Name = JavaName(wire.Group.Name),
@@ -620,7 +817,9 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             ReadScalar = ScalarReadExpression(wire),
             ReadElement = ReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = PresenceMember(wire.Group) + "At",
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -632,8 +831,8 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : JavaName("has_" + sf.Name);
 
     /// <summary>
     /// What an absent row's field is set back to, so the binary path lands where the JSON
@@ -647,7 +846,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     {
         string elementType = ColumnElementType(wire);
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return $"new {elementType}[0]";
 
         if (wire.IsRef)
@@ -717,9 +916,15 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     {
         if (sf.IsRef)
         {
+            // The key the target is addressed by, not `int`. The record-member path next door
+            // has always asked; this one wrote the width in, so a reference array whose target
+            // is keyed by anything else declared an array the read could not fill.
+            // spec/reference-key-types.md.
+            string keyType = ToJavaTypeName(sf.FirstField!.RefKeyType, null, null);
+
             return sf.IsArray
-                ? new[] { $"{elementType}[] {name} = new {elementType}[0];", $"int[] {name}Index = new int[0];" }
-                : new[] { $"{elementType} {name};", $"int {name}Index;" };
+                ? new[] { $"{elementType}[] {name} = new {elementType}[0];", $"{keyType}[] {name}Index = new {keyType}[0];" }
+                : new[] { $"{elementType} {name};", $"{keyType} {name}Index;" };
         }
 
         return sf.IsArray
@@ -749,11 +954,8 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "TcbReader.KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "TcbReader.KIND_FIXED_ARRAY" : "TcbReader.KIND_SCALAR");
+        string kind = wire.IsArray ? "TcbReader.KIND_ARRAY" : "TcbReader.KIND_SCALAR";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string accepted;
 
@@ -792,7 +994,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                     accepted = "TcbReader.ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The java generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The java generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -801,7 +1003,12 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"TcbReader.checkColumn(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {accepted});";
+        // And the other bitmap, by the same argument as the row one. A method of its own
+        // because the accepted elements are varargs and Java has no default parameters.
+        string check = wire.HasOptionalElements ? "checkColumnWithElements" : "checkColumn";
+
+        return $"TcbReader.{check}(column, \"{tableName}.{wire.Name}\", {kind}, "
+            + $"{nullable}, {accepted});";
     }
 
     /// <summary>
@@ -820,7 +1027,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -880,7 +1087,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
@@ -910,7 +1117,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// The line assigning one row from the value the run decoded, inside the loop the
     /// template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -957,10 +1164,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the array decides where the index goes, and an unnamed
@@ -968,14 +1172,16 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        // A trimmed array of references: the length is the row's, and the key still goes in the
+        // array beside the values. Read as a plain `var_array` it assigned the key straight
+        // into the array of rows, which does not compile - and nothing held the shape, because
+        // `foreign[]` is refused and this is only reachable through a folded group with
+        // trimming on. spec/variable-length-record-arrays.md.
+        if (wire.IsArray)
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -986,11 +1192,11 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
         Tables = _model.Tables.Select(table => new JavaTableSlotView
         {
-            Name = JavaName(table.Name),
+            Name = JavaCamelName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables
@@ -1007,12 +1213,26 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new JavaCrossReferenceView
             {
                 Table = JavaName(x.Table.Name),
                 RecordName = x.Table.Name.ToPascalCase() + "Record",
+                MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new JavaReferenceFieldView
                 {
                     Name = JavaName(sf.Name),
@@ -1044,7 +1264,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + JavaName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -1153,7 +1373,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                     return LanguageProfile.Java.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Java.ReadCall(wire.ElementType);
         }
     }
@@ -1225,7 +1445,9 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the java generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "java")));
         }
     }
 
@@ -1263,11 +1485,20 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// while a field name here comes from a sheet column and would have to be exactly
     /// one of them - which the profile's list covers.
     /// </summary>
-    private static string JavaName(string name) => LanguageProfile.Java.MemberName(name.ToCamelCase());
+    private string JavaName(string name) => LanguageProfile.Java.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// camelCase because that is how Java writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string JavaCamelName(string name) => LanguageProfile.Java.MemberName(name.ToCamelCase());
 
     /// <summary>
     /// A constant or enum label name, SCREAMING_SNAKE_CASE as Java writes them.
     /// </summary>
-    private static string JavaConstantName(string name) => name.ToSnakeCase().ToUpperInvariant();
+    private static string JavaConstantName(string name) => name.ToUpperSnakeCase();
 
 }

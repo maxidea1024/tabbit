@@ -24,6 +24,29 @@ class {{ rt.type_name }} {
   {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## The per-target accessors of every member of this class that reaches several tables. A
+   getter where the member is one value; a method taking the element number where the member is
+   the array, which is the third place an element number sits.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+  /// The [{{ target.record_name }}] row element [at] of [{{ multi.key_member }}] names, or null
+  /// when that element names a row of one of the others.
+  {{ target.record_name }}? {{ target.method }}(int at) =>
+      {{ multi.target_member }}[at] == {{ multi.target_type_name }}.{{ target.label }}
+          ? {{ multi.slot_member }}[at] as {{ target.record_name }}
+          : null;
+{{~ else ~}}
+  /// The [{{ target.record_name }}] row [{{ multi.key_member }}] names, or null when it names a
+  /// row of one of the others.
+  {{ target.record_name }}? get {{ target.method }} =>
+      {{ multi.target_member }} == {{ multi.target_type_name }}.{{ target.label }}
+          ? {{ multi.slot_member }} as {{ target.record_name }}
+          : null;
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 }
 
 {{~ end ~}}
@@ -40,6 +63,29 @@ class {{ table.record_name }} {
 {{~ end ~}}
 {{~ for declaration in field.declarations ~}}
   {{ declaration }}
+{{~ end ~}}
+{{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One field for the resolved row
+   whatever table it came from, and the discriminator saying which - the targets take separate
+   id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+
+  /// The row [{{ ref.key_member }}] names, as whichever of its target tables holds it. Read it
+  /// through the getters below rather than directly: they check the discriminator first.
+  Object? {{ ref.slot_member }};
+
+  /// Which table [{{ ref.key_member }}] is a row of.
+  {{ ref.target_type_name }} {{ ref.target_member }} = {{ ref.target_type_name }}.{{ ref.none_label }};
+{{~ end ~}}
+{{~ for ref in table.multi_references ~}}
+{{~ for target in ref.targets }}
+
+  /// The [{{ target.record_name }}] row [{{ ref.key_member }}] names, or null when it names a row
+  /// of one of the others.
+  {{ target.record_name }}? get {{ target.method }} =>
+      {{ ref.target_member }} == {{ ref.target_type_name }}.{{ target.label }}
+          ? {{ ref.slot_member }} as {{ target.record_name }}
+          : null;
 {{~ end ~}}
 {{~ end ~}}
 
@@ -107,6 +153,10 @@ class {{ table.table_name }} {
       Dart, so a declaration inside two of them collides. ##~}}
     late List<int> presence;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+    late List<int> elementPresence;
+    var elementAt = 0;
+{{~ end ~}}
 
     // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
     final loaded = <{{ table.record_name }}>[];
@@ -131,6 +181,12 @@ class {{ table.table_name }} {
           // below stay as they are.
           presence = readPresence(reader, column, count);
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+          // Behind the row bitmap and in front of the values, walked with a counter that
+          // steps once per element of every row. spec/nullable-array-elements.md.
+          elementPresence = readElementPresence(reader, column);
+          elementAt = 0;
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it as
    well: its block states an encoding for them and one for the row lengths, and the cursor
    is what decodes both. After the presence bitmap, which sits in front of the block the
@@ -153,6 +209,21 @@ class {{ table.table_name }} {
 {{~ if column_view.kind == 'var_array' ~}}
             final elementCount = {{ column_view.length_read }};
             record.{{ column_view.name }} = List.generate(elementCount, (_) => {{ column_view.read_element }});
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }} =
+                List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
+            elementAt += elementCount;
+{{~ end ~}}
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. The keys are the list this row's length builds; the
+   resolved values are filled by the linking pass. spec/variable-length-record-arrays.md. ##~}}
+            final elementCount = {{ column_view.length_read }};
+            record.{{ column_view.name }}Index = List.generate(elementCount, (_) => {{ column_view.read_element }});
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }} =
+                List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
+            elementAt += elementCount;
+{{~ end ~}}
 {{~ else if column_view.kind == 'record_var' ~}}
             final elementCount = {{ column_view.length_read }};
 {{~ if column_view.is_first_member ~}}
@@ -174,23 +245,15 @@ class {{ table.table_name }} {
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner list. Which outer element it is, is which column this is - so that index is
    fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-            for (var j = 0; j < {{ column_view.element_count }}; j++) {
-              record.{{ column_view.name }}[{{ column_view.member_at }}][j] = {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+            final elementCount = {{ column_view.length_read }};
+            record.{{ column_view.name }}[{{ column_view.member_at }}] =
+                List.generate(elementCount, (_) => {{ column_view.read_element }});
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-            for (var j = 0; j < {{ column_view.element_count }}; j++) {
-              record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == 'record_serial' ~}}
-            for (var j = 0; j < {{ column_view.element_count }}; j++) {
-              record.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == 'serial_ref' ~}}
-            record.{{ column_view.name }}Index = List.generate({{ column_view.element_count }}, (_) => {{ column_view.read_element }});
-{{~ else if column_view.kind == 'serial' ~}}
-            record.{{ column_view.name }} = List.generate({{ column_view.element_count }}, (_) => {{ column_view.read_element }});
+            final elementCount = {{ column_view.length_read }};
+            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
+                List.generate(elementCount, (_) => {{ column_view.read_element }});
 {{~ else if column_view.kind == 'scalar_ref' ~}}
             record.{{ column_view.name }}Index = {{ column_view.read_element }};
 {{~ else ~}}

@@ -1,0 +1,28 @@
+{{~##
+   One enum and its lookup. `enumm` is the single enum this file is for.
+##~}}
+{{ include 'swift-file-head.sbn' ~}}
+
+// Generated from {{ enumm.location }}
+{{~ for line in enumm.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+public enum {{ enumm.name }}: Int32, CaseIterable, Sendable {
+{{~ for label in enumm.labels ~}}
+{{~ for line in label.comment ~}}
+    /// {{ line }}
+{{~ end ~}}
+    case {{ label.name }} = {{ label.value }}
+{{~ end ~}}
+
+    /// The label with this value, or the default when the sheet declared no such label.
+    ///
+    /// A fallback rather than a thrown error, matching the other generated readers: a value
+    /// the sheets no longer declare is data that has moved on, not a broken file.
+    public static func of(_ value: Int32) -> {{ enumm.name }} {
+        {{ enumm.name }}(rawValue: value) ?? {{ enumm.name }}.{{ enumm.default_label }}
+    }
+
+    /// The declared value, which is what travels on the wire.
+    public var value: Int32 { rawValue }
+}

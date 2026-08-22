@@ -110,7 +110,7 @@ impl PoseTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.step = vec![PoseStepEntry::default(); 2];
+            record.step = Vec::new();
         }
 
         for column in &header.columns {
@@ -118,7 +118,7 @@ impl PoseTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Pose.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Pose.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Pose.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -130,19 +130,42 @@ impl PoseTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Pose.Step.ClipId", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Pose.Step.ClipId", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
+                    let bytes_left = reader.remaining();
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Pose.Step.ClipId")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        // The count came off the wire, and one element is at least one byte,
+                        // so this is checked before anything is allocated for it.
+                        if element_count > bytes_left {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Pose.step",
+                                detail: "a record array is longer than the file can hold",
+                            });
+                        }
+
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.step = vec![PoseStepEntry::default(); element_count];
+                        for element in 0..element_count {
                             record.step[element].clip_id_index = cursor.next_string()?;
                         }
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Pose.Step.Weight", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Pose.Step.Weight", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Pose.Step.Weight")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        if record.step.len() != element_count {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Pose.step",
+                                detail: "the file gives one member of this record a different \
+                                         element count than another",
+                            });
+                        }
+                        for element in 0..element_count {
                             record.step[element].weight = cursor.next_i32()?;
                         }
                     }

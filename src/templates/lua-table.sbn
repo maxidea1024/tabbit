@@ -1,0 +1,340 @@
+{{~## One table: its record constructor and its table class.
+
+   Rows are plain tables built whole and then sealed behind a strict metatable, so a
+   misspelled field is an error at the access instead of a silent nil - and because every
+   declared field is filled before the metatable goes on, correct reads and writes never
+   pay for the check. spec/lua-language-support.md. ##~}}
+{{ include 'lua-file-head.sbn' }}
+{{~## The element type of each record group, ahead of the row that holds one. Innermost
+   first, which is required rather than tidy: a constructor names the level below, and
+   that local has to exist by the time the line runs. ##~}}
+{{~ for field in table.fields ~}}
+{{~ if field.is_record && !field.members_are_anonymous ~}}
+{{~ for rt in field.record_types ~}}
+---@class {{ rt.type_name }}
+{{~ for line in rt.annotations ~}}
+{{ line }}
+{{~ end ~}}
+{{~## An element with a member reaching several tables has methods rather than being only data,
+   which is what the per-target accessor needs: it asks the discriminator and then hands back
+   the slot. Only such an element - one with none keeps `strictType`, so nothing already
+   generated moves. This is the row-level shape one level in.
+   spec/multi-target-accessors.md. ##~}}
+{{~ if rt.multi_members | array.size > 0 ~}}
+local {{ rt.type_name }} = {}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+-- The {{ target.record_name }} row element `at` of `{{ multi.key_member }}` names, or nil when
+-- that element names a row of one of the others.
+---@return {{ target.record_name }}|nil
+function {{ rt.type_name }}:{{ target.method }}(at)
+  if self.{{ multi.target_member }}[at] ~= {{ multi.target_type_name }}.{{ target.label }} then
+    return nil
+  end
+
+  return self.{{ multi.slot_member }}[at]
+end
+{{~ else ~}}
+-- The {{ target.record_name }} row `{{ multi.key_member }}` names, or nil when it names a row of
+-- one of the others.
+---@return {{ target.record_name }}|nil
+function {{ rt.type_name }}:{{ target.method }}()
+  if self.{{ multi.target_member }} ~= {{ multi.target_type_name }}.{{ target.label }} then
+    return nil
+  end
+
+  return self.{{ multi.slot_member }}
+end
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+
+local {{ rt.type_name }}Meta = tcb.strictInstance("{{ if rt.is_outermost }}an element of{{ else }}a record inside{{ end }} {{ rt.owner }}", {{ rt.type_name }}, { {{ rt.field_names }} })
+{{~ else ~}}
+local {{ rt.type_name }}Meta = tcb.strictType("{{ if rt.is_outermost }}an element of{{ else }}a record inside{{ end }} {{ rt.owner }}", { {{ rt.field_names }} })
+{{~ end ~}}
+
+---@return {{ rt.type_name }}
+local function new{{ rt.type_name }}()
+  return setmetatable({
+{{~ for member in rt.members ~}}
+{{~ for line in member.initializers ~}}
+    {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+  }, {{ rt.type_name }}Meta)
+end
+
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+-- Generated from {{ table.location }}.
+{{~ for line in table.comment ~}}
+-- {{ line }}
+{{~ end ~}}
+---@class {{ table.record_name }}
+{{~ for line in table.annotations ~}}
+{{ line }}
+{{~ end ~}}
+{{~## A row that has methods rather than one that is only data, which is what a column
+   reaching several tables needs: the per-target accessor asks the discriminator and then hands
+   back the slot. Only such a row - a table with no multi-target column keeps `strictType`, so
+   nothing already generated moves. spec/multi-target-accessors.md. ##~}}
+{{~ if table.multi_references | array.size > 0 ~}}
+local {{ table.record_name }} = {}
+{{~ for ref in table.multi_references ~}}
+{{~ for target in ref.targets }}
+-- The {{ target.record_name }} row `{{ ref.key_member }}` names, or nil when it names a row of
+-- one of the others.
+---@return {{ target.record_name }}|nil
+function {{ table.record_name }}:{{ target.method }}()
+  if self.{{ ref.target_member }} ~= {{ ref.target_type_name }}.{{ target.label }} then
+    return nil
+  end
+
+  return self.{{ ref.slot_member }}
+end
+{{~ end ~}}
+{{~ end ~}}
+
+local {{ table.record_name }}Meta = tcb.strictInstance("a `{{ table.raw_name }}` row", {{ table.record_name }}, { {{ table.record_field_names }} })
+{{~ else ~}}
+local {{ table.record_name }}Meta = tcb.strictType("a `{{ table.raw_name }}` row", { {{ table.record_field_names }} })
+{{~ end ~}}
+
+---@return {{ table.record_name }}
+local function new{{ table.record_name }}()
+  return setmetatable({
+{{~ for field in table.fields ~}}
+{{~ for line in field.initializers ~}}
+    {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~## Set here rather than left absent: the discriminator is a value a consumer reads, and a
+   row whose key points at nothing has to answer the same thing here as it does in every other
+   language. Absent would answer nil. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+    {{ ref.slot_member }} = nil,
+    {{ ref.target_member }} = {{ ref.target_type_name }}.{{ ref.none_label }},
+{{~ end ~}}
+  }, {{ table.record_name }}Meta)
+end
+
+---@class {{ table.table_name }}
+---@field records {{ table.record_name }}[]
+local {{ table.table_name }} = {}
+
+local {{ table.table_name }}Meta = tcb.strictInstance("the `{{ table.raw_name }}` table", {{ table.table_name }}, { {{ table.table_field_names }} })
+
+function {{ table.table_name }}.new()
+  return setmetatable({
+    records = {},
+{{~ for index in table.indexes ~}}
+    {{ index.map_name }} = {},
+{{~ end ~}}
+  }, {{ table.table_name }}Meta)
+end
+{{~ for index in table.indexes }}
+-- The row with this {{ index.field_name }}, or nil when the table has none: the lookup to
+-- reach for when a missing row is an ordinary answer.
+function {{ table.table_name }}:findBy{{ index.suffix }}(key)
+{{~ if index.normalizes_int64 ~}}
+  return self.{{ index.map_name }}[tcb.int64String(key)]
+{{~ else ~}}
+  return self.{{ index.map_name }}[key]
+{{~ end ~}}
+end
+
+-- The row with this {{ index.field_name }}, or a raised error naming what was missing -
+-- for a key that has to be there.
+function {{ table.table_name }}:getBy{{ index.suffix }}OrThrow(key)
+  local record = self:findBy{{ index.suffix }}(key)
+
+  if record == nil then
+    tcb.fail("there is no record in table `{{ table.raw_name }}` that corresponds to " ..
+      "field `{{ index.field_name }}` value %s", tostring(key))
+  end
+
+  return record
+end
+
+-- Whether the table holds a row with this {{ index.field_name }}.
+function {{ table.table_name }}:contains{{ index.suffix }}(key)
+  return self:findBy{{ index.suffix }}(key) ~= nil
+end
+{{~ end }}
+-- Loads the table from the bytes of a .tcb file written by Tabbit. Column by column,
+-- matched by tag rather than position: a column this build does not know is skipped by
+-- its block length, and one whose type changed incompatibly fails naming the field.
+function {{ table.table_name }}:readBytes(data)
+  -- Required here rather than at the top: the accessor requires this module, so at load
+  -- time it is half built and at call time it is not.
+  local accessor = require(_root .. "{{ accessor_module }}")
+
+  -- Opened unconditionally, with whatever keys the accessor holds - nil unless the
+  -- project set them. A file that is neither encrypted nor signed comes back untouched,
+  -- so the load path is the same either way. spec/tcb-mac-and-signature.md.
+  local reader = tcb.newReader(tcb.open(
+    data, accessor.encryptionKey, accessor.macKey, accessor.verifyMac))
+  local count, columns = tcb.readTableHeader(reader)
+
+  -- Read into storage of its own and published at the end: reading a table that is
+  -- already loaded is a refresh, and one that turns out to be unreadable has to leave
+  -- the rows already there alone.
+  local records = {}
+
+  for i = 1, count do
+    records[i] = new{{ table.record_name }}()
+  end
+
+  for c = 1, #columns do
+    local column = columns[c]
+    local blockEnd = reader.position + column.byteLength
+
+{{~ for column_view in table.columns ~}}
+    {{ if for.first }}if{{ else }}elseif{{ end }} column.tag == {{ column_view.tag }} then
+      {{ column_view.column_check }}
+{{~ if column_view.is_nullable ~}}
+      -- The bitmap is at the front of the block, so it is read before the values. The
+      -- values are written for every row either way, which is what lets the read shapes
+      -- below stay as they are.
+      local presence = tcb.readPresence(reader, column, count)
+{{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+      -- Behind the row bitmap and in front of the values, walked with a counter that
+      -- steps once per element of every row. spec/nullable-array-elements.md.
+      local elementPresence = tcb.readElementPresence(reader, column)
+      local elementAt = 0
+{{~ end ~}}
+{{~ if column_view.cursor_open != '' ~}}
+      {{ column_view.cursor_open }}
+{{~ end ~}}
+{{~ if column_view.run_call != '' ~}}
+{{~## A run of equal values costs one call and then plain assignments, rather than one
+      call per row that each re-dispatch on the encoding. An encoding with no run to
+      give answers 1, so this loop is correct over all of them. ##~}}
+      local at = 0
+
+      while at < count do
+        local n, value = cursor:{{ column_view.run_call }}(count - at)
+
+        for i = at + 1, at + n do
+          {{ column_view.run_spend }}
+        end
+
+        at = at + n
+      end
+{{~ else ~}}
+      for i = 1, count do
+        local record = records[i]
+{{~ if column_view.kind == 'var_array' || column_view.kind == 'var_array_ref' ~}}
+        {{ column_view.length_read }}
+        local values = {}
+
+        for element = 1, elementCount do
+          values[element] = {{ column_view.read_element }}
+        end
+
+        {{ column_view.values_target }} = values
+{{~ if column_view.kind == 'var_array_ref' ~}}
+{{~## A reference array read its keys above - `values_target` is the key list for it - so the
+   list the consumer reads starts empty and the linking pass fills it.
+   spec/variable-length-record-arrays.md. ##~}}
+        {{ column_view.secondary_clear }}
+{{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+        local answers = {}
+
+        for element = 1, elementCount do
+          answers[element] = tcb.isPresent(elementPresence, elementAt + element - 1)
+        end
+
+        elementAt = elementAt + elementCount
+        {{ column_view.element_presence_target }} = answers
+{{~ end ~}}
+{{~ else if column_view.kind == 'record_var' ~}}
+        {{ column_view.length_read }}
+{{~ if column_view.is_first_member ~}}
+        -- The first member builds the list; the rest check. Building it again would
+        -- discard what the members before it wrote, and taking the shorter of two
+        -- counts would shift every value after it.
+        {{ column_view.group_target }} = tcb.filledArray(elementCount, {{ column_view.record_constructor }})
+{{~ else ~}}
+        if #{{ column_view.group_target }} ~= elementCount then
+          tcb.fail("{{ table.raw_name }}: the file gives one member of this record a " ..
+            "different element count than another")
+        end
+{{~ end ~}}
+
+        for element = 1, elementCount do
+          {{ column_view.element_target }} = {{ column_view.read_element }}
+        end
+{{~ else if column_view.kind == 'array_of_arrays_member' ~}}
+{{~## One inner list. Which outer element it is, is which column this is - so that index
+   is written in and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+        {{ column_view.length_read }}
+        {{ column_view.element_container }} = {}
+        for element = 1, elementCount do
+          {{ column_view.element_target }} = {{ column_view.read_element }}
+        end
+{{~ else if column_view.kind == 'record_member_var' ~}}
+{{~## The member is the list: the subscript goes after its name rather than before, and
+   its length is this row's. ##~}}
+        {{ column_view.length_read }}
+        {{ column_view.element_container }} = {}
+        for element = 1, elementCount do
+          {{ column_view.element_target }} = {{ column_view.read_element }}
+        end
+{{~ else ~}}
+        {{ column_view.scalar_target }} = {{ column_view.read_scalar }}
+{{~ end ~}}
+      end
+{{~ end ~}}
+{{~ if column_view.is_nullable }}
+      -- A pass of its own rather than a line inside each read shape, so the row index
+      -- is worked out once. The block carries a value for every row, so an absent one
+      -- has just been given whatever was there; putting the empty value back is what
+      -- makes this path agree with the JSON one.
+      for i = 1, count do
+        local record = records[i]
+
+        {{ column_view.presence_target }} = tcb.isPresent(presence, i - 1)
+
+        if not {{ column_view.presence_target }} then
+          {{ column_view.empty_target }} = {{ column_view.empty_value }}
+        end
+      end
+{{~ end ~}}
+{{~ end ~}}
+    else
+      -- A column added after this code was generated.
+      reader:skip(column.byteLength)
+    end
+
+    tcb.checkBlockEnd(reader, column, blockEnd)
+  end
+{{~ for index in table.indexes }}
+  local {{ index.map_name }} = {}
+
+  for i = 1, #records do
+{{~ if index.normalizes_int64 ~}}
+    {{ index.map_name }}[tcb.int64String(records[i]{{ index.access }})] = records[i]
+{{~ else ~}}
+    {{ index.map_name }}[records[i]{{ index.access }}] = records[i]
+{{~ end ~}}
+  end
+{{~ end }}
+  -- Published, now that every column read.
+  self.records = records
+{{~ for index in table.indexes ~}}
+  self.{{ index.map_name }} = {{ index.map_name }}
+{{~ end ~}}
+end
+
+-- The same load from a file on disk.
+function {{ table.table_name }}:read(filename)
+  self:readBytes(tcb.readAllBytes(filename))
+end
+
+return {{ table.table_name }}

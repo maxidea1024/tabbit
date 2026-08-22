@@ -63,10 +63,9 @@ export class MountRecord {
 
   /** element 1, two levels in */
   public get rig(): RigEntry[] { return this._rig }
-  public static readonly rig_N: number = 2
 
   public _index: number = 0
-  public _rig: RigEntry[] = Array.from({ length: 2 }, () => ({ core: { itemId: undefined, itemId_index: 0, itemId_F: false, count: 0 } }))
+  public _rig: RigEntry[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -201,7 +200,7 @@ export class MountTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Mount.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Mount.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Mount.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -210,20 +209,25 @@ export class MountTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Mount.Rig.Core.ItemId', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Mount.Rig.Core.ItemId', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Mount.Rig.Core.ItemId')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            record._rig = Array.from({ length: elementCount }, () => ({ core: { itemId: undefined, itemId_index: 0, itemId_F: false, count: 0 } }))
+            for (let j = 0; j < elementCount; ++j)
               record._rig[j].core.itemId_index = cursor.nextI32()
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Mount.Rig.Core.Count', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Mount.Rig.Core.Count', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Mount.Rig.Core.Count')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            if (record._rig.length !== elementCount)
+              throw new Error(`Mount.Rig: the file gives this row ${elementCount} elements for one member of the record and ${record._rig.length} for another. Every member of a record carries the same element count, so the file is damaged.`)
+            for (let j = 0; j < elementCount; ++j)
               record._rig[j].core.count = cursor.nextI32()
           }
           break

@@ -82,7 +82,6 @@ internal static class ModelFactory
                     {
                         Location = At(name, column, row + 2),
                         Value = rows[row][column]?.ToString() ?? "",
-                        Note = "",
                     },
                 });
             }

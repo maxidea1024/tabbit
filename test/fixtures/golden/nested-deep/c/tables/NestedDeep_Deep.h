@@ -41,7 +41,8 @@ struct NestedDeep_DeepRecord_t {
   /* primary index */
   int32_t index;
   /* element 1, a value beside a record */
-  struct NestedDeep_DeepRecord_t_star_entry star[2];
+  struct NestedDeep_DeepRecord_t_star_entry* star;
+  int32_t star_count;
 };
 
 /* Every row of Deep.

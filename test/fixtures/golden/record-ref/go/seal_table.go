@@ -108,14 +108,14 @@ func (t *SealTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Seal.Index", tabbit.KindScalar, 1, false, tabbit.ElementUUID) {
+			if tabbit.CheckColumn(reader, column, "Seal.Index", tabbit.KindScalar, false, tabbit.ElementUUID) {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					r.Index = reader.ReadUUID()
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Seal.Label", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Seal.Label", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Seal.Label")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -126,7 +126,7 @@ func (t *SealTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Seal.Pad", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Seal.Pad", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Seal.Pad")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -137,7 +137,7 @@ func (t *SealTable) Read(filename string) error {
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Seal.Pad2", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Seal.Pad2", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Seal.Pad2")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -148,7 +148,7 @@ func (t *SealTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Seal.Pad3", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Seal.Pad3", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Seal.Pad3")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)

@@ -29,10 +29,11 @@ final class {{ rt.type_name }}
 {{~ end ~}}
 {{~ if rt.constructor_lines | array.size > 0 }}
     /**
-     * The levels below, built.
+     * What cannot be built at a declaration: the levels below, and the lists whose positions
+     * have to be there before anything fills one.
      *
-     * They cannot be built at their declarations: a PHP property initializer has to be a
-     * constant expression, and a typed property left unset is an error to read.
+     * A PHP property initializer has to be a constant expression, and a typed property left
+     * unset is an error to read.
      */
     public function __construct()
     {
@@ -40,6 +41,34 @@ final class {{ rt.type_name }}
         {{ line }}
 {{~ end ~}}
     }
+{{~ end ~}}
+{{~## The per-target methods of every member of this class that reaches several tables. One
+   taking the element number where the member is the array, which is the third place an element
+   number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+    /** The {{ target.record_name }} row element `$at` of ${{ multi.key_member }} names, or null when that element names a row of one of the others. */
+    public function {{ target.method }}(int $at): ?{{ target.record_name }}
+    {
+        if ($this->{{ multi.target_member }}[$at] !== {{ multi.target_type_name }}::{{ target.case }}) {
+            return null;
+        }
+
+        return $this->{{ multi.slot_member }}[$at];
+    }
+{{~ else ~}}
+    /** The {{ target.record_name }} row ${{ multi.key_member }} names, or null when it names a row of one of the others. */
+    public function {{ target.method }}(): ?{{ target.record_name }}
+    {
+        if ($this->{{ multi.target_member }} !== {{ multi.target_type_name }}::{{ target.case }}) {
+            return null;
+        }
+
+        return $this->{{ multi.slot_member }};
+    }
+{{~ end ~}}
+{{~ end ~}}
 {{~ end ~}}
 }
 
@@ -61,6 +90,28 @@ final class {{ table.record_name }}
 {{~ end ~}}
 {{~ for line in field.declarations ~}}
     {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One property for the resolved row
+   whatever table it came from, and the discriminator saying which - the targets take separate
+   id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+    /** The row this column names, as whichever of its targets holds it. Read it through the methods below. */
+    public ?object ${{ ref.slot_member }} = null;
+    /** Which table this column is a row of. */
+    public {{ ref.target_type_name }} ${{ ref.target_member }} = {{ ref.target_type_name }}::{{ ref.none_case }};
+{{~ end ~}}
+{{~ for ref in table.multi_references }}
+{{~ for target in ref.targets }}
+    /** The {{ target.record_name }} row this column names, or null when it names a row of one of the others. */
+    public function {{ target.method }}(): ?{{ target.record_name }}
+    {
+        if ($this->{{ ref.target_member }} !== {{ ref.target_type_name }}::{{ target.case }}) {
+            return null;
+        }
+
+        return $this->{{ ref.slot_member }};
+    }
 {{~ end ~}}
 {{~ end ~}}
 {{~ if table.needs_constructor }}
@@ -175,6 +226,13 @@ final class {{ table.table_name }}
                     // lets the read shapes below stay as they are.
                     $presence = $reader->readPresence($column, $count);
 {{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+                    // Behind the row bitmap and in front of the values, walked with a counter
+                    // that steps once per element of every row.
+                    // spec/nullable-array-elements.md.
+                    $elementPresence = $reader->readElementPresence($column);
+                    $elementAt = 0;
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
       as well: its block states an encoding for them and one for the row lengths, and the
       cursor is what decodes both. After the presence bitmap, which sits in front of the
@@ -197,8 +255,15 @@ final class {{ table.table_name }}
 {{~ if column_view.kind == 'var_array' ~}}
                         {{ column_view.length_read }}
                         $record->{{ column_view.name }} = [];
+{{~ if column_view.has_optional_elements ~}}
+                        $record->{{ column_view.element_presence_member }} = [];
+{{~ end ~}}
                         for ($j = 0; $j < $elementCount; $j++) {
                             $record->{{ column_view.name }}[] = {{ column_view.read_element }};
+{{~ if column_view.has_optional_elements ~}}
+                            $record->{{ column_view.element_presence_member }}[] =
+                                TcbReader::isPresent($elementPresence, $elementAt++);
+{{~ end ~}}
                         }
 {{~ else if column_view.kind == 'record_var' ~}}
                         {{ column_view.length_read }}
@@ -223,30 +288,38 @@ final class {{ table.table_name }}
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner list. Which outer element it is, is which column this is - so that index is
    fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
+                        {{ column_view.length_read }}
+                        $record->{{ column_view.name }}[{{ column_view.member_at }}] = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->{{ column_view.name }}[{{ column_view.member_at }}][$j] = {{ column_view.read_element }};
                         }
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
+                        {{ column_view.length_read }}
+                        $record->{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[$j] = {{ column_view.read_element }};
                         }
-{{~ else if column_view.kind == 'record_serial' ~}}
-                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
-                            $record->{{ column_view.name }}[$j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
-                        }
-{{~ else if column_view.kind == 'serial_ref' ~}}
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. The keys go in the array beside the values, at this row's
+   length - which is what `serial_ref` below does from the column count.
+   spec/variable-length-record-arrays.md. ##~}}
+                        {{ column_view.length_read }}
                         $record->{{ column_view.name }}Index = [];
-                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
+{{~ if column_view.has_optional_elements ~}}
+                        $record->{{ column_view.element_presence_member }} = [];
+{{~ end ~}}
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->{{ column_view.name }}Index[] = {{ column_view.read_element }};
+{{~ if column_view.has_optional_elements ~}}
+                            $record->{{ column_view.element_presence_member }}[] =
+                                TcbReader::isPresent($elementPresence, $elementAt++);
+{{~ end ~}}
                         }
-                        $record->{{ column_view.name }} = \array_fill(0, {{ column_view.element_count }}, null);
-{{~ else if column_view.kind == 'serial' ~}}
-                        $record->{{ column_view.name }} = [];
-                        for ($j = 0; $j < {{ column_view.element_count }}; $j++) {
-                            $record->{{ column_view.name }}[] = {{ column_view.read_element }};
-                        }
+                        $record->{{ column_view.name }} = $elementCount > 0
+                            ? \array_fill(0, $elementCount, null)
+                            : [];
 {{~ else if column_view.kind == 'scalar_ref' ~}}
                         $record->{{ column_view.name }}Index = {{ column_view.read_element }};
 {{~ else ~}}

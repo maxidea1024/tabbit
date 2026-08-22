@@ -107,7 +107,7 @@ class ArrayTypesTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "ArrayTypes.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "ArrayTypes.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ArrayTypes.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -120,7 +120,7 @@ class ArrayTypesTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "ArrayTypes.Tags", tabbit::kKindVarArray, 0, false, {tabbit::kElementString});
+          tabbit::check_column(column, "ArrayTypes.Tags", tabbit::kKindArray, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ArrayTypes.Tags");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -133,7 +133,7 @@ class ArrayTypesTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "ArrayTypes.Costs", tabbit::kKindVarArray, 0, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "ArrayTypes.Costs", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ArrayTypes.Costs");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -146,7 +146,7 @@ class ArrayTypesTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "ArrayTypes.Weights", tabbit::kKindVarArray, 0, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "ArrayTypes.Weights", tabbit::kKindArray, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ArrayTypes.Weights");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -159,7 +159,7 @@ class ArrayTypesTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "ArrayTypes.Grades", tabbit::kKindVarArray, 0, false, {tabbit::kElementVarint});
+          tabbit::check_column(column, "ArrayTypes.Grades", tabbit::kKindArray, false, {tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ArrayTypes.Grades");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -172,13 +172,14 @@ class ArrayTypesTable {
           break;
         }
         case 6: {
-          tabbit::check_column(column, "ArrayTypes.Slot_array", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "ArrayTypes.Slot_array", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ArrayTypes.Slot_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slot_array.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.slot_array[j] = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            record.slot_array.resize(static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.slot_array[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;

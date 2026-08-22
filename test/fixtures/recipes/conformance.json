@@ -24,7 +24,7 @@
 
       // Signed, so that every harness walks the MAC path over a file the converter
       // actually wrote rather than one a test built. The key is committed beside the
-      // fixtures and protects nothing - what it buys is that the thirteen readers can
+      // fixtures and protects nothing - what it buys is that the readers can
       // be handed the same signed corpus without a variable to remember.
       // test/fixtures/keys/readme.md · spec/tcb-mac-and-signature.md.
       "MacKeyFile": "test/fixtures/keys/conformance-mac.key"
@@ -96,6 +96,17 @@
       "Path": "test/fixtures/output/conformance/kotlin",
       "PackageName": "conformance",
       "AccessorName": "ConformanceData",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "swift",
+      "Path": "test/fixtures/output/conformance/swift",
+      "AccessorName": "ConformanceData",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "lua",
+      "Path": "test/fixtures/output/conformance/lua",
       "BinaryTableFileExtension": ".tcb"
     },
     {

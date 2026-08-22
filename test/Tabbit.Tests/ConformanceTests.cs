@@ -247,6 +247,139 @@ public class ConformanceTests
     }
 
     /// <summary>
+    /// Swift, whose reader is the one that has a dependency to be without.
+    /// </summary>
+    /// <remarks>
+    /// The harness builds through SwiftPM with swift-crypto, because the corpus is signed
+    /// and verifying a MAC needs HMAC-SHA-256 - which comes from CryptoKit on Apple
+    /// platforms and from that package everywhere else. That the same output also compiles
+    /// with no package at all is `Generated_swift_compiles_without_a_crypto_package`, and
+    /// the pair is what keeps the reader's three crypto states from quietly becoming two.
+    /// spec/swift-language-support.md.
+    /// </remarks>
+    [Fact]
+    public void Generated_swift_reader_matches_the_corpus()
+    {
+        var expected = Expected();
+
+        Assert.True(ConformanceHarness.SwiftIsAvailable(out string why),
+            $"A Swift toolchain is required to check the generated Swift. {why}");
+
+        var harness = ConformanceHarness.RunSwift(Scenario);
+        Assert.True(harness.Succeeded, $"Swift harness failed.{Environment.NewLine}{harness.Output}");
+
+        Compare("Swift", expected, Parse(harness.StdOut));
+    }
+
+    /// <summary>
+    /// The generated Swift, type-checked with no crypto package and warnings as errors.
+    /// </summary>
+    /// <remarks>
+    /// Not a second conformance run: what this asks is whether the output a project gets
+    /// without adding anything still builds. The reader answers a MAC it cannot verify with
+    /// a message naming the package to add, and that path is only compiled here.
+    ///
+    /// Warnings as errors because this code lands in somebody else's build. It has already
+    /// caught one: a subnormal double literal, which parses to the right value and warns
+    /// that it underflowed.
+    /// </remarks>
+    [Fact]
+    public void Generated_swift_compiles_without_a_crypto_package()
+    {
+        // For the conversion, which is what writes the sources this type-checks. Its rows
+        // are the other gate's business.
+        Expected();
+
+        Assert.True(ConformanceHarness.SwiftIsAvailable(out string why),
+            $"A Swift toolchain is required to check the generated Swift. {why}");
+
+        var check = ConformanceHarness.CompileSwift(Scenario);
+
+        Assert.True(check.Succeeded,
+            $"The generated Swift does not compile without swift-crypto."
+            + $"{Environment.NewLine}{check.Output}");
+    }
+
+    /// <summary>
+    /// Lua, run under a host the suite builds: the vendored 5.4 interpreter, the
+    /// embedder and the generated native module compiled together by the C toolchain -
+    /// which is the integration shape a game engine embedding Lua has, and why nothing
+    /// Lua is looked for on PATH.
+    /// </summary>
+    /// <remarks>
+    /// The corpus is signed and the harness sets the key, so this run verifies the MAC
+    /// through the native module on every read. spec/lua-language-support.md.
+    /// </remarks>
+    [Fact]
+    public void Generated_lua_reader_matches_the_corpus()
+    {
+        var expected = Expected();
+
+        Assert.True(ConformanceHarness.LuaIsAvailable(out string why),
+            $"A C toolchain is required to build the Lua host. {why}");
+
+        var harness = ConformanceHarness.RunLua(Scenario);
+        Assert.True(harness.Succeeded, $"Lua harness failed.{Environment.NewLine}{harness.Output}");
+
+        Compare("Lua", expected, Parse(harness.StdOut));
+    }
+
+    /// <summary>
+    /// The same read with tabbit.native unregistered and no key: the reader's promise
+    /// that a project using neither encryption nor MAC needs no C module.
+    /// </summary>
+    /// <remarks>
+    /// The pure-Lua counterpart of Swift's no-package compile: without this gate the
+    /// reader's three states - native module, no module over plain files, no module
+    /// over sealed files - would quietly become two, because every other Lua gate runs
+    /// with the module registered. A keyless reader reading a signed corpus is a legal
+    /// path of its own, so the values still have to match.
+    /// </remarks>
+    [Fact]
+    public void Generated_lua_reader_matches_the_corpus_without_the_native_module()
+    {
+        var expected = Expected();
+
+        Assert.True(ConformanceHarness.LuaIsAvailable(out string why),
+            $"A C toolchain is required to build the Lua host. {why}");
+
+        var harness = ConformanceHarness.RunLua(Scenario, environment: new Dictionary<string, string>
+        {
+            ["TABBIT_LUA_NO_NATIVE"] = "1",
+            [ConformanceHarness.MacKeyVariable] = "",
+        });
+
+        Assert.True(harness.Succeeded,
+            $"Lua harness failed without the native module.{Environment.NewLine}{harness.Output}");
+
+        Compare("Lua (no native module)", expected, Parse(harness.StdOut));
+    }
+
+    /// <summary>
+    /// The same read under LuaJIT, whose numeric backend is FFI cdata rather than 5.3
+    /// integers - the mode the first consuming project embeds.
+    /// </summary>
+    /// <remarks>
+    /// Opt-in like the Unreal gate: set `TABBIT_LUAJIT` to a luajit executable. Keyless,
+    /// because a keyed run needs the native module built against that LuaJIT's own
+    /// import library - a consumer's build system's job. The FFI backend's int64
+    /// arithmetic is exactly what this compares. spec/lua-language-support.md.
+    /// </remarks>
+    [Fact]
+    public void Generated_lua_reader_matches_the_corpus_on_luajit()
+    {
+        var expected = Expected();
+
+        if (string.IsNullOrEmpty(ConformanceHarness.LuaJitExecutable))
+            return;
+
+        var harness = ConformanceHarness.RunLuaJit(Scenario);
+        Assert.True(harness.Succeeded, $"LuaJIT harness failed.{Environment.NewLine}{harness.Output}");
+
+        Compare("LuaJIT", expected, Parse(harness.StdOut));
+    }
+
+    /// <summary>
     /// Ruby, whose Integer is arbitrary precision.
     ///
     /// That removes the 64-bit trap the other dynamic languages have and leaves the

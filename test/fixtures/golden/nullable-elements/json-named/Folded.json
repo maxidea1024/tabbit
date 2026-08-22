@@ -1,0 +1,34 @@
+[
+  {
+    "index": 1,
+    "tagArray": [
+      "a",
+      "b",
+      "c"
+    ]
+  },
+  {
+    "index": 2,
+    "tagArray": [
+      "a",
+      null,
+      "c"
+    ]
+  },
+  {
+    "index": 3,
+    "tagArray": [
+      null,
+      "b",
+      "c"
+    ]
+  },
+  {
+    "index": 4,
+    "tagArray": [
+      "a",
+      "",
+      "c"
+    ]
+  }
+]

@@ -4,6 +4,8 @@ using Serilog;
 using Tabbit.Models;
 using Tabbit.Recipe;
 using Tabbit.Targets;
+using Tabbit.Messages;
+using System.Threading;
 
 namespace Tabbit.Cooking;
 
@@ -45,6 +47,12 @@ public partial class ModelCooker
     /// sheets are clean" from "the check never ran" - and this check is one whose columns
     /// go unjudged for a legitimate reason, so the two really do have to be told apart.
     /// </remarks>
+    /// <remarks>
+    /// Added to with <see cref="System.Threading.Interlocked"/>, because the tables that count
+    /// into these are checked at the same time. A `++` on a shared field loses increments
+    /// under a race, and a coverage number that is quietly low is worse than none - the whole
+    /// reason these are reported is to tell "nothing was wrong" from "nothing was checked".
+    /// </remarks>
     private int _checkedReferencedTables;
     private int _uncheckedReferencedTables;
     private int _rowsAgainstReferencedTables;
@@ -57,15 +65,46 @@ public partial class ModelCooker
 
         ReportAssetSetup(model, diagnostics);
 
-        foreach (var table in model.Tables)
+        // Before the checks about what the cells hold, because this one is about the model's
+        // own vocabulary: a name written two ways is what makes the reports below name two
+        // things where the sheets meant one. Read here rather than earlier so a misspelled
+        // setting is reported alongside the rest instead of stopping the run on its own.
+        ValidateNaming(model, NamingRules.From(recipeModel.Naming), diagnostics);
+
+        // Checked one table at a time, at the same time.
+        //
+        // **A table's checks read that table and the tables it points at, and write nothing to
+        // either.** What they produce is reports, and each table's go into a collector of its
+        // own - which is then absorbed below in the model's own table order, so the report
+        // reads exactly as it did when this loop was sequential. That order is the whole of
+        // what a reader of the report relies on, and it is not something a thread schedule
+        // should get to decide. spec/conversion-time.md section 5.
+        var perTable = new Diagnostics[model.Tables.Count];
+
+        System.Threading.Tasks.Parallel.For(0, model.Tables.Count, at =>
         {
-            ValidateIndexUniqueness(table, diagnostics);
-            ValidateReferences(model, table, diagnostics);
-            ValidateReferencedTables(model, table, diagnostics);
-            ValidateColumnConstraints(table, diagnostics);
-            ValidateArrayGaps(table, diagnostics);
-            ValidateRequiredInRecord(table, diagnostics);
-        }
+            var table = model.Tables[at];
+            var found = new Diagnostics { PromoteWarnings = diagnostics.PromoteWarnings };
+
+            perTable[at] = found;
+
+            // Once per set of rows the table has. A table with one set - nearly all of them -
+            // runs this once, and every rule below asks its questions of the set rather than
+            // of the table, because a second set is data the first knows nothing about.
+            // spec/table-row-sets.md.
+            foreach (var rowSet in table.RowSets)
+            {
+                ValidateIndexUniqueness(table, rowSet, found);
+                ValidateReferences(model, table, rowSet, found);
+                ValidateReferencedTables(model, table, rowSet, found);
+                ValidateColumnConstraints(table, rowSet, found);
+                ValidateArrayGaps(table, rowSet, found);
+                ValidateRequiredInRecord(table, rowSet, found);
+            }
+        });
+
+        foreach (var found in perTable)
+            diagnostics.Absorb(found);
 
         ReportReferencedTableCoverage();
 
@@ -113,7 +152,7 @@ public partial class ModelCooker
     ///
     /// spec/variable-length-record-arrays.md has the rule and `AllowArrayGaps`.
     /// </remarks>
-    private static void ValidateArrayGaps(Table table, Diagnostics diagnostics)
+    private static void ValidateArrayGaps(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         if (table.AllowArrayGaps)
             return;
@@ -123,7 +162,14 @@ public partial class ModelCooker
             if (!group.IsArray || group.IsVariableLengthArray)
                 continue;
 
-            foreach (var row in table.Data)
+            // A column that says its elements may be absent has said what a hole means, and
+            // it is not a mistake. What this check exists for is the array whose elements are
+            // required, where a hole reads as the type's empty value and nothing in the sheet
+            // asked for it. spec/nullable-array-elements.md.
+            if (group.ElementMayBeAbsent)
+                continue;
+
+            foreach (var row in rowSet.Rows)
             {
                 int count = table.ElementCountIn(group, row);
 
@@ -140,11 +186,8 @@ public partial class ModelCooker
                         : group.Fields[element]).Index];
 
                     diagnostics.Error(cell.RawCell?.Location,
-                        $"`{table.Name}.{group.Name}` leaves element {element} empty while a "
-                        + $"later element has a value. An array with a gap in it reads as one "
-                        + $"whose middle holds the type's empty value, which a consumer cannot "
-                        + $"tell from a value that was written. Fill it, move the later values "
-                        + $"up, or set `AllowArrayGaps` on the source entry.");
+                        Message.Of(CookingMessages.ArrayGap,
+                            ("Table", table.Name), ("Group", group.Name), ("Element", element)));
                 }
             }
         }
@@ -172,23 +215,36 @@ public partial class ModelCooker
     /// worth pinning is the rule reading a sheet, and running the whole cooker to reach it
     /// would test the cooker instead.
     /// </remarks>
-    internal static void ValidateRequiredInRecord(Table table, Diagnostics diagnostics)
+    internal static void ValidateRequiredInRecord(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         foreach (var group in table.SerialFields)
         {
             if (!group.IsRecord)
             {
-                // Nothing to be inside of. A sheet that marks a flat column this way meant
-                // `:required`, and saying so beats letting the mark do nothing - which is
-                // what it did before anything read the row at all.
+                // A column outside any record, marked required inside one. There is no object
+                // for it to be inside, so what the mark can mean is the one thing left: the
+                // column must hold a value.
+                //
+                // **Read that way rather than refused.** It was refused, on the grounds that
+                // the mark belonged on the `required` row instead - but the checker these
+                // sheets are written for does not draw that line. Its helper takes the row as
+                // the object and reports a column of it that holds nothing, so a flat column
+                // marked this way is checked there exactly as `required` would be. Refusing
+                // it here made 105 marks across 22 tables an error in a corpus where they are
+                // not one, and those tables export without complaint today.
                 foreach (var field in group.Fields)
                 {
-                    if (field.Constraints.RequiredInRecord)
+                    if (!field.Constraints.RequiredInRecord)
+                        continue;
+
+                    foreach (var row in rowSet.Rows)
                     {
-                        diagnostics.Error(field.Constraints.RequiredInRecordLocation,
-                            $"`{table.Name}.{field.Name}` is marked required inside its object, "
-                            + $"but it is not a member of one. A column that is not part of a "
-                            + $"record has no object to be inside; mark it required instead.");
+                        if (field.Index < row.Count && !row[field.Index].HasValue)
+                        {
+                            diagnostics.Error(row[field.Index].RawCell?.Location,
+                                Message.Of(CookingMessages.RequiredInObjectOutsideObject,
+                                    ("Table", table.Name), ("Field", field.Name)));
+                        }
                     }
                 }
 
@@ -200,7 +256,7 @@ public partial class ModelCooker
                 if (!member.Leaves.Any(leaf => leaf.Fields.Any(f => f.Constraints.RequiredInRecord)))
                     continue;
 
-                foreach (var row in table.Data)
+                foreach (var row in rowSet.Rows)
                 {
                     int count = table.ElementCountIn(group, row);
 
@@ -220,10 +276,9 @@ public partial class ModelCooker
                                 continue;
 
                             diagnostics.Error(row[field.Index].RawCell?.Location,
-                                $"`{table.Name}.{group.Name}` element {element} exists and its "
-                                + $"`{member.Name}` is empty, which the sheet marks as required "
-                                + $"inside the object. Give it a value, or clear the rest of the "
-                                + $"element so that there is no record here.");
+                                Message.Of(CookingMessages.RecordMemberRequiredEmpty,
+                                    ("Table", table.Name), ("Group", group.Name),
+                                    ("Element", element), ("Member", member.Name)));
                         }
                     }
                 }
@@ -252,16 +307,14 @@ public partial class ModelCooker
         if (_assets is null)
         {
             diagnostics.Warn(null,
-                $"{columns} column(s) are typed `asset` and no folders are configured to check "
-                + $"them against, so nothing was checked. Name the folders in the recipe's "
-                + $"`Assets.Roots` to switch the check on.");
+                Message.Of(CookingMessages.AssetNoRoots, ("Columns", columns)));
             return;
         }
 
         if (_assets.OnMissingSeverity is null)
         {
-            diagnostics.Info(
-                $"{columns} column(s) are typed `asset`, and `Assets.OnMissing` is `ignore`.");
+            diagnostics.Info(null,
+                Message.Of(CookingMessages.AssetCheckIgnored, ("Columns", columns)));
         }
     }
 
@@ -273,7 +326,7 @@ public partial class ModelCooker
     /// `field.Indexing` was set, the exact inverse of what it wanted, so it only
     /// ever examined the columns where duplicates are perfectly legal.
     /// </summary>
-    private void ValidateIndexUniqueness(Table table, Diagnostics diagnostics)
+    private void ValidateIndexUniqueness(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         foreach (var field in table.Fields)
         {
@@ -282,9 +335,13 @@ public partial class ModelCooker
 
             if (!Models.ValueTypes.CanBeIndexKey(field.Type, out string? why))
             {
+                // `Why` is still a sentence built elsewhere - ValueTypes hands it over as
+                // text. It reads as English inside a translated sentence until that call
+                // site gets an id of its own, which is the next thing owed here.
                 diagnostics.Error(field.TypeLocation,
-                    $"Index field `{table.Name}.{field.Name}` is `{field.TypeName}`, {why}" +
-                    $" Use a whole-number, string, uuid or enum column as an index.");
+                    Message.Of(CookingMessages.IndexTypeUnusable,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Type", field.TypeName), ("Why", why)));
                 continue;
             }
 
@@ -294,8 +351,8 @@ public partial class ModelCooker
             if (!field.IsRequired)
             {
                 diagnostics.Error(field.TypeLocation,
-                    $"Index field `{table.Name}.{field.Name}` cannot be optional: " +
-                    $"drop the `?` from its type, because every row must have a value for an index.");
+                    Message.Of(CookingMessages.IndexOptional,
+                        ("Table", table.Name), ("Field", field.Name)));
                 continue;
             }
 
@@ -304,7 +361,7 @@ public partial class ModelCooker
             // the slowest thing the converter does.
             var seen = new Dictionary<object, Location>();
 
-            foreach (var row in table.Data)
+            foreach (var row in rowSet.Rows)
             {
                 var cell = row[field.Index];
 
@@ -314,8 +371,9 @@ public partial class ModelCooker
                 if (seen.TryGetValue(cell.Value!, out var firstLocation))
                 {
                     diagnostics.Error(cell.RawCell.Location,
-                        $"Index field `{table.Name}.{field.Name}` repeats the value `{cell.Value}`, " +
-                        $"first used at {firstLocation}. Values in an index field must be unique.");
+                        Message.Of(CookingMessages.IndexDuplicate,
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Value", cell.Value), ("First", firstLocation)));
                     continue;
                 }
 
@@ -328,8 +386,25 @@ public partial class ModelCooker
     /// Checks that every foreign reference points at something that exists: the
     /// table, the field within it, and a row carrying the referenced key.
     /// </summary>
-    private void ValidateReferences(Model model, Table table, Diagnostics diagnostics)
+    private void ValidateReferences(Model model, Table table, RowSet rowSet, Diagnostics diagnostics)
     {
+        // Which array element each column is, for the same reason the constraint walk goes
+        // by group: in a table that trims, the columns past a row's last value are not empty
+        // cells but absent elements, and a check that walks the flat columns would hold every
+        // short row's tail against rules meant for values.
+        var arrayElements = new Dictionary<Field, (SerialField Group, int Element)>();
+        foreach (var group in table.SerialFields)
+        {
+            if (!group.IsArray)
+                continue;
+
+            foreach (var member in Columns(group))
+            {
+                for (int at = 0; at < member.Count; at++)
+                    arrayElements[member[at]] = (group, at);
+            }
+        }
+
         foreach (var field in table.Fields)
         {
             if (!field.IsRef)
@@ -349,21 +424,18 @@ public partial class ModelCooker
             // `enum` is the one exception, and it is a gap rather than a rule: an enum's
             // value travels zig-zag encoded rather than at a fixed width, so the read is the
             // one call the shared table has no entry for - by design, since each language
-            // spells its own enum. Said here rather than left to thirteen generators, where
+            // spells its own enum. Said here rather than left to the generators, where
             // it would surface as whichever of them a project reached first.
             if (field.RefKeyType == Models.ValueType.Enum)
             {
                 diagnostics.Error(field.DetailTypeLocation,
-                    $"`{table.Name}.{field.Name}` references `{field.ResolvedRefTable.Name}`, whose "
-                    + $"index is an enum. Every other key type can be referenced; this one cannot "
-                    + $"yet, because an enum travels in an encoding of its own and the generated "
-                    + $"readers have no call for it here. Key `{field.ResolvedRefTable.Name}` by the "
-                    + $"enum's underlying `int`, or carry the value here as that enum and look the "
-                    + $"row up through `{field.ResolvedRefTable.Name}`'s own index.");
+                    Message.Of(CookingMessages.ReferenceEnumKey,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Target", field.ResolvedRefTable.Name)));
                 continue;
             }
 
-            ValidateReferencedKeysExist(table, field, field.ResolvedRefTable, diagnostics);
+            ValidateReferencedKeysExist(table, rowSet, field, field.ResolvedRefTable, arrayElements, diagnostics);
         }
     }
 
@@ -372,30 +444,58 @@ public partial class ModelCooker
     /// has to match a row in the target table, and a column that says it must hold
     /// something has to have been filled in.
     /// </summary>
-    private void ValidateReferencedKeysExist(Table table, Field field, Table foreignTable, Diagnostics diagnostics)
+    private void ValidateReferencedKeysExist(
+        Table table, RowSet rowSet, Field field, Table foreignTable,
+        Dictionary<Field, (SerialField Group, int Element)> arrayElements, Diagnostics diagnostics)
     {
         // Whether a row filled the cell in at all is a question about this column and
         // nothing else, so it is asked before the target is read. Asked after, a target
         // with no columns takes the empty cells out with it through the return below -
         // and those used to be stopped by the value parser, so letting them past here
         // would be a refusal quietly lost. spec/reference-optionality.md.
-        if (field.IsRequired)
         {
-            foreach (var row in table.Data)
+            bool isArrayElement = arrayElements.TryGetValue(field, out var place);
+
+            foreach (var row in rowSet.Rows)
             {
                 var cell = row[field.Index];
                 if (cell.HasValue)
                     continue;
 
-                // A cell nobody filled in. It parses to zero like a written zero does, so
-                // the value cannot tell the two apart, and the column's own declaration is
-                // what answers instead. Both ways out are named because which one is right
-                // is the author's call - the row may be missing a target, or the column may
-                // have been marked required by habit.
-                diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                    $"Field `{table.Name}.{field.Name}` references `{foreignTable.Name}` and this "
-                    + $"row leaves it empty, but the column is declared required. Give it a row "
-                    + $"to point at, or declare the column optional.");
+                // Past the row's last value in a table that trims, this column is not an
+                // empty cell but an element the row does not have - the same answer the
+                // constraint checks and the exporters give.
+                if (isArrayElement && place.Element >= table.ElementCountIn(place.Group, row))
+                    continue;
+
+                // A blank cell is refused whether or not the column allows absence: it is a
+                // cell nobody filled in, and a row that points at nothing says so with `-`.
+                // The reading is not refused where it happens, because whether an empty cell
+                // is a cell at all is the question the two skips above answer.
+                //
+                // Read off the cell's own text rather than a flag, so that the one absence
+                // nobody wrote - a column another set of this table's rows does not have -
+                // is not reported as a blank the author left. Its cell borrows the row's
+                // first location, which holds the index and is never empty.
+                if (string.IsNullOrEmpty((cell.RawCell?.Value ?? "").Trim()))
+                {
+                    diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
+                        Message.Of(CookingMessages.ReferenceBlank,
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Target", foreignTable.Name)));
+                    continue;
+                }
+
+                // `-`, in a column that did not say a row may have none. Both ways out are
+                // named because which one is right is the author's call - the row may be
+                // missing a target, or the column may have been marked required by habit.
+                if (field.IsRequired)
+                {
+                    diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
+                        Message.Of(CookingMessages.ReferenceNoneButRequired,
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Target", foreignTable.Name)));
+                }
             }
         }
 
@@ -404,11 +504,9 @@ public partial class ModelCooker
 
         // Whichever form a reference takes, the cell stores the target's primary
         // index, so the keys to match against all live in its first column.
-        var foreignKeys = new HashSet<object>();
-        foreach (var foreignRow in foreignTable.Data)
-            foreignKeys.Add(foreignRow[foreignTable.Fields[0].Index].Value!);
+        var foreignKeys = KeysOf(foreignTable, rowSet);
 
-        foreach (var row in table.Data)
+        foreach (var row in rowSet.Rows)
         {
             var cell = row[field.Index];
 
@@ -428,9 +526,76 @@ public partial class ModelCooker
                 continue;
 
             diagnostics.Error(cell.RawCell.Location,
-                $"Field `{table.Name}.{field.Name}` references `{foreignTable.Name}` row `{cell.Value}`, " +
-                $"which does not exist.");
+                Message.Of(CookingMessages.ReferenceMissingRow,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Target", foreignTable.Name), ("Value", cell.Value)));
         }
+    }
+
+    /// <summary>
+    /// A referenced table's primary keys, for the set of rows a reference belongs to.
+    /// </summary>
+    /// <remarks>
+    /// **Kept, because a popular table is referenced by many columns.** The set is a
+    /// property of the target and of which set of its rows is in view, and neither of those
+    /// changes as the referencing columns are walked - so building it per column meant
+    /// walking one table's rows once for every column in the project that points at it. On
+    /// the sample project that was 2.71 s of the validation pass.
+    ///
+    /// Keyed by the target itself rather than by its name: two tables with one name is a
+    /// finding somewhere else, and this is not the place that should quietly merge them.
+    /// spec/conversion-time.md section 4.
+    /// </remarks>
+    /// <remarks>
+    /// Concurrent because the tables are checked at the same time, and a popular target is
+    /// exactly the one several of them ask about at once. Two threads may both build the set
+    /// for the same target - which costs one wasted pass and yields the same set either way -
+    /// and only one of them is kept.
+    /// </remarks>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<(Table Target, string RowSet), HashSet<object>> _foreignKeys = new();
+
+    private HashSet<object> KeysOf(Table foreignTable, RowSet rowSet)
+    {
+        if (_foreignKeys.TryGetValue((foreignTable, rowSet.Name), out var cached))
+            return cached;
+
+        var keys = new HashSet<object>();
+
+        foreach (var foreignRow in RowsToMatchAgainst(foreignTable, rowSet))
+            keys.Add(foreignRow[foreignTable.Fields[0].Index].Value!);
+
+        return _foreignKeys.GetOrAdd((foreignTable, rowSet.Name), keys);
+    }
+
+    /// <summary>
+    /// Which of a referenced table's rows a reference in this set of rows points into.
+    /// </summary>
+    /// <remarks>
+    /// The set with the same name when the target has one, and the target's own set
+    /// otherwise. A second set of rows is a second world: a row written for one build refers
+    /// to the rows that build loads, so checking it against the first set's ids answers a
+    /// question nobody asked.
+    ///
+    /// The fallback is not a leniency but the common case. Only a handful of tables have
+    /// more than one set, so a row in one nearly always points at a table that has just the
+    /// one - measured on the sample project: 81 tables with a second set out of 537.
+    ///
+    /// **What this asks of whoever loads the files**: a build reading one set has to read
+    /// that set of every table that has one. That condition is the whole of what makes this
+    /// check match what happens at runtime, and it is stated in spec/table-row-sets.md.
+    /// </remarks>
+    private static List<List<Cell>> RowsToMatchAgainst(Table foreignTable, RowSet rowSet)
+    {
+        if (rowSet.Name.Length == 0)
+            return foreignTable.Data;
+
+        foreach (var theirs in foreignTable.ExtraRowSets)
+        {
+            if (string.Equals(theirs.Name, rowSet.Name, System.StringComparison.Ordinal))
+                return theirs.Rows;
+        }
+
+        return foreignTable.Data;
     }
 
     /// <summary>
@@ -450,10 +615,26 @@ public partial class ModelCooker
     /// worth pinning is the rule reading a sheet, and running the whole cooker to reach it
     /// would test the cooker instead.
     /// </remarks>
-    internal void ValidateReferencedTables(Model model, Table table, Diagnostics diagnostics)
+    internal void ValidateReferencedTables(Model model, Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         foreach (var field in table.Fields)
         {
+            // A column that resolved to several tables is checked against those, whichever
+            // notation declared it. The list used to be read off the column constraint,
+            // which only one layout fills - so the same declaration written in the core
+            // layout got no existence check and, worse, no overlap check. The accessors rest
+            // on there being at most one target holding a given id, so that check may not
+            // depend on which notation was used. spec/multi-target-accessors.md.
+            if (field.ResolvedRefTables is { Count: > 0 })
+            {
+                Interlocked.Increment(ref _checkedReferencedTables);
+                Interlocked.Add(ref _rowsAgainstReferencedTables, rowSet.Rows.Count);
+
+                CheckKeyBandsDoNotOverlap(table, field, field.ResolvedRefTables, diagnostics);
+                CheckValuesExistIn(table, rowSet, field, field.ResolvedRefTables, diagnostics);
+                continue;
+            }
+
             var named = field.Constraints.ReferencedTables;
             if (named is null || named.Count == 0)
                 continue;
@@ -489,23 +670,24 @@ public partial class ModelCooker
                 // from a table this build does not read, and refusing would stop every
                 // narrow build over a declaration aimed at a wider one. `TreatWarningsAsErrors`
                 // is what a pipeline that wants the stricter reading already has.
-                Log.Warning(
-                    $"`{table.Name}.{field.Name}` says its value is a row of "
-                    + $"`{string.Join("`, `", missing)}`, which this build does not contain. "
-                    + $"The column is not checked.\n    at {field.Constraints.ReferencedTablesLocation}");
+                Log.Warning(Message.Of(CookingMessages.LogReferencedTablesUnchecked,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Missing", string.Join("`, `", missing)),
+                    ("At", field.Constraints.ReferencedTablesLocation))
+                    .In(MessageCatalog.Current));
 
-                _uncheckedReferencedTables++;
+                Interlocked.Increment(ref _uncheckedReferencedTables);
                 continue;
             }
 
             if (targets.Count == 0)
                 continue;
 
-            _checkedReferencedTables++;
-            _rowsAgainstReferencedTables += table.Data.Count;
+            Interlocked.Increment(ref _checkedReferencedTables);
+            Interlocked.Add(ref _rowsAgainstReferencedTables, rowSet.Rows.Count);
 
             CheckKeyBandsDoNotOverlap(table, field, targets, diagnostics);
-            CheckValuesExistIn(table, field, targets, diagnostics);
+            CheckValuesExistIn(table, rowSet, field, targets, diagnostics);
         }
     }
 
@@ -552,11 +734,10 @@ public partial class ModelCooker
                     continue;
 
                 diagnostics.Error(field.Constraints.ReferencedTablesLocation ?? field.NameLocation,
-                    $"`{table.Name}.{field.Name}` may be a row of `{targets[a].Name}` or of "
-                    + $"`{targets[b].Name}`, and both hold `{string.Join("`, `", shared)}`. An id "
-                    + $"in two of them makes the generated accessors answer together, and which "
-                    + $"row the column meant is then not in the data. Give the two tables "
-                    + $"separate id bands, or point at them from separate columns.");
+                    Message.Of(CookingMessages.MultiTargetIdOverlap,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("First", targets[a].Name), ("Second", targets[b].Name),
+                        ("Shared", string.Join("`, `", shared))));
             }
         }
     }
@@ -570,7 +751,7 @@ public partial class ModelCooker
     /// reason: the alternative walks every target table once per row.
     /// </remarks>
     private void CheckValuesExistIn(
-        Table table, Field field, List<Table> targets, Diagnostics diagnostics)
+        Table table, RowSet rowSet, Field field, List<Table> targets, Diagnostics diagnostics)
     {
         // One set for all of them. Which table an id came from is not being asked - it is
         // in one of them or it is in none.
@@ -580,13 +761,14 @@ public partial class ModelCooker
             if (target.Fields.Count == 0)
                 continue;
 
-            foreach (var targetRow in target.Data)
+            // The same set-first rule the resolved reference follows, for the same reason.
+            foreach (var targetRow in RowsToMatchAgainst(target, rowSet))
                 keys.Add(ComparableKey(targetRow[target.Fields[0].Index].Value)!);
         }
 
         string names = string.Join("`, `", targets.Select(t => t.Name));
 
-        foreach (var row in table.Data)
+        foreach (var row in rowSet.Rows)
         {
             var cell = row[field.Index];
 
@@ -600,8 +782,9 @@ public partial class ModelCooker
                 continue;
 
             diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                $"`{table.Name}.{field.Name}` holds `{cell.Value}`, which is not a row of "
-                + $"`{names}`.");
+                Message.Of(CookingMessages.MultiTargetMissingRow,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Value", cell.Value), ("Targets", names)));
         }
     }
 
@@ -684,8 +867,10 @@ public partial class ModelCooker
                         continue;
 
                     diagnostics.Error(field.DetailTypeLocation,
-                        $"In a `{TargetSides.Describe(side)}` build, field `{table.Name}.{field.Name}` references table " +
-                        $"`{field.RefTableName}`, which that build excludes by target side.");
+                        Message.Of(CookingMessages.ReferenceExcludedBySide,
+                            ("Side", TargetSides.Describe(side)),
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Target", field.RefTableName)));
                 }
             }
         }
@@ -735,7 +920,7 @@ public partial class ModelCooker
     ///
     /// spec/column-constraints.md.
     /// </remarks>
-    internal void ValidateColumnConstraints(Table table, Diagnostics diagnostics)
+    internal void ValidateColumnConstraints(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         // Walked by group rather than by column, because "is a value missing" is a question
         // about the group. An array that ends where its values end has no missing tail - the
@@ -743,7 +928,7 @@ public partial class ModelCooker
         // one by one reports the length of every short row as a fault.
         foreach (var group in table.SerialFields)
         {
-            foreach (var row in table.Data)
+            foreach (var row in rowSet.Rows)
             {
                 int elements = table.ElementCountIn(group, row);
 
@@ -784,7 +969,22 @@ public partial class ModelCooker
         // A bound written on an index states the id band it points into rather than a range
         // its own value must sit in.
         if (field.Indexing)
+        {
+            // An index has no absence to express. It is what identifies the row, and every
+            // reference into this table resolves through it, so `-` here would leave the row
+            // unidentifiable - and, since absence parses to the type's empty value, leave
+            // every such row sharing one key. `int?` on an index is refused where the column
+            // is declared; this is the same refusal against a cell.
+            // spec/blank-and-null-cells.md.
+            if (!row[field.Index].HasValue)
+            {
+                diagnostics.Error(row[field.Index].RawCell?.Location ?? field.NameLocation,
+                    Message.Of(CookingMessages.IndexAbsent,
+                        ("Table", table.Name), ("Field", field.Name)));
+            }
+
             return;
+        }
 
         var cell = row[field.Index];
 
@@ -793,8 +993,9 @@ public partial class ModelCooker
             if (field.IsRequired)
             {
                 diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                    $"`{table.Name}.{field.Name}` has no value, and the sheet declares the "
-                    + $"column required.");
+                    Message.Of(CookingMessages.RequiredEmpty,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Type", field.TypeName)));
             }
 
             // Nothing there to hold to a bound either: the empty value is the type's rather
@@ -836,12 +1037,17 @@ public partial class ModelCooker
                 string configured = string.Join(", ",
                     _assets.Kinds.Select(known => known.Length == 0 ? "(no kind)" : known));
 
-                diagnostics.Error(field.TypeLocation,
-                    $"`{table.Name}.{field.Name}` is typed "
-                    + (kind.Length == 0 ? "`asset`" : $"`asset({kind})`")
-                    + $", and the recipe configures no folder for "
-                    + (kind.Length == 0 ? "a column without a kind" : $"kind `{kind}`")
-                    + $". Configured: {configured}.");
+                // Two ids rather than one sentence with two conditionals in it. The text was
+                // already two sentences pretending to be one, and a catalog entry cannot hold
+                // an `if` - nor could a translator do anything useful with a fragment that is
+                // sometimes `asset` and sometimes `asset(icon)`.
+                diagnostics.Error(field.TypeLocation, kind.Length == 0
+                    ? Message.Of(CookingMessages.AssetNoFolderWithoutKind,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Configured", configured))
+                    : Message.Of(CookingMessages.AssetNoFolderForKind,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Kind", kind), ("Configured", configured)));
             }
 
             return;
@@ -858,9 +1064,12 @@ public partial class ModelCooker
                 continue;
 
             diagnostics.Add(severity.Value, cell.RawCell?.Location ?? field.NameLocation,
-                $"`{table.Name}.{field.Name}` names `{name}`, and no file of that name is in "
-                + (kind.Length == 0 ? "the configured folders" : $"the folders for kind `{kind}`")
-                + $".");
+                kind.Length == 0
+                    ? Message.Of(NamingMessages.AssetFileMissing,
+                        ("Table", table.Name), ("Field", field.Name), ("Name", name))
+                    : Message.Of(NamingMessages.AssetFileMissingForKind,
+                        ("Table", table.Name), ("Field", field.Name), ("Name", name),
+                        ("Kind", kind)));
         }
     }
 
@@ -892,7 +1101,15 @@ public partial class ModelCooker
         if (cell.Value is System.Array array)
         {
             for (int at = 0; at < array.Length; at++)
+            {
+                // An element the sheet said has no value holds the type's empty one, which is
+                // not a value to hold to a bound - the same answer this check gives a whole
+                // cell with no value. spec/nullable-array-elements.md.
+                if (cell.ElementHasValue is { } present && at < present.Length && !present[at])
+                    continue;
+
                 CheckOneValue(table, field, cell, array.GetValue(at)!, at, diagnostics);
+            }
 
             return;
         }
@@ -906,7 +1123,11 @@ public partial class ModelCooker
     {
         var constraints = field.Constraints;
         var location = cell.RawCell?.Location ?? field.NameLocation;
-        string where = elementAt < 0 ? "" : $" (element {elementAt})";
+        // Whether this is about a row's value or one element of its array picks the id
+        // rather than a fragment glued into the sentence. `where` used to be `""` or
+        // ` (element 3)`, which is a conditional inside a message - the one thing a catalog
+        // entry cannot hold, and a phrase a translator would have been handed blind.
+        bool isElement = elementAt >= 0;
 
         if (constraints.AllowedValues is { Count: > 0 } allowed)
         {
@@ -914,9 +1135,13 @@ public partial class ModelCooker
 
             if (!allowed.Contains(text!))
             {
-                diagnostics.Error(location,
-                    $"`{table.Name}.{field.Name}`{where} is `{text}`, which the column's list of "
-                    + $"allowed values does not name. Allowed: {string.Join(", ", allowed)}.");
+                diagnostics.Error(location, isElement
+                    ? Message.Of(CookingMessages.ElementValueNotAllowed,
+                        ("Table", table.Name), ("Field", field.Name), ("Element", elementAt),
+                        ("Value", text), ("Allowed", string.Join(", ", allowed)))
+                    : Message.Of(CookingMessages.ValueNotAllowed,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Value", text), ("Allowed", string.Join(", ", allowed))));
             }
         }
 
@@ -930,16 +1155,24 @@ public partial class ModelCooker
 
         if (constraints.Minimum is double min && number < min)
         {
-            diagnostics.Error(location,
-                $"`{table.Name}.{field.Name}`{where} is {Text(value!)}, "
-                + $"below the minimum {Text(min)} the column declares.");
+            diagnostics.Error(location, isElement
+                ? Message.Of(CookingMessages.ElementValueBelowMinimum,
+                    ("Table", table.Name), ("Field", field.Name), ("Element", elementAt),
+                    ("Value", Text(value!)), ("Minimum", Text(min)))
+                : Message.Of(CookingMessages.ValueBelowMinimum,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Value", Text(value!)), ("Minimum", Text(min))));
         }
 
         if (constraints.Maximum is double max && number > max)
         {
-            diagnostics.Error(location,
-                $"`{table.Name}.{field.Name}`{where} is {Text(value!)}, "
-                + $"above the maximum {Text(max)} the column declares.");
+            diagnostics.Error(location, isElement
+                ? Message.Of(CookingMessages.ElementValueAboveMaximum,
+                    ("Table", table.Name), ("Field", field.Name), ("Element", elementAt),
+                    ("Value", Text(value!)), ("Maximum", Text(max)))
+                : Message.Of(CookingMessages.ValueAboveMaximum,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Value", Text(value!)), ("Maximum", Text(max))));
         }
     }
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Serilog;
 using Tabbit.Cooking.Layouts;
+using Tabbit.Extensions;
 using Tabbit.Models;
 using Tabbit.Models.Raw;
 using Tabbit.Recipe;
@@ -20,30 +21,57 @@ namespace Tabbit.Cooking;
 /// </remarks>
 public partial class ModelCooker
 {
-    public Model Cook(Options options, RecipeModel recipeModel, RawModel rawModel)
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
+    /// <param name="report">
+    /// Where everything found here is kept so that it survives the run. Null when the recipe
+    /// asked for no report. spec/build-report.md.
+    /// </param>
+    public Model Cook(
+        Options options,
+        RecipeModel recipeModel,
+        RawModel rawModel,
+        Reporting.BuildReport? report = null)
     {
         var result = new Model();
 
-        var context = new CookingContext(result, recipeModel);
-
-        ParseRawModel(context, rawModel);
-
-        // Resolution and validation share one collector, so a workbook comes back
-        // with everything wrong with it rather than one problem per run.
-        //
-        // Warnings are promoted here on the same switch the validation pipeline reads. The
-        // two stages report different things but they are the same judgement - "not this
-        // time" - and a build that says it in one place and not the other has a gate with a
-        // hole in it.
+        // Made before parsing rather than after it: a table a layout cannot read is a
+        // finding about that table, and stopping there would hide every finding behind it.
         var diagnostics = new Diagnostics
         {
             PromoteWarnings = recipeModel.Validation?.TreatWarningsAsErrors ?? false,
         };
 
+        var context = new CookingContext(result, recipeModel, diagnostics);
+
+        ParseRawModel(context, rawModel);
+
+        // What was worth saying once per column rather than once per cell, now that every
+        // cell has been read and the counts are final.
+        context.ReportCellNotices();
+
+
         // Every cell has been read, so the two type kinds that existed for the reading are
         // done. Both are folds and neither is visible below this line.
         ExpandCompositeColumns(context, result, diagnostics);
         FoldBitsetIntoInt64(result);
+
+        // Tables that are really another set of some table's rows become that, before
+        // anything downstream can take them for tables of their own.
+        //
+        // After every layout, because a table and the extra sets of its rows can be read
+        // under different ones and arrive in whatever order the sheets are in. And here
+        // rather than at the end of parsing so that every mismatched pair is reported
+        // together: a project turning this on wants the list, not the first one.
+        //
+        // spec/table-row-sets.md.
+        TableRowSets.Fold(context, rawModel.Sheets, diagnostics);
+
+        // What each table's data file is called, settled here rather than by each of the
+        // seventeen programs that need it. After the fold, so a table that turned out to be
+        // another table's extra rows is not given a file name of its own.
+        NameDataFiles(result, recipeModel);
 
         // A column whose sheet named the tables its value belongs to is a reference, and
         // this is where it becomes one. Before resolution, because resolution is what it is
@@ -51,6 +79,12 @@ public partial class ModelCooker
         PromoteReferencedTablesToReferences(result);
 
         result.SolveTableCrossReferencings(diagnostics);
+
+        // Now that the targets are known, the type that says which of them a row landed in.
+        // After resolution because it is built from the resolved tables, and before anything
+        // is generated because every generator emits it through the enumeration machinery it
+        // already has.
+        DeclareMultiTargetDiscriminators(result, diagnostics);
 
         // Only now is it known what a reference cell holds. The layout kept those cells as
         // written because the target's key type is not a fact any one sheet carries, and
@@ -65,13 +99,24 @@ public partial class ModelCooker
         // problem that only exists in the server cut it is not producing.
         ValidateModel(result, recipeModel, CommandLineTargetSide.Of(options), diagnostics);
 
+        // The reports this recipe has written down stop being reports that end the run, and
+        // start being reports that say so. After every check, because an entry states how many
+        // it accounts for and that can only be counted once. spec/known-problems.md.
+        diagnostics.ApplyKnownProblems(recipeModel.Validation?.KnownProblems
+                                       ?? (IReadOnlyList<Recipe.KnownProblemRecipe>)System.Array.Empty<Recipe.KnownProblemRecipe>());
+
         // Printed before the throw, and printed at all: this stage only ever produced errors,
         // which the exception carried, so nothing here had to say anything about the reports
         // that do not stop a run. An asset that has not been drawn yet is exactly such a
         // report, and one nobody sees is one nobody writes.
         Report(diagnostics);
 
-        diagnostics.ThrowIfAny("The workbook did not pass validation.");
+        // Taken before the throw, so the report holds what did not stop the run as well as
+        // what did. The throw below carries only the stopping half, and a report of only that
+        // half is a report that loses every warning the moment one error appears.
+        report?.Take(diagnostics);
+
+        diagnostics.ThrowIfAny(Messages.Message.Of(CookingMessages.ValidationFailed));
 
         return result;
     }
@@ -85,7 +130,7 @@ public partial class ModelCooker
     /// notation it accepts - no sign, no thousands separator, no fractional part, and `0x`
     /// reaching all 64 bits - and that question is settled once a cell has become a value.
     /// Past here it is a 64-bit integer to every consumer: the wire carries it as i64, the
-    /// thirteen generators render it as their own name for that width, and the databases
+    /// the generators render it as their own name for that width, and the databases
     /// store it in a BIGINT.
     ///
     /// **Folded rather than written into each of those.** Around a hundred switches select
@@ -121,6 +166,32 @@ public partial class ModelCooker
     }
 
     /// <summary>
+    /// Settles what each table's exported data file is called.
+    /// </summary>
+    /// <remarks>
+    /// The one name in the model that several programs have to agree on: the exporter writes
+    /// the file and the reader generated for each language opens it, and nothing downstream
+    /// checks that the two arrived at the same string. So it is computed once, here, and read
+    /// everywhere else.
+    ///
+    /// Blank spelling keeps the table's own name, which is what every recipe written before
+    /// the setting existed holds - so every data file keeps the name it had.
+    ///
+    /// spec/naming-conventions.md.
+    /// </remarks>
+    private static void NameDataFiles(Model model, RecipeModel recipeModel)
+    {
+        var spelling = DataFileCasing.From(recipeModel?.DataFileCase ?? "");
+
+        foreach (var table in model.Tables)
+        {
+            table.DataFileName = spelling is null
+                ? table.Name
+                : table.Name.ToCase(spelling.Value);
+        }
+    }
+
+    /// <summary>
     /// Turns a column that named the tables its value belongs to into a reference.
     /// </summary>
     /// <remarks>
@@ -138,26 +209,22 @@ public partial class ModelCooker
     {
         foreach (var table in model.Tables)
         {
-            // A member of a record group is promoted like any other column now - the
-            // generated element carries the row, the key, and the linking that fills it
-            // (spec/references-in-records.md). Only the ones naming several tables are still
-            // held back: what a reference to one of many looks like inside an element is the
-            // per-target property that has not been designed yet, and promoting them would
-            // turn columns that convert today into a refusal.
-            // spec/multi-target-references.md.
+            // A member of a record group is promoted like any other column, whether it names
+            // one table or several: the generated element carries the key, the row it
+            // resolved to - or the slot and the discriminator where there is more than one
+            // target - and the linking that fills them.
+            // spec/references-in-records.md ~ spec/multi-target-accessors.md.
+            //
+            // One kind is still held back, and for a reason about names rather than targets.
+            // An anonymous level is reached by number, so a reference in one has no name to
+            // keep its key under - the same thing `ValidateRecordGroup` refuses for a column
+            // declared `foreign`. It cannot refuse this one: it runs while the groups are
+            // built, which is before this pass makes the column a reference at all.
+            // spec/references-in-records.md.
             var heldBack = new HashSet<Field>(
                 table.SerialFields
-                    .Where(group => group.IsRecord)
-                    .SelectMany(group => group.MembersAreAnonymous
-                        // An anonymous level is reached by number, so a reference in one has
-                        // no name to keep its key under - the same thing `ValidateRecordGroup`
-                        // refuses for a column declared `foreign`. It cannot refuse this one:
-                        // it runs while the groups are built, which is before this pass makes
-                        // the column a reference at all. spec/references-in-records.md.
-                        ? group.Leaves.SelectMany(member => member.Fields)
-                        : group.Leaves
-                               .SelectMany(member => member.Fields)
-                               .Where(field => field.Constraints.ReferencedTables is { Count: > 1 })));
+                    .Where(group => group.IsRecord && group.MembersAreAnonymous)
+                    .SelectMany(group => group.Leaves.SelectMany(member => member.Fields)));
 
             foreach (var field in table.Fields)
             {
@@ -186,6 +253,177 @@ public partial class ModelCooker
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Declares, for every column reaching several tables, the enumeration that says which
+    /// of them a row's value is in.
+    /// </summary>
+    /// <remarks>
+    /// **In the model rather than in each generator.** Every generator already turns
+    /// <see cref="Model.Enums"/> into its language's enumeration, so declaring the type here
+    /// means every one of them emits it with no new code - and they all spell it and case it
+    /// the way they spell every other enumeration, which is what stops the same type being
+    /// named three ways across a project's languages.
+    ///
+    /// One per declaration rather than one per distinct target list. Lists do repeat - a
+    /// project's reward tables name the same sixteen catalogues from several columns - but
+    /// merging them would mean inventing a name for the list, and the name of a thing the
+    /// sheets did not declare is not this tool's to choose. A project that wants one
+    /// declares an enum and points its columns at that instead.
+    ///
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    private static void DeclareMultiTargetDiscriminators(Model model, Diagnostics diagnostics)
+    {
+        // Snapshotted, because the loop adds to the list it would otherwise be walking.
+        var tables = model.Tables.ToList();
+
+        foreach (var table in tables)
+        {
+            // A record group's member first, because its columns are one member: an array of
+            // records spreads it over a column per element, and those elements share the
+            // question "which table is this one in". Named after the member rather than the
+            // column, or a group of two elements would declare two types for one member.
+            // spec/multi-target-accessors.md.
+            foreach (var group in table.SerialFields.Where(g => g.IsRecord))
+            {
+                foreach (var (path, leaf) in LeavesWithPath(group))
+                {
+                    var columns = leaf.Fields
+                                      .Where(f => f.ResolvedRefTables is { Count: > 1 })
+                                      .ToList();
+
+                    if (columns.Count == 0)
+                        continue;
+
+                    string memberName = table.Name.ToPascalCase()
+                        + group.Name.ToPascalCase()
+                        + string.Concat(path.Select(part => part.ToPascalCase()))
+                        + "Target";
+
+                    var shared = DeclareDiscriminator(
+                        model, table, columns[0], memberName, diagnostics);
+
+                    if (shared is null)
+                        continue;
+
+                    // Every element of the member points at the one type.
+                    foreach (var column in columns)
+                        column.MultiTargetEnum = shared;
+                }
+            }
+
+            foreach (var field in table.Fields)
+            {
+                if (field.ResolvedRefTables is not { Count: > 1 } || field.MultiTargetEnum is not null)
+                    continue;
+
+                string name = $"{table.Name.ToPascalCase()}{field.Name.ToPascalCase()}Target";
+
+                var declared = DeclareDiscriminator(model, table, field, name, diagnostics);
+
+                if (declared is not null)
+                    field.MultiTargetEnum = declared;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Every leaf of a record group, with the member names that reach it.
+    /// </summary>
+    /// <remarks>
+    /// The leaf itself does not carry its path - a member knows its own name and nothing
+    /// above it - and a name built from the last part alone would collide the moment two
+    /// levels used it. spec/nested-multi-level.md.
+    /// </remarks>
+    private static IEnumerable<(IReadOnlyList<string> Path, RecordMember Leaf)> LeavesWithPath(
+        SerialField group)
+    {
+        var stack = new List<string>();
+
+        IEnumerable<(IReadOnlyList<string>, RecordMember)> Walk(RecordMember member)
+        {
+            stack.Add(member.Name);
+
+            if (member.IsLeaf)
+            {
+                yield return (stack.ToList(), member);
+            }
+            else
+            {
+                foreach (var below in member.Members)
+                foreach (var found in Walk(below))
+                    yield return found;
+            }
+
+            stack.RemoveAt(stack.Count - 1);
+        }
+
+        foreach (var member in group.Members)
+        foreach (var found in Walk(member))
+            yield return found;
+    }
+
+    /// <summary>
+    /// The enumeration for one declaration, or null when the name is taken.
+    /// </summary>
+    private static Models.Enum? DeclareDiscriminator(
+        Model model, Table table, Field field, string name, Diagnostics diagnostics)
+    {
+        // A sheet may already have declared this name, and then two different types
+        // would be generated under it. Reported rather than renamed: a name this
+        // tool made up silently is one nobody can search for.
+        if (model.Enums.Exists(existing => existing.Name == name))
+        {
+            diagnostics.Error(field.DetailTypeLocation,
+                Messages.Message.Of(CookingMessages.MultiTargetEnumNameTaken,
+                    ("Table", table.Name), ("Field", field.Name), ("Enum", name)));
+            return null;
+        }
+
+        var discriminator = new Models.Enum
+        {
+            Location = field.DetailTypeLocation ?? field.NameLocation,
+            TargetSide = table.TargetSide,
+            RawName = name,
+            Name = name,
+            Synthesized = true,
+            Comment =
+                $"Which table `{table.Name}.{field.Name}` points at. "
+                + "The column carries one id and the tables it may be a row of take "
+                + "separate id bands, so exactly one of them answers.",
+        };
+
+        // Zero is "points at nothing", which is what a column with no value holds and
+        // what a key found in none of the targets leaves behind. Every other
+        // enumeration in the model has a zero for the same reason.
+        discriminator.Labels.Add(new Models.Enum.Label
+        {
+            RawName = "None",
+            Name = "None",
+            Value = 0,
+            Synthesized = true,
+            Location = discriminator.Location,
+            Comment = "No row of any of them.",
+        });
+
+        int value = 1;
+        foreach (var target in field.ResolvedRefTables!)
+        {
+            discriminator.Labels.Add(new Models.Enum.Label
+            {
+                RawName = target.Name,
+                Name = target.Name.ToPascalCase(),
+                Value = value++,
+                Synthesized = true,
+                Location = discriminator.Location,
+                Comment = $"A row of `{target.Name}`.",
+            });
+        }
+
+        model.Enums.Add(discriminator);
+        return discriminator;
     }
 
     /// <summary>
@@ -220,7 +458,11 @@ public partial class ModelCooker
                 if (!resolved)
                     continue;
 
-                foreach (var row in table.Data)
+                // Every set of rows the table has, not only its own: a reference cell that
+                // was not converted keeps the text the sheet wrote, and then matches nothing
+                // the target holds. spec/table-row-sets.md.
+                foreach (var rowSet in table.RowSets)
+                foreach (var row in rowSet.Rows)
                 {
                     if (field.Index >= row.Count)
                         continue;
@@ -254,10 +496,22 @@ public partial class ModelCooker
                         // the author wrote a key and the type is the target's answer. The
                         // parser's own message names `Int32` and nothing else, which sends
                         // them looking at the wrong column.
+                        //
+                        // Every target, not the resolved one: a column naming several has no
+                        // single resolved table, and reading the singular here dereferenced
+                        // null the moment such a column held a key it could not parse.
+                        string targets = field.ResolvedRefTables is not null
+                            ? string.Join("`, `", field.ResolvedRefTables.Select(t => t.Name))
+                            : field.ResolvedRefTable!.Name;
+
+                        // `Detail` is the caught parser's own message. The frame around it is
+                        // translatable; what it quotes stays as it arrived.
                         diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                            $"`{table.Name}.{field.Name}` references `{field.ResolvedRefTable!.Name}`, "
-                            + $"which is addressed by `{field.RefKeyType.ToString().ToLowerInvariant()}`, "
-                            + $"and `{written}` is not one. {problem.Message}");
+                            Messages.Message.Of(CookingMessages.ReferenceKeyUnparsable,
+                                ("Table", table.Name), ("Field", field.Name),
+                                ("Targets", targets),
+                                ("KeyType", field.RefKeyType.ToString().ToLowerInvariant()),
+                                ("Written", written), ("Detail", problem.Message)));
                     }
                 }
             }

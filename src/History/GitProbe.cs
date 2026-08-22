@@ -23,6 +23,9 @@ namespace Tabbit.History;
 /// </summary>
 internal static class GitProbe
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     /// <summary>
     /// Long enough for a cold `git` on Windows, short enough that a hung one does not
     /// hold a build. A repository probe is three small commands.

@@ -37,7 +37,7 @@ import struct
 # The format is column-oriented and self-describing: the header names every column
 # and how long its block is, and a reader that meets a version it does not know stops
 # rather than guessing.
-FORMAT_VERSION = 105
+FORMAT_VERSION = 107
 
 # The wire's element types and kinds, as a column descriptor spells them.
 ELEMENT_VARINT = 0
@@ -50,8 +50,7 @@ ELEMENT_STRING = 6
 ELEMENT_UUID = 7
 
 KIND_SCALAR = 0
-KIND_FIXED_ARRAY = 1
-KIND_VAR_ARRAY = 2
+KIND_ARRAY = 1
 
 # How a block's values are laid out. Raw is the layout 101 had; the others compress
 # a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -118,14 +117,15 @@ CIPHER_CHACHA20 = 1
 class Column:
     """One column as the file describes it."""
 
-    __slots__ = ("tag", "element", "kind", "encoding", "count", "byte_length", "nullable")
+    __slots__ = ("tag", "element", "kind", "encoding", "byte_length", "nullable",
+                 "element_nullable")
 
-    def __init__(self, tag, element, kind, encoding, count, byte_length, nullable):
+    def __init__(self, tag, element, kind, encoding, byte_length, nullable,
+                 element_nullable=False):
         self.tag = tag
         self.element = element
         self.kind = kind
         self.encoding = encoding
-        self.count = count
         self.byte_length = byte_length
 
         # Whether the block begins with one presence bit per row, low bit first. Part of
@@ -133,6 +133,11 @@ class Column:
         # expect the bitmap reads it as values, so check_column refuses a disagreement the
         # same way it refuses a changed kind.
         self.nullable = nullable
+
+        # Whether the block states, per element, which of an array's places hold a value.
+        # Independent of `nullable`: a column may say either, or both.
+        # spec/nullable-array-elements.md.
+        self.element_nullable = element_nullable
 
 
 class TcbError(Exception):
@@ -668,12 +673,10 @@ class ColumnCursor:
         if self._encoding == ENCODING_ARRAY:
             self._encoding = reader.read_uint8()
 
-            if column.kind == KIND_VAR_ARRAY:
+            if column.kind == KIND_ARRAY:
                 self._lengths = _read_lengths(
                     reader, reader.read_uint8(), row_count, field_name)
                 self._rows_remaining = sum(self._lengths)
-            else:
-                self._rows_remaining = row_count * column.count
 
         # A bit-packed column states the width its range needs, the base subtracted from
         # every value, and which encoding carries the packed bytes. Decoded here so that
@@ -1053,11 +1056,10 @@ def read_table_header(reader):
         tag = reader.read_counter32()
         wire = reader.read_uint8()
         encoding = reader.read_uint8()
-        element_count = reader.read_counter32()
         byte_length = reader.read_uint32()
         columns.append(
-            Column(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, element_count, byte_length,
-                   (wire & 0x40) != 0))
+            Column(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, byte_length,
+                   (wire & 0x40) != 0, (wire & 0x80) != 0))
 
     # What the descriptors say about the file, checked before anybody allocates for the
     # row count. The blocks are all that follows the header, so their declared lengths have
@@ -1108,6 +1110,24 @@ def read_presence(reader, column, row_count):
         encoding, (row_count + 7) // 8, "a presence bitmap")
 
 
+def read_element_presence(reader, column):
+    """A column's element bitmap, behind the row bitmap and in front of the values.
+
+    Empty for a column that does not carry one. Its length is written ahead of it as a
+    counter32, because a variable-length column's total is the sum of its row lengths and
+    those live inside the value block - a reader meeting the bitmap first would have nothing
+    to size it by. spec/nullable-array-elements.md.
+    """
+    if not column.element_nullable:
+        return b""
+
+    elements = reader.read_counter32()
+    encoding = reader.read_uint8()
+
+    return reader.read_byte_stream(
+        encoding, (elements + 7) // 8, "an element presence bitmap")
+
+
 def is_present(presence, row):
     """Whether a row has a value, for a column that says which do.
 
@@ -1116,11 +1136,20 @@ def is_present(presence, row):
     return not presence or (presence[row >> 3] & (1 << (row & 7))) != 0
 
 
-def check_column(column, field_name, kind, count, nullable, accepted):
+def check_column(column, field_name, kind, nullable, accepted,
+                 element_nullable=False):
     """That a column is what the generated member expects, or a lossless promotion.
 
     Refusal is by name and both types, never by reading anyway.
     """
+    # The same statement about the other bitmap: code not expecting one would read it as
+    # values. spec/nullable-array-elements.md.
+    if column.element_nullable != element_nullable:
+        raise TcbError(
+            "%s: the file and the generated member disagree about whether this column's "
+            "elements are optional. The schema changed; regenerate the code or rebuild the "
+            "data." % (field_name,))
+
     # Nullability is part of the shape: a file that says optional puts a presence bitmap in
     # front of the block, and code not expecting one would read the bitmap as values. So
     # adding or removing a `?` is a schema change like any other, caught here rather than in
@@ -1131,11 +1160,14 @@ def check_column(column, field_name, kind, count, nullable, accepted):
             "optional. The schema changed; regenerate the code or rebuild the data."
             % (field_name,))
 
-    if column.kind != kind or (kind != KIND_VAR_ARRAY and column.count != count):
+    # A negative count says the member claims no length: how many elements a row holds is
+    # what the file states. The kind is still the member's claim.
+    # spec/nullable-array-elements.md.
+    if column.kind != kind:
         raise TcbError(
-            "%s: the file's column (kind %d, count %d) does not match the generated member "
-            "(kind %d, count %d). The schema changed shape; regenerate the code or rebuild "
-            "the data." % (field_name, column.kind, column.count, kind, count))
+            "%s: the file's column (kind %d) does not match the generated member "
+            "(kind %d). The schema changed shape; regenerate the code or rebuild "
+            "the data." % (field_name, column.kind, kind))
 
     # An encoding this build cannot decode - or one the spec does not define for
     # this element - is refused by name, exactly like an element it cannot read.

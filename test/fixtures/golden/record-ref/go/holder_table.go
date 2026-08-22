@@ -115,7 +115,7 @@ func (t *HolderTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Holder.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Holder.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Holder.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -126,7 +126,7 @@ func (t *HolderTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Holder.Main.ItemId", tabbit.KindScalar, 1, false, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Holder.Main.ItemId", tabbit.KindScalar, false, tabbit.ElementI32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Holder.Main.ItemId")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -137,7 +137,7 @@ func (t *HolderTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Holder.Main.Count", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Holder.Main.Count", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Holder.Main.Count")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -148,7 +148,7 @@ func (t *HolderTable) Read(filename string) error {
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Holder.Pad", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Holder.Pad", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Holder.Pad")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -159,7 +159,7 @@ func (t *HolderTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Holder.Pad2", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Holder.Pad2", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Holder.Pad2")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)

@@ -1,18 +1,18 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "8a0f630416e2dd1cd2bfb8c9b6b800c8",
-  "TotalSize": 443,
+  "MasterHash": "74484c5a6a2369bd3e70062e26600fc3",
+  "TotalSize": 433,
   "Items": [
     {
       "Name": "Quest.tcb",
-      "Size": 298,
-      "Hash": "d9f2af8f2768717a25102d0c3625cac9",
+      "Size": 292,
+      "Hash": "56aaa2b61e87f12e7ab65ffd7fe24586",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Item.tcb",
-      "Size": 145,
-      "Hash": "d045b9f7aa0e5cb65fec9bb5591a2ecf",
+      "Size": 141,
+      "Hash": "34fd135bb848ccde8bdecc1bfae29b57",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

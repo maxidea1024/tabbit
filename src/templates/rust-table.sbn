@@ -45,6 +45,11 @@ pub struct {{ table.record_name }} {
     /// and holds the type's empty value when the row had none; this says which it was.
     pub {{ field.presence_member }}: bool,
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+    /// Which of `{{ field.name }}`'s elements have a value. Empty where the file did not
+    /// carry the column, and then every index is out of range anyway.
+    pub {{ field.element_presence_member }}: Vec<bool>,
+{{~ end ~}}
 {{~ end ~}}
 }
 
@@ -135,15 +140,15 @@ impl {{ table.table_name }} {
         for record in records.iter_mut() {
 {{~ for field in table.fields ~}}
 {{~ if field.is_fixed_record_array ~}}
-            record.{{ field.name }} = vec![{{ field.record_type_name }}::default(); {{ field.element_count }}];
+            record.{{ field.name }} = Vec::new();
 {{~ else if field.members_are_anonymous ~}}
 {{~## An array of arrays: both levels sized here, for the same reason. ##~}}
-            record.{{ field.name }} = vec![vec![<{{ field.element_type_name }}>::default(); {{ field.element_count }}]; {{ field.outer_count }}];
+            record.{{ field.name }} = vec![Vec::new(); {{ field.outer_count }}];
 {{~ else if field.members_are_arrays ~}}
 {{~## One record, and the vectors are its members - so each of them is sized here for the
    same reason. ##~}}
 {{~ for member in field.members ~}}
-            record.{{ field.name }}.{{ member.name }} = vec![<{{ member.element_type }}>::default(); {{ member.element_count }}];
+            record.{{ field.name }}.{{ member.name }} = Vec::new();
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -161,6 +166,12 @@ impl {{ table.table_name }} {
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
                     let presence = tabbit::read_presence(&mut reader, column, header.row_count)?;
+{{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+{{~## Behind the row bitmap and in front of the values, walked with a counter that steps
+      once per element of every row. spec/nullable-array-elements.md. ##~}}
+                    let element_presence = tabbit::read_element_presence(&mut reader, column)?;
+                    let mut element_at: usize = 0;
 {{~ end ~}}
 {{~ if column_view.kind == 'record_var' && column_view.is_first_member ~}}
 {{~## Taken before the cursor borrows the reader, and an upper bound on the row's element
@@ -192,8 +203,17 @@ impl {{ table.table_name }} {
 {{~ if column_view.kind == 'var_array' ~}}
                         let element_count = {{ column_view.length_read }}.max(0) as usize;
                         record.{{ column_view.name }} = Vec::with_capacity(element_count.min(65536));
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} =
+                            Vec::with_capacity(element_count.min(65536));
+{{~ end ~}}
                         for _ in 0..element_count {
                             record.{{ column_view.name }}.push({{ column_view.read_element }});
+{{~ if column_view.has_optional_elements ~}}
+                            record.{{ column_view.element_presence_member }}
+                                .push(tabbit::is_present(&element_presence, element_at));
+                            element_at += 1;
+{{~ end ~}}
                         }
 {{~ else if column_view.kind == 'record_var' ~}}
                         let element_count = {{ column_view.length_read }}.max(0) as usize;
@@ -226,28 +246,39 @@ impl {{ table.table_name }} {
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner vector. Which outer element it is, is which column this is - so that index
    is fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-                        for element in 0..{{ column_view.element_count }} {
-                            record.{{ column_view.name }}[{{ column_view.member_at }}][element] = {{ column_view.read_element }};
+                        let element_count = {{ column_view.length_read }}.max(0) as usize;
+                        record.{{ column_view.name }}[{{ column_view.member_at }}] =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = {{ column_view.read_element }};
+                            record.{{ column_view.name }}[{{ column_view.member_at }}].push(value);
                         }
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the vector: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-                        for element in 0..{{ column_view.element_count }} {
-                            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[element] = {{ column_view.read_element }};
+                        let element_count = {{ column_view.length_read }}.max(0) as usize;
+                        record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = {{ column_view.read_element }};
+                            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}.push(value);
                         }
-{{~ else if column_view.kind == 'record_serial' ~}}
-                        for element in 0..{{ column_view.element_count }} {
-                            record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
-                        }
-{{~ else if column_view.kind == 'serial_ref' ~}}
-                        record.{{ column_view.name }}_index = Vec::with_capacity({{ column_view.element_count }});
-                        for _ in 0..{{ column_view.element_count }} {
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## A trimmed array of references. The keys are the vector this row's length fills - Rust
+   links nothing, so the keys are all there is. spec/variable-length-record-arrays.md. ##~}}
+                        let element_count = {{ column_view.length_read }}.max(0) as usize;
+                        record.{{ column_view.name }}_index = Vec::with_capacity(element_count.min(65536));
+{{~ if column_view.has_optional_elements ~}}
+                        record.{{ column_view.element_presence_member }} =
+                            Vec::with_capacity(element_count.min(65536));
+{{~ end ~}}
+                        for _ in 0..element_count {
                             record.{{ column_view.name }}_index.push({{ column_view.read_element }});
-                        }
-{{~ else if column_view.kind == 'serial' ~}}
-                        record.{{ column_view.name }} = Vec::with_capacity({{ column_view.element_count }});
-                        for _ in 0..{{ column_view.element_count }} {
-                            record.{{ column_view.name }}.push({{ column_view.read_element }});
+{{~ if column_view.has_optional_elements ~}}
+                            record.{{ column_view.element_presence_member }}
+                                .push(tabbit::is_present(&element_presence, element_at));
+                            element_at += 1;
+{{~ end ~}}
                         }
 {{~ else if column_view.kind == 'scalar_ref' ~}}
                         record.{{ column_view.name }}_index = {{ column_view.read_scalar }};

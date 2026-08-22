@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Serilog;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -28,6 +29,9 @@ public enum RecordOutcome
 /// </summary>
 internal static class HistoryRecorder
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     /// <summary>
     /// Whether this conversion can honestly be filed under a commit at all.
     ///
@@ -40,7 +44,7 @@ internal static class HistoryRecorder
         {
             commit.WarnIfNotAttributable();
 
-            Log.Warning("Nothing was recorded in the history for this conversion.");
+            Log.Warning(Message.Of(RecordMessages.LogNothingRecorded).In(MessageCatalog.Current));
             return false;
         }
 
@@ -48,10 +52,8 @@ internal static class HistoryRecorder
         {
             commit.WarnIfNotAttributable();
 
-            Log.Warning(
-                $"Nothing was recorded in the history for this conversion. Commit the sheets and " +
-                $"convert again, or set RecordDirty to record it under {commit.ShortHash} anyway - " +
-                $"which also means the clean build of that commit can never be recorded.");
+            Log.Warning(Message.Of(RecordMessages.LogNothingRecordedDirty,
+                ("Commit", commit.ShortHash)).In(MessageCatalog.Current));
 
             return false;
         }
@@ -87,12 +89,9 @@ internal static class HistoryRecorder
                 return RecordOutcome.AlreadyPresent;
             }
 
-            throw new TabbitException(
-                $"The history already holds a different model for commit {commit.ShortHash} on branch " +
-                $"`{BranchOf(commit)}`. That happens when a snapshot was recorded from a working copy " +
-                $"with uncommitted changes, or when --commit named a value already used for other " +
-                $"data. The history is not rewritten automatically: whichever of the two is wrong, " +
-                $"overwriting hides it.");
+            throw new TabbitException(null,
+                Message.Of(RecordMessages.ModelDiffersForCommit,
+                    ("Commit", commit.ShortHash), ("Branch", BranchOf(commit))));
         }
 
         var head = store.ReadHead();
@@ -142,11 +141,9 @@ internal static class HistoryRecorder
         if (head is null || recipe.AllowOutOfOrder || !IsBehind(head, commit))
             return true;
 
-        Log.Error(
-            $"Commit {commit.ShortHash} is behind {Short(head.CommitHash)}, which the history already " +
-            $"holds for branch `{BranchOf(commit)}`. Recording it would report that commit's work as " +
-            $"undone, by this commit's author. Nothing was recorded. Convert the newer commit, or set " +
-            $"AllowOutOfOrder if the chain really does go this way.");
+        Log.Error(Message.Of(RecordMessages.LogCommitIsBehind,
+            ("Commit", commit.ShortHash), ("Head", Short(head.CommitHash)),
+            ("Branch", BranchOf(commit))).In(MessageCatalog.Current));
 
         return false;
     }

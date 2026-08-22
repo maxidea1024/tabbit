@@ -10,7 +10,7 @@ namespace Tabbit.Tests;
 /// </summary>
 /// <remarks>
 /// Compiling is the whole static check a Python target can be given, and here that is worth
-/// less than it is for the nine targets before it: `record.slot[j].id = x` parses whether or
+/// less than it is for the targets before it: `record.slot[j].id = x` parses whether or
 /// not `slot` holds anything. So these run the read as well, against the binary the same
 /// conversion wrote, and assert the shapes only these two features produce - the length of a
 /// trimmed record array, and a row that has no value for a column that carries one.
@@ -20,6 +20,26 @@ namespace Tabbit.Tests;
 /// </remarks>
 public class PythonNestedAndOptionalTests
 {
+    /// <summary>
+    /// An array whose elements may be absent: the per-element answer beside the value.
+    /// </summary>
+    /// <remarks>
+    /// Read rather than compiled, which is what this gate is for: the bitmap is walked with a
+    /// counter that steps once per element of every row, and a reader that stepped per row
+    /// would still run. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void Optional_array_elements_read()
+        => AssertReads("nullable-elements", "nullable_elements_data", @"
+t = Tables()
+t.read_all(sys.argv[1])
+rows = t.listing.records
+assert len(rows) == 5, rows
+assert rows[1].has_holes_at == [True, False, True], rows[1].has_holes_at
+assert rows[3].has_words_at == [True, True, True], rows[3].has_words_at
+assert rows[3].words == ['a', '', 'c'], rows[3].words
+");
+
     /// <summary>
     /// A record, an array of records whose members are of different types, and a scalar
     /// serial field beside them.
@@ -152,6 +172,82 @@ assert t.mount.records[0].rig[0].core.item_id.name == 'sword', t.mount.records[0
 assert t.pose.records[0].step[0].clip_id.index == 'Idle_01', t.pose.records[0].step[0]
 assert [len(r.part) for r in t.kit.records] == [3, 2, 0], [len(r.part) for r in t.kit.records]
 assert t.kit.records[1].part[0].item_id.name == 'shield', t.kit.records[1].part[0]
+");
+
+    /// <summary>
+    /// An array of references: numbered reference columns folded into one array.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only compiling, because the failure this guards against is code that
+    /// runs and resolves nothing: the keys arrive on the wire and the values are written by the
+    /// linking pass, which walks the array it was given. Element 0 and element 1 point at
+    /// different rows, so a loop that resolved the first and left the rest shows as the wrong
+    /// value. spec/nullable-array-elements.md.
+    /// </remarks>
+    [Fact]
+    public void An_array_of_references_reads()
+        => AssertReads("serial-ref", "serial_ref_data", @"
+t = Tables()
+t.read_all(sys.argv[1])
+rows = t.kit.records
+assert [len(r.slot_array) for r in rows] == [2, 2, 2]
+assert rows[0].slot_array[0].name == 'sword'
+assert rows[0].slot_array[1].name == 'shield'
+assert rows[1].slot_array[0].name == 'ring'
+assert rows[2].slot_array[1] is None
+assert rows[0].tier_array == [3, 5]
+assert rows[2].tier_array[1] is None
+trimmed = t.trim_kit.records
+assert [len(r.slot_array) for r in trimmed] == [3, 2, 0]
+assert trimmed[0].slot_array[2].name == 'ring'
+assert trimmed[1].slot_array[0].name == 'ring'
+assert trimmed[0].tier_array[2] == 8
+");
+
+    /// <summary>
+    /// A column whose value is a row of one of several tables.
+    /// </summary>
+    /// <remarks>
+    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
+    /// discriminator are written by the same assignment, and one set a target late hands out a
+    /// row of the wrong table. The wide column is checked at its first and last target, which
+    /// is where an off-by-one shows.
+    ///
+    /// Then the same column as a member of a record, in all three of the shapes a record group
+    /// takes: the element number on the group, nowhere, and on the member. Each is a different
+    /// path through the linking pass, and the last one resolves through a list that has to have
+    /// been made with the row. spec/multi-target-accessors.md.
+    /// </remarks>
+    [Fact]
+    public void A_multi_target_column_reads()
+        => AssertReads("multi-target", "multi_target_data", @"
+t = Tables()
+t.read_all(sys.argv[1])
+rows = t.holder.records
+assert rows[0].weapon_by_pick.name == 'weapon-a'
+assert rows[0].armour_by_pick is None
+assert rows[1].armour_by_pick.name == 'armour-b'
+assert rows[1].weapon_by_pick is None
+assert rows[0].trinket_by_wide.name == 'trinket-a'
+assert rows[1].banner_by_wide.name == 'banner-b'
+assert rows[2].weapon_by_wide.name == 'weapon-a'
+assert rows[1].maybe_target.value == 0
+assert rows[1].weapon_by_maybe is None and rows[1].armour_by_maybe is None
+assert rows[0].only.name == 'weapon-a'
+groups = t.loadout.records
+assert groups[0].slot[0].weapon_by_pick.name == 'weapon-a'
+assert groups[0].slot[1].armour_by_pick.name == 'armour-a'
+assert groups[0].slot[0].armour_by_pick is None
+assert groups[1].slot[0].armour_by_pick.name == 'armour-b'
+fittings = t.fitting.records
+assert fittings[0].main.armour_by_pick.name == 'armour-a'
+assert fittings[1].main.weapon_by_pick.name == 'weapon-b'
+assert fittings[0].main.weapon_by_pick is None
+racks = t.rack.records
+assert racks[0].slots.weapon_by_pick(0).name == 'weapon-a'
+assert racks[0].slots.armour_by_pick(1).name == 'armour-b'
+assert racks[0].slots.weapon_by_pick(1) is None
+assert racks[1].slots.armour_by_pick(0).name == 'armour-a'
 ");
 
     private static void AssertReads(string scenario, string package, string body)

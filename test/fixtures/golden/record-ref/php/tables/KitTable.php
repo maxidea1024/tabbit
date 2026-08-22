@@ -134,7 +134,7 @@ final class KitTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Kit.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Kit.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -145,7 +145,7 @@ final class KitTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Kit.Part.ItemId', TcbReader::KIND_VAR_ARRAY, 0, false, [TcbReader::ELEMENT_I32]);
+                    TcbReader::checkColumn($column, 'Kit.Part.ItemId', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Part.ItemId');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
@@ -163,7 +163,7 @@ final class KitTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Kit.Part.Count', TcbReader::KIND_VAR_ARRAY, 0, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Kit.Part.Count', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Part.Count');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();

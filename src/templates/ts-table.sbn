@@ -53,6 +53,13 @@ export interface {{ rt.type_name }} {
   {{ member.prop_name }}_index: {{ member.ref_key_type_name }}
   {{ member.prop_name }}_F: {{ member.ref_flag_type_name }}
 {{~ end ~}}
+{{~ if member.multi_target_type_name != '' ~}}
+{{~## A member reaching several tables keeps the key above and gains these: one slot for the
+   resolved row, typed as the union of the tables it may be a row of, and the discriminator
+   saying which of them filled it. spec/multi-target-accessors.md. ##~}}
+  {{ member.multi_slot_name }}: {{ member.multi_slot_type }}
+  {{ member.multi_target_name }}: {{ member.multi_target_declared_type }}
+{{~ end ~}}
 {{~ end ~}}
 }
 
@@ -76,6 +83,28 @@ interface IDataRow {
 {{~ end ~}}
 {{~ end ~}}
 }
+{{~## The per-target accessors of every record member reaching several tables. Functions
+   beside the element rather than members of it: this language's element type is an interface,
+   and an interface declares no accessor - every other language puts the accessor on the
+   element, which is that language's own convention. spec/multi-target-accessors.md. ##~}}
+{{~ for m in multi_members ~}}
+{{~ for target in m.targets }}
+/** The `{{ target.record_type_name }}` row `{{ m.key_name }}` names, or undefined when it names a row of one of the others. */
+{{~ if m.is_array ~}}
+export function {{ target.function }}(element: {{ m.element_type_name }}, at: number): {{ target.record_type_name }} | undefined {
+  return element.{{ m.target_name }}[at] === {{ m.target_type_name }}.{{ target.label }}
+    ? element.{{ m.slot_name }}[at] as {{ target.record_type_name }}
+    : undefined
+}
+{{~ else ~}}
+export function {{ target.function }}(element: {{ m.element_type_name }}): {{ target.record_type_name }} | undefined {
+  return element.{{ m.target_name }} === {{ m.target_type_name }}.{{ target.label }}
+    ? element.{{ m.slot_name }} as {{ target.record_type_name }}
+    : undefined
+}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 
 // Generated from {{ location }}
 {{~ for line in comment ~}}
@@ -93,21 +122,18 @@ export class {{ name }}Record {
 {{~ for line in field.comment ~}}
   {{ line }}
 {{~ end ~}}
+{{~## **No length constant.** A number published here could only be the one the sheet had
+   when this code was generated, and a consumer holding to it would be holding to something
+   the data no longer has to agree with - `length` on the array is the answer and it cannot
+   go stale. Where several columns fill one array the length is still a number this code has
+   to know, and there it is written into the allocation rather than published.
+   spec/nullable-array-elements.md. ##~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
-{{~## The declared type is already the inner array, so the accessor is that array's array -
-   and `_N` is the outer count with `_M` the inner one. spec/nested-multi-level.md. ##~}}
+{{~## The declared type is already the inner array, so the accessor is that array's array.
+   spec/nested-multi-level.md. ##~}}
   public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
-  public static readonly {{ field.prop_name }}_N: number = {{ field.outer_count }}
-  public static readonly {{ field.prop_name }}_M: number = {{ field.element_count }}
 {{~ else if field.is_array ~}}
   public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
-{{~ if field.kind == 'array_ref' || field.kind == 'array' || field.kind == 'record_array' ~}}
-  public static readonly {{ field.prop_name }}_N: number = {{ field.element_count }}
-{{~ else if field.kind == 'record_var_array' ~}}
-{{~## No `_N`: the length is the row's. The sheet's column count is still the most it
-   can be, which is the only fixed number there is to say. ##~}}
-  public static readonly {{ field.prop_name }}_MAX_N: number = {{ field.element_count }}
-{{~ end ~}}
 {{~ else ~}}
   public get {{ field.prop_name }}(): {{ field.field_type }} { return this.{{ field.field_name }} }
 {{~ end ~}}
@@ -117,9 +143,49 @@ export class {{ name }}Record {
   /** Whether this row has a value for `{{ field.prop_name }}`. */
   public get has{{ field.pascal_name }}(): boolean { return this.{{ field.presence_field }} }
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+{{~## The same answer one level in. True where the row never got a bitmap: a column the file
+   does not carry leaves the array empty, and an index into it is out of range anyway. ##~}}
+  /** Whether element `index` of `{{ field.prop_name }}` has a value. */
+  public has{{ field.pascal_name }}At(index: number): boolean {
+    return this.{{ field.element_presence_field }} === null
+      || index < 0 || index >= this.{{ field.element_presence_field }}.length
+      || this.{{ field.element_presence_field }}[index]
+  }
+{{~ end ~}}
+{{~ end ~}}
+{{~## A column whose value is a row of one of several tables. The getter above hands back the
+   key; these say which table it is in and hand back that table's row.
+
+   One slot behind them all: the targets take separate id bands, so at most one of them ever
+   answers and the rest would be permanently undefined. TypeScript can spell the slot as a
+   union of the target types, so each getter narrows rather than asserts.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in multi_reference_fields }}
+  /** Which table `{{ ref.key_prop }}` is a row of. */
+  public get {{ ref.target_prop }}(): {{ ref.target_type_name }} { return this.{{ ref.target_field }} }
+{{~ for target in ref.targets ~}}
+  /** The `{{ target.table }}` row `{{ ref.key_prop }}` names, or undefined when it names a row of one of the others. */
+  public get {{ target.prop }}(): {{ target.record_type_name }} | undefined {
+    return this.{{ ref.target_field }} === {{ ref.target_type_name }}.{{ target.label }}
+      ? this.{{ ref.slot_field }} as {{ target.record_type_name }}
+      : undefined
+  }
+{{~ end ~}}
 {{~ end ~}}
 {{~## Called by the accessor once every table is read, and by nothing else. Kept away
    from the getters above because a consumer never calls one. ##~}}
+{{~ if multi_reference_fields | array.size > 0 ~}}
+{{~ for ref in multi_reference_fields ~}}
+
+{{~## The row and which table it came from arrive together: either without the other is a
+   state the getters above would read wrongly. ##~}}
+  public setReference_{{ ref.key_prop }}_INTERNAL(target: {{ ref.target_type_name }}, row: {{ ref.slot_type_name }}): void {
+    this.{{ ref.target_field }} = target
+    this.{{ ref.slot_field }} = row
+  }
+{{~ end ~}}
+{{~ end ~}}
 {{~ if reference_fields | array.size > 0 ~}}
 
 {{~ for field in fields ~}}
@@ -142,7 +208,7 @@ export class {{ name }}Record {
   public {{ field.field_name }}: {{ field.field_type }}[] = []
   public {{ field.field_name }}_{{ field.ref_table }}_index: {{ field.ref_key_type_name }}[] = []
   public {{ field.field_name }}_F: boolean[] = []
-{{~ else if field.kind == 'record_array' || field.kind == 'record_var_array' || field.kind == 'array_of_arrays' ~}}
+{{~ else if field.kind == 'record_var_array' || field.kind == 'array_of_arrays' ~}}
 {{~## Created with the record, not by the read. Each member column fills one property of
    each element, so there has to be an element there to fill - and a member whose column
    the file does not carry then holds its empty value rather than undefined.
@@ -150,7 +216,7 @@ export class {{ name }}Record {
    A trimmed group is the exception and starts empty: how long this row's array is only
    becomes known as it is read. ##~}}
   public {{ field.field_name }}: {{ field.field_type }}[] = {{ field.default_value }}
-{{~ else if field.kind == 'var_array' || field.kind == 'array' ~}}
+{{~ else if field.kind == 'var_array' ~}}
   public {{ field.field_name }}: {{ field.field_type }}[] = []
 {{~ else if field.kind == 'scalar_ref' ~}}
   public {{ field.field_name }}: {{ field.field_type }}
@@ -164,6 +230,15 @@ export class {{ name }}Record {
    the member absent rather than claiming a value it never got. ##~}}
   public {{ field.presence_field }}: boolean = false
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+  public {{ field.element_presence_field }}: boolean[] | null = null
+{{~ end ~}}
+{{~ end ~}}
+{{~## One slot for the resolved row whatever table it came from, typed as the union of those
+   tables' records, and the discriminator that says which. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in multi_reference_fields ~}}
+  public {{ ref.slot_field }}: {{ ref.slot_type_name }} = undefined
+  public {{ ref.target_field }}: {{ ref.target_type_name }} = {{ ref.target_type_name }}.None
 {{~ end ~}}
 
   /** Populate field values. */
@@ -297,6 +372,10 @@ export class {{ name }}Table {
    so a `const` inside two of them collides. ##~}}
     let presence: Uint8Array | null
 {{~ end ~}}
+{{~ if needs_element_presence ~}}
+    let elementPresence: Uint8Array | null
+    let elementAt = 0
+{{~ end ~}}
 
     // Built here and published at the end, so a file that turns out to be truncated - or
     // a column this build cannot read - leaves the rows already loaded exactly as they are.
@@ -320,6 +399,13 @@ export class {{ name }}Table {
    stay exactly as they are. ##~}}
           presence = tabbit.readPresence(reader, column, rowCount)
 {{~ end ~}}
+{{~ if column.has_optional_elements ~}}
+{{~## Behind the row bitmap and in front of the values, walked with a counter that steps once
+   per element of every row - the order the block wrote them in.
+   spec/nullable-array-elements.md. ##~}}
+          elementPresence = tabbit.readElementPresence(reader, column)
+          elementAt = 0
+{{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
    as well: its block states an encoding for them and one for the row lengths, and the
    cursor is what decodes both. After the presence bitmap, which sits in front of the block
@@ -342,17 +428,33 @@ export class {{ name }}Table {
 {{~ if column.kind == 'var_array' ~}}
             const elementCount = {{ column.length_read }}
             record.{{ column.field_name }} = []
-            for (let j = 0; j < elementCount; ++j)
+{{~ if column.has_optional_elements ~}}
+            record.{{ column.element_presence_field }} = []
+{{~ end ~}}
+            for (let j = 0; j < elementCount; ++j) {
               record.{{ column.field_name }}.push({{ column.binary_read }})
-{{~ else if column.kind == 'array_ref' ~}}
-            record.{{ column.field_name }} = []
+{{~ if column.has_optional_elements ~}}
+              record.{{ column.element_presence_field }}.push(
+                tabbit.isPresent(elementPresence, elementAt++))
+{{~ end ~}}
+            }
+{{~ else if column.kind == 'var_array_ref' ~}}
+{{~## The same three arrays as `array_ref` below, at the length this row gave rather than the
+   one the column states. spec/variable-length-record-arrays.md. ##~}}
+            const elementCount = {{ column.length_read }}
+            record.{{ column.field_name }} = new Array(elementCount).fill(undefined)
+            record.{{ column.field_name }}_F = new Array(elementCount).fill(false)
             record.{{ column.field_name }}_{{ column.ref_table }}_index = []
-            for (let j = 0; j < {{ column.element_count }}; ++j)
+{{~ if column.has_optional_elements ~}}
+            record.{{ column.element_presence_field }} = []
+{{~ end ~}}
+            for (let j = 0; j < elementCount; ++j) {
               record.{{ column.field_name }}_{{ column.ref_table }}_index.push({{ column.binary_read }})
-{{~ else if column.kind == 'array' ~}}
-            record.{{ column.field_name }} = []
-            for (let j = 0; j < {{ column.element_count }}; ++j)
-              record.{{ column.field_name }}.push({{ column.binary_read }})
+{{~ if column.has_optional_elements ~}}
+              record.{{ column.element_presence_field }}.push(
+                tabbit.isPresent(elementPresence, elementAt++))
+{{~ end ~}}
+            }
 {{~ else if column.kind == 'record_var_array_member' ~}}
 {{~## A trimmed record array: the length is written per row, once per member, and every
    member carries the same one. The first member creates the elements - no declaration
@@ -369,19 +471,18 @@ export class {{ name }}Table {
               record.{{ column.field_name }}[j]{{ column.member_access }}{{ column.member_ref_suffix }} = {{ column.binary_read }}
 {{~ else if column.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
-   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-            for (let j = 0; j < {{ column.element_count }}; ++j)
+   fixed and the loop runs the inner length, which this row states. ##~}}
+            const elementCount = {{ column.length_read }}
+            record.{{ column.field_name }}[{{ column.member_at }}] = []
+            for (let j = 0; j < elementCount; ++j)
               record.{{ column.field_name }}[{{ column.member_at }}][j] = {{ column.binary_read }}
 {{~ else if column.kind == 'record_member_array' ~}}
-{{~## The member is the array: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-            for (let j = 0; j < {{ column.element_count }}; ++j)
+{{~## The member is the array: the index goes after its name rather than before, and its
+   length is this row's - see spec/nested-multi-level.md. ##~}}
+            const elementCount = {{ column.length_read }}
+            record.{{ column.field_name }}{{ column.member_access }}{{ column.member_ref_suffix }} = []
+            for (let j = 0; j < elementCount; ++j)
               record.{{ column.field_name }}{{ column.member_access }}{{ column.member_ref_suffix }}[j] = {{ column.binary_read }}
-{{~ else if column.kind == 'record_array_member' ~}}
-{{~## One member of an array-valued record. The array and its objects were created
-   with the record, so this fills a field of each rather than pushing. ##~}}
-            for (let j = 0; j < {{ column.element_count }}; ++j)
-              record.{{ column.field_name }}[j]{{ column.member_access }}{{ column.member_ref_suffix }} = {{ column.binary_read }}
 {{~ else if column.kind == 'record_member' ~}}
             record.{{ column.field_name }}{{ column.member_access }}{{ column.member_ref_suffix }} = {{ column.binary_read }}
 {{~ else if column.kind == 'scalar_ref' ~}}

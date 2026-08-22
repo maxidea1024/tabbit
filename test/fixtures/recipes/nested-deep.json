@@ -87,6 +87,15 @@
       "AccessorName": "NestedDeepAccessor"
     },
     {
+      "Type": "swift",
+      "Path": "test/fixtures/output/nested-deep/swift",
+      "AccessorName": "NestedDeepAccessor"
+    },
+    {
+      "Type": "lua",
+      "Path": "test/fixtures/output/nested-deep/lua"
+    },
+    {
       "Type": "java",
       "Path": "test/fixtures/output/nested-deep/java",
       "PackageName": "tabbit.fixtures.nesteddeep",

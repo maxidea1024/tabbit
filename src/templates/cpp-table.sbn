@@ -27,6 +27,30 @@ struct {{ rt.type_name }} {
   {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## The per-target accessors of every member of this struct that reaches several tables. One
+   taking the element number where the member is the array, which is the third place an element
+   number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+  /// The `{{ target.record_name }}` row element `at` of `{{ multi.key_member }}` names, or
+  /// nullptr when that element names a row of one of the others.
+  const {{ target.record_name }}* {{ target.method }}(std::size_t at) const {
+    return {{ multi.target_member }}[at] == {{ multi.target_type_name }}::{{ target.label }}
+        ? static_cast<const {{ target.record_name }}*>({{ multi.slot_member }}[at])
+        : nullptr;
+  }
+{{~ else ~}}
+  /// The `{{ target.record_name }}` row `{{ multi.key_member }}` names, or nullptr when it names
+  /// a row of one of the others.
+  const {{ target.record_name }}* {{ target.method }}() const {
+    return {{ multi.target_member }} == {{ multi.target_type_name }}::{{ target.label }}
+        ? static_cast<const {{ target.record_name }}*>({{ multi.slot_member }})
+        : nullptr;
+  }
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 };
 
 {{~ end ~}}
@@ -45,10 +69,47 @@ struct {{ table.record_name }} {
 {{~ end ~}}
 {{~ if field.is_nullable ~}}
 {{~## The value member keeps its type and holds the type's empty value when the row had
-   none; this says which it was. Not std::optional, so that all thirteen languages have one
+   none; this says which it was. Not std::optional, so that every language have one
    shape and C++ does not split from Unreal - see spec/optional-fields.md. ##~}}
   /// Whether this row has a value for `{{ field.name }}`.
   bool {{ field.presence_member }} = false;
+{{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+{{~## The same answer one level in. Empty where the file did not carry the column, and then
+   every index is out of range anyway. ##~}}
+  std::vector<bool> {{ field.element_presence_member }};
+
+  /// Whether element `index` of `{{ field.name }}` has a value.
+  bool has_{{ field.name }}_at(std::size_t index) const {
+    return index >= {{ field.element_presence_member }}.size()
+        || {{ field.element_presence_member }}[index];
+  }
+{{~ end ~}}
+{{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One member for the resolved row
+   whatever table it came from, and the discriminator saying which - the targets take separate
+   id bands, so at most one of them ever answers.
+
+   `const void*` because the targets share no base. The cast is safe by construction: the
+   discriminator was set by the same assignment that filled the slot, and casting from `void*`
+   asks nothing of the target type - the forward header this file already includes is enough.
+   spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+
+  /// The row `{{ ref.key_member }}` names, as whichever of its target tables holds it. Read it
+  /// through the accessors below rather than directly: they check the discriminator first.
+  const void* {{ ref.slot_member }} = nullptr;
+
+  /// Which table `{{ ref.key_member }}` is a row of.
+  {{ ref.target_type_name }} {{ ref.target_member }} = {{ ref.target_type_name }}::{{ ref.none_label }};
+{{~ for target in ref.targets }}
+  /// The `{{ target.record_name }}` row `{{ ref.key_member }}` names, or nullptr when it names a
+  /// row of one of the others.
+  const {{ target.record_name }}* {{ target.method }}() const {
+    return {{ ref.target_member }} == {{ ref.target_type_name }}::{{ target.label }}
+        ? static_cast<const {{ target.record_name }}*>({{ ref.slot_member }})
+        : nullptr;
+  }
 {{~ end ~}}
 {{~ end ~}}
 };
@@ -124,6 +185,10 @@ class {{ table.table_name }} {
    declaration inside two of them collides. ##~}}
     std::vector<std::uint8_t> presence;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+    std::vector<std::uint8_t> element_presence;
+    std::size_t element_at = 0;
+{{~ end ~}}
 
     for (const tabbit::Column& column : header.columns) {
       const std::size_t block_end = reader.position() + static_cast<std::size_t>(column.byte_length);
@@ -139,6 +204,12 @@ class {{ table.table_name }} {
    are written for every row either way, which is what lets the read shapes below stay as
    they are. ##~}}
           presence = tabbit::read_presence(reader, column, row_count);
+{{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+{{~## Behind the row bitmap and in front of the values, walked with a counter that steps
+   once per element of every row. spec/nullable-array-elements.md. ##~}}
+          element_presence = tabbit::read_element_presence(reader, column);
+          element_at = 0;
 {{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
    as well: its block states an encoding for them and one for the row lengths, and the
@@ -165,8 +236,16 @@ class {{ table.table_name }} {
 {{~ if column_view.kind == "var_array" ~}}
             {{ column_view.length_read }}
             record.{{ column_view.name }}.resize(static_cast<std::size_t>(element_count));
+{{~ if column_view.has_optional_elements ~}}
+            record.{{ column_view.element_presence_member }}.assign(
+                static_cast<std::size_t>(element_count), true);
+{{~ end ~}}
             for (std::int32_t j = 0; j < element_count; ++j) {
               {{ column_view.read_var_element }};
+{{~ if column_view.has_optional_elements ~}}
+              record.{{ column_view.element_presence_member }}[static_cast<std::size_t>(j)] =
+                  tabbit::is_present(element_presence, element_at++);
+{{~ end ~}}
             }
 {{~ else if column_view.kind == "record_var" ~}}
 {{~## A trimmed record array: the length is written per row, once per member, and every
@@ -188,45 +267,51 @@ class {{ table.table_name }} {
             }
 {{~ else if column_view.kind == "array_of_arrays_member" ~}}
 {{~## One inner vector. Which outer element it is, is which column this is - so the outer
-   level is sized once by the first column and this sizes its own inner vector. ##~}}
+   level is sized by how many columns there are and the inner one by what this row says. ##~}}
+            {{ column_view.length_read }}
             record.{{ column_view.name }}.resize({{ column_view.outer_count }});
-            record.{{ column_view.name }}[{{ column_view.member_at }}].resize({{ column_view.element_count }});
-            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
-              {{ column_view.read_element }};
+            record.{{ column_view.name }}[{{ column_view.member_at }}].resize(
+                static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              {{ column_view.read_var_element }};
             }
-{{~ else if column_view.kind == "record_member_serial" ~}}
+{{~ else if column_view.kind == "record_member_var" ~}}
 {{~## The member is the vector: it is sized and indexed rather than the record. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+            {{ column_view.length_read }}
 {{~ if column_view.member_ref_suffix != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are sized. spec/references-in-records.md. ##~}}
-            record.{{ column_view.name }}{{ column_view.member_access }}.assign({{ column_view.element_count }}, nullptr);
-            record.{{ column_view.name }}{{ column_view.member_access }}_index.resize({{ column_view.element_count }});
+            record.{{ column_view.name }}{{ column_view.member_access }}.assign(
+                static_cast<std::size_t>(element_count), nullptr);
+            record.{{ column_view.name }}{{ column_view.member_access }}_index.resize(
+                static_cast<std::size_t>(element_count));
+{{~ else if column_view.multi_target_type_name != '' ~}}
+{{~## A member reaching several tables holds one slot and one discriminator per element beside
+   the keys, and the linking pass assigns into both - so all three are sized.
+   spec/multi-target-accessors.md. ##~}}
+            record.{{ column_view.name }}{{ column_view.member_access }}.resize(
+                static_cast<std::size_t>(element_count));
+            record.{{ column_view.name }}{{ column_view.member_access }}_row.assign(
+                static_cast<std::size_t>(element_count), nullptr);
+            record.{{ column_view.name }}{{ column_view.member_access }}_target.assign(
+                static_cast<std::size_t>(element_count), {{ column_view.multi_target_type_name }}::None);
 {{~ else ~}}
-            record.{{ column_view.name }}{{ column_view.member_access }}.resize({{ column_view.element_count }});
+            record.{{ column_view.name }}{{ column_view.member_access }}.resize(
+                static_cast<std::size_t>(element_count));
 {{~ end ~}}
-            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
-              {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == "record_serial" ~}}
-{{~## One member of a fixed record array. The vector and its elements came with the record,
-   so this fills a field of each rather than re-creating them. ##~}}
-            record.{{ column_view.name }}.resize({{ column_view.element_count }});
-            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
-              {{ column_view.read_element }};
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              {{ column_view.read_var_element }};
             }
 {{~ else if column_view.kind == "record_member" ~}}
             {{ column_view.read_scalar }};
-{{~ else if column_view.kind == "serial_ref" ~}}
-            record.{{ column_view.name }}.assign({{ column_view.element_count }}, {{ column_view.ref_default }});
-            record.{{ column_view.name }}_index.resize({{ column_view.element_count }});
-            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
-              {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == "serial" ~}}
-            record.{{ column_view.name }}.resize({{ column_view.element_count }});
-            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
-              {{ column_view.read_element }};
+{{~ else if column_view.kind == "var_array_ref" ~}}
+            {{ column_view.length_read }}
+            record.{{ column_view.name }}.assign(
+                static_cast<std::size_t>(element_count), {{ column_view.ref_default }});
+            record.{{ column_view.name }}_index.resize(static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              {{ column_view.read_var_element }};
             }
 {{~ else ~}}
             {{ column_view.read_scalar }};

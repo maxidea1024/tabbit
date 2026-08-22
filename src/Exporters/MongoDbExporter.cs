@@ -9,6 +9,7 @@ using Serilog;
 
 using ValueType = Tabbit.Models.ValueType;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -30,6 +31,9 @@ public class MongoDbRecipe : DatabaseRecipe
 [TabbitTarget("mongodb", TargetKind.Export, Order = 50)]
 public class MongoDbExporter : DatabaseExporterBase<MongoDbRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     protected override string TargetName => "MongoDB";
 
     private const int InsertBatchRows = 1000;
@@ -44,9 +48,8 @@ public class MongoDbExporter : DatabaseExporterBase<MongoDbRecipe>
         var url = new MongoUrl(connectionString);
         if (string.IsNullOrEmpty(url.DatabaseName))
         {
-            throw new TabbitException(
-                $"Recipe section `{RecipeSection}` connection string must name a database, " +
-                $"as in `mongodb://host:27017/mygame`.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.MongoDbNeedsDatabase, ("Section", RecipeSection)));
         }
 
         var client = new MongoClient(url);
@@ -164,8 +167,8 @@ public class MongoDbExporter : DatabaseExporterBase<MongoDbRecipe>
                 return new BsonInt32((int)value!);
 
             default:
-                throw new TabbitException(
-                    $"MongoDB exporter cannot map element type `{elementType}`.");
+                throw new TabbitException(null,
+                    Message.Of(ExportMessages.MongoDbElementTypeUnmapped, ("Type", elementType)));
         }
     }
 
@@ -192,7 +195,8 @@ public class MongoDbExporter : DatabaseExporterBase<MongoDbRecipe>
         }
         catch (Exception ex)
         {
-            Log.Warning($"Could not clean up MongoDB shadow collections: {ex.Message}");
+            Log.Warning(Message.Of(ExportMessages.LogMongodbCleanupFailed,
+                ("Detail", ex.Message)).In(MessageCatalog.Current));
         }
     }
 }

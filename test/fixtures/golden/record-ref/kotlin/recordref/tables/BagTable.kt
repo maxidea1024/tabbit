@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/record-ref/record-ref.xlsx : Records : Z2
 /** One record whose members are arrays, one of them references. */
@@ -119,7 +120,7 @@ class BagTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Bag.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Bag.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Bag.Index")
                     var at = 0
                     while (at < count) {
@@ -133,19 +134,25 @@ class BagTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Bag.Slots.ItemId", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32)
+                    checkColumn(column, "Bag.Slots.ItemId", KIND_ARRAY, false, ELEMENT_I32)
                     val cursor = ColumnCursor(reader, column, count, "Bag.Slots.ItemId")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        record.slots.itemIdIndex =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        for (element in 0 until elementCount) {
                             record.slots.itemIdIndex[element] = cursor.nextI32()
                         }
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Bag.Slots.Count", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Bag.Slots.Count", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Bag.Slots.Count")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        record.slots.count =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        for (element in 0 until elementCount) {
                             record.slots.count[element] = cursor.nextI32()
                         }
                     }

@@ -159,7 +159,6 @@ public class GoogleSheetsNamedRangeTests
                 {
                     Location = location.CloneWithXY(firstColumn + column, firstRow + row),
                     Value = "x",
-                    Note = "",
                 }).ToList()).ToList(),
         };
     }
@@ -243,7 +242,6 @@ public class GoogleSheetsNamedRangeTests
                 {
                     Location = location.CloneWithXY(column, row),
                     Value = "x",
-                    Note = "",
                 }).ToList()).ToList(),
         };
 

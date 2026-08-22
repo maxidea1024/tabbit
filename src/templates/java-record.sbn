@@ -19,6 +19,41 @@ public final class {{ table.record_name }} {
      */
     public boolean {{ field.presence_member }};
 {{~ end ~}}
+{{~ if field.has_optional_elements ~}}
+    /**
+     * Which of {{ field.name }}'s elements have a value. Empty where the file did not carry
+     * the column, and then every index is out of range anyway.
+     */
+    public boolean[] {{ field.element_presence_member }} = new boolean[0];
+{{~ end ~}}
+{{~ end ~}}
+{{~## A column whose value is a row of one of several tables. One field for the resolved row
+   whatever table it came from, and the discriminator saying which - the targets take separate
+   id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in table.multi_references ~}}
+    /**
+     * The row {{ ref.key_member }} names, as whichever of its target tables holds it. Read it
+     * through the methods below rather than directly: they check the discriminator first.
+     */
+    public Object {{ ref.slot_member }};
+
+    /** Which table {{ ref.key_member }} is a row of. */
+    public {{ ref.target_type_name }} {{ ref.target_member }} = {{ ref.target_type_name }}.{{ ref.none_label }};
+{{~ end ~}}
+{{~ for ref in table.multi_references ~}}
+{{~ for target in ref.targets }}
+    /**
+     * The {{ target.record_name }} row {{ ref.key_member }} names, or null when it names a row of
+     * one of the others.
+     */
+    public {{ target.record_name }} {{ target.method }}() {
+        if ({{ ref.target_member }} != {{ ref.target_type_name }}.{{ target.label }}) {
+            return null;
+        }
+
+        return ({{ target.record_name }}) {{ ref.slot_member }};
+    }
+{{~ end ~}}
 {{~ end ~}}
 {{~## The element type of each record group. Nested rather than a file of its own, which is
    what Java would demand of a public top-level type - and nesting scopes the name, so two
@@ -49,6 +84,43 @@ public final class {{ table.record_name }} {
 {{~## An instance initializer block: Java fills an array of objects with nulls, and a
    member array gets the same empty-not-null guarantee a scalar member gets. ##~}}
         { {{ member.fill }} }
+{{~ end ~}}
+{{~ if member.multi && member.multi.fill != '' ~}}
+{{~## And the discriminator array, for the same reason: an unresolved element has to read as
+   the `None` label rather than as a null. spec/multi-target-accessors.md. ##~}}
+        { {{ member.multi.fill }} }
+{{~ end ~}}
+{{~ end ~}}
+{{~## The per-target methods of every member of this class that reaches several tables. One
+   taking the element number where the member is the array, which is the third place an element
+   number sits. spec/multi-target-accessors.md. ##~}}
+{{~ for multi in rt.multi_members ~}}
+{{~ for target in multi.targets }}
+{{~ if multi.is_array ~}}
+        /**
+         * The {{ target.record_name }} row element {@code at} of {{ multi.key_member }} names, or
+         * null when that element names a row of one of the others.
+         */
+        public {{ target.record_name }} {{ target.method }}(int at) {
+            if ({{ multi.target_member }}[at] != {{ multi.target_type_name }}.{{ target.label }}) {
+                return null;
+            }
+
+            return ({{ target.record_name }}) {{ multi.slot_member }}[at];
+        }
+{{~ else ~}}
+        /**
+         * The {{ target.record_name }} row {{ multi.key_member }} names, or null when it names a
+         * row of one of the others.
+         */
+        public {{ target.record_name }} {{ target.method }}() {
+            if ({{ multi.target_member }} != {{ multi.target_type_name }}.{{ target.label }}) {
+                return null;
+            }
+
+            return ({{ target.record_name }}) {{ multi.slot_member }};
+        }
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
     }

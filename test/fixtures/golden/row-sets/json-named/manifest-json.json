@@ -1,0 +1,49 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "8fa02ed7436befe8305be8b182e4cd16",
+  "TotalSize": 1014,
+  "Items": [
+    {
+      "Name": "Colour.json",
+      "Size": 127,
+      "Hash": "c1f24218d47d72d6ae1f5df2852328e0",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Colour_alt.json",
+      "Size": 132,
+      "Hash": "dc5b8bdc7448ff6a78be8f0053880db6",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Brush.json",
+      "Size": 123,
+      "Hash": "282e0c41e8e3adac7ba59ec99f0cd0e7",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Narrow.json",
+      "Size": 189,
+      "Hash": "10168f012d44f19e34e604910585441d",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Narrow_alt.json",
+      "Size": 191,
+      "Hash": "920b5df0deac7b603e729164a1abf949",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Paint.json",
+      "Size": 125,
+      "Hash": "5f44d2617cb06efb1f1662931f03ee7e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Paint_alt.json",
+      "Size": 127,
+      "Hash": "0d6fc3fea016d3164b56fbaa6c82955d",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

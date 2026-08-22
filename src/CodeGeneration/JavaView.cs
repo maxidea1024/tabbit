@@ -105,6 +105,12 @@ internal sealed class JavaTableView
     public required IReadOnlyList<string> Comment { get; set; }
 
     /// <summary>
+    /// The columns whose value is a row of one of several tables.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<JavaMultiReferenceView> MultiReferences { get; set; }
+
+    /// <summary>
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<JavaIndexView> Indexes { get; set; }
@@ -115,6 +121,9 @@ internal sealed class JavaTableView
 
     /// <summary>Whether any column is optional, and so the read declares the presence buffer.</summary>
     public required bool NeedsPresence { get; set; }
+
+    /// <summary>Whether any column of this table carries an element bitmap.</summary>
+    public bool NeedsElementPresence { get; set; }
 
     public required IReadOnlyList<JavaFieldView> Fields { get; set; }
 
@@ -207,6 +216,12 @@ internal sealed class JavaFieldView
 
     /// <summary>The field the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
+
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
 }
 
 /// <summary>One field of a record group's generated class.</summary>
@@ -227,6 +242,51 @@ internal sealed class JavaRecordMemberView
     /// missing value.
     /// </remarks>
     public required string Fill { get; set; }
+
+    /// <summary>
+    /// The slot and the discriminator of a member reaching several tables, so the methods can
+    /// be written on the element class. Null for every other member.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public JavaMultiMemberView? Multi { get; set; }
+}
+
+/// <summary>
+/// One record member whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// The member keeps the key it already carried; beside it go one slot for the resolved row and
+/// the discriminator saying which table filled it, at the member's own arity. `Object` for the
+/// slot, as the row-level shape has it - the target records share no supertype, and the cast
+/// back out sits in the generated method where the discriminator has already answered.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class JavaMultiMemberView
+{
+    /// <summary>The key, the slot and the discriminator, by field name.</summary>
+    public required string KeyMember { get; set; }
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name, and its `None` label.</summary>
+    public required string TargetTypeName { get; set; }
+    public required string NoneLabel { get; set; }
+
+    /// <summary>Whether the member is the array, so a method takes an element number.</summary>
+    public required bool IsArray { get; set; }
+
+    /// <summary>
+    /// The initializer-block line filling the discriminator array, or empty where the member is
+    /// one value.
+    /// </summary>
+    /// <remarks>
+    /// Java fills an array of objects with nulls, and an unresolved element has to read as the
+    /// `None` label rather than as one - which is the same guarantee the member arrays beside
+    /// it already get.
+    /// </remarks>
+    public required string Fill { get; set; }
+
+    public required IReadOnlyList<JavaMultiTargetView> Targets { get; set; }
 }
 
 /// <summary>
@@ -251,6 +311,13 @@ internal sealed class JavaRecordTypeView
 
     /// <summary>What the class belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }
+
+    /// <summary>
+    /// Those of its members that reach several tables, for the methods written on the class.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public IReadOnlyList<JavaMultiMemberView> MultiMembers { get; set; }
+        = System.Array.Empty<JavaMultiMemberView>();
 }
 
 /// <summary>
@@ -286,6 +353,16 @@ internal sealed class JavaColumnView
     /// a branch in the emitted loop.
     /// </remarks>
     public required string LengthRead { get; set; }
+
+    /// <summary>
+    /// The Java spelling of the key a reference array stores, for the read to allocate.
+    /// </summary>
+    /// <remarks>
+    /// Written into the template as `int` before, which is the assumption
+    /// spec/reference-key-types.md removed where a scalar reference reads and left standing
+    /// where an array of them allocates. Empty for a column that is not one.
+    /// </remarks>
+    public required string RefKeyType { get; set; }
 
     /// <summary>
     /// The cursor's run method for a scalar whose column can arrive run-length encoded,
@@ -354,6 +431,12 @@ internal sealed class JavaColumnView
     /// <summary>The field the presence flag lands in.</summary>
     public required string PresenceMember { get; set; }
 
+    /// <summary>Whether the column states which of an array's elements hold a value.</summary>
+    public bool HasOptionalElements { get; set; }
+
+    /// <summary>The member holding that answer per element, or blank when there is none.</summary>
+    public string ElementPresenceMember { get; set; } = "";
+
     /// <summary>What an absent row's value is put back to, so both read paths agree.</summary>
     public required string EmptyValue { get; set; }
 }
@@ -386,6 +469,18 @@ internal sealed class JavaCrossReferenceView
     /// than beside it. spec/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<JavaRecordReferenceView> RecordFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables, which resolve by trying each in turn.
+    /// spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<JavaMultiReferenceView> MultiFields { get; set; }
+
+    /// <summary>
+    /// The columns reaching several tables that are members of a record, which resolve per
+    /// element. spec/multi-target-accessors.md.
+    /// </summary>
+    public required IReadOnlyList<JavaMultiRecordReferenceView> MultiRecordFields { get; set; }
 }
 
 /// <summary>
@@ -429,4 +524,80 @@ internal sealed class JavaReferenceFieldView
 
     public required string Value { get; set; }
     public required bool IsArray { get; set; }
+}
+
+/// <summary>
+/// One column whose value is a row of one of several tables.
+/// </summary>
+/// <remarks>
+/// One field for the resolved row whatever table it came from, and the discriminator saying
+/// which. `Object` for the slot, because the target records share no base class - the method
+/// below casts it, having asked the discriminator first.
+/// spec/multi-target-accessors.md.
+/// </remarks>
+internal sealed class JavaMultiReferenceView
+{
+    /// <summary>The field holding the key.</summary>
+    public required string KeyMember { get; set; }
+
+    /// <summary>The field the resolved row lands in, and the discriminator beside it.</summary>
+    public required string SlotMember { get; set; }
+    public required string TargetMember { get; set; }
+
+    /// <summary>The generated enumeration's type name.</summary>
+    public required string TargetTypeName { get; set; }
+
+    /// <summary>The label standing for "no row of any of them".</summary>
+    public required string NoneLabel { get; set; }
+
+    /// <summary>What follows the key to ask whether it points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<JavaMultiTargetView> Targets { get; set; }
+}
+
+/// <summary>One table a multi-target column may point at.</summary>
+internal sealed class JavaMultiTargetView
+{
+    /// <summary>The accessor's local name for the table.</summary>
+    public required string Table { get; set; }
+
+    /// <summary>The record type a resolved row has.</summary>
+    public required string RecordName { get; set; }
+
+    /// <summary>The method this target is read through.</summary>
+    public required string Method { get; set; }
+
+    /// <summary>The enum label for this target.</summary>
+    public required string Label { get; set; }
+
+    /// <summary>The target's lookup, which answers null rather than throwing.</summary>
+    public required string Lookup { get; set; }
+}
+
+/// <summary>
+/// One multi-target column that is a member of a record, as the linking pass writes it.
+/// </summary>
+internal sealed class JavaMultiRecordReferenceView
+{
+    /// <summary>The key this resolves through, loop variable included.</summary>
+    public required string Key { get; set; }
+
+    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
+    public required string Slot { get; set; }
+    public required string Target { get; set; }
+
+    /// <summary>
+    /// The loop bound, or empty where the group is one record and there is nothing to walk.
+    /// </summary>
+    public required string Count { get; set; }
+
+    /// <summary>The generated enumeration's type name, and its `None` label.</summary>
+    public required string TargetTypeName { get; set; }
+    public required string NoneLabel { get; set; }
+
+    /// <summary>The whole condition asking whether the key points anywhere.</summary>
+    public required string KeyIsSet { get; set; }
+
+    public required IReadOnlyList<JavaMultiTargetView> Targets { get; set; }
 }

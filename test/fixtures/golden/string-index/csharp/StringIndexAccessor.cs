@@ -8,15 +8,9 @@
 // ------------------------------------------------------------------------------
 
 using System;
-using System.Text;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-
-// Tabbit's binary reader, written into this directory beside the accessor.
-// Nothing has to be installed for the generated code to compile.
-using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.StringIndex
 {
@@ -139,7 +133,6 @@ namespace Tabbit.Fixtures.StringIndex
         /// </summary>
         public static AnimationTable Animation => Current.Animation;
 
-
         /// <summary>
         /// Reads every table and links them, and hands the result back without publishing it.
         /// </summary>
@@ -179,7 +172,6 @@ namespace Tabbit.Fixtures.StringIndex
             Current = snapshot;
         }
 
-
         /// <summary>
         /// Read all tables.
         /// </summary>
@@ -193,14 +185,11 @@ namespace Tabbit.Fixtures.StringIndex
             Publish(await LoadAsync(basePath, fileExtension));
         }
 
-
         /// <summary>
         /// Solve cross references, among the tables of one read.
         /// </summary>
         private static void SolveCrossReferences(Snapshot snapshot)
         {
         }
-
     }
-
 } // namespace Tabbit.Fixtures.StringIndex

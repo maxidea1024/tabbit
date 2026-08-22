@@ -123,7 +123,24 @@ if (tb_update("https://cdn.example.com/data", "./data", &options, &result)) {
 
 **메모리는 테이블이 소유합니다.** 테이블마다 아레나가 하나이고, 레코드의 문자열과 배열은 전부 그 안을 가리킵니다. `GameData_Free` 한 번으로 전부 해제되고, 어떤 레코드의 포인터도 그보다 오래 살지 않습니다. 개별 `free`를 부르지 마세요.
 
-**조회 함수가 둘입니다.** 인덱싱된 필드마다 `<Accessor>_<Table>FindBy<Field>`와 `<Accessor>_<Table>Contains<Field>`가 나옵니다. 다른 11개 언어가 내는 `GetBy<Field>OrThrow`는 C에 throw할 것이 없어서 없고, 없으면 안 되는 키는 `NULL` 검사로 확인합니다. 키 타입은 그 컴럼의 타입이고(`int32_t`, `const char*`, `tb_uuid` 등), 맵이 없는 언어라 정렬된 배열과 이분탐색입니다.
+**배열은 포인터와 개수입니다.** 길이가 로우마다 다른 배열이든 모든 로우가 같은 배열이든 멤버가
+둘로 나옵니다 — `const char** tag_array`와 `int32_t tag_array_count`. 고정 길이 배열을 구조체
+안에 박아 두면 그 크기는 코드를 생성한 시점의 시트가 가졌던 것이 되고, C는 구조체 크기를 데이터에서
+정할 수 없으므로 선택은 그 숫자와 포인터 중 하나입니다. 한 로우가 원소를 몇 개 갖는지는 파일이
+적은 것이므로 포인터입니다 ([설계](../../spec/nullable-array-elements.md#12-딸린-정리--생성-코드의-고정-길이)).
+
+```c
+int32_t element;
+
+for (element = 0; element < r->tag_array_count; ++element)
+    printf("%s\n", r->tag_array[element]);
+```
+
+파일이 그 컬럼을 담고 있지 않으면 포인터는 `NULL`이고 개수는 `0`입니다 — 위 루프가 그대로 도는
+빈 배열이고, 개수를 보지 않고 인덱싱하는 코드만 문제가 됩니다. 레코드 그룹(`Slot1.Id`)의 배열은
+컬럼 여럿이 하나를 채우므로 예외이고, 그 길이는 생성된 모양의 일부이므로 고정 배열로 나옵니다.
+
+**조회 함수가 둘입니다.** 인덱싱된 필드마다 `<Accessor>_<Table>FindBy<Field>`와 `<Accessor>_<Table>Contains<Field>`가 나옵니다. 다른 언어들이 내는 `GetBy<Field>OrThrow`는 C에 throw할 것이 없어서 없고, 없으면 안 되는 키는 `NULL` 검사로 확인합니다. 키 타입은 그 컴럼의 타입이고(`int32_t`, `const char*`, `tb_uuid` 등), 맵이 없는 언어라 정렬된 배열과 이분탐색입니다.
 
 **던지지 않습니다.** 실패는 `false` 반환과 `error` 버퍼입니다. 실패한 로드는 자기가 할당했던 것을 해제하고 테이블을 비워두므로, 반환값을 무시해도 절반만 든 데이터가 아니라 빈 테이블을 보게 됩니다.
 

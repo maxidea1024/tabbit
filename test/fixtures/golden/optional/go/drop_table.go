@@ -157,7 +157,7 @@ func (t *DropTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Drop.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Drop.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Drop.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -168,7 +168,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Drop.Hp", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Drop.Hp", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Drop.Hp")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -179,7 +179,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Drop.Bonus", tabbit.KindScalar, 1, true, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Drop.Bonus", tabbit.KindScalar, true, tabbit.ElementI32, tabbit.ElementVarint) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -206,7 +206,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Drop.Weight", tabbit.KindScalar, 1, true, tabbit.ElementF64, tabbit.ElementF32, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Drop.Weight", tabbit.KindScalar, true, tabbit.ElementF64, tabbit.ElementF32, tabbit.ElementI32) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -230,7 +230,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Drop.Ratio", tabbit.KindScalar, 1, true, tabbit.ElementF32) {
+			if tabbit.CheckColumn(reader, column, "Drop.Ratio", tabbit.KindScalar, true, tabbit.ElementF32) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -254,7 +254,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 6:
-			if tabbit.CheckColumn(reader, column, "Drop.Count", tabbit.KindScalar, 1, true, tabbit.ElementI64, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Drop.Count", tabbit.KindScalar, true, tabbit.ElementI64, tabbit.ElementI32, tabbit.ElementVarint) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -278,7 +278,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 7:
-			if tabbit.CheckColumn(reader, column, "Drop.OpenAt", tabbit.KindScalar, 1, true, tabbit.ElementI64) {
+			if tabbit.CheckColumn(reader, column, "Drop.OpenAt", tabbit.KindScalar, true, tabbit.ElementI64) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -302,7 +302,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 8:
-			if tabbit.CheckColumn(reader, column, "Drop.Cooldown", tabbit.KindScalar, 1, true, tabbit.ElementI64) {
+			if tabbit.CheckColumn(reader, column, "Drop.Cooldown", tabbit.KindScalar, true, tabbit.ElementI64) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -326,7 +326,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 9:
-			if tabbit.CheckColumn(reader, column, "Drop.Batch", tabbit.KindScalar, 1, true, tabbit.ElementUUID) {
+			if tabbit.CheckColumn(reader, column, "Drop.Batch", tabbit.KindScalar, true, tabbit.ElementUUID) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -349,7 +349,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 10:
-			if tabbit.CheckColumn(reader, column, "Drop.Grade", tabbit.KindScalar, 1, true, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Drop.Grade", tabbit.KindScalar, true, tabbit.ElementVarint) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -376,7 +376,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 11:
-			if tabbit.CheckColumn(reader, column, "Drop.Costs", tabbit.KindVarArray, 0, true, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Drop.Costs", tabbit.KindArray, true, tabbit.ElementI32, tabbit.ElementVarint) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -404,7 +404,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 12:
-			if tabbit.CheckColumn(reader, column, "Drop.Label", tabbit.KindScalar, 1, true, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Drop.Label", tabbit.KindScalar, true, tabbit.ElementString) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -431,7 +431,7 @@ func (t *DropTable) Read(filename string) error {
 				}
 			}
 		case 13:
-			if tabbit.CheckColumn(reader, column, "Drop.Hidden", tabbit.KindScalar, 1, true, tabbit.ElementBool) {
+			if tabbit.CheckColumn(reader, column, "Drop.Hidden", tabbit.KindScalar, true, tabbit.ElementBool) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.

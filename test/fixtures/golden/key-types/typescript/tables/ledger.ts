@@ -206,7 +206,7 @@ export class LedgerTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Ledger.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Ledger.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Ledger.Index')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -214,7 +214,7 @@ export class LedgerTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Ledger.Amount', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Ledger.Amount', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Ledger.Amount')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -223,7 +223,7 @@ export class LedgerTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Ledger.Batch', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_UUID])
+          tabbit.checkColumn(column, 'Ledger.Batch', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_UUID])
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._batch = reader.readUuid()

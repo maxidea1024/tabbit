@@ -116,13 +116,13 @@ module KeyTypes
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Ledger.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I64, Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Ledger.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I64, Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Ledger.Index')
           records.each do |record|
             record.index = cursor.next_i64
           end
         when 2
-          Tabbit.check_column(column, 'Ledger.Amount', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Ledger.Amount', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Ledger.Amount')
           at = 0
           while at < count
@@ -133,7 +133,7 @@ module KeyTypes
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Ledger.Batch', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_UUID])
+          Tabbit.check_column(column, 'Ledger.Batch', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_UUID])
           records.each do |record|
             record.batch = reader.read_uuid
           end

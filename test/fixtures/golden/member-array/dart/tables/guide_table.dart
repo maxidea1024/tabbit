@@ -106,7 +106,7 @@ class GuideTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Guide.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Guide.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Guide.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -116,7 +116,7 @@ class GuideTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Guide.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Guide.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Guide.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -126,60 +126,61 @@ class GuideTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Guide.Skill.Step', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Guide.Skill.Step', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Guide.Skill.Step');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
-              record.skill.step[j] = cursor.nextI32();
-            }
+            final elementCount = cursor.nextLength();
+            record.skill.step =
+                List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         case 4:
-          checkColumn(column, 'Guide.Skill.Order', kindFixedArray, 2, false, [elementString]);
+          checkColumn(column, 'Guide.Skill.Order', kindArray, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Guide.Skill.Order');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
-              record.skill.order[j] = cursor.nextString();
-            }
+            final elementCount = cursor.nextLength();
+            record.skill.order =
+                List.generate(elementCount, (_) => cursor.nextString());
           }
           break;
         case 5:
-          checkColumn(column, 'Guide.Pos.X', kindScalar, 1, false, [elementF32]);
+          checkColumn(column, 'Guide.Pos.X', kindScalar, false, [elementF32]);
           cursor = TcbColumnCursor(reader, column, count, 'Guide.Pos.X');
           for (final record in loaded) {
             record.pos.x = cursor.nextF32();
           }
           break;
         case 6:
-          checkColumn(column, 'Guide.Pos.Y', kindScalar, 1, false, [elementF32]);
+          checkColumn(column, 'Guide.Pos.Y', kindScalar, false, [elementF32]);
           cursor = TcbColumnCursor(reader, column, count, 'Guide.Pos.Y');
           for (final record in loaded) {
             record.pos.y = cursor.nextF32();
           }
           break;
         case 7:
-          checkColumn(column, 'Guide.Tag_array', kindFixedArray, 2, false, [elementString]);
+          checkColumn(column, 'Guide.Tag_array', kindArray, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Guide.Tag_array');
           for (final record in loaded) {
-            record.tagArray = List.generate(2, (_) => cursor.nextString());
+            final elementCount = cursor.nextLength();
+            record.tagArray = List.generate(elementCount, (_) => cursor.nextString());
           }
           break;
         case 8:
-          checkColumn(column, 'Guide.Grid.1', kindFixedArray, 3, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Guide.Grid.1', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Guide.Grid.1');
           for (final record in loaded) {
-            for (var j = 0; j < 3; j++) {
-              record.grid[0][j] = cursor.nextI32();
-            }
+            final elementCount = cursor.nextLength();
+            record.grid[0] =
+                List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         case 9:
-          checkColumn(column, 'Guide.Grid.2', kindFixedArray, 3, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Guide.Grid.2', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Guide.Grid.2');
           for (final record in loaded) {
-            for (var j = 0; j < 3; j++) {
-              record.grid[1][j] = cursor.nextI32();
-            }
+            final elementCount = cursor.nextLength();
+            record.grid[1] =
+                List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         default:

@@ -62,6 +62,22 @@ public sealed class PhpRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -80,10 +96,17 @@ public sealed class PhpRecipe : IOutputRecipe
 [TabbitTarget("php", TargetKind.CodeGeneration, Order = 87)]
 public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private PhpRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates a class and a list of it; a member column fills one of its
@@ -112,6 +135,12 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, PhpRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -121,6 +150,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Camel, "php");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -171,6 +201,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             var requires = new List<string> { Require(1, "tabbit/TcbReader.php") };
 
             requires.AddRange(TypeDependencies.EnumsNamedBy(pair.model)
+                                              .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
                 .Select(enumm => Require(1, $"enums/{EnumName(enumm)}.php")));
 
             // The accessor, for the encryption key it holds. It requires this file back, and
@@ -303,6 +334,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -314,7 +346,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         // Whether any column reads through a cursor. PHP needs no declaration ahead
         // of the first `$cursor = ...` assignment, so unlike the C# template nothing
         // in the read method renders from this - it is here so the templates of the
-        // thirteen languages can ask the same questions of their views.
+        // every language can ask the same questions of their views.
         NeedsCursor = table.WireColumns.Any(UsesCursor),
     };
 
@@ -397,13 +429,135 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     private static string PrimaryLookup(Table? refTable)
         => "findBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
 
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => "!== ''",
+            ValueType.Uuid => "->isSet()",
+            _ => "!== 0",
+        };
+
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    private PhpMultiMemberView? MultiMemberOrNull(RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string name = PhpName(member.Name);
+
+        return new PhpMultiMemberView
+        {
+            KeyMember = name,
+            SlotMember = name + "Row",
+            TargetMember = name + "Target",
+            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
+            NoneCase = CaseName("None"),
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new PhpMultiTargetView
+            {
+                Table = PhpName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = PhpName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Case = CaseName(target.Name),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member. spec/references-in-records.md.
+    /// </remarks>
+    private PhpMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = PhpName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "->" + PhpName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"$record->{name}{member}"
+            : $"$record->{name}[$j]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[$j]" : "";
+
+        return new PhpMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "Row" + subscript,
+            Target = path + "Target" + subscript,
+
+            // Whichever list holds the elements. The key member is that list where the members
+            // are the arrays, so there is no separate key list to count.
+            Count = isArray
+                ? (wire.Group.MembersAreArrays ? $"\\count({path})" : $"\\count($record->{name})")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            NoneCase = CaseName("None"),
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new PhpMultiTargetView
+            {
+                Table = PhpName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = "",
+                Case = CaseName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private PhpMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new PhpMultiReferenceView
+        {
+            KeyMember = PhpName(column.Group.Name),
+            SlotMember = PhpName(column.Group.Name) + "Row",
+            TargetMember = PhpName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneCase = CaseName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new PhpMultiTargetView
+            {
+                Table = PhpName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = PhpName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+                Case = CaseName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+
     private PhpFieldView BuildField(Table table, SerialField sf)
     {
         if (sf.IsRecord)
             return BuildRecordField(table, sf);
 
         string name = PhpName(sf.Name);
-        bool nullable = !sf.Fields[0].IsRequired;
+        bool nullable = sf.RowMayBeAbsent;
 
         var declarations = Declarations(sf, name).ToList();
 
@@ -413,6 +567,15 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         {
             declarations.Add("");
             declarations.Add($"public bool ${PresenceMember(sf)} = false;");
+        }
+
+        // And the per-element answer, empty until the read fills it: an index into an empty
+        // array is out of range, and the answer there is that the element has a value.
+        // spec/nullable-array-elements.md.
+        if (sf.ElementMayBeAbsent)
+        {
+            declarations.Add("");
+            declarations.Add($"public array ${ElementPresenceMember(sf)} = [];");
         }
 
         return new PhpFieldView
@@ -425,7 +588,9 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             RecordTypeName = "",
             Members = Array.Empty<PhpRecordMemberView>(),
             IsNullable = nullable,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = ElementPresenceMember(sf),
         };
     }
 
@@ -465,11 +630,27 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         {
             if (member.IsLeaf)
             {
+                var multi = MultiMemberOrNull(member);
+
                 result.Add(new PhpRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     Declarations = MemberDeclarations(member),
+                    Multi = multi,
                 });
+
+                // The slot and the discriminator of a member reaching several tables start as
+                // lists where the member is the array, for the reason the reference member
+                // below gives: the linking pass fills the positions it resolves, and the ones
+                // it does not have to already be there. spec/multi-target-accessors.md.
+                if (multi is not null && member.IsArray)
+                {
+                    constructorLines.Add(
+                        $"$this->{multi.SlotMember} = array_fill(0, {member.Fields.Count}, null);");
+                    constructorLines.Add(
+                        $"$this->{multi.TargetMember} = array_fill(0, {member.Fields.Count}, "
+                        + $"{multi.TargetTypeName}::{multi.NoneCase});");
+                }
 
                 // A reference member that is an array starts as a list of nulls, the same
                 // shape a reference array outside a record starts as: the linking pass fills
@@ -493,6 +674,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
             declared.Add(new PhpRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -525,6 +707,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         recordTypes.Add(new PhpRecordTypeView
         {
+            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -631,7 +814,9 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             ElementCount = wire.Cells.Count,
             ReadElement = ReadElementExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = ElementPresenceMember(wire.Group),
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -653,8 +838,12 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+    /// <summary>The member holding which of an array's elements have a value.</summary>
+    private string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : PhpName("has_" + sf.Name + "_at");
+
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : PhpName("has_" + sf.Name);
 
     /// <summary>One record member's declaration, by the same rules an ordinary field follows.</summary>
     private IReadOnlyList<string> MemberDeclarations(RecordMember member)
@@ -690,6 +879,39 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                     "",
                     $"public {RefKeyDeclaration(member.FirstField!.RefKeyType, key)} ${name}Index"
                         + $"{RefKeyInitializer(member.FirstField!.RefKeyType)};",
+                };
+        }
+
+        // A member reaching several tables keeps its key declared as an ordinary value and
+        // gains two properties beside it. spec/multi-target-accessors.md.
+        var multiMember = MultiMemberOrNull(member);
+
+        if (multiMember is not null)
+        {
+            string key = MemberTypeName(member);
+            string none = $"{multiMember.TargetTypeName}::{multiMember.NoneCase}";
+
+            return member.IsArray
+                ? new[]
+                {
+                    $"/** @var list<{key}> */",
+                    $"public array ${name} = [];",
+                    "",
+                    "/** @var list<?object> The rows this member names, as whichever of its targets holds each. */",
+                    $"public array ${multiMember.SlotMember} = [];",
+                    "",
+                    $"/** @var list<{multiMember.TargetTypeName}> Which table each element is a row of. */",
+                    $"public array ${multiMember.TargetMember} = [];",
+                }
+                : new[]
+                {
+                    $"public {key} ${name} = {MemberDefault(member)};",
+                    "",
+                    "/** The row this member names, as whichever of its targets holds it. */",
+                    $"public ?object ${multiMember.SlotMember} = null;",
+                    "",
+                    "/** Which table this member is a row of. */",
+                    $"public {multiMember.TargetTypeName} ${multiMember.TargetMember} = {none};",
                 };
         }
 
@@ -764,7 +986,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// </remarks>
     private string EmptyValue(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "[]";
 
         // A resolved reference and a uuid are both nullable properties here, and absence is
@@ -799,7 +1021,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -859,7 +1081,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
@@ -889,7 +1111,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// The line assigning one row from the value the run decoded, inside the loop the
     /// template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -991,11 +1213,8 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "TcbReader::KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "TcbReader::KIND_FIXED_ARRAY" : "TcbReader::KIND_SCALAR");
+        string kind = wire.IsArray ? "TcbReader::KIND_ARRAY" : "TcbReader::KIND_SCALAR";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string accepted;
 
@@ -1034,7 +1253,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                     accepted = "TcbReader::ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The php generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The php generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -1043,7 +1262,11 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"TcbReader::checkColumn($column, '{tableName}.{wire.Name}', {kind}, {count}, {nullable}, [{accepted}]);";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"TcbReader::checkColumn($column, '{tableName}.{wire.Name}', {kind}, "
+            + $"{nullable}, [{accepted}]{elements});";
     }
 
     /// <summary>
@@ -1059,10 +1282,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the array decides where the index goes, and an unnamed
@@ -1070,14 +1290,17 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            // A trimmed array of references: the length is the row's, and the key still goes
+            // in the array beside the values. Read as a plain `var_array` it put the keys where
+            // the resolved rows belong, and the linking pass then found nothing to resolve -
+            // silently, because this language does not type them apart. Nothing held the shape:
+            // `foreign[]` is refused, so it is only reachable through a folded group with
+            // trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -1089,11 +1312,11 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         Tables = _model.Tables.Select(table => new PhpTableSlotView
         {
-            Name = PhpName(table.Name),
+            Name = PhpCamelName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables
@@ -1110,11 +1333,25 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new PhpCrossReferenceView
             {
                 Table = PhpName(x.Table.Name),
+                MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new PhpReferenceFieldView
                 {
                     Name = PhpName(sf.Name),
@@ -1145,7 +1382,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "->" + PhpName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         // Where the element number goes is the whole difference between the record shapes -
         // the group's array, the member's, or neither. spec/nested-multi-level.md.
@@ -1254,7 +1491,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                     return LanguageProfile.Php.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Php.ReadCall(wire.ElementType);
         }
     }
@@ -1312,7 +1549,9 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the php generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "php")));
         }
     }
 
@@ -1353,9 +1592,18 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     }
 
     /// <summary>A class constant, SCREAMING_SNAKE_CASE as PHP writes them.</summary>
-    private static string ConstantName(string name) => name.ToSnakeCase().ToUpperInvariant();
+    private static string ConstantName(string name) => name.ToUpperSnakeCase();
 
     /// <summary>A property name, camelCase.</summary>
-    private static string PhpName(string name) => LanguageProfile.Php.MemberName(name.ToCamelCase());
+    private string PhpName(string name) => LanguageProfile.Php.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// camelCase because that is how PHP writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string PhpCamelName(string name) => LanguageProfile.Php.MemberName(name.ToCamelCase());
 
 }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using Newtonsoft.Json;
 using System.Linq;
 
@@ -15,15 +16,184 @@ public static class StagingFiles
     static readonly List<(string, string)> _stagingFiles = [];
 
     /// <summary>
+    /// One lock over everything this class remembers.
+    /// </summary>
+    /// <remarks>
+    /// **Because the output entries are built at the same time.** Every list here is appended
+    /// to from inside a target's own work - which staging files exist, which directories to
+    /// sweep, which files to prune - and a List that two threads append to loses entries
+    /// rather than failing.
+    ///
+    /// One lock rather than one per list: what these hold is small, the appends are short, and
+    /// several locks over state this interrelated is how a deadlock gets written. Nothing is
+    /// held across file I/O - see <see cref="Write"/>. spec/conversion-time.md section 5.
+    /// </remarks>
+    static readonly object Gate = new object();
+
+    /// <summary>
+    /// Which recipe entry the work on this thread belongs to, or null outside one.
+    /// </summary>
+    /// <remarks>
+    /// **How a file staged now is attributed to the entry that staged it.** The build cache
+    /// records what each entry produced, and it used to work that out from the difference in
+    /// the staging list across the entry's run - a slice of a shared list, which is an answer
+    /// only while one entry runs at a time.
+    ///
+    /// The alternative that was rejected then is still rejected: asking every target to keep
+    /// its own list would put the cache's bookkeeping into all of them. This puts it in
+    /// neither place - the caller names the entry, and the ledger tags what arrives.
+    ///
+    /// `AsyncLocal` rather than `ThreadLocal` because a target may fan out internally - the
+    /// binary exporter encodes a table's columns in parallel - and an async-local value flows
+    /// into that work where a thread-local one would not.
+    /// </remarks>
+    static readonly System.Threading.AsyncLocal<string?> _attributedTo = new System.Threading.AsyncLocal<string?>();
+
+    /// <summary>Files each entry staged, in the order it staged them.</summary>
+    static readonly Dictionary<string, List<string>> _byEntry =
+        new Dictionary<string, List<string>>(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Names the entry that the staging done inside the returned scope belongs to.
+    /// </summary>
+    /// <remarks>
+    /// Restores whatever was in force before, so a nested scope - a target that runs another
+    /// one - leaves the outer attribution as it found it.
+    /// </remarks>
+    public static IDisposable Attributing(string section) => new Attribution(section);
+
+    private sealed class Attribution : IDisposable
+    {
+        private readonly string? _previous;
+
+        public Attribution(string section)
+        {
+            _previous = _attributedTo.Value;
+            _attributedTo.Value = section;
+        }
+
+        public void Dispose() => _attributedTo.Value = _previous;
+    }
+
+    /// <summary>
+    /// The destination paths one entry staged, in the order it staged them.
+    /// </summary>
+    /// <remarks>
+    /// Read after the entries have run, so what comes back does not depend on the order they
+    /// finished in - a target stages its own files in table order, and this keeps that order.
+    /// </remarks>
+    public static IReadOnlyList<string> StagedBy(string section)
+    {
+        lock (Gate)
+        {
+            return _byEntry.TryGetValue(section, out var staged)
+                ? staged.ToList()
+                : (IReadOnlyList<string>)Array.Empty<string>();
+        }
+    }
+
+    /// <summary>Which staging paths are already in <see cref="_stagingFiles"/>.</summary>
+    /// <remarks>
+    /// The same membership the list carries, kept as a set so that asking is not a scan.
+    /// Ordinal, because the path has already been folded to the case this filesystem
+    /// compares in - see <see cref="RegisterStagingFile(string, out bool)"/>.
+    /// </remarks>
+    static readonly HashSet<string> _stagedPaths = new HashSet<string>(StringComparer.Ordinal);
+
+    /// <summary>
+    /// What each staged file holds, measured as it was written.
+    /// </summary>
+    /// <remarks>
+    /// So that nothing has to read a file back to find out what is in it. The manifest
+    /// records a size and an MD5 per file, and it was getting them by opening the file it
+    /// had just been handed - which read every byte of the output a second time. On the
+    /// sample project's full conversion that was 4.59 s for the `json` target and 2.37 s
+    /// for `binary`, spent re-reading bytes that had been in hand a moment earlier.
+    ///
+    /// Keyed by the staging path, because that is what a target passes on. Cleared with the
+    /// staging list itself: past a commit or a rollback these describe files that are no
+    /// longer there.
+    ///
+    /// Concurrent, and not under <see cref="Gate"/>: this is written at the end of a file
+    /// write, and holding a lock across the writing of a hundred-megabyte table would
+    /// serialise exactly the work the entries are being run in parallel to spread.
+    /// </remarks>
+    static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string Md5, long Size)> _writtenContents =
+        new System.Collections.Concurrent.ConcurrentDictionary<string, (string, long)>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Directories a target asked to have its stale output removed from.
     /// </summary>
     static readonly List<string> _sweepRoots = [];
+
+    /// <summary>
+    /// The same directories, kept for the whole run rather than until the sweep.
+    /// </summary>
+    /// <remarks>
+    /// The build cache records these, because a run that decides it has nothing to do never
+    /// reaches a target and so is never told where the output lives - and it still has to
+    /// sweep. Removing a generated file that is no longer produced is part of what a
+    /// successful run leaves behind, and "unless it was quick" is not a condition anybody
+    /// would want on that.
+    /// </remarks>
+    static readonly List<string> _declaredSweepRoots = [];
+
+    /// <summary>Every directory this run was asked to sweep, whether or not it has yet.</summary>
+    /// <remarks>
+    /// Sorted, because these reach the build cache's seal - a file on disk - and the order
+    /// they were declared in is now the order the output entries happened to finish in. What
+    /// they are is a set of directories, so putting them in one order costs nothing and keeps
+    /// two identical runs writing an identical seal. spec/conversion-time.md section 5.
+    /// </remarks>
+    public static IReadOnlyList<string> DeclaredSweepRoots
+    {
+        get
+        {
+            lock (Gate)
+            {
+                var roots = new List<string>(_declaredSweepRoots);
+                roots.Sort(StringComparer.Ordinal);
+                return roots;
+            }
+        }
+    }
 
     /// <summary>
     /// Files a target named individually as its own, to be removed if this run does not
     /// write them.
     /// </summary>
     static readonly List<string> _pruneCandidates = [];
+
+    /// <summary>
+    /// Files a previous run wrote that this run is keeping instead of writing again.
+    /// </summary>
+    /// <remarks>
+    /// This exists because of what <see cref="Sweep"/> does. The sweep deletes generated
+    /// files that this run did not write, which is right when a table was renamed and
+    /// catastrophic when an output entry was skipped: its thousands of files are, by that
+    /// definition, files this run did not write.
+    ///
+    /// So a skipped entry declares its previous output here, and the sweep counts it as
+    /// written. The list comes from the build cache's record of what that entry produced
+    /// last time, which is the only place that knows.
+    /// </remarks>
+    static readonly List<string> _keptFiles = [];
+
+
+    /// <summary>
+    /// Says that a file a previous run wrote is still this run's output, though this run
+    /// did not write it.
+    /// </summary>
+    public static void Keep(string filename)
+    {
+        string full = Path.GetFullPath(filename);
+
+        lock (Gate)
+        {
+            if (!_keptFiles.Contains(full, PathNames.Comparer))
+                _keptFiles.Add(full);
+        }
+    }
 
     /// <summary>
     /// What every generated file says about itself, in its first few lines.
@@ -51,11 +221,16 @@ public static class StagingFiles
         }
 
         _stagingFiles.Clear();
+        _stagedPaths.Clear();
+        _writtenContents.Clear();
+        _byEntry.Clear();
 
         // Nothing is swept either: a run that failed has no business deciding which of
         // the previous run's files are stale.
         _sweepRoots.Clear();
+        _declaredSweepRoots.Clear();
         _pruneCandidates.Clear();
+        _keptFiles.Clear();
     }
 
     /// <summary>
@@ -78,8 +253,14 @@ public static class StagingFiles
     {
         string full = Path.GetFullPath(directory);
 
-        if (!_sweepRoots.Contains(full, PathNames.Comparer))
-            _sweepRoots.Add(full);
+        lock (Gate)
+        {
+            if (!_sweepRoots.Contains(full, PathNames.Comparer))
+                _sweepRoots.Add(full);
+
+            if (!_declaredSweepRoots.Contains(full, PathNames.Comparer))
+                _declaredSweepRoots.Add(full);
+        }
     }
 
     /// <summary>
@@ -103,8 +284,99 @@ public static class StagingFiles
     {
         string full = Path.GetFullPath(filename);
 
-        if (!_pruneCandidates.Contains(full, PathNames.Comparer))
-            _pruneCandidates.Add(full);
+        lock (Gate)
+        {
+            if (!_pruneCandidates.Contains(full, PathNames.Comparer))
+                _pruneCandidates.Add(full);
+        }
+    }
+
+    /// <summary>
+    /// The staging file one destination is written through.
+    /// </summary>
+    /// <remarks>
+    /// A pure function of the path, so the two ways of claiming a file - one at a time and
+    /// a set at once - cannot disagree about where it goes.
+    ///
+    /// Hashed the way this platform compares paths, so that one staging file stands for one
+    /// real file. Hashing the spelling was right on Linux and wrong on Windows: two targets
+    /// asking for `Item.cs` and `item.cs` got two staging files there, which is one file on
+    /// NTFS - so the collision check never fired and whichever committed last was silently
+    /// the only one that survived. That is the case the check exists for, and it was the case
+    /// it could not see.
+    /// </remarks>
+    private static string StagingPathOf(string fullPath)
+    {
+        string md5 = Helper.CalculateMD5HashFromString(
+            PathNames.Comparison == StringComparison.OrdinalIgnoreCase
+                ? fullPath.ToLowerInvariant()
+                : fullPath);
+
+        return Path.Combine(Path.GetTempPath(), md5 + ".staging");
+    }
+
+    /// <summary>
+    /// Claims a whole set of destinations at once, or claims none of them.
+    /// </summary>
+    /// <remarks>
+    /// **For a target that plans its files and then writes them in parallel.** Two things
+    /// have to be true before such a target can start, and neither can be checked one file
+    /// at a time: that no two of its own files are the same file, and that nothing else has
+    /// already claimed one of them. Both are answered here, under one lock, and either
+    /// answer being no leaves the ledger exactly as it was.
+    ///
+    /// Null is not a failure. It means the caller has to take its sequential path, where the
+    /// rule about a destination claimed twice lives - identical text is allowed through, and
+    /// that comparison needs a file to compare against. spec/conversion-time.md section 5.
+    /// </remarks>
+    /// <returns>
+    /// The staging file for each destination, in the order given, or null when one of them
+    /// cannot be claimed.
+    /// </returns>
+    public static IReadOnlyList<string>? ClaimAll(IReadOnlyList<string> destinations)
+    {
+        var full = new string[destinations.Count];
+        var staged = new string[destinations.Count];
+
+        for (int at = 0; at < destinations.Count; at++)
+        {
+            full[at] = Path.GetFullPath(destinations[at]);
+            staged[at] = StagingPathOf(full[at]);
+        }
+
+        lock (Gate)
+        {
+            // Checked over the whole set first. A partial claim would leave the ledger
+            // holding files the sequential path is about to claim again.
+            var wanted = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var path in staged)
+            {
+                if (!wanted.Add(path) || _stagedPaths.Contains(path))
+                    return null;
+            }
+
+            string? entry = _attributedTo.Value;
+
+            for (int at = 0; at < staged.Length; at++)
+            {
+                _stagedPaths.Add(staged[at]);
+                _stagingFiles.Add((full[at], staged[at]));
+
+                if (entry is not null)
+                {
+                    if (!_byEntry.TryGetValue(entry, out var claimed))
+                    {
+                        claimed = [];
+                        _byEntry[entry] = claimed;
+                    }
+
+                    claimed.Add(full[at]);
+                }
+            }
+        }
+
+        return staged;
     }
 
     /// <summary>
@@ -120,30 +392,37 @@ public static class StagingFiles
     public static string RegisterStagingFile(string filename, out bool alreadyStaged)
     {
         string fullPath = Path.GetFullPath(filename);
+        string stagingFilename = StagingPathOf(fullPath);
 
-        // Hashed the way this platform compares paths, so that one staging file stands for
-        // one real file. Hashing the spelling was right on Linux and wrong on Windows: two
-        // targets asking for `Item.cs` and `item.cs` got two staging files there, which is
-        // one file on NTFS - so the collision check below never fired and whichever
-        // committed last was silently the only one that survived. That is the case this
-        // check exists for, and it was the case it could not see.
-        string md5 = Helper.CalculateMD5HashFromString(
-            PathNames.Comparison == StringComparison.OrdinalIgnoreCase
-                ? fullPath.ToLowerInvariant()
-                : fullPath);
+        string? entry = _attributedTo.Value;
 
-        string tempPath = Path.GetTempPath();
-        string stagingFilename = Path.Combine(tempPath, md5 + ".staging");
+        lock (Gate)
+        {
+            // Asked of a set rather than by scanning the list. Every file a target writes
+            // comes through here, so a scan makes staging quadratic in the number of files -
+            // and a conversion of five hundred tables into seven targets stages thousands.
+            alreadyStaged = !_stagedPaths.Add(stagingFilename);
 
-        alreadyStaged = _stagingFiles.Any(x => x.Item2 == stagingFilename);
+            if (alreadyStaged)
+                return stagingFilename;
 
-        if (alreadyStaged)
-            return stagingFilename;
+            _stagingFiles.Add((fullPath, stagingFilename));
 
-        var kv = (fullPath, stagingFilename);
-        _stagingFiles.Add(kv);
+            // Tagged with whichever entry is being built, so the cache can be told what each
+            // one produced without any target having to keep a list.
+            if (entry is not null)
+            {
+                if (!_byEntry.TryGetValue(entry, out var staged))
+                {
+                    staged = [];
+                    _byEntry[entry] = staged;
+                }
 
-        return kv.stagingFilename;
+                staged.Add(fullPath);
+            }
+        }
+
+        return stagingFilename;
     }
 
     /// <summary>
@@ -160,36 +439,53 @@ public static class StagingFiles
         var written = new HashSet<string>(
             _stagingFiles.Select(kv => kv.Item1), PathNames.Comparer);
 
-        while (_stagingFiles.Count > 0)
+        // The output of an entry this run skipped counts as written. Without this the
+        // sweep, whose whole rule is "delete what this run did not write", deletes exactly
+        // the files the cache decided were already correct.
+        written.UnionWith(_keptFiles);
+
+        // Walked forwards, one at a time, and the committed ones dropped in one go at the end.
+        //
+        // **One at a time is measured rather than assumed.** A commit is thousands of renames
+        // within one volume, so it looks like latency against the filesystem - the shape that
+        // parallelises. It is not: NTFS serialises on the directory metadata these all share,
+        // and moving them across every core took this run's commit from 6.2 s to 9.5 s. The
+        // sequential loop is the fast one. spec/conversion-time.md section 7.
+        //
+        // The list used to be drained with RemoveAt(0) per file, which moves every remaining
+        // entry down one - quadratic in the number of files, and this run commits thousands.
+        // What that per-file removal bought is the invariant the finally block below keeps:
+        // a commit that fails part-way leaves in the list exactly the files that have not
+        // moved yet, so a rollback deletes their staging copies and nothing that is already
+        // at its destination.
+        int committed = 0;
+
+        try
         {
-            var kv = _stagingFiles[0];
-
-            // Progress
-            progressCallback?.Invoke(kv.Item1, kv.Item2);
-
-            try
+            foreach (var kv in _stagingFiles)
             {
-                File.Delete(kv.Item1);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                // Sink exception
-            }
+                // Progress
+                progressCallback?.Invoke(kv.Item1, kv.Item2);
 
-            FileHelper.EnsurePathExists(kv.Item1);
-            File.Move(kv.Item2, kv.Item1);
+                FileHelper.EnsurePathExists(kv.Item1);
 
-            try
-            {
-                File.Delete(kv.Item2);
-            }
-            catch
-            {
-                // Sink exception
-            }
+                // One call rather than a delete and a move. The overload replaces the
+                // destination itself, which is the same outcome with one fewer round trip to
+                // the filesystem per file - and the delete that used to follow the move was
+                // removing a file the move had already taken away.
+                File.Move(kv.Item2, kv.Item1, overwrite: true);
 
-            _stagingFiles.RemoveAt(0);
+                committed++;
+            }
         }
+        finally
+        {
+            _stagingFiles.RemoveRange(0, committed);
+        }
+
+        // These describe files that are no longer in staging.
+        _stagedPaths.Clear();
+        _writtenContents.Clear();
 
         Sweep(written);
     }
@@ -255,6 +551,7 @@ public static class StagingFiles
         }
 
         _sweepRoots.Clear();
+        _keptFiles.Clear();
 
         return removed;
     }
@@ -328,22 +625,46 @@ public static class StagingFiles
     /// consumer having to find that out.
     /// </remarks>
     public static string WriteAllTextToFile(string filename, string text, bool withByteOrderMark)
+        => WriteText(filename, text, withByteOrderMark, trailingNewline: false);
+
+    /// <summary>
+    /// The same, optionally ending the file with exactly one newline.
+    /// </summary>
+    /// <remarks>
+    /// The newline is appended as a byte after the text rather than by building a second
+    /// copy of the string to carry it. That is not a micro-optimization at this size: a
+    /// table's JSON reaches hundreds of megabytes, and `text + "\n"` copies all of it.
+    /// spec/conversion-time.md section 4.
+    /// </remarks>
+    private static string WriteText(
+        string filename, string text, bool withByteOrderMark, bool trailingNewline)
     {
         string stagingFilename = RegisterStagingFile(filename, out bool alreadyStaged);
 
-        // ReadAllText strips a BOM, so this compares the text either way.
-        if (alreadyStaged && File.ReadAllText(stagingFilename) != text)
+        // ReadAllText strips a BOM, so this compares the text either way. The newline is put
+        // back for the comparison, because what is on disk is what this wrote.
+        if (alreadyStaged
+            && File.ReadAllText(stagingFilename) != (trailingNewline ? text + "\n" : text))
         {
-            throw new TabbitException(
-                $"Two different files were generated for `{Path.GetFullPath(filename)}`. " +
-                "A generated file is named after a table, an enum or a constant set, and two " +
-                "of those have names that reduce to the same file name. Rename one of them " +
-                "in the sheets.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Exporters.ExportMessages.GeneratedFileNameClash,
+                        ("Path", Path.GetFullPath(filename))));
         }
 
-        File.WriteAllText(stagingFilename, text, withByteOrderMark ? Utf8WithBom : Utf8WithoutBom);
+        // Encoded here rather than left to File.WriteAllText, so the bytes that go to disk
+        // are the bytes that get measured. A StreamWriter emits the encoding's preamble at
+        // position zero, so preamble-then-body is exactly what the file holds either way.
+        var encoding = withByteOrderMark ? Utf8WithBom : Utf8WithoutBom;
+
+        Write(
+            stagingFilename, encoding.GetPreamble(), encoding.GetBytes(text),
+            trailingNewline ? Newline : ReadOnlySpan<byte>.Empty);
+
         return stagingFilename;
     }
+
+    /// <summary>One LF, for the files that end with exactly one.</summary>
+    private static readonly byte[] Newline = [(byte)'\n'];
 
     private static readonly System.Text.UTF8Encoding Utf8WithBom = new System.Text.UTF8Encoding(true);
     private static readonly System.Text.UTF8Encoding Utf8WithoutBom = new System.Text.UTF8Encoding(false);
@@ -360,8 +681,79 @@ public static class StagingFiles
     public static string WriteAllBytesToFile(string filename, ReadOnlySpan<byte> data)
     {
         string stagingFilename = RegisterStagingFile(filename);
-        File.WriteAllBytes(stagingFilename, data);
+
+        Write(stagingFilename, ReadOnlySpan<byte>.Empty, data);
+
         return stagingFilename;
+    }
+
+    /// <summary>
+    /// Writes a staged file and records its size and MD5 as it goes.
+    /// </summary>
+    /// <remarks>
+    /// The one place a staging file's bytes are written, so that the measurement cannot
+    /// drift from the content. The hash is taken over the same spans that reach the stream,
+    /// which is what makes it the file's hash rather than an approximation of it - and it
+    /// costs one pass over bytes already in memory instead of a second read from disk.
+    ///
+    /// The digest is MD5 because that is what <see cref="Manifest"/> records and what the
+    /// committed manifests hold; the reasoning for that choice is written where the
+    /// manifest states it. Nothing here is a defence against a chosen-prefix attack.
+    /// </remarks>
+    private static void Write(
+        string stagingFilename, ReadOnlySpan<byte> preamble, ReadOnlySpan<byte> body,
+        ReadOnlySpan<byte> tail = default)
+    {
+        using var digest = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
+
+        using (var stream = new FileStream(
+            stagingFilename, FileMode.Create, FileAccess.Write, FileShare.None,
+            bufferSize: 64 * 1024))
+        {
+            // Written out one part at a time rather than joined first. Joining would copy the
+            // body, which is the largest thing this class handles.
+            if (!preamble.IsEmpty)
+            {
+                stream.Write(preamble);
+                digest.AppendData(preamble);
+            }
+
+            stream.Write(body);
+            digest.AppendData(body);
+
+            if (!tail.IsEmpty)
+            {
+                stream.Write(tail);
+                digest.AppendData(tail);
+            }
+        }
+
+        _writtenContents[stagingFilename] = (
+            Convert.ToHexString(digest.GetHashAndReset()).ToLowerInvariant(),
+            preamble.Length + (long)body.Length + tail.Length);
+    }
+
+    /// <summary>
+    /// What a staged file holds, when this run is the one that wrote it.
+    /// </summary>
+    /// <remarks>
+    /// False for a file staged some other way - a copy, or a target reaching past this
+    /// class - and the caller then measures it itself. Answering "I do not know" rather
+    /// than guessing is the whole point: a wrong hash in the manifest is a file that never
+    /// gets copied again.
+    /// </remarks>
+    public static bool TryWrittenContents(string stagingFilename, out string md5, out long size)
+    {
+        if (_writtenContents.TryGetValue(stagingFilename, out var written))
+        {
+            md5 = written.Md5;
+            size = written.Size;
+            return true;
+        }
+
+        md5 = "";
+        size = 0;
+        return false;
     }
 
     /// <summary>
@@ -379,10 +771,52 @@ public static class StagingFiles
     /// diff and every editor would complain about.
     /// </remarks>
     public static string WriteToJsonFile(string filename, object obj, bool indented = true)
+        => WriteText(filename, Rendered(obj, indented), withByteOrderMark: false, trailingNewline: true);
+
+    /// <summary>
+    /// Writes an object as JSON into a staging file that <see cref="RegisterStagingFile(string)"/>
+    /// has already handed out.
+    /// </summary>
+    /// <remarks>
+    /// **For a target that claims its files in order and then writes them at once.** The
+    /// order the staging list is in reaches the build cache's seal, and the order a target's
+    /// manifest entries are in is the manifest file itself - so a target that writes its
+    /// tables in parallel claims them sequentially first and fills the manifest in
+    /// afterwards. What is left to do in parallel is this.
+    ///
+    /// The one thing this does not do is the check <see cref="WriteText"/> makes when a
+    /// destination has been claimed twice. That rule - identical text is allowed through -
+    /// belongs to the sequential path, and a target whose plan finds two of its tables
+    /// wanting one file takes that path instead. spec/conversion-time.md section 5.
+    /// </remarks>
+    public static void WriteJsonInto(string stagingFilename, object obj, bool indented)
+    {
+        var body = Utf8WithoutBom.GetBytes(Rendered(obj, indented));
+
+        Write(stagingFilename, ReadOnlySpan<byte>.Empty, body, Newline);
+    }
+
+    /// <summary>The same, for a target whose output is bytes rather than text.</summary>
+    public static void WriteBytesInto(string stagingFilename, ReadOnlySpan<byte> data)
+        => Write(stagingFilename, ReadOnlySpan<byte>.Empty, data);
+
+    /// <summary>
+    /// An object as the JSON that goes to disk: LF line endings, and no trailing newline -
+    /// the writer adds the one the file ends with.
+    /// </summary>
+    private static string Rendered(object obj, bool indented)
     {
         string json = JsonConvert.SerializeObject(obj, indented ? Formatting.Indented : Formatting.None);
 
-        return WriteAllTextToFile(filename, json.Replace("\r\n", "\n").TrimEnd('\n') + "\n");
+        // Asked before it is done. Replace copies the whole string, and the unindented form -
+        // which is what a data export uses - holds no line ending at all, so the copy was of
+        // hundreds of megabytes in order to change nothing. spec/conversion-time.md section 4.
+        if (json.Contains('\r'))
+            json = json.Replace("\r\n", "\n");
+
+        // TrimEnd returns the same string when there is nothing to trim, which is the usual
+        // case.
+        return json.TrimEnd('\n');
     }
 
 

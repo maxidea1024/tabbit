@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/key-types/key-types.xlsx : Asset : B2
 /** Keyed by a uuid, which is what a pipeline that mints ids hands over. */
@@ -137,13 +138,13 @@ class AssetTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Asset.Index", KIND_SCALAR, 1, false, ELEMENT_UUID)
+                    checkColumn(column, "Asset.Index", KIND_SCALAR, false, ELEMENT_UUID)
                     for (record in loaded) {
                         record.index = reader.readUuid()
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Asset.Path", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Asset.Path", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Asset.Path")
                     var at = 0
                     while (at < count) {
@@ -157,7 +158,7 @@ class AssetTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Asset.Slot", KIND_SCALAR, 1, false, ELEMENT_VARINT)
+                    checkColumn(column, "Asset.Slot", KIND_SCALAR, false, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Asset.Slot")
                     var at = 0
                     while (at < count) {

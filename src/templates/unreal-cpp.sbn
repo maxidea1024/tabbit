@@ -121,6 +121,10 @@ bool {{ table.table_name }}::Read(const FString& Filename)
     // Declared once for the same reason the cursor is: the switch's cases share a scope.
     TArray<uint8> Presence;
 {{~ end ~}}
+{{~ if table.needs_element_presence ~}}
+    TArray<uint8> ElementPresence;
+    int32 ElementAt = 0;
+{{~ end ~}}
 
     // Column by column, matched by tag rather than by position: a column this build has no
     // member for is skipped by its declared length, and one whose type no longer fits the
@@ -142,6 +146,12 @@ bool {{ table.table_name }}::Read(const FString& Filename)
    are written for every row either way, which is what lets the read shapes below stay as
    they are. ##~}}
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
+{{~ end ~}}
+{{~ if column_view.has_optional_elements ~}}
+            // Behind the row bitmap and in front of the values, walked with a counter that
+            // steps once per element of every row. spec/nullable-array-elements.md.
+            Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
+            ElementAt = 0;
 {{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it as
    well: its block states an encoding for them and one for the row lengths, and the cursor is
@@ -190,6 +200,18 @@ bool {{ table.table_name }}::Read(const FString& Filename)
                 {
                     {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}.AddDefaulted_GetRef());
                 }
+{{~ if column_view.has_optional_elements ~}}
+                Record.{{ column_view.element_presence_member }}.Empty(
+                    Tabbit::ReserveBound({{ column_view.count_local }}));
+
+                for (int32 ElementIndex = 0; ElementIndex < {{ column_view.count_local }}; ++ElementIndex)
+                {
+                    Record.{{ column_view.element_presence_member }}.Add(
+                        Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
+                }
+
+                ElementAt += {{ column_view.count_local }};
+{{~ end ~}}
 {{~ else if column_view.kind == 'record_var' ~}}
 {{~## A trimmed record array: the count is written per row, once per member, and every member
    of the group carries the same one. The first member sizes the array; the rest check,
@@ -218,39 +240,27 @@ bool {{ table.table_name }}::Read(const FString& Filename)
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so the outer
    level is sized here and this fills its own inner array. spec/nested-multi-level.md. ##~}}
+                int32 {{ column_view.count_local }} = 0;
+                {{ column_view.length_read }}
+
                 Record.{{ column_view.name }}.SetNum({{ column_view.outer_count }});
-                Record.{{ column_view.name }}[{{ column_view.member_at }}].SetNum({{ column_view.element_count }});
-                for (int32 ElementAt = 0; ElementAt < {{ column_view.element_count }} && !Reader.HasFailed(); ++ElementAt)
+                Record.{{ column_view.name }}[{{ column_view.member_at }}].SetNum(
+                    Tabbit::ReserveBound({{ column_view.count_local }}));
+                for (int32 ElementAt = 0; ElementAt < {{ column_view.count_local }} && !Reader.HasFailed(); ++ElementAt)
                 {
                     {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}[{{ column_view.member_at }}][ElementAt]);
                 }
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: it is sized and indexed rather than the record. Same columns
    and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-                Record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}.SetNum({{ column_view.element_count }});
-                for (int32 ElementAt = 0; ElementAt < {{ column_view.element_count }} && !Reader.HasFailed(); ++ElementAt)
+                int32 {{ column_view.count_local }} = 0;
+                {{ column_view.length_read }}
+
+                Record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}.SetNum(
+                    Tabbit::ReserveBound({{ column_view.count_local }}));
+                for (int32 ElementAt = 0; ElementAt < {{ column_view.count_local }} && !Reader.HasFailed(); ++ElementAt)
                 {
                     {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[ElementAt]);
-                }
-{{~ else if column_view.kind == 'record_serial' ~}}
-{{~## One member of a fixed record array. The elements came with the record, so this fills a
-   field of each rather than re-creating them. ##~}}
-                Record.{{ column_view.name }}.SetNum({{ column_view.element_count }});
-                for (int32 ElementAt = 0; ElementAt < {{ column_view.element_count }} && !Reader.HasFailed(); ++ElementAt)
-                {
-                    {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}[ElementAt]{{ column_view.member_access }}{{ column_view.member_ref_suffix }});
-                }
-{{~ else if column_view.kind == 'serial_ref' ~}}
-                Record.{{ column_view.name }}Index.Empty({{ column_view.element_count }});
-                while (Record.{{ column_view.name }}Index.Num() < {{ column_view.element_count }})
-                {
-                    {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}Index.AddDefaulted_GetRef());
-                }
-{{~ else if column_view.kind == 'serial' ~}}
-                Record.{{ column_view.name }}.Empty({{ column_view.element_count }});
-                while (Record.{{ column_view.name }}.Num() < {{ column_view.element_count }})
-                {
-                    {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}.AddDefaulted_GetRef());
                 }
 {{~ else if column_view.cursor_read != '' ~}}
                 {{ column_view.cursor_read }}

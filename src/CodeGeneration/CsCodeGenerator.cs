@@ -103,6 +103,22 @@ public class CSharpRecipe : IOutputRecipe
     /// generated reader will not match the data.
     /// </summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -119,10 +135,17 @@ public class CSharpRecipe : IOutputRecipe
 [TabbitTarget("csharp", TargetKind.CodeGeneration, Order = 20)]
 public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private CSharpRecipe _csharpReceipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Pascal;
 
     /// <summary>
     /// A record group generates a struct and an array of it; a member column fills one of
@@ -151,6 +174,12 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// `HasXAt(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, CSharpRecipe csharpRecipe)
     {
         // A blank path means the entry is inert - which is what every list in the
@@ -164,6 +193,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         SweepStaleOutput(csharpRecipe.Path, csharpRecipe.Sweep);
 
         _csharpReceipe = csharpRecipe;
+        _memberCase = MemberCasing.From(csharpRecipe.MemberCase, NameCase.Pascal, "csharp");
 
         // Already narrowed to the side this entry is built for. Both (the default)
         // leaves the model unchanged.
@@ -308,42 +338,189 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         Log.Information($"Generating codes for CSharp into `{Path.GetFullPath(_csharpReceipe.Path)}`");
 
         Write(AccessorType + ".cs", "csharp-accessor.sbn", view);
-        Write(Path.Combine("tabbit", "TabbitHelpers.cs"), "csharp-helpers.sbn", Part());
+        Write(Path.Combine("tabbit", "TabbitHelpers.cs"), "csharp-helpers.sbn",
+              Part(usings: HelperUsings()));
 
         // The only file that knows what Unity is, and it is written whether or not the
         // consumer is Unity: outside the engine its body is behind a symbol nothing defines,
         // so it compiles to nothing. Written as source rather than folded into the accessor
         // because the engine's own compiler is what has to see those branches - and because
         // everything else this target writes stays plain netstandard as a result.
-        Write(Path.Combine("tabbit", "TabbitUnityAdapter.cs"), "csharp-unity-adapter.sbn", Part());
+        Write(Path.Combine("tabbit", "TabbitUnityAdapter.cs"), "csharp-unity-adapter.sbn",
+              Part(usings: UnityAdapterUsings()));
 
         foreach (var table in view.Tables)
-            Write(Path.Combine("tables", table.Name + "Table.cs"), "csharp-table.sbn", Part(table: table));
+        {
+            Write(Path.Combine("tables", table.Name + "Table.cs"), "csharp-table.sbn",
+                  Part(table: table, usings: TableUsings()));
+        }
 
+        // An enum declaration names no type outside itself, so it opens with nothing.
         foreach (var enumm in view.Enums)
             Write(Path.Combine("enums", enumm.Name + ".cs"), "csharp-enum.sbn", Part(enumm: enumm));
 
-        foreach (var set in view.ConstantSets)
-            Write(Path.Combine("constants", set.Name + ".cs"), "csharp-constants.sbn", Part(set: set));
+        foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
+        {
+            Write(Path.Combine("constants", pair.rendered.Name + ".cs"), "csharp-constants.sbn",
+                  Part(set: pair.rendered, usings: ConstantUsings(pair.model)));
+        }
     }
 
     /// <summary>A view for one of the single-subject templates.</summary>
     private CsPartView Part(
-        CsTableView? table = null, CsEnumView? enumm = null, CsConstantSetView? set = null)
+        CsTableView? table = null, CsEnumView? enumm = null, CsConstantSetView? set = null,
+        IReadOnlyList<string>? usings = null)
         => new CsPartView
         {
             Namespace = _csharpReceipe.Namespace,
             AccessorName = AccessorType,
+            Usings = usings ?? NoUsings,
             Table = table,
             Enumm = enumm,
             Set = set,
         };
 
+    /// <summary>
+    /// The `using` lines one generated file needs.
+    /// </summary>
+    /// <remarks>
+    /// Asked per file. Every file used to open with the same six namespaces plus the binary
+    /// reader, which for an enum file meant seven lines declaring nothing it could reach - and
+    /// for a reviewer, seven lines to check against a file that names one type.
+    ///
+    /// What each kind reaches, and nothing more:
+    ///
+    ///   enum        nothing. The declaration names no type outside itself.
+    ///   constants   `System`, for the constants whose type is `Guid`, `DateTime` or
+    ///               `TimeSpan`. Asked of the set rather than assumed.
+    ///   table       the collections its lookups are built from, the reader it reads through,
+    ///               `StringBuilder` for `ToString`, and `Task` for the read.
+    ///   accessor    the same minus the reader's own types, plus `Path`.
+    ///   helpers     the non-generic `IEnumerable` those two helpers compare through, and
+    ///               `System` for the types `ToString` special-cases.
+    ///
+    /// `System.Array` and `System.Serializable` are written out in full where they appear, so
+    /// `System` is not what carries them.
+    /// </remarks>
+    private static readonly string[] NoUsings = System.Array.Empty<string>();
+
+    private static IReadOnlyList<string> TableUsings()
+        => new[]
+        {
+            "using System;",
+            "using System.Text;",
+            "using System.Collections.Generic;",
+            "using System.Threading.Tasks;",
+            "",
+            "// Tabbit's binary reader, written into this directory beside the accessor.",
+            "// Nothing has to be installed for the generated code to compile.",
+            "using Tabbit.Binary;",
+        };
+
+    private static IReadOnlyList<string> AccessorUsings()
+        => new[]
+        {
+            "using System;",
+            "using System.Collections.Generic;",
+            "using System.IO;",
+            "using System.Threading.Tasks;",
+        };
+
+    private static IReadOnlyList<string> HelperUsings()
+        => new[]
+        {
+            "using System;",
+            "using System.Text;",
+            "using System.Collections;",
+        };
+
+    private static IReadOnlyList<string> UnityAdapterUsings()
+        => new[]
+        {
+            "using System.IO;",
+            "using System.Threading.Tasks;",
+        };
+
+    /// <summary>
+    /// What a constant set reaches: `System`, and only when one of its constants is a type
+    /// declared there.
+    /// </summary>
+    private static IReadOnlyList<string> ConstantUsings(ConstantSet set)
+        => set.Constants.Any(constant => constant.Type is Models.ValueType.Uuid
+                                            or Models.ValueType.DateTime
+                                            or Models.ValueType.TimeSpan)
+            ? new[] { "using System;" }
+            : NoUsings;
+
     private void Write(string relative, string templateName, object view)
     {
         string filename = Path.GetFullPath(Path.Combine(_csharpReceipe.Path, relative));
 
-        Emit(filename, Outdent(TemplateEngine.Render(templateName, view)));
+        Emit(filename, Tidy(Outdent(TemplateEngine.Render(templateName, view))));
+    }
+
+    /// <summary>
+    /// Drops the blank lines that mean nothing.
+    /// </summary>
+    /// <remarks>
+    /// Two of them, and both were everywhere:
+    ///
+    ///   - a blank line in front of a closing brace, so every type ended with a gap and
+    ///     every file ended with two - one before the type's brace and one before the
+    ///     namespace's.
+    ///   - two or more blank lines in a row.
+    ///
+    /// Here rather than in the templates because the templates are not where it came from.
+    /// A tag written `{{~ end }}` rather than `{{~ end ~}}` keeps the newline after itself,
+    /// and the difference is invisible while reading the template - so the same blank line
+    /// arrived from six of them, and would arrive again from the seventh. What the output
+    /// looks like is stated once, here, in the terms it is read in.
+    ///
+    /// Only the templates' output. The runtime sources this target copies in are written by
+    /// hand and are not this function's to reformat.
+    /// </remarks>
+    private static string Tidy(string rendered)
+    {
+        var lines = rendered.Split('\n');
+        var result = new List<string>(lines.Length);
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (lines[i].Length == 0)
+            {
+                // The last segment is what the trailing newline leaves behind rather than a
+                // line of the file, and `TemplateEngine` has already settled the ending.
+                if (i == lines.Length - 1)
+                {
+                    result.Add(lines[i]);
+                    continue;
+                }
+
+                if (result.Count > 0 && result[^1].Length == 0)
+                    continue;
+
+                if (IsClosingBrace(lines[i + 1]))
+                    continue;
+            }
+
+            result.Add(lines[i]);
+        }
+
+        return string.Join("\n", result);
+    }
+
+    /// <summary>Whether a line is a closing brace and nothing else a reader would miss.</summary>
+    private static bool IsClosingBrace(string line)
+    {
+        string text = line.Trim();
+
+        if (!text.StartsWith("}", StringComparison.Ordinal))
+            return false;
+
+        // `}` alone, and `} // namespace X` - the one the file ends with.
+        text = text.Substring(1).TrimStart();
+
+        return text.Length == 0 || text.StartsWith("//", StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -381,10 +558,14 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         {
             Namespace = _csharpReceipe.Namespace ?? "",
             AccessorName = AccessorType,
+            Usings = AccessorUsings(),
             FileExtension = _csharpReceipe.BinaryTableFileExtension,
             Tables = tables,
             TablesWithReferences = tables
-                .Where(t => t.ReferenceFields.Count > 0 || t.RecordReferenceFields.Count > 0)
+                .Where(t => t.ReferenceFields.Count > 0
+                            || t.RecordReferenceFields.Count > 0
+                            || t.MultiReferenceFields.Count > 0
+                            || t.MultiRecordReferenceFields.Count > 0)
                 .ToList(),
             Enums = _model.Enums.Select(BuildEnum).ToList(),
             ConstantSets = _model.ConstantSets.Select(BuildConstantSet).ToList(),
@@ -399,6 +580,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         return new CsTableView
         {
             Name = table.Name.ToPascalCase(),
+            DataFileName = table.DataFileName,
             RawName = table.Name,
             Comment = CommentLines(table.Comment),
             Fields = fields,
@@ -425,6 +607,18 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                                          .Select(BuildRecordReference)
                                          .ToList(),
 
+            MultiReferenceFields = MultiTargetColumns.Of(table)
+                                                     .Select(BuildMultiReference)
+                                                     .ToList(),
+
+            // A member is resolved per element, so it is a loop of its own. Read off the wire
+            // columns, which is the same list the read path walks - the two have to agree
+            // about where the key landed. spec/multi-target-accessors.md.
+            MultiRecordReferenceFields = table.WireColumns
+                                              .Where(IsMultiTargetMember)
+                                              .Select(BuildMultiRecordReference)
+                                              .ToList(),
+
             // One scratch int for the whole method rather than one per field: the reader
             // hands back an int and an enum field needs a cast through something. Scalar
             // enums read through the cursor and cast inline, so only arrays still need it.
@@ -436,12 +630,13 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // columns, because that is what the switch has a case for.
             NeedsCursor = table.WireColumns.Any(UsesCursor),
             NeedsPresence = table.WireColumns.Any(c => c.IsNullable),
+            NeedsElementPresence = table.WireColumns.Any(c => c.HasOptionalElements),
 
             // Pascal-casing a folded group's name gives the property it is exposed under
             // - `TextEn_array` becomes `TextEnArray` - so these literals name the very
             // members BuildObjectValueMap reads.
-            FieldNameLiterals = string.Join(", ", table.SerialFields.Select(sf => $"\"{sf.Name.ToPascalCase()}\"")),
-            FieldValueExpressions = string.Join(", ", table.SerialFields.Select(sf => "r." + sf.Name.ToPascalCase())),
+            FieldNameLiterals = string.Join(", ", table.SerialFields.Select(sf => $"\"{CsName(sf.Name)}\"")),
+            FieldValueExpressions = string.Join(", ", table.SerialFields.Select(sf => "r." + CsName(sf.Name))),
         };
     }
 
@@ -479,6 +674,58 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             : "GetBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase() + "OrThrow";
 
     /// <summary>
+    /// The lookup that answers with null rather than throwing.
+    /// </summary>
+    /// <remarks>
+    /// What a multi-target column resolves through. A key absent from one of its targets is
+    /// the ordinary case - it means the row is in another of them - so the miss has to come
+    /// back as an answer. spec/multi-target-accessors.md.
+    /// </remarks>
+    private static string PrimaryFind(Table table)
+        => "FindBy" + table.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    /// <summary>
+    /// Whether a wire column is a record member reaching several tables.
+    /// </summary>
+    /// <remarks>
+    /// One entry per element, which is what the read path walks - and what the linking has to
+    /// walk with it. The element type declares the slot once per member; this says where each
+    /// element's copy of it is. spec/multi-target-accessors.md.
+    /// </remarks>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
+
+    private CsMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+    {
+        string pascal = column.Group.Name.ToPascalCase();
+        string storage = "_" + column.Group.Name.ToCamelCase();
+
+        return new CsMultiReferenceView
+        {
+            KeyProperty = CsName(column.Group.Name),
+            PascalName = pascal,
+            SlotField = storage + "Row",
+            TargetField = storage + "Target",
+            TargetProperty = CsName(column.Group.Name + "Target"),
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            RefIsSet = RefIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new CsMultiTargetView
+            {
+                Table = target.Name.ToPascalCase(),
+                RecordTypeName = target.Name.ToPascalCase() + "Table.Record",
+                Property = CsName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+                Label = target.Name.ToPascalCase(),
+                Lookup = PrimaryFind(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
     /// One column of the file: how it is checked, how it is decoded, and where its values
     /// land.
     /// </summary>
@@ -502,7 +749,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // spec/nested-multi-level.md.
         string memberAccess = (wire.Member is null)
             ? ""
-            : string.Concat(wire.MemberPath.Select(name => "." + name.ToPascalCase()));
+            : string.Concat(wire.MemberPath.Select(name => "." + CsName(name)));
 
         // A member of an array-valued record loops over the elements without allocating:
         // the array is a struct array created with the record, so unlike a serial field
@@ -514,10 +761,16 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // could have known how long this row's array is.
         string readKind = wire.Member switch
         {
-            not null when wire.IsVariableLengthArray => "record_var",
-            not null when wire.IsFixedArray && wire.Group.MembersAreAnonymous
+            not null when wire.IsArray && wire.Group.MembersAreAnonymous
                 => "array_of_arrays_member",
-            not null when wire.IsFixedArray => "record_serial",
+
+            // The member is the array rather than the record: one record, and each of its
+            // members is as long as this row says. Read as `record_var` it allocated an
+            // array of records over a field that is one.
+            not null when wire.IsArray && wire.Group.MembersAreArrays
+                => "record_member_var",
+
+            not null when wire.IsArray => "record_var",
             _ => ReadKind(wire),
         };
 
@@ -528,12 +781,17 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             ReadKind = readKind,
             IsFirstMember = wire.IsFirstMember,
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
+            MemberAt = wire.MemberAt,
             PresenceField = PresenceField(wire.Group),
+            ElementPresenceField = ElementPresenceField(wire.Group),
             EmptyValue = EmptyValue(wire, fieldType),
             RecordTypeName = wire.Group.Name.ToPascalCase() + "Entry",
             RecordNeedsInit = wire.Group.IsRecord && RecordNeedsFactory(wire.Group),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),
+            MemberAccess = memberAccess,
             ElementRead = ElementReadLines(wire, fieldName, fieldType, refTable, memberAccess),
+            ParallelArrays = ParallelArrayLines(wire, fieldName, refTable),
             LengthRead = UsesCursor(wire)
                 ? "elementCount = cursor.NextLength();"
                 : "reader.TryReadCounter32(out elementCount);",
@@ -541,7 +799,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             RunRead = RunReadLines(wire, fieldName, fieldType, refTable, memberAccess),
             FieldName = fieldName,
             FieldType = fieldType,
-            PropName = wire.Group.Name.ToPascalCase(),
+            PropName = CsName(wire.Group.Name),
+            PascalName = wire.Group.Name.ToPascalCase(),
         };
     }
 
@@ -557,20 +816,23 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         return new CsFieldView
         {
             IsRecord = false,
-            IsNullable = !sf.Fields[0].IsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceField = PresenceField(sf),
+            ElementPresenceField = ElementPresenceField(sf),
             RecordTypeName = "",
             Members = Array.Empty<CsRecordMemberView>(),
             NeedsElementInit = false,
             Comment = CommentLines(sf.FirstField!.Comment),
-            PropName = sf.Name.ToPascalCase(),
+            PropName = CsName(sf.Name),
+            PascalName = sf.Name.ToPascalCase(),
             FieldName = fieldName,
             FieldType = fieldType,
             Initializer = Initializer(sf),
             ElementCount = sf.Fields.Count,
             RefTable = refTable,
             RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
-            RefField = sf.FirstField!.RefFieldName.ToPascalCase() ?? "",
+            RefField = CsName(sf.FirstField!.RefFieldName ?? ""),
             RefKeyTypeName = ToCSharpTypeName(sf.FirstField!.RefKeyType, null, null),
             RefIsSet = RefIsSetSuffix(sf.FirstField!.RefKeyType),
             Kind = DeclarationKind(table, sf),
@@ -615,7 +877,10 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         {
             TypeName = sf.Name.ToPascalCase() + "Entry",
             Members = members,
-            NeedsInit = members.Any(m => m.Initializer.Length > 0),
+            // And the slot a member reaching several tables holds per element, which a struct
+            // cannot size at its declaration either. spec/multi-target-accessors.md.
+            NeedsInit = members.Any(m => m.Initializer.Length > 0
+                                         || m.MultiSlotInitializer.Length > 0),
             IsOutermost = true,
         });
 
@@ -640,12 +905,18 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                                  && sf.Members[0].ElementType == Models.ValueType.String
                 ? " = \"\""
                 : "",
-            NeedsElementInit = members.Any(m => m.Initializer.Length > 0),
+            // The same question the read asks through `RecordNeedsInit`: a record array is
+            // allocated by the read now, and if it needs a factory there it has to be
+            // declared here. Asking two different things produced a call to a method that
+            // was never emitted. spec/nullable-array-elements.md.
+            NeedsElementInit = members.Any(m => m.Initializer.Length > 0)
+                || (sf.IsRecord && RecordNeedsFactory(sf)),
 
             // The group's own comment is the first member's column comment - a record has
             // no header cell of its own, so that is the nearest thing the sheet said.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),
-            PropName = sf.Name.ToPascalCase(),
+            PropName = CsName(sf.Name),
+            PascalName = sf.Name.ToPascalCase(),
             FieldName = "_" + sf.Name.ToCamelCase(),
 
             // An array of arrays has no element type to name, so the inner array is the
@@ -657,9 +928,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             ElementCount = sf.RecordElementCount,
             Kind = sf.MembersAreAnonymous
                 ? "array_of_arrays"
-                : perRowLength
-                    ? "record_var_array"
-                    : sf.IsArray ? "record_array" : "record",
+                : sf.IsArray ? "record_var_array" : "record",
 
             // None of these apply to a record. A reference belongs to a member and members
             // cannot be references yet, so there is nothing to resolve.
@@ -682,10 +951,96 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// of the three record shapes this is: the group's array, the member's, or neither.
     /// spec/references-in-records.md.
     /// </remarks>
-    private static CsRecordReferenceView BuildRecordReference(WireColumn wire)
+    /// <summary>
+    /// One column whose value is a row of one of several tables, as a member of a record.
+    /// </summary>
+    /// <remarks>
+    /// The member keeps the key it already carried; what is added beside it, inside the
+    /// element, is one slot for the resolved row and the discriminator saying which table
+    /// filled it. At the member's own arity: a record of arrays holds one of each per element.
+    ///
+    /// The accessor is a property when the member is one value and a method taking the element
+    /// number when the member is the array - the third of the three places an element number
+    /// sits. spec/multi-target-accessors.md · spec/nested-multi-level.md.
+    /// </remarks>
+    private CsRecordMemberView FillMultiTarget(CsRecordMemberView view, RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return view;
+
+        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
+        string brackets = member.IsArray ? "[]" : "";
+
+        view.MultiTargetTypeName = enumType;
+        view.MultiIsArray = member.IsArray;
+        view.MultiSlotName = view.PropName + "_row";
+        view.MultiTargetName = view.PropName + "_target";
+        view.MultiSlotType = "object" + brackets;
+        view.MultiTargetDeclaredType = enumType + brackets;
+        view.MultiSlotInitializer = member.IsArray
+            ? $" = new object[{member.Fields.Count}]"
+            : "";
+        view.MultiTargetInitializer = member.IsArray
+            ? $" = new {enumType}[{member.Fields.Count}]"
+            : "";
+
+        view.MultiTargets = field.ResolvedRefTables!
+            .Select(target => new CsMultiMemberTargetView
+            {
+                RecordTypeName = target.Name.ToPascalCase() + "Table.Record",
+                Accessor = CsName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Label = target.Name.ToPascalCase(),
+            })
+            .ToList();
+
+        return view;
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    private CsMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
     {
         string fieldName = "_" + wire.Group.Name.ToCamelCase();
-        string memberAccess = string.Concat(wire.MemberPath.Select(name => "." + name.ToPascalCase()));
+        string memberAccess = string.Concat(wire.MemberPath.Select(name => "." + CsName(name)));
+
+        var (path, subscript) = MemberPlace(wire, fieldName, memberAccess);
+        var field = wire.TagCarrier;
+
+        return new CsMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "_row" + subscript,
+            Target = path + "_target" + subscript,
+
+            // The member's own array when the number is on the member, the group's when it is
+            // on the group, and nothing to walk when the group is one record - the same three
+            // answers the single-target one gives.
+            Count = subscript.Length > 0
+                ? path + ".Length"
+                : wire.IsArray
+                    ? $"record.{fieldName}.Length"
+                    : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            RefIsSet = RefIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new CsMultiTargetView
+            {
+                Table = target.Name.ToPascalCase(),
+                RecordTypeName = target.Name.ToPascalCase() + "Table.Record",
+                Property = "",
+                Label = target.Name.ToPascalCase(),
+                Lookup = PrimaryFind(target),
+            }).ToList(),
+        };
+    }
+
+    private CsRecordReferenceView BuildRecordReference(WireColumn wire)
+    {
+        string fieldName = "_" + wire.Group.Name.ToCamelCase();
+        string memberAccess = string.Concat(wire.MemberPath.Select(name => "." + CsName(name)));
 
         var (path, subscript) = MemberPlace(wire, fieldName, memberAccess);
 
@@ -701,7 +1056,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // many they carry.
             Count = subscript.Length > 0
                 ? path + ".Length"
-                : (wire.IsFixedArray || wire.IsVariableLengthArray)
+                : wire.IsArray
                     ? $"record.{fieldName}.Length"
                     : "",
 
@@ -751,10 +1106,11 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
             if (member.IsLeaf)
             {
-                result.Add(new CsRecordMemberView
+                result.Add(FillMultiTarget(new CsRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
-                    PropName = member.Name.ToPascalCase(),
+                    PropName = CsName(member.Name),
+                    PascalName = member.Name.ToPascalCase(),
                     FieldType = ToCSharpTypeName(member.FirstField) + (member.IsArray ? "[]" : ""),
 
                     // An array member allocates; a string one starts empty. Both for the same
@@ -789,7 +1145,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                     RefTable = member.IsRef ? member.FirstField!.RefTableName.ToPascalCase() ?? "" : "",
                     RefLookup = member.IsRef ? PrimaryLookup(member.FirstField!.ResolvedRefTable) : "",
                     RefIsSet = member.IsRef ? RefIsSetSuffix(member.FirstField!.RefKeyType) : "",
-                });
+                }, member));
 
                 continue;
             }
@@ -812,7 +1168,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             result.Add(new CsRecordMemberView
             {
                 Comment = CommentLines(member.FirstField!.Comment),
-                PropName = member.Name.ToPascalCase(),
+                PropName = CsName(member.Name),
+                PascalName = member.Name.ToPascalCase(),
                 FieldType = typeName,
 
                 // Only when the level below has something to set. A struct of plain numbers
@@ -870,7 +1227,10 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             if (sf.IsRef)
                 return "array_ref";
 
-            return table.IsVariableLength(sf) ? "var_array" : "array";
+            // One array declaration since v107. Trimming decides how many elements a row
+            // carries, not whether the length is known at generation time - the file states
+            // it either way. spec/tcb-v107-dynamic-arrays.md.
+            return "var_array";
         }
 
         return sf.IsRef ? "scalar_ref" : "scalar";
@@ -884,6 +1244,15 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// reads it, and the model has already required its columns to agree about being
     /// optional.
     /// </remarks>
+    /// <summary>The field holding which of an array's elements the sheet gave a value.</summary>
+    /// <remarks>
+    /// A `bool` per element rather than the bitmap the file carries: the row-level answer is
+    /// a `bool` per row for the same reason, and a consumer asking `HasCostsAt(2)` should not
+    /// pay for a shift and a mask it did not ask for. spec/nullable-array-elements.md.
+    /// </remarks>
+    private static string ElementPresenceField(SerialField sf)
+        => "_" + sf.Name.ToCamelCase() + "HasValueAt";
+
     private static string PresenceField(SerialField sf)
         => "_" + sf.Name.ToCamelCase() + "HasValue";
 
@@ -903,7 +1272,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// </remarks>
     private static string EmptyValue(WireColumn wire, string fieldType)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return $"System.Array.Empty<{fieldType}>()";
 
         return wire.ElementType == Models.ValueType.String && !wire.IsRef
@@ -911,13 +1280,43 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             : $"default({fieldType})";
     }
 
-    private static string ReadKind(WireColumn wire)
+    /// <summary>
+    /// The arrays a reference column fills beside its values, for the read to allocate.
+    /// </summary>
+    /// <remarks>
+    /// Only where one column owns the array: a member of a record group keeps its key and its
+    /// flag inside the element, which the record allocates. spec/references-in-records.md.
+    ///
+    /// **Both array kinds, from their own length.** A folded group's length is the column count
+    /// the file states; a trimmed one's is the row's, read a line earlier. This asked only for
+    /// the fixed kind, so a trimmed array of references allocated its values and its presence
+    /// bitmap per row and left the key array at `Array.Empty` - and the first element written
+    /// into it was an index out of range. `foreign[]` is refused, so the only way to that shape
+    /// is a folded group with trimming turned on for the entry, and no fixture held one.
+    /// spec/variable-length-record-arrays.md.
+    /// </remarks>
+    private IReadOnlyList<string> ParallelArrayLines(
+        WireColumn wire, string fieldName, string refTable)
     {
-        if (wire.IsVariableLengthArray)
-            return "var_array";
+        if (!wire.IsRef || wire.Member is not null)
+            return Array.Empty<string>();
 
-        return wire.IsFixedArray ? "serial" : "scalar";
+        if (!wire.IsArray)
+            return Array.Empty<string>();
+
+        const string length = "elementCount";
+
+        string keyType = ToCSharpTypeName(wire.RefKeyType, null, null);
+
+        return new[]
+        {
+            $"record.{fieldName}_{refTable}_index = new {keyType}[{length}];",
+            $"record.{fieldName}_F = new bool[{length}];",
+        };
     }
+
+    private static string ReadKind(WireColumn wire)
+        => wire.IsArray ? "var_array" : "scalar";
 
     /// <summary>
     /// The lines that read one element, whether the template places them in a loop or
@@ -935,11 +1334,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// </remarks>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "TcbTable.KindVarArray"
-            : (wire.IsFixedArray ? "TcbTable.KindFixedArray" : "TcbTable.KindScalar");
-
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
+        string kind = wire.IsArray ? "TcbTable.KindArray" : "TcbTable.KindScalar";
 
         string accepted;
 
@@ -985,7 +1380,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                     break;
 
                 default:
-                    throw new TabbitException($"The csharp generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The csharp generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -994,7 +1389,12 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"TcbTable.CheckColumn(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {accepted});";
+        // And the other bitmap, by the same argument. Passed by name because it comes after
+        // the accepted elements, of which there may be one, two or three.
+        string elements = wire.HasOptionalElements ? ", elementNullable: true" : "";
+
+        return $"TcbTable.CheckColumn(column, \"{tableName}.{wire.Name}\", {kind}, "
+            + $"{nullable}, {accepted}{elements});";
     }
 
     /// <summary>
@@ -1019,7 +1419,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         if (wire.ElementType == Models.ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -1096,7 +1496,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries. `NextSameI32` was the only answer while a
@@ -1180,7 +1580,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     private static (string Path, string Subscript) MemberPlace(
         WireColumn wire, string fieldName, string memberAccess)
     {
-        if (!wire.IsFixedArray && !wire.IsVariableLengthArray)
+        if (!wire.IsArray)
             return ($"record.{fieldName}{memberAccess}", "");
 
         if (wire.Group.MembersAreAnonymous)
@@ -1195,7 +1595,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     private static IReadOnlyList<string> ElementReadLines(
         WireColumn wire, string fieldName, string fieldType, string refTable, string memberAccess)
     {
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         var (path, subscript) = MemberPlace(wire, fieldName, memberAccess);
         string target = path + subscript;
@@ -1406,7 +1806,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             }
 
             default:
-                throw new TabbitException(location, $"unsupported constant type `{valueType}`");
+                throw new TabbitDefectException($"unsupported constant type `{valueType}`");
         }
     }
 
@@ -1465,4 +1865,22 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
         return comment.Replace("\r\n", "\n").Split('\n');
     }
+
+    /// <summary>
+    /// What a member of the generated types is called.
+    /// </summary>
+    /// <remarks>
+    /// Every other generator has had one of these; this one spelled the casing inline at
+    /// each of its member sites instead, which is why nothing here ever asked
+    /// <see cref="LanguageProfile"/> whether the answer was usable. At Pascal case the
+    /// question has no teeth - every C# keyword is lower case, so no member can collide with
+    /// one - and that is exactly the assumption a funnel has to hold in one place rather than
+    /// in seventeen, because it stops being true the moment the spelling is anything else.
+    ///
+    /// Members only. The type names, the `Entry` record names, the lookup methods and the
+    /// column literals are spelled where they are built, because none of them is a member
+    /// and none of them should move when a member's spelling does.
+    /// </remarks>
+    private string CsName(string name)
+        => LanguageProfile.CSharp.MemberName(name.ToCase(_memberCase));
 }

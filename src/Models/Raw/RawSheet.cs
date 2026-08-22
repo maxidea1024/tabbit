@@ -10,6 +10,9 @@ namespace Tabbit.Models.Raw;
 /// </summary>
 public class RawSheet
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
+
     /// <summary>Where the sheet starts, once blank leading rows and columns are trimmed.</summary>
     [JsonIgnore]
     public required Location Location { get; set; }
@@ -122,13 +125,19 @@ public class RawSheet
             // sheet as soon as one row was already full width.
             var anchor = row[^1].Location;
 
+            // Asked for once rather than grown into. A list that is appended to past its
+            // capacity doubles and copies what it already holds, so padding a row of eight
+            // thousand cells out to sixteen thousand copied the row several times over -
+            // 0.75 s of array copying across the sample project's sheets.
+            // spec/conversion-time.md section 4.
+            row.EnsureCapacity(maxColumnCount);
+
             for (int i = 0; i < fill; i++)
             {
                 RawCell rawCell = new RawCell
                 {
                     Location = anchor.CloneWithXY(anchor.Column + 1 + i, anchor.Row),
                     Value = "",
-                    Note = ""
                 };
                 row.Add(rawCell);
             }
@@ -202,7 +211,6 @@ public class RawSheet
                                 // on a filled row pointed at an unrelated cell.
                                 Location = origin.CloneWithXY(origin.Column + colIdx, origin.Row + insertion + 1),
                                 Value = "",
-                                Note = ""
                             };
                             row.Add(cell);
                         }

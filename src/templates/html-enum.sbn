@@ -1,20 +1,39 @@
-﻿{{~## One page per enum, named after it in kebab-case. ##~}}
+{{~##
+   One page per enum, named after it in kebab-case, with the columns that use it.
+
+   This page had no footer, which meant it had no closing tags either - an enum page
+   ended after its last row. It also had no way back to anything: the only link into it
+   was from the index, and the only way out was the browser's history.
+##~}}
 {{~ include 'html-head.sbn' ~}}
-<div class="definition">
-<h3 id="enum_{{ name }}"><i>Enumeration: {{ source_link }}</i></h3>
+<p class="lead" id="enum_{{ name }}"><svg class="i"><use href="#i-enum"></use></svg>{{ source_link }} &middot; 레이블 {{ labels | array.size }}개{{ if source_cell != '' }} <span class="hint">&middot; {{ source_cell }}</span>{{ end }}</p>
 {{~ if comment != '' ~}}
-<div class="comment">{{ comment }}</div>
+<p class="comment">{{ comment }}</p>
 {{~ end ~}}
+{{~ if used_by | array.size > 0 ~}}
+<p class="hint">사용하는 컬럼:
+{{~ for item in used_by ~}}
+<a href="{{ item.href }}">{{ item.name }}</a>{{ if !for.last }}, {{ end }}
+{{~ end ~}}
+</p>
+{{~ else ~}}
+<p class="hint">이 enum을 쓰는 컬럼이 없습니다.</p>
+{{~ end ~}}
+<div class="scroll">
 <table>
-<thead><th>No</th><th>Name</th><th>Value</th><th>Description</th></thead>
+<thead>
+<tr class="names"><th>번호</th><th>이름</th><th>값</th><th>설명</th></tr>
+</thead>
+<tbody>
 {{~ for label in labels ~}}
 <tr>
-<td>{{ label.no }}</td>
+<td class="num">{{ label.no }}</td>
 <td id="const_{{ name }}.{{ label.name }}">{{ label.source_link }}</td>
-<td><code>{{ label.value }}</code></td>
+<td class="num"><code>{{ label.value }}</code></td>
 <td>{{ label.comment }}</td>
 </tr>
 {{~ end ~}}
+</tbody>
 </table>
 </div>
-<br>
+{{ include 'html-foot.sbn' }}

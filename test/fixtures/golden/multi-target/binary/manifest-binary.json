@@ -1,0 +1,61 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "65b804d29417e6fa72af2acb3739eb07",
+  "TotalSize": 784,
+  "Items": [
+    {
+      "Name": "Weapon.tcb",
+      "Size": 87,
+      "Hash": "d47304dd363daf39c7355d4691cfcd9f",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Armour.tcb",
+      "Size": 87,
+      "Hash": "293de3f8cfdc4317ce4e4db396e816ec",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Trinket.tcb",
+      "Size": 88,
+      "Hash": "12fd8120ef000894da453adf5ace6bae",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Mount.tcb",
+      "Size": 86,
+      "Hash": "15ef82cd2a03782a94080050eb50cfbc",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Banner.tcb",
+      "Size": 87,
+      "Hash": "3b49a568b55a80edc97c9a03adc08c23",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Holder.tcb",
+      "Size": 96,
+      "Hash": "a73f4659e128b6ec8893e0b1f98bf95f",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Loadout.tcb",
+      "Size": 82,
+      "Hash": "ef67af8a3936c4a0e9288075f5c3832e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Fitting.tcb",
+      "Size": 89,
+      "Hash": "5bd84dacf60ae485feee080500bbc5f4",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Rack.tcb",
+      "Size": 82,
+      "Hash": "40bc55d1a40f7b5a3d2f8348f7311c15",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

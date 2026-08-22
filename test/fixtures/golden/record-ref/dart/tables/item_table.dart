@@ -88,7 +88,7 @@ class ItemTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Item.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Item.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Item.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -98,7 +98,7 @@ class ItemTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Item.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Item.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Item.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -108,7 +108,7 @@ class ItemTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Item.Pad', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Item.Pad', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Item.Pad');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -118,7 +118,7 @@ class ItemTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Item.Pad2', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Item.Pad2', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Item.Pad2');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -128,7 +128,7 @@ class ItemTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Item.Pad3', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Item.Pad3', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Item.Pad3');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);

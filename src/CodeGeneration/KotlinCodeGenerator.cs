@@ -61,6 +61,22 @@ public sealed class KotlinRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -75,10 +91,17 @@ public sealed class KotlinRecipe : IOutputRecipe
 [TabbitTarget("kotlin", TargetKind.CodeGeneration, Order = 85)]
 public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private KotlinRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Camel;
 
     /// <summary>
     /// A record group generates a nested class and a list of it; a member column fills one of
@@ -108,6 +131,12 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, KotlinRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -117,6 +146,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Camel, "kotlin");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -257,6 +287,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -290,6 +321,128 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     private static string PrimaryLookup(Table? refTable)
         => "findBy" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
 
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType switch
+        {
+            ValueType.String => ".isNotEmpty()",
+            ValueType.Uuid => "!= null",
+            _ => "!= 0",
+        };
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    private KotlinMultiMemberView? MultiMemberOrNull(RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string name = KotlinName(member.Name);
+
+        return new KotlinMultiMemberView
+        {
+            KeyMember = name,
+            SlotMember = name + "Row",
+            TargetMember = name + "Target",
+            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
+            NoneLabel = ConstantName("None"),
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new KotlinMultiTargetView
+            {
+                Table = KotlinName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = KotlinName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Label = ConstantName(target.Name),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member. spec/references-in-records.md.
+    /// </remarks>
+    private KotlinMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = KotlinName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + KotlinName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{name}{member}"
+            : $"record.{name}[i]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+
+        return new KotlinMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "Row" + subscript,
+            Target = path + "Target" + subscript,
+
+            // Whichever list holds the elements. The key member is that list where the members
+            // are the arrays, so there is no separate key list to measure.
+            Count = isArray
+                ? (wire.Group.MembersAreArrays ? $"{path}.size" : $"record.{name}.size")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            NoneLabel = ConstantName("None"),
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new KotlinMultiTargetView
+            {
+                Table = KotlinName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = "",
+                Label = ConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
+
+    private KotlinMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new KotlinMultiReferenceView
+        {
+            KeyMember = KotlinName(column.Group.Name),
+            SlotMember = KotlinName(column.Group.Name) + "Row",
+            TargetMember = KotlinName(column.Group.Name) + "Target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+            NoneLabel = ConstantName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new KotlinMultiTargetView
+            {
+                Table = KotlinName(target.Name),
+                RecordName = target.Name.ToPascalCase() + "Record",
+                Method = KotlinName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+                Label = ConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+
     private KotlinFieldView BuildField(Table table, SerialField sf)
     {
         if (sf.IsRecord)
@@ -305,8 +458,10 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             IsRecord = false,
             RecordTypeName = "",
             Members = Array.Empty<KotlinRecordMemberView>(),
-            IsNullable = !sf.Fields[0].IsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = PresenceMember(sf) + "At",
         };
     }
 
@@ -384,10 +539,31 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                                     : MemberDefault(member)));
                 }
 
+                // A member reaching several tables keeps the key declared above and gains two
+                // properties: one slot for the resolved row whatever table it came from, and
+                // the discriminator saying which. spec/multi-target-accessors.md.
+                var multi = MultiMemberOrNull(member);
+
+                if (multi is not null)
+                {
+                    declarations.Add(member.IsArray
+                        ? $"var {multi.SlotMember}: MutableList<Any?> = "
+                          + $"MutableList({member.Fields.Count}) {{ null }}"
+                        : $"var {multi.SlotMember}: Any? = null");
+
+                    declarations.Add(member.IsArray
+                        ? $"var {multi.TargetMember}: MutableList<{multi.TargetTypeName}> = "
+                          + $"MutableList({member.Fields.Count}) "
+                          + $"{{ {multi.TargetTypeName}.{multi.NoneLabel} }}"
+                        : $"var {multi.TargetMember}: {multi.TargetTypeName} = "
+                          + $"{multi.TargetTypeName}.{multi.NoneLabel}");
+                }
+
                 result.Add(new KotlinRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     Declarations = declarations,
+                    Multi = multi,
                 });
 
                 continue;
@@ -400,6 +576,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
             declared.Add(new KotlinRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -427,6 +604,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         recordTypes.Add(new KotlinRecordTypeView
         {
+            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -495,6 +673,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),
             LengthRead = UsesCursor(wire) ? "cursor.nextLength()" : "reader.readCounter32()",
+            RefKeyType = wire.IsRef ? ToKotlinTypeName(wire.RefKeyType, null, null) : "",
             RunCall = RunCall(wire),
             RunSpend = RunSpend(wire),
             Name = KotlinName(wire.Group.Name),
@@ -524,7 +703,9 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             ReadScalar = ValueReadExpression(wire),
             ReadElement = ValueReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = PresenceMember(wire.Group) + "At",
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -536,8 +717,8 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has" + sf.Name.ToPascalCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : KotlinName("has_" + sf.Name);
 
     /// <summary>What one record member starts at, for the same reason an ordinary one does.</summary>
     /// <summary>What a stored key holds before a row is read.</summary>
@@ -581,7 +762,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// </remarks>
     private string EmptyValue(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "ArrayList()";
 
         // The resolved property is a nullable reference to the target row, and absence there
@@ -617,16 +798,22 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         if (sf.IsRef)
         {
+            // The key the target is addressed by, not `Int`. The record-member path next door
+            // has always asked; this one wrote the width in, so a reference whose target is
+            // keyed by anything else declared a member the read could not fill.
+            // spec/reference-key-types.md.
+            string keyType = ToKotlinTypeName(sf.FirstField!.RefKeyType, null, null);
+
             return sf.IsArray
                 ? new[]
                 {
                     $"var {name}: MutableList<{elementType}> = ArrayList()",
-                    $"var {name}Index: MutableList<Int> = ArrayList()",
+                    $"var {name}Index: MutableList<{keyType}> = ArrayList()",
                 }
                 : new[]
                 {
                     $"var {name}: {elementType}? = null",
-                    $"var {name}Index: Int = 0",
+                    $"var {name}Index: {keyType} = {RefKeyDefault(sf.FirstField!.RefKeyType)}",
                 };
         }
 
@@ -660,11 +847,8 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "KIND_FIXED_ARRAY" : "KIND_SCALAR");
+        string kind = wire.IsArray ? "KIND_ARRAY" : "KIND_SCALAR";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string accepted;
 
@@ -700,7 +884,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                     accepted = "ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The kotlin generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The kotlin generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -709,7 +893,12 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"checkColumn(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, {accepted})";
+        // And the other bitmap, by the same argument as the row one. A function of its own
+        // because the accepted elements are varargs.
+        string check = wire.HasOptionalElements ? "checkColumnWithElements" : "checkColumn";
+
+        return $"{check}(column, \"{tableName}.{wire.Name}\", {kind}, "
+            + $"{nullable}, {accepted})";
     }
 
     /// <summary>
@@ -728,7 +917,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -789,7 +978,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
@@ -819,7 +1008,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// The line assigning one row from the value the run decoded, inside the loop the
     /// template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -864,10 +1053,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the list decides where the index goes, and an unnamed
@@ -875,14 +1061,16 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            // A trimmed array of references: the length is the row's, and the key still goes in
+            // the list beside the values. Read as a plain `var_array` it added the key to the
+            // list of rows, which does not compile - and nothing held the shape, because
+            // `foreign[]` is refused and this is only reachable through a folded group with
+            // trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -893,11 +1081,11 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         Tables = _model.Tables.Select(table => new KotlinTableSlotView
         {
-            Name = KotlinName(table.Name),
+            Name = KotlinCamelName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables
@@ -914,11 +1102,25 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new KotlinCrossReferenceView
             {
                 Table = KotlinName(x.Table.Name),
+                MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new KotlinReferenceFieldView
                 {
                     Name = KotlinName(sf.Name),
@@ -949,7 +1151,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + KotlinName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -1043,7 +1245,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                     return LanguageProfile.Kotlin.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Kotlin.ReadCall(wire.ElementType);
         }
     }
@@ -1113,7 +1315,9 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the kotlin generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "kotlin")));
         }
     }
 
@@ -1153,9 +1357,18 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// camelCase, and escaped with backticks when it lands on a keyword - which Kotlin
     /// accepts for exactly this, unlike Java, where the name has to change instead.
     /// </summary>
-    private static string KotlinName(string name) => LanguageProfile.Kotlin.MemberName(name.ToCamelCase());
+    private string KotlinName(string name) => LanguageProfile.Kotlin.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// camelCase because that is how Kotlin writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string KotlinCamelName(string name) => LanguageProfile.Kotlin.MemberName(name.ToCamelCase());
 
     /// <summary>An enum constant, SCREAMING_SNAKE_CASE as Kotlin writes them.</summary>
-    private static string ConstantName(string name) => name.ToSnakeCase().ToUpperInvariant();
+    private static string ConstantName(string name) => name.ToUpperSnakeCase();
 
 }

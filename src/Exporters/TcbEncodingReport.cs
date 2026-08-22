@@ -580,8 +580,7 @@ public sealed class TcbEncodingReport
 
     private static string KindSuffix(byte kind) => kind switch
     {
-        TcbFormat.KindFixedArray => "[]",
-        TcbFormat.KindVarArray => "[*]",
+        TcbFormat.KindArray => "[]",
         _ => string.Empty,
     };
 

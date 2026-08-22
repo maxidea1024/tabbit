@@ -61,7 +61,7 @@ static bool KeyTypes_AssetParse(KeyTypes_AssetTable_t* table, tb_reader* reader)
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Asset.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_UUID));
+      (void)tb_check_column(reader, column, "Asset.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_UUID));
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         KeyTypes_AssetRecord_t* record = &table->records[row];
@@ -71,44 +71,28 @@ static bool KeyTypes_AssetParse(KeyTypes_AssetTable_t* table, tb_reader* reader)
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Asset.Path", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Asset.Path", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Asset.Path");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        KeyTypes_AssetRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].path = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->path);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Asset.Slot", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Asset.Slot", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Asset.Slot");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        KeyTypes_AssetRecord_t* record = &table->records[row];
+        int32_t scratch = 0;
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].slot = (KeyTypes_Slot_t)value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &scratch);
+        record->slot = (KeyTypes_Slot_t)scratch;
       }
       break;
 

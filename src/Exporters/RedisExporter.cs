@@ -7,6 +7,7 @@ using Tabbit.Recipe;
 using Serilog;
 using StackExchange.Redis;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.Exporters;
 
@@ -35,6 +36,9 @@ public class RedisRecipe : DatabaseRecipe
 [TabbitTarget("redis", TargetKind.Export, Order = 60)]
 public class RedisExporter : DatabaseExporterBase<RedisRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     protected override string TargetName => "Redis";
 
     /// <summary>Suffix of the set listing a table's primary index values.</summary>
@@ -164,7 +168,8 @@ public class RedisExporter : DatabaseExporterBase<RedisRecipe>
             pending.Add(transaction.KeyRenameAsync(shadow, live));
 
         if (!transaction.Execute())
-            throw new TabbitException($"Redis refused the swap transaction for `{keys.LiveName}`.");
+            throw new TabbitException(null,
+                Message.Of(ExportMessages.RedisSwapRefused, ("Key", keys.LiveName)));
 
         Task.WaitAll(pending.ToArray());
 
@@ -182,7 +187,8 @@ public class RedisExporter : DatabaseExporterBase<RedisRecipe>
         }
         catch (Exception ex)
         {
-            Log.Warning($"Could not clean up Redis shadow keys: {ex.Message}");
+            Log.Warning(Message.Of(ExportMessages.LogRedisCleanupFailed,
+                ("Detail", ex.Message)).In(MessageCatalog.Current));
         }
     }
 

@@ -46,33 +46,26 @@ internal static class RecipeVariables
         if (missing.Count == 0)
             return;
 
-        var message = new StringBuilder();
-
-        message.Append($"Recipe `{filename}` refers to environment variables that are not set:");
+        var listed = new StringBuilder();
 
         foreach (var (name, path) in missing)
-            message.Append($"{Environment.NewLine}  {name} — at `{path}`");
-
-        message.Append(Environment.NewLine);
-        message.Append(
-            "Values are read from the environment so that a recipe can be committed in full, " +
-            "and so that one recipe can describe more than one environment. An unset variable " +
-            "is an error rather than an empty substitution, which would fail later and less clearly.");
+            listed.Append($"{Environment.NewLine}  {name} — at `{path}`");
 
         // The one variable worth naming a remedy for. A recipe carrying it is a recipe
         // written for more than one environment, and somebody meeting it for the first
         // time is usually running a colleague's recipe rather than their own - so the
         // useful sentence is which flag says which environment, not what a variable is.
-        if (missing.Exists(entry => entry.Name == RunEnvironment.Variable))
-        {
-            message.Append(Environment.NewLine);
-            message.Append(
-                $"This recipe is written for more than one environment: pass `--env <name>` to " +
-                $"say which. A recipe used by one person on one machine does not need " +
-                $"`${{{RunEnvironment.Variable}}}` at all - writing the paths out is simpler.");
-        }
+        // Two ids: the same report, with one paragraph more when the environment variable is
+        // among the missing. A recipe carrying that one is written for more than one
+        // environment, and the reader is usually running somebody else's.
+        bool namesEnvironment = missing.Exists(entry => entry.Name == RunEnvironment.Variable);
 
-        throw new TabbitException(message.ToString());
+        throw new TabbitException(null, Messages.Message.Of(
+            namesEnvironment
+                ? RecipeMessages.VariablesNotSetWithEnvironment
+                : RecipeMessages.VariablesNotSet,
+            ("Filename", filename), ("Listed", listed.ToString()),
+            ("Variable", RunEnvironment.Variable)));
     }
 
     private static void Walk(JToken token, List<(string, string)> missing)

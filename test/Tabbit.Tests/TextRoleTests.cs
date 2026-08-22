@@ -365,7 +365,7 @@ public class TextRoleTests
     /// </summary>
     /// <remarks>
     /// The claim the whole design rests on. If a role ever became a `ValueType`, this is
-    /// where the first of thirteen generators would start disagreeing about what to emit.
+    /// where the first of the generators would start disagreeing about what to emit.
     /// </remarks>
     [Fact]
     public void Text_columns_export_as_ordinary_strings()
@@ -380,9 +380,11 @@ public class TextRoleTests
         Assert.Equal("Lost Cargo", rows[0].GetProperty("title").GetString());
         Assert.Equal(JsonValueKind.String, rows[0].GetProperty("category").ValueKind);
 
-        // The optional one, which is absent rather than empty - the same as any other
-        // optional column, and unaffected by the role.
+        // The optional one, in both of the things a cell can say about having nothing: `-`
+        // is no value at all, and a blank cell is the empty string. The role changes neither
+        // - it is the rule every column follows. spec/blank-and-null-cells.md.
         Assert.Equal(JsonValueKind.Null, rows[1].GetProperty("hint").ValueKind);
+        Assert.Equal("", rows[3].GetProperty("hint").GetString());
     }
 
     /// <summary>
@@ -437,7 +439,7 @@ public class TextRoleTests
         var failure = Assert.Throws<TabbitException>(
             () => context.SplitStringRole("int(Foo)", Somewhere(), out _, out _, out _));
 
-        Assert.Contains("`text` takes a group and `asset` takes a kind", failure.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.TypeTakesNoBrackets, failure.MessageId);
     }
 
     /// <summary>
@@ -451,6 +453,7 @@ public class TextRoleTests
 
         // In the role's own words: `text` puts a group in those brackets, and the message for
         // `asset()` says `kind` instead.
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RoleGroupEmpty, failure.MessageId);
         Assert.Contains("opens brackets and names no group", failure.Message);
     }
 
@@ -463,7 +466,7 @@ public class TextRoleTests
         var failure = Assert.Throws<TabbitException>(
             () => Context().SplitStringRole("text(Achievement,)", Somewhere(), out _, out _, out _));
 
-        Assert.Contains("names no namespace", failure.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RoleSpaceEmpty, failure.MessageId);
     }
 
     /// <summary>
@@ -501,7 +504,7 @@ public class TextRoleTests
     }
 
     private static CookingContext Context()
-        => new CookingContext(new Model(), new Tabbit.Recipe.RecipeModel());
+        => new CookingContext(new Model(), new Tabbit.Recipe.RecipeModel(), new Diagnostics());
 
     private static Location Somewhere()
         => new Location { Filename = "test", Sheet = "Sheet1", Column = 0, Row = 0 };

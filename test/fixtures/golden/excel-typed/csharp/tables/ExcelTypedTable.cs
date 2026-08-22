@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -199,7 +197,7 @@ namespace Tabbit.Fixtures.X
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "ExcelTyped.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ExcelTyped.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ExcelTyped.Index");
                         for (int i = 0; i < count; )
                         {
@@ -215,7 +213,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "ExcelTyped.IntFromNumeric", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ExcelTyped.IntFromNumeric", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ExcelTyped.IntFromNumeric");
                         for (int i = 0; i < count; )
                         {
@@ -231,7 +229,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "ExcelTyped.FloatFromNumeric", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "ExcelTyped.FloatFromNumeric", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "ExcelTyped.FloatFromNumeric");
                         for (int i = 0; i < count; i++)
                         {
@@ -241,7 +239,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "ExcelTyped.WhenFromDateCell", TcbTable.KindScalar, 1, false, TcbTable.ElementI64);
+                        TcbTable.CheckColumn(column, "ExcelTyped.WhenFromDateCell", TcbTable.KindScalar, false, TcbTable.ElementI64);
                         cursor = new TcbColumnCursor(reader, column, count, "ExcelTyped.WhenFromDateCell");
                         for (int i = 0; i < count; i++)
                         {
@@ -251,7 +249,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "ExcelTyped.BigFromNumeric", TcbTable.KindScalar, 1, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ExcelTyped.BigFromNumeric", TcbTable.KindScalar, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ExcelTyped.BigFromNumeric");
                         for (int i = 0; i < count; i++)
                         {
@@ -294,5 +292,4 @@ namespace Tabbit.Fixtures.X
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.X

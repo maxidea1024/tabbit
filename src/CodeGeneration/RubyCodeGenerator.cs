@@ -61,6 +61,22 @@ public sealed class RubyRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -75,10 +91,17 @@ public sealed class RubyRecipe : IOutputRecipe
 [TabbitTarget("ruby", TargetKind.CodeGeneration, Order = 75)]
 public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private RubyRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Snake;
 
     /// <summary>
     /// A record group generates a class and an array of it; a member column fills one of its
@@ -108,6 +131,12 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, RubyRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -117,6 +146,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Snake, "ruby");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -174,8 +204,15 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                       AccessorName = AccessorType,
                       ModuleName = _recipe.ModuleName,
 
-                      // One directory down, and its `read` names the reader.
-                      Requires = new[] { "../tabbit/tcb_reader" },
+                      // One directory down, and its `read` names the reader. And the
+                      // discriminator module of every column reaching several tables, which
+                      // the record's own methods name. spec/multi-target-accessors.md.
+                      Requires = new[] { "../tabbit/tcb_reader" }
+                          .Concat(table.MultiReferences
+                                       .Select(reference =>
+                                           "../enums/" + reference.TargetTypeName.ToSnakeCase())
+                                       .Distinct())
+                          .ToList(),
                       Table = table,
                   });
         }
@@ -250,7 +287,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         Labels = enumm.Labels.Select(label => new RubyEnumLabelView
         {
             Name = ConstantName(label.Name),
-            Symbol = RubyName(label.Name),
+            Symbol = RubySnakeName(label.Name),
             Value = label.Value.ToString(CultureInfo.InvariantCulture),
             Comment = CommentLines(label.Comment),
         }).ToList(),
@@ -282,12 +319,28 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             if (sf.IsRef)
                 accessors.Add(RubyName(sf.Name) + "_index");
 
-            if (!sf.IsRecord && !sf.Fields[0].IsRequired)
+            if (sf.RowMayBeAbsent)
                 accessors.Add(PresenceMember(sf));
+
+            // And the per-element answer, which is an array rather than a flag.
+            // spec/nullable-array-elements.md.
+            if (sf.ElementMayBeAbsent)
+                accessors.Add(ElementPresenceMember(sf));
+        }
+
+        // A column reaching several tables adds the resolved row and the discriminator beside
+        // the key. spec/multi-target-accessors.md.
+        var multiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList();
+
+        foreach (var reference in multiReferences)
+        {
+            accessors.Add(reference.SlotMember);
+            accessors.Add(reference.TargetMember);
         }
 
         return new RubyTableView
         {
+            MultiReferences = multiReferences,
             RawName = table.Name,
             RecordName = table.Name.ToPascalCase() + "Record",
             TableName = table.Name.ToPascalCase() + "Table",
@@ -328,13 +381,48 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     private static string PrimaryLookup(Table? refTable)
         => "find_by_" + refTable!.SerialFields.First(sf => sf.IsIndexer).Name.ToSnakeCase();
 
+    /// <summary>
+    /// What follows a stored key to ask whether it points at anything.
+    /// </summary>
+    /// <remarks>
+    /// The key type's empty value means "points at nothing", and a multi-target column honours
+    /// it in every language: the discriminator is a value a consumer reads.
+    /// spec/reference-optionality.md.
+    /// </remarks>
+    private static string KeyIsSetSuffix(ValueType keyType)
+        => keyType == ValueType.String ? "!= ''" : "!= 0";
+
+    /// <summary>
+    /// One column whose value is a row of one of several tables.
+    /// </summary>
+    private RubyMultiReferenceView BuildMultiReference(MultiTargetColumn column)
+        => new RubyMultiReferenceView
+        {
+            KeyMember = RubyName(column.Group.Name),
+            SlotMember = RubyName(column.Group.Name) + "_row",
+            TargetMember = RubyName(column.Group.Name) + "_target",
+            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
+
+            // Upper snake, which is how this generator spells every other label - a Ruby
+            // constant, not the model's Pascal spelling.
+            NoneLabel = ConstantName("None"),
+            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
+            Targets = column.Targets.Select(target => new RubyMultiTargetView
+            {
+                Table = RubyName(target.Name),
+                Method = RubyName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
+                Label = ConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+
     private RubyFieldView BuildField(Table table, SerialField sf)
     {
         if (sf.IsRecord)
             return BuildRecordField(table, sf);
 
         string name = RubyName(sf.Name);
-        bool nullable = !sf.Fields[0].IsRequired;
+        bool nullable = sf.RowMayBeAbsent;
 
         var initializers = Initializers(sf, name).ToList();
 
@@ -342,6 +430,11 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         // leaves the attribute absent rather than claiming a value it never got.
         if (nullable)
             initializers.Add($"@{PresenceMember(sf)} = false");
+
+        // Empty until the read fills it: an index into an empty array is out of range, and
+        // the answer there is that the element has a value.
+        if (sf.ElementMayBeAbsent)
+            initializers.Add($"@{ElementPresenceMember(sf)} = []");
 
         return new RubyFieldView
         {
@@ -353,7 +446,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             RecordAccessorNames = "",
             Members = Array.Empty<RubyRecordMemberView>(),
             IsNullable = nullable,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = ElementPresenceMember(sf),
         };
     }
 
@@ -395,6 +490,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                     // The array is the member's when the group is one record - same columns,
                     // same wire, and only which of the two owns it differs.
                     Initializers = MemberInitializers(member),
+                    Multi = MultiMemberOrNull(member),
                 });
 
                 continue;
@@ -407,6 +503,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
             declared.Add(new RubyRecordTypeView
             {
+                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -435,6 +532,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         recordTypes.Add(new RubyRecordTypeView
         {
+            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -517,7 +615,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             ReadScalar = ScalarReadExpression(wire),
             ReadElement = ElementReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = ElementPresenceMember(wire.Group),
             EmptyValue = EmptyValue(wire),
         };
     }
@@ -539,8 +639,12 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase();
+    /// <summary>The member holding which of an array's elements have a value.</summary>
+    private string ElementPresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : RubyName("has_" + sf.Name + "_at");
+
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : RubyName("has_" + sf.Name);
 
     /// <summary>What one record member starts at, for the same reason an ordinary one does.</summary>
     /// <summary>
@@ -577,12 +681,120 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                 };
         }
 
+        // A member reaching several tables keeps its key and gains two instance variables:
+        // one slot for the resolved row whatever table it came from, and the discriminator
+        // saying which. At the member's own arity. spec/multi-target-accessors.md.
+        var multi = MultiMemberOrNull(member);
+
+        if (multi is not null)
+        {
+            string none = $"{multi.TargetTypeName}::{multi.NoneLabel}";
+
+            return member.IsArray
+                ? new[]
+                {
+                    $"@{name} = Array.new({member.Fields.Count}) {{ {MemberDefault(member)} }}",
+                    $"@{multi.SlotMember} = Array.new({member.Fields.Count})",
+                    $"@{multi.TargetMember} = Array.new({member.Fields.Count}) {{ {none} }}",
+                }
+                : new[]
+                {
+                    $"@{name} = {MemberDefault(member)}",
+                    $"@{multi.SlotMember} = nil",
+                    $"@{multi.TargetMember} = {none}",
+                };
+        }
+
         // The array is the member's when the group is one record - same columns, same wire,
         // and only which of the two owns it differs.
         return member.IsArray
             ? new[] { $"@{name} = Array.new({member.Fields.Count}) {{ {MemberDefault(member)} }}" }
             : new[] { $"@{name} = {MemberDefault(member)}" };
     }
+
+    /// <summary>
+    /// The slot and the discriminator of a record member reaching several tables, or null when
+    /// the member reaches one table or none.
+    /// </summary>
+    private RubyMultiMemberView? MultiMemberOrNull(RecordMember member)
+    {
+        var field = member.FirstField;
+
+        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
+            return null;
+
+        string name = RubyName(member.Name);
+
+        return new RubyMultiMemberView
+        {
+            KeyMember = name,
+            SlotMember = name + "_row",
+            TargetMember = name + "_target",
+            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
+            NoneLabel = ConstantName("None"),
+            IsArray = member.IsArray,
+            Targets = field.ResolvedRefTables!.Select(target => new RubyMultiTargetView
+            {
+                Table = RubyName(target.Name),
+                Method = RubyName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
+                Label = ConstantName(target.Name),
+                Lookup = "",
+            }).ToList(),
+        };
+    }
+
+    /// <summary>
+    /// One multi-target column that is a member of a record, as the linking pass needs it.
+    /// </summary>
+    /// <remarks>
+    /// Which of the three record shapes this is decides where the element number sits, exactly
+    /// as it does for a single-target member. spec/references-in-records.md.
+    /// </remarks>
+    private RubyMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
+    {
+        string name = RubyName(wire.Group.Name);
+        string member = string.Concat(wire.MemberPath.Select(part => "." + RubyName(part)));
+        var field = wire.TagCarrier;
+
+        bool isArray = wire.IsArray;
+
+        string path = !isArray || wire.Group.MembersAreArrays
+            ? $"record.{name}{member}"
+            : $"record.{name}[i]{member}";
+        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+
+        return new RubyMultiRecordReferenceView
+        {
+            Key = path + subscript,
+            Slot = path + "_row" + subscript,
+            Target = path + "_target" + subscript,
+
+            // Whichever array holds the elements. The key member is that array where the
+            // members are the arrays, so there is no separate key array to walk.
+            Range = isArray
+                ? (wire.Group.MembersAreArrays
+                    ? $"{path}.each_index"
+                    : $"record.{name}.each_index")
+                : "",
+
+            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
+            NoneLabel = ConstantName("None"),
+            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
+            Targets = field.ResolvedRefTables!.Select(target => new RubyMultiTargetView
+            {
+                Table = RubyName(target.Name),
+                Method = "",
+                Label = ConstantName(target.Name),
+                Lookup = PrimaryLookup(target),
+            }).ToList(),
+        };
+    }
+
+    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
+    private static bool IsMultiTargetMember(WireColumn wire)
+        => wire.Member is not null
+           && wire.TagCarrier.IsMultiRef
+           && wire.TagCarrier.MultiTargetEnum is not null;
 
     /// <summary>What a stored key holds before a row is read.</summary>
     private static string RefKeyDefault(ValueType keyType)
@@ -607,7 +819,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + RubyName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -650,6 +862,14 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
             if (member.IsLeaf && member.IsRef)
                 result.Add(RubyName(member.Name) + "_index");
+
+            // The slot and the discriminator of a member reaching several tables, for the same
+            // reason: the linking pass assigns to both. spec/multi-target-accessors.md.
+            if (member.IsLeaf && member.FirstField is { IsMultiRef: true, MultiTargetEnum: not null })
+            {
+                result.Add(RubyName(member.Name) + "_row");
+                result.Add(RubyName(member.Name) + "_target");
+            }
         }
 
         return result;
@@ -680,7 +900,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// </remarks>
     private string EmptyValue(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "[]";
 
         // The resolved attribute points at the target row, and absence there is what nil
@@ -733,11 +953,8 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "Tabbit::KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "Tabbit::KIND_FIXED_ARRAY" : "Tabbit::KIND_SCALAR");
+        string kind = wire.IsArray ? "Tabbit::KIND_ARRAY" : "Tabbit::KIND_SCALAR";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string accepted;
 
@@ -776,7 +993,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                     accepted = "Tabbit::ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The ruby generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The ruby generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -785,7 +1002,11 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"Tabbit.check_column(column, '{tableName}.{wire.Name}', {kind}, {count}, {nullable}, [{accepted}])";
+        // And the other bitmap, by the same argument as the row one.
+        string elements = wire.HasOptionalElements ? ", true" : "";
+
+        return $"Tabbit.check_column(column, '{tableName}.{wire.Name}', {kind}, "
+            + $"{nullable}, [{accepted}]{elements})";
     }
 
     /// <summary>
@@ -801,10 +1022,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the array decides where the index goes, and an unnamed
@@ -812,14 +1030,17 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            // A trimmed array of references: the length is the row's, and the key still goes
+            // in the array beside the values. Read as a plain `var_array` it put the keys where
+            // the resolved rows belong, and the linking pass then found nothing to resolve -
+            // silently, because this language does not type them apart. Nothing held the shape:
+            // `foreign[]` is refused, so it is only reachable through a folded group with
+            // trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -827,15 +1048,15 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     private RubyAccessorView BuildAccessor() => new RubyAccessorView
     {
         FileExtension = _recipe.BinaryTableFileExtension,
-        ReaderNames = Symbols(_model.Tables.Select(table => RubyName(table.Name)).ToList()),
+        ReaderNames = Symbols(_model.Tables.Select(table => RubySnakeName(table.Name)).ToList()),
 
         Tables = _model.Tables.Select(table => new RubyTableSlotView
         {
-            Name = RubyName(table.Name),
+            Name = RubySnakeName(table.Name),
             TableName = table.Name.ToPascalCase() + "Table",
 
             // Unescaped: this one names the file the exporter wrote.
-            DataFileName = table.Name,
+            DataFileName = table.DataFileName,
         }).ToList(),
 
         CrossReferences = _model.Tables
@@ -852,8 +1073,20 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
                                     .ToList(),
+
+                // A column reaching several tables is looked up in each of them in turn, so it
+                // is a loop of its own too. spec/multi-target-accessors.md.
+                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
+
+                // One of those that is a member of a record resolves per element, so it is a
+                // loop of its own. spec/multi-target-accessors.md.
+                MultiRecordFields = table.WireColumns
+                                         .Where(IsMultiTargetMember)
+                                         .Select(BuildMultiRecordReference)
+                                         .ToList(),
             })
-            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0)
+            .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
+                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
             .Select(x => new RubyCrossReferenceView
             {
                 Table = RubyName(x.Table.Name),
@@ -868,6 +1101,8 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                     IsArray = sf.IsArray,
                 }).ToList(),
                 RecordFields = x.RecordFields,
+                MultiFields = x.MultiFields,
+                MultiRecordFields = x.MultiRecordFields,
             })
             .ToList(),
     };
@@ -889,7 +1124,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -950,7 +1185,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
@@ -980,7 +1215,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// The line assigning one row from the value the run decoded, inside the loop the
     /// template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -1082,7 +1317,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                 // being pointed at. spec/reference-key-types.md.
             ValueType.ForeignRecord => LanguageProfile.Ruby.ReadCall(wire.RefKeyType),
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             _ => LanguageProfile.Ruby.ReadCall(wire.ElementType),
         };
     }
@@ -1129,7 +1364,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the ruby generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "ruby")));
         }
     }
 
@@ -1163,9 +1400,15 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// snake_case, and escaped when it lands on a keyword - which it can, because Ruby
     /// members are lowercase and so is nearly every Ruby keyword.
     /// </summary>
-    private static string RubyName(string name) => LanguageProfile.Ruby.MemberName(name.ToSnakeCase());
+    private string RubyName(string name) => LanguageProfile.Ruby.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for the names that are not members - an enum label's symbol, an
+    /// accessor's per-table reader.
+    /// </summary>
+    private static string RubySnakeName(string name) => LanguageProfile.Ruby.MemberName(name.ToSnakeCase());
 
     /// <summary>A constant, SCREAMING_SNAKE_CASE as Ruby writes them.</summary>
-    private static string ConstantName(string name) => name.ToSnakeCase().ToUpperInvariant();
+    private static string ConstantName(string name) => name.ToUpperSnakeCase();
 
 }

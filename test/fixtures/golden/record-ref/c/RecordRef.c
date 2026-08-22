@@ -31,7 +31,7 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
     {
       int32_t element;
 
-      for (element = 0; element < 2; ++element) {
+      for (element = 0; element < record->slot_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
           &data->item, record->slot[element].item_id_index);
 
@@ -43,7 +43,7 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
     {
       int32_t element;
 
-      for (element = 0; element < 2; ++element) {
+      for (element = 0; element < record->slot_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
           &data->item, record->slot[element].swap_id_index);
 
@@ -71,7 +71,7 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
     {
       int32_t element;
 
-      for (element = 0; element < 2; ++element) {
+      for (element = 0; element < record->slots.item_id_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
           &data->item, record->slots.item_id_index[element]);
 
@@ -87,7 +87,7 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
     {
       int32_t element;
 
-      for (element = 0; element < 2; ++element) {
+      for (element = 0; element < record->rig_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
           &data->item, record->rig[element].core.item_id_index);
 
@@ -103,7 +103,7 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
     {
       int32_t element;
 
-      for (element = 0; element < 2; ++element) {
+      for (element = 0; element < record->step_count; ++element) {
         const RecordRef_ClipRecord_t* target = RecordRef_ClipFindByIndex(
           &data->clip, record->step[element].clip_id_index);
 

@@ -45,7 +45,7 @@ public class ColorPaletteTests : System.IDisposable
         foreach (var (name, path) in palettes)
             recipe.Palettes[name] = path;
 
-        return new CookingContext(new Model(), recipe);
+        return new CookingContext(new Model(), recipe, new Diagnostics());
     }
 
     private static Location Where()

@@ -93,7 +93,7 @@ class PackageTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Package.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Package.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Package.Index")
                 at = 0
                 while at < count:
@@ -102,7 +102,7 @@ class PackageTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Package.Label", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Package.Label", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Package.Label")
                 at = 0
                 while at < count:
@@ -111,7 +111,7 @@ class PackageTable:
                         records[i].label = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Package.Kind", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_VARINT,))
+                tabbit.check_column(column, "Package.Kind", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_VARINT,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Package.Kind")
                 at = 0
                 while at < count:

@@ -79,5 +79,6 @@ public class StringIndexTests
 
     private static Tabbit.Cooking.CookingContext Context()
         => new Tabbit.Cooking.CookingContext(
-            new Tabbit.Models.Model(), new Tabbit.Recipe.RecipeModel());
+            new Tabbit.Models.Model(), new Tabbit.Recipe.RecipeModel(),
+            new Tabbit.Diagnostics());
 }

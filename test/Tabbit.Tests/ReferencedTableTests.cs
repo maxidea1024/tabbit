@@ -63,7 +63,6 @@ public class ReferencedTableTests
                         Column = column,
                     },
                     Value = column < cells.Length ? cells[column] : "",
-                    Note = "",
                 }).ToList());
             }
 
@@ -78,7 +77,6 @@ public class ReferencedTableTests
                     Column = column,
                 },
                 Value = "",
-                Note = "",
             }).ToList());
         }
 
@@ -92,7 +90,7 @@ public class ReferencedTableTests
         foreach (var range in ranges)
             sheet.NamedRanges.Add(range);
 
-        var context = new CookingContext(new Model(), new RecipeModel());
+        var context = new CookingContext(new Model(), new RecipeModel(), new Diagnostics());
         var parser = new UwoLayoutParser();
 
         parser.ParseDeclarations(context, new[] { sheet });
@@ -130,7 +128,7 @@ public class ReferencedTableTests
         var diagnostics = new Diagnostics();
         var holder = model.FindTable("Holder");
 
-        new ModelCooker().ValidateReferencedTables(model, holder, diagnostics);
+        new ModelCooker().ValidateReferencedTables(model, holder, holder.RowSets.First(), diagnostics);
 
         return diagnostics.Entries.ToList();
     }
@@ -163,6 +161,7 @@ public class ReferencedTableTests
         var reported = Assert.Single(Check(model));
 
         Assert.Equal(Severity.Error, reported.Severity);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.MultiTargetMissingRow, reported.Detail.MessageId);
         Assert.Contains("Holder.TargetId", reported.Detail.Message);
         Assert.Contains("99", reported.Detail.Message);
 
@@ -197,6 +196,7 @@ public class ReferencedTableTests
 
         var reported = Assert.Single(Check(model));
 
+        Assert.Equal(Tabbit.Cooking.CookingMessages.MultiTargetMissingRow, reported.Detail.MessageId);
         Assert.Contains("99", reported.Detail.Message);
         Assert.Contains("Weapon", reported.Detail.Message);
     }
@@ -398,6 +398,7 @@ public class ReferencedTableTests
         var overlap = Assert.Single(
             reported, entry => entry.Detail.Message.Contains("both hold"));
 
+        Assert.Equal(Tabbit.Cooking.CookingMessages.MultiTargetIdOverlap, overlap.Detail.MessageId);
         Assert.Contains("Weapon", overlap.Detail.Message);
         Assert.Contains("Armour", overlap.Detail.Message);
         Assert.Contains("11", overlap.Detail.Message);

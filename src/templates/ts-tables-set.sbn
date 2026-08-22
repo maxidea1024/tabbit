@@ -5,6 +5,10 @@ import * as path from 'path'
 {{~ for table in tables ~}}
 import { {{ table.name }}Table } from './tables/{{ table.file }}'
 {{~ end ~}}
+{{~## The discriminators the linking pass compares against. spec/multi-target-accessors.md. ##~}}
+{{~ for line in imports ~}}
+{{ line }}
+{{~ end ~}}
 
 /** {{ accessor_name }} */
 export class {{ accessor_name }} {
@@ -73,7 +77,7 @@ export class {{ accessor_name }} {
   public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
 {{~ for table in tables ~}}
     const {{ table.local }} = new {{ table.name }}Table()
-    await {{ table.local }}.read(path.join(basePath, `{{ table.name }}${fileExtension}`))
+    await {{ table.local }}.read(path.join(basePath, `{{ table.data_file_name }}${fileExtension}`))
 {{~ end ~}}
 
     this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
@@ -83,7 +87,7 @@ export class {{ accessor_name }} {
   public readAllSync(basePath: string, fileExtension: string = '.json'): void {
 {{~ for table in tables ~}}
     const {{ table.local }} = new {{ table.name }}Table()
-    {{ table.local }}.readSync(path.join(basePath, `{{ table.name }}${fileExtension}`))
+    {{ table.local }}.readSync(path.join(basePath, `{{ table.data_file_name }}${fileExtension}`))
 {{~ end ~}}
 
     this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
@@ -99,7 +103,7 @@ export class {{ accessor_name }} {
   public readAllBinarySync(basePath: string, fileExtension: string = '{{ binary_file_extension }}'): void {
 {{~ for table in tables ~}}
     const {{ table.local }} = new {{ table.name }}Table()
-    {{ table.local }}.readBinarySync(path.join(basePath, `{{ table.name }}${fileExtension}`))
+    {{ table.local }}.readBinarySync(path.join(basePath, `{{ table.data_file_name }}${fileExtension}`))
 {{~ end ~}}
 
     this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
@@ -138,7 +142,10 @@ export class {{ accessor_name }} {
     for (const record of this._{{ reference.table }}.records) {
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-      for (let i = 0; i < {{ field.element_count }}; i++) {
+{{~## The keys' own length rather than the sheet's column count: the read sized this array from
+   the file, so a number written in here would leave the last element unresolved on a file with
+   one more. spec/nullable-array-elements.md. ##~}}
+      for (let i = 0; i < record.{{ field.field_name }}_{{ field.ref_table_type }}_index.length; i++) {
         if (record.{{ field.field_name }}_{{ field.ref_table_type }}_index[i] {{ field.ref_is_set }}) {
           const target = this._{{ field.ref_table }}.{{ field.ref_lookup }}(
             record.{{ field.field_name }}_{{ field.ref_table_type }}_index[i])
@@ -174,6 +181,56 @@ export class {{ accessor_name }} {
         {{ member.flag }} = true
       }
 {{~ end ~}}
+{{~ end ~}}
+{{~## A column reaching several tables is looked up in each of them in the order they were
+   named, stopping at the first that has the key. The tables take separate id bands - an id in
+   two of them is refused at conversion - so the order only decides which lookup runs.
+
+   Through the lookup that answers with undefined: a miss means the row is in one of the
+   others, and a key none of them holds leaves the discriminator at `None`.
+   spec/multi-target-accessors.md. ##~}}
+{{~## A member reaching several tables resolves inside the element, so the array is walked
+   and each element's own key is looked up. Which array that is - the group's or the
+   member's - the view decided. spec/multi-target-accessors.md. ##~}}
+{{~ for ref in reference.multi_record_fields ~}}
+{{~ if ref.count != '' ~}}
+      for (let i = 0; i < {{ ref.count }}; i++) {
+        if ({{ ref.key }} {{ ref.ref_is_set }}) {
+{{~ for target in ref.targets ~}}
+          if ({{ ref.target }} === {{ ref.target_type_name }}.None) {
+            const found = this._{{ target.table }}.{{ target.lookup }}({{ ref.key }})
+            if (found !== undefined) {
+              {{ ref.slot }} = found
+              {{ ref.target }} = {{ ref.target_type_name }}.{{ target.label }}
+            }
+          }
+{{~ end ~}}
+        }
+      }
+{{~ else ~}}
+      if ({{ ref.key }} {{ ref.ref_is_set }}) {
+{{~ for target in ref.targets ~}}
+        if ({{ ref.target }} === {{ ref.target_type_name }}.None) {
+          const found = this._{{ target.table }}.{{ target.lookup }}({{ ref.key }})
+          if (found !== undefined) {
+            {{ ref.slot }} = found
+            {{ ref.target }} = {{ ref.target_type_name }}.{{ target.label }}
+          }
+        }
+{{~ end ~}}
+      }
+{{~ end ~}}
+{{~ end ~}}
+{{~ for ref in reference.multi_fields ~}}
+      if (record.{{ ref.key_prop }} {{ ref.ref_is_set }}) {
+{{~ for target in ref.targets ~}}
+        if (record.{{ ref.target_prop }} === {{ ref.target_type_name }}.None) {
+          const found = this._{{ target.table }}.{{ target.lookup }}(record.{{ ref.key_prop }})
+          if (found !== undefined)
+            record.setReference_{{ ref.key_prop }}_INTERNAL({{ ref.target_type_name }}.{{ target.label }}, found)
+        }
+{{~ end ~}}
+      }
 {{~ end ~}}
     }
 {{~ end ~}}

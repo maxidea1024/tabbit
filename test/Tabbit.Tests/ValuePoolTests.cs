@@ -61,8 +61,8 @@ public class ValuePoolTests
     {
         var ex = Assert.Throws<TabbitException>(() => HistoryStore.ValueId(Pool, "2500"));
 
+        Assert.Equal(Tabbit.History.RecordMessages.ValuePoolIdMissing, ex.MessageId);
         Assert.Contains("2500", ex.Message);
-        Assert.Contains("has not been written", ex.Message);
     }
 
     /// <summary>
@@ -76,6 +76,7 @@ public class ValuePoolTests
 
         var ex = Assert.Throws<TabbitException>(() => HistoryStore.ValueId(Pool, long_));
 
+        Assert.Equal(Tabbit.History.RecordMessages.ValuePoolIdMissing, ex.MessageId);
         Assert.Contains("...", ex.Message);
         Assert.True(ex.Message.Length < 400, $"The message is {ex.Message.Length} characters long.");
     }

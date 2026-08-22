@@ -94,7 +94,7 @@ class LoadoutTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Loadout.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Loadout.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -104,28 +104,46 @@ class LoadoutTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Loadout.Slot.ItemId', kindFixedArray, 2, false, [elementI32]);
+          checkColumn(column, 'Loadout.Slot.ItemId', kindArray, false, [elementI32]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Slot.ItemId');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            // The first member builds the list; the rest check. Building it again would
+            // discard what the members before it wrote, and taking the shorter of two
+            // counts would shift every value after it.
+            record.slot =
+                List.generate(elementCount, (_) => LoadoutSlotEntry());
+            for (var j = 0; j < elementCount; j++) {
               record.slot[j].itemIdIndex = cursor.nextI32();
             }
           }
           break;
         case 3:
-          checkColumn(column, 'Loadout.Slot.SwapId', kindFixedArray, 2, false, [elementI32]);
+          checkColumn(column, 'Loadout.Slot.SwapId', kindArray, false, [elementI32]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Slot.SwapId');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            if (record.slot.length != elementCount) {
+              throw TcbException(
+                  'Loadout.slot: the file gives one member of this '
+                  'record a different element count than another');
+            }
+            for (var j = 0; j < elementCount; j++) {
               record.slot[j].swapIdIndex = cursor.nextI32();
             }
           }
           break;
         case 4:
-          checkColumn(column, 'Loadout.Slot.Count', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Loadout.Slot.Count', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Loadout.Slot.Count');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            if (record.slot.length != elementCount) {
+              throw TcbException(
+                  'Loadout.slot: the file gives one member of this '
+                  'record a different element count than another');
+            }
+            for (var j = 0; j < elementCount; j++) {
               record.slot[j].count = cursor.nextI32();
             }
           }

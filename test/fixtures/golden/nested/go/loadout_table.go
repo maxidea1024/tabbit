@@ -121,12 +121,13 @@ func (t *LoadoutTable) Read(filename string) error {
 	// the table holds alone - the previous rows and an error, not an empty table.
 	records := make([]LoadoutRecord, count)
 
-	// A record array whose length is the sheet's column count is created with the row
-	// rather than by whichever member column arrives first. A Go struct has no field
-	// initializer, so otherwise the slice would stay nil until that member was read - and
-	// a file that no longer carries it would leave the members after it indexing nothing.
+	// Made with the row rather than by whichever member column arrives first: a Go struct
+	// has no field initializer, so otherwise the slice would stay nil until that member
+	// was read - and a file that no longer carries it would leave nothing behind at all.
+	// Empty rather than the sheet's column count, because the length is the file's since
+	// v107 and a number from here would be one the data need not agree with.
 	for i := int32(0); i < count; i++ {
-		records[i].Slot = make([]LoadoutSlotEntry, 2)
+		records[i].Slot = make([]LoadoutSlotEntry, 0)
 	}
 
 	for _, column := range columns {
@@ -134,7 +135,7 @@ func (t *LoadoutTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Loadout.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -145,7 +146,7 @@ func (t *LoadoutTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Loadout.Name", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Name", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Name")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -156,7 +157,7 @@ func (t *LoadoutTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Loadout.Pos.X", tabbit.KindScalar, 1, false, tabbit.ElementF32) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Pos.X", tabbit.KindScalar, false, tabbit.ElementF32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Pos.X")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -164,7 +165,7 @@ func (t *LoadoutTable) Read(filename string) error {
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Loadout.Pos.Y", tabbit.KindScalar, 1, false, tabbit.ElementF32) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Pos.Y", tabbit.KindScalar, false, tabbit.ElementF32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Pos.Y")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -172,27 +173,37 @@ func (t *LoadoutTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Loadout.Slot.Id", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Slot.Id", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Slot.Id")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					// The first member allocates; the rest check. Allocating again would
+					// discard what the members before it wrote, and taking the shorter of
+					// two counts would shift every value after it.
+					r.Slot = make([]LoadoutSlotEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Slot[j].Id = cursor.NextI32()
 					}
 				}
 			}
 		case 6:
-			if tabbit.CheckColumn(reader, column, "Loadout.Slot.Label", tabbit.KindFixedArray, 2, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Slot.Label", tabbit.KindArray, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Slot.Label")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					if len(r.Slot) != elementCount {
+						return fmt.Errorf(
+							"Loadout: the file gives one member of `Slot` a different element count than another")
+					}
+					for j := 0; j < elementCount; j++ {
 						r.Slot[j].Label = cursor.NextString()
 					}
 				}
 			}
 		case 7:
-			if tabbit.CheckColumn(reader, column, "Loadout.Note", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Note", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Note")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -203,12 +214,13 @@ func (t *LoadoutTable) Read(filename string) error {
 				}
 			}
 		case 8:
-			if tabbit.CheckColumn(reader, column, "Loadout.Tag_array", tabbit.KindFixedArray, 2, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Loadout.Tag_array", tabbit.KindArray, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Tag_array")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					r.TagArray = make([]string, 2)
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					r.TagArray = make([]string, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.TagArray[j] = cursor.NextString()
 					}
 				}

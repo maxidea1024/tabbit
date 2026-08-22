@@ -7,26 +7,61 @@ using Tabbit.Recipe;
 using System.Linq;
 using Tabbit.Sources;
 using Tabbit.Cooking.Layouts;
+using Tabbit.Helpers;
 using Tabbit.Importers.Xlsx;
 using Serilog;
+using Tabbit.Messages;
 
 namespace Tabbit.Importers;
 
 [TabbitSource("xlsx", "Sources.Xlsx", Order = 10)]
 public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
 {
-    private RawModel _model = null!;
-
-    private string _currentFilename = "";
-    private string _currentSheetName = "";
-
-    /// <summary>
-    /// The current workbook as the recipe names it: its path relative to the directory being
-    /// searched. What a workbook pattern is matched against.
-    /// </summary>
-    private string _currentWorkbook = "";
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
 
     private SheetImportSettings _settings = null!;
+
+    /// <summary>
+    /// One workbook being read, and everything the reading of it needs to remember.
+    /// </summary>
+    /// <remarks>
+    /// **A class rather than a run of fields on the importer, because the workbooks are read
+    /// at the same time.** Every one of these used to be instance state - which workbook,
+    /// which sheet, which defined names - and that is exactly the state that cannot be shared
+    /// once two files are open at once. Held here, a read is a thing with no reach outside
+    /// itself, and what makes the import parallel is that there is nothing left to share.
+    ///
+    /// The sheets it finds are kept locally too, rather than appended to the model as they
+    /// arrive. The model's sheet order decides the order tables are cooked and therefore
+    /// reported in, so it is put back in the order the recipe listed the workbooks -
+    /// see <see cref="Import"/>. spec/conversion-time.md section 5.
+    /// </remarks>
+    private sealed class WorkbookRead
+    {
+        /// <summary>The file as the filesystem names it, for opening it.</summary>
+        public required string Path { get; init; }
+
+        /// <summary>The same file with `/` separators, for every Location built from it.</summary>
+        public required string Filename { get; init; }
+
+        /// <summary>
+        /// The workbook as the recipe names it: its path relative to the directory being
+        /// searched. What a workbook pattern is matched against.
+        /// </summary>
+        public required string Workbook { get; init; }
+
+        /// <summary>
+        /// This workbook's defined names, or null when the layout does not use them.
+        /// </summary>
+        public List<WorkbookPackage.DefinedName>? Names { get; set; }
+
+        /// <summary>What this workbook yielded, in the order its sheets were read.</summary>
+        public List<RawSheet> Sheets { get; } = [];
+
+        /// <summary>Every sheet it held, whether or not the recipe asked for it.</summary>
+        public List<(string Workbook, string Sheet)> SheetsSeen { get; } = [];
+    }
 
     /// <summary>
     /// Every workbook the directory held, so an unmatched `IncludeWorkbooks` entry can be
@@ -53,59 +88,45 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
             return;
         }
 
-        _model = context.Model;
         _settings = SheetImportSettings.From(xlsx, context.Section);
         _workbooksSeen.Clear();
         _sheetsSeen.Clear();
 
-        var fileExtensionPatterns = xlsx.FileExtensionPatterns.Split(";");
-        if (fileExtensionPatterns is null || fileExtensionPatterns.Length == 0)
-        {
-            fileExtensionPatterns = [".xlsx"];
-        }
-        else
-        {
-            for (int i = 0; i < fileExtensionPatterns.Length; i++)
-                fileExtensionPatterns[i] = fileExtensionPatterns[i].Trim().ToLowerInvariant();
-        }
+        var extensions = SourceFiles.Extensions(xlsx.FileExtensionPatterns);
 
         if (!Directory.Exists(xlsx.Path))
         {
-            throw new TabbitException(
-                $"Recipe `{context.Section}` reads workbooks from `{xlsx.Path}`, which does not exist.");
+            throw new TabbitException(null,
+                Message.Of(ImportMessages.WorkbookPathMissing,
+                    ("Section", context.Section), ("Path", xlsx.Path)));
         }
 
-        // Ordered, because this is the order the tables enter the model in and so the order
-        // they leave in. The filesystem's own order is not the same on ext4 as on NTFS, which
-        // made the same directory of workbooks produce different output on Linux than on
-        // Windows - silently, since both are valid outputs of a run that read everything.
-        var files = Helpers.PathNames.InOrder(
-            Directory.GetFiles(xlsx.Path, "*.*", SearchOption.AllDirectories));
+        // Which files are candidates is decided in one place, because the build cache asks
+        // the same question on a later run to find out whether a workbook was added. Two
+        // answers to it would differ exactly where it matters.
+        var candidates = SourceFiles.Candidates(
+            xlsx.Path,
+            extensions,
+            lockFile => Log.Debug($"Skipping `{lockFile}`: an Excel lock file, not a workbook."))
+            .ToList();
 
-        foreach (var filename in files)
+        // The listing rather than the files: adding a workbook changes no existing file, so
+        // nothing else in the ledger would notice one appearing. Recorded before the
+        // recipe's own include and exclude lists are applied, so a workbook that arrives
+        // while excluded is still noticed - the recipe may stop excluding it tomorrow.
+        context.Inputs.Listed(
+            xlsx.Path, xlsx.FileExtensionPatterns, candidates.Select(candidate => candidate.Name));
+
+        // Which files this entry will actually open, decided before any of them is.
+        //
+        // Kept as a list rather than read as it is decided, because the reading below happens
+        // out of order and this is what puts the results back in. The ledger and the seen-list
+        // are filled here for the same reason: they are the recipe's own order, and what a run
+        // says it looked at should not depend on which file finished first.
+        var opening = new List<WorkbookRead>();
+
+        foreach (var (filename, workbook) in candidates)
         {
-            if (filename.Contains("/#") || filename.Contains("\\#"))
-                continue;
-
-            // Excel's lock file for a workbook somebody has open: `~$Book.xlsx`, same
-            // extension and a few hundred bytes of nothing usable. Reading one throws,
-            // so leaving a workbook open in Excel used to fail the whole run - and the
-            // message named a file the author never created.
-            if (Path.GetFileName(filename).StartsWith("~$"))
-            {
-                Log.Debug($"Skipping `{filename}`: an Excel lock file, not a workbook.");
-                continue;
-            }
-
-            string fileExtensions = Path.GetExtension(filename).ToLowerInvariant();
-            if (!fileExtensionPatterns.Contains(fileExtensions))
-                continue;
-
-            // Relative to the directory being searched, so a recipe names a workbook the way
-            // somebody looking at that directory would - `backup/Items.xlsx` rather than
-            // whatever absolute path this run happened to be given.
-            string workbook = Path.GetRelativePath(xlsx.Path, filename).Replace('\\', '/');
-
             _workbooksSeen.Add(workbook);
 
             // Asked before the file is opened. A workbook that is not input costs nothing to
@@ -116,35 +137,49 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                 continue;
             }
 
-            ImportXlsx(filename, workbook);
+            context.Inputs.Read(filename);
+
+            // Normalized once, here, so every Location built from this workbook shares it.
+            //
+            // `Location.Filename` replaces `\` with `/` on the way in, and .NET's own
+            // directory walk hands us paths that still have one - so that setter allocated a
+            // copy of the path per cell. One workbook of six million cells was holding six
+            // million copies of the same string: 1.6 GB, all of it the same hundred
+            // characters.
+            opening.Add(new WorkbookRead
+            {
+                Path = filename,
+                Filename = filename.Replace('\\', '/'),
+                Workbook = workbook,
+            });
+        }
+
+        // **Read at the same time.** A workbook is an independent file - inflated, parsed and
+        // turned into a cell grid without reference to any other - and that is most of what
+        // the import spends its time on. spec/conversion-time.md section 5.
+        //
+        // What each read produces goes into its own object, and those are folded into the
+        // model below in the order the recipe listed them. So the model is the same whatever
+        // order the files came back in, which is what keeps this a refactoring: the sheet
+        // order decides which table is cooked first and therefore reported first.
+        if (opening.Count > 1)
+        {
+            System.Threading.Tasks.Parallel.ForEach(opening, ImportWorkbook);
+        }
+        else
+        {
+            foreach (var read in opening)
+                ImportWorkbook(read);
+        }
+
+        foreach (var read in opening)
+        {
+            _sheetsSeen.AddRange(read.SheetsSeen);
+            context.Model.Sheets.AddRange(read.Sheets);
         }
 
         _settings.Filter.ReportUnmatchedIncludes(context.Section, _workbooksSeen, _sheetsSeen);
 
-        // One line at the end as well as a warning each, because a hundred warnings in a
-        // conversion's output is a thing nobody counts.
-        if (_formulaErrorCount > 0)
-        {
-            Log.Warning(
-                $"Recipe `{context.Section}` read {_formulaErrorCount} cell(s) holding a formula "
-                + "error as empty, because it sets `OnFormulaError: \"empty\"`. Each one is logged "
-                + "above with its cell.");
-        }
-    }
-
-    private void ImportXlsx(string filename, string workbookName)
-    {
-        _currentWorkbook = workbookName;
-
-        // Normalized once, here, so every Location built below shares this one instance.
-        //
-        // `Location.Filename` replaces `\` with `/` on the way in, and .NET's own directory
-        // walk hands us paths that still have one - so that setter allocated a copy of the
-        // path per cell. One workbook of six million cells was holding six million copies of
-        // the same string: 1.6 GB, all of it the same hundred characters.
-        string normalized = filename.Replace('\\', '/');
-
-        ImportWorkbook(filename, normalized);
     }
 
     /// <summary>
@@ -162,22 +197,18 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
     private static bool IsCandidateName(string name)
         => !ReservedNameMarkers.Any(marker => name.Contains(marker, StringComparison.Ordinal));
 
-    /// <summary>
-    /// The current workbook's defined names, or null when the layout does not use them.
-    /// </summary>
-    private List<WorkbookPackage.DefinedName>? _currentWorkbookNames;
-
-    /// <param name="path">The file as the filesystem names it, for opening it.</param>
-    /// <param name="filename">The same file with `/` separators, for every Location built here.</param>
-    private void ImportWorkbook(string path, string filename)
+    private void ImportWorkbook(WorkbookRead read)
     {
+        string path = read.Path;
+        string filename = read.Filename;
+
         // A layout that finds its tables by defined name is the only one that pays for
         // resolving them, because parsing a reference means resolving it and a workbook can
         // hold hundreds.
         bool usesNames = LayoutRegistry.UsesNamedRanges(_settings.Layout.Id);
 
         var package = WorkbookPackage.Read(path!, usesNames ? IsCandidateName : null);
-        _currentWorkbookNames = usesNames ? package.DefinedNames : null;
+        read.Names = usesNames ? package.DefinedNames : null;
 
         foreach (var skipped in package.SkippedNames)
         {
@@ -185,11 +216,12 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
             // saying so rather than dropping in silence: in real workbooks these are
             // leftovers, and one of them being a table nobody exports any more is a thing
             // to know.
-            Log.Warning(
-                $"Defined name `{skipped.Name}` of `{filename}` refers to `{skipped.Reference}`, "
-                + (skipped.Problem == WorkbookPackage.NameProblem.NotARange
-                    ? "which is not a range. Skipped."
-                    : "which this importer cannot read as a single rectangle. Skipped."));
+            Log.Warning(Message.Of(
+                skipped.Problem == WorkbookPackage.NameProblem.NotARange
+                    ? ImportMessages.LogDefinedNameNotARange
+                    : ImportMessages.LogDefinedNameNotReadable,
+                ("Name", skipped.Name), ("File", filename),
+                ("Range", skipped.Reference)).In(MessageCatalog.Current));
         }
 
         using var reader = SheetGridReader.Open(path);
@@ -206,9 +238,9 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
             if (sheetName.StartsWith("#") || sheetName.StartsWith("//"))
                 continue;
 
-            _sheetsSeen.Add((_currentWorkbook, sheetName));
+            read.SheetsSeen.Add((read.Workbook, sheetName));
 
-            if (!_settings.Filter.Includes(_currentWorkbook, sheetName))
+            if (!_settings.Filter.Includes(read.Workbook, sheetName))
             {
                 Log.Information($"Skipping sheet `{sheetName}` of `{filename}`: the recipe does not ask for it.");
                 continue;
@@ -216,24 +248,21 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
 
             // A layout that finds its tables by defined name reads nothing from a sheet no
             // name covers, and says so and moves on.
-            if (_currentWorkbookNames is not null && !CoveredByAName(sheetName))
+            if (read.Names is not null && !CoveredByAName(read, sheetName))
             {
                 Log.Information(
                     $"Skipping sheet `{sheetName}` of `{filename}`: no defined name covers it.");
                 continue;
             }
 
-            ImportSheet(reader, package, filename, sheetName);
+            ImportSheet(read, reader, sheetName);
         }
     }
 
     private void ImportSheet(
-        SheetGridReader reader, WorkbookPackage package, string filename, string sheetName)
+        WorkbookRead read, SheetGridReader reader, string sheetName)
     {
-        // Remembered so cell-level diagnostics can name where they came from; a cell knows
-        // its row and column but not its workbook or sheet.
-        _currentFilename = filename;
-        _currentSheetName = sheetName;
+        string filename = read.Filename;
 
         RawSheet rawSheet = new RawSheet
         {
@@ -247,9 +276,15 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
             }
         };
 
-        // Only asked when the workbook has any, so a workbook without notes pays nothing
-        // per cell for the lookup.
-        bool hasNotes = package.HasNotes;
+        // Where this sheet's tables are, when the layout says a table is a defined name. A
+        // cell outside all of them is never read as data, so it is not this run's to report:
+        // it is a working cell of a sheet that also carries a table. In the sample set that
+        // is most of them - 14,199 of 24,457 formula errors, and 13,555 in one workbook.
+        var rectangles = read.Names is null
+            ? null
+            : read.Names
+                .Where(name => string.Equals(name.SheetName, sheetName, StringComparison.Ordinal))
+                .ToList();
 
         bool firstRow = true;
 
@@ -278,33 +313,119 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                     Row = rowIndex
                 };
 
-                string value = reader.IsFormulaError(colIndex, out string excelText)
-                    ? OnFormulaError(location, $"Cell contains the formula error `{excelText}`.")
-                    : reader.Text(colIndex);
+                string value;
+                string formulaError = "";
+
+                if (reader.IsFormulaError(colIndex, out string excelText))
+                {
+                    // Recorded and not reported. A cell outside every rectangle is nothing to
+                    // anybody; a cell inside one is only something if the layout turns that
+                    // column into a field, and that has not been decided yet.
+                    // spec/formula-errors.md.
+                    value = "";
+                    formulaError = InsideATable(rectangles, rowIndex, colIndex) ? excelText : "";
+                }
+                else
+                {
+                    value = reader.Text(colIndex);
+                }
 
                 rawRow.Add(new RawCell
                 {
                     Location = location,
                     Value = value,
-                    Note = hasNotes ? package.Note(sheetName, rowIndex, colIndex) : ""
+                    FormulaError = formulaError,
                 });
             }
 
             rawSheet.Rows.Add(rawRow);
         }
 
+        FillRecoveredCells(reader, rawSheet, filename, sheetName);
+
         if (!rawSheet.Optimize())
             return;
 
 
-        AttachNamedRanges(rawSheet, sheetName);
+        AttachNamedRanges(read, rawSheet, sheetName);
 
-        _model.Sheets.Add(rawSheet);
+        read.Sheets.Add(rawSheet);
+    }
+
+    /// <summary>
+    /// Puts back the cells the workbook reader dropped, once the sheet has been read.
+    /// </summary>
+    /// <remarks>
+    /// The reader hands some rows of a binary workbook shorter than the file says they are,
+    /// and asking for the missing columns returns an empty value rather than an error - so
+    /// without this the cells are lost in a way nothing downstream can see. Which rows were
+    /// short is only known once the last of them has arrived, which is why this runs here
+    /// rather than per cell.
+    ///
+    /// Said aloud when it happens. A silent correction would take the fact that the reader
+    /// has this defect out of the run, and that fact is what decides whether a workbook can
+    /// be trusted to convert. spec/xlsb-short-row-repair.md.
+    /// </remarks>
+    private void FillRecoveredCells(
+        SheetGridReader reader, RawSheet rawSheet, string filename, string sheetName)
+    {
+        var recovered = reader.RecoveredCells();
+        if (recovered.Count == 0)
+            return;
+
+        var rows = new HashSet<int>();
+
+        foreach (var row in rawSheet.Rows)
+        {
+            foreach (var cell in row)
+            {
+                if (cell.Value.Length > 0)
+                    continue;
+
+                if (!recovered.TryGetValue((cell.Location.Row, cell.Location.Column), out string? text))
+                    continue;
+
+                cell.Value = text;
+                rows.Add(cell.Location.Row);
+            }
+        }
+
+        if (rows.Count == 0)
+            return;
+
+        Log.Warning(Message.Of(ImportMessages.LogRowsReadShort,
+            ("File", filename), ("Sheet", sheetName), ("Rows", rows.Count),
+            ("Recovered", recovered.Count)).In(MessageCatalog.Current));
+    }
+
+    /// <summary>
+    /// Whether a cell is inside one of the rectangles this sheet's tables occupy.
+    /// </summary>
+    /// <remarks>
+    /// True for every cell when the layout does not read defined names, because then the
+    /// whole sheet is what a table is found in and there is no outside to be in.
+    /// </remarks>
+    private static bool InsideATable(
+        List<WorkbookPackage.DefinedName>? rectangles, int row, int column)
+    {
+        if (rectangles is null)
+            return true;
+
+        foreach (var rectangle in rectangles)
+        {
+            if (row >= rectangle.FirstRow && row <= rectangle.LastRow
+                && column >= rectangle.FirstColumn && column <= rectangle.LastColumn)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>Whether any of the workbook's defined names points into this sheet.</summary>
-    private bool CoveredByAName(string sheetName)
-        => _currentWorkbookNames!.Any(
+    private static bool CoveredByAName(WorkbookRead read, string sheetName)
+        => read.Names!.Any(
             name => string.Equals(name.SheetName, sheetName, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
@@ -320,14 +441,14 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
     /// picking out the names that point into this sheet, which a workbook says by naming the
     /// sheet. Everything after that is shared.
     /// </remarks>
-    private void AttachNamedRanges(RawSheet rawSheet, string sheetName)
+    private void AttachNamedRanges(WorkbookRead read, RawSheet rawSheet, string sheetName)
     {
-        if (_currentWorkbookNames is null || _currentWorkbookNames.Count == 0)
+        if (read.Names is null || read.Names.Count == 0)
             return;
 
         var forSheet = new List<SheetNamedRange>();
 
-        foreach (var named in _currentWorkbookNames)
+        foreach (var named in read.Names)
         {
             if (!string.Equals(named.SheetName, sheetName, StringComparison.Ordinal))
                 continue;
@@ -342,7 +463,7 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
         }
 
         SheetNamedRanges.Attach(
-            rawSheet, forSheet, _settings.Filter, _currentWorkbook, _currentFilename);
+            rawSheet, forSheet, _settings.Filter, read.Workbook, read.Filename);
     }
 
     /// <summary>
@@ -357,22 +478,4 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
     /// Warned every time rather than counted quietly, so the run says how many there were
     /// and where, and that can go back to whoever owns the sheet.
     /// </remarks>
-    private string OnFormulaError(Location location, string what)
-    {
-        if (_settings.Layout.OnFormulaError == FormulaErrorPolicy.Error)
-        {
-            throw new TabbitException(location,
-                $"{what} Fix the formula, or replace it with a literal value. "
-                + "The source entry's `OnFormulaError: \"empty\"` reads cells like this as "
-                + "empty instead, for a workbook this run does not own.");
-        }
-
-        _formulaErrorCount++;
-        Log.Warning($"{what} Read as empty.\n    at {location}");
-
-        return "";
-    }
-
-    /// <summary>How many formula errors this run swallowed, for the summary at the end.</summary>
-    private int _formulaErrorCount;
 }

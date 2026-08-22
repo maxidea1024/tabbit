@@ -23,7 +23,7 @@ namespace Tabbit.Tests;
 public class BitsetTests
 {
     private static CookingContext Context()
-        => new CookingContext(new Tabbit.Models.Model(), new Tabbit.Recipe.RecipeModel());
+        => new CookingContext(new Tabbit.Models.Model(), new Tabbit.Recipe.RecipeModel(), new Diagnostics());
 
     private static Tabbit.Models.Location Where()
         => new Tabbit.Models.Location { Filename = "memory.xlsx", Sheet = "T", Column = 1, Row = 1 };

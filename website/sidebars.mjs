@@ -43,6 +43,8 @@ const sidebars = {
             'guide/languages/python',
             'guide/languages/java',
             'guide/languages/kotlin',
+            'guide/languages/swift',
+            'guide/languages/lua',
             'guide/languages/ruby',
             'guide/languages/php',
             'guide/languages/dart',

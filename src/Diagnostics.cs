@@ -81,6 +81,76 @@ public sealed class Diagnostics
     /// <summary>The same, for a report about the run rather than about a cell.</summary>
     public void Info(string message) => Add(Severity.Info, null, message);
 
+    /// <summary>Records a named problem and carries on.</summary>
+    public void Error(Location? location, Messages.Message message)
+        => Add(Severity.Error, location, message);
+
+    /// <summary>
+    /// Records a named report that belongs to no place in particular.
+    /// </summary>
+    /// <remarks>
+    /// For the reports about the known-problem list itself - an entry with no reason, an entry
+    /// matching nothing. They are about the recipe rather than about a cell, so they carry no
+    /// location, and the list is already locked by the caller.
+    /// </remarks>
+    private void Record(Severity severity, Messages.Message message)
+        => _entries.Add((severity, new TabbitException.Detail
+        {
+            Message = message.In(Messages.MessageCatalog.Current),
+            MessageId = message.Id,
+        }));
+
+    /// <summary>
+    /// Records a refusal that was thrown and caught, keeping what it already said.
+    /// </summary>
+    /// <remarks>
+    /// For the handlers that turn one table's refusal into a report and read the next table.
+    /// Written as one call rather than three reads of the exception so that the id travels:
+    /// pulling `.Location` and `.Message` out by hand is how a report loses its name halfway
+    /// between being thrown and being printed.
+    /// </remarks>
+    public void Error(TabbitException failure)
+    {
+        lock (_entries)
+        {
+            _entries.Add((Severity.Error, new TabbitException.Detail
+            {
+                Location = failure.Location,
+                Message = failure.Message,
+                MessageId = failure.MessageId,
+            }));
+        }
+    }
+
+    /// <summary>Records something named worth seeing that does not stop the run on its own.</summary>
+    public void Warn(Location? location, Messages.Message message)
+        => Add(Severity.Warning, location, message);
+
+    /// <summary>Records what the run did, named. Never stops it.</summary>
+    public void Info(Location? location, Messages.Message message)
+        => Add(Severity.Info, location, message);
+
+    /// <summary>
+    /// Records one named report at the given severity.
+    /// </summary>
+    /// <remarks>
+    /// The text is settled here, so that everything downstream - sorting, the known-problem
+    /// matching, printing - reads a <see cref="TabbitException.Detail"/> that looks the same
+    /// whether the call site had been moved to an id or not.
+    /// </remarks>
+    public void Add(Severity severity, Location? location, Messages.Message message)
+    {
+        lock (_entries)
+        {
+            _entries.Add((severity, new TabbitException.Detail
+            {
+                Location = location,
+                Message = message.In(Messages.MessageCatalog.Current),
+                MessageId = message.Id,
+            }));
+        }
+    }
+
     /// <summary>Records one report at the given severity.</summary>
     public void Add(Severity severity, Location? location, string message)
     {
@@ -103,6 +173,29 @@ public sealed class Diagnostics
     public IReadOnlyList<(Severity Severity, TabbitException.Detail Detail)> Entries
     {
         get { lock (_entries) return _entries.ToList(); }
+    }
+
+    /// <summary>
+    /// Takes everything another collector recorded, keeping the order it recorded it in.
+    /// </summary>
+    /// <remarks>
+    /// **For a stage that checks its units in parallel and wants the report of a sequential
+    /// one.** Each unit reports into a collector of its own, and the caller then absorbs
+    /// those in the order the units are listed - so the reports come out in the same order
+    /// they always did, whatever order the checking finished in.
+    ///
+    /// The alternative for a parallel stage is <see cref="SortByLocation"/>, which is the
+    /// right answer where there is no unit order to appeal to - the rule files, whose order
+    /// on disk is not the order anything else in the run uses. Where there is one, the
+    /// merge preserves it and the sort would replace it.
+    /// spec/conversion-time.md section 5.
+    /// </remarks>
+    public void Absorb(Diagnostics other)
+    {
+        var taken = other.Entries;
+
+        lock (_entries)
+            _entries.AddRange(taken);
     }
 
     /// <summary>
@@ -142,7 +235,7 @@ public sealed class Diagnostics
     /// Headline shown above the list. Should say what was being checked, since the
     /// individual entries carry their own locations.
     /// </param>
-    public void ThrowIfAny(string summary)
+    public void ThrowIfAny(Messages.Message summary)
     {
         var stopping = _entries.Where(entry => Stops(entry.Severity))
                                .Select(entry => entry.Detail)
@@ -151,11 +244,169 @@ public sealed class Diagnostics
         if (stopping.Count == 0)
             return;
 
-        string headline = stopping.Count == 1
-            ? summary
-            : $"{summary} ({stopping.Count} problems)";
+        var catalog = Messages.MessageCatalog.Current;
+        string said = summary.In(catalog);
 
-        throw new TabbitException(headline) { Details = stopping };
+        // The count is added by a message of its own rather than glued on, because the caller
+        // cannot know it - and because a sentence with a parenthetical sometimes there and
+        // sometimes not is a sentence nobody can translate.
+        string headline = stopping.Count == 1
+            ? said
+            : Messages.Message.Fill(
+                catalog.TextOf(ReportMessages.ProblemsCounted),
+                [("Summary", said), ("Count", stopping.Count)]);
+
+        throw new TabbitException(null, headline) { Details = stopping };
+    }
+
+    /// <summary>
+    /// Takes the reports a recipe has written down out of the way of the run.
+    /// </summary>
+    /// <remarks>
+    /// Each matched report becomes <see cref="Severity.Info"/> with the entry's reason beside
+    /// it, so it is still printed on every run - the list says "not now", not "not a problem".
+    ///
+    /// **What is added rather than removed** is the reporting about the list itself: an entry
+    /// matching nothing, or matching a different number of reports than it claims, is an error.
+    /// Without those two an entry covering a sheet would hide the next defect in that sheet,
+    /// and a list nobody prunes eventually covers a workbook.
+    ///
+    /// Applied in one pass after every check has run rather than as reports arrive, because
+    /// counting is the point and a count is only right once the counting has finished.
+    /// spec/known-problems.md.
+    /// </remarks>
+    public void ApplyKnownProblems(IReadOnlyList<Recipe.KnownProblemRecipe> known)
+    {
+        if (known.Count == 0)
+            return;
+
+        lock (_entries)
+        {
+            var matched = new int[known.Count];
+
+            for (int at = 0; at < _entries.Count; at++)
+            {
+                var (severity, detail) = _entries[at];
+
+                if (severity == Severity.Info)
+                    continue;
+
+                int entry = FirstMatch(known, detail.Location);
+
+                if (entry < 0)
+                    continue;
+
+                matched[entry]++;
+
+                var noted = Messages.Message.Of(Cooking.NamingMessages.KnownProblemNoted,
+                    ("Report", detail.Message), ("Reason", known[entry].Reason));
+
+                _entries[at] = (Severity.Info, new TabbitException.Detail
+                {
+                    Location = detail.Location,
+                    Message = noted.In(Messages.MessageCatalog.Current),
+                    MessageId = noted.Id,
+                });
+            }
+
+            for (int entry = 0; entry < known.Count; entry++)
+            {
+                var item = known[entry];
+
+                // A wholly blank entry is not an entry. The skeleton a new recipe is written
+                // from fills every list with one so that the shape is visible, and that
+                // skeleton has to run - an entry saying nothing at all is that placeholder.
+                // Half of one is a mistake, and stays an error below.
+                if (item.At.Length == 0 && item.Reason.Length == 0)
+                    continue;
+
+                if (item.Reason.Length == 0 || item.At.Length == 0)
+                {
+                    Record(Severity.Error, Messages.Message.Of(
+                        Cooking.NamingMessages.KnownProblemEntryIncomplete, ("Entry", entry + 1)));
+
+                    continue;
+                }
+
+                if (matched[entry] == 0)
+                {
+                    Record(Severity.Error, Messages.Message.Of(
+                        Cooking.NamingMessages.KnownProblemMatchedNothing,
+                        ("At", item.At), ("Reason", item.Reason)));
+
+                    continue;
+                }
+
+                if (item.Count > 0 && matched[entry] != item.Count)
+                {
+                    Record(Severity.Error, Messages.Message.Of(
+                        matched[entry] > item.Count
+                            ? Cooking.NamingMessages.KnownProblemCountGrew
+                            : Cooking.NamingMessages.KnownProblemCountShrank,
+                        ("At", item.At), ("Expected", item.Count),
+                        ("Found", matched[entry]), ("Reason", item.Reason)));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Which written-down place a report's location sits in, or -1 for none.
+    /// </summary>
+    /// <remarks>
+    /// The first match wins, so a narrow entry written above a wide one takes its own reports.
+    /// A report with no location matches nothing: it is about the run rather than about a cell,
+    /// and there is no place for a list of places to name.
+    /// </remarks>
+    private static int FirstMatch(
+        IReadOnlyList<Recipe.KnownProblemRecipe> known, Location? location)
+    {
+        if (location is null)
+            return -1;
+
+        for (int at = 0; at < known.Count; at++)
+        {
+            if (known[at].At.Length > 0 && known[at].Reason.Length > 0
+                && Covers(known[at].At, location))
+            {
+                return at;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>Whether a written-down place covers this location.</summary>
+    /// <remarks>
+    /// Three forms, widest first: the file, a sheet of it, one cell of that sheet. The file is
+    /// matched by the end of the path so that the same list works wherever the folder is.
+    /// </remarks>
+    private static bool Covers(string place, Location location)
+    {
+        var parts = place.Split(':');
+
+        for (int at = 0; at < parts.Length; at++)
+            parts[at] = parts[at].Trim();
+
+        if (parts.Length == 0 || parts[0].Length == 0)
+            return false;
+
+        string filename = (location.Filename ?? "").Replace('\\', '/');
+        string wanted = parts[0].Replace('\\', '/');
+
+        if (!filename.EndsWith(wanted, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (parts.Length == 1)
+            return true;
+
+        if (!string.Equals(location.Sheet ?? "", parts[1], StringComparison.Ordinal))
+            return false;
+
+        if (parts.Length == 2)
+            return true;
+
+        return string.Equals(location.CellRange, parts[2], StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Whether a report at this severity ends the run.</summary>

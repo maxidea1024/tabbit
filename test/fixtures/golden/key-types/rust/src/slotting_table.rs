@@ -134,7 +134,7 @@ impl SlottingTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Slotting.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Slotting.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Slotting.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -146,7 +146,7 @@ impl SlottingTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Slotting.Capacity", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Slotting.Capacity", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Slotting.Capacity")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -158,7 +158,7 @@ impl SlottingTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Slotting.Serial", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I64, tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Slotting.Serial", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I64, tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Slotting.Serial")?;
                     for record in records.iter_mut() {
                         record.serial = cursor.next_i64()?;

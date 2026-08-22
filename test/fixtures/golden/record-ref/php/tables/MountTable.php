@@ -37,10 +37,11 @@ final class MountRigEntry
     public MountRigEntryCore $core;
 
     /**
-     * The levels below, built.
+     * What cannot be built at a declaration: the levels below, and the lists whose positions
+     * have to be there before anything fills one.
      *
-     * They cannot be built at their declarations: a PHP property initializer has to be a
-     * constant expression, and a typed property left unset is an error to read.
+     * A PHP property initializer has to be a constant expression, and a typed property left
+     * unset is an error to read.
      */
     public function __construct()
     {
@@ -155,7 +156,7 @@ final class MountTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Mount.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Mount.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Mount.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -166,20 +167,34 @@ final class MountTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Mount.Rig.Core.ItemId', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32]);
+                    TcbReader::checkColumn($column, 'Mount.Rig.Core.ItemId', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Mount.Rig.Core.ItemId');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        // The first member builds the list; the rest check. Building it
+                        // again would discard what the members before it wrote, and taking
+                        // the shorter of two counts would shift every value after it.
+                        $record->rig = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
+                            $record->rig[] = new MountRigEntry();
+                        }
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->rig[$j]->core->itemIdIndex = $cursor->nextI32();
                         }
                     }
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Mount.Rig.Core.Count', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Mount.Rig.Core.Count', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Mount.Rig.Core.Count');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        if (\count($record->rig) !== $elementCount) {
+                            throw new \Tabbit\TcbException(
+                                'Mount.rig: the file gives one member of '
+                                . 'this record a different element count than another.');
+                        }
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->rig[$j]->core->count = $cursor->nextI32();
                         }
                     }

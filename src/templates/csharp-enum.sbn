@@ -35,20 +35,4 @@
 {{~ end ~}}
 {{~ end ~}}
     }
-
-    /// <summary>
-    /// Helper class for avoiding boxing as dictionary key.
-    /// </summary>
-    public struct {{ enumm.name }}Comparer : IEqualityComparer<{{ enumm.name }}>
-    {
-        public bool Equals({{ enumm.name }} x, {{ enumm.name }} y)
-        {
-            return x == y;
-        }
-
-        public int GetHashCode({{ enumm.name }} obj)
-        {
-            return (int)obj;
-        }
-    }
 {{ include 'csharp-file-foot.sbn' ~}}

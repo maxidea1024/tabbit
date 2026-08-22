@@ -1,0 +1,25 @@
+{
+  // The same workbook with `OnBlankCell: "empty"`: a cell nobody filled in becomes the
+  // type's empty value and is warned about once for the column. The concession exists for
+  // sheets another team maintains - `blank-cell-strict` is what this project's own sheets
+  // get. spec/blank-and-null-cells.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/blank-cell",
+        "OnBlankCell": "empty"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/blank-cell-empty/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}

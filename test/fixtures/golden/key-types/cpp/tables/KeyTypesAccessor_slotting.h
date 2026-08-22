@@ -129,7 +129,7 @@ class SlottingTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Slotting.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementVarint});
+          tabbit::check_column(column, "Slotting.Index", tabbit::kKindScalar, false, {tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Slotting.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -142,7 +142,7 @@ class SlottingTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Slotting.Capacity", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Slotting.Capacity", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Slotting.Capacity");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -155,7 +155,7 @@ class SlottingTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Slotting.Serial", tabbit::kKindScalar, 1, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Slotting.Serial", tabbit::kKindScalar, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Slotting.Serial");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];

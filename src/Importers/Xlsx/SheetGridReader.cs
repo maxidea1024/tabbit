@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Sylvan.Data.Excel;
+using Tabbit.Messages;
 
 namespace Tabbit.Importers.Xlsx;
 
@@ -28,11 +29,21 @@ internal sealed class SheetGridReader : IDisposable
     /// <summary>The reader opens positioned on the first sheet, so the first move is not one.</summary>
     private bool _beforeFirstSheet = true;
 
-    private SheetGridReader(Stream file, ExcelDataReader reader)
+    /// <summary>
+    /// Gets back the cells this reader drops on a binary workbook, or null for the formats
+    /// where it drops none. spec/xlsb-short-row-repair.md.
+    /// </summary>
+    private readonly XlsbRowRepair? _repair;
+
+    private SheetGridReader(Stream file, ExcelDataReader reader, XlsbRowRepair? repair)
     {
         _file = file;
         _reader = reader;
+        _repair = repair;
     }
+
+    /// <summary>How many rows of this workbook had to be read back from the file.</summary>
+    public int RepairedRows => _repair?.RepairedRows ?? 0;
 
     /// <summary>
     /// Opens a workbook for reading.
@@ -49,9 +60,8 @@ internal sealed class SheetGridReader : IDisposable
         var type = WorkbookTypeOf(filename);
         if (type == ExcelWorkbookType.Unknown)
         {
-            throw new TabbitException(
-                $"`{filename}` is not a workbook this tool can read. "
-                + "It reads `.xlsx`, `.xlsm`, `.xlsb` and `.xls`.");
+            throw new TabbitException(null,
+                Message.Of(ImportMessages.WorkbookFormatUnsupported, ("Filename", filename)));
         }
 
         var options = new ExcelDataReaderOptions
@@ -83,7 +93,8 @@ internal sealed class SheetGridReader : IDisposable
         var file = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         try
         {
-            return new SheetGridReader(file, ExcelDataReader.Create(file, type, options));
+            return new SheetGridReader(
+                file, ExcelDataReader.Create(file, type, options), XlsbRowRepair.TryOpen(filename));
         }
         catch
         {
@@ -117,13 +128,22 @@ internal sealed class SheetGridReader : IDisposable
     /// <summary>Moves to the next sheet, or returns false when there are none left.</summary>
     public bool MoveToNextSheet()
     {
+        bool moved;
+
         if (_beforeFirstSheet)
         {
             _beforeFirstSheet = false;
-            return _reader.WorksheetCount > 0;
+            moved = _reader.WorksheetCount > 0;
+        }
+        else
+        {
+            moved = _reader.NextResult();
         }
 
-        return _reader.NextResult();
+        if (moved)
+            _repair?.BeginSheet(SheetName);
+
+        return moved;
     }
 
     /// <summary>Moves to the next row of the current sheet.</summary>
@@ -140,8 +160,66 @@ internal sealed class SheetGridReader : IDisposable
     /// </remarks>
     public int RowIndex => _reader.RowNumber - 1;
 
-    /// <summary>How many cells the current row has.</summary>
-    public int ColumnCount => _reader.RowFieldCount;
+    /// <summary>
+    /// How many cells the current row has.
+    /// </summary>
+    /// <remarks>
+    /// The reader's own count, except on a binary workbook where the file says the row
+    /// reaches further - there this is how far it really reaches, and the cells past the
+    /// reader's count are read back from the file. spec/xlsb-short-row-repair.md.
+    /// </remarks>
+    public int ColumnCount
+        => _repair is null
+            ? _reader.RowFieldCount
+            : _repair.ColumnCount(RowIndex, _reader.RowFieldCount);
+
+    /// <summary>
+    /// The cells this reader dropped over the sheet just read, as text ready to be put in.
+    /// </summary>
+    /// <remarks>
+    /// Asked for once the sheet has been walked to its end, because which rows were given
+    /// short is only known when the last of them has arrived. Empty for every sheet where
+    /// the reader reached as far as the file does, which is almost all of them.
+    /// </remarks>
+    public IReadOnlyDictionary<(int Row, int Column), string> RecoveredCells()
+    {
+        var text = new Dictionary<(int, int), string>();
+
+        if (_repair is null || !_repair.SheetIsDamaged)
+            return text;
+
+        foreach (var (at, cell) in _repair.Recover())
+            text[at] = Render(cell);
+
+        return text;
+    }
+
+    /// <summary>
+    /// A recovered cell as the same text the reader would have produced for it.
+    /// </summary>
+    /// <remarks>
+    /// The same three renderings <see cref="Text"/> makes, so a repaired cell and an intact
+    /// one of the same value reach the cooker identically - round-trip and invariant for a
+    /// number, `True`/`False` for a boolean, trimmed for a string.
+    ///
+    /// A date is the one thing not carried across. Excel has no date type, so telling one
+    /// from a plain number means reading the cell's number format, and the formats are a
+    /// part this does not open - a repaired cell that was formatted as a date arrives as the
+    /// number it is stored as. No column of the sample project is both repaired and dated;
+    /// the day one is, this is where to look.
+    /// </remarks>
+    private static string Render(XlsbCell cell)
+        => cell.Kind switch
+        {
+            XlsbCellKind.Text => cell.String.Trim(),
+            XlsbCellKind.Boolean => (cell.Value != 0).ToString(),
+            XlsbCellKind.Number => cell.Value.ToString("R", Inv).Trim(),
+
+            // An error is the caller's decision, made from the text Excel shows - and a
+            // recovered one has no arm through `IsFormulaError`, so it arrives as that text.
+            XlsbCellKind.Error => ExcelTextOf((ExcelErrorCode)(int)cell.Value),
+            _ => "",
+        };
 
     /// <summary>
     /// Whether a cell holds a formula error, and what Excel shows in it.
@@ -241,9 +319,24 @@ internal sealed class SheetGridReader : IDisposable
            && text[4] == '-' && text[7] == '-'
            && char.IsAsciiDigit(text[0]) && char.IsAsciiDigit(text[5]) && char.IsAsciiDigit(text[8]);
 
+    /// <summary>
+    /// Closes everything this reader opened, the repair's own handle included.
+    /// </summary>
+    /// <remarks>
+    /// **The repair holds a second view of the same file** - its own FileStream and the
+    /// ZipArchive over it - because it reads parts the cell reader does not expose. It was
+    /// not being closed here, so every binary workbook left a stream, an archive and its
+    /// inflaters to the finalizer: the run's finalizer thread was spending 17.5 s releasing
+    /// zlib handles and file handles that nothing had asked it to.
+    ///
+    /// A leak with no message. Nothing fails and the numbers are right; what happens is that
+    /// unmanaged handles stay open until a collection notices, and objects with finalizers
+    /// survive a generation they had no reason to. spec/conversion-time.md section 4.
+    /// </remarks>
     public void Dispose()
     {
         _reader.Dispose();
         _file.Dispose();
+        _repair?.Dispose();
     }
 }

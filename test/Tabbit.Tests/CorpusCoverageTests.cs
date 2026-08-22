@@ -12,7 +12,7 @@ namespace Tabbit.Tests;
 /// <summary>
 /// That every value type a field can hold is in the conformance corpus.
 ///
-/// Twelve generators each carry their own switch over `ValueType` deciding which reader call
+/// The generators each carry their own switch over `ValueType` deciding which reader call
 /// a field turns into. Adding a type means teaching all twelve, and forgetting one still
 /// compiles: the switch has a `default:` that throws, so it is a runtime failure in whoever's
 /// project reaches that field first.
@@ -26,7 +26,7 @@ namespace Tabbit.Tests;
 /// ever run against, and the twelve switches go back to being twelve places to forget.
 ///
 /// So the type list is read from the enum rather than written down here. Add a `ValueType` and
-/// this fails the same day, naming it - before any of the twelve generators have been touched.
+/// this fails the same day, naming it - before any of the generators have been touched.
 /// </summary>
 public class CorpusCoverageTests
 {
@@ -37,9 +37,10 @@ public class CorpusCoverageTests
     /// </summary>
     /// <remarks>
     /// `None` is the absence of a type. `Unresolved` is what a reference holds between parsing
-    /// and resolution, and never survives into a model. `ForeignRecord` is in the corpus, but
-    /// its array form is not: an array of whole-row references is a shape the sheets do not
-    /// have a syntax for.
+    /// and resolution, and never survives into a model. `ForeignRecordArray` is the reserved
+    /// spelling of `foreign[]`, which the cooker refuses - an array of references is written as
+    /// a folded serial group instead, and that keeps `ForeignRecord` as its element type. The
+    /// `serial-ref` fixture holds one.
     ///
     /// Named individually rather than by a rule, because the next type added should have to
     /// be thought about rather than swept in by a predicate somebody wrote for these.
@@ -128,7 +129,7 @@ public class CorpusCoverageTests
             string.Join(Environment.NewLine, missing.Select(type => $"  {type}")) +
             Environment.NewLine + Environment.NewLine +
             "Add a column to WriteConformance in test/fixtures/tools/FixtureGen/Program.cs, " +
-            "regenerate the workbook, and give each of the twelve harnesses a line for it. " +
+            "regenerate the workbook, and give each of the harnesses a line for it. " +
             "That is the work adding a value type costs, and this is where the bill arrives.");
     }
 

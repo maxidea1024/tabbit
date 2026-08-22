@@ -50,7 +50,7 @@ namespace Tabbit
      * 104 is the current one: four encodings joined the nine, and the flags byte gained a
      * meaning.
      */
-    static constexpr uint32 BinaryFileFormatVersion = 105;
+    static constexpr uint32 BinaryFileFormatVersion = 107;
 
     // The wire element types and kinds, as a column descriptor spells them.
     static constexpr uint8 ElementVarint = 0;
@@ -71,8 +71,7 @@ namespace Tabbit
     constexpr uint32 ElementMask(uint8 Element) { return 1u << Element; }
 
     static constexpr uint8 KindScalar = 0;
-    static constexpr uint8 KindFixedArray = 1;
-    static constexpr uint8 KindVarArray = 2;
+    static constexpr uint8 KindArray = 1;
 
     // How a block's values are laid out. Raw is the layout 101 had; the others compress
     // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -155,11 +154,17 @@ namespace Tabbit
          */
         bool bNullable = false;
 
+        /**
+         * Whether the block states, per element, which of an array's places hold a value.
+         *
+         * Independent of bNullable: a column may say either, or both.
+         * spec/nullable-array-elements.md.
+         */
+        bool bElementNullable = false;
+
         /** How the block's values are laid out: one of the Encoding* constants. */
         uint8 Encoding = 0;
 
-        /** Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
-        int32 Count = 0;
 
         /** Total bytes of the column block - what a skip advances by. */
         int32 ByteLength = 0;
@@ -610,7 +615,7 @@ namespace Tabbit
          *
          * One call is the entirety of skipping, because a column declares its own length.
          * That is what the column-oriented layout buys - there is no per-type skip to get
-         * wrong, and thirteen readers get it right the same way.
+         * wrong, and the readers get it right the same way.
          */
         bool Skip(int32 ByteCount)
         {
@@ -1396,11 +1401,11 @@ namespace Tabbit
             Reader.Read(Wire);
             Column.Element = static_cast<uint8>(Wire & 0x0F);
             Column.bNullable = (Wire & 0x40) != 0;
+            Column.bElementNullable = (Wire & 0x80) != 0;
             Column.Kind = static_cast<uint8>((Wire >> 4) & 0x03);
 
             Reader.Read(Column.Encoding);
 
-            Reader.ReadCounter32(Column.Count);
 
             uint32 ByteLength = 0;
             Reader.Read(ByteLength);
@@ -1539,6 +1544,39 @@ namespace Tabbit
     }
 
     /**
+     * A column's element bitmap, behind the row bitmap and in front of the values.
+     *
+     * Empty for a column that does not carry one. Its length is written ahead of it as a
+     * counter32, because a variable-length column's total is the sum of its row lengths and
+     * those live inside the value block - a reader meeting the bitmap first would have
+     * nothing to size it by. spec/nullable-array-elements.md.
+     */
+    inline void ReadElementPresence(FTabbitBinaryReader& Reader, const FTabbitColumn& Column,
+        TArray<uint8>& OutPresence)
+    {
+        OutPresence.Reset();
+
+        if (!Column.bElementNullable)
+        {
+            return;
+        }
+
+        int32 Elements = 0;
+        if (!Reader.ReadCounter32(Elements))
+        {
+            return;
+        }
+
+        uint8 Encoding = 0;
+        if (!Reader.Read(Encoding))
+        {
+            return;
+        }
+
+        Reader.ReadByteStream(Encoding, (Elements + 7) / 8, OutPresence);
+    }
+
+    /**
      * Whether a row has a value, for a column that says which do.
      *
      * An empty bitmap means the column is not optional and every row has one, so the
@@ -1550,11 +1588,23 @@ namespace Tabbit
     }
 
     inline bool CheckColumn(FTabbitBinaryReader& Reader, const FTabbitColumn& Column,
-        const TCHAR* FieldName, uint8 Kind, int32 Count, bool bNullable, uint32 Accepted)
+        const TCHAR* FieldName, uint8 Kind, bool bNullable, uint32 Accepted,
+        bool bElementNullable = false)
     {
         if (Reader.HasFailed())
         {
             return false;
+        }
+
+        // The same statement about the other bitmap: generated code not expecting one would
+        // read it as values. spec/nullable-array-elements.md.
+        if (Column.bElementNullable != bElementNullable)
+        {
+            return Reader.FailWith(FString::Printf(
+                TEXT("%s: the file and the generated member disagree about whether this column's")
+                TEXT(" elements are optional. The schema changed; regenerate the code or rebuild")
+                TEXT(" the data."),
+                FieldName));
         }
 
         // Nullability is part of the shape: a file that says optional puts a presence bitmap
@@ -1568,13 +1618,16 @@ namespace Tabbit
                 FieldName, Column.bNullable ? 1 : 0, bNullable ? 1 : 0));
         }
 
-        if (Column.Kind != Kind || (Kind != KindVarArray && Column.Count != Count))
+        // A negative count says the member claims no length: how many elements a row holds
+        // is what the file states, row by row, so a group that grew a column is read
+        // rather than refused. spec/tcb-v107-dynamic-arrays.md.
+        if (Column.Kind != Kind)
         {
             return Reader.FailWith(FString::Printf(
-                TEXT("%s: the file column (kind %d, count %d) does not match the generated ")
-                TEXT("member (kind %d, count %d). The schema changed shape; regenerate the ")
+                TEXT("%s: the file column (kind %d) does not match the generated ")
+                TEXT("member (kind %d). The schema changed shape; regenerate the ")
                 TEXT("code or rebuild the data."),
-                FieldName, Column.Kind, Column.Count, Kind, Count));
+                FieldName, Column.Kind, Kind));
         }
 
         // An encoding this build cannot decode - or one the spec does not define for
@@ -2391,7 +2444,7 @@ namespace Tabbit
             // than a multiplication to let wrap.
             int64 Elements = 0;
 
-            if (Column.Kind == KindVarArray)
+            if (Column.Kind == KindArray)
             {
                 uint8 LengthEncoding = 0;
                 if (!Reader->Read(LengthEncoding))
@@ -2408,10 +2461,6 @@ namespace Tabbit
                 {
                     Elements += Length;
                 }
-            }
-            else
-            {
-                Elements = static_cast<int64>(RowCount) * Column.Count;
             }
 
             constexpr int64 Holdable = 0x7FFFFFFF;

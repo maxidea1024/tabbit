@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using MySqlConnector;
 using Serilog;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -26,6 +27,9 @@ namespace Tabbit.History;
 /// </summary>
 internal static class HistorySchema
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Recording;
+
     /// <summary>
     /// What this build expects. A database at a higher version was written by a newer
     /// Tabbit and is left alone rather than downgraded.
@@ -68,9 +72,8 @@ internal static class HistorySchema
 
         if (Convert.ToInt32(command.ExecuteScalar() ?? 0) != 1)
         {
-            throw new TabbitException(
-                $"Another process has held `{name}` for more than {seconds} seconds. That is " +
-                $"another conversion of the same branch, or a prune. Wait for it and try again.");
+                throw new TabbitException(null,
+                    Message.Of(RecordMessages.LockHeld, ("Name", name), ("Seconds", seconds)));
         }
     }
 
@@ -90,10 +93,8 @@ internal static class HistorySchema
     {
         if (!TryLock(connection))
         {
-            throw new TabbitException(
-                $"Another process has been migrating the history database for more than " +
-                $"{LockTimeoutSeconds} seconds. If nothing else is running, the lock is stale " +
-                $"and will clear when its connection closes.");
+                throw new TabbitException(null,
+                    Message.Of(RecordMessages.MigrationLockHeld, ("Seconds", LockTimeoutSeconds)));
         }
 
         try
@@ -109,10 +110,9 @@ internal static class HistorySchema
 
             if (current > Version)
             {
-                throw new TabbitException(
-                    $"The history database is at schema version {current}, and this build of " +
-                    $"Tabbit understands version {Version}. Upgrade Tabbit rather than " +
-                    $"letting an older one write to it.");
+                    throw new TabbitException(null,
+                        Message.Of(RecordMessages.SchemaNewerThanBuild,
+                            ("Current", current), ("Understood", Version)));
             }
 
             if (current == Version)
@@ -137,11 +137,11 @@ internal static class HistorySchema
                         // tell an already-applied schema from data the new shape refuses
                         // - and migration 5, which adds foreign keys, fails exactly when
                         // the data it is constraining is already wrong.
-                        throw new TabbitException(
-                            $"Migration {version} failed at statement {step + 1} of " +
-                            $"{statements.Length}: {ex.Message}" +
-                            Environment.NewLine + Environment.NewLine +
-                            statements[step].Trim(), ex);
+                            throw new TabbitException(
+                                Message.Of(RecordMessages.MigrationFailed,
+                                    ("Version", version), ("Step", step + 1),
+                                    ("Total", statements.Length), ("Detail", ex.Message),
+                                    ("Statement", statements[step].Trim())), ex);
                     }
                 }
 

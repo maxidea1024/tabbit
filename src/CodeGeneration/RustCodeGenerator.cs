@@ -95,6 +95,22 @@ public sealed class RustRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
+    /// <summary>
+    /// Spelling of the generated record members. Blank keeps the one this language normally
+    /// uses.
+    /// </summary>
+    /// <remarks>
+    /// Takes `pascal`, `camel`, `snake` or `upper-snake`. For a project whose own code has a
+    /// convention the generated code should match, which is the one place the two meet: every
+    /// other generated name is a type, a file or a method, and those follow the language.
+    ///
+    /// It moves the members and nothing else. The type names, the lookup methods, the
+    /// element-count constants and the data files stay as they are - a member's spelling is
+    /// not a fact about any of them, and a setting that moved all of them together would be
+    /// renaming the output rather than spelling it.
+    /// </remarks>
+    public string MemberCase { get; set; } = "";
 }
 
 /// <summary>
@@ -115,10 +131,17 @@ public sealed class RustRecipe : IOutputRecipe
 [TabbitTarget("rust", TargetKind.CodeGeneration, Order = 60)]
 public class RustCodeGenerator : CodeGenerator<RustRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
     private RustRecipe _recipe = null!;
+
+    // Resolved once in `Run`, before anything is generated, so a misspelled setting is
+    // reported on its own rather than as a verdict about one member.
+    private NameCase _memberCase = NameCase.Snake;
 
     /// <summary>
     /// A record group generates a struct and a `Vec` of it; a member column fills one of its
@@ -150,6 +173,12 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>
+    /// `has_x_at(i)` beside the value, filled from the element bitmap the file carries.
+    /// spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
+
     protected override void Run(TargetContext context, RustRecipe recipe)
     {
         if (string.IsNullOrEmpty(recipe.Path))
@@ -159,6 +188,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         _recipe = recipe;
         _model = context.Model;
+        _memberCase = MemberCasing.From(recipe.MemberCase, NameCase.Snake, "rust");
 
         Generate();
         WriteBinaryReaderRuntime();
@@ -473,11 +503,11 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             FileExtension = _recipe.BinaryTableFileExtension,
             Tables = _model.Tables.Select(table => new RustTableSlotView
             {
-                Name = RustName(table.Name),
+                Name = RustSnakeName(table.Name),
                 TableName = table.Name.ToPascalCase() + "Table",
 
                 // Unescaped: this one names the file the exporter wrote.
-                DataFileName = table.Name,
+                DataFileName = table.DataFileName,
             }).ToList(),
         },
     };
@@ -513,7 +543,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         Constants = constantSet.Constants.Select(constant => new RustConstantView
         {
             // Rust constants are SCREAMING_SNAKE_CASE, and the compiler warns otherwise.
-            Name = constant.Name.ToSnakeCase().ToUpperInvariant(),
+            Name = constant.Name.ToUpperSnakeCase(),
             Type = ConstantTypeName(constant),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
@@ -579,8 +609,10 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             Members = Array.Empty<RustRecordMemberView>(),
             IsFixedRecordArray = false,
             ElementCount = 0,
-            IsNullable = !sf.Fields[0].IsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = PresenceMember(sf),
+            ElementPresenceMember = PresenceMember(sf) + "_at",
         };
     }
 
@@ -766,7 +798,9 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             // a scalar's row does, one level down.
             ReadElement = ScalarReadExpression(wire),
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = PresenceMember(wire.Group),
+            ElementPresenceMember = PresenceMember(wire.Group) + "_at",
         };
     }
 
@@ -787,8 +821,8 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
-    private static string PresenceMember(SerialField sf)
-        => sf.IsRecord ? "" : "has_" + sf.Name.ToSnakeCase();
+    private string PresenceMember(SerialField sf)
+        => sf.IsRecord ? "" : RustName("has_" + sf.Name);
 
     private IReadOnlyList<string> Declarations(SerialField sf, string name, string elementType)
     {
@@ -811,11 +845,8 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "tabbit::KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "tabbit::KIND_FIXED_ARRAY" : "tabbit::KIND_SCALAR");
+        string kind = wire.IsArray ? "tabbit::KIND_ARRAY" : "tabbit::KIND_SCALAR";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string accepted;
 
@@ -854,7 +885,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                     accepted = "tabbit::ELEMENT_I64"; break;
 
                 default:
-                    throw new TabbitException($"The rust generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The rust generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -863,7 +894,12 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         // block, and code not expecting one would read the bitmap as values.
         string nullable = wire.IsNullable ? "true" : "false";
 
-        return $"tabbit::check_column(column, \"{tableName}.{wire.Name}\", {kind}, {count}, {nullable}, &[{accepted}])?;";
+        // And the other bitmap, by the same argument as the row one. A function of its own
+        // because Rust has no default arguments.
+        string check = wire.HasOptionalElements ? "check_column_with_elements" : "check_column";
+
+        return $"tabbit::{check}(column, \"{tableName}.{wire.Name}\", {kind}, "
+            + $"{nullable}, &[{accepted}])?;";
     }
 
     /// <summary>
@@ -878,10 +914,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the vector decides where the index goes, and an unnamed
@@ -889,14 +922,16 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            // A trimmed array of references: the length is the row's, and the key still goes
+            // in the vector beside the values. Read as a plain `var_array` it pushed the key
+            // into the vector of rows, which does not compile - and nothing held the shape,
+            // because `foreign[]` is refused and this is only reachable through a folded group
+            // with trimming on. spec/variable-length-record-arrays.md.
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -917,7 +952,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -979,7 +1014,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
@@ -1013,7 +1048,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// A string is cloned per row, because every record owns its own - which is what the
     /// per-row shape does too, one dictionary lookup earlier.
     /// </remarks>
-    private static string RunSpend(WireColumn wire)
+    private string RunSpend(WireColumn wire)
     {
         if (RunCall(wire).Length == 0)
             return "";
@@ -1117,7 +1152,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                     return LanguageProfile.Rust.ReadCall(wire.RefKeyType);
 
             // Everything else is a plain call named in the profile, which is where the
-            // nine of them live now rather than here and in nine other generators.
+            // nine of them live now rather than here and in every other generator.
             default: return LanguageProfile.Rust.ReadCall(wire.ElementType);
         }
     }
@@ -1191,7 +1226,9 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the rust generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "rust")));
         }
     }
 
@@ -1239,7 +1276,16 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// snake_case, and escaped when it lands on a keyword - which it can, unlike Go and
     /// C#, because Rust members are lowercase and so is every Rust keyword.
     /// </summary>
-    private static string RustName(string name) => LanguageProfile.Rust.MemberName(name.ToSnakeCase());
+    private string RustName(string name) => LanguageProfile.Rust.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>
+    /// The same spelling, for a name that is not a member - the accessor's slot per table.
+    /// </summary>
+    /// <remarks>
+    /// snake_case because that is how Rust writes an identifier, not because a member is
+    /// spelled that way. Sharing one function let the two look like one rule.
+    /// </remarks>
+    private static string RustSnakeName(string name) => LanguageProfile.Rust.MemberName(name.ToSnakeCase());
 
     /// <summary>
     /// A PascalCase identifier Rust will accept: an enum's type name, or one of its labels.

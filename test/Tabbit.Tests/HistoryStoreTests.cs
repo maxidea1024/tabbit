@@ -258,7 +258,7 @@ public class HistoryStoreTests : IDisposable
         var ex = Assert.Throws<TabbitException>(
             () => Record(store, Items(new object[] { 1, "Sword", 99 }), Commit("aaa")));
 
-        Assert.Contains("already holds a different model", ex.Message);
+        Assert.Equal(Tabbit.History.RecordMessages.ModelDiffersForCommit, ex.MessageId);
         Assert.Equal(1, CountRows("snapshot"));
     }
 

@@ -76,6 +76,7 @@ public sealed class UnrealRecipe : IOutputRecipe
 
     /// <summary>Which side this output is built for: "c", "s", or "cs"/blank for both.</summary>
     public string TargetSide { get; set; } = "cs";
+
 }
 
 /// <summary>
@@ -103,6 +104,9 @@ public sealed class UnrealRecipe : IOutputRecipe
 [TabbitTarget("unreal", TargetKind.CodeGeneration, Order = 90)]
 public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Exporting;
+
 
     /// <summary>
     /// A record group generates a USTRUCT and a TArray of it; a member column fills one of
@@ -143,6 +147,12 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// beside `X` in FPostProcessSettings. spec/optional-fields.md has the reasoning.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
+
+    /// <summary>
+    /// The per-element answer beside the value, filled from the element bitmap the file
+    /// carries. spec/nullable-array-elements.md.
+    /// </summary>
+    protected override bool SupportsOptionalElements => true;
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;
@@ -305,7 +315,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                 PrimaryFieldName = PrimaryIndex(table).Name.ToPascalCase(),
 
                 // Unescaped: this one names the file the exporter wrote.
-                DataFileName = table.Name,
+                DataFileName = table.DataFileName,
             }).ToList(),
         },
     };
@@ -316,11 +326,9 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
         if (offender is not null)
         {
-            Log.Warning(
-                $"Enum `{enumm.Name}` label `{offender.Name}` has value {offender.Value}, which does " +
-                "not fit the uint8 a BlueprintType enum has to be. Generating it as a plain int32 " +
-                "UENUM instead: readable from C++, not visible in Blueprint, and neither are the " +
-                "fields typed with it.");
+            Log.Warning(Messages.Message.Of(Exporters.ExportMessages.LogUnrealEnumNotBlueprint,
+                ("Enum", enumm.Name), ("Label", offender.Name),
+                ("Value", offender.Value)).In(Messages.MessageCatalog.Current));
         }
 
         return new UnrealEnumView
@@ -377,6 +385,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             NeedsCursor = table.WireColumns.Any(UsesCursor),
             Columns = table.WireColumns.Select(wire => BuildColumn(table, wire, members)).ToList(),
             NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
+            NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
         };
     }
 
@@ -443,7 +452,9 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             IsFirstMember = wire.IsFirstMember,
             RecordTypeName = wire.Group.IsRecord ? RecordEntryName(table, wire.Group) : "",
             IsNullable = wire.IsNullable,
+            HasOptionalElements = wire.HasOptionalElements,
             PresenceMember = "bHas" + name,
+            ElementPresenceMember = "bHas" + name + "At",
             EmptyValue = EmptyValueOf(wire),
         };
     }
@@ -451,7 +462,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// <summary>What an absent row's value is set to, so both read paths land on the same thing.</summary>
     private string EmptyValueOf(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "{}";
 
         return wire.ElementType switch
@@ -572,8 +583,10 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
             // A record group has no presence of its own: absence inside one is the array's
             // length, not a bit per member.
-            IsNullable = !sf.IsRecord && !sf.Fields[0].IsRequired,
+            IsNullable = sf.RowMayBeAbsent,
+            HasOptionalElements = sf.ElementMayBeAbsent,
             PresenceMember = "bHas" + name,
+            ElementPresenceMember = "bHas" + name + "At",
 
             // Two reasons a member is written without a UPROPERTY, and it is written either
             // way: the value is read and usable from C++, and only Blueprint cannot see it.
@@ -701,7 +714,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                 return reader + "As";
 
             default:
-                throw new TabbitException($"The unreal generator cannot read type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The unreal generator cannot read type `{wire.Type}`.");
         }
     }
 
@@ -726,11 +739,8 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "Tabbit::KindVarArray"
-            : (wire.IsFixedArray ? "Tabbit::KindFixedArray" : "Tabbit::KindScalar");
+        string kind = wire.IsArray ? "Tabbit::KindArray" : "Tabbit::KindScalar";
 
-        int count = wire.IsVariableLengthArray ? 0 : wire.Cells.Count;
 
         string[] accepted;
 
@@ -771,7 +781,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                     accepted = new[] { "ElementI64" }; break;
 
                 default:
-                    throw new TabbitException($"The unreal generator cannot check type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The unreal generator cannot check type `{wire.Type}`.");
             }
         }
 
@@ -784,7 +794,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         string nullable = wire.IsNullable ? "true" : "false";
 
         return $"Tabbit::CheckColumn(Reader, Column, TEXT(\"{tableName}.{wire.Name}\"), " +
-               $"{kind}, {count}, {nullable}, {mask});";
+               $"{kind}, {nullable}, {mask});";
     }
 
     /// <summary>
@@ -802,7 +812,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -860,7 +870,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
@@ -947,7 +957,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
         // An array's elements are read where the array is sized, by the overload its member
         // type picks - so this line, which names the member itself, is not one of them.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // The key the target is addressed by, which is not always an int32.
@@ -1069,10 +1079,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         // the members before it wrote.
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "record_member";
 
             // Which of the two owns the array decides where the index goes, and an unnamed
@@ -1080,14 +1087,11 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -1188,6 +1192,16 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// following here because the generated types show up beside the engine's in the
     /// editor.
     /// </summary>
+    /// <remarks>
+    /// The one code target besides Go with no `MemberCase` setting, and for a different
+    /// reason: what this spells is not a casing. A bool UPROPERTY is `bIsOpen` - a lower-case
+    /// `b` in front of a Pascal-cased name, chosen by the member's type - and that shape has
+    /// no snake or camel equivalent to move to. `b` glued to a snake-cased name gives
+    /// `bis_open`, which is neither convention.
+    ///
+    /// The engine's own tooling is the other half of it. UHT reads these declarations and
+    /// Unreal's coding standard is not a preference a project overrides per recipe.
+    /// </remarks>
     private static string MemberName(Field? field, string name)
     {
         string cased = LanguageProfile.Unreal.MemberName(name.ToPascalCase());

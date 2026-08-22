@@ -21,8 +21,8 @@ public static class RecipeTargetSide
         if (TargetSides.TryParse(text, out var side))
             return side;
 
-        throw new TabbitException(
-            $"Recipe section `{recipeSection}` has TargetSide `{text}`, which is not recognized. " +
-            $"Use \"c\" for client, \"s\" for server, or \"cs\" (the default) for both.");
+            throw new TabbitException(null,
+                Messages.Message.Of(RecipeMessages.TargetSideUnknown,
+                    ("Section", recipeSection), ("Value", text)));
     }
 }

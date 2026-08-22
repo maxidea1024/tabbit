@@ -1,0 +1,49 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "09bff5b47f2535dafc8114f9a2e07b90",
+  "TotalSize": 564,
+  "Items": [
+    {
+      "Name": "Colour.tcb",
+      "Size": 79,
+      "Hash": "c4c9918f2f5490ef6aaf97a0dcf66e22",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Colour_alt.tcb",
+      "Size": 82,
+      "Hash": "6f3209f6408809e7c0b89cd5766965ae",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Brush.tcb",
+      "Size": 71,
+      "Hash": "91f93c411c5129d77dd375c6c9c24ed0",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Narrow.tcb",
+      "Size": 97,
+      "Hash": "3a386b6b5ef56989e2d06cacfedf7567",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Narrow_alt.tcb",
+      "Size": 93,
+      "Hash": "9759544e5914b1c6832018eefa055d60",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Paint.tcb",
+      "Size": 71,
+      "Hash": "9659be2bb6ccc1053ea00d7a06ba2525",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Paint_alt.tcb",
+      "Size": 71,
+      "Hash": "e0c249d84c56de4ab07d8ff667ac59d0",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

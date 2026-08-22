@@ -61,9 +61,9 @@ public sealed class AssetRoots
 
         if (onMissing is not ("warn" or "error" or "ignore"))
         {
-            throw new TabbitException(
-                $"Recipe setting `Assets.OnMissing` is `{recipe.OnMissing}`. It has to be "
-                + $"`warn`, `error` or `ignore`.");
+            throw new TabbitException(null,
+                Messages.Message.Of(Recipe.RecipeMessages.AssetsOnMissingUnknown,
+                    ("Value", recipe.OnMissing)));
         }
 
         // Case-insensitive: a kind is a word somebody types into a sheet cell, and `Icon` and
@@ -82,11 +82,9 @@ public sealed class AssetRoots
 
             if (!Directory.Exists(full))
             {
-                throw new TabbitException(
-                    $"`Assets.Roots` points at `{root.Path}`, and there is no folder at "
-                    + $"`{full}`. A root that is not there is a recipe mistake rather than a "
-                    + $"tree with nothing in it - every value checked against it would be "
-                    + $"reported missing.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Recipe.RecipeMessages.AssetsRootMissing,
+                        ("Path", root.Path), ("Full", full)));
             }
 
             string pattern = string.IsNullOrWhiteSpace(root.Pattern) ? "*" : root.Pattern;

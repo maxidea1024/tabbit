@@ -117,7 +117,7 @@ impl MountTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.rig = vec![MountRigEntry::default(); 2];
+            record.rig = Vec::new();
         }
 
         for column in &header.columns {
@@ -125,7 +125,7 @@ impl MountTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Mount.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Mount.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Mount.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -137,19 +137,42 @@ impl MountTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Mount.Rig.Core.ItemId", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32])?;
+                    tabbit::check_column(column, "Mount.Rig.Core.ItemId", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
+                    let bytes_left = reader.remaining();
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Mount.Rig.Core.ItemId")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        // The count came off the wire, and one element is at least one byte,
+                        // so this is checked before anything is allocated for it.
+                        if element_count > bytes_left {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Mount.rig",
+                                detail: "a record array is longer than the file can hold",
+                            });
+                        }
+
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.rig = vec![MountRigEntry::default(); element_count];
+                        for element in 0..element_count {
                             record.rig[element].core.item_id_index = cursor.next_i32()?;
                         }
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Mount.Rig.Core.Count", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Mount.Rig.Core.Count", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Mount.Rig.Core.Count")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        if record.rig.len() != element_count {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Mount.rig",
+                                detail: "the file gives one member of this record a different \
+                                         element count than another",
+                            });
+                        }
+                        for element in 0..element_count {
                             record.rig[element].core.count = cursor.next_i32()?;
                         }
                     }

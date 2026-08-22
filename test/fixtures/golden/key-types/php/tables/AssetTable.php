@@ -155,14 +155,14 @@ final class AssetTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Asset.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_UUID]);
+                    TcbReader::checkColumn($column, 'Asset.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_UUID]);
                     foreach ($records as $record) {
                         $record->index = $reader->readUuid();
                     }
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Asset.Path', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Asset.Path', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Asset.Path');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -173,7 +173,7 @@ final class AssetTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Asset.Slot', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Asset.Slot', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Asset.Slot');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);

@@ -155,7 +155,7 @@ final class SlottingTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Slotting.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Slotting.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Slotting.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -166,7 +166,7 @@ final class SlottingTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Slotting.Capacity', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Slotting.Capacity', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Slotting.Capacity');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -177,7 +177,7 @@ final class SlottingTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Slotting.Serial', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I64, TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Slotting.Serial', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I64, TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Slotting.Serial');
                     foreach ($records as $record) {
                         $record->serial = $cursor->nextI64();

@@ -9,6 +9,7 @@ using System.Threading;
 using Serilog;
 
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.Importers;
 
@@ -33,6 +34,22 @@ namespace Tabbit.Importers;
 /// </remarks>
 internal static class GoogleSheetsCredentials
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Importing;
+
+    /// <summary>
+    /// Where a person's token is cached once they have consented.
+    /// </summary>
+    /// <remarks>
+    /// Public because a message has to be able to name it. Adding a scope does not
+    /// re-consent by itself - the cached token is used as it is, and the call needing the new
+    /// scope is the only thing that fails - so the useful sentence is which file to delete,
+    /// and this tool is what decides where that file goes.
+    /// </remarks>
+    public static string TokenStore => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+        ".credentials/sheets.googleapis.com-tabbit");
+
     /// <summary>
     /// Whether this entry names any credential at all.
     /// </summary>
@@ -68,19 +85,14 @@ internal static class GoogleSheetsCredentials
         // failure it prevents - authenticating as the wrong identity - is silent.
         if (keyFile && keyVariable)
         {
-            throw new TabbitException(
-                $"Recipe section `{section}` names both `ServiceAccountKeyFile` and " +
-                $"`ServiceAccountKeyVariable`. Name one: the file for a key on disk, the " +
-                $"variable for one held in a secret store.");
+            throw new TabbitException(null,
+                Message.Of(Recipe.RecipeMessages.GoogleKeyFileAndVariable, ("Section", section)));
         }
 
         if ((keyFile || keyVariable) && clientSecret)
         {
-            throw new TabbitException(
-                $"Recipe section `{section}` names both a service account key and " +
-                $"`ClientSecretFilename`. Those authenticate as different identities, so " +
-                $"name one: the service account for an unattended run, the client secret " +
-                $"for a person at a machine.");
+            throw new TabbitException(null,
+                Message.Of(Recipe.RecipeMessages.GoogleServiceAccountAndClientSecret, ("Section", section)));
         }
 
         if (keyFile || keyVariable)
@@ -89,10 +101,8 @@ internal static class GoogleSheetsCredentials
         if (clientSecret)
             return Personal(recipe, section, scopes, applicationName);
 
-        throw new TabbitException(
-            $"Recipe section `{section}` names no credential. Set `ServiceAccountKeyFile` " +
-            $"or `ServiceAccountKeyVariable` for an unattended run, or " +
-            $"`ClientSecretFilename` to authenticate as the person running it.");
+        throw new TabbitException(null,
+            Message.Of(Recipe.RecipeMessages.GoogleNoCredential, ("Section", section)));
     }
 
     /// <summary>
@@ -111,9 +121,9 @@ internal static class GoogleSheetsCredentials
         {
             if (!File.Exists(recipe.ServiceAccountKeyFile))
             {
-                throw new TabbitException(
-                    $"Recipe section `{section}` names service account key file " +
-                    $"`{recipe.ServiceAccountKeyFile}`, which does not exist.");
+                throw new TabbitException(null,
+                    Message.Of(ImportMessages.GoogleKeyFileMissing,
+                        ("Section", section), ("Path", recipe.ServiceAccountKeyFile)));
             }
 
             json = File.ReadAllText(recipe.ServiceAccountKeyFile);
@@ -128,10 +138,10 @@ internal static class GoogleSheetsCredentials
             // failure further away from its cause.
             if (string.IsNullOrWhiteSpace(value))
             {
-                throw new TabbitException(
-                    $"Recipe section `{section}` reads its service account key from " +
-                    $"environment variable `{recipe.ServiceAccountKeyVariable}`, which is " +
-                    $"not set. The key is held in the environment so it need not be committed.");
+                throw new TabbitException(null,
+                    Message.Of(ImportMessages.GoogleKeyVariableNotSet,
+                        ("Section", section),
+                        ("Variable", recipe.ServiceAccountKeyVariable)));
             }
 
             json = value;
@@ -149,13 +159,11 @@ internal static class GoogleSheetsCredentials
         {
             serviceAccount = CredentialFactory.FromJson<ServiceAccountCredential>(json);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not TabbitDefectException)
         {
-            throw new TabbitException(
-                $"Recipe section `{section}` could not read a service account key from " +
-                $"{origin}: {ex.Message} A service account key has " +
-                $"`\"type\": \"service_account\"`; an OAuth client secret goes in " +
-                $"`ClientSecretFilename` instead.");
+            throw new TabbitException(null,
+                Message.Of(ImportMessages.GoogleKeyUnreadable,
+                    ("Section", section), ("Origin", origin), ("Detail", ex.Message)));
         }
 
         Log.Debug($"Google Sheets source `{section}` authenticates as a service account, from {origin}.");
@@ -174,16 +182,14 @@ internal static class GoogleSheetsCredentials
     {
         if (!File.Exists(recipe.ClientSecretFilename))
         {
-            throw new TabbitException(
-                $"Recipe section `{section}` names client secret file " +
-                $"`{recipe.ClientSecretFilename}`, which does not exist.");
+            throw new TabbitException(null,
+                Message.Of(ImportMessages.GoogleClientSecretMissing,
+                    ("Section", section), ("Path", recipe.ClientSecretFilename)));
         }
 
         using var stream = new FileStream(recipe.ClientSecretFilename, FileMode.Open, FileAccess.Read);
 
-        string credentialsPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-            ".credentials/sheets.googleapis.com-tabbit");
+        string credentialsPath = TokenStore;
 
         var clientSecrets = GoogleClientSecrets.FromStream(stream);
 

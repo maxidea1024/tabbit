@@ -1,0 +1,22 @@
+{
+  // `-` as one element of an array cell, refused while the cell is being read. Expected to
+  // fail during cooking, so the output below is never reached.
+  // spec/blank-and-null-cells.md.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/no-value-element"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/no-value-element/json",
+      "Indented": true
+    }
+  ]
+}

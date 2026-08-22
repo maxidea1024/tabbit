@@ -113,7 +113,7 @@ Console.WriteLine(sword.GradeField);            // Common
 `GetByIndexOrThrow`(없으면 예외) · `ContainsIndex`. **이름이 동작을 말합니다**, 그래서 검사를
 빼먹은 자리가 읽는 것만으로 보입니다.
 
-같은 시트에서 13개 언어가 나오고, 표기는 각 언어의 관례를 따릅니다 — TypeScript는
+같은 시트에서 지원하는 모든 언어가 나오고, 표기는 각 언어의 관례를 따릅니다 — TypeScript는
 `tables.item.findByIndex(1)`, Python은 `tables.item.find_by_index(1)`.
 자세한 것은 [언어별 가이드](languages/readme.md)에 있습니다.
 

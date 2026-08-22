@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Serilog;
 using Tabbit.Extensions;
 using Tabbit.Helpers;
 using Tabbit.Models;
 using Tabbit.Models.Raw;
+using Tabbit.Messages;
 
 namespace Tabbit.Cooking.Layouts;
 
@@ -33,6 +35,9 @@ namespace Tabbit.Cooking.Layouts;
     UsesNamedRanges = true)]
 public sealed class UwoLayoutParser : ILayoutParser
 {
+    /// <summary>Which step of a run this class's log lines belong to.</summary>
+    private static Serilog.ILogger Log => LogCategory.Cooking;
+
     /// <summary>Rows of the rectangle, counted from its top.</summary>
     private const int NameRow = 0;
     private const int TypeRow = 1;
@@ -78,7 +83,22 @@ public sealed class UwoLayoutParser : ILayoutParser
 
             foreach (var named in sheet.NamedRanges)
             {
-                var table = ParseTable(sheet, named);
+                // A table this layout cannot read is reported and left out, rather than
+                // ending the run. These workbooks hold six hundred tables and the author of
+                // one wants the list of what is wrong with the sheets - a refusal that stops
+                // at the first hides every table after it, which is how one shape mistake
+                // used to cut a corpus of 540 tables down to 78.
+                Models.Table? table;
+                try
+                {
+                    table = ParseTable(sheet, named);
+                }
+                catch (TabbitException refusal)
+                {
+                    context.Diagnostics.Error(refusal);
+                    continue;
+                }
+
                 if (table is not null)
                     context.Model.Tables.Add(table);
             }
@@ -95,9 +115,9 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         if (named.Height <= TypeRow + 1)
         {
-            Log.Warning(
-                $"Skipping `{rawName}`: the range covers {named.Height} row(s), and a table needs "
-                + $"a name row, a type row and data. ({sheet.Location})");
+            Log.Warning(Message.Of(UwoLayoutMessages.LogSkippingRangeTooShort,
+                ("Name", rawName), ("Rows", named.Height),
+                ("At", sheet.Location)).In(MessageCatalog.Current));
             return null;
         }
 
@@ -126,6 +146,14 @@ public sealed class UwoLayoutParser : ILayoutParser
             // produces two. Reading them without this gives a third element the original never
             // wrote, and no setting should be able to turn that on.
             TrimTrailingArrayElements = true,
+
+            // Whether a gap in the middle of an array is refused is the recipe's question and
+            // not the layout's, so it comes from the source entry like it does for the other
+            // layouts. This parser was the only one not passing it through, which made the
+            // setting silently do nothing for exactly the sheets that reach it: a full
+            // conversion reported 2,475 gaps and turning the setting on changed neither the
+            // count nor anything else.
+            AllowArrayGaps = (sheet.Layout ?? SheetLayout.Default).AllowArrayGaps,
         };
 
         Log.Information($"Parsing table `{table.Name}`. ({marker.Location})");
@@ -137,7 +165,7 @@ public sealed class UwoLayoutParser : ILayoutParser
             return null;
 
         if (matrixColumns.Count > 0)
-            PrepareMatrix(table, matrixColumns);
+            PrepareMatrix(table, matrixColumns, sheet);
 
         // Grouped before the cells are read: grouping is what gives every element of an array
         // the first one's answer about being optional, and reading a cell asks that question.
@@ -216,7 +244,8 @@ public sealed class UwoLayoutParser : ILayoutParser
             if (table.ContainsField(field.Name))
             {
                 throw new TabbitException(nameCell.Location,
-                    $"Table `{table.Name}` has two columns named `{field.Name}`.");
+                    Message.Of(UwoLayoutMessages.ColumnNameClash,
+                        ("Table", table.Name), ("Field", field.Name)));
             }
 
             field.Index = table.Fields.Count;
@@ -226,15 +255,15 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         if (table.Fields.Count == 0)
         {
-            Log.Warning($"Skipping `{table.RawName}`: no column of it has both a name and a type.");
+            Log.Warning(Message.Of(UwoLayoutMessages.LogSkippingTableNoColumns,
+                ("Table", table.RawName)).In(MessageCatalog.Current));
             return null;
         }
 
         if (!table.Fields[0].Indexing)
         {
             throw new TabbitException(table.Location,
-                $"Table `{table.Name}` has no `key` column. The first column of a table in this "
-                + $"layout is typed `key`, which is what every row is addressed by.");
+                Message.Of(UwoLayoutMessages.TableHasNoKeyColumn, ("Table", table.Name)));
         }
 
         _context.CheckPrimaryIndexValidity(table.Fields[0]);
@@ -350,8 +379,9 @@ public sealed class UwoLayoutParser : ILayoutParser
         if (roleGroup is not null && typeName != "text" && typeName != "[text]")
         {
             throw new TabbitException(typeCell.Location,
-                $"Column `{nameCell.Value.Trim()}` of `{table.RawName}` is typed `{rawType}`, "
-                + $"which names a group. Only `text` is gathered into one.");
+                Message.Of(UwoLayoutMessages.TypeTakesNoGroup,
+                    ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
+                    ("Type", rawType)));
         }
 
         _context.RequiresRoleGroup(
@@ -376,7 +406,9 @@ public sealed class UwoLayoutParser : ILayoutParser
         if (!UwoColumnPath.TrySplit(rawFieldName, out var path, out string? problem))
         {
             throw new TabbitException(nameCell.Location,
-                $"Column `{nameCell.Value.Trim()}` of `{table.RawName}` {problem}");
+                Message.Of(UwoLayoutMessages.ColumnNameProblem,
+                    ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
+                    ("Detail", problem)));
         }
 
         if (path is not null)
@@ -529,8 +561,9 @@ public sealed class UwoLayoutParser : ILayoutParser
                     if (element == Models.ValueType.None)
                     {
                         throw new TabbitException(typeCell.Location,
-                            $"Column `{nameCell.Value.Trim()}` of `{table.RawName}` is typed `{rawType}`. `{inner}` "
-                            + $"is not an element type this layout puts in a list.");
+                            Message.Of(UwoLayoutMessages.ListElementTypeUnsupported,
+                                ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
+                                ("Type", rawType), ("Inner", inner)));
                     }
 
                     // Every element of the cell is gathered, the same as a scalar `text` cell.
@@ -558,8 +591,9 @@ public sealed class UwoLayoutParser : ILayoutParser
                 }
 
                 throw new TabbitException(typeCell.Location,
-                    $"Column `{nameCell.Value.Trim()}` of `{table.RawName}` is typed `{rawType}`, which this "
-                    + $"layout does not recognize.");
+                    Message.Of(UwoLayoutMessages.TypeUnrecognized,
+                        ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
+                        ("Type", rawType)));
         }
     }
 
@@ -600,10 +634,21 @@ public sealed class UwoLayoutParser : ILayoutParser
             if (key.StartsWith(':'))
                 continue;
 
-            // The end of the table. The range is often drawn over blank rows below the
-            // data, and the original exporter stops the same way.
             if (key.Length == 0)
+            {
+                // A row holding nothing at all is a row the original exporter never saw: its
+                // OLE DB path does not surface fully empty rows, so its stop-at-empty-key
+                // rule cannot fire on one. The largest table of the sample set holds four
+                // such rows in the middle of its data, and its deployed export carries every
+                // row below them - so an empty row is a skip, measured rather than assumed.
+                if (RowIsEmpty(sheet, named, row))
+                    continue;
+
+                // The end of the table: a key left blank on a row that holds something. The
+                // original exporter is handed that row and stops on the blank key the same
+                // way.
                 break;
+            }
 
             // A commented-out row, the same convention the column names use.
             if (key.StartsWith('#'))
@@ -614,11 +659,30 @@ public sealed class UwoLayoutParser : ILayoutParser
             foreach (var column in columns)
             {
                 var rawCell = CellAt(sheet, named, row, column.RangeColumn);
-                cells.Add(ReadCell(column, rawCell, sheet.Layout?.ArrayDelimiter));
+                cells.Add(ReadCell(column, rawCell, sheet.Layout?.ArrayDelimiter,
+                               sheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error,
+                               sheet.Layout?.TimeZone));
             }
 
             table.Data.Add(cells);
         }
+    }
+
+    /// <summary>Whether a row of the rectangle holds no value in any of its columns.</summary>
+    /// <remarks>
+    /// The whole rectangle rather than the columns being read, because what is being decided
+    /// is what the original exporter's row enumeration would have been handed - and that
+    /// enumeration knows nothing about which columns the header keeps.
+    /// </remarks>
+    private static bool RowIsEmpty(RawSheet sheet, RawNamedRange named, int row)
+    {
+        for (int column = 0; column < named.Width; column++)
+        {
+            if (CellAt(sheet, named, row, column).Value.Trim().Length > 0)
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -631,15 +695,38 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// which; here a `-` becomes the type's empty value, which is what the exporter's
     /// output holds by omitting the property.
     /// </remarks>
-    private Cell ReadCell(DataColumn column, RawCell rawCell, char? arrayDelimiter)
+    private Cell ReadCell(
+        DataColumn column, RawCell rawCell, char? arrayDelimiter,
+        FormulaErrorPolicy onFormulaError, TimeZoneInfo? timeZone)
     {
         string text = rawCell.Value.Trim();
 
-        // `-` is this layout's "no value", and the original exporter answers it by leaving
-        // the property out of the row altogether. There is no absent here - every field of
-        // every row has a value - so it becomes the type's empty one, which is what a
-        // consumer reading that JSON gets for a missing property anyway.
-        if (text == "-")
+        // A broken formula before the blank below, because a cell whose formula failed reads as
+        // blank and this layout reports a blank as an author's omission - which it is not. The
+        // core applies the policy and says which error it was. spec/formula-errors.md.
+        if (rawCell.FormulaError.Length > 0)
+        {
+            var broken = _context.ReadCell(
+                column.Field.Type, column.Field.EnumOrNull, "", rawCell.Location, arrayDelimiter,
+                required: column.Field.IsRequired,
+                column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}",
+                formulaError: rawCell.FormulaError,
+                onFormulaError: onFormulaError,
+                timeZone: timeZone);
+
+            return new Cell
+            {
+                RawCell = rawCell,
+                Value = broken.Value,
+                HasValue = broken.HasValue,
+            };
+        }
+
+        // `-` is no value, and the original exporter answers it by leaving the property out
+        // of the row altogether. The judgment itself is the core's, so that one spelling
+        // cannot come to mean two things in two layouts - spec/blank-and-null-cells.md - and
+        // what this layout keeps deciding is what a blank means, below.
+        if (CookingContext.SaysNoValue(text))
             return EmptyCell(column, rawCell, arrayDelimiter);
 
         if (text.Length == 0)
@@ -648,9 +735,9 @@ public sealed class UwoLayoutParser : ILayoutParser
             // reports the cell and tells the author to write `-`. Reported rather than
             // refused, because refusing would stop a conversion of six hundred tables over
             // a cell whose intent is not in doubt.
-            Log.Warning(
-                $"`{column.Field.OwnerTable.Name}.{column.Field.Name}` is blank. This layout "
-                + $"writes `-` for no value; read as the type's empty value.\n    at {rawCell.Location}");
+            Log.Warning(Message.Of(UwoLayoutMessages.LogBlankReadAsEmpty,
+                ("Table", column.Field.OwnerTable.Name), ("Field", column.Field.Name),
+                ("At", rawCell.Location)).In(MessageCatalog.Current));
 
             return EmptyCell(column, rawCell, arrayDelimiter);
         }
@@ -660,14 +747,36 @@ public sealed class UwoLayoutParser : ILayoutParser
         // the value is converted in one place and the core is not asked to guess a base from
         // a column's provenance. A cell that is not base 2 is reported there, against the
         // cell, naming the digit that is not one.
-        if (column.IsBinaryText && text.Length > 0 && text != "-")
+        if (column.IsBinaryText && text.Length > 0 && !CookingContext.SaysNoValue(text))
             text = "0b" + text;
+
+        // A leading `#` on a localizable string is a mark on the sheet rather than part of
+        // the text, and the original exporter drops every one of them before writing the
+        // value out. Kept, they travel into the game as part of the string: measured against
+        // that exporter's own output, this is around 15,000 values of the sample project.
+        //
+        // `@` marks the same intent but is not dropped - which is the exporter's behaviour
+        // and not an oversight here.
+        //
+        // **The other half of this rule is not implemented.** A value marked either way is
+        // also held back from the gathered text, and that decision has to be made here,
+        // before the mark is removed - there is nowhere downstream that can still see it.
+        if (column.Field.Role == StringRole.Text)
+            text = text.TrimStart('#');
+
+        var reading = _context.ReadCell(
+            column.Field.Type, column.Field.EnumOrNull, text, rawCell.Location, arrayDelimiter,
+            required: column.Field.IsRequired,
+            column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}",
+            formulaError: rawCell.FormulaError,
+            onFormulaError: onFormulaError,
+            timeZone: timeZone);
 
         return new Cell
         {
             RawCell = rawCell,
-            Value = _context.ParseValue(
-                column.Field.Type, column.Field.EnumOrNull, text, rawCell.Location, arrayDelimiter),
+            Value = reading.Value,
+            HasValue = reading.HasValue,
         };
     }
 
@@ -705,9 +814,8 @@ public sealed class UwoLayoutParser : ILayoutParser
         }
 
         throw new TabbitException(sheet.Location,
-            $"`LayoutOptions.{NumberTypeOption}` is `{value}`. It takes `double`, which reads a "
-            + $"`number` column as the JSON number it means, or `narrow`, which gives it the "
-            + $"smallest type its values fit.");
+            Message.Of(UwoLayoutMessages.NumberTypeOptionUnknown,
+                ("Option", NumberTypeOption), ("Value", value)));
     }
 
     /// <summary>
@@ -792,13 +900,7 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         if (allowed is not null)
         {
-            // Written as a list in one cell. The delimiter is the source entry's, the same
-            // one an array cell uses - there is only one list separator in these sheets.
-            var values = allowed.Value
-                .Split(sheet.Layout?.ArrayDelimiter ?? ';')
-                .Select(value => value.Trim())
-                .Where(value => value.Length > 0)
-                .ToList();
+            var values = AllowedValues(field, allowed.Value);
 
             if (values.Count > 0)
             {
@@ -808,6 +910,40 @@ public sealed class UwoLayoutParser : ILayoutParser
         }
 
         ReadReferencedTables(field, sheet, named, col);
+    }
+
+    /// <summary>
+    /// The values a `:enum` cell lists, read the way the sheets' own checker reads them.
+    /// </summary>
+    /// <remarks>
+    /// **A text column's list is quoted, and anything unquoted is not a list at all.** The
+    /// original exporter pulls the quoted runs out of the cell and, finding none, writes no
+    /// list - so a cell holding a bare `1` on a `string` column declares nothing, and the
+    /// checker downstream never sees it.
+    ///
+    /// Read any other way, that cell says "the only value allowed here is `1`" and every row
+    /// of the column breaks it. One sheet does hold such a cell, and reading it as a list of
+    /// one produced 1,980 findings about a column nobody had constrained.
+    ///
+    /// A column of any other type carries a single value rather than a list, which is the
+    /// same exporter's other arm - `[value]`, whatever the value is.
+    /// </remarks>
+    private static List<string> AllowedValues(Field field, string cell)
+    {
+        string text = cell.Trim();
+
+        if (text.Length == 0 || text == "-")
+            return new List<string>();
+
+        if (field.Type is Models.ValueType.String or Models.ValueType.StringArray)
+        {
+            return Regex.Matches(text, "\"(.*?)\"")
+                .Select(match => match.Groups[1].Value)
+                .Where(value => value.Length > 0)
+                .ToList();
+        }
+
+        return new List<string> { text };
     }
 
     /// <summary>
@@ -821,7 +957,7 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// This is a constraint and not a reference. The original declares it to have a script
     /// check that an id exists somewhere; nothing about the value, the file it is written to
     /// or the code generated from it depends on the declaration. Reading it as a `foreign`
-    /// would give it a meaning it never had, and would owe thirteen languages a sum type for
+    /// would give it a meaning it never had, and would owe every language a sum type for
     /// the several-table case. spec/multi-target-references.md.
     /// </remarks>
     private static void ReadReferencedTables(
@@ -1026,7 +1162,8 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// The design and the two shapes turned down on the way to this one are in
     /// spec/matrix-tables.md.
     /// </remarks>
-    private void PrepareMatrix(Models.Table table, List<(long Id, RawCell NameCell)> columns)
+    private void PrepareMatrix(
+        Models.Table table, List<(long Id, RawCell NameCell)> columns, RawSheet sheet)
     {
         // Every element of the array is one column of the grid, so its type is one type. The
         // rewrite to `Value[k]` means the folding would otherwise report this as a group
@@ -1039,15 +1176,37 @@ public sealed class UwoLayoutParser : ILayoutParser
                 continue;
 
             throw new TabbitException(element.TypeLocation,
-                $"Table `{table.Name}` is a grid - its column names are ids - but its columns "
-                + $"are not all one type: `{elements[0].TypeName}` and `{element.TypeName}`. "
-                + $"Every column of a grid is one element of one array, so they state one type.");
+                Message.Of(UwoLayoutMessages.GridColumnsDifferInType,
+                    ("Table", table.Name), ("First", elements[0].TypeName),
+                    ("Second", element.TypeName)));
         }
 
         // Position is meaning here. Trimming ends an array at its last value, which is right
         // for a list of slots and wrong for a grid: shorten one row and every lookup past
         // that point reads a different column - or nothing.
         table.TrimTrailingArrayElements = false;
+
+        // The element names above are positional, and another set of this table's rows is laid
+        // onto its columns by name. A locale with fewer columns of this axis would then be
+        // shifted from its first missing id onwards - measured, and it was: two elements of a
+        // 735-column grid read another town's value. So each element says what to match it by,
+        // and that is the column id. spec/table-row-sets.md ~ spec/matrix-tables.md.
+        for (int position = 0; position < columns.Count && position < elements.Count; position++)
+            elements[position].SetAlignName = $"{MatrixValueField}#{columns[position].Id}";
+
+        // A sheet that is another set of some table's rows makes no column table of its own.
+        // Once folded, the positions are the table's, so this one would state positions that
+        // nothing holds any more. Which sheets those are is the source's own setting, and this
+        // layout can read it. spec/table-row-sets.md.
+        if (IsAnotherSetsRows(table, sheet))
+        {
+            Log.Information(
+                $"`{table.Name}` is a grid of {columns.Count} column(s) and another set of some "
+                + $"table's rows, so its column ids come from the table it folds into. "
+                + $"({table.Location})");
+
+            return;
+        }
 
         var companion = new Models.Table
         {
@@ -1108,8 +1267,9 @@ public sealed class UwoLayoutParser : ILayoutParser
             if (axisId is < int.MinValue or > int.MaxValue)
             {
                 throw new TabbitException(cell.Location,
-                    $"Column id `{axisId}` of `{table.Name}` does not fit a 32-bit integer, and "
-                    + $"`{companion.Name}.Id` is one.");
+                    Message.Of(UwoLayoutMessages.GridColumnIdNotInt32,
+                        ("Id", axisId), ("Table", table.Name),
+                        ("Companion", companion.Name)));
             }
 
             companion.Data.Add(new List<Cell>
@@ -1130,6 +1290,32 @@ public sealed class UwoLayoutParser : ILayoutParser
         // shape produces one - threading a second return value through for this one case would
         // put a grid's existence in the signature of everything that reads a table.
         _context.Model.Tables.Add(companion);
+    }
+
+    /// <summary>
+    /// Whether this table's name says it is another set of some table's rows.
+    /// </summary>
+    /// <remarks>
+    /// The same pattern the folding uses, read from the same place - the source's own setting.
+    /// Asked here because a grid decides one thing differently when it is a set, and the
+    /// answer is available before the folding runs. spec/table-row-sets.md.
+    /// </remarks>
+    private static bool IsAnotherSetsRows(Models.Table table, RawSheet sheet)
+    {
+        string pattern = (sheet.Layout ?? SheetLayout.Default).TableRowSets;
+
+        if (pattern.Length == 0)
+            return false;
+
+        var match = System.Text.RegularExpressions.Regex.Match(table.RawName, pattern);
+
+        if (!match.Success)
+            return false;
+
+        var group = match.Groups["table"];
+
+        return group.Success && group.Value.Length > 0
+               && !string.Equals(group.Value, table.RawName, StringComparison.Ordinal);
     }
 
     /// <summary>A cell of the rectangle, addressed from its top-left.</summary>

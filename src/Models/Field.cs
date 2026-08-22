@@ -71,6 +71,40 @@ public class Field
     public bool IsRequired { get; set; } = true;
 
     /// <summary>
+    /// The name this column is matched by when another set of the table's rows is laid onto
+    /// its columns. Empty means <see cref="RawName"/>, which is the ordinary case.
+    /// </summary>
+    /// <remarks>
+    /// The folding matches by name rather than by position, because two sets of one table's
+    /// rows do not have to be the same width. That works as long as the name says which column
+    /// it is - and a layout may rename a column to something positional, in which case the
+    /// name no longer does. A grid is that case: its column names are ids of another axis, so
+    /// the layout renames them to `Value[0]`, `Value[1]`, and a set missing one id would then
+    /// be laid out shifted by one from there on.
+    ///
+    /// So the layout that renames a column may say what to match it by instead. **Nothing here
+    /// knows what a grid is** - only that this column has a name of its own for this one
+    /// purpose. spec/table-row-sets.md · spec/matrix-tables.md.
+    /// </remarks>
+    public string SetAlignName { get; set; } = "";
+
+    /// <summary>
+    /// Whether every element of this column's array has to be a value.
+    /// </summary>
+    /// <remarks>
+    /// True unless the type cell writes the marker inside the brackets: `int[]` and `int[]?`
+    /// want a number in every element, and `int?[]` takes `-` in one of them.
+    ///
+    /// Independent of <see cref="IsRequired"/>, which answers for the array itself, because
+    /// the two are different facts - `int?[]?` says both may be absent and `int?[]` says only
+    /// an element may. A column that is not an array leaves this true; there is nothing for
+    /// it to say.
+    ///
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    public bool ElementsRequired { get; set; } = true;
+
+    /// <summary>
     /// The column's name read as a path into the row, or null for an ordinary column.
     /// </summary>
     /// <remarks>
@@ -230,7 +264,7 @@ public class Field
     /// One entry is the ordinary case and the same thing <see cref="RefTableName"/> says.
     /// More than one is a column that reaches several tables - the value is an id, and which
     /// table holds the row is a question each generated accessor answers for its own target
-    /// rather than a sum type nobody could spell in thirteen languages.
+    /// rather than a sum type nobody could spell in every language.
     ///
     /// The list is what the layouts fill; the singular name follows from it.
     /// </remarks>
@@ -250,6 +284,23 @@ public class Field
     /// </summary>
     [JsonIgnore]
     public List<Table>? ResolvedRefTables { get; set; }
+
+    /// <summary>
+    /// The enumeration saying which of those tables a row's value is in. Null unless this
+    /// field names several.
+    /// </summary>
+    /// <remarks>
+    /// Declared by the cooker, not by a sheet - see <see cref="Enum.Synthesized"/>. It has a
+    /// `None` at zero and one label per target, in the order they are named, and the linking
+    /// pass sets it beside the resolved row.
+    ///
+    /// The column's value could answer this question by being looked up in each target in
+    /// turn, and that is exactly what a consumer would otherwise write. The linking already
+    /// walks the targets once, so it records the answer instead.
+    /// spec/multi-target-accessors.md.
+    /// </remarks>
+    [JsonIgnore]
+    public Enum? MultiTargetEnum { get; set; }
 
     /// <summary>
     /// Field within the referenced table, for the `RefTable.RefFieldName` form.
@@ -280,7 +331,7 @@ public class Field
     /// travels is the key, and its type is the target's to decide.
     ///
     /// This existed as the constant `int32` in six places: the exporters, the format's
-    /// element mapping, thirteen generators' read switches and the SQL schemas. Meanwhile
+    /// element mapping, the generators' read switches and the SQL schemas. Meanwhile
     /// index keys had been generalized to anything that can tell rows apart, so a table keyed
     /// by `string` could be read and generated but not pointed at. Holding the answer here is
     /// what lets those places ask instead of assume.
@@ -350,8 +401,9 @@ public class Field
             // declaration a scalar `enum` field would.
             if (ElementType != ValueType.Enum)
             {
-                throw new TabbitException(NameLocation,
-                    $"Field `{OwnerTable?.Name}.{Name}` has type `{TypeName}`, which is not an enum.");
+                    throw new TabbitException(NameLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.FieldIsNotAnEnum,
+                            ("Table", OwnerTable?.Name), ("Field", Name), ("Type", TypeName)));
             }
 
             return Model.Current.GetEnum(TypeName, null)!;

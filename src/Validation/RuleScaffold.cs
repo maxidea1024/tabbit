@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Tabbit.Helpers;
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.Validation;
 
@@ -142,13 +143,11 @@ internal static class RuleScaffold
     {
         if (recipe is null || string.IsNullOrWhiteSpace(recipe.Path))
         {
-            throw new TabbitException(
-                "The recipe has no `Validation.Path`, so there is no folder to put a rule in. "
-                + "Set it to where the rules should live - beside the sheets is the usual place.");
+            throw new TabbitException(null, Message.Of(ValidationMessages.NoPathForNewRule));
         }
 
         if (string.IsNullOrWhiteSpace(tableName))
-            throw new TabbitException("`--new-validator` needs the name of the table to write a rule for.");
+            throw new TabbitException(null, Message.Of(ValidationMessages.NewValidatorNeedsTable));
 
         string path = Path.GetFullPath(Path.Combine(
             recipe.Path,
@@ -157,9 +156,8 @@ internal static class RuleScaffold
 
         if (File.Exists(path))
         {
-            throw new TabbitException(
-                $"`{path}` already exists. Open it rather than starting it again - a rule file "
-                + $"is somebody's work, and this command will not overwrite one.");
+            throw new TabbitException(null,
+                Message.Of(ValidationMessages.RuleFileExists, ("Path", path)));
         }
 
         FileHelper.EnsurePathExists(path);

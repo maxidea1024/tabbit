@@ -103,7 +103,7 @@ class SealTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Seal.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementUuid});
+          tabbit::check_column(column, "Seal.Index", tabbit::kKindScalar, false, {tabbit::kElementUuid});
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             reader.read(record.index);
@@ -111,7 +111,7 @@ class SealTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Seal.Label", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Seal.Label", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Seal.Label");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -124,7 +124,7 @@ class SealTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Seal.Pad", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Seal.Pad", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Seal.Pad");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -137,7 +137,7 @@ class SealTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Seal.Pad2", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Seal.Pad2", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Seal.Pad2");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -150,7 +150,7 @@ class SealTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Seal.Pad3", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Seal.Pad3", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Seal.Pad3");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {

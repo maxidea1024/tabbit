@@ -134,13 +134,13 @@ impl AssetTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Asset.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_UUID])?;
+                    tabbit::check_column(column, "Asset.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_UUID])?;
                     for record in records.iter_mut() {
                         record.index = reader.read_uuid()?;
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Asset.Path", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Asset.Path", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Asset.Path")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -152,7 +152,7 @@ impl AssetTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Asset.Slot", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Asset.Slot", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Asset.Slot")?;
                     let mut at = 0usize;
                     while at < records.len() {

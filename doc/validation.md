@@ -111,7 +111,7 @@ tabbit --recipe recipe.json --validate-only
 
 검증까지만 돌고 산출물을 하나도 만들지 않습니다. PR 검사가 쓰는 형태입니다.
 
-> **돌아가는 규칙 폴더가 저장소에 있습니다** — [side-by-side/validation/](../side-by-side/validation/)이고, `rules/` 아래 `pre`·`tables`·`global`·`shared` 각각 한 파일입니다. 같은 디렉터리에 그 시트를 13개 언어로 뽑은 결과가 함께 커밋되어 있으므로, 규칙이 읽는 `context.Tables.Package.Records`가 실제로 어떤 타입인지 옆에서 확인할 수 있습니다.
+> **돌아가는 규칙 폴더가 저장소에 있습니다** — [side-by-side/validation/](../side-by-side/validation/)이고, `rules/` 아래 `pre`·`tables`·`global`·`shared` 각각 한 파일입니다. 같은 디렉터리에 그 시트를 모든 언어로 뽑은 결과가 함께 커밋되어 있으므로, 규칙이 읽는 `context.Tables.Package.Records`가 실제로 어떤 타입인지 옆에서 확인할 수 있습니다.
 
 ## 4. 폴더 규약
 
@@ -594,6 +594,12 @@ foreach (var field in context.Schema.Fields)
         context.Warn(field, $"`{field}`의 사이드가 테이블과 다릅니다.");
 }
 ```
+
+> **이름 표기는 여기에 쓰지 않아도 됩니다.** 「필드는 camelCase」 같은 규약과, 한 이름이
+> 여러 표기로 적힌 것의 검출은 recipe의
+> [`Naming` 섹션](recipe.md#naming--이름의-표기-규약)이 합니다 — 프로젝트마다 같은
+> 규칙을 다시 쓰지 않기 위해 코어로 옮긴 것입니다. 규칙 파일은 표기로 표현할 수 없는 것을
+> 위한 자리로 남습니다.
 
 ### 사전 검증 — 시트를 읽기 전
 

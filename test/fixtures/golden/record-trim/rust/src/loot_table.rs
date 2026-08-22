@@ -127,7 +127,7 @@ impl LootTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Loot.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loot.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -139,7 +139,7 @@ impl LootTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Loot.Name", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Loot.Name", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Name")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -151,7 +151,7 @@ impl LootTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Loot.Slot.Id", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loot.Slot.Id", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let bytes_left = reader.remaining();
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Slot.Id")?;
                     for record in records.iter_mut() {
@@ -175,7 +175,7 @@ impl LootTable {
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Loot.Slot.Count", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loot.Slot.Count", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Slot.Count")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
@@ -192,7 +192,7 @@ impl LootTable {
                     }
                 }
                 5 => {
-                    tabbit::check_column(column, "Loot.Slot.Label", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Loot.Slot.Label", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Slot.Label")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
@@ -209,7 +209,7 @@ impl LootTable {
                     }
                 }
                 6 => {
-                    tabbit::check_column(column, "Loot.Pos.X", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loot.Pos.X", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Pos.X")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -221,7 +221,7 @@ impl LootTable {
                     }
                 }
                 7 => {
-                    tabbit::check_column(column, "Loot.Pos.Y", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loot.Pos.Y", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Pos.Y")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -233,7 +233,7 @@ impl LootTable {
                     }
                 }
                 8 => {
-                    tabbit::check_column(column, "Loot.Tag_array", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Loot.Tag_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Tag_array")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;

@@ -65,10 +65,10 @@ internal static class RunEnvironment
         // labelled by one and built by the other for as long as nobody looked.
         if (inherited is not null && !string.Equals(inherited, asked, StringComparison.Ordinal))
         {
-            throw new TabbitException(
-                $"`--env {asked}` was given while {Variable} is already set to `{inherited}`. " +
-                $"They label the same run and decide the same paths, so one of them is wrong. " +
-                $"Clear the variable, or pass the environment it names.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(RunMessages.EnvironmentNamedTwice,
+                        ("Asked", asked), ("Variable", Variable),
+                        ("Inherited", inherited)));
         }
 
         Environment.SetEnvironmentVariable(Variable, asked);
@@ -81,10 +81,8 @@ internal static class RunEnvironment
         if (name is null || Allowed.IsMatch(name))
             return;
 
-        throw new TabbitException(
-            $"{described} is not an environment name. This word goes into the paths a " +
-            $"recipe builds with `${{{Variable}}}`, so it is limited to letters, digits, " +
-            $"`.`, `_` and `-` - anything else would write the output somewhere the " +
-            $"recipe does not describe.");
+            throw new TabbitException(null,
+                Messages.Message.Of(RunMessages.EnvironmentNameIllegal,
+                    ("Described", described), ("Variable", Variable)));
     }
 }

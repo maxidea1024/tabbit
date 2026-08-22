@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using MySqlConnector;
 using Serilog;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -571,11 +572,8 @@ internal sealed class HistoryStore : IHistoryState, IDisposable
         if (values.TryGetValue(text, out long id))
             return id;
 
-        throw new TabbitException(
-            $"The value pool has no id for a cell holding `{Ellipsis(text)}`, which was " +
-            $"put there moments ago. Something removed it between the insert and the read " +
-            $"- a prune of another branch is the only thing that does. The snapshot has " +
-            $"not been written.");
+            throw new TabbitException(null,
+                Message.Of(RecordMessages.ValuePoolIdMissing, ("Text", Ellipsis(text))));
     }
 
     /// <summary>Enough of a value to recognise it, without putting a cell of prose in a log.</summary>

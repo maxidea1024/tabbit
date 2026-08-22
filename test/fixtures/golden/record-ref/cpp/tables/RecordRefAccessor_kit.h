@@ -106,7 +106,7 @@ class KitTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Kit.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Kit.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Kit.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -119,7 +119,7 @@ class KitTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Kit.Part.ItemId", tabbit::kKindVarArray, 0, false, {tabbit::kElementI32});
+          tabbit::check_column(column, "Kit.Part.ItemId", tabbit::kKindArray, false, {tabbit::kElementI32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Kit.Part.ItemId");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -132,7 +132,7 @@ class KitTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Kit.Part.Count", tabbit::kKindVarArray, 0, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Kit.Part.Count", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Kit.Part.Count");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];

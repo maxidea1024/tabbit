@@ -204,7 +204,6 @@ public class SchemaBaselineTests
             Name = "Removed",
             Element = 6,
             Kind = 0,
-            Count = 1,
             ExplicitTag = true,
         });
 
@@ -262,7 +261,6 @@ public class SchemaBaselineTests
             Name = "Retired",
             Element = 6,
             Kind = 0,
-            Count = 1,
             Retired = true,
             ExplicitTag = true,
         });

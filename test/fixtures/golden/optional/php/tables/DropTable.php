@@ -157,7 +157,7 @@ final class DropTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Drop.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Drop.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Drop.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -168,7 +168,7 @@ final class DropTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Drop.Hp', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Drop.Hp', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Drop.Hp');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -179,7 +179,7 @@ final class DropTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Drop.Bonus', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Drop.Bonus', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -206,7 +206,7 @@ final class DropTable
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Drop.Weight', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_F64, TcbReader::ELEMENT_F32, TcbReader::ELEMENT_I32]);
+                    TcbReader::checkColumn($column, 'Drop.Weight', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_F64, TcbReader::ELEMENT_F32, TcbReader::ELEMENT_I32]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -230,7 +230,7 @@ final class DropTable
                     break;
 
                 case 5:
-                    TcbReader::checkColumn($column, 'Drop.Ratio', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_F32]);
+                    TcbReader::checkColumn($column, 'Drop.Ratio', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_F32]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -254,7 +254,7 @@ final class DropTable
                     break;
 
                 case 6:
-                    TcbReader::checkColumn($column, 'Drop.Count', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_I64, TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Drop.Count', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_I64, TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -278,7 +278,7 @@ final class DropTable
                     break;
 
                 case 7:
-                    TcbReader::checkColumn($column, 'Drop.OpenAt', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_I64]);
+                    TcbReader::checkColumn($column, 'Drop.OpenAt', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_I64]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -302,7 +302,7 @@ final class DropTable
                     break;
 
                 case 8:
-                    TcbReader::checkColumn($column, 'Drop.Cooldown', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_I64]);
+                    TcbReader::checkColumn($column, 'Drop.Cooldown', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_I64]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -326,7 +326,7 @@ final class DropTable
                     break;
 
                 case 9:
-                    TcbReader::checkColumn($column, 'Drop.Batch', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_UUID]);
+                    TcbReader::checkColumn($column, 'Drop.Batch', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_UUID]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -349,7 +349,7 @@ final class DropTable
                     break;
 
                 case 10:
-                    TcbReader::checkColumn($column, 'Drop.Grade', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Drop.Grade', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_VARINT]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -376,7 +376,7 @@ final class DropTable
                     break;
 
                 case 11:
-                    TcbReader::checkColumn($column, 'Drop.Costs', TcbReader::KIND_VAR_ARRAY, 0, true, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Drop.Costs', TcbReader::KIND_ARRAY, true, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -404,7 +404,7 @@ final class DropTable
                     break;
 
                 case 12:
-                    TcbReader::checkColumn($column, 'Drop.Label', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Drop.Label', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_STRING]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -431,7 +431,7 @@ final class DropTable
                     break;
 
                 case 13:
-                    TcbReader::checkColumn($column, 'Drop.Hidden', TcbReader::KIND_SCALAR, 1, true, [TcbReader::ELEMENT_BOOL]);
+                    TcbReader::checkColumn($column, 'Drop.Hidden', TcbReader::KIND_SCALAR, true, [TcbReader::ELEMENT_BOOL]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.

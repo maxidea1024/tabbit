@@ -145,11 +145,11 @@ public abstract class Target<TEntry> : ITarget
     /// with, and fail somewhere that says nothing about the cause - or worse, emit a
     /// plausible file built from one arbitrary member.
     ///
-    /// The point of the flag is that thirteen targets need not be converted at once, and one
+    /// The point of the flag is that the targets need not be converted at once, and one
     /// that has not been produces a message naming itself - a far better answer than output
     /// that differs from the other twelve for reasons nobody can see.
     ///
-    /// All thirteen code generators now say true, so this is what a fourteenth would meet
+    /// All the code generators now say true, so this is what a new one would meet
     /// before it had learned. The exporters that cannot express a record still refuse.
     /// </remarks>
     protected virtual bool SupportsNestedFields => false;
@@ -183,6 +183,17 @@ public abstract class Target<TEntry> : ITarget
     /// </remarks>
     protected virtual bool SupportsOptionalFields => false;
 
+    /// <summary>
+    /// Whether this target can say that one element of an array has no value.
+    /// </summary>
+    /// <remarks>
+    /// A second flag rather than a widening of <see cref="SupportsOptionalFields"/>, because
+    /// the two are answered by different code: a target that carries a presence bit per row
+    /// still has nowhere to put one per element. Opted into as each learns the shape, which
+    /// is the order spec/nullable-array-elements.md sets out.
+    /// </remarks>
+    protected virtual bool SupportsOptionalElements => false;
+
     Type ITarget.EntryType => typeof(TEntry);
 
     void ITarget.Run(TargetContext context)
@@ -190,6 +201,7 @@ public abstract class Target<TEntry> : ITarget
         RefuseNestedFieldsIfUnsupported(context);
         RefuseDeepNestedFieldsIfUnsupported(context);
         RefuseOptionalFieldsIfUnsupported(context);
+        RefuseOptionalElementsIfUnsupported(context);
 
         Run(context, (TEntry)context.Entry);
     }
@@ -212,11 +224,34 @@ public abstract class Target<TEntry> : ITarget
                 string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
 
                 throw new TabbitException(wire.TagCarrier.TypeLocation,
-                    $"Target `{id}` does not support optional fields yet.\n"
-                    + $"  Table `{table.Name}` column `{wire.Name}` is typed "
-                    + $"`{wire.TagCarrier.TypeName}?`, so a row may have no value for it.\n"
-                    + $"  Remove the target from the recipe, or drop the `?` and let the "
-                    + $"column read a blank as the type's empty value.");
+                    Messages.Message.Of(Exporters.ExportMessages.TargetNoOptionalFields,
+                        ("Target", id), ("Table", table.Name), ("Column", wire.Name),
+                        ("Type", wire.TagCarrier.TypeName)));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stops before a target that cannot say an element is absent is handed a column of them.
+    /// </summary>
+    private void RefuseOptionalElementsIfUnsupported(TargetContext context)
+    {
+        if (SupportsOptionalElements)
+            return;
+
+        foreach (var table in context.Model.Tables)
+        {
+            foreach (var wire in table.WireColumns)
+            {
+                if (!wire.HasOptionalElements)
+                    continue;
+
+                string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
+
+                throw new TabbitException(wire.TagCarrier.TypeLocation,
+                    Messages.Message.Of(Exporters.ExportMessages.TargetNoOptionalElements,
+                        ("Target", id), ("Table", table.Name), ("Column", wire.Name),
+                        ("Type", wire.TagCarrier.TypeName)));
             }
         }
     }
@@ -241,11 +276,10 @@ public abstract class Target<TEntry> : ITarget
                 string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
 
                 throw new TabbitException(group.AnyField?.NameLocation,
-                    $"Target `{id}` does not support nested fields yet.\n"
-                    + $"  Table `{table.Name}` field `{group.Name}` is a record group of "
-                    + $"{group.Members.Count} member(s).\n"
-                    + $"  Remove the target from the recipe, or write the columns flat "
-                    + $"without `{Helpers.NestedName.MemberSeparator}`.");
+                    Messages.Message.Of(Exporters.ExportMessages.TargetNoNestedFields,
+                        ("Target", id), ("Table", table.Name), ("Field", group.Name),
+                        ("Count", group.Members.Count),
+                        ("Separator", Helpers.NestedName.MemberSeparator)));
             }
         }
     }
@@ -273,14 +307,11 @@ public abstract class Target<TEntry> : ITarget
                 string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
 
                 throw new TabbitException(deep.FirstField?.NameLocation,
-                    $"Target `{id}` does not support a record inside a record yet.\n"
-                    + $"  Table `{table.Name}` field `{group.Name}` has member `{deep.Name}`, "
-                    + $"which is a record of {deep.Members.Count} member(s) rather than a value.\n"
-                    + $"  Remove the target from the recipe, or flatten that level - "
-                    + $"`{group.Name}{Helpers.NestedName.MemberSeparator}{deep.Name}"
-                    + $"{deep.Members[0].Name}` instead of "
-                    + $"`{group.Name}{Helpers.NestedName.MemberSeparator}{deep.Name}"
-                    + $"{Helpers.NestedName.MemberSeparator}{deep.Members[0].Name}`.");
+                    Messages.Message.Of(Exporters.ExportMessages.TargetNoRecordInRecord,
+                        ("Target", id), ("Table", table.Name), ("Field", group.Name),
+                        ("Member", deep.Name), ("Count", deep.Members.Count),
+                        ("Separator", Helpers.NestedName.MemberSeparator),
+                        ("Inner", deep.Members[0].Name)));
             }
         }
     }

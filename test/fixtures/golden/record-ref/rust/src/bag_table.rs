@@ -110,8 +110,8 @@ impl BagTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.slots.item_id_index = vec![<i32>::default(); 2];
-            record.slots.count = vec![<i32>::default(); 2];
+            record.slots.item_id_index = Vec::new();
+            record.slots.count = Vec::new();
         }
 
         for column in &header.columns {
@@ -119,7 +119,7 @@ impl BagTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Bag.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Bag.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Bag.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -131,20 +131,28 @@ impl BagTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Bag.Slots.ItemId", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32])?;
+                    tabbit::check_column(column, "Bag.Slots.ItemId", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Bag.Slots.ItemId")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
-                            record.slots.item_id_index[element] = cursor.next_i32()?;
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        record.slots.item_id_index =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = cursor.next_i32()?;
+                            record.slots.item_id_index.push(value);
                         }
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Bag.Slots.Count", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Bag.Slots.Count", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Bag.Slots.Count")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
-                            record.slots.count[element] = cursor.next_i32()?;
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        record.slots.count =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = cursor.next_i32()?;
+                            record.slots.count.push(value);
                         }
                     }
                 }

@@ -17,8 +17,10 @@ import tabbit.readAllBytes
 import tabbit.open
 import tabbit.readTableHeader
 import tabbit.checkColumn
+import tabbit.checkColumnWithElements
 import tabbit.checkBlockEnd
 import tabbit.readPresence
+import tabbit.readElementPresence
 import tabbit.isPresent
 import tabbit.TcbException
 import tabbit.ColumnCursor
@@ -31,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/record-ref/record-ref.xlsx : Records : J2
 /** A record array whose first member is a reference. */
@@ -122,7 +123,7 @@ class LoadoutTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Loadout.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Loadout.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Index")
                     var at = 0
                     while (at < count) {
@@ -136,28 +137,46 @@ class LoadoutTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Loadout.Slot.ItemId", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32)
+                    checkColumn(column, "Loadout.Slot.ItemId", KIND_ARRAY, false, ELEMENT_I32)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Slot.ItemId")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.slot =
+                            MutableList(elementCount.coerceAtLeast(0)) { LoadoutRecord.SlotEntry() }
+                        for (element in 0 until elementCount) {
                             record.slot[element].itemIdIndex = cursor.nextI32()
                         }
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Loadout.Slot.SwapId", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32)
+                    checkColumn(column, "Loadout.Slot.SwapId", KIND_ARRAY, false, ELEMENT_I32)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Slot.SwapId")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        if (record.slot.size != elementCount) {
+                            throw TcbException(
+                                "Loadout.slot: the file gives one member of " +
+                                    "this record a different element count than another")
+                        }
+                        for (element in 0 until elementCount) {
                             record.slot[element].swapIdIndex = cursor.nextI32()
                         }
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Loadout.Slot.Count", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Loadout.Slot.Count", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Slot.Count")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        if (record.slot.size != elementCount) {
+                            throw TcbException(
+                                "Loadout.slot: the file gives one member of " +
+                                    "this record a different element count than another")
+                        }
+                        for (element in 0 until elementCount) {
                             record.slot[element].count = cursor.nextI32()
                         }
                     }

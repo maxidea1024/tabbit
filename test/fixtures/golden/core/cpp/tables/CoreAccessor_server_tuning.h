@@ -100,7 +100,7 @@ class ServerTuningTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "ServerTuning.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "ServerTuning.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ServerTuning.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -113,7 +113,7 @@ class ServerTuningTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "ServerTuning.Key", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "ServerTuning.Key", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ServerTuning.Key");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -126,7 +126,7 @@ class ServerTuningTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "ServerTuning.Amount", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "ServerTuning.Amount", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ServerTuning.Amount");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {

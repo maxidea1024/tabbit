@@ -290,6 +290,42 @@ public class SerialField
     public bool IsVariableLengthArray => Fields.Count == 1 && FirstField is not null && FirstField.IsArray;
 
     /// <summary>
+    /// Whether this group is an array because several columns fold into one, rather than
+    /// because a column's type says so.
+    /// </summary>
+    /// <remarks>
+    /// The two are told apart by where the array is written. A delimited cell declares
+    /// `T[]` in one type cell, so that cell can carry the array's own marker as well as the
+    /// element's. A folded group declares one element per column and has **no cell that
+    /// stands for the array**, which is what makes the two answer the marker differently.
+    /// spec/nullable-array-elements.md.
+    /// </remarks>
+    public bool IsFoldedArray => IsArray && !IsVariableLengthArray && !IsRecord;
+
+    /// <summary>Whether a row may leave this group without a value at all.</summary>
+    /// <remarks>
+    /// Never true of a folded array. Its columns exist in every row, so "the array is absent"
+    /// could only mean "every element is absent" - which <see cref="ElementMayBeAbsent"/>
+    /// says per element, and which a trimming table already writes as a length of zero.
+    ///
+    /// It used to be read off the first column's `?`, and answered by that column's cell:
+    /// a row whose element 0 was absent had the whole array reported as absent, taking the
+    /// values of elements 1..N with it.
+    /// </remarks>
+    public bool RowMayBeAbsent
+        => !IsRecord && !IsFoldedArray && Fields.Count > 0 && !Fields[0].IsRequired;
+
+    /// <summary>Whether an element of this group's array may have no value.</summary>
+    /// <remarks>
+    /// For a folded array this is what the columns' `?` says - the cell declares one
+    /// element's type, so its marker is that element's. For a delimited cell it is the
+    /// marker inside the brackets, `T?[]`.
+    /// </remarks>
+    public bool ElementMayBeAbsent
+        => !IsRecord && Fields.Count > 0
+            && (IsFoldedArray ? !Fields[0].IsRequired : !Fields[0].ElementsRequired);
+
+    /// <summary>
     /// Element type behind this field, looking through both array kinds.
     /// </summary>
     public ValueType ElementType => (Fields.Count > 0) ? ValueTypes.ElementOf(Fields[0].Type) : ValueType.None;

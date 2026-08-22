@@ -1,14 +1,14 @@
 {
   // The trailing `?` converted end to end.
   //
-  // The fixture pairs every type that refuses a blank cell with the same type marked
-  // optional, so the goldens hold both answers side by side: a blank passes in one column
-  // and would have been an error in the one next to it.
+  // The fixture pairs every type that can say it has no value with the same type left
+  // required, so the goldens hold both answers side by side: a row writes `-` in one column
+  // and the same cell would be refused in the one next to it.
   //
-  // What the goldens are watching for today is that the marker is *only* a parse-time
-  // permission. `int?` reads a blank as 0 and produces the same bytes, the same JSON and
-  // the same accessors as `int` - the file has no way to say "absent" yet. When it does
-  // (see spec/optional-fields.md), this recipe's goldens are what will show the change.
+  // What the goldens watch is that absence reaches the consumer. The file carries a presence
+  // bit per row and the generated pages carry a `Has{field}` accessor, so a row saying it has
+  // none is not the same as a row saying zero - spec/optional-fields.md. How a cell says it
+  // is spec/blank-and-null-cells.md, and `blank-and-null` is the fixture for that.
 
   "Sources": {
     "Xlsx": [
@@ -83,6 +83,15 @@
       "Path": "test/fixtures/output/optional/kotlin",
       "PackageName": "tabbit.fixtures.optional",
       "AccessorName": "OptionalAccessor"
+    },
+    {
+      "Type": "swift",
+      "Path": "test/fixtures/output/optional/swift",
+      "AccessorName": "OptionalAccessor"
+    },
+    {
+      "Type": "lua",
+      "Path": "test/fixtures/output/optional/lua"
     },
     {
       "Type": "java",

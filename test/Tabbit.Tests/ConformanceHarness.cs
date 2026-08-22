@@ -263,6 +263,51 @@ internal static class ConformanceHarness
         return Execute(PythonExecutable, root, environment, "harness.py", BinaryDir(dataScenario ?? scenario));
     }
 
+    /// <summary>
+    /// Whether the Lua host can be built - which is the C toolchain question: nothing
+    /// Lua is looked for on PATH. The suite compiles the vendored interpreter, the
+    /// embedder and the generated native module into one executable, the way a game
+    /// engine embeds Lua. spec/lua-language-support.md.
+    /// </summary>
+    public static bool LuaIsAvailable(out string reason) => LuaToolchain.IsAvailable(out reason);
+
+    public static ToolResult RunLua(
+        string scenario, string dataScenario = null,
+        IReadOnlyDictionary<string, string> environment = null)
+    {
+        // From the generated output directory, so `require("tables")` resolves through
+        // the default package.path; the harness file itself stays where it is.
+        string root = Path.Combine(RepoLayout.OutputDir(scenario), "lua");
+
+        return Execute(LuaToolchain.HostExecutable, root, environment,
+                       Path.Combine(HarnessDir("lua"), "harness.lua"),
+                       BinaryDir(dataScenario ?? scenario));
+    }
+
+    /// <summary>
+    /// Where a LuaJIT executable is, when one is here to run the FFI backend under.
+    /// </summary>
+    /// <remarks>
+    /// An opt-in gate like the Unreal one: machines without the variable skip it, and
+    /// CI that wants it sets `TABBIT_LUAJIT` to a `luajit` executable. The run is
+    /// keyless - a keyed run needs the native module built against that LuaJIT's own
+    /// import library, which is a consumer's build system's job rather than this
+    /// suite's - and a keyless reader reading a signed corpus is a legal path of its
+    /// own, so the values still have to match.
+    /// </remarks>
+    public static string LuaJitExecutable => Environment.GetEnvironmentVariable("TABBIT_LUAJIT");
+
+    public static ToolResult RunLuaJit(string scenario, string dataScenario = null)
+    {
+        string root = Path.Combine(RepoLayout.OutputDir(scenario), "lua");
+
+        var environment = new Dictionary<string, string> { [MacKeyVariable] = "" };
+
+        return Execute(LuaJitExecutable, root, environment,
+                       Path.Combine(HarnessDir("lua"), "harness.lua"),
+                       BinaryDir(dataScenario ?? scenario));
+    }
+
     /// <summary>Whether a JDK is on the path.</summary>
     public static bool JavaIsAvailable(out string reason)
     {
@@ -351,6 +396,323 @@ internal static class ConformanceHarness
             return build;
 
         return Execute("java", root, "-jar", jar, BinaryDir(dataScenario ?? scenario));
+    }
+
+    /// <summary>Whether a Swift toolchain is here.</summary>
+    /// <remarks>
+    /// One probe for both of this language's gates: the harness builds through SwiftPM
+    /// because verifying the corpus MAC needs a crypto package, and the compile-only check
+    /// runs `swiftc` over the same output with no package at all. Both need the toolchain
+    /// and nothing else.
+    /// </remarks>
+    public static bool SwiftIsAvailable(out string reason)
+    {
+        try
+        {
+            var probe = Execute(SwiftTool("swift"), RepoLayout.Root, SwiftEnvironment(), "--version");
+
+            reason = probe.Succeeded
+                ? null
+                : $"`swift --version` failed.{Environment.NewLine}{probe.Output}";
+
+            return probe.Succeeded;
+        }
+        catch (Exception ex)
+        {
+            reason = $"`swift` could not be started: {ex.Message}. "
+                   + "Install a toolchain from https://www.swift.org/install/ - on Windows "
+                   + "the Visual Studio C++ tools and a complete Windows SDK have to be "
+                   + "there first, and a partial SDK shows up as a missing UCRT header "
+                   + "rather than as a missing toolchain.";
+            return false;
+        }
+    }
+
+    public static ToolResult RunSwift(string scenario, string dataScenario = null)
+    {
+        // Into the generated directory rather than beside it: the manifest declares one
+        // target over the files as they are, which is the layout the generator writes and
+        // the one a consumer drops into a project.
+        string root = Path.Combine(RepoLayout.OutputDir(scenario), "swift");
+
+        // `main.swift` and not `harness.swift`: top-level statements are only allowed in a
+        // file of that name, and every other harness in this corpus is top-level code.
+        File.Copy(Path.Combine(HarnessDir("swift"), "main.swift"),
+                  Path.Combine(root, "main.swift"), overwrite: true);
+
+        File.Copy(Path.Combine(HarnessDir("swift"), "Package.swift"),
+                  Path.Combine(root, "Package.swift"), overwrite: true);
+
+        // Built into a scratch directory outside the scenario's output, for two reasons.
+        // SwiftPM's own `.build` holds the package checkouts, whose files come out of git
+        // read-only - and the next conversion's clean of the output directory cannot delete
+        // those, which fails a test that has nothing to do with Swift. Keeping it out also
+        // keeps it between runs, so swift-crypto is fetched once rather than every time.
+        string scratch = SwiftScratch(scenario);
+
+        var build = Execute(
+            SwiftTool("swift"), root, SwiftEnvironment(), "build", "--scratch-path", scratch);
+
+        if (!build.Succeeded)
+            return build;
+
+        // Asked for rather than assembled: the layout under a scratch path is the build
+        // triple and then the configuration, and on the platforms that have symlinks there is
+        // a `debug` link beside it that Windows does not get. One call spares this method
+        // knowing any of that.
+        var binPath = Execute(
+            SwiftTool("swift"), root, SwiftEnvironment(),
+            "build", "--scratch-path", scratch, "--show-bin-path");
+
+        if (!binPath.Succeeded)
+            return binPath;
+
+        string product = Path.Combine(
+            binPath.StdOut.Trim(), OnWindows ? "harness.exe" : "harness");
+
+        return Execute(product, root, SwiftEnvironment(), BinaryDir(dataScenario ?? scenario));
+    }
+
+    /// <summary>
+    /// Type-checks the generated Swift with no package at all, warnings included.
+    /// </summary>
+    /// <remarks>
+    /// Two things at once, and the second is the reason this is not just a compile check.
+    ///
+    /// The reader gets its HMAC-SHA-256 from CryptoKit on Apple platforms and from
+    /// swift-crypto elsewhere, and when neither is present it still has to compile - a
+    /// project that reads plain files should not be made to add a package. That third state
+    /// is only ever exercised here, because the harness build has the package.
+    ///
+    /// And warnings are errors, because generated code lands in somebody else's build. A
+    /// subnormal literal was a warning this found: it parses to the right value and would
+    /// have failed a consumer who builds with warnings as errors.
+    /// </remarks>
+    public static ToolResult CompileSwift(string scenario)
+    {
+        string root = Path.Combine(RepoLayout.OutputDir(scenario), "swift");
+
+        var sources = Directory
+            .EnumerateFiles(root, "*.swift", SearchOption.AllDirectories)
+            .Where(file => !file.Contains(".build", StringComparison.Ordinal))
+            .Where(file => Path.GetFileName(file) != "Package.swift")
+
+            // The harness, which is top-level code and belongs to the other gate.
+            .Where(file => Path.GetFileName(file) != "main.swift")
+            .OrderBy(file => file, StringComparer.Ordinal)
+            .ToList();
+
+        // Both language modes. Swift 6 turns concurrency checks that are warnings in 5 into
+        // errors, and a consuming project chooses its own mode - so generated code that only
+        // builds in one of them is generated code that does not build. This found a real
+        // one: a `uuid` constant is a static of the reader's `Uuid`, which in Swift 6 has to
+        // be `Sendable` and was not.
+        ToolResult check = null;
+
+        foreach (string mode in new[] { null, "6" })
+        {
+            var arguments = new List<string> { "-typecheck", "-warnings-as-errors" };
+
+            if (mode != null)
+            {
+                arguments.Add("-swift-version");
+                arguments.Add(mode);
+            }
+
+            arguments.AddRange(sources);
+
+            check = Execute(SwiftTool("swiftc"), root, SwiftEnvironment(), arguments.ToArray());
+
+            if (!check.Succeeded)
+                return check;
+        }
+
+        return check;
+    }
+
+    /// <summary>
+    /// The environment a Swift process needs beyond the path, or null where it needs none.
+    /// </summary>
+    /// <remarks>
+    /// Windows only, and one variable: `SDKROOT`, which the installer writes into the user's
+    /// environment. A process that inherited its environment from a shell started before the
+    /// install does not have it, and without it `swiftc` cannot find the standard library -
+    /// which reads as a broken toolchain rather than as a stale shell.
+    /// </remarks>
+    private static IReadOnlyDictionary<string, string> SwiftEnvironment()
+    {
+        if (!OnWindows)
+            return null;
+
+        var environment = new Dictionary<string, string>();
+
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SDKROOT")))
+        {
+            foreach (string sdk in WindowsSwiftSdks())
+            {
+                if (Directory.Exists(sdk))
+                {
+                    environment["SDKROOT"] = sdk;
+                    break;
+                }
+            }
+        }
+
+        // The toolchain's directory and the runtime's, when the path does not already have
+        // them. `swift.exe` loads DLLs out of both, so starting it by its full path out of a
+        // shell that predates the install fails with a missing DLL rather than with anything
+        // that names Swift - which is a worse way to find out than either of the two this
+        // method exists to prevent.
+        var directories = WindowsSwiftToolchains()
+                          .Concat(WindowsSwiftRuntimes())
+                          .Where(Directory.Exists)
+                          .ToList();
+
+        string path = Environment.GetEnvironmentVariable("PATH") ?? "";
+
+        var already = path.Split(Path.PathSeparator)
+                          .Select(entry => entry.TrimEnd('\\'))
+                          .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var missing = directories
+                      .Where(dir => !already.Contains(dir.TrimEnd('\\')))
+                      .ToList();
+
+        if (missing.Count > 0)
+            environment["PATH"] = string.Join(Path.PathSeparator, missing) + Path.PathSeparator + path;
+
+        return environment.Count == 0 ? null : environment;
+    }
+
+    /// <summary>Where the Windows installer puts the runtime DLLs, newest first.</summary>
+    private static IEnumerable<string> WindowsSwiftRuntimes()
+    {
+        if (!OnWindows)
+            yield break;
+
+        string runtimes = Path.Combine(
+            HomeDir, "AppData", "Local", "Programs", "Swift", "Runtimes");
+
+        if (!Directory.Exists(runtimes))
+            yield break;
+
+        var versions = Directory.EnumerateDirectories(runtimes)
+                                .OrderByDescending(dir => dir, StringComparer.Ordinal);
+
+        foreach (string version in versions)
+            yield return Path.Combine(version, "usr", "bin");
+    }
+
+    /// <summary>
+    /// Compiles a set of Swift sources into one executable, with no package involved.
+    /// </summary>
+    /// <remarks>
+    /// For the updater's own gate, which is the one Swift program in the suite that is not
+    /// generated code: the updater takes Foundation and nothing else, so it compiles as a
+    /// plain `swiftc` invocation - and that it still does is half of what the gate asks.
+    ///
+    /// The entry point has to be in a file called `main.swift`; Swift allows top-level
+    /// statements nowhere else.
+    /// </remarks>
+    public static ToolResult CompileSwiftProgram(
+        string workDir, string exeName, params string[] sources)
+    {
+        var arguments = new List<string> { "-warnings-as-errors", "-o", ExeName(exeName) };
+        arguments.AddRange(sources);
+
+        return Execute(SwiftTool("swiftc"), workDir, SwiftEnvironment(), arguments.ToArray());
+    }
+
+    /// <summary>Runs a program built by <see cref="CompileSwiftProgram"/>.</summary>
+    /// <remarks>
+    /// Through <see cref="SwiftEnvironment"/> like the compiler, because the executable links
+    /// against the Swift runtime and on Windows that lives in a directory of its own.
+    /// </remarks>
+    public static ToolResult RunSwiftProgram(
+        string workDir, string exeName, params string[] args)
+        => Execute(
+            Path.Combine(workDir, ExeName(exeName)), workDir, SwiftEnvironment(), args);
+
+    private static string ExeName(string name) => OnWindows ? name + ".exe" : name;
+
+    /// <summary>
+    /// Where SwiftPM builds, which is deliberately not under the scenario's output.
+    /// </summary>
+    /// <remarks>
+    /// Not cleared: the package checkouts under it are what make a second run offline, and
+    /// SwiftPM decides for itself what to rebuild.
+    /// </remarks>
+    private static string SwiftScratch(string scenario)
+    {
+        string dir = Path.Combine(RepoLayout.OutputDir("_swift"), scenario);
+
+        Directory.CreateDirectory(dir);
+
+        return dir;
+    }
+
+    /// <summary>
+    /// A Swift tool by name, or its full path where the name is not on this process's path.
+    /// </summary>
+    /// <remarks>
+    /// The Windows installer puts the toolchain on the user's path, which a shell started
+    /// before the install does not have - and a test run from that shell would report a
+    /// missing toolchain when what is missing is a restart. The same courtesy the Kotlin and
+    /// Dart runners already extend to their own.
+    /// </remarks>
+    private static string SwiftTool(string name)
+    {
+        if (FindOnPath(name) != null)
+            return name;
+
+        foreach (string directory in WindowsSwiftToolchains())
+        {
+            string candidate = Path.Combine(directory, name + ".exe");
+
+            if (File.Exists(candidate))
+                return candidate;
+        }
+
+        // Unfound, so the name goes back as it came and the failure names the tool.
+        return name;
+    }
+
+    /// <summary>Where the Windows installer puts the toolchains, newest first.</summary>
+    private static IEnumerable<string> WindowsSwiftToolchains()
+    {
+        if (!OnWindows)
+            yield break;
+
+        string toolchains = Path.Combine(
+            HomeDir, "AppData", "Local", "Programs", "Swift", "Toolchains");
+
+        if (!Directory.Exists(toolchains))
+            yield break;
+
+        var versions = Directory.EnumerateDirectories(toolchains)
+                                .OrderByDescending(dir => dir, StringComparer.Ordinal);
+
+        foreach (string version in versions)
+            yield return Path.Combine(version, "usr", "bin");
+    }
+
+    /// <summary>Where the Windows installer puts the platform SDKs, newest first.</summary>
+    private static IEnumerable<string> WindowsSwiftSdks()
+    {
+        string platforms = Path.Combine(
+            HomeDir, "AppData", "Local", "Programs", "Swift", "Platforms");
+
+        if (!Directory.Exists(platforms))
+            yield break;
+
+        var versions = Directory.EnumerateDirectories(platforms)
+                                .OrderByDescending(dir => dir, StringComparer.Ordinal);
+
+        foreach (string version in versions)
+        {
+            yield return Path.Combine(
+                version, "Windows.platform", "Developer", "SDKs", "Windows.sdk");
+        }
     }
 
     /// <summary>Whether a Ruby interpreter is here.</summary>
@@ -757,6 +1119,31 @@ internal static class ConformanceHarness
     public static ToolResult RunPythonSnippet(string scenario, string snippet, params string[] arguments)
         => Execute(PythonExecutable, Generated(scenario, "python"),
                    new[] { "-c", snippet }.Concat(arguments).ToArray());
+
+    /// <summary>
+    /// Runs a Lua snippet from a scenario's generated output directory, under the same
+    /// host the conformance run builds.
+    /// </summary>
+    /// <remarks>
+    /// Written to a file rather than passed inline - the host takes a script path - and
+    /// beside the generated modules so the default package.path resolves them, the way
+    /// the Python snippet runs from the generated package's parent.
+    /// </remarks>
+    public static ToolResult RunLuaSnippet(string scenario, string snippet, params string[] arguments)
+    {
+        string root = Generated(scenario, "lua");
+        string script = Path.Combine(root, "snippet.lua");
+
+        File.WriteAllText(script, snippet);
+
+        return Execute(LuaToolchain.HostExecutable, root,
+                       new[] { script }.Concat(arguments).ToArray());
+    }
+
+    /// <summary>Runs a Lua script that is already in `workDir`, under the same host.</summary>
+    public static ToolResult RunLuaScript(string workDir, string script, params string[] arguments)
+        => Execute(LuaToolchain.HostExecutable, workDir,
+                   new[] { Path.Combine(workDir, script) }.Concat(arguments).ToArray());
 
     public static ToolResult CompileJava(string scenario)
     {

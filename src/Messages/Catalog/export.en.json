@@ -1,0 +1,44 @@
+{
+  "export.connection-string-missing": "Recipe section `{Section}` has no ConnectionString.",
+  "export.connection-string-env-not-set": "Recipe section `{Section}` refers to environment variable(s) {Variables}, which are not set. Connection secrets are read from the environment so they need not be committed.",
+  "export.mongodb-needs-database": "Recipe section `{Section}` connection string must name a database, as in `mongodb://host:27017/mygame`.",
+  "export.mongodb-element-type-unmapped": "MongoDB exporter cannot map element type `{Type}`.",
+  "export.mysql-type-unmapped": "MySQL exporter cannot map type `{Type}` of column `{Column}`.",
+  "export.postgresql-type-unmapped": "PostgreSQL exporter cannot map type `{Type}` of column `{Column}`.",
+  "export.redis-swap-refused": "Redis refused the swap transaction for `{Key}`.",
+
+  "export.schema-broke-readers": "The schema changed in {Count} way(s) that a reader already built from the previous schema would not survive:\n\n  {Problems}\n\nNothing was written. The baseline this is compared against is `{Baseline}`.",
+  "export.schema-baseline-unreadable": "The schema baseline `{Baseline}` could not be read: {Detail}. Fix the file or delete it - deleting it gives up the check for one run and writes a new baseline from this schema.",
+
+  "export.file-not-encrypted": "The file is not encrypted.",
+  "export.cipher-unknown": "Cipher {Cipher} is not one this build knows.",
+  "export.decrypt-failed": "The file did not decrypt to a table. The key is not the one it was written with.",
+  "export.same-key-for-mac": "A binary export uses the same key for encryption and for the MAC. Make a second key with `--new-encryption-key`, so that one secret is not doing the work of two.",
+  "export.key-named-twice": "A binary export names both `{VariableSetting}` and `{FileSetting}`. Name one, so there is no question which {Purpose} key the files were written with.",
+  "export.key-env-not-set": "The binary export asks for the {Purpose} key in environment variable `{Variable}`, which is not set.",
+  "export.key-file-missing": "The binary export asks for the {Purpose} key in `{Path}`, which does not exist.",
+  "export.key-wrong-length": "The {Purpose} key in {Origin} is {Length} characters. It has to be {Expected} hexadecimal characters, for {Bytes} bytes.",
+  "export.key-not-hexadecimal": "The {Purpose} key in {Origin} is not hexadecimal.",
+
+  "export.text-format-and-template": "The `text` target was given both a `Format` and a `Template`. They are two answers to what a file looks like; name one.",
+  "export.text-needs-format": "The `text` target needs a `Format` - one gathered string as a line of the file. For example:\n    \"Format\": \"NSLOCTEXT(\\\"{{namespace}}\\\", \\\"{{group}}\\\", \\\"{{text}}\\\")\"\n  The names in braces are filled in per string: {{text}} {{raw}} {{group}} {{namespace}} {{table}} {{field}} {{location}} {{index}}.\n  A shape that is not one line per string is what `Template` is for.",
+  "export.text-group-two-namespaces": "Group `{Group}` is gathered into two namespaces.\n  `{Table}.{Field}` says `{Says}`.\n  `{FirstTable}.{FirstField}` says `{FirstSays}`. ({FirstAt})\n  A group is one file and a namespace holds files, so the columns gathering into one have to agree. Split the group, or name the namespace on one column and let the rest take it.",
+  "export.text-pattern-unclosed-brace": "The `text` target's `{Setting}` opens a `{{` at position {At} and never closes it: `{Pattern}`. Write `{{{{` for a literal brace.",
+  "export.text-pattern-unknown-name": "The `text` target's `{Setting}` uses `{{{Name}}}`, which is not a name this target fills in: `{Pattern}`.\n  Per string: {{text}} {{raw}} {{table}} {{field}} {{location}} {{index}}\n  Per file:   {{group}} {{namespace}} {{count}}\n  `{{{{{{{{` writes a literal brace.",
+  "export.text-pattern-name-is-per-file": "The `text` target's `{Setting}` uses `{{{Name}}}`, which describes the file rather than one string, and this pattern is written once per string: `{Pattern}`.",
+  "export.text-pattern-name-is-per-string": "The `text` target's `{Setting}` uses `{{{Name}}}`, which describes one gathered string. A header and a footer are written once for the whole file, so there is no string for it to name: `{Pattern}`.",
+  "export.text-template-missing": "The `text` target's template `{Name}` is not there. The path is read relative to the working directory, which is `{Directory}`.",
+  "export.text-line-ending-unknown": "The `text` target's `LineEnding` is `{LineEnding}`. It has to be `lf` or `crlf`.",
+
+  "export.constant-type-not-rendered": "Constant `{Name}` has type `{Type}`, which the {Generator} generator cannot render.",
+  "export.target-no-optional-fields": "Target `{Target}` does not support optional fields yet.\n  Table `{Table}` column `{Column}` is typed `{Type}?`, so a row may have no value for it.\n  Remove the target from the recipe, or drop the `?` and let the column read a blank as the type's empty value.",
+  "export.target-no-optional-elements": "Target `{Target}` does not support arrays whose elements may be absent yet.\n  Table `{Table}` column `{Column}` is typed `{Type}?[]`, so an element may have no value.\n  Remove the target from the recipe, or move the `?` outside the brackets and let every element hold a value.",
+  "export.target-no-nested-fields": "Target `{Target}` does not support nested fields yet.\n  Table `{Table}` field `{Field}` is a record group of {Count} member(s).\n  Remove the target from the recipe, or write the columns flat without `{Separator}`.",
+  "export.target-no-record-in-record": "Target `{Target}` does not support a record inside a record yet.\n  Table `{Table}` field `{Field}` has member `{Member}`, which is a record of {Count} member(s) rather than a value.\n  Remove the target from the recipe, or flatten that level - `{Field}{Separator}{Member}{Inner}` instead of `{Field}{Separator}{Member}{Separator}{Inner}`.",
+  "export.generated-file-name-clash": "Two different files were generated for `{Path}`. A generated file is named after a table, an enum or a constant set, and two of those have names that reduce to the same file name. Rename one of them in the sheets.",
+
+  "export.log-mongodb-cleanup-failed": "Could not clean up MongoDB shadow collections: {Detail}",
+  "export.log-mysql-cleanup-failed": "Could not clean up MySQL shadow tables: {Detail}",
+  "export.log-redis-cleanup-failed": "Could not clean up Redis shadow keys: {Detail}",
+  "export.log-unreal-enum-not-blueprint": "Enum `{Enum}` label `{Label}` has value {Value}, which does not fit the uint8 a BlueprintType enum has to be. Generating it as a plain int32 UENUM instead: readable from C++, not visible in Blueprint, and neither are the fields typed with it."
+}

@@ -98,7 +98,7 @@ class DeepTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Deep.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Deep.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Deep.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -108,28 +108,46 @@ class DeepTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Deep.Star.Id', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Deep.Star.Id', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Deep.Star.Id');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            // The first member builds the list; the rest check. Building it again would
+            // discard what the members before it wrote, and taking the shorter of two
+            // counts would shift every value after it.
+            record.star =
+                List.generate(elementCount, (_) => DeepStarEntry());
+            for (var j = 0; j < elementCount; j++) {
               record.star[j].id = cursor.nextI32();
             }
           }
           break;
         case 3:
-          checkColumn(column, 'Deep.Star.Position.X', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Deep.Star.Position.X', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Deep.Star.Position.X');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            if (record.star.length != elementCount) {
+              throw TcbException(
+                  'Deep.star: the file gives one member of this '
+                  'record a different element count than another');
+            }
+            for (var j = 0; j < elementCount; j++) {
               record.star[j].position.x = cursor.nextI32();
             }
           }
           break;
         case 4:
-          checkColumn(column, 'Deep.Star.Position.Y', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Deep.Star.Position.Y', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Deep.Star.Position.Y');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            if (record.star.length != elementCount) {
+              throw TcbException(
+                  'Deep.star: the file gives one member of this '
+                  'record a different element count than another');
+            }
+            for (var j = 0; j < elementCount; j++) {
               record.star[j].position.y = cursor.nextI32();
             }
           }

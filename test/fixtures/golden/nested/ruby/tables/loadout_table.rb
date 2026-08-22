@@ -108,7 +108,7 @@ module Nested
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Loadout.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loadout.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Index')
           at = 0
           while at < count
@@ -119,7 +119,7 @@ module Nested
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Loadout.Name', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Loadout.Name', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Name')
           at = 0
           while at < count
@@ -130,35 +130,46 @@ module Nested
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Loadout.Pos.X', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_F32])
+          Tabbit.check_column(column, 'Loadout.Pos.X', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_F32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Pos.X')
           records.each do |record|
             record.pos.x = cursor.next_f32
           end
         when 4
-          Tabbit.check_column(column, 'Loadout.Pos.Y', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_F32])
+          Tabbit.check_column(column, 'Loadout.Pos.Y', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_F32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Pos.Y')
           records.each do |record|
             record.pos.y = cursor.next_f32
           end
         when 5
-          Tabbit.check_column(column, 'Loadout.Slot.Id', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loadout.Slot.Id', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Slot.Id')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            # The first member builds the array; the rest check. Building it again would
+            # discard what the members before it wrote, and taking the shorter of two counts
+            # would shift every value after it.
+            record.slot = Array.new(element_count) { LoadoutSlotEntry.new }
+            element_count.times do |element|
               record.slot[element].id = cursor.next_i32
             end
           end
         when 6
-          Tabbit.check_column(column, 'Loadout.Slot.Label', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Loadout.Slot.Label', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Slot.Label')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            if record.slot.length != element_count
+              raise Tabbit::TcbError,
+                    'Loadout.slot: the file gives one member of this ' \
+                    'record a different element count than another'
+            end
+            element_count.times do |element|
               record.slot[element].label = cursor.next_string
             end
           end
         when 7
-          Tabbit.check_column(column, 'Loadout.Note', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Loadout.Note', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Note')
           at = 0
           while at < count
@@ -169,10 +180,11 @@ module Nested
             at += n
           end
         when 8
-          Tabbit.check_column(column, 'Loadout.Tag_array', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Loadout.Tag_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Tag_array')
           records.each do |record|
-            record.tag_array = Array.new(2) { cursor.next_string }
+            element_count = cursor.next_length
+            record.tag_array = Array.new(element_count) { cursor.next_string }
           end
         else
           # A column added after this code was generated.

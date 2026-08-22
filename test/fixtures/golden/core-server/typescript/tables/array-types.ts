@@ -52,7 +52,6 @@ export class ArrayTypesRecord {
 
   /** fixed slot 1 */
   public get slotArray(): number[] { return this._slotArray }
-  public static readonly slotArray_N: number = 2
 
   public _index: number = 0
   public _tags: string[] = []
@@ -199,7 +198,7 @@ export class ArrayTypesTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'ArrayTypes.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'ArrayTypes.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'ArrayTypes.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -208,57 +207,63 @@ export class ArrayTypesTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'ArrayTypes.Tags', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'ArrayTypes.Tags', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'ArrayTypes.Tags')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._tags = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._tags.push(cursor.nextString())
+            }
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'ArrayTypes.Costs', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'ArrayTypes.Costs', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'ArrayTypes.Costs')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._costs = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._costs.push(cursor.nextI32())
+            }
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'ArrayTypes.Weights', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'ArrayTypes.Weights', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'ArrayTypes.Weights')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._weights = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._weights.push(cursor.nextF32())
+            }
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'ArrayTypes.Grades', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'ArrayTypes.Grades', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'ArrayTypes.Grades')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._grades = []
-            for (let j = 0; j < elementCount; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._grades.push(cursor.nextI32() as Grade)
+            }
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'ArrayTypes.Slot_array', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'ArrayTypes.Slot_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'ArrayTypes.Slot_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
+            const elementCount = cursor.nextLength()
             record._slotArray = []
-            for (let j = 0; j < 2; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._slotArray.push(cursor.nextI32())
+            }
           }
           break
         default:

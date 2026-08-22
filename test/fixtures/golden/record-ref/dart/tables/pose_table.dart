@@ -91,7 +91,7 @@ class PoseTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Pose.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Pose.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Pose.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -101,19 +101,31 @@ class PoseTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Pose.Step.ClipId', kindFixedArray, 2, false, [elementString]);
+          checkColumn(column, 'Pose.Step.ClipId', kindArray, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Pose.Step.ClipId');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            // The first member builds the list; the rest check. Building it again would
+            // discard what the members before it wrote, and taking the shorter of two
+            // counts would shift every value after it.
+            record.step =
+                List.generate(elementCount, (_) => PoseStepEntry());
+            for (var j = 0; j < elementCount; j++) {
               record.step[j].clipIdIndex = cursor.nextString();
             }
           }
           break;
         case 3:
-          checkColumn(column, 'Pose.Step.Weight', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Pose.Step.Weight', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Pose.Step.Weight');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
+            final elementCount = cursor.nextLength();
+            if (record.step.length != elementCount) {
+              throw TcbException(
+                  'Pose.step: the file gives one member of this '
+                  'record a different element count than another');
+            }
+            for (var j = 0; j < elementCount; j++) {
               record.step[j].weight = cursor.nextI32();
             }
           }
