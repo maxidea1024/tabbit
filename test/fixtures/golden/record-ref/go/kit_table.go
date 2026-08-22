@@ -111,7 +111,7 @@ func (t *KitTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Kit.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Kit.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -122,7 +122,7 @@ func (t *KitTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Kit.Part.ItemId", tabbit.KindVarArray, 0, false, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Kit.Part.ItemId", tabbit.KindArray, false, tabbit.ElementI32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Part.ItemId")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -137,7 +137,7 @@ func (t *KitTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Kit.Part.Count", tabbit.KindVarArray, 0, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Kit.Part.Count", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Part.Count")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]

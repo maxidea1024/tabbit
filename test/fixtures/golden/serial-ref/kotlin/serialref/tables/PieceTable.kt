@@ -114,7 +114,7 @@ class PieceTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Piece.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Piece.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Piece.Index")
                     var at = 0
                     while (at < count) {
@@ -128,7 +128,7 @@ class PieceTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Piece.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Piece.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Piece.Name")
                     var at = 0
                     while (at < count) {
@@ -142,7 +142,7 @@ class PieceTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Piece.Tier", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Piece.Tier", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Piece.Tier")
                     var at = 0
                     while (at < count) {

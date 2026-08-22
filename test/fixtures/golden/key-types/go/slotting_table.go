@@ -140,7 +140,7 @@ func (t *SlottingTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Slotting.Index", tabbit.KindScalar, 1, false, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Slotting.Index", tabbit.KindScalar, false, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Slotting.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -151,7 +151,7 @@ func (t *SlottingTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Slotting.Capacity", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Slotting.Capacity", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Slotting.Capacity")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -162,7 +162,7 @@ func (t *SlottingTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Slotting.Serial", tabbit.KindScalar, 1, false, tabbit.ElementI64, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Slotting.Serial", tabbit.KindScalar, false, tabbit.ElementI64, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Slotting.Serial")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]

@@ -89,7 +89,7 @@ module SerialRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'TrimKit.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'TrimKit.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'TrimKit.Index')
           at = 0
           while at < count
@@ -100,7 +100,7 @@ module SerialRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'TrimKit.Slot_array', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_I32], true)
+          Tabbit.check_column(column, 'TrimKit.Slot_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
           # steps once per element of every row. spec/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
@@ -116,7 +116,7 @@ module SerialRef
             element_at += element_count
           end
         when 3
-          Tabbit.check_column(column, 'TrimKit.Tier_array', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_I32], true)
+          Tabbit.check_column(column, 'TrimKit.Tier_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
           # steps once per element of every row. spec/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)

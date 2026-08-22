@@ -147,7 +147,7 @@ class ListingTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Listing.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Listing.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Listing.Index")
                     var at = 0
                     while (at < count) {
@@ -161,7 +161,7 @@ class ListingTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Listing.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Listing.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Listing.Name")
                     var at = 0
                     while (at < count) {
@@ -175,7 +175,7 @@ class ListingTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Listing.Plain", KIND_VAR_ARRAY, 0, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Listing.Plain", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Listing.Plain")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
@@ -184,7 +184,7 @@ class ListingTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Listing.Maybe", KIND_VAR_ARRAY, 0, true, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Listing.Maybe", KIND_ARRAY, true, ELEMENT_I32, ELEMENT_VARINT)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -210,7 +210,7 @@ class ListingTable {
                     }
                 }
                 5 -> {
-                    checkColumnWithElements(column, "Listing.Holes", KIND_VAR_ARRAY, 0, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumnWithElements(column, "Listing.Holes", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -231,7 +231,7 @@ class ListingTable {
                     }
                 }
                 6 -> {
-                    checkColumnWithElements(column, "Listing.Both", KIND_VAR_ARRAY, 0, true, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumnWithElements(column, "Listing.Both", KIND_ARRAY, true, ELEMENT_I32, ELEMENT_VARINT)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -269,7 +269,7 @@ class ListingTable {
                     }
                 }
                 7 -> {
-                    checkColumnWithElements(column, "Listing.Words", KIND_VAR_ARRAY, 0, false, ELEMENT_STRING)
+                    checkColumnWithElements(column, "Listing.Words", KIND_ARRAY, false, ELEMENT_STRING)
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.

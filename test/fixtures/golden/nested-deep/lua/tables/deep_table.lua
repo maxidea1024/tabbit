@@ -115,7 +115,7 @@ function DeepTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Deep.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Deep.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Deep.Index")
       local at = 0
 
@@ -129,29 +129,47 @@ function DeepTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Deep.Star.Id", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Deep.Star.Id", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Deep.Star.Id")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        -- The first member builds the list; the rest check. Building it again would
+        -- discard what the members before it wrote, and taking the shorter of two
+        -- counts would shift every value after it.
+        record.star = tcb.filledArray(elementCount, newDeepStarEntry)
+
+        for element = 1, elementCount do
           record.star[element].id = cursor:nextI32()
         end
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Deep.Star.Position.X", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Deep.Star.Position.X", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Deep.Star.Position.X")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        if #record.star ~= elementCount then
+          tcb.fail("Deep: the file gives one member of this record a " ..
+            "different element count than another")
+        end
+
+        for element = 1, elementCount do
           record.star[element].position.x = cursor:nextI32()
         end
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Deep.Star.Position.Y", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Deep.Star.Position.Y", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Deep.Star.Position.Y")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        if #record.star ~= elementCount then
+          tcb.fail("Deep: the file gives one member of this record a " ..
+            "different element count than another")
+        end
+
+        for element = 1, elementCount do
           record.star[element].position.y = cursor:nextI32()
         end
       end

@@ -104,7 +104,7 @@ func (t *ArmourTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Armour.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Armour.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Armour.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -115,7 +115,7 @@ func (t *ArmourTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Armour.Name", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Armour.Name", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Armour.Name")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -126,7 +126,7 @@ func (t *ArmourTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Armour.Note", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Armour.Note", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Armour.Note")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)

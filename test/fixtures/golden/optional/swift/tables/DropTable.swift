@@ -169,7 +169,7 @@ public final class DropTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Drop.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Drop.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Drop.Index")
                 var at = 0
                 while at < count {
@@ -182,7 +182,7 @@ public final class DropTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Drop.Hp", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Drop.Hp", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Drop.Hp")
                 var at = 0
                 while at < count {
@@ -195,7 +195,7 @@ public final class DropTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Drop.Bonus", Tcb.kindScalar, 1, true, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Drop.Bonus", Tcb.kindScalar, true, Tcb.elementI32, Tcb.elementVarint)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -225,7 +225,7 @@ public final class DropTable {
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Drop.Weight", Tcb.kindScalar, 1, true, Tcb.elementF64, Tcb.elementF32, Tcb.elementI32)
+                try Tcb.checkColumn(column, "Drop.Weight", Tcb.kindScalar, true, Tcb.elementF64, Tcb.elementF32, Tcb.elementI32)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -248,7 +248,7 @@ public final class DropTable {
                     }
                 }
             case 5:
-                try Tcb.checkColumn(column, "Drop.Ratio", Tcb.kindScalar, 1, true, Tcb.elementF32)
+                try Tcb.checkColumn(column, "Drop.Ratio", Tcb.kindScalar, true, Tcb.elementF32)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -271,7 +271,7 @@ public final class DropTable {
                     }
                 }
             case 6:
-                try Tcb.checkColumn(column, "Drop.Count", Tcb.kindScalar, 1, true, Tcb.elementI64, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Drop.Count", Tcb.kindScalar, true, Tcb.elementI64, Tcb.elementI32, Tcb.elementVarint)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -294,7 +294,7 @@ public final class DropTable {
                     }
                 }
             case 7:
-                try Tcb.checkColumn(column, "Drop.OpenAt", Tcb.kindScalar, 1, true, Tcb.elementI64)
+                try Tcb.checkColumn(column, "Drop.OpenAt", Tcb.kindScalar, true, Tcb.elementI64)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -317,7 +317,7 @@ public final class DropTable {
                     }
                 }
             case 8:
-                try Tcb.checkColumn(column, "Drop.Cooldown", Tcb.kindScalar, 1, true, Tcb.elementI64)
+                try Tcb.checkColumn(column, "Drop.Cooldown", Tcb.kindScalar, true, Tcb.elementI64)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -340,7 +340,7 @@ public final class DropTable {
                     }
                 }
             case 9:
-                try Tcb.checkColumn(column, "Drop.Batch", Tcb.kindScalar, 1, true, Tcb.elementUuid)
+                try Tcb.checkColumn(column, "Drop.Batch", Tcb.kindScalar, true, Tcb.elementUuid)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -362,7 +362,7 @@ public final class DropTable {
                     }
                 }
             case 10:
-                try Tcb.checkColumn(column, "Drop.Grade", Tcb.kindScalar, 1, true, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Drop.Grade", Tcb.kindScalar, true, Tcb.elementVarint)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -392,7 +392,7 @@ public final class DropTable {
                     }
                 }
             case 11:
-                try Tcb.checkColumn(column, "Drop.Costs", Tcb.kindVarArray, 0, true, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Drop.Costs", Tcb.kindArray, true, Tcb.elementI32, Tcb.elementVarint)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -421,7 +421,7 @@ public final class DropTable {
                     }
                 }
             case 12:
-                try Tcb.checkColumn(column, "Drop.Label", Tcb.kindScalar, 1, true, Tcb.elementString)
+                try Tcb.checkColumn(column, "Drop.Label", Tcb.kindScalar, true, Tcb.elementString)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -451,7 +451,7 @@ public final class DropTable {
                     }
                 }
             case 13:
-                try Tcb.checkColumn(column, "Drop.Hidden", Tcb.kindScalar, 1, true, Tcb.elementBool)
+                try Tcb.checkColumn(column, "Drop.Hidden", Tcb.kindScalar, true, Tcb.elementBool)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.

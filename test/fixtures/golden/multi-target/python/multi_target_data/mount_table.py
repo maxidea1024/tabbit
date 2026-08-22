@@ -92,7 +92,7 @@ class MountTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Mount.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Mount.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Mount.Index")
                 at = 0
                 while at < count:
@@ -101,7 +101,7 @@ class MountTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Mount.Name", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Mount.Name", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Mount.Name")
                 at = 0
                 while at < count:
@@ -110,7 +110,7 @@ class MountTable:
                         records[i].name = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Mount.Note", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Mount.Note", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Mount.Note")
                 at = 0
                 while at < count:

@@ -149,7 +149,7 @@ final class BagTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Bag.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Bag.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Bag.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -160,20 +160,24 @@ final class BagTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Bag.Slots.ItemId', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32]);
+                    TcbReader::checkColumn($column, 'Bag.Slots.ItemId', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Bag.Slots.ItemId');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        $record->slots->itemIdIndex = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->slots->itemIdIndex[$j] = $cursor->nextI32();
                         }
                     }
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Bag.Slots.Count', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Bag.Slots.Count', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Bag.Slots.Count');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        $record->slots->count = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->slots->count[$j] = $cursor->nextI32();
                         }
                     }

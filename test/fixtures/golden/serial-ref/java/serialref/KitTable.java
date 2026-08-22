@@ -96,7 +96,7 @@ public final class KitTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Kit.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Kit.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,24 +107,28 @@ public final class KitTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Kit.Slot_array", TcbReader.KIND_FIXED_ARRAY, -1, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumn(column, "Kit.Slot_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Slot_array");
                     for (KitRecord record : loaded) {
-                        record.slotArray = new PieceRecord[column.count];
-                        record.slotArrayIndex = new int[column.count];
-                        for (int j = 0; j < column.count; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.slotArray = new PieceRecord[elementCount];
+                        record.slotArrayIndex = new int[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.slotArrayIndex[j] = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Kit.Tier_array", TcbReader.KIND_FIXED_ARRAY, -1, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumn(column, "Kit.Tier_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Tier_array");
                     for (KitRecord record : loaded) {
-                        record.tierArray = new int[column.count];
-                        record.tierArrayIndex = new int[column.count];
-                        for (int j = 0; j < column.count; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.tierArray = new int[elementCount];
+                        record.tierArrayIndex = new int[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.tierArrayIndex[j] = cursor.nextI32();
                         }
                     }

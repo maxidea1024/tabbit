@@ -40,7 +40,7 @@ public final class TcbReader {
      * byte - before any 101 file had shipped. 104 is the current one: four encodings
      * joined the nine, and the flags byte gained a meaning.
      */
-    public static final int FORMAT_VERSION = 106;
+    public static final int FORMAT_VERSION = 107;
 
     // The wire's element types and kinds, as a column descriptor spells them.
     public static final int ELEMENT_VARINT = 0;
@@ -53,8 +53,7 @@ public final class TcbReader {
     public static final int ELEMENT_UUID = 7;
 
     public static final int KIND_SCALAR = 0;
-    public static final int KIND_FIXED_ARRAY = 1;
-    public static final int KIND_VAR_ARRAY = 2;
+    public static final int KIND_ARRAY = 1;
 
     // How a block's values are laid out. Raw is the layout 101 had; the others compress
     // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -127,8 +126,6 @@ public final class TcbReader {
         public int kind;
         /** How the block's values are laid out: one of the ENCODING_* constants. */
         public int encoding;
-        /** Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
-        public int count;
         /** Total bytes of the column's block - what a skip advances by. */
         public int byteLength;
         /**
@@ -239,7 +236,7 @@ public final class TcbReader {
             if (encoding == ENCODING_ARRAY) {
                 encoding = reader.readUInt8();
 
-                if (column.kind == KIND_VAR_ARRAY) {
+                if (column.kind == KIND_ARRAY) {
                     int lengthEncoding = reader.readUInt8();
                     lengths = readLengths(reader, lengthEncoding, rowCount, fieldName);
 
@@ -255,8 +252,6 @@ public final class TcbReader {
                     }
 
                     rowsRemaining = (int) elements;
-                } else {
-                    rowsRemaining = rowCount * column.count;
                 }
             }
 
@@ -1538,7 +1533,6 @@ public final class TcbReader {
 
             column.encoding = reader.readUInt8();
 
-            column.count = reader.readCounter32();
             column.byteLength = reader.readInt32();
 
             header.columns[at] = column;
@@ -1569,17 +1563,6 @@ public final class TcbReader {
                     header.rowCount, column.tag, column.byteLength));
             }
 
-            // The same floor for the element count, which the read now allocates for: a fixed
-            // array's length is the file's rather than the generated code's. Only with rows to
-            // read - an empty table writes its columns' counts into a block of no bytes, and
-            // that is well-formed.
-            if (column.encoding == ENCODING_RAW
-                    && header.rowCount > 0
-                    && column.count > column.byteLength) {
-                throw new TcbException(String.format(
-                    "column tag %d says each row holds %d elements, which its %d bytes cannot "
-                    + "hold", column.tag, column.count, column.byteLength));
-            }
         }
 
         if (declared != available) {
@@ -1648,20 +1631,20 @@ public final class TcbReader {
      * Refusal is by name and both types, never by reading anyway.
      */
     public static void checkColumn(
-            Column column, String fieldName, int kind, int count, boolean nullable,
+            Column column, String fieldName, int kind, boolean nullable,
             int... accepted) {
-        checkColumn(column, fieldName, kind, count, nullable, false, accepted);
+        checkColumn(column, fieldName, kind, nullable, false, accepted);
     }
 
     /** The same, for a member whose array elements may be absent. */
     public static void checkColumnWithElements(
-            Column column, String fieldName, int kind, int count, boolean nullable,
+            Column column, String fieldName, int kind, boolean nullable,
             int... accepted) {
-        checkColumn(column, fieldName, kind, count, nullable, true, accepted);
+        checkColumn(column, fieldName, kind, nullable, true, accepted);
     }
 
     private static void checkColumn(
-            Column column, String fieldName, int kind, int count, boolean nullable,
+            Column column, String fieldName, int kind, boolean nullable,
             boolean elementNullable, int... accepted) {
         // The same statement about the other bitmap: code not expecting one would read it as
         // values. spec/nullable-array-elements.md.
@@ -1686,10 +1669,10 @@ public final class TcbReader {
         // A negative count says the member claims no length: how many elements a row holds
         // is what the file states. The kind is still the member's claim.
         // spec/nullable-array-elements.md.
-        if (column.kind != kind || (kind != KIND_VAR_ARRAY && count >= 0 && column.count != count)) {
+        if (column.kind != kind) {
             throw new TcbException(
-                fieldName + ": the file's column (kind " + column.kind + ", count " + column.count
-                    + ") does not match the generated member (kind " + kind + ", count " + count
+                fieldName + ": the file's column (kind " + column.kind
+                    + ") does not match the generated member (kind " + kind
                     + "). The schema changed shape; regenerate the code or rebuild the data.");
         }
 

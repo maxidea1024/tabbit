@@ -134,7 +134,7 @@ function DropTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Drop.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Drop.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Drop.Index")
       local at = 0
 
@@ -148,7 +148,7 @@ function DropTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Drop.Hp", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Drop.Hp", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Drop.Hp")
       local at = 0
 
@@ -162,7 +162,7 @@ function DropTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Drop.Bonus", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Drop.Bonus", tcb.KIND_SCALAR, true, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -194,7 +194,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Drop.Weight", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_F64, tcb.ELEMENT_F32, tcb.ELEMENT_I32 })
+      tcb.checkColumn(column, "Drop.Weight", tcb.KIND_SCALAR, true, { tcb.ELEMENT_F64, tcb.ELEMENT_F32, tcb.ELEMENT_I32 })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -219,7 +219,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 5 then
-      tcb.checkColumn(column, "Drop.Ratio", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_F32 })
+      tcb.checkColumn(column, "Drop.Ratio", tcb.KIND_SCALAR, true, { tcb.ELEMENT_F32 })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -244,7 +244,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 6 then
-      tcb.checkColumn(column, "Drop.Count", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_I64, tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Drop.Count", tcb.KIND_SCALAR, true, { tcb.ELEMENT_I64, tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -269,7 +269,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 7 then
-      tcb.checkColumn(column, "Drop.OpenAt", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_I64 })
+      tcb.checkColumn(column, "Drop.OpenAt", tcb.KIND_SCALAR, true, { tcb.ELEMENT_I64 })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -294,7 +294,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 8 then
-      tcb.checkColumn(column, "Drop.Cooldown", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_I64 })
+      tcb.checkColumn(column, "Drop.Cooldown", tcb.KIND_SCALAR, true, { tcb.ELEMENT_I64 })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -319,7 +319,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 9 then
-      tcb.checkColumn(column, "Drop.Batch", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_UUID })
+      tcb.checkColumn(column, "Drop.Batch", tcb.KIND_SCALAR, true, { tcb.ELEMENT_UUID })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -343,7 +343,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 10 then
-      tcb.checkColumn(column, "Drop.Grade", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Drop.Grade", tcb.KIND_SCALAR, true, { tcb.ELEMENT_VARINT })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -375,7 +375,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 11 then
-      tcb.checkColumn(column, "Drop.Costs", tcb.KIND_VAR_ARRAY, 0, true, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Drop.Costs", tcb.KIND_ARRAY, true, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -407,7 +407,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 12 then
-      tcb.checkColumn(column, "Drop.Label", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Drop.Label", tcb.KIND_SCALAR, true, { tcb.ELEMENT_STRING })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -439,7 +439,7 @@ function DropTable:readBytes(data)
         end
       end
     elseif column.tag == 13 then
-      tcb.checkColumn(column, "Drop.Hidden", tcb.KIND_SCALAR, 1, true, { tcb.ELEMENT_BOOL })
+      tcb.checkColumn(column, "Drop.Hidden", tcb.KIND_SCALAR, true, { tcb.ELEMENT_BOOL })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.

@@ -118,7 +118,7 @@ bool FAssetTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Asset.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementUuid));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Asset.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementUuid));
 
             for (FAssetRow& Record : Loaded)
             {
@@ -128,7 +128,7 @@ bool FAssetTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Asset.Path"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Asset.Path"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Asset.Path"));
 
             {
@@ -152,7 +152,7 @@ bool FAssetTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Asset.Slot"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Asset.Slot"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Asset.Slot"));
 
             {
@@ -324,7 +324,7 @@ bool FLedgerTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Ledger.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI64) | Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Ledger.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI64) | Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Ledger.Index"));
 
             for (FLedgerRow& Record : Loaded)
@@ -335,7 +335,7 @@ bool FLedgerTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Ledger.Amount"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Ledger.Amount"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Ledger.Amount"));
 
             {
@@ -359,7 +359,7 @@ bool FLedgerTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Ledger.Batch"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementUuid));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Ledger.Batch"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementUuid));
 
             for (FLedgerRow& Record : Loaded)
             {
@@ -517,7 +517,7 @@ bool FSlottingTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Slotting.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Slotting.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Slotting.Index"));
 
             {
@@ -541,7 +541,7 @@ bool FSlottingTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Slotting.Capacity"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Slotting.Capacity"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Slotting.Capacity"));
 
             {
@@ -565,7 +565,7 @@ bool FSlottingTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Slotting.Serial"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI64) | Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Slotting.Serial"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI64) | Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Slotting.Serial"));
 
             for (FSlottingRow& Record : Loaded)

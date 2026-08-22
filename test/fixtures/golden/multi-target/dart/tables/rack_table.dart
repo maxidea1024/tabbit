@@ -106,7 +106,7 @@ class RackTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Rack.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Rack.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Rack.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -116,21 +116,21 @@ class RackTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Rack.Slots.Pick', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Rack.Slots.Pick', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Rack.Slots.Pick');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
-              record.slots.pick[j] = cursor.nextI32();
-            }
+            final elementCount = cursor.nextLength();
+            record.slots.pick =
+                List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         case 3:
-          checkColumn(column, 'Rack.Slots.Count', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Rack.Slots.Count', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Rack.Slots.Count');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
-              record.slots.count[j] = cursor.nextI32();
-            }
+            final elementCount = cursor.nextLength();
+            record.slots.count =
+                List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         default:

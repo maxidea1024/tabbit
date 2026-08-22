@@ -140,7 +140,7 @@ func (t *LedgerTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Ledger.Index", tabbit.KindScalar, 1, false, tabbit.ElementI64, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Ledger.Index", tabbit.KindScalar, false, tabbit.ElementI64, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Ledger.Index")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -148,7 +148,7 @@ func (t *LedgerTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Ledger.Amount", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Ledger.Amount", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Ledger.Amount")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -159,7 +159,7 @@ func (t *LedgerTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Ledger.Batch", tabbit.KindScalar, 1, false, tabbit.ElementUUID) {
+			if tabbit.CheckColumn(reader, column, "Ledger.Batch", tabbit.KindScalar, false, tabbit.ElementUUID) {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					r.Batch = reader.ReadUUID()

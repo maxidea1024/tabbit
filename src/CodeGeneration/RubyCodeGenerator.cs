@@ -756,7 +756,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + RubyName(part)));
         var field = wire.TagCarrier;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -819,7 +819,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + RubyName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -900,7 +900,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// </remarks>
     private string EmptyValue(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "[]";
 
         // The resolved attribute points at the target row, and absence there is what nil
@@ -953,18 +953,8 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "Tabbit::KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "Tabbit::KIND_FIXED_ARRAY" : "Tabbit::KIND_SCALAR");
+        string kind = wire.IsArray ? "Tabbit::KIND_ARRAY" : "Tabbit::KIND_SCALAR";
 
-        // -1 where one column owns the whole array: the file states how many elements it
-        // holds and the read takes it from there, so there is no length here to hold it to.
-        // A record member keeps its count - several columns fill one array and the number
-        // they agree on is part of the generated shape, so a disagreement is a schema change
-        // rather than data. spec/nullable-array-elements.md.
-        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
-
-        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
 
         string accepted;
 
@@ -1015,7 +1005,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         // And the other bitmap, by the same argument as the row one.
         string elements = wire.HasOptionalElements ? ", true" : "";
 
-        return $"Tabbit.check_column(column, '{tableName}.{wire.Name}', {kind}, {count}, "
+        return $"Tabbit.check_column(column, '{tableName}.{wire.Name}', {kind}, "
             + $"{nullable}, [{accepted}]{elements})";
     }
 
@@ -1032,10 +1022,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the array decides where the index goes, and an unnamed
@@ -1043,10 +1030,10 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
+        if (wire.IsArray)
             // A trimmed array of references: the length is the row's, and the key still goes
             // in the array beside the values. Read as a plain `var_array` it put the keys where
             // the resolved rows belong, and the linking pass then found nothing to resolve -
@@ -1054,9 +1041,6 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             // `foreign[]` is refused, so it is only reachable through a folded group with
             // trimming on. spec/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -1140,7 +1124,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -1201,7 +1185,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's

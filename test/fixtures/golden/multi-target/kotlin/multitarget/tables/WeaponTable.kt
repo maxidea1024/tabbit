@@ -114,7 +114,7 @@ class WeaponTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Weapon.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Weapon.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Weapon.Index")
                     var at = 0
                     while (at < count) {
@@ -128,7 +128,7 @@ class WeaponTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Weapon.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Weapon.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Weapon.Name")
                     var at = 0
                     while (at < count) {
@@ -142,7 +142,7 @@ class WeaponTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Weapon.Note", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Weapon.Note", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Weapon.Note")
                     var at = 0
                     while (at < count) {

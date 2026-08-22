@@ -147,7 +147,7 @@ func (t *RackTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Rack.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Rack.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Rack.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -158,21 +158,25 @@ func (t *RackTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Rack.Slots.Pick", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Rack.Slots.Pick", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Rack.Slots.Pick")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					r.Slots.Pick = make([]RackSlotsEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Slots.Pick[j] = cursor.NextI32()
 					}
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Rack.Slots.Count", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Rack.Slots.Count", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Rack.Slots.Count")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					r.Slots.Count = make([]RackSlotsEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Slots.Count[j] = cursor.NextI32()
 					}
 				}

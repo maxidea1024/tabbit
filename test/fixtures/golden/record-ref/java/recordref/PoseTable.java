@@ -96,7 +96,7 @@ public final class PoseTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Pose.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Pose.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Pose.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,20 +107,36 @@ public final class PoseTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Pose.Step.ClipId", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Pose.Step.ClipId", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Pose.Step.ClipId");
                     for (PoseRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.step = new PoseRecord.StepEntry[elementCount];
+
+                        for (int j = 0; j < elementCount; j++) {
+                            record.step[j] = new PoseRecord.StepEntry();
                             record.step[j].clipIdIndex = cursor.nextString();
                         }
                     }
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Pose.Step.Weight", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Pose.Step.Weight", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Pose.Step.Weight");
                     for (PoseRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        if (record.step.length != elementCount) {
+                            throw new TcbReader.TcbException(
+                                "Pose.step: the file gives one member of "
+                                + "this record a different element count than another");
+                        }
+
+                        for (int j = 0; j < elementCount; j++) {
                             record.step[j].weight = cursor.nextI32();
                         }
                     }

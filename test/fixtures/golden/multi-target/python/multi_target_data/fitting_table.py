@@ -129,7 +129,7 @@ class FittingTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Fitting.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Fitting.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Fitting.Index")
                 at = 0
                 while at < count:
@@ -138,7 +138,7 @@ class FittingTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Fitting.Main.Pick", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Fitting.Main.Pick", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Fitting.Main.Pick")
                 at = 0
                 while at < count:
@@ -147,7 +147,7 @@ class FittingTable:
                         records[i].main.pick = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Fitting.Main.Count", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Fitting.Main.Count", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Fitting.Main.Count")
                 at = 0
                 while at < count:
@@ -156,7 +156,7 @@ class FittingTable:
                         records[i].main.count = value
                     at += n
             elif column.tag == 4:
-                tabbit.check_column(column, "Fitting.Pad", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Fitting.Pad", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Fitting.Pad")
                 at = 0
                 while at < count:
@@ -165,7 +165,7 @@ class FittingTable:
                         records[i].pad = value
                     at += n
             elif column.tag == 5:
-                tabbit.check_column(column, "Fitting.Pad2", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Fitting.Pad2", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Fitting.Pad2")
                 at = 0
                 while at < count:

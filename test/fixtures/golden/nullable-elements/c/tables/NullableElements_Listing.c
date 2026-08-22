@@ -60,49 +60,31 @@ static bool NullableElements_ListingParse(NullableElements_ListingTable_t* table
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Listing.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Listing.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Listing.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        NullableElements_ListingRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Listing.Name", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Listing.Name", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Listing.Name");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        NullableElements_ListingRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].name = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->name);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Listing.Plain", TB_KIND_VAR_ARRAY, 0, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Listing.Plain", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Listing.Plain");
 
@@ -126,7 +108,7 @@ static bool NullableElements_ListingParse(NullableElements_ListingTable_t* table
       break;
 
     case 4:
-      (void)tb_check_column(reader, column, "Listing.Maybe", TB_KIND_VAR_ARRAY, 0, true, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Listing.Maybe", TB_KIND_ARRAY, true, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -165,7 +147,7 @@ static bool NullableElements_ListingParse(NullableElements_ListingTable_t* table
       break;
 
     case 5:
-      (void)tb_check_column_elements(reader, column, "Listing.Holes", TB_KIND_VAR_ARRAY, 0, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT), true);
+      (void)tb_check_column_elements(reader, column, "Listing.Holes", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT), true);
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
        * once per element of every row. spec/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);
@@ -208,7 +190,7 @@ static bool NullableElements_ListingParse(NullableElements_ListingTable_t* table
       break;
 
     case 6:
-      (void)tb_check_column_elements(reader, column, "Listing.Both", TB_KIND_VAR_ARRAY, 0, true, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT), true);
+      (void)tb_check_column_elements(reader, column, "Listing.Both", TB_KIND_ARRAY, true, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT), true);
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -266,7 +248,7 @@ static bool NullableElements_ListingParse(NullableElements_ListingTable_t* table
       break;
 
     case 7:
-      (void)tb_check_column_elements(reader, column, "Listing.Words", TB_KIND_VAR_ARRAY, 0, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING), true);
+      (void)tb_check_column_elements(reader, column, "Listing.Words", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING), true);
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
        * once per element of every row. spec/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);

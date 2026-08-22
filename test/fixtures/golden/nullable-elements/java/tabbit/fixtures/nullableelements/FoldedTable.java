@@ -98,7 +98,7 @@ public final class FoldedTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Folded.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Folded.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Folded.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -109,7 +109,7 @@ public final class FoldedTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumnWithElements(column, "Folded.Tag_array", TcbReader.KIND_FIXED_ARRAY, -1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumnWithElements(column, "Folded.Tag_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -117,9 +117,11 @@ public final class FoldedTable {
                     elementAt = 0;
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Folded.Tag_array");
                     for (FoldedRecord record : loaded) {
-                        record.tagArray = new String[column.count];
-                        record.hasTagArrayAt = new boolean[column.count];
-                        for (int j = 0; j < column.count; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.tagArray = new String[elementCount];
+                        record.hasTagArrayAt = new boolean[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.tagArray[j] = cursor.nextString();
                             record.hasTagArrayAt[j] =
                                 TcbReader.isPresent(elementPresence, elementAt++);

@@ -85,7 +85,7 @@ module MultiTarget
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Trinket.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Trinket.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Trinket.Index')
           at = 0
           while at < count
@@ -96,7 +96,7 @@ module MultiTarget
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Trinket.Name', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Trinket.Name', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Trinket.Name')
           at = 0
           while at < count
@@ -107,7 +107,7 @@ module MultiTarget
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Trinket.Note', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Trinket.Note', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Trinket.Note')
           at = 0
           while at < count

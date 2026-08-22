@@ -273,47 +273,19 @@ function {{ table.table_name }}:readBytes(data)
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner list. Which outer element it is, is which column this is - so that index
    is written in and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-        for element = 1, {{ column_view.element_count }} do
+        {{ column_view.length_read }}
+        {{ column_view.element_container }} = {}
+        for element = 1, element_count do
           {{ column_view.element_target }} = {{ column_view.read_element }}
         end
-{{~ else if column_view.kind == 'record_member_serial' ~}}
-{{~## The member is the list: the subscript goes after its name rather than before. ##~}}
-        for element = 1, {{ column_view.element_count }} do
+{{~ else if column_view.kind == 'record_member_var' ~}}
+{{~## The member is the list: the subscript goes after its name rather than before, and
+   its length is this row's. ##~}}
+        {{ column_view.length_read }}
+        {{ column_view.element_container }} = {}
+        for element = 1, element_count do
           {{ column_view.element_target }} = {{ column_view.read_element }}
         end
-{{~ else if column_view.kind == 'record_serial' ~}}
-        for element = 1, {{ column_view.element_count }} do
-          {{ column_view.element_target }} = {{ column_view.read_element }}
-        end
-{{~ else if column_view.kind == 'serial_ref' ~}}
-        local values = {}
-
-        for element = 1, column.count do
-          values[element] = {{ column_view.read_element }}
-        end
-
-        {{ column_view.values_target }} = values
-        {{ column_view.secondary_clear }}
-{{~ else if column_view.kind == 'serial' ~}}
-{{~## One column owns the whole array, so how many elements a row holds is what the file
-   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
-        local values = {}
-
-        for element = 1, column.count do
-          values[element] = {{ column_view.read_element }}
-        end
-
-        {{ column_view.values_target }} = values
-{{~ if column_view.has_optional_elements ~}}
-        local answers = {}
-
-        for element = 1, column.count do
-          answers[element] = tcb.isPresent(elementPresence, elementAt + element - 1)
-        end
-
-        elementAt = elementAt + column.count
-        {{ column_view.element_presence_target }} = answers
-{{~ end ~}}
 {{~ else ~}}
         {{ column_view.scalar_target }} = {{ column_view.read_scalar }}
 {{~ end ~}}

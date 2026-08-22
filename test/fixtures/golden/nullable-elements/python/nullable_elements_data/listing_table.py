@@ -101,7 +101,7 @@ class ListingTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Listing.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Listing.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Listing.Index")
                 at = 0
                 while at < count:
@@ -110,7 +110,7 @@ class ListingTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Listing.Name", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Listing.Name", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Listing.Name")
                 at = 0
                 while at < count:
@@ -119,13 +119,13 @@ class ListingTable:
                         records[i].name = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Listing.Plain", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Listing.Plain", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Listing.Plain")
                 for record in records:
                     element_count = cursor.next_length()
                     record.plain = [cursor.next_i32() for _ in range(element_count)]
             elif column.tag == 4:
-                tabbit.check_column(column, "Listing.Maybe", tabbit.KIND_VAR_ARRAY, 0, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Listing.Maybe", tabbit.KIND_ARRAY, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -145,7 +145,7 @@ class ListingTable:
                     if not record.has_maybe:
                         record.maybe = []
             elif column.tag == 5:
-                tabbit.check_column(column, "Listing.Holes", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT), True)
+                tabbit.check_column(column, "Listing.Holes", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
                 # spec/nullable-array-elements.md.
@@ -160,7 +160,7 @@ class ListingTable:
                         for at in range(element_count)]
                     element_at += element_count
             elif column.tag == 6:
-                tabbit.check_column(column, "Listing.Both", tabbit.KIND_VAR_ARRAY, 0, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT), True)
+                tabbit.check_column(column, "Listing.Both", tabbit.KIND_ARRAY, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT), True)
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.
@@ -189,7 +189,7 @@ class ListingTable:
                     if not record.has_both:
                         record.both = []
             elif column.tag == 7:
-                tabbit.check_column(column, "Listing.Words", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_STRING,), True)
+                tabbit.check_column(column, "Listing.Words", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
                 # spec/nullable-array-elements.md.

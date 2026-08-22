@@ -45,50 +45,61 @@ static bool RecordRef_MountParse(RecordRef_MountTable_t* table, tb_reader* reade
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Mount.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Mount.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Mount.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        RecordRef_MountRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Mount.Rig.Core.ItemId", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_I32));
+      (void)tb_check_column(reader, column, "Mount.Rig.Core.ItemId", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Mount.Rig.Core.ItemId");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         RecordRef_MountRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        (void)tb_cursor_next_length(&cursor, &element_count);
+
+        /* The first member allocates; the rest check. Allocating again would discard what
+         * the members before it wrote, and taking the shorter of two counts would shift
+         * every value after it. */
+        record->rig_count = element_count;
+        record->rig = (struct RecordRef_MountRecord_t_rig_entry*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->rig);
+
+        if (element_count > 0 && record->rig == NULL)
+          return tb_fail_with(reader, "out of memory allocating a record array");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->rig[element].core.item_id_index);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Mount.Rig.Core.Count", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Mount.Rig.Core.Count", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Mount.Rig.Core.Count");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         RecordRef_MountRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        (void)tb_cursor_next_length(&cursor, &element_count);
+
+        if (record->rig_count != element_count)
+          return tb_fail_with(reader,
+            "the file gives one member of a record a different element count than another");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->rig[element].core.count);
       }
       break;

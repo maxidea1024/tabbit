@@ -845,18 +845,8 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "tabbit::KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "tabbit::KIND_FIXED_ARRAY" : "tabbit::KIND_SCALAR");
+        string kind = wire.IsArray ? "tabbit::KIND_ARRAY" : "tabbit::KIND_SCALAR";
 
-        // -1 where one column owns the whole array: the file states how many elements it
-        // holds and the read takes it from there, so there is no length here to hold it to.
-        // A record member keeps its count - several columns fill one array and the number
-        // they agree on is part of the generated shape, so a disagreement is a schema change
-        // rather than data. spec/nullable-array-elements.md.
-        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
-
-        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
 
         string accepted;
 
@@ -908,7 +898,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         // because Rust has no default arguments.
         string check = wire.HasOptionalElements ? "check_column_with_elements" : "check_column";
 
-        return $"tabbit::{check}(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+        return $"tabbit::{check}(column, \"{tableName}.{wire.Name}\", {kind}, "
             + $"{nullable}, &[{accepted}])?;";
     }
 
@@ -924,10 +914,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the vector decides where the index goes, and an unnamed
@@ -935,19 +922,16 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
+        if (wire.IsArray)
             // A trimmed array of references: the length is the row's, and the key still goes
             // in the vector beside the values. Read as a plain `var_array` it pushed the key
             // into the vector of rows, which does not compile - and nothing held the shape,
             // because `foreign[]` is refused and this is only reachable through a folded group
             // with trimming on. spec/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -968,7 +952,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -1030,7 +1014,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's

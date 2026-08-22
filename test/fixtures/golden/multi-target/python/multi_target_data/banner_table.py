@@ -92,7 +92,7 @@ class BannerTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Banner.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Banner.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Banner.Index")
                 at = 0
                 while at < count:
@@ -101,7 +101,7 @@ class BannerTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Banner.Name", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Banner.Name", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Banner.Name")
                 at = 0
                 while at < count:
@@ -110,7 +110,7 @@ class BannerTable:
                         records[i].name = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Banner.Note", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Banner.Note", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Banner.Note")
                 at = 0
                 while at < count:

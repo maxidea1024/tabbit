@@ -126,7 +126,7 @@ func (t *DeepTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Deep.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Deep.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Deep.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -137,31 +137,46 @@ func (t *DeepTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Deep.Star.Id", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Deep.Star.Id", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Deep.Star.Id")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					// The first member allocates; the rest check. Allocating again would
+					// discard what the members before it wrote, and taking the shorter of
+					// two counts would shift every value after it.
+					r.Star = make([]DeepStarEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Star[j].Id = cursor.NextI32()
 					}
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Deep.Star.Position.X", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Deep.Star.Position.X", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Deep.Star.Position.X")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					if len(r.Star) != elementCount {
+						return fmt.Errorf(
+							"Deep: the file gives one member of `Star` a different element count than another")
+					}
+					for j := 0; j < elementCount; j++ {
 						r.Star[j].Position.X = cursor.NextI32()
 					}
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Deep.Star.Position.Y", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Deep.Star.Position.Y", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Deep.Star.Position.Y")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					if len(r.Star) != elementCount {
+						return fmt.Errorf(
+							"Deep: the file gives one member of `Star` a different element count than another")
+					}
+					for j := 0; j < elementCount; j++ {
 						r.Star[j].Position.Y = cursor.NextI32()
 					}
 				}

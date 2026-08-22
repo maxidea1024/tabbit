@@ -106,7 +106,7 @@ public final class MountTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Mount.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Mount.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Mount.Index")
                 var at = 0
                 while at < count {
@@ -119,7 +119,7 @@ public final class MountTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Mount.Name", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Mount.Name", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Mount.Name")
                 var at = 0
                 while at < count {
@@ -132,7 +132,7 @@ public final class MountTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Mount.Note", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Mount.Note", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Mount.Note")
                 var at = 0
                 while at < count {

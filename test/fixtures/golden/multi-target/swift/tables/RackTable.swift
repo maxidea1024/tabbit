@@ -133,7 +133,7 @@ public final class RackTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Rack.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Rack.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Rack.Index")
                 var at = 0
                 while at < count {
@@ -146,19 +146,25 @@ public final class RackTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Rack.Slots.Pick", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Rack.Slots.Pick", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Rack.Slots.Pick")
                 for record in loaded {
-                    for element in 0 ..< 2 {
-                        record.slots.pick[element] = try cursor.nextI32()
+                    let elementCount = max(0, try cursor.nextLength())
+                    record.slots.pick = []
+                    record.slots.pick.reserveCapacity(elementCount)
+                    for _ in 0 ..< elementCount {
+                        record.slots.pick.append(try cursor.nextI32())
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Rack.Slots.Count", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Rack.Slots.Count", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Rack.Slots.Count")
                 for record in loaded {
-                    for element in 0 ..< 2 {
-                        record.slots.count[element] = try cursor.nextI32()
+                    let elementCount = max(0, try cursor.nextLength())
+                    record.slots.count = []
+                    record.slots.count.reserveCapacity(elementCount)
+                    for _ in 0 ..< elementCount {
+                        record.slots.count.append(try cursor.nextI32())
                     }
                 }
             default:

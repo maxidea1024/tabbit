@@ -108,7 +108,7 @@ class BadgeTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Badge.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Badge.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Badge.Index")
                 at = 0
                 while at < count:
@@ -117,7 +117,7 @@ class BadgeTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Badge.Mark.ClipId", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Badge.Mark.ClipId", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Badge.Mark.ClipId")
                 at = 0
                 while at < count:
@@ -126,11 +126,11 @@ class BadgeTable:
                         records[i].mark.clip_id_index = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Badge.Mark.SealId", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_UUID,))
+                tabbit.check_column(column, "Badge.Mark.SealId", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_UUID,))
                 for record in records:
                     record.mark.seal_id_index = reader.read_uuid()
             elif column.tag == 4:
-                tabbit.check_column(column, "Badge.Mark.Rank", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Badge.Mark.Rank", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Badge.Mark.Rank")
                 at = 0
                 while at < count:
@@ -139,7 +139,7 @@ class BadgeTable:
                         records[i].mark.rank = value
                     at += n
             elif column.tag == 5:
-                tabbit.check_column(column, "Badge.Pad", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Badge.Pad", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Badge.Pad")
                 at = 0
                 while at < count:

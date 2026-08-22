@@ -278,18 +278,20 @@ public final class {{ table.table_name }} {
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
    fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-                    for element in 0 ..< {{ column_view.element_count }} {
-                        record.{{ column_view.name }}[{{ column_view.member_at }}][element] = {{ column_view.read_element }}
+                    let elementCount = max(0, {{ column_view.length_read }})
+                    record.{{ column_view.name }}[{{ column_view.member_at }}] = []
+                    record.{{ column_view.name }}[{{ column_view.member_at }}].reserveCapacity(elementCount)
+                    for _ in 0 ..< elementCount {
+                        record.{{ column_view.name }}[{{ column_view.member_at }}].append({{ column_view.read_element }})
                     }
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-                    for element in 0 ..< {{ column_view.element_count }} {
-                        record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[element] = {{ column_view.read_element }}
-                    }
-{{~ else if column_view.kind == 'record_serial' ~}}
-                    for element in 0 ..< {{ column_view.element_count }} {
-                        record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
+                    let elementCount = max(0, {{ column_view.length_read }})
+                    record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = []
+                    record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}.reserveCapacity(elementCount)
+                    for _ in 0 ..< elementCount {
+                        record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}.append({{ column_view.read_element }})
                     }
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys are the array this row's length fills; the
@@ -311,34 +313,6 @@ public final class {{ table.table_name }} {
 
                     for _ in 0 ..< elementCount {
                         record.{{ column_view.name }}Index.append({{ column_view.read_element }})
-                    }
-{{~ end ~}}
-{{~ else if column_view.kind == 'serial_ref' ~}}
-                    record.{{ column_view.name }}Index = []
-                    record.{{ column_view.name }}Index.reserveCapacity(column.count)
-
-                    for _ in 0 ..< column.count {
-                        record.{{ column_view.name }}Index.append({{ column_view.read_element }})
-                    }
-{{~ else if column_view.kind == 'serial' ~}}
-{{~## One column owns the whole array, so how many elements a row holds is what the file
-   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
-                    record.{{ column_view.name }} = []
-                    record.{{ column_view.name }}.reserveCapacity(column.count)
-{{~ if column_view.has_optional_elements ~}}
-                    record.{{ column_view.element_presence_member }} = []
-                    record.{{ column_view.element_presence_member }}.reserveCapacity(column.count)
-
-                    for _ in 0 ..< column.count {
-                        record.{{ column_view.name }}.append({{ column_view.read_element }})
-                        record.{{ column_view.element_presence_member }}.append(
-                            Tcb.isPresent(elementPresence, elementAt))
-                        elementAt += 1
-                    }
-{{~ else ~}}
-
-                    for _ in 0 ..< column.count {
-                        record.{{ column_view.name }}.append({{ column_view.read_element }})
                     }
 {{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}

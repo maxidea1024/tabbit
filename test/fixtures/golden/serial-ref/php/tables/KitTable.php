@@ -121,7 +121,7 @@ final class KitTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Kit.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Kit.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -132,26 +132,32 @@ final class KitTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Kit.Slot_array', TcbReader::KIND_FIXED_ARRAY, -1, false, [TcbReader::ELEMENT_I32]);
+                    TcbReader::checkColumn($column, 'Kit.Slot_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Slot_array');
                     foreach ($records as $record) {
+                        $elementCount = $cursor->nextLength();
                         $record->slotArrayIndex = [];
-                        for ($j = 0; $j < $column['count']; $j++) {
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->slotArrayIndex[] = $cursor->nextI32();
                         }
-                        $record->slotArray = \array_fill(0, $column['count'], null);
+                        $record->slotArray = $elementCount > 0
+                            ? \array_fill(0, $elementCount, null)
+                            : [];
                     }
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Kit.Tier_array', TcbReader::KIND_FIXED_ARRAY, -1, false, [TcbReader::ELEMENT_I32]);
+                    TcbReader::checkColumn($column, 'Kit.Tier_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Tier_array');
                     foreach ($records as $record) {
+                        $elementCount = $cursor->nextLength();
                         $record->tierArrayIndex = [];
-                        for ($j = 0; $j < $column['count']; $j++) {
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->tierArrayIndex[] = $cursor->nextI32();
                         }
-                        $record->tierArray = \array_fill(0, $column['count'], null);
+                        $record->tierArray = $elementCount > 0
+                            ? \array_fill(0, $elementCount, null)
+                            : [];
                     }
                     break;
 

@@ -109,7 +109,7 @@ impl TrimKitTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "TrimKit.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "TrimKit.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "TrimKit.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -121,7 +121,7 @@ impl TrimKitTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column_with_elements(column, "TrimKit.Slot_array", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_I32])?;
+                    tabbit::check_column_with_elements(column, "TrimKit.Slot_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "TrimKit.Slot_array")?;
@@ -139,7 +139,7 @@ impl TrimKitTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column_with_elements(column, "TrimKit.Tier_array", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_I32])?;
+                    tabbit::check_column_with_elements(column, "TrimKit.Tier_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "TrimKit.Tier_array")?;

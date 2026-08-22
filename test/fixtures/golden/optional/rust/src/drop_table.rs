@@ -157,7 +157,7 @@ impl DropTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Drop.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Drop.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Drop.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -169,7 +169,7 @@ impl DropTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Drop.Hp", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Drop.Hp", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Drop.Hp")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -181,7 +181,7 @@ impl DropTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Drop.Bonus", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Drop.Bonus", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -209,7 +209,7 @@ impl DropTable {
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Drop.Weight", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_F64, tabbit::ELEMENT_F32, tabbit::ELEMENT_I32])?;
+                    tabbit::check_column(column, "Drop.Weight", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_F64, tabbit::ELEMENT_F32, tabbit::ELEMENT_I32])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -232,7 +232,7 @@ impl DropTable {
                     }
                 }
                 5 => {
-                    tabbit::check_column(column, "Drop.Ratio", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_F32])?;
+                    tabbit::check_column(column, "Drop.Ratio", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_F32])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -255,7 +255,7 @@ impl DropTable {
                     }
                 }
                 6 => {
-                    tabbit::check_column(column, "Drop.Count", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_I64, tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Drop.Count", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_I64, tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -278,7 +278,7 @@ impl DropTable {
                     }
                 }
                 7 => {
-                    tabbit::check_column(column, "Drop.OpenAt", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_I64])?;
+                    tabbit::check_column(column, "Drop.OpenAt", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_I64])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -301,7 +301,7 @@ impl DropTable {
                     }
                 }
                 8 => {
-                    tabbit::check_column(column, "Drop.Cooldown", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_I64])?;
+                    tabbit::check_column(column, "Drop.Cooldown", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_I64])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -324,7 +324,7 @@ impl DropTable {
                     }
                 }
                 9 => {
-                    tabbit::check_column(column, "Drop.Batch", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_UUID])?;
+                    tabbit::check_column(column, "Drop.Batch", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_UUID])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -346,7 +346,7 @@ impl DropTable {
                     }
                 }
                 10 => {
-                    tabbit::check_column(column, "Drop.Grade", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Drop.Grade", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_VARINT])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -374,7 +374,7 @@ impl DropTable {
                     }
                 }
                 11 => {
-                    tabbit::check_column(column, "Drop.Costs", tabbit::KIND_VAR_ARRAY, 0, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Drop.Costs", tabbit::KIND_ARRAY, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -401,7 +401,7 @@ impl DropTable {
                     }
                 }
                 12 => {
-                    tabbit::check_column(column, "Drop.Label", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Drop.Label", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_STRING])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -429,7 +429,7 @@ impl DropTable {
                     }
                 }
                 13 => {
-                    tabbit::check_column(column, "Drop.Hidden", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_BOOL])?;
+                    tabbit::check_column(column, "Drop.Hidden", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_BOOL])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.

@@ -121,7 +121,7 @@ class LoadoutTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Loadout.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Loadout.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Index")
                 at = 0
                 while at < count:
@@ -130,7 +130,7 @@ class LoadoutTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Loadout.Name", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Loadout.Name", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Name")
                 at = 0
                 while at < count:
@@ -139,29 +139,40 @@ class LoadoutTable:
                         records[i].name = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Loadout.Pos.X", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_F32,))
+                tabbit.check_column(column, "Loadout.Pos.X", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_F32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Pos.X")
                 for record in records:
                     record.pos.x = cursor.next_f32()
             elif column.tag == 4:
-                tabbit.check_column(column, "Loadout.Pos.Y", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_F32,))
+                tabbit.check_column(column, "Loadout.Pos.Y", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_F32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Pos.Y")
                 for record in records:
                     record.pos.y = cursor.next_f32()
             elif column.tag == 5:
-                tabbit.check_column(column, "Loadout.Slot.Id", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Loadout.Slot.Id", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Slot.Id")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    # The first member builds the list; the rest check. Building it again
+                    # would discard what the members before it wrote, and taking the shorter
+                    # of two counts would shift every value after it.
+                    record.slot = [
+                        LoadoutSlotEntry() for _ in range(element_count)]
+                    for element in range(element_count):
                         record.slot[element].id = cursor.next_i32()
             elif column.tag == 6:
-                tabbit.check_column(column, "Loadout.Slot.Label", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Loadout.Slot.Label", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Slot.Label")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    if len(record.slot) != element_count:
+                        raise tabbit.TcbError(
+                            "Loadout.slot: the file gives one member of "
+                            "this record a different element count than another")
+                    for element in range(element_count):
                         record.slot[element].label = cursor.next_string()
             elif column.tag == 7:
-                tabbit.check_column(column, "Loadout.Note", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Loadout.Note", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Note")
                 at = 0
                 while at < count:
@@ -170,10 +181,11 @@ class LoadoutTable:
                         records[i].note = value
                     at += n
             elif column.tag == 8:
-                tabbit.check_column(column, "Loadout.Tag_array", tabbit.KIND_FIXED_ARRAY, -1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Loadout.Tag_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Tag_array")
                 for record in records:
-                    record.tag_array = [cursor.next_string() for _ in range(column.count)]
+                    element_count = cursor.next_length()
+                    record.tag_array = [cursor.next_string() for _ in range(element_count)]
             else:
                 # A column added after this code was generated.
                 reader.skip(column.byte_length)

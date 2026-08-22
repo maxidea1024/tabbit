@@ -114,7 +114,7 @@ impl FittingTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Fitting.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Fitting.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Fitting.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -126,7 +126,7 @@ impl FittingTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Fitting.Main.Pick", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Fitting.Main.Pick", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Fitting.Main.Pick")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -138,7 +138,7 @@ impl FittingTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Fitting.Main.Count", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Fitting.Main.Count", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Fitting.Main.Count")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -150,7 +150,7 @@ impl FittingTable {
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Fitting.Pad", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Fitting.Pad", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Fitting.Pad")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -162,7 +162,7 @@ impl FittingTable {
                     }
                 }
                 5 => {
-                    tabbit::check_column(column, "Fitting.Pad2", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Fitting.Pad2", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Fitting.Pad2")?;
                     let mut at = 0usize;
                     while at < records.len() {

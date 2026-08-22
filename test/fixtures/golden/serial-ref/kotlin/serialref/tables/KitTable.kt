@@ -116,7 +116,7 @@ class KitTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Kit.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Kit.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Kit.Index")
                     var at = 0
                     while (at < count) {
@@ -130,19 +130,21 @@ class KitTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Kit.Slot_array", KIND_FIXED_ARRAY, -1, false, ELEMENT_I32)
+                    checkColumn(column, "Kit.Slot_array", KIND_ARRAY, false, ELEMENT_I32)
                     val cursor = ColumnCursor(reader, column, count, "Kit.Slot_array")
                     for (record in loaded) {
-                        record.slotArrayIndex = ArrayList(column.count)
-                        repeat(column.count) { record.slotArrayIndex.add(cursor.nextI32()) }
+                        val elementCount = cursor.nextLength()
+                        record.slotArrayIndex = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.slotArrayIndex.add(cursor.nextI32()) }
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Kit.Tier_array", KIND_FIXED_ARRAY, -1, false, ELEMENT_I32)
+                    checkColumn(column, "Kit.Tier_array", KIND_ARRAY, false, ELEMENT_I32)
                     val cursor = ColumnCursor(reader, column, count, "Kit.Tier_array")
                     for (record in loaded) {
-                        record.tierArrayIndex = ArrayList(column.count)
-                        repeat(column.count) { record.tierArrayIndex.add(cursor.nextI32()) }
+                        val elementCount = cursor.nextLength()
+                        record.tierArrayIndex = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.tierArrayIndex.add(cursor.nextI32()) }
                     }
                 }
                 else ->

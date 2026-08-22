@@ -126,7 +126,7 @@ impl ListingTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Listing.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Listing.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Listing.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -138,7 +138,7 @@ impl ListingTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Listing.Name", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Listing.Name", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Listing.Name")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -150,7 +150,7 @@ impl ListingTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Listing.Plain", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Listing.Plain", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Listing.Plain")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
@@ -161,7 +161,7 @@ impl ListingTable {
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Listing.Maybe", tabbit::KIND_VAR_ARRAY, 0, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Listing.Maybe", tabbit::KIND_ARRAY, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -188,7 +188,7 @@ impl ListingTable {
                     }
                 }
                 5 => {
-                    tabbit::check_column_with_elements(column, "Listing.Holes", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column_with_elements(column, "Listing.Holes", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Listing.Holes")?;
@@ -206,7 +206,7 @@ impl ListingTable {
                     }
                 }
                 6 => {
-                    tabbit::check_column_with_elements(column, "Listing.Both", tabbit::KIND_VAR_ARRAY, 0, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column_with_elements(column, "Listing.Both", tabbit::KIND_ARRAY, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -240,7 +240,7 @@ impl ListingTable {
                     }
                 }
                 7 => {
-                    tabbit::check_column_with_elements(column, "Listing.Words", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column_with_elements(column, "Listing.Words", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Listing.Words")?;

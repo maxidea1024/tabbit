@@ -105,7 +105,7 @@ class KitTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Kit.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Kit.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Index")
                 at = 0
                 while at < count:
@@ -114,7 +114,7 @@ class KitTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Kit.Part.ItemId", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_I32,))
+                tabbit.check_column(column, "Kit.Part.ItemId", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Part.ItemId")
                 for record in records:
                     element_count = cursor.next_length()
@@ -126,7 +126,7 @@ class KitTable:
                     for element in range(element_count):
                         record.part[element].item_id_index = cursor.next_i32()
             elif column.tag == 3:
-                tabbit.check_column(column, "Kit.Part.Count", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Kit.Part.Count", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Part.Count")
                 for record in records:
                     element_count = cursor.next_length()

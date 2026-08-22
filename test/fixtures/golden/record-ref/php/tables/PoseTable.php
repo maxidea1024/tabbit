@@ -137,7 +137,7 @@ final class PoseTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Pose.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Pose.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Pose.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -148,20 +148,34 @@ final class PoseTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Pose.Step.ClipId', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Pose.Step.ClipId', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Pose.Step.ClipId');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        // The first member builds the list; the rest check. Building it
+                        // again would discard what the members before it wrote, and taking
+                        // the shorter of two counts would shift every value after it.
+                        $record->step = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
+                            $record->step[] = new PoseStepEntry();
+                        }
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->step[$j]->clipIdIndex = $cursor->nextString();
                         }
                     }
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Pose.Step.Weight', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Pose.Step.Weight', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Pose.Step.Weight');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        if (\count($record->step) !== $elementCount) {
+                            throw new \Tabbit\TcbException(
+                                'Pose.step: the file gives one member of '
+                                . 'this record a different element count than another.');
+                        }
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->step[$j]->weight = $cursor->nextI32();
                         }
                     }

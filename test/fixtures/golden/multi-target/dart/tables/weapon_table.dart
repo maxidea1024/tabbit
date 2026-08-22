@@ -84,7 +84,7 @@ class WeaponTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Weapon.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Weapon.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Weapon.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -94,7 +94,7 @@ class WeaponTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Weapon.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Weapon.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Weapon.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -104,7 +104,7 @@ class WeaponTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Weapon.Note', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Weapon.Note', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Weapon.Note');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);

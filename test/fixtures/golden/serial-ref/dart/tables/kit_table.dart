@@ -86,7 +86,7 @@ class KitTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Kit.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Kit.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Kit.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -96,17 +96,19 @@ class KitTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Kit.Slot_array', kindFixedArray, -1, false, [elementI32]);
+          checkColumn(column, 'Kit.Slot_array', kindArray, false, [elementI32]);
           cursor = TcbColumnCursor(reader, column, count, 'Kit.Slot_array');
           for (final record in loaded) {
-            record.slotArrayIndex = List.generate(column.count, (_) => cursor.nextI32());
+            final elementCount = cursor.nextLength();
+            record.slotArrayIndex = List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         case 3:
-          checkColumn(column, 'Kit.Tier_array', kindFixedArray, -1, false, [elementI32]);
+          checkColumn(column, 'Kit.Tier_array', kindArray, false, [elementI32]);
           cursor = TcbColumnCursor(reader, column, count, 'Kit.Tier_array');
           for (final record in loaded) {
-            record.tierArrayIndex = List.generate(column.count, (_) => cursor.nextI32());
+            final elementCount = cursor.nextLength();
+            record.tierArrayIndex = List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         default:

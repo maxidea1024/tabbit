@@ -157,7 +157,7 @@ final class GuideTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Guide.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Guide.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -168,7 +168,7 @@ final class GuideTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Guide.Name', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Guide.Name', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Name');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -179,27 +179,31 @@ final class GuideTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Guide.Skill.Step', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Guide.Skill.Step', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Skill.Step');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        $record->skill->step = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->skill->step[$j] = $cursor->nextI32();
                         }
                     }
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Guide.Skill.Order', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Guide.Skill.Order', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Skill.Order');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        $record->skill->order = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->skill->order[$j] = $cursor->nextString();
                         }
                     }
                     break;
 
                 case 5:
-                    TcbReader::checkColumn($column, 'Guide.Pos.X', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_F32]);
+                    TcbReader::checkColumn($column, 'Guide.Pos.X', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_F32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Pos.X');
                     foreach ($records as $record) {
                         $record->pos->x = $cursor->nextF32();
@@ -207,7 +211,7 @@ final class GuideTable
                     break;
 
                 case 6:
-                    TcbReader::checkColumn($column, 'Guide.Pos.Y', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_F32]);
+                    TcbReader::checkColumn($column, 'Guide.Pos.Y', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_F32]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Pos.Y');
                     foreach ($records as $record) {
                         $record->pos->y = $cursor->nextF32();
@@ -215,31 +219,36 @@ final class GuideTable
                     break;
 
                 case 7:
-                    TcbReader::checkColumn($column, 'Guide.Tag_array', TcbReader::KIND_FIXED_ARRAY, -1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Guide.Tag_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Tag_array');
                     foreach ($records as $record) {
+                        $elementCount = $cursor->nextLength();
                         $record->tagArray = [];
-                        for ($j = 0; $j < $column['count']; $j++) {
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->tagArray[] = $cursor->nextString();
                         }
                     }
                     break;
 
                 case 8:
-                    TcbReader::checkColumn($column, 'Guide.Grid.1', TcbReader::KIND_FIXED_ARRAY, 3, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Guide.Grid.1', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Grid.1');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 3; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        $record->grid[0] = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->grid[0][$j] = $cursor->nextI32();
                         }
                     }
                     break;
 
                 case 9:
-                    TcbReader::checkColumn($column, 'Guide.Grid.2', TcbReader::KIND_FIXED_ARRAY, 3, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Guide.Grid.2', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Grid.2');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 3; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        $record->grid[1] = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->grid[1][$j] = $cursor->nextI32();
                         }
                     }

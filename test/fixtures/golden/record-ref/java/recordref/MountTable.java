@@ -96,7 +96,7 @@ public final class MountTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Mount.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Mount.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Mount.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,20 +107,36 @@ public final class MountTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Mount.Rig.Core.ItemId", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumn(column, "Mount.Rig.Core.ItemId", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Mount.Rig.Core.ItemId");
                     for (MountRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.rig = new MountRecord.RigEntry[elementCount];
+
+                        for (int j = 0; j < elementCount; j++) {
+                            record.rig[j] = new MountRecord.RigEntry();
                             record.rig[j].core.itemIdIndex = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Mount.Rig.Core.Count", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Mount.Rig.Core.Count", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Mount.Rig.Core.Count");
                     for (MountRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        if (record.rig.length != elementCount) {
+                            throw new TcbReader.TcbException(
+                                "Mount.rig: the file gives one member of "
+                                + "this record a different element count than another");
+                        }
+
+                        for (int j = 0; j < elementCount; j++) {
                             record.rig[j].core.count = cursor.nextI32();
                         }
                     }

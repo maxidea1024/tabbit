@@ -116,7 +116,7 @@ public final class KitTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Kit.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Kit.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Index")
                 var at = 0
                 while at < count {
@@ -129,7 +129,7 @@ public final class KitTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Kit.Part.ItemId", Tcb.kindVarArray, 0, false, Tcb.elementI32)
+                try Tcb.checkColumn(column, "Kit.Part.ItemId", Tcb.kindArray, false, Tcb.elementI32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Part.ItemId")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
@@ -144,7 +144,7 @@ public final class KitTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Kit.Part.Count", Tcb.kindVarArray, 0, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Kit.Part.Count", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Part.Count")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())

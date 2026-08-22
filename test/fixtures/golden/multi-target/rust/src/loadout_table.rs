@@ -118,7 +118,7 @@ impl LoadoutTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Loadout.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loadout.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -130,19 +130,42 @@ impl LoadoutTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Loadout.Slot.Pick", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loadout.Slot.Pick", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    let bytes_left = reader.remaining();
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Slot.Pick")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        // The count came off the wire, and one element is at least one byte,
+                        // so this is checked before anything is allocated for it.
+                        if element_count > bytes_left {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Loadout.slot",
+                                detail: "a record array is longer than the file can hold",
+                            });
+                        }
+
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.slot = vec![LoadoutSlotEntry::default(); element_count];
+                        for element in 0..element_count {
                             record.slot[element].pick = cursor.next_i32()?;
                         }
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Loadout.Slot.Count", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loadout.Slot.Count", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Slot.Count")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        if record.slot.len() != element_count {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Loadout.slot",
+                                detail: "the file gives one member of this record a different \
+                                         element count than another",
+                            });
+                        }
+                        for element in 0..element_count {
                             record.slot[element].count = cursor.next_i32()?;
                         }
                     }

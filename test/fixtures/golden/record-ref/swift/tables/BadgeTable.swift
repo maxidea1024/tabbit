@@ -123,7 +123,7 @@ public final class BadgeTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Badge.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Badge.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Badge.Index")
                 var at = 0
                 while at < count {
@@ -136,7 +136,7 @@ public final class BadgeTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Badge.Mark.ClipId", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Badge.Mark.ClipId", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Badge.Mark.ClipId")
                 var at = 0
                 while at < count {
@@ -149,12 +149,12 @@ public final class BadgeTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Badge.Mark.SealId", Tcb.kindScalar, 1, false, Tcb.elementUuid)
+                try Tcb.checkColumn(column, "Badge.Mark.SealId", Tcb.kindScalar, false, Tcb.elementUuid)
                 for record in loaded {
                     record.mark.sealIdIndex = try reader.readUuid()
                 }
             case 4:
-                try Tcb.checkColumn(column, "Badge.Mark.Rank", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Badge.Mark.Rank", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Badge.Mark.Rank")
                 var at = 0
                 while at < count {
@@ -167,7 +167,7 @@ public final class BadgeTable {
                     }
                 }
             case 5:
-                try Tcb.checkColumn(column, "Badge.Pad", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Badge.Pad", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Badge.Pad")
                 var at = 0
                 while at < count {

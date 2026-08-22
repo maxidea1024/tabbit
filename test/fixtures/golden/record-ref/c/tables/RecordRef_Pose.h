@@ -33,7 +33,8 @@ struct RecordRef_PoseRecord_t {
   /* primary index */
   int32_t index;
   /* element 1, a string key */
-  struct RecordRef_PoseRecord_t_step_entry step[2];
+  struct RecordRef_PoseRecord_t_step_entry* step;
+  int32_t step_count;
 };
 
 /* Every row of Pose.

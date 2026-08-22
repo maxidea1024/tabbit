@@ -114,7 +114,7 @@ class TrinketTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Trinket.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Trinket.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Trinket.Index")
                     var at = 0
                     while (at < count) {
@@ -128,7 +128,7 @@ class TrinketTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Trinket.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Trinket.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Trinket.Name")
                     var at = 0
                     while (at < count) {
@@ -142,7 +142,7 @@ class TrinketTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Trinket.Note", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Trinket.Note", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Trinket.Note")
                     var at = 0
                     while (at < count) {

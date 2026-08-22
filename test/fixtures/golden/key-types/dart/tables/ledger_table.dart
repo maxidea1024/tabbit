@@ -112,14 +112,14 @@ class LedgerTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Ledger.Index', kindScalar, 1, false, [elementI64, elementI32, elementVarint]);
+          checkColumn(column, 'Ledger.Index', kindScalar, false, [elementI64, elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Ledger.Index');
           for (final record in loaded) {
             record.index = cursor.nextI64();
           }
           break;
         case 2:
-          checkColumn(column, 'Ledger.Amount', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Ledger.Amount', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Ledger.Amount');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -129,7 +129,7 @@ class LedgerTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Ledger.Batch', kindScalar, 1, false, [elementUuid]);
+          checkColumn(column, 'Ledger.Batch', kindScalar, false, [elementUuid]);
           for (final record in loaded) {
             record.batch = reader.readUuid();
           }

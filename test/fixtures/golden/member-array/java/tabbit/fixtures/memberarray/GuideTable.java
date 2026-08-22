@@ -96,7 +96,7 @@ public final class GuideTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Guide.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Guide.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Guide.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,7 +107,7 @@ public final class GuideTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Guide.Name", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Guide.Name", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Guide.Name");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -118,27 +118,33 @@ public final class GuideTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Guide.Skill.Step", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Guide.Skill.Step", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Guide.Skill.Step");
                     for (GuideRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.skill.step = new int[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.skill.step[j] = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 4: {
-                    TcbReader.checkColumn(column, "Guide.Skill.Order", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Guide.Skill.Order", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Guide.Skill.Order");
                     for (GuideRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.skill.order = new String[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.skill.order[j] = cursor.nextString();
                         }
                     }
                     break;
                 }
                 case 5: {
-                    TcbReader.checkColumn(column, "Guide.Pos.X", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_F32);
+                    TcbReader.checkColumn(column, "Guide.Pos.X", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_F32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Guide.Pos.X");
                     for (GuideRecord record : loaded) {
                         record.pos.x = cursor.nextF32();
@@ -146,7 +152,7 @@ public final class GuideTable {
                     break;
                 }
                 case 6: {
-                    TcbReader.checkColumn(column, "Guide.Pos.Y", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_F32);
+                    TcbReader.checkColumn(column, "Guide.Pos.Y", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_F32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Guide.Pos.Y");
                     for (GuideRecord record : loaded) {
                         record.pos.y = cursor.nextF32();
@@ -154,31 +160,39 @@ public final class GuideTable {
                     break;
                 }
                 case 7: {
-                    TcbReader.checkColumn(column, "Guide.Tag_array", TcbReader.KIND_FIXED_ARRAY, -1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Guide.Tag_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Guide.Tag_array");
                     for (GuideRecord record : loaded) {
-                        record.tagArray = new String[column.count];
-                        for (int j = 0; j < column.count; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.tagArray = new String[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.tagArray[j] = cursor.nextString();
                         }
                     }
                     break;
                 }
                 case 8: {
-                    TcbReader.checkColumn(column, "Guide.Grid.1", TcbReader.KIND_FIXED_ARRAY, 3, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Guide.Grid.1", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Guide.Grid.1");
                     for (GuideRecord record : loaded) {
-                        for (int j = 0; j < 3; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.grid[0] = new int[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.grid[0][j] = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 9: {
-                    TcbReader.checkColumn(column, "Guide.Grid.2", TcbReader.KIND_FIXED_ARRAY, 3, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Guide.Grid.2", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Guide.Grid.2");
                     for (GuideRecord record : loaded) {
-                        for (int j = 0; j < 3; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.grid[1] = new int[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.grid[1][j] = cursor.nextI32();
                         }
                     }

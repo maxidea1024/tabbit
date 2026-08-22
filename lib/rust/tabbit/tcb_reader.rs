@@ -31,7 +31,7 @@ use std::path::Path;
 /// rather than guessing. 102 replaced 101 outright - a descriptor gained its encoding
 /// byte - before any 101 file had shipped. 104 is the current one: four encodings joined
 /// the nine, and the flags byte gained a meaning.
-pub const FORMAT_VERSION: u32 = 106;
+pub const FORMAT_VERSION: u32 = 107;
 
 // The wire element types and kinds, as a column descriptor spells them.
 pub const ELEMENT_VARINT: u8 = 0;
@@ -44,8 +44,7 @@ pub const ELEMENT_STRING: u8 = 6;
 pub const ELEMENT_UUID: u8 = 7;
 
 pub const KIND_SCALAR: u8 = 0;
-pub const KIND_FIXED_ARRAY: u8 = 1;
-pub const KIND_VAR_ARRAY: u8 = 2;
+pub const KIND_ARRAY: u8 = 1;
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
 // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -117,8 +116,6 @@ pub struct Column {
     pub kind: u8,
     /// How the block's values are laid out: one of the ENCODING_* constants.
     pub encoding: u8,
-    /// Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one.
-    pub count: i32,
     /// Total bytes of the column block - what a skip advances by.
     pub byte_length: i32,
     /// Whether the block begins with one presence bit per row, low bit first.
@@ -945,7 +942,7 @@ impl<'r, 'a> TcbColumnCursor<'r, 'a> {
         if encoding == ENCODING_ARRAY {
             encoding = reader.read_u8()?;
 
-            if column.kind == KIND_VAR_ARRAY {
+            if column.kind == KIND_ARRAY {
                 let length_encoding = reader.read_u8()?;
                 lengths = read_lengths(reader, length_encoding, row_count, field)?;
                 lengths_decoded = true;
@@ -960,8 +957,6 @@ impl<'r, 'a> TcbColumnCursor<'r, 'a> {
                 }
 
                 rows_remaining = elements as i32;
-            } else {
-                rows_remaining = row_count.saturating_mul(column.count);
             }
         }
 
@@ -1462,7 +1457,6 @@ pub fn read_table_header(reader: &mut Reader<'_>) -> Result<Header> {
         let tag = reader.read_counter32()?;
         let wire = reader.read_u8()?;
         let encoding = reader.read_u8()?;
-        let element_count = reader.read_counter32()?;
         let byte_length = reader.read_u32()? as i32;
 
         columns.push(Column {
@@ -1472,7 +1466,6 @@ pub fn read_table_header(reader: &mut Reader<'_>) -> Result<Header> {
             nullable: wire & 0x40 != 0,
             element_nullable: wire & 0x80 != 0,
             encoding,
-            count: element_count,
             byte_length,
         });
     }
@@ -1505,17 +1498,6 @@ pub fn read_table_header(reader: &mut Reader<'_>) -> Result<Header> {
             });
         }
 
-        // The same floor for the element count, which the read now allocates for: a fixed
-        // array's length is the file's rather than the generated code's. Only with rows to
-        // read - an empty table writes its columns' counts into a block of no bytes, and that
-        // is well-formed.
-        if column.encoding == ENCODING_RAW && count > 0 && column.count > column.byte_length {
-            return Err(Error::ElementCountImplausible {
-                tag: column.tag,
-                count: column.count,
-                byte_length: column.byte_length,
-            });
-        }
     }
 
     if declared != available {
@@ -1573,7 +1555,7 @@ pub fn is_present(presence: &[u8], row: usize) -> bool {
 /// That a column is what the generated member expects, or a lossless promotion of it.
 /// The same, for a member whose array elements may be absent.
 pub fn check_column_with_elements(
-    column: &Column, field: &'static str, kind: u8, count: i32, nullable: bool,
+    column: &Column, field: &'static str, kind: u8,  nullable: bool,
     accepted: &[u8],
 ) -> Result<()> {
     check_element_nullable(column, field, true)?;
@@ -1596,7 +1578,7 @@ fn check_element_nullable(column: &Column, field: &'static str, expected: bool) 
 }
 
 pub fn check_column(
-    column: &Column, field: &'static str, kind: u8, count: i32, nullable: bool,
+    column: &Column, field: &'static str, kind: u8,  nullable: bool,
     accepted: &[u8],
 ) -> Result<()> {
     check_element_nullable(column, field, false)?;
@@ -1604,7 +1586,7 @@ pub fn check_column(
 }
 
 fn check_column_shape(
-    column: &Column, field: &'static str, kind: u8, count: i32, nullable: bool,
+    column: &Column, field: &'static str, kind: u8,  nullable: bool,
     accepted: &[u8],
 ) -> Result<()> {
     // Nullability is part of the shape: a file that says optional puts a presence bitmap in
@@ -1621,7 +1603,7 @@ fn check_column_shape(
     // A negative count says the member claims no length: how many elements a row holds is
     // what the file states. The kind is still the member's claim.
     // spec/nullable-array-elements.md.
-    if column.kind != kind || (kind != KIND_VAR_ARRAY && count >= 0 && column.count != count) {
+    if column.kind != kind {
         return Err(Error::ColumnMismatch {
             field,
             detail: "the column's shape does not match the generated member; the schema \

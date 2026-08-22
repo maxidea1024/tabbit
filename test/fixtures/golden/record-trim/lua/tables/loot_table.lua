@@ -123,7 +123,7 @@ function LootTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Loot.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loot.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loot.Index")
       local at = 0
 
@@ -137,7 +137,7 @@ function LootTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Loot.Name", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Loot.Name", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Loot.Name")
       local at = 0
 
@@ -151,7 +151,7 @@ function LootTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Loot.Slot.Id", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loot.Slot.Id", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loot.Slot.Id")
       for i = 1, count do
         local record = records[i]
@@ -166,7 +166,7 @@ function LootTable:readBytes(data)
         end
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Loot.Slot.Count", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loot.Slot.Count", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loot.Slot.Count")
       for i = 1, count do
         local record = records[i]
@@ -181,7 +181,7 @@ function LootTable:readBytes(data)
         end
       end
     elseif column.tag == 5 then
-      tcb.checkColumn(column, "Loot.Slot.Label", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Loot.Slot.Label", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Loot.Slot.Label")
       for i = 1, count do
         local record = records[i]
@@ -196,7 +196,7 @@ function LootTable:readBytes(data)
         end
       end
     elseif column.tag == 6 then
-      tcb.checkColumn(column, "Loot.Pos.X", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loot.Pos.X", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loot.Pos.X")
       local at = 0
 
@@ -210,7 +210,7 @@ function LootTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 7 then
-      tcb.checkColumn(column, "Loot.Pos.Y", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loot.Pos.Y", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loot.Pos.Y")
       local at = 0
 
@@ -224,7 +224,7 @@ function LootTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 8 then
-      tcb.checkColumn(column, "Loot.Tag_array", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Loot.Tag_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Loot.Tag_array")
       for i = 1, count do
         local record = records[i]

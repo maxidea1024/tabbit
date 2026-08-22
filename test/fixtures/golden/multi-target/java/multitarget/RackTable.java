@@ -96,7 +96,7 @@ public final class RackTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Rack.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Rack.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Rack.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,20 +107,26 @@ public final class RackTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Rack.Slots.Pick", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Rack.Slots.Pick", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Rack.Slots.Pick");
                     for (RackRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.slots.pick = new int[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.slots.pick[j] = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Rack.Slots.Count", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Rack.Slots.Count", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Rack.Slots.Count");
                     for (RackRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.slots.count = new int[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.slots.count[j] = cursor.nextI32();
                         }
                     }

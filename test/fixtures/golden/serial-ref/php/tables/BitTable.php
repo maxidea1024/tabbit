@@ -113,7 +113,7 @@ final class BitTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Bit.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Bit.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Bit.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -124,7 +124,7 @@ final class BitTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Bit.Name', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Bit.Name', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Bit.Name');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -135,7 +135,7 @@ final class BitTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Bit.Tier', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Bit.Tier', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Bit.Tier');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);

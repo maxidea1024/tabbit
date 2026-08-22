@@ -131,7 +131,7 @@ function RackTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Rack.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Rack.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Rack.Index")
       local at = 0
 
@@ -145,21 +145,25 @@ function RackTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Rack.Slots.Pick", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Rack.Slots.Pick", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Rack.Slots.Pick")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
-          record.slots.pick[element] = cursor:nextI32()
+        local elementCount = cursor:nextLength()
+         = {}
+        for element = 1, element_count do
+           = cursor:nextI32()
         end
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Rack.Slots.Count", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Rack.Slots.Count", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Rack.Slots.Count")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
-          record.slots.count[element] = cursor:nextI32()
+        local elementCount = cursor:nextLength()
+         = {}
+        for element = 1, element_count do
+           = cursor:nextI32()
         end
       end
     else

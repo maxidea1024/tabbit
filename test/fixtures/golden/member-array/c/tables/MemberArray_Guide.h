@@ -24,9 +24,9 @@ extern "C" {
 /* One element of MemberArray_GuideRecord_t::skill. */
 struct MemberArray_GuideRecord_t_skill_entry {
   /* member array, element 1 */
-  int32_t step[2];
+  int32_t* step; int32_t step_count;
   /* second member, element 1 */
-  const char* order[2];
+  const char** order; int32_t order_count;
 };
 
 /* One element of MemberArray_GuideRecord_t::pos. */
@@ -50,7 +50,8 @@ struct MemberArray_GuideRecord_t {
   const char** tag_array;
   int32_t tag_array_count;
   /* array of arrays: outer 1, inner 1 - neither level has a name */
-  int32_t grid[2][3];
+  int32_t* grid[2];
+  int32_t grid_count[2];
 };
 
 /* Every row of Guide.

@@ -87,7 +87,7 @@ module RecordRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Clip.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Clip.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Clip.Index')
           at = 0
           while at < count
@@ -98,7 +98,7 @@ module RecordRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Clip.Length', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Clip.Length', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Clip.Length')
           at = 0
           while at < count
@@ -109,7 +109,7 @@ module RecordRef
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Clip.Pad', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Clip.Pad', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Clip.Pad')
           at = 0
           while at < count
@@ -120,7 +120,7 @@ module RecordRef
             at += n
           end
         when 4
-          Tabbit.check_column(column, 'Clip.Pad2', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Clip.Pad2', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Clip.Pad2')
           at = 0
           while at < count
@@ -131,7 +131,7 @@ module RecordRef
             at += n
           end
         when 5
-          Tabbit.check_column(column, 'Clip.Pad3', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Clip.Pad3', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Clip.Pad3')
           at = 0
           while at < count

@@ -112,7 +112,7 @@ public final class ItemTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Item.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Item.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Item.Index")
                 var at = 0
                 while at < count {
@@ -125,7 +125,7 @@ public final class ItemTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Item.Name", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Item.Name", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Item.Name")
                 var at = 0
                 while at < count {
@@ -138,7 +138,7 @@ public final class ItemTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Item.Pad", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Item.Pad", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Item.Pad")
                 var at = 0
                 while at < count {
@@ -151,7 +151,7 @@ public final class ItemTable {
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Item.Pad2", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Item.Pad2", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Item.Pad2")
                 var at = 0
                 while at < count {
@@ -164,7 +164,7 @@ public final class ItemTable {
                     }
                 }
             case 5:
-                try Tcb.checkColumn(column, "Item.Pad3", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Item.Pad3", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Item.Pad3")
                 var at = 0
                 while at < count {

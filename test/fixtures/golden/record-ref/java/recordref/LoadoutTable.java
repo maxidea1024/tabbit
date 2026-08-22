@@ -96,7 +96,7 @@ public final class LoadoutTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Loadout.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Loadout.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,30 +107,54 @@ public final class LoadoutTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Loadout.Slot.ItemId", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumn(column, "Loadout.Slot.ItemId", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Slot.ItemId");
                     for (LoadoutRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.slot = new LoadoutRecord.SlotEntry[elementCount];
+
+                        for (int j = 0; j < elementCount; j++) {
+                            record.slot[j] = new LoadoutRecord.SlotEntry();
                             record.slot[j].itemIdIndex = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Loadout.Slot.SwapId", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumn(column, "Loadout.Slot.SwapId", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Slot.SwapId");
                     for (LoadoutRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        if (record.slot.length != elementCount) {
+                            throw new TcbReader.TcbException(
+                                "Loadout.slot: the file gives one member of "
+                                + "this record a different element count than another");
+                        }
+
+                        for (int j = 0; j < elementCount; j++) {
                             record.slot[j].swapIdIndex = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 4: {
-                    TcbReader.checkColumn(column, "Loadout.Slot.Count", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Loadout.Slot.Count", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Loadout.Slot.Count");
                     for (LoadoutRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        if (record.slot.length != elementCount) {
+                            throw new TcbReader.TcbException(
+                                "Loadout.slot: the file gives one member of "
+                                + "this record a different element count than another");
+                        }
+
+                        for (int j = 0; j < elementCount; j++) {
                             record.slot[j].count = cursor.nextI32();
                         }
                     }

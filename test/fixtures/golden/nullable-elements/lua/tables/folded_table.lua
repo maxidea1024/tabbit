@@ -91,7 +91,7 @@ function FoldedTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Folded.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Folded.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Folded.Index")
       local at = 0
 
@@ -105,7 +105,7 @@ function FoldedTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Folded.Tag_array", tcb.KIND_FIXED_ARRAY, -1, false, { tcb.ELEMENT_STRING }, true)
+      tcb.checkColumn(column, "Folded.Tag_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
       -- steps once per element of every row. spec/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)
@@ -113,20 +113,21 @@ function FoldedTable:readBytes(data)
       local cursor = tcb.newCursor(reader, column, count, "Folded.Tag_array")
       for i = 1, count do
         local record = records[i]
+        local elementCount = cursor:nextLength()
         local values = {}
 
-        for element = 1, column.count do
+        for element = 1, elementCount do
           values[element] = cursor:nextString()
         end
 
         record.tagArray = values
         local answers = {}
 
-        for element = 1, column.count do
+        for element = 1, elementCount do
           answers[element] = tcb.isPresent(elementPresence, elementAt + element - 1)
         end
 
-        elementAt = elementAt + column.count
+        elementAt = elementAt + elementCount
         record.hasTagArrayAt = answers
       end
     else

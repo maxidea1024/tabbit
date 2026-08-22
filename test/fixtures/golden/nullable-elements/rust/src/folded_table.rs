@@ -104,7 +104,7 @@ impl FoldedTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Folded.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Folded.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Folded.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -116,12 +116,12 @@ impl FoldedTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column_with_elements(column, "Folded.Tag_array", tabbit::KIND_FIXED_ARRAY, -1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column_with_elements(column, "Folded.Tag_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Folded.Tag_array")?;
                     for record in records.iter_mut() {
-                        let element_count = column.count.max(0) as usize;
+                        let element_count = cursor.next_length()?.max(0) as usize;
                         record.tag_array = Vec::with_capacity(element_count.min(65536));
                         record.has_tag_array_at =
                             Vec::with_capacity(element_count.min(65536));

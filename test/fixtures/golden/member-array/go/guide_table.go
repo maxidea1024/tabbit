@@ -139,7 +139,7 @@ func (t *GuideTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Guide.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Guide.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -150,7 +150,7 @@ func (t *GuideTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Guide.Name", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Guide.Name", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Name")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -161,27 +161,31 @@ func (t *GuideTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Guide.Skill.Step", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Guide.Skill.Step", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Skill.Step")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					r.Skill.Step = make([]GuideSkillEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Skill.Step[j] = cursor.NextI32()
 					}
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Guide.Skill.Order", tabbit.KindFixedArray, 2, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Guide.Skill.Order", tabbit.KindArray, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Skill.Order")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					r.Skill.Order = make([]GuideSkillEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Skill.Order[j] = cursor.NextString()
 					}
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Guide.Pos.X", tabbit.KindScalar, 1, false, tabbit.ElementF32) {
+			if tabbit.CheckColumn(reader, column, "Guide.Pos.X", tabbit.KindScalar, false, tabbit.ElementF32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Pos.X")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -189,7 +193,7 @@ func (t *GuideTable) Read(filename string) error {
 				}
 			}
 		case 6:
-			if tabbit.CheckColumn(reader, column, "Guide.Pos.Y", tabbit.KindScalar, 1, false, tabbit.ElementF32) {
+			if tabbit.CheckColumn(reader, column, "Guide.Pos.Y", tabbit.KindScalar, false, tabbit.ElementF32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Pos.Y")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -197,32 +201,37 @@ func (t *GuideTable) Read(filename string) error {
 				}
 			}
 		case 7:
-			if tabbit.CheckColumn(reader, column, "Guide.Tag_array", tabbit.KindFixedArray, -1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Guide.Tag_array", tabbit.KindArray, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Tag_array")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					r.TagArray = make([]string, int(column.Count))
-					for j := 0; j < int(column.Count); j++ {
+					elementCount := int(cursor.NextLength())
+					r.TagArray = make([]string, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.TagArray[j] = cursor.NextString()
 					}
 				}
 			}
 		case 8:
-			if tabbit.CheckColumn(reader, column, "Guide.Grid.1", tabbit.KindFixedArray, 3, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Guide.Grid.1", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Grid.1")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 3; j++ {
+					elementCount := int(cursor.NextLength())
+					r.Grid[0] = make([]GuideGridEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Grid[0][j] = cursor.NextI32()
 					}
 				}
 			}
 		case 9:
-			if tabbit.CheckColumn(reader, column, "Guide.Grid.2", tabbit.KindFixedArray, 3, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Guide.Grid.2", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Grid.2")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 3; j++ {
+					elementCount := int(cursor.NextLength())
+					r.Grid[1] = make([]GuideGridEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Grid[1][j] = cursor.NextI32()
 					}
 				}

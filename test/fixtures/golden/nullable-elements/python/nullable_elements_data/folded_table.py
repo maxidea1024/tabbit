@@ -92,7 +92,7 @@ class FoldedTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Folded.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Folded.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Folded.Index")
                 at = 0
                 while at < count:
@@ -101,7 +101,7 @@ class FoldedTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Folded.Tag_array", tabbit.KIND_FIXED_ARRAY, -1, False, (tabbit.ELEMENT_STRING,), True)
+                tabbit.check_column(column, "Folded.Tag_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
                 # spec/nullable-array-elements.md.
@@ -109,11 +109,12 @@ class FoldedTable:
                 element_at = 0
                 cursor = tabbit.ColumnCursor(reader, column, count, "Folded.Tag_array")
                 for record in records:
-                    record.tag_array = [cursor.next_string() for _ in range(column.count)]
+                    element_count = cursor.next_length()
+                    record.tag_array = [cursor.next_string() for _ in range(element_count)]
                     record.has_tag_array_at = [
                         tabbit.is_present(element_presence, element_at + at)
-                        for at in range(column.count)]
-                    element_at += column.count
+                        for at in range(element_count)]
+                    element_at += element_count
             else:
                 # A column added after this code was generated.
                 reader.skip(column.byte_length)

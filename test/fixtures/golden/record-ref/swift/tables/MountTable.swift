@@ -124,7 +124,7 @@ public final class MountTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Mount.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Mount.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Mount.Index")
                 var at = 0
                 while at < count {
@@ -137,18 +137,32 @@ public final class MountTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Mount.Rig.Core.ItemId", Tcb.kindFixedArray, 2, false, Tcb.elementI32)
+                try Tcb.checkColumn(column, "Mount.Rig.Core.ItemId", Tcb.kindArray, false, Tcb.elementI32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Mount.Rig.Core.ItemId")
                 for record in loaded {
-                    for element in 0 ..< 2 {
+                    let elementCount = max(0, try cursor.nextLength())
+                    // The first member allocates; the rest check. Allocating again would
+                    // discard what the members before it wrote, and taking the shorter of two
+                    // counts would shift every value after it.
+                    record.rig = [MountRecord.RigEntry](
+                        repeating: MountRecord.RigEntry(), count: elementCount)
+
+                    for element in 0 ..< elementCount {
                         record.rig[element].core.itemIdIndex = try cursor.nextI32()
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Mount.Rig.Core.Count", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Mount.Rig.Core.Count", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Mount.Rig.Core.Count")
                 for record in loaded {
-                    for element in 0 ..< 2 {
+                    let elementCount = max(0, try cursor.nextLength())
+                    if record.rig.count != elementCount {
+                        throw TcbError(
+                            "Mount.rig: the file gives one "
+                            + "member of this record a different element count than another")
+                    }
+
+                    for element in 0 ..< elementCount {
                         record.rig[element].core.count = try cursor.nextI32()
                     }
                 }

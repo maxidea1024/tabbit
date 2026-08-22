@@ -106,7 +106,7 @@ class LootTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Loot.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Loot.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Loot.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -116,7 +116,7 @@ class LootTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Loot.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Loot.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Loot.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -126,7 +126,7 @@ class LootTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Loot.Slot.Id', kindVarArray, 0, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Loot.Slot.Id', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Loot.Slot.Id');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
@@ -141,7 +141,7 @@ class LootTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Loot.Slot.Count', kindVarArray, 0, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Loot.Slot.Count', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Loot.Slot.Count');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
@@ -156,7 +156,7 @@ class LootTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Loot.Slot.Label', kindVarArray, 0, false, [elementString]);
+          checkColumn(column, 'Loot.Slot.Label', kindArray, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Loot.Slot.Label');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
@@ -171,7 +171,7 @@ class LootTable {
           }
           break;
         case 6:
-          checkColumn(column, 'Loot.Pos.X', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Loot.Pos.X', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Loot.Pos.X');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -181,7 +181,7 @@ class LootTable {
           }
           break;
         case 7:
-          checkColumn(column, 'Loot.Pos.Y', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Loot.Pos.Y', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Loot.Pos.Y');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -191,7 +191,7 @@ class LootTable {
           }
           break;
         case 8:
-          checkColumn(column, 'Loot.Tag_array', kindVarArray, 0, false, [elementString]);
+          checkColumn(column, 'Loot.Tag_array', kindArray, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Loot.Tag_array');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();

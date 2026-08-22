@@ -45,70 +45,67 @@ static bool SerialRef_KitParse(SerialRef_KitTable_t* table, tb_reader* reader) {
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Kit.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Kit.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Kit.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        SerialRef_KitRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Kit.Slot_array", TB_KIND_FIXED_ARRAY, -1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32));
+      (void)tb_check_column(reader, column, "Kit.Slot_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Kit.Slot_array");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         SerialRef_KitRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        record->slot_array_count = column->count;
-        record->slot_array = (const SerialRef_PieceRecord_t**)tb_arena_alloc(
-          &table->arena, (size_t)column->count * sizeof *record->slot_array);
-        record->slot_array_index = (int32_t*)tb_arena_alloc(
-          &table->arena, (size_t)column->count * sizeof *record->slot_array_index);
+        (void)tb_cursor_next_length(&cursor, &element_count);
 
-        if (column->count > 0
+        record->slot_array_count = element_count;
+        record->slot_array = (const SerialRef_PieceRecord_t**)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slot_array);
+        record->slot_array_index = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slot_array_index);
+
+        if (element_count > 0
             && (record->slot_array == NULL || record->slot_array_index == NULL))
           return tb_fail_with(reader, "out of memory allocating an array");
 
-        for (element = 0; element < column->count; ++element)
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->slot_array_index[element]);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Kit.Tier_array", TB_KIND_FIXED_ARRAY, -1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32));
+      (void)tb_check_column(reader, column, "Kit.Tier_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Kit.Tier_array");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         SerialRef_KitRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        record->tier_array_count = column->count;
-        record->tier_array = (int32_t*)tb_arena_alloc(
-          &table->arena, (size_t)column->count * sizeof *record->tier_array);
-        record->tier_array_index = (int32_t*)tb_arena_alloc(
-          &table->arena, (size_t)column->count * sizeof *record->tier_array_index);
+        (void)tb_cursor_next_length(&cursor, &element_count);
 
-        if (column->count > 0
+        record->tier_array_count = element_count;
+        record->tier_array = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->tier_array);
+        record->tier_array_index = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->tier_array_index);
+
+        if (element_count > 0
             && (record->tier_array == NULL || record->tier_array_index == NULL))
           return tb_fail_with(reader, "out of memory allocating an array");
 
-        for (element = 0; element < column->count; ++element)
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->tier_array_index[element]);
       }
       break;

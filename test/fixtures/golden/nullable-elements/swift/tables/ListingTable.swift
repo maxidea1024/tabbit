@@ -133,7 +133,7 @@ public final class ListingTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Listing.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Listing.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Listing.Index")
                 var at = 0
                 while at < count {
@@ -146,7 +146,7 @@ public final class ListingTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Listing.Name", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Listing.Name", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Listing.Name")
                 var at = 0
                 while at < count {
@@ -159,7 +159,7 @@ public final class ListingTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Listing.Plain", Tcb.kindVarArray, 0, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Listing.Plain", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Listing.Plain")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
@@ -171,7 +171,7 @@ public final class ListingTable {
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Listing.Maybe", Tcb.kindVarArray, 0, true, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Listing.Maybe", Tcb.kindArray, true, Tcb.elementI32, Tcb.elementVarint)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -200,7 +200,7 @@ public final class ListingTable {
                     }
                 }
             case 5:
-                try Tcb.checkColumnWithElements(column, "Listing.Holes", Tcb.kindVarArray, 0, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumnWithElements(column, "Listing.Holes", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
                 // spec/nullable-array-elements.md.
@@ -222,7 +222,7 @@ public final class ListingTable {
                     }
                 }
             case 6:
-                try Tcb.checkColumnWithElements(column, "Listing.Both", Tcb.kindVarArray, 0, true, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumnWithElements(column, "Listing.Both", Tcb.kindArray, true, Tcb.elementI32, Tcb.elementVarint)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.
@@ -261,7 +261,7 @@ public final class ListingTable {
                     }
                 }
             case 7:
-                try Tcb.checkColumnWithElements(column, "Listing.Words", Tcb.kindVarArray, 0, false, Tcb.elementString)
+                try Tcb.checkColumnWithElements(column, "Listing.Words", Tcb.kindArray, false, Tcb.elementString)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
                 // spec/nullable-array-elements.md.

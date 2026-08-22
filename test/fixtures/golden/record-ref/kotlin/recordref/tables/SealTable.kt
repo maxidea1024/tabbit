@@ -118,13 +118,13 @@ class SealTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Seal.Index", KIND_SCALAR, 1, false, ELEMENT_UUID)
+                    checkColumn(column, "Seal.Index", KIND_SCALAR, false, ELEMENT_UUID)
                     for (record in loaded) {
                         record.index = reader.readUuid()
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Seal.Label", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Seal.Label", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Seal.Label")
                     var at = 0
                     while (at < count) {
@@ -138,7 +138,7 @@ class SealTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Seal.Pad", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Seal.Pad", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Seal.Pad")
                     var at = 0
                     while (at < count) {
@@ -152,7 +152,7 @@ class SealTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Seal.Pad2", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Seal.Pad2", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Seal.Pad2")
                     var at = 0
                     while (at < count) {
@@ -166,7 +166,7 @@ class SealTable {
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Seal.Pad3", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Seal.Pad3", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Seal.Pad3")
                     var at = 0
                     while (at < count) {

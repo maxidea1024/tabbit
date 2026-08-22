@@ -112,7 +112,7 @@ module MultiTarget
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Loadout.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loadout.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Index')
           at = 0
           while at < count
@@ -123,18 +123,29 @@ module MultiTarget
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Loadout.Slot.Pick', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loadout.Slot.Pick', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Slot.Pick')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            # The first member builds the array; the rest check. Building it again would
+            # discard what the members before it wrote, and taking the shorter of two counts
+            # would shift every value after it.
+            record.slot = Array.new(element_count) { LoadoutSlotEntry.new }
+            element_count.times do |element|
               record.slot[element].pick = cursor.next_i32
             end
           end
         when 3
-          Tabbit.check_column(column, 'Loadout.Slot.Count', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Loadout.Slot.Count', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Slot.Count')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            if record.slot.length != element_count
+              raise Tabbit::TcbError,
+                    'Loadout.slot: the file gives one member of this ' \
+                    'record a different element count than another'
+            end
+            element_count.times do |element|
               record.slot[element].count = cursor.next_i32
             end
           end

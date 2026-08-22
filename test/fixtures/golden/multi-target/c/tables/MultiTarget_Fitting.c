@@ -45,107 +45,62 @@ static bool MultiTarget_FittingParse(MultiTarget_FittingTable_t* table, tb_reade
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Fitting.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Fitting.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Fitting.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        MultiTarget_FittingRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Fitting.Main.Pick", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Fitting.Main.Pick", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Fitting.Main.Pick");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        MultiTarget_FittingRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].main.pick = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->main.pick);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Fitting.Main.Count", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Fitting.Main.Count", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Fitting.Main.Count");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        MultiTarget_FittingRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].main.count = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->main.count);
       }
       break;
 
     case 4:
-      (void)tb_check_column(reader, column, "Fitting.Pad", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Fitting.Pad", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Fitting.Pad");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        MultiTarget_FittingRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].pad = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->pad);
       }
       break;
 
     case 5:
-      (void)tb_check_column(reader, column, "Fitting.Pad2", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Fitting.Pad2", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Fitting.Pad2");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        MultiTarget_FittingRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].pad2 = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->pad2);
       }
       break;
 

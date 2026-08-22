@@ -113,7 +113,7 @@ final class TrinketTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Trinket.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Trinket.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Trinket.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -124,7 +124,7 @@ final class TrinketTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Trinket.Name', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Trinket.Name', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Trinket.Name');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -135,7 +135,7 @@ final class TrinketTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Trinket.Note', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Trinket.Note', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Trinket.Note');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);

@@ -47,28 +47,19 @@ static bool SerialRef_TrimKitParse(SerialRef_TrimKitTable_t* table, tb_reader* r
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "TrimKit.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "TrimKit.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "TrimKit.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        SerialRef_TrimKitRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column_elements(reader, column, "TrimKit.Slot_array", TB_KIND_VAR_ARRAY, 0, false, TB_ELEMENT_MASK(TB_ELEMENT_I32), true);
+      (void)tb_check_column_elements(reader, column, "TrimKit.Slot_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32), true);
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
        * once per element of every row. spec/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);
@@ -114,7 +105,7 @@ static bool SerialRef_TrimKitParse(SerialRef_TrimKitTable_t* table, tb_reader* r
       break;
 
     case 3:
-      (void)tb_check_column_elements(reader, column, "TrimKit.Tier_array", TB_KIND_VAR_ARRAY, 0, false, TB_ELEMENT_MASK(TB_ELEMENT_I32), true);
+      (void)tb_check_column_elements(reader, column, "TrimKit.Tier_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32), true);
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
        * once per element of every row. spec/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);

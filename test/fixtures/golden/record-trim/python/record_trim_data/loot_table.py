@@ -121,7 +121,7 @@ class LootTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Loot.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Loot.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Index")
                 at = 0
                 while at < count:
@@ -130,7 +130,7 @@ class LootTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Loot.Name", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Loot.Name", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Name")
                 at = 0
                 while at < count:
@@ -139,7 +139,7 @@ class LootTable:
                         records[i].name = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Loot.Slot.Id", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Loot.Slot.Id", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Slot.Id")
                 for record in records:
                     element_count = cursor.next_length()
@@ -151,7 +151,7 @@ class LootTable:
                     for element in range(element_count):
                         record.slot[element].id = cursor.next_i32()
             elif column.tag == 4:
-                tabbit.check_column(column, "Loot.Slot.Count", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Loot.Slot.Count", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Slot.Count")
                 for record in records:
                     element_count = cursor.next_length()
@@ -162,7 +162,7 @@ class LootTable:
                     for element in range(element_count):
                         record.slot[element].count = cursor.next_i32()
             elif column.tag == 5:
-                tabbit.check_column(column, "Loot.Slot.Label", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Loot.Slot.Label", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Slot.Label")
                 for record in records:
                     element_count = cursor.next_length()
@@ -173,7 +173,7 @@ class LootTable:
                     for element in range(element_count):
                         record.slot[element].label = cursor.next_string()
             elif column.tag == 6:
-                tabbit.check_column(column, "Loot.Pos.X", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Loot.Pos.X", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Pos.X")
                 at = 0
                 while at < count:
@@ -182,7 +182,7 @@ class LootTable:
                         records[i].pos.x = value
                     at += n
             elif column.tag == 7:
-                tabbit.check_column(column, "Loot.Pos.Y", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Loot.Pos.Y", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Pos.Y")
                 at = 0
                 while at < count:
@@ -191,7 +191,7 @@ class LootTable:
                         records[i].pos.y = value
                     at += n
             elif column.tag == 8:
-                tabbit.check_column(column, "Loot.Tag_array", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Loot.Tag_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Tag_array")
                 for record in records:
                     element_count = cursor.next_length()

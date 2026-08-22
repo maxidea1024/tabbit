@@ -136,7 +136,7 @@ class LoadoutTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Loadout.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Loadout.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Index")
                     var at = 0
                     while (at < count) {
@@ -150,7 +150,7 @@ class LoadoutTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Loadout.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Loadout.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Name")
                     var at = 0
                     while (at < count) {
@@ -164,39 +164,51 @@ class LoadoutTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Loadout.Pos.X", KIND_SCALAR, 1, false, ELEMENT_F32)
+                    checkColumn(column, "Loadout.Pos.X", KIND_SCALAR, false, ELEMENT_F32)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Pos.X")
                     for (record in loaded) {
                         record.pos.x = cursor.nextF32()
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Loadout.Pos.Y", KIND_SCALAR, 1, false, ELEMENT_F32)
+                    checkColumn(column, "Loadout.Pos.Y", KIND_SCALAR, false, ELEMENT_F32)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Pos.Y")
                     for (record in loaded) {
                         record.pos.y = cursor.nextF32()
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Loadout.Slot.Id", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Loadout.Slot.Id", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Slot.Id")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.slot =
+                            MutableList(elementCount.coerceAtLeast(0)) { LoadoutRecord.SlotEntry() }
+                        for (element in 0 until elementCount) {
                             record.slot[element].id = cursor.nextI32()
                         }
                     }
                 }
                 6 -> {
-                    checkColumn(column, "Loadout.Slot.Label", KIND_FIXED_ARRAY, 2, false, ELEMENT_STRING)
+                    checkColumn(column, "Loadout.Slot.Label", KIND_ARRAY, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Slot.Label")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        if (record.slot.size != elementCount) {
+                            throw TcbException(
+                                "Loadout.slot: the file gives one member of " +
+                                    "this record a different element count than another")
+                        }
+                        for (element in 0 until elementCount) {
                             record.slot[element].label = cursor.nextString()
                         }
                     }
                 }
                 7 -> {
-                    checkColumn(column, "Loadout.Note", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Loadout.Note", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Note")
                     var at = 0
                     while (at < count) {
@@ -210,11 +222,12 @@ class LoadoutTable {
                     }
                 }
                 8 -> {
-                    checkColumn(column, "Loadout.Tag_array", KIND_FIXED_ARRAY, -1, false, ELEMENT_STRING)
+                    checkColumn(column, "Loadout.Tag_array", KIND_ARRAY, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Loadout.Tag_array")
                     for (record in loaded) {
-                        record.tagArray = ArrayList(column.count)
-                        repeat(column.count) { record.tagArray.add(cursor.nextString()) }
+                        val elementCount = cursor.nextLength()
+                        record.tagArray = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.tagArray.add(cursor.nextString()) }
                     }
                 }
                 else ->

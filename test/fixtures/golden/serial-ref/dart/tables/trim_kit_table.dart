@@ -90,7 +90,7 @@ class TrimKitTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'TrimKit.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'TrimKit.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'TrimKit.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -100,7 +100,7 @@ class TrimKitTable {
           }
           break;
         case 2:
-          checkColumn(column, 'TrimKit.Slot_array', kindVarArray, 0, false, [elementI32], true);
+          checkColumn(column, 'TrimKit.Slot_array', kindArray, false, [elementI32], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
           // steps once per element of every row. spec/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
@@ -115,7 +115,7 @@ class TrimKitTable {
           }
           break;
         case 3:
-          checkColumn(column, 'TrimKit.Tier_array', kindVarArray, 0, false, [elementI32], true);
+          checkColumn(column, 'TrimKit.Tier_array', kindArray, false, [elementI32], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
           // steps once per element of every row. spec/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);

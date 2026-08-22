@@ -117,13 +117,13 @@ function AssetTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Asset.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_UUID })
+      tcb.checkColumn(column, "Asset.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_UUID })
       for i = 1, count do
         local record = records[i]
         record.index = reader:readUuid()
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Asset.Path", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Asset.Path", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Asset.Path")
       local at = 0
 
@@ -137,7 +137,7 @@ function AssetTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Asset.Slot", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Asset.Slot", tcb.KIND_SCALAR, false, { tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Asset.Slot")
       local at = 0
 

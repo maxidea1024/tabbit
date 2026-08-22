@@ -110,7 +110,7 @@ impl KitTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Kit.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Kit.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Kit.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -122,7 +122,7 @@ impl KitTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Kit.Part.ItemId", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_I32])?;
+                    tabbit::check_column(column, "Kit.Part.ItemId", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
                     let bytes_left = reader.remaining();
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Kit.Part.ItemId")?;
                     for record in records.iter_mut() {
@@ -146,7 +146,7 @@ impl KitTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Kit.Part.Count", tabbit::KIND_VAR_ARRAY, 0, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Kit.Part.Count", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Kit.Part.Count")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;

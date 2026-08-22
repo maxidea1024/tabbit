@@ -95,13 +95,13 @@ function SealTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Seal.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_UUID })
+      tcb.checkColumn(column, "Seal.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_UUID })
       for i = 1, count do
         local record = records[i]
         record.index = reader:readUuid()
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Seal.Label", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Seal.Label", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Seal.Label")
       local at = 0
 
@@ -115,7 +115,7 @@ function SealTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Seal.Pad", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Seal.Pad", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Seal.Pad")
       local at = 0
 
@@ -129,7 +129,7 @@ function SealTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Seal.Pad2", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Seal.Pad2", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Seal.Pad2")
       local at = 0
 
@@ -143,7 +143,7 @@ function SealTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 5 then
-      tcb.checkColumn(column, "Seal.Pad3", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Seal.Pad3", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Seal.Pad3")
       local at = 0
 

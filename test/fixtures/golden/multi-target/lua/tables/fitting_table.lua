@@ -135,7 +135,7 @@ function FittingTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Fitting.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Fitting.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Fitting.Index")
       local at = 0
 
@@ -149,7 +149,7 @@ function FittingTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Fitting.Main.Pick", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Fitting.Main.Pick", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Fitting.Main.Pick")
       local at = 0
 
@@ -163,7 +163,7 @@ function FittingTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Fitting.Main.Count", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Fitting.Main.Count", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Fitting.Main.Count")
       local at = 0
 
@@ -177,7 +177,7 @@ function FittingTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Fitting.Pad", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Fitting.Pad", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Fitting.Pad")
       local at = 0
 
@@ -191,7 +191,7 @@ function FittingTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 5 then
-      tcb.checkColumn(column, "Fitting.Pad2", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Fitting.Pad2", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Fitting.Pad2")
       local at = 0
 

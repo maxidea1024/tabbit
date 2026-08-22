@@ -84,7 +84,7 @@ class MountTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Mount.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Mount.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Mount.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -94,7 +94,7 @@ class MountTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Mount.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Mount.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Mount.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -104,7 +104,7 @@ class MountTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Mount.Note', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Mount.Note', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Mount.Note');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);

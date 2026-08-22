@@ -87,12 +87,12 @@ module RecordRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Seal.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_UUID])
+          Tabbit.check_column(column, 'Seal.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_UUID])
           records.each do |record|
             record.index = reader.read_uuid
           end
         when 2
-          Tabbit.check_column(column, 'Seal.Label', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Seal.Label', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Seal.Label')
           at = 0
           while at < count
@@ -103,7 +103,7 @@ module RecordRef
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Seal.Pad', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Seal.Pad', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Seal.Pad')
           at = 0
           while at < count
@@ -114,7 +114,7 @@ module RecordRef
             at += n
           end
         when 4
-          Tabbit.check_column(column, 'Seal.Pad2', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Seal.Pad2', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Seal.Pad2')
           at = 0
           while at < count
@@ -125,7 +125,7 @@ module RecordRef
             at += n
           end
         when 5
-          Tabbit.check_column(column, 'Seal.Pad3', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Seal.Pad3', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Seal.Pad3')
           at = 0
           while at < count

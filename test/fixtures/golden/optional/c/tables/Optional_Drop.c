@@ -58,49 +58,31 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Drop.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Drop.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Drop.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        Optional_DropRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Drop.Hp", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Drop.Hp", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Drop.Hp");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        Optional_DropRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].hp = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->hp);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Drop.Bonus", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Drop.Bonus", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -109,19 +91,10 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Drop.Bonus");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        Optional_DropRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].bonus = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->bonus);
       }
 
       /* A pass of its own rather than a line inside each read shape, so the row index is
@@ -136,7 +109,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 4:
-      (void)tb_check_column(reader, column, "Drop.Weight", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_F64) | TB_ELEMENT_MASK(TB_ELEMENT_F32) | TB_ELEMENT_MASK(TB_ELEMENT_I32));
+      (void)tb_check_column(reader, column, "Drop.Weight", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_F64) | TB_ELEMENT_MASK(TB_ELEMENT_F32) | TB_ELEMENT_MASK(TB_ELEMENT_I32));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -163,7 +136,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 5:
-      (void)tb_check_column(reader, column, "Drop.Ratio", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_F32));
+      (void)tb_check_column(reader, column, "Drop.Ratio", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_F32));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -190,7 +163,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 6:
-      (void)tb_check_column(reader, column, "Drop.Count", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_I64) | TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Drop.Count", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_I64) | TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -217,7 +190,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 7:
-      (void)tb_check_column(reader, column, "Drop.OpenAt", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_I64));
+      (void)tb_check_column(reader, column, "Drop.OpenAt", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_I64));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -244,7 +217,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 8:
-      (void)tb_check_column(reader, column, "Drop.Cooldown", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_I64));
+      (void)tb_check_column(reader, column, "Drop.Cooldown", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_I64));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -271,7 +244,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 9:
-      (void)tb_check_column(reader, column, "Drop.Batch", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_UUID));
+      (void)tb_check_column(reader, column, "Drop.Batch", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_UUID));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -296,7 +269,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 10:
-      (void)tb_check_column(reader, column, "Drop.Grade", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Drop.Grade", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -305,19 +278,12 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Drop.Grade");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        Optional_DropRecord_t* record = &table->records[row];
+        int32_t scratch = 0;
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].grade = (Optional_Rarity_t)value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &scratch);
+        record->grade = (Optional_Rarity_t)scratch;
       }
 
       /* A pass of its own rather than a line inside each read shape, so the row index is
@@ -332,7 +298,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 11:
-      (void)tb_check_column(reader, column, "Drop.Costs", TB_KIND_VAR_ARRAY, 0, true, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Drop.Costs", TB_KIND_ARRAY, true, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -371,7 +337,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 12:
-      (void)tb_check_column(reader, column, "Drop.Label", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Drop.Label", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes
@@ -380,19 +346,10 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Drop.Label");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        Optional_DropRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].label = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->label);
       }
 
       /* A pass of its own rather than a line inside each read shape, so the row index is
@@ -407,7 +364,7 @@ static bool Optional_DropParse(Optional_DropTable_t* table, tb_reader* reader) {
       break;
 
     case 13:
-      (void)tb_check_column(reader, column, "Drop.Hidden", TB_KIND_SCALAR, 1, true, TB_ELEMENT_MASK(TB_ELEMENT_BOOL));
+      (void)tb_check_column(reader, column, "Drop.Hidden", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_BOOL));
 
       /* The bitmap is at the front of the block, so it is read before the values. The
        * values are written for every row either way, which is what lets the read shapes

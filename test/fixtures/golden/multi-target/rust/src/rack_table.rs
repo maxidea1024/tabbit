@@ -119,7 +119,7 @@ impl RackTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Rack.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Rack.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Rack.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -131,20 +131,28 @@ impl RackTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Rack.Slots.Pick", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Rack.Slots.Pick", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Rack.Slots.Pick")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
-                            record.slots.pick[element] = cursor.next_i32()?;
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        record.slots.pick =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = cursor.next_i32()?;
+                            record.slots.pick.push(value);
                         }
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Rack.Slots.Count", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Rack.Slots.Count", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Rack.Slots.Count")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
-                            record.slots.count[element] = cursor.next_i32()?;
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        record.slots.count =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = cursor.next_i32()?;
+                            record.slots.count.push(value);
                         }
                     }
                 }

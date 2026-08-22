@@ -167,7 +167,7 @@ module MultiTarget
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Holder.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Holder.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Holder.Index')
           at = 0
           while at < count
@@ -178,7 +178,7 @@ module MultiTarget
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Holder.Pick', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Holder.Pick', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Holder.Pick')
           at = 0
           while at < count
@@ -189,7 +189,7 @@ module MultiTarget
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Holder.Wide', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Holder.Wide', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Holder.Wide')
           at = 0
           while at < count
@@ -200,7 +200,7 @@ module MultiTarget
             at += n
           end
         when 4
-          Tabbit.check_column(column, 'Holder.Only', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32])
+          Tabbit.check_column(column, 'Holder.Only', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Holder.Only')
           at = 0
           while at < count
@@ -211,7 +211,7 @@ module MultiTarget
             at += n
           end
         when 5
-          Tabbit.check_column(column, 'Holder.Maybe', Tabbit::KIND_SCALAR, 1, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Holder.Maybe', Tabbit::KIND_SCALAR, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.

@@ -125,7 +125,7 @@ func (t *MountTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Mount.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Mount.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Mount.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -136,21 +136,31 @@ func (t *MountTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Mount.Rig.Core.ItemId", tabbit.KindFixedArray, 2, false, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Mount.Rig.Core.ItemId", tabbit.KindArray, false, tabbit.ElementI32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Mount.Rig.Core.ItemId")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					// The first member allocates; the rest check. Allocating again would
+					// discard what the members before it wrote, and taking the shorter of
+					// two counts would shift every value after it.
+					r.Rig = make([]MountRigEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Rig[j].Core.ItemIdIndex = cursor.NextI32()
 					}
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Mount.Rig.Core.Count", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Mount.Rig.Core.Count", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Mount.Rig.Core.Count")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					if len(r.Rig) != elementCount {
+						return fmt.Errorf(
+							"Mount: the file gives one member of `Rig` a different element count than another")
+					}
+					for j := 0; j < elementCount; j++ {
 						r.Rig[j].Core.Count = cursor.NextI32()
 					}
 				}

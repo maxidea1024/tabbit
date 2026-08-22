@@ -122,7 +122,7 @@ public final class HolderTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Holder.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Holder.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Holder.Index")
                 var at = 0
                 while at < count {
@@ -135,7 +135,7 @@ public final class HolderTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Holder.Main.ItemId", Tcb.kindScalar, 1, false, Tcb.elementI32)
+                try Tcb.checkColumn(column, "Holder.Main.ItemId", Tcb.kindScalar, false, Tcb.elementI32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Holder.Main.ItemId")
                 var at = 0
                 while at < count {
@@ -148,7 +148,7 @@ public final class HolderTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Holder.Main.Count", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Holder.Main.Count", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Holder.Main.Count")
                 var at = 0
                 while at < count {
@@ -161,7 +161,7 @@ public final class HolderTable {
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Holder.Pad", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Holder.Pad", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Holder.Pad")
                 var at = 0
                 while at < count {
@@ -174,7 +174,7 @@ public final class HolderTable {
                     }
                 }
             case 5:
-                try Tcb.checkColumn(column, "Holder.Pad2", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Holder.Pad2", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Holder.Pad2")
                 var at = 0
                 while at < count {

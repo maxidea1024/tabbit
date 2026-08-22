@@ -223,19 +223,15 @@
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
    fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-            {{ column_view.element_count }}.times do |element|
-              record.{{ column_view.name }}[{{ column_view.member_at }}][element] = {{ column_view.read_element }}
-            end
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+            {{ column_view.length_read }}
+            record.{{ column_view.name }}[{{ column_view.member_at }}] =
+              Array.new(element_count) { {{ column_view.read_element }} }
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-            {{ column_view.element_count }}.times do |element|
-              record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[element] = {{ column_view.read_element }}
-            end
-{{~ else if column_view.kind == 'record_serial' ~}}
-            {{ column_view.element_count }}.times do |element|
-              record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
-            end
+            {{ column_view.length_read }}
+            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
+              Array.new(element_count) { {{ column_view.read_element }} }
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys go in the array beside the values, at this row's
    length - which is what `serial_ref` below does from the column count.
@@ -248,19 +244,6 @@
               Tabbit.present?(element_presence, element_at + at)
             end
             element_at += element_count
-{{~ end ~}}
-{{~ else if column_view.kind == 'serial_ref' ~}}
-            record.{{ column_view.name }}_index = Array.new(column.count) { {{ column_view.read_element }} }
-            record.{{ column_view.name }} = Array.new(column.count)
-{{~ else if column_view.kind == 'serial' ~}}
-{{~## One column owns the whole array, so how many elements a row holds is what the file
-   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
-            record.{{ column_view.name }} = Array.new(column.count) { {{ column_view.read_element }} }
-{{~ if column_view.has_optional_elements ~}}
-            record.{{ column_view.element_presence_member }} = Array.new(column.count) do |at|
-              Tabbit.present?(element_presence, element_at + at)
-            end
-            element_at += column.count
 {{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
             record.{{ column_view.name }}_index = {{ column_view.read_scalar }}

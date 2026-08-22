@@ -139,7 +139,7 @@ public final class LootTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Loot.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loot.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Index")
                 var at = 0
                 while at < count {
@@ -152,7 +152,7 @@ public final class LootTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Loot.Name", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Loot.Name", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Name")
                 var at = 0
                 while at < count {
@@ -165,7 +165,7 @@ public final class LootTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Loot.Slot.Id", Tcb.kindVarArray, 0, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loot.Slot.Id", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Slot.Id")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
@@ -180,7 +180,7 @@ public final class LootTable {
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Loot.Slot.Count", Tcb.kindVarArray, 0, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loot.Slot.Count", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Slot.Count")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
@@ -195,7 +195,7 @@ public final class LootTable {
                     }
                 }
             case 5:
-                try Tcb.checkColumn(column, "Loot.Slot.Label", Tcb.kindVarArray, 0, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Loot.Slot.Label", Tcb.kindArray, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Slot.Label")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
@@ -210,7 +210,7 @@ public final class LootTable {
                     }
                 }
             case 6:
-                try Tcb.checkColumn(column, "Loot.Pos.X", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loot.Pos.X", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Pos.X")
                 var at = 0
                 while at < count {
@@ -223,7 +223,7 @@ public final class LootTable {
                     }
                 }
             case 7:
-                try Tcb.checkColumn(column, "Loot.Pos.Y", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loot.Pos.Y", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Pos.Y")
                 var at = 0
                 while at < count {
@@ -236,7 +236,7 @@ public final class LootTable {
                     }
                 }
             case 8:
-                try Tcb.checkColumn(column, "Loot.Tag_array", Tcb.kindVarArray, 0, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Loot.Tag_array", Tcb.kindArray, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Tag_array")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())

@@ -91,7 +91,7 @@ function BitTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Bit.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Bit.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Bit.Index")
       local at = 0
 
@@ -105,7 +105,7 @@ function BitTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Bit.Name", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Bit.Name", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Bit.Name")
       local at = 0
 
@@ -119,7 +119,7 @@ function BitTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Bit.Tier", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Bit.Tier", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Bit.Tier")
       local at = 0
 

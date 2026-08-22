@@ -96,7 +96,7 @@ class BadgeTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Badge.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Badge.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Badge.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -106,7 +106,7 @@ class BadgeTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Badge.Mark.ClipId', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Badge.Mark.ClipId', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Badge.Mark.ClipId');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -116,13 +116,13 @@ class BadgeTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Badge.Mark.SealId', kindScalar, 1, false, [elementUuid]);
+          checkColumn(column, 'Badge.Mark.SealId', kindScalar, false, [elementUuid]);
           for (final record in loaded) {
             record.mark.sealIdIndex = reader.readUuid();
           }
           break;
         case 4:
-          checkColumn(column, 'Badge.Mark.Rank', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Badge.Mark.Rank', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Badge.Mark.Rank');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -132,7 +132,7 @@ class BadgeTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Badge.Pad', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Badge.Pad', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Badge.Pad');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);

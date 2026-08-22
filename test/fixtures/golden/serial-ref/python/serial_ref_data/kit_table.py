@@ -94,7 +94,7 @@ class KitTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Kit.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Kit.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Index")
                 at = 0
                 while at < count:
@@ -103,17 +103,19 @@ class KitTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Kit.Slot_array", tabbit.KIND_FIXED_ARRAY, -1, False, (tabbit.ELEMENT_I32,))
+                tabbit.check_column(column, "Kit.Slot_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Slot_array")
                 for record in records:
-                    record.slot_array_index = [cursor.next_i32() for _ in range(column.count)]
-                    record.slot_array = [None] * column.count
+                    element_count = cursor.next_length()
+                    record.slot_array_index = [cursor.next_i32() for _ in range(element_count)]
+                    record.slot_array = [None] * element_count
             elif column.tag == 3:
-                tabbit.check_column(column, "Kit.Tier_array", tabbit.KIND_FIXED_ARRAY, -1, False, (tabbit.ELEMENT_I32,))
+                tabbit.check_column(column, "Kit.Tier_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Tier_array")
                 for record in records:
-                    record.tier_array_index = [cursor.next_i32() for _ in range(column.count)]
-                    record.tier_array = [None] * column.count
+                    element_count = cursor.next_length()
+                    record.tier_array_index = [cursor.next_i32() for _ in range(element_count)]
+                    record.tier_array = [None] * element_count
             else:
                 # A column added after this code was generated.
                 reader.skip(column.byte_length)

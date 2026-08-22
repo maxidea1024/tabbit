@@ -220,7 +220,7 @@ func (t *HolderTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Holder.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Holder.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Holder.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -231,7 +231,7 @@ func (t *HolderTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Holder.Pick", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Holder.Pick", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Holder.Pick")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -242,7 +242,7 @@ func (t *HolderTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Holder.Wide", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Holder.Wide", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Holder.Wide")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -253,7 +253,7 @@ func (t *HolderTable) Read(filename string) error {
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Holder.Only", tabbit.KindScalar, 1, false, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Holder.Only", tabbit.KindScalar, false, tabbit.ElementI32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Holder.Only")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -264,7 +264,7 @@ func (t *HolderTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Holder.Maybe", tabbit.KindScalar, 1, true, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Holder.Maybe", tabbit.KindScalar, true, tabbit.ElementI32, tabbit.ElementVarint) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.

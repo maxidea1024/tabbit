@@ -91,7 +91,7 @@ class BagTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Bag.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Bag.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Bag.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -101,21 +101,21 @@ class BagTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Bag.Slots.ItemId', kindFixedArray, 2, false, [elementI32]);
+          checkColumn(column, 'Bag.Slots.ItemId', kindArray, false, [elementI32]);
           cursor = TcbColumnCursor(reader, column, count, 'Bag.Slots.ItemId');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
-              record.slots.itemIdIndex[j] = cursor.nextI32();
-            }
+            final elementCount = cursor.nextLength();
+            record.slots.itemIdIndex =
+                List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         case 3:
-          checkColumn(column, 'Bag.Slots.Count', kindFixedArray, 2, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Bag.Slots.Count', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Bag.Slots.Count');
           for (final record in loaded) {
-            for (var j = 0; j < 2; j++) {
-              record.slots.count[j] = cursor.nextI32();
-            }
+            final elementCount = cursor.nextLength();
+            record.slots.count =
+                List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         default:

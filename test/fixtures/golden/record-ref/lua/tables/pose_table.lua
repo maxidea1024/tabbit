@@ -102,7 +102,7 @@ function PoseTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Pose.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Pose.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Pose.Index")
       local at = 0
 
@@ -116,20 +116,32 @@ function PoseTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Pose.Step.ClipId", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Pose.Step.ClipId", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Pose.Step.ClipId")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        -- The first member builds the list; the rest check. Building it again would
+        -- discard what the members before it wrote, and taking the shorter of two
+        -- counts would shift every value after it.
+        record.step = tcb.filledArray(elementCount, newPoseStepEntry)
+
+        for element = 1, elementCount do
           record.step[element].clipIdIndex = cursor:nextString()
         end
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Pose.Step.Weight", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Pose.Step.Weight", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Pose.Step.Weight")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        if #record.step ~= elementCount then
+          tcb.fail("Pose: the file gives one member of this record a " ..
+            "different element count than another")
+        end
+
+        for element = 1, elementCount do
           record.step[element].weight = cursor:nextI32()
         end
       end

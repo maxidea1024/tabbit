@@ -106,7 +106,7 @@ public final class FoldedTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Folded.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Folded.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Folded.Index")
                 var at = 0
                 while at < count {
@@ -119,7 +119,7 @@ public final class FoldedTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumnWithElements(column, "Folded.Tag_array", Tcb.kindFixedArray, -1, false, Tcb.elementString)
+                try Tcb.checkColumnWithElements(column, "Folded.Tag_array", Tcb.kindArray, false, Tcb.elementString)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
                 // spec/nullable-array-elements.md.
@@ -127,12 +127,13 @@ public final class FoldedTable {
                 var elementAt = 0
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Folded.Tag_array")
                 for record in loaded {
+                    let elementCount = max(0, try cursor.nextLength())
                     record.tagArray = []
-                    record.tagArray.reserveCapacity(column.count)
+                    record.tagArray.reserveCapacity(elementCount)
                     record.hasTagArrayAt = []
-                    record.hasTagArrayAt.reserveCapacity(column.count)
+                    record.hasTagArrayAt.reserveCapacity(elementCount)
 
-                    for _ in 0 ..< column.count {
+                    for _ in 0 ..< elementCount {
                         record.tagArray.append(try cursor.nextString())
                         record.hasTagArrayAt.append(
                             Tcb.isPresent(elementPresence, elementAt))

@@ -139,7 +139,7 @@ public final class GuideTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Guide.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Guide.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Index")
                 var at = 0
                 while at < count {
@@ -152,7 +152,7 @@ public final class GuideTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Guide.Name", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Guide.Name", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Name")
                 var at = 0
                 while at < count {
@@ -165,58 +165,71 @@ public final class GuideTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Guide.Skill.Step", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Guide.Skill.Step", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Skill.Step")
                 for record in loaded {
-                    for element in 0 ..< 2 {
-                        record.skill.step[element] = try cursor.nextI32()
+                    let elementCount = max(0, try cursor.nextLength())
+                    record.skill.step = []
+                    record.skill.step.reserveCapacity(elementCount)
+                    for _ in 0 ..< elementCount {
+                        record.skill.step.append(try cursor.nextI32())
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Guide.Skill.Order", Tcb.kindFixedArray, 2, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Guide.Skill.Order", Tcb.kindArray, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Skill.Order")
                 for record in loaded {
-                    for element in 0 ..< 2 {
-                        record.skill.order[element] = try cursor.nextString()
+                    let elementCount = max(0, try cursor.nextLength())
+                    record.skill.order = []
+                    record.skill.order.reserveCapacity(elementCount)
+                    for _ in 0 ..< elementCount {
+                        record.skill.order.append(try cursor.nextString())
                     }
                 }
             case 5:
-                try Tcb.checkColumn(column, "Guide.Pos.X", Tcb.kindScalar, 1, false, Tcb.elementF32)
+                try Tcb.checkColumn(column, "Guide.Pos.X", Tcb.kindScalar, false, Tcb.elementF32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Pos.X")
                 for record in loaded {
                     record.pos.x = try cursor.nextF32()
                 }
             case 6:
-                try Tcb.checkColumn(column, "Guide.Pos.Y", Tcb.kindScalar, 1, false, Tcb.elementF32)
+                try Tcb.checkColumn(column, "Guide.Pos.Y", Tcb.kindScalar, false, Tcb.elementF32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Pos.Y")
                 for record in loaded {
                     record.pos.y = try cursor.nextF32()
                 }
             case 7:
-                try Tcb.checkColumn(column, "Guide.Tag_array", Tcb.kindFixedArray, -1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Guide.Tag_array", Tcb.kindArray, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Tag_array")
                 for record in loaded {
+                    let elementCount = max(0, try cursor.nextLength())
                     record.tagArray = []
-                    record.tagArray.reserveCapacity(column.count)
+                    record.tagArray.reserveCapacity(elementCount)
 
-                    for _ in 0 ..< column.count {
+                    for _ in 0 ..< elementCount {
                         record.tagArray.append(try cursor.nextString())
                     }
                 }
             case 8:
-                try Tcb.checkColumn(column, "Guide.Grid.1", Tcb.kindFixedArray, 3, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Guide.Grid.1", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Grid.1")
                 for record in loaded {
-                    for element in 0 ..< 3 {
-                        record.grid[0][element] = try cursor.nextI32()
+                    let elementCount = max(0, try cursor.nextLength())
+                    record.grid[0] = []
+                    record.grid[0].reserveCapacity(elementCount)
+                    for _ in 0 ..< elementCount {
+                        record.grid[0].append(try cursor.nextI32())
                     }
                 }
             case 9:
-                try Tcb.checkColumn(column, "Guide.Grid.2", Tcb.kindFixedArray, 3, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Guide.Grid.2", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Grid.2")
                 for record in loaded {
-                    for element in 0 ..< 3 {
-                        record.grid[1][element] = try cursor.nextI32()
+                    let elementCount = max(0, try cursor.nextLength())
+                    record.grid[1] = []
+                    record.grid[1].reserveCapacity(elementCount)
+                    for _ in 0 ..< elementCount {
+                        record.grid[1].append(try cursor.nextI32())
                     }
                 }
             default:

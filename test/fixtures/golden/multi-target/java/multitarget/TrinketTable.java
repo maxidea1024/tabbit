@@ -96,7 +96,7 @@ public final class TrinketTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Trinket.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Trinket.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Trinket.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,7 +107,7 @@ public final class TrinketTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Trinket.Name", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Trinket.Name", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Trinket.Name");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -118,7 +118,7 @@ public final class TrinketTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Trinket.Note", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Trinket.Note", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Trinket.Note");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);

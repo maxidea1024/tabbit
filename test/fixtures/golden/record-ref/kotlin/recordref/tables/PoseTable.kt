@@ -121,7 +121,7 @@ class PoseTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Pose.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Pose.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Pose.Index")
                     var at = 0
                     while (at < count) {
@@ -135,19 +135,31 @@ class PoseTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Pose.Step.ClipId", KIND_FIXED_ARRAY, 2, false, ELEMENT_STRING)
+                    checkColumn(column, "Pose.Step.ClipId", KIND_ARRAY, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Pose.Step.ClipId")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.step =
+                            MutableList(elementCount.coerceAtLeast(0)) { PoseRecord.StepEntry() }
+                        for (element in 0 until elementCount) {
                             record.step[element].clipIdIndex = cursor.nextString()
                         }
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Pose.Step.Weight", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Pose.Step.Weight", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Pose.Step.Weight")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        if (record.step.size != elementCount) {
+                            throw TcbException(
+                                "Pose.step: the file gives one member of " +
+                                    "this record a different element count than another")
+                        }
+                        for (element in 0 until elementCount) {
                             record.step[element].weight = cursor.nextI32()
                         }
                     }

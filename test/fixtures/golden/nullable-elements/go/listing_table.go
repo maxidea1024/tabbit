@@ -127,7 +127,7 @@ func (t *ListingTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Listing.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Listing.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Listing.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -138,7 +138,7 @@ func (t *ListingTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Listing.Name", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Listing.Name", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Listing.Name")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -149,7 +149,7 @@ func (t *ListingTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Listing.Plain", tabbit.KindVarArray, 0, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Listing.Plain", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Listing.Plain")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -161,7 +161,7 @@ func (t *ListingTable) Read(filename string) error {
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Listing.Maybe", tabbit.KindVarArray, 0, true, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Listing.Maybe", tabbit.KindArray, true, tabbit.ElementI32, tabbit.ElementVarint) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -189,7 +189,7 @@ func (t *ListingTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumnWithElements(reader, column, "Listing.Holes", tabbit.KindVarArray, 0, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumnWithElements(reader, column, "Listing.Holes", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
 				// spec/nullable-array-elements.md.
@@ -210,7 +210,7 @@ func (t *ListingTable) Read(filename string) error {
 				}
 			}
 		case 6:
-			if tabbit.CheckColumnWithElements(reader, column, "Listing.Both", tabbit.KindVarArray, 0, true, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumnWithElements(reader, column, "Listing.Both", tabbit.KindArray, true, tabbit.ElementI32, tabbit.ElementVarint) {
 				// The bitmap is at the front of the block, so it is read before the values.
 				// The values are written for every row either way, which is what lets the
 				// read shapes below stay as they are.
@@ -247,7 +247,7 @@ func (t *ListingTable) Read(filename string) error {
 				}
 			}
 		case 7:
-			if tabbit.CheckColumnWithElements(reader, column, "Listing.Words", tabbit.KindVarArray, 0, false, tabbit.ElementString) {
+			if tabbit.CheckColumnWithElements(reader, column, "Listing.Words", tabbit.KindArray, false, tabbit.ElementString) {
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
 				// spec/nullable-array-elements.md.

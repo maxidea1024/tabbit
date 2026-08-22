@@ -114,7 +114,7 @@ class ArmourTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Armour.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Armour.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Armour.Index")
                     var at = 0
                     while (at < count) {
@@ -128,7 +128,7 @@ class ArmourTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Armour.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Armour.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Armour.Name")
                     var at = 0
                     while (at < count) {
@@ -142,7 +142,7 @@ class ArmourTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Armour.Note", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Armour.Note", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Armour.Note")
                     var at = 0
                     while (at < count) {

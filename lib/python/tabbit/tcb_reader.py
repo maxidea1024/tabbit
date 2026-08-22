@@ -37,7 +37,7 @@ import struct
 # The format is column-oriented and self-describing: the header names every column
 # and how long its block is, and a reader that meets a version it does not know stops
 # rather than guessing.
-FORMAT_VERSION = 106
+FORMAT_VERSION = 107
 
 # The wire's element types and kinds, as a column descriptor spells them.
 ELEMENT_VARINT = 0
@@ -50,8 +50,7 @@ ELEMENT_STRING = 6
 ELEMENT_UUID = 7
 
 KIND_SCALAR = 0
-KIND_FIXED_ARRAY = 1
-KIND_VAR_ARRAY = 2
+KIND_ARRAY = 1
 
 # How a block's values are laid out. Raw is the layout 101 had; the others compress
 # a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -127,7 +126,6 @@ class Column:
         self.element = element
         self.kind = kind
         self.encoding = encoding
-        self.count = count
         self.byte_length = byte_length
 
         # Whether the block begins with one presence bit per row, low bit first. Part of
@@ -675,12 +673,10 @@ class ColumnCursor:
         if self._encoding == ENCODING_ARRAY:
             self._encoding = reader.read_uint8()
 
-            if column.kind == KIND_VAR_ARRAY:
+            if column.kind == KIND_ARRAY:
                 self._lengths = _read_lengths(
                     reader, reader.read_uint8(), row_count, field_name)
                 self._rows_remaining = sum(self._lengths)
-            else:
-                self._rows_remaining = row_count * column.count
 
         # A bit-packed column states the width its range needs, the base subtracted from
         # every value, and which encoding carries the packed bytes. Decoded here so that
@@ -1060,7 +1056,6 @@ def read_table_header(reader):
         tag = reader.read_counter32()
         wire = reader.read_uint8()
         encoding = reader.read_uint8()
-        element_count = reader.read_counter32()
         byte_length = reader.read_uint32()
         columns.append(
             Column(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, element_count, byte_length,
@@ -1089,17 +1084,6 @@ def read_table_header(reader):
             raise TcbError(
                 "the row count %d is larger than column tag %d can hold in its %d bytes"
                 % (count, column.tag, column.byte_length))
-
-        # The same floor for the element count, which the read now allocates for: a fixed
-        # array's length is the file's rather than the generated code's. Only with rows to
-        # read - an empty table writes its columns' counts into a block of no bytes, and that
-        # is well-formed.
-        if (column.encoding == ENCODING_RAW
-                and count > 0
-                and column.count > column.byte_length):
-            raise TcbError(
-                "column tag %d says each row holds %d elements, which its %d bytes cannot hold"
-                % (column.tag, column.count, column.byte_length))
 
     if declared != available:
         raise TcbError(
@@ -1152,7 +1136,7 @@ def is_present(presence, row):
     return not presence or (presence[row >> 3] & (1 << (row & 7))) != 0
 
 
-def check_column(column, field_name, kind, count, nullable, accepted,
+def check_column(column, field_name, kind, nullable, accepted,
                  element_nullable=False):
     """That a column is what the generated member expects, or a lossless promotion.
 
@@ -1179,11 +1163,11 @@ def check_column(column, field_name, kind, count, nullable, accepted,
     # A negative count says the member claims no length: how many elements a row holds is
     # what the file states. The kind is still the member's claim.
     # spec/nullable-array-elements.md.
-    if column.kind != kind or (kind != KIND_VAR_ARRAY and count >= 0 and column.count != count):
+    if column.kind != kind:
         raise TcbError(
-            "%s: the file's column (kind %d, count %d) does not match the generated member "
-            "(kind %d, count %d). The schema changed shape; regenerate the code or rebuild "
-            "the data." % (field_name, column.kind, column.count, kind, count))
+            "%s: the file's column (kind %d) does not match the generated member "
+            "(kind %d). The schema changed shape; regenerate the code or rebuild "
+            "the data." % (field_name, column.kind, kind))
 
     # An encoding this build cannot decode - or one the spec does not define for
     # this element - is refused by name, exactly like an element it cannot read.

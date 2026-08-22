@@ -95,7 +95,7 @@ module RecordRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Kit.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Kit.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Index')
           at = 0
           while at < count
@@ -106,7 +106,7 @@ module RecordRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Kit.Part.ItemId', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_I32])
+          Tabbit.check_column(column, 'Kit.Part.ItemId', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Part.ItemId')
           records.each do |record|
             element_count = cursor.next_length
@@ -119,7 +119,7 @@ module RecordRef
             end
           end
         when 3
-          Tabbit.check_column(column, 'Kit.Part.Count', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Kit.Part.Count', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Part.Count')
           records.each do |record|
             element_count = cursor.next_length

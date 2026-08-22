@@ -116,7 +116,7 @@ class DropTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Drop.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Drop.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Drop.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -126,7 +126,7 @@ class DropTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Drop.Hp', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Drop.Hp', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Drop.Hp');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -136,7 +136,7 @@ class DropTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Drop.Bonus', kindScalar, 1, true, [elementI32, elementVarint]);
+          checkColumn(column, 'Drop.Bonus', kindScalar, true, [elementI32, elementVarint]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -163,7 +163,7 @@ class DropTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Drop.Weight', kindScalar, 1, true, [elementF64, elementF32, elementI32]);
+          checkColumn(column, 'Drop.Weight', kindScalar, true, [elementF64, elementF32, elementI32]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -187,7 +187,7 @@ class DropTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Drop.Ratio', kindScalar, 1, true, [elementF32]);
+          checkColumn(column, 'Drop.Ratio', kindScalar, true, [elementF32]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -211,7 +211,7 @@ class DropTable {
           }
           break;
         case 6:
-          checkColumn(column, 'Drop.Count', kindScalar, 1, true, [elementI64, elementI32, elementVarint]);
+          checkColumn(column, 'Drop.Count', kindScalar, true, [elementI64, elementI32, elementVarint]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -235,7 +235,7 @@ class DropTable {
           }
           break;
         case 7:
-          checkColumn(column, 'Drop.OpenAt', kindScalar, 1, true, [elementI64]);
+          checkColumn(column, 'Drop.OpenAt', kindScalar, true, [elementI64]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -259,7 +259,7 @@ class DropTable {
           }
           break;
         case 8:
-          checkColumn(column, 'Drop.Cooldown', kindScalar, 1, true, [elementI64]);
+          checkColumn(column, 'Drop.Cooldown', kindScalar, true, [elementI64]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -283,7 +283,7 @@ class DropTable {
           }
           break;
         case 9:
-          checkColumn(column, 'Drop.Batch', kindScalar, 1, true, [elementUuid]);
+          checkColumn(column, 'Drop.Batch', kindScalar, true, [elementUuid]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -306,7 +306,7 @@ class DropTable {
           }
           break;
         case 10:
-          checkColumn(column, 'Drop.Grade', kindScalar, 1, true, [elementVarint]);
+          checkColumn(column, 'Drop.Grade', kindScalar, true, [elementVarint]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -333,7 +333,7 @@ class DropTable {
           }
           break;
         case 11:
-          checkColumn(column, 'Drop.Costs', kindVarArray, 0, true, [elementI32, elementVarint]);
+          checkColumn(column, 'Drop.Costs', kindArray, true, [elementI32, elementVarint]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -358,7 +358,7 @@ class DropTable {
           }
           break;
         case 12:
-          checkColumn(column, 'Drop.Label', kindScalar, 1, true, [elementString]);
+          checkColumn(column, 'Drop.Label', kindScalar, true, [elementString]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -385,7 +385,7 @@ class DropTable {
           }
           break;
         case 13:
-          checkColumn(column, 'Drop.Hidden', kindScalar, 1, true, [elementBool]);
+          checkColumn(column, 'Drop.Hidden', kindScalar, true, [elementBool]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.

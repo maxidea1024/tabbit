@@ -106,7 +106,7 @@ func (t *KitTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Kit.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Kit.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -117,25 +117,27 @@ func (t *KitTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Kit.Slot_array", tabbit.KindFixedArray, -1, false, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Kit.Slot_array", tabbit.KindArray, false, tabbit.ElementI32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Slot_array")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					r.SlotArray = make([]*PieceRecord, int(column.Count))
-					r.SlotArrayIndex = make([]int32, int(column.Count))
-					for j := 0; j < int(column.Count); j++ {
+					elementCount := int(cursor.NextLength())
+					r.SlotArray = make([]*PieceRecord, elementCount)
+					r.SlotArrayIndex = make([]int32, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.SlotArrayIndex[j] = cursor.NextI32()
 					}
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Kit.Tier_array", tabbit.KindFixedArray, -1, false, tabbit.ElementI32) {
+			if tabbit.CheckColumn(reader, column, "Kit.Tier_array", tabbit.KindArray, false, tabbit.ElementI32) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Tier_array")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					r.TierArray = make([]int32, int(column.Count))
-					r.TierArrayIndex = make([]int32, int(column.Count))
-					for j := 0; j < int(column.Count); j++ {
+					elementCount := int(cursor.NextLength())
+					r.TierArray = make([]int32, elementCount)
+					r.TierArrayIndex = make([]int32, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.TierArrayIndex[j] = cursor.NextI32()
 					}
 				}

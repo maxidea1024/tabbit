@@ -25,9 +25,9 @@ extern "C" {
 /* One element of MultiTarget_RackRecord_t::slots. */
 struct MultiTarget_RackRecord_t_slots_entry {
   /* element 1 of the member */
-  int32_t pick[2]; const void* pick_row[2]; MultiTarget_RackSlotsPickTarget_t pick_target[2];
+  int32_t* pick; const void** pick_row; MultiTarget_RackSlotsPickTarget_t* pick_target; int32_t pick_count;
   /* element 1 beside it */
-  int32_t count[2];
+  int32_t* count; int32_t count_count;
 };
 
 /* The MultiTarget_WeaponRecord_t row element `at` of pick names, or NULL when

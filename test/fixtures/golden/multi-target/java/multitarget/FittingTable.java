@@ -96,7 +96,7 @@ public final class FittingTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Fitting.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Fitting.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Fitting.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,7 +107,7 @@ public final class FittingTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Fitting.Main.Pick", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Fitting.Main.Pick", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Fitting.Main.Pick");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -118,7 +118,7 @@ public final class FittingTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Fitting.Main.Count", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Fitting.Main.Count", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Fitting.Main.Count");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -129,7 +129,7 @@ public final class FittingTable {
                     break;
                 }
                 case 4: {
-                    TcbReader.checkColumn(column, "Fitting.Pad", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Fitting.Pad", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Fitting.Pad");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -140,7 +140,7 @@ public final class FittingTable {
                     break;
                 }
                 case 5: {
-                    TcbReader.checkColumn(column, "Fitting.Pad2", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Fitting.Pad2", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Fitting.Pad2");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);

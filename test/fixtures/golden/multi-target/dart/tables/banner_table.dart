@@ -84,7 +84,7 @@ class BannerTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Banner.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Banner.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Banner.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -94,7 +94,7 @@ class BannerTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Banner.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Banner.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Banner.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -104,7 +104,7 @@ class BannerTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Banner.Note', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Banner.Note', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Banner.Note');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);

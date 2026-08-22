@@ -123,7 +123,7 @@ function GuideTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Guide.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Guide.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Guide.Index")
       local at = 0
 
@@ -137,7 +137,7 @@ function GuideTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Guide.Name", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Guide.Name", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Guide.Name")
       local at = 0
 
@@ -151,65 +151,74 @@ function GuideTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Guide.Skill.Step", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Guide.Skill.Step", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Guide.Skill.Step")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
-          record.skill.step[element] = cursor:nextI32()
+        local elementCount = cursor:nextLength()
+         = {}
+        for element = 1, element_count do
+           = cursor:nextI32()
         end
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Guide.Skill.Order", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Guide.Skill.Order", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Guide.Skill.Order")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
-          record.skill.order[element] = cursor:nextString()
+        local elementCount = cursor:nextLength()
+         = {}
+        for element = 1, element_count do
+           = cursor:nextString()
         end
       end
     elseif column.tag == 5 then
-      tcb.checkColumn(column, "Guide.Pos.X", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_F32 })
+      tcb.checkColumn(column, "Guide.Pos.X", tcb.KIND_SCALAR, false, { tcb.ELEMENT_F32 })
       local cursor = tcb.newCursor(reader, column, count, "Guide.Pos.X")
       for i = 1, count do
         local record = records[i]
         record.pos.x = cursor:nextF32()
       end
     elseif column.tag == 6 then
-      tcb.checkColumn(column, "Guide.Pos.Y", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_F32 })
+      tcb.checkColumn(column, "Guide.Pos.Y", tcb.KIND_SCALAR, false, { tcb.ELEMENT_F32 })
       local cursor = tcb.newCursor(reader, column, count, "Guide.Pos.Y")
       for i = 1, count do
         local record = records[i]
         record.pos.y = cursor:nextF32()
       end
     elseif column.tag == 7 then
-      tcb.checkColumn(column, "Guide.Tag_array", tcb.KIND_FIXED_ARRAY, -1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Guide.Tag_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Guide.Tag_array")
       for i = 1, count do
         local record = records[i]
+        local elementCount = cursor:nextLength()
         local values = {}
 
-        for element = 1, column.count do
+        for element = 1, elementCount do
           values[element] = cursor:nextString()
         end
 
         record.tagArray = values
       end
     elseif column.tag == 8 then
-      tcb.checkColumn(column, "Guide.Grid.1", tcb.KIND_FIXED_ARRAY, 3, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Guide.Grid.1", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Guide.Grid.1")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 3 do
+        local elementCount = cursor:nextLength()
+         = {}
+        for element = 1, element_count do
           record.grid[1][element] = cursor:nextI32()
         end
       end
     elseif column.tag == 9 then
-      tcb.checkColumn(column, "Guide.Grid.2", tcb.KIND_FIXED_ARRAY, 3, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Guide.Grid.2", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Guide.Grid.2")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 3 do
+        local elementCount = cursor:nextLength()
+         = {}
+        for element = 1, element_count do
           record.grid[2][element] = cursor:nextI32()
         end
       end

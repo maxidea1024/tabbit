@@ -122,11 +122,11 @@ class AssetTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Asset.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_UUID,))
+                tabbit.check_column(column, "Asset.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_UUID,))
                 for record in records:
                     record.index = reader.read_uuid()
             elif column.tag == 2:
-                tabbit.check_column(column, "Asset.Path", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Asset.Path", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Asset.Path")
                 at = 0
                 while at < count:
@@ -135,7 +135,7 @@ class AssetTable:
                         records[i].path = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Asset.Slot", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_VARINT,))
+                tabbit.check_column(column, "Asset.Slot", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_VARINT,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Asset.Slot")
                 at = 0
                 while at < count:

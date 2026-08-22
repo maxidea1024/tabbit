@@ -96,7 +96,7 @@ public final class BagTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Bag.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Bag.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Bag.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,20 +107,26 @@ public final class BagTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Bag.Slots.ItemId", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumn(column, "Bag.Slots.ItemId", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Bag.Slots.ItemId");
                     for (BagRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.slots.itemIdIndex = new ItemRecord[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.slots.itemIdIndex[j] = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Bag.Slots.Count", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Bag.Slots.Count", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Bag.Slots.Count");
                     for (BagRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        record.slots.count = new int[elementCount];
+                        for (int j = 0; j < elementCount; j++) {
                             record.slots.count[j] = cursor.nextI32();
                         }
                     }

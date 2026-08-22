@@ -112,7 +112,7 @@ module MultiTarget
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Rack.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Rack.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Rack.Index')
           at = 0
           while at < count
@@ -123,20 +123,20 @@ module MultiTarget
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Rack.Slots.Pick', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Rack.Slots.Pick', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Rack.Slots.Pick')
           records.each do |record|
-            2.times do |element|
-              record.slots.pick[element] = cursor.next_i32
-            end
+            element_count = cursor.next_length
+            record.slots.pick =
+              Array.new(element_count) { cursor.next_i32 }
           end
         when 3
-          Tabbit.check_column(column, 'Rack.Slots.Count', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Rack.Slots.Count', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Rack.Slots.Count')
           records.each do |record|
-            2.times do |element|
-              record.slots.count[element] = cursor.next_i32
-            end
+            element_count = cursor.next_length
+            record.slots.count =
+              Array.new(element_count) { cursor.next_i32 }
           end
         else
           # A column added after this code was generated.

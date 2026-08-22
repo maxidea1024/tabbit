@@ -139,7 +139,7 @@ public final class FittingTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Fitting.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Fitting.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Fitting.Index")
                 var at = 0
                 while at < count {
@@ -152,7 +152,7 @@ public final class FittingTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Fitting.Main.Pick", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Fitting.Main.Pick", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Fitting.Main.Pick")
                 var at = 0
                 while at < count {
@@ -165,7 +165,7 @@ public final class FittingTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Fitting.Main.Count", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Fitting.Main.Count", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Fitting.Main.Count")
                 var at = 0
                 while at < count {
@@ -178,7 +178,7 @@ public final class FittingTable {
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Fitting.Pad", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Fitting.Pad", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Fitting.Pad")
                 var at = 0
                 while at < count {
@@ -191,7 +191,7 @@ public final class FittingTable {
                     }
                 }
             case 5:
-                try Tcb.checkColumn(column, "Fitting.Pad2", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Fitting.Pad2", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Fitting.Pad2")
                 var at = 0
                 while at < count {

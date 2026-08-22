@@ -139,7 +139,7 @@ public final class LoadoutTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Loadout.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loadout.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Index")
                 var at = 0
                 while at < count {
@@ -152,7 +152,7 @@ public final class LoadoutTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Loadout.Name", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Loadout.Name", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Name")
                 var at = 0
                 while at < count {
@@ -165,35 +165,49 @@ public final class LoadoutTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Loadout.Pos.X", Tcb.kindScalar, 1, false, Tcb.elementF32)
+                try Tcb.checkColumn(column, "Loadout.Pos.X", Tcb.kindScalar, false, Tcb.elementF32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Pos.X")
                 for record in loaded {
                     record.pos.x = try cursor.nextF32()
                 }
             case 4:
-                try Tcb.checkColumn(column, "Loadout.Pos.Y", Tcb.kindScalar, 1, false, Tcb.elementF32)
+                try Tcb.checkColumn(column, "Loadout.Pos.Y", Tcb.kindScalar, false, Tcb.elementF32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Pos.Y")
                 for record in loaded {
                     record.pos.y = try cursor.nextF32()
                 }
             case 5:
-                try Tcb.checkColumn(column, "Loadout.Slot.Id", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loadout.Slot.Id", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Slot.Id")
                 for record in loaded {
-                    for element in 0 ..< 2 {
+                    let elementCount = max(0, try cursor.nextLength())
+                    // The first member allocates; the rest check. Allocating again would
+                    // discard what the members before it wrote, and taking the shorter of two
+                    // counts would shift every value after it.
+                    record.slot = [LoadoutRecord.SlotEntry](
+                        repeating: LoadoutRecord.SlotEntry(), count: elementCount)
+
+                    for element in 0 ..< elementCount {
                         record.slot[element].id = try cursor.nextI32()
                     }
                 }
             case 6:
-                try Tcb.checkColumn(column, "Loadout.Slot.Label", Tcb.kindFixedArray, 2, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Loadout.Slot.Label", Tcb.kindArray, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Slot.Label")
                 for record in loaded {
-                    for element in 0 ..< 2 {
+                    let elementCount = max(0, try cursor.nextLength())
+                    if record.slot.count != elementCount {
+                        throw TcbError(
+                            "Loadout.slot: the file gives one "
+                            + "member of this record a different element count than another")
+                    }
+
+                    for element in 0 ..< elementCount {
                         record.slot[element].label = try cursor.nextString()
                     }
                 }
             case 7:
-                try Tcb.checkColumn(column, "Loadout.Note", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Loadout.Note", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Note")
                 var at = 0
                 while at < count {
@@ -206,13 +220,14 @@ public final class LoadoutTable {
                     }
                 }
             case 8:
-                try Tcb.checkColumn(column, "Loadout.Tag_array", Tcb.kindFixedArray, -1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Loadout.Tag_array", Tcb.kindArray, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Tag_array")
                 for record in loaded {
+                    let elementCount = max(0, try cursor.nextLength())
                     record.tagArray = []
-                    record.tagArray.reserveCapacity(column.count)
+                    record.tagArray.reserveCapacity(elementCount)
 
-                    for _ in 0 ..< column.count {
+                    for _ in 0 ..< elementCount {
                         record.tagArray.append(try cursor.nextString())
                     }
                 }

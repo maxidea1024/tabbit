@@ -102,7 +102,7 @@ function KitTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Kit.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Kit.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Kit.Index")
       local at = 0
 
@@ -116,7 +116,7 @@ function KitTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Kit.Part.ItemId", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_I32 })
+      tcb.checkColumn(column, "Kit.Part.ItemId", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 })
       local cursor = tcb.newCursor(reader, column, count, "Kit.Part.ItemId")
       for i = 1, count do
         local record = records[i]
@@ -131,7 +131,7 @@ function KitTable:readBytes(data)
         end
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Kit.Part.Count", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Kit.Part.Count", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Kit.Part.Count")
       for i = 1, count do
         local record = records[i]

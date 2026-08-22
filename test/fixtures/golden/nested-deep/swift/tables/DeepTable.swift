@@ -126,7 +126,7 @@ public final class DeepTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Deep.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Deep.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Deep.Index")
                 var at = 0
                 while at < count {
@@ -139,26 +139,47 @@ public final class DeepTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Deep.Star.Id", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Deep.Star.Id", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Deep.Star.Id")
                 for record in loaded {
-                    for element in 0 ..< 2 {
+                    let elementCount = max(0, try cursor.nextLength())
+                    // The first member allocates; the rest check. Allocating again would
+                    // discard what the members before it wrote, and taking the shorter of two
+                    // counts would shift every value after it.
+                    record.star = [DeepRecord.StarEntry](
+                        repeating: DeepRecord.StarEntry(), count: elementCount)
+
+                    for element in 0 ..< elementCount {
                         record.star[element].id = try cursor.nextI32()
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Deep.Star.Position.X", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Deep.Star.Position.X", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Deep.Star.Position.X")
                 for record in loaded {
-                    for element in 0 ..< 2 {
+                    let elementCount = max(0, try cursor.nextLength())
+                    if record.star.count != elementCount {
+                        throw TcbError(
+                            "Deep.star: the file gives one "
+                            + "member of this record a different element count than another")
+                    }
+
+                    for element in 0 ..< elementCount {
                         record.star[element].position.x = try cursor.nextI32()
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Deep.Star.Position.Y", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Deep.Star.Position.Y", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Deep.Star.Position.Y")
                 for record in loaded {
-                    for element in 0 ..< 2 {
+                    let elementCount = max(0, try cursor.nextLength())
+                    if record.star.count != elementCount {
+                        throw TcbError(
+                            "Deep.star: the file gives one "
+                            + "member of this record a different element count than another")
+                    }
+
+                    for element in 0 ..< elementCount {
                         record.star[element].position.y = try cursor.nextI32()
                     }
                 }

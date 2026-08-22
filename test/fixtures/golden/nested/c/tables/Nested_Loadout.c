@@ -56,49 +56,31 @@ static bool Nested_LoadoutParse(Nested_LoadoutTable_t* table, tb_reader* reader)
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Loadout.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Loadout.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Loadout.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        Nested_LoadoutRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Loadout.Name", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Loadout.Name", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Loadout.Name");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        Nested_LoadoutRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].name = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->name);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Loadout.Pos.X", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_F32));
+      (void)tb_check_column(reader, column, "Loadout.Pos.X", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_F32));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Loadout.Pos.X");
 
@@ -110,7 +92,7 @@ static bool Nested_LoadoutParse(Nested_LoadoutTable_t* table, tb_reader* reader)
       break;
 
     case 4:
-      (void)tb_check_column(reader, column, "Loadout.Pos.Y", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_F32));
+      (void)tb_check_column(reader, column, "Loadout.Pos.Y", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_F32));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Loadout.Pos.Y");
 
@@ -122,71 +104,85 @@ static bool Nested_LoadoutParse(Nested_LoadoutTable_t* table, tb_reader* reader)
       break;
 
     case 5:
-      (void)tb_check_column(reader, column, "Loadout.Slot.Id", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Loadout.Slot.Id", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Loadout.Slot.Id");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         Nested_LoadoutRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        (void)tb_cursor_next_length(&cursor, &element_count);
+
+        /* The first member allocates; the rest check. Allocating again would discard what
+         * the members before it wrote, and taking the shorter of two counts would shift
+         * every value after it. */
+        record->slot_count = element_count;
+        record->slot = (struct Nested_LoadoutRecord_t_slot_entry*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slot);
+
+        if (element_count > 0 && record->slot == NULL)
+          return tb_fail_with(reader, "out of memory allocating a record array");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->slot[element].id);
       }
       break;
 
     case 6:
-      (void)tb_check_column(reader, column, "Loadout.Slot.Label", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Loadout.Slot.Label", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Loadout.Slot.Label");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         Nested_LoadoutRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        (void)tb_cursor_next_length(&cursor, &element_count);
+
+        if (record->slot_count != element_count)
+          return tb_fail_with(reader,
+            "the file gives one member of a record a different element count than another");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_string(&cursor, &record->slot[element].label);
       }
       break;
 
     case 7:
-      (void)tb_check_column(reader, column, "Loadout.Note", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Loadout.Note", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Loadout.Note");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        Nested_LoadoutRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].note = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->note);
       }
       break;
 
     case 8:
-      (void)tb_check_column(reader, column, "Loadout.Tag_array", TB_KIND_FIXED_ARRAY, -1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Loadout.Tag_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Loadout.Tag_array");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         Nested_LoadoutRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        record->tag_array_count = column->count;
-        record->tag_array = (const char**)tb_arena_alloc(
-          &table->arena, (size_t)column->count * sizeof *record->tag_array);
+        (void)tb_cursor_next_length(&cursor, &element_count);
 
-        if (column->count > 0 && record->tag_array == NULL)
+        record->tag_array_count = element_count;
+        record->tag_array = (const char**)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->tag_array);
+
+        if (element_count > 0 && record->tag_array == NULL)
           return tb_fail_with(reader, "out of memory allocating an array");
 
-        for (element = 0; element < column->count; ++element)
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_string(&cursor, &record->tag_array[element]);
       }
       break;

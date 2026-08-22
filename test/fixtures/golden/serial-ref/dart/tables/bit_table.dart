@@ -84,7 +84,7 @@ class BitTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Bit.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Bit.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Bit.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -94,7 +94,7 @@ class BitTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Bit.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Bit.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Bit.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -104,7 +104,7 @@ class BitTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Bit.Tier', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Bit.Tier', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Bit.Tier');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);

@@ -180,7 +180,7 @@ class HolderTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Holder.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Holder.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Holder.Index")
                 at = 0
                 while at < count:
@@ -189,7 +189,7 @@ class HolderTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Holder.Pick", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Holder.Pick", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Holder.Pick")
                 at = 0
                 while at < count:
@@ -198,7 +198,7 @@ class HolderTable:
                         records[i].pick = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Holder.Wide", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Holder.Wide", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Holder.Wide")
                 at = 0
                 while at < count:
@@ -207,7 +207,7 @@ class HolderTable:
                         records[i].wide = value
                     at += n
             elif column.tag == 4:
-                tabbit.check_column(column, "Holder.Only", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32,))
+                tabbit.check_column(column, "Holder.Only", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Holder.Only")
                 at = 0
                 while at < count:
@@ -216,7 +216,7 @@ class HolderTable:
                         records[i].only_index = value
                     at += n
             elif column.tag == 5:
-                tabbit.check_column(column, "Holder.Maybe", tabbit.KIND_SCALAR, 1, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Holder.Maybe", tabbit.KIND_SCALAR, True, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 # The bitmap is at the front of the block, so it is read before the values.
                 # The values are written for every row either way, which is what lets the
                 # read shapes below stay as they are.

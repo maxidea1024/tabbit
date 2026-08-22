@@ -142,7 +142,7 @@ class RackTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Rack.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Rack.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Rack.Index")
                     var at = 0
                     while (at < count) {
@@ -156,19 +156,25 @@ class RackTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Rack.Slots.Pick", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Rack.Slots.Pick", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Rack.Slots.Pick")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        record.slots.pick =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        for (element in 0 until elementCount) {
                             record.slots.pick[element] = cursor.nextI32()
                         }
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Rack.Slots.Count", KIND_FIXED_ARRAY, 2, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Rack.Slots.Count", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Rack.Slots.Count")
                     for (record in loaded) {
-                        for (element in 0 until 2) {
+                        val elementCount = cursor.nextLength()
+                        record.slots.count =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        for (element in 0 until elementCount) {
                             record.slots.count[element] = cursor.nextI32()
                         }
                     }

@@ -95,7 +95,7 @@ class HolderTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Holder.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Holder.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Holder.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -105,7 +105,7 @@ class HolderTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Holder.Main.ItemId', kindScalar, 1, false, [elementI32]);
+          checkColumn(column, 'Holder.Main.ItemId', kindScalar, false, [elementI32]);
           cursor = TcbColumnCursor(reader, column, count, 'Holder.Main.ItemId');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -115,7 +115,7 @@ class HolderTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Holder.Main.Count', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Holder.Main.Count', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Holder.Main.Count');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -125,7 +125,7 @@ class HolderTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Holder.Pad', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Holder.Pad', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Holder.Pad');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -135,7 +135,7 @@ class HolderTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Holder.Pad2', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Holder.Pad2', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Holder.Pad2');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);

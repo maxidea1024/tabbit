@@ -135,7 +135,7 @@ impl LoadoutTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Loadout.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loadout.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -147,7 +147,7 @@ impl LoadoutTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Loadout.Name", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Loadout.Name", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Name")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -159,39 +159,62 @@ impl LoadoutTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Loadout.Pos.X", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_F32])?;
+                    tabbit::check_column(column, "Loadout.Pos.X", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_F32])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Pos.X")?;
                     for record in records.iter_mut() {
                         record.pos.x = cursor.next_f32()?;
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Loadout.Pos.Y", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_F32])?;
+                    tabbit::check_column(column, "Loadout.Pos.Y", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_F32])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Pos.Y")?;
                     for record in records.iter_mut() {
                         record.pos.y = cursor.next_f32()?;
                     }
                 }
                 5 => {
-                    tabbit::check_column(column, "Loadout.Slot.Id", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Loadout.Slot.Id", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    let bytes_left = reader.remaining();
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Slot.Id")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        // The count came off the wire, and one element is at least one byte,
+                        // so this is checked before anything is allocated for it.
+                        if element_count > bytes_left {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Loadout.slot",
+                                detail: "a record array is longer than the file can hold",
+                            });
+                        }
+
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.slot = vec![LoadoutSlotEntry::default(); element_count];
+                        for element in 0..element_count {
                             record.slot[element].id = cursor.next_i32()?;
                         }
                     }
                 }
                 6 => {
-                    tabbit::check_column(column, "Loadout.Slot.Label", tabbit::KIND_FIXED_ARRAY, 2, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Loadout.Slot.Label", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Slot.Label")?;
                     for record in records.iter_mut() {
-                        for element in 0..2 {
+                        let element_count = cursor.next_length()?.max(0) as usize;
+                        if record.slot.len() != element_count {
+                            return Err(tabbit::Error::ColumnMismatch {
+                                field: "Loadout.slot",
+                                detail: "the file gives one member of this record a different \
+                                         element count than another",
+                            });
+                        }
+                        for element in 0..element_count {
                             record.slot[element].label = cursor.next_string()?;
                         }
                     }
                 }
                 7 => {
-                    tabbit::check_column(column, "Loadout.Note", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Loadout.Note", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Note")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -203,10 +226,10 @@ impl LoadoutTable {
                     }
                 }
                 8 => {
-                    tabbit::check_column(column, "Loadout.Tag_array", tabbit::KIND_FIXED_ARRAY, -1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Loadout.Tag_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loadout.Tag_array")?;
                     for record in records.iter_mut() {
-                        let element_count = column.count.max(0) as usize;
+                        let element_count = cursor.next_length()?.max(0) as usize;
                         record.tag_array = Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
                             record.tag_array.push(cursor.next_string()?);

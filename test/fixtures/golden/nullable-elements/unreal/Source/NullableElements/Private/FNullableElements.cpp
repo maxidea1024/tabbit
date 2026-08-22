@@ -112,7 +112,7 @@ bool FListingTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Listing.Index"));
 
             {
@@ -136,7 +136,7 @@ bool FListingTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Name"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Listing.Name"));
 
             {
@@ -160,7 +160,7 @@ bool FListingTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Plain"), Tabbit::KindVarArray, 0, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Plain"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Listing.Plain"));
 
             for (FListingRow& Record : Loaded)
@@ -181,7 +181,7 @@ bool FListingTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Maybe"), Tabbit::KindVarArray, 0, true, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Maybe"), Tabbit::KindArray, true, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Listing.Maybe"));
 
@@ -213,7 +213,7 @@ bool FListingTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Holes"), Tabbit::KindVarArray, 0, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Holes"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
@@ -248,7 +248,7 @@ bool FListingTable::Read(const FString& Filename)
             break;
 
         case 6:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Both"), Tabbit::KindVarArray, 0, true, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Both"), Tabbit::KindArray, true, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
@@ -294,7 +294,7 @@ bool FListingTable::Read(const FString& Filename)
             break;
 
         case 7:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Words"), Tabbit::KindVarArray, 0, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Listing.Words"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
@@ -463,7 +463,7 @@ bool FFoldedTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Folded.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Folded.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Folded.Index"));
 
             {
@@ -487,7 +487,7 @@ bool FFoldedTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Folded.Tag_array"), Tabbit::KindFixedArray, -1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Folded.Tag_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
@@ -496,20 +496,27 @@ bool FFoldedTable::Read(const FString& Filename)
 
             for (FFoldedRow& Record : Loaded)
             {
-                Record.TagArray.Empty(Column.Count);
-                while (Record.TagArray.Num() < Column.Count)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                // Bounded, because the count came out of the file. The array grows past
+                // this if the elements really are there.
+                Record.TagArray.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.TagArray.Num() < ElementCount && !Reader.HasFailed())
                 {
                     Cursor.NextAs(Column.Element, Record.TagArray.AddDefaulted_GetRef());
                 }
-                Record.bHasTagArrayAt.Empty(Column.Count);
+                Record.bHasTagArrayAt.Empty(
+                    Tabbit::ReserveBound(ElementCount));
 
-                for (int32 ElementIndex = 0; ElementIndex < Column.Count; ++ElementIndex)
+                for (int32 ElementIndex = 0; ElementIndex < ElementCount; ++ElementIndex)
                 {
                     Record.bHasTagArrayAt.Add(
                         Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
                 }
 
-                ElementAt += Column.Count;
+                ElementAt += ElementCount;
             }
 
             break;

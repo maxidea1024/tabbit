@@ -139,14 +139,14 @@ class LedgerTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Ledger.Index", KIND_SCALAR, 1, false, ELEMENT_I64, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Ledger.Index", KIND_SCALAR, false, ELEMENT_I64, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Ledger.Index")
                     for (record in loaded) {
                         record.index = cursor.nextI64()
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Ledger.Amount", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Ledger.Amount", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Ledger.Amount")
                     var at = 0
                     while (at < count) {
@@ -160,7 +160,7 @@ class LedgerTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Ledger.Batch", KIND_SCALAR, 1, false, ELEMENT_UUID)
+                    checkColumn(column, "Ledger.Batch", KIND_SCALAR, false, ELEMENT_UUID)
                     for (record in loaded) {
                         record.batch = reader.readUuid()
                     }

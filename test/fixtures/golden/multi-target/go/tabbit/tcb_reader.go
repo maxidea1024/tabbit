@@ -50,7 +50,7 @@ import (
 // tool fed anything live. 102 replaced 101 the same way - a descriptor gained its
 // encoding byte - before any 101 file had shipped. 104 is the current one: four
 // encodings joined the nine, and the flags byte gained a meaning.
-const FormatVersion uint32 = 106
+const FormatVersion uint32 = 107
 
 // The wire's element types and kinds, as a column descriptor spells them.
 const (
@@ -64,8 +64,7 @@ const (
 	ElementUUID   uint8 = 7
 
 	KindScalar     uint8 = 0
-	KindFixedArray uint8 = 1
-	KindVarArray   uint8 = 2
+	KindArray   uint8 = 1
 
 	// How a block's values are laid out. Raw is the layout 101 had; the others
 	// compress a column that repeats itself. spec/tcb-v102-column-encoding.md is
@@ -142,8 +141,6 @@ type Column struct {
 	Kind    uint8
 	// Encoding says how the block's values are laid out: one of the Encoding* constants.
 	Encoding uint8
-	// Count is the elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one.
-	Count int32
 	// ByteLength is the column block's total bytes - what a skip advances by.
 	ByteLength int32
 	// Nullable says the block begins with one presence bit per row, low bit first.
@@ -767,7 +764,6 @@ func ReadTableHeader(r *Reader) (int32, []Column) {
 		columns[at].Nullable = wire&0x40 != 0
 		columns[at].ElementNullable = wire&0x80 != 0
 		columns[at].Encoding = r.ReadUint8()
-		columns[at].Count = r.ReadCounter32()
 		columns[at].ByteLength = int32(r.ReadUint32())
 	}
 
@@ -803,17 +799,6 @@ func ReadTableHeader(r *Reader) (int32, []Column) {
 			return 0, nil
 		}
 
-		// The same floor for the element count, which the read now allocates for: a fixed
-		// array's length is the file's rather than the generated code's. Only with rows to
-		// read - an empty table writes its columns' counts into a block of no bytes, and
-		// that is well-formed.
-		if column.Encoding == EncodingRaw && count > 0 && column.Count > column.ByteLength {
-			r.err = fmt.Errorf(
-				"tabbit: column tag %d says each row holds %d elements, which its %d bytes "+
-					"cannot hold", column.Tag, column.Count, column.ByteLength)
-
-			return 0, nil
-		}
 	}
 
 	if declared != available {
@@ -869,16 +854,16 @@ func IsPresent(presence []byte, row int32) bool {
 
 // CheckColumn verifies a column is what the generated member expects, or a lossless
 // promotion of it. Refusal is by name and both types, never by reading anyway.
-func CheckColumn(r *Reader, col Column, fieldName string, kind uint8, count int32, nullable bool, accepted ...uint8) bool {
-	return checkColumn(r, col, fieldName, kind, count, nullable, false, accepted...)
+func CheckColumn(r *Reader, col Column, fieldName string, kind uint8, nullable bool, accepted ...uint8) bool {
+	return checkColumn(r, col, fieldName, kind, nullable, false, accepted...)
 }
 
 // CheckColumnWithElements is CheckColumn for a member whose array elements may be absent.
-func CheckColumnWithElements(r *Reader, col Column, fieldName string, kind uint8, count int32, nullable bool, accepted ...uint8) bool {
-	return checkColumn(r, col, fieldName, kind, count, nullable, true, accepted...)
+func CheckColumnWithElements(r *Reader, col Column, fieldName string, kind uint8, nullable bool, accepted ...uint8) bool {
+	return checkColumn(r, col, fieldName, kind, nullable, true, accepted...)
 }
 
-func checkColumn(r *Reader, col Column, fieldName string, kind uint8, count int32, nullable bool, elementNullable bool, accepted ...uint8) bool {
+func checkColumn(r *Reader, col Column, fieldName string, kind uint8, nullable bool, elementNullable bool, accepted ...uint8) bool {
 	if r.err != nil {
 		return false
 	}
@@ -908,11 +893,11 @@ func checkColumn(r *Reader, col Column, fieldName string, kind uint8, count int3
 	// A negative count says the member claims no length: how many elements a row holds is
 	// what the file states. The kind is still the member's claim.
 	// spec/nullable-array-elements.md.
-	if col.Kind != kind || (kind != KindVarArray && count >= 0 && col.Count != count) {
+	if col.Kind != kind {
 		r.err = fmt.Errorf(
-			"tabbit: %s: the file's column (kind %d, count %d) does not match the generated "+
-				"member (kind %d, count %d); the schema changed shape, regenerate the code or "+
-				"rebuild the data", fieldName, col.Kind, col.Count, kind, count)
+			"tabbit: %s: the file's column (kind %d) does not match the generated "+
+				"member (kind %d); the schema changed shape, regenerate the code or "+
+				"rebuild the data", fieldName, col.Kind, kind)
 		return false
 	}
 
@@ -1068,7 +1053,7 @@ func NewColumnCursor(r *Reader, column Column, rowCount int32, fieldName string)
 	if c.encoding == EncodingArray {
 		c.encoding = r.ReadUint8()
 
-		if column.Kind == KindVarArray {
+		if column.Kind == KindArray {
 			lengthEncoding := r.ReadUint8()
 			c.readLengths(lengthEncoding, rowCount)
 
@@ -1084,8 +1069,6 @@ func NewColumnCursor(r *Reader, column Column, rowCount int32, fieldName string)
 			}
 
 			c.rowsRemaining = int32(elements)
-		} else {
-			c.rowsRemaining = rowCount * column.Count
 		}
 	}
 

@@ -110,7 +110,7 @@ class FittingTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Fitting.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Fitting.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Fitting.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -120,7 +120,7 @@ class FittingTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Fitting.Main.Pick', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Fitting.Main.Pick', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Fitting.Main.Pick');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -130,7 +130,7 @@ class FittingTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Fitting.Main.Count', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Fitting.Main.Count', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Fitting.Main.Count');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -140,7 +140,7 @@ class FittingTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Fitting.Pad', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Fitting.Pad', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Fitting.Pad');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -150,7 +150,7 @@ class FittingTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Fitting.Pad2', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Fitting.Pad2', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Fitting.Pad2');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);

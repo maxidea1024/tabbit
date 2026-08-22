@@ -121,7 +121,7 @@ class KitTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Kit.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Kit.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Kit.Index")
                     var at = 0
                     while (at < count) {
@@ -135,7 +135,7 @@ class KitTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Kit.Part.ItemId", KIND_VAR_ARRAY, 0, false, ELEMENT_I32)
+                    checkColumn(column, "Kit.Part.ItemId", KIND_ARRAY, false, ELEMENT_I32)
                     val cursor = ColumnCursor(reader, column, count, "Kit.Part.ItemId")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
@@ -150,7 +150,7 @@ class KitTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Kit.Part.Count", KIND_VAR_ARRAY, 0, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Kit.Part.Count", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Kit.Part.Count")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()

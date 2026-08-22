@@ -189,7 +189,7 @@ class DropTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Drop.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Drop.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Drop.Index")
                     var at = 0
                     while (at < count) {
@@ -203,7 +203,7 @@ class DropTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Drop.Hp", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Drop.Hp", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Drop.Hp")
                     var at = 0
                     while (at < count) {
@@ -217,7 +217,7 @@ class DropTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Drop.Bonus", KIND_SCALAR, 1, true, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Drop.Bonus", KIND_SCALAR, true, ELEMENT_I32, ELEMENT_VARINT)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -248,7 +248,7 @@ class DropTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Drop.Weight", KIND_SCALAR, 1, true, ELEMENT_F64, ELEMENT_F32, ELEMENT_I32)
+                    checkColumn(column, "Drop.Weight", KIND_SCALAR, true, ELEMENT_F64, ELEMENT_F32, ELEMENT_I32)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -272,7 +272,7 @@ class DropTable {
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Drop.Ratio", KIND_SCALAR, 1, true, ELEMENT_F32)
+                    checkColumn(column, "Drop.Ratio", KIND_SCALAR, true, ELEMENT_F32)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -296,7 +296,7 @@ class DropTable {
                     }
                 }
                 6 -> {
-                    checkColumn(column, "Drop.Count", KIND_SCALAR, 1, true, ELEMENT_I64, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Drop.Count", KIND_SCALAR, true, ELEMENT_I64, ELEMENT_I32, ELEMENT_VARINT)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -320,7 +320,7 @@ class DropTable {
                     }
                 }
                 7 -> {
-                    checkColumn(column, "Drop.OpenAt", KIND_SCALAR, 1, true, ELEMENT_I64)
+                    checkColumn(column, "Drop.OpenAt", KIND_SCALAR, true, ELEMENT_I64)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -344,7 +344,7 @@ class DropTable {
                     }
                 }
                 8 -> {
-                    checkColumn(column, "Drop.Cooldown", KIND_SCALAR, 1, true, ELEMENT_I64)
+                    checkColumn(column, "Drop.Cooldown", KIND_SCALAR, true, ELEMENT_I64)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -368,7 +368,7 @@ class DropTable {
                     }
                 }
                 9 -> {
-                    checkColumn(column, "Drop.Batch", KIND_SCALAR, 1, true, ELEMENT_UUID)
+                    checkColumn(column, "Drop.Batch", KIND_SCALAR, true, ELEMENT_UUID)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -391,7 +391,7 @@ class DropTable {
                     }
                 }
                 10 -> {
-                    checkColumn(column, "Drop.Grade", KIND_SCALAR, 1, true, ELEMENT_VARINT)
+                    checkColumn(column, "Drop.Grade", KIND_SCALAR, true, ELEMENT_VARINT)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -422,7 +422,7 @@ class DropTable {
                     }
                 }
                 11 -> {
-                    checkColumn(column, "Drop.Costs", KIND_VAR_ARRAY, 0, true, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Drop.Costs", KIND_ARRAY, true, ELEMENT_I32, ELEMENT_VARINT)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -448,7 +448,7 @@ class DropTable {
                     }
                 }
                 12 -> {
-                    checkColumn(column, "Drop.Label", KIND_SCALAR, 1, true, ELEMENT_STRING)
+                    checkColumn(column, "Drop.Label", KIND_SCALAR, true, ELEMENT_STRING)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -479,7 +479,7 @@ class DropTable {
                     }
                 }
                 13 -> {
-                    checkColumn(column, "Drop.Hidden", KIND_SCALAR, 1, true, ELEMENT_BOOL)
+                    checkColumn(column, "Drop.Hidden", KIND_SCALAR, true, ELEMENT_BOOL)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.

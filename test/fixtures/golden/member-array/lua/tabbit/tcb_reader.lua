@@ -51,7 +51,7 @@ local floor = math.floor
 local tcb = {}
 
 -- Stamped at the head of every table file by the exporter.
-tcb.FORMAT_VERSION = 106
+tcb.FORMAT_VERSION = 107
 
 -- The wire's element types and kinds, as a column descriptor spells them.
 tcb.ELEMENT_VARINT = 0
@@ -64,8 +64,7 @@ tcb.ELEMENT_STRING = 6
 tcb.ELEMENT_UUID = 7
 
 tcb.KIND_SCALAR = 0
-tcb.KIND_FIXED_ARRAY = 1
-tcb.KIND_VAR_ARRAY = 2
+tcb.KIND_ARRAY = 1
 
 -- How a block's values are laid out. spec/tcb-v102-column-encoding.md is the contract.
 tcb.ENCODING_RAW = 0
@@ -717,7 +716,7 @@ function tcb.newCursor(reader, column, row_count, field_name)
   if cursor.encoding == ENCODING_ARRAY then
     cursor.encoding = reader:readU8()
 
-    if column.kind == tcb.KIND_VAR_ARRAY then
+    if column.kind == tcb.KIND_ARRAY then
       cursor.lengths = read_lengths(reader, reader:readU8(), row_count, field_name)
 
       local total = 0
@@ -726,8 +725,6 @@ function tcb.newCursor(reader, column, row_count, field_name)
       end
 
       cursor.rowsRemaining = total
-    else
-      cursor.rowsRemaining = row_count * column.count
     end
   end
 
@@ -1176,7 +1173,6 @@ function tcb.readTableHeader(reader)
     local tag = reader:readCounter32()
     local wire = reader:readU8()
     local encoding = reader:readU8()
-    local element_count = reader:readCounter32()
     local byte_length = reader:readU32()
 
     columns[i] = {
@@ -1184,7 +1180,6 @@ function tcb.readTableHeader(reader)
       element = wire % 16,
       kind = floor(wire / 16) % 4,
       encoding = encoding,
-      count = element_count,
       byteLength = byte_length,
 
       -- Whether the block begins with one presence bit per row, low bit first - part of
@@ -1217,14 +1212,6 @@ function tcb.readTableHeader(reader)
     if column.encoding == ENCODING_RAW and count > column.byteLength then
       fail("the row count %d is larger than column tag %d can hold in its %d bytes",
         count, column.tag, column.byteLength)
-    end
-
-    -- The same floor for the element count, which the read now allocates for: a fixed
-    -- array's length is the file's rather than the generated code's. Only with rows to
-    -- read - an empty table writes its columns' counts into a block of no bytes.
-    if column.encoding == ENCODING_RAW and count > 0 and column.count > column.byteLength then
-      fail("column tag %d says each row holds %d elements, which its %d bytes cannot hold",
-        column.tag, column.count, column.byteLength)
     end
   end
 
@@ -1326,7 +1313,7 @@ end
 -- That a column is what the generated member expects, or a lossless promotion.
 -- Refusal is by name and both types, never by reading anyway. `accepted` is an array of
 -- element constants.
-function tcb.checkColumn(column, field_name, kind, count, nullable, accepted, element_nullable)
+function tcb.checkColumn(column, field_name, kind, nullable, accepted, element_nullable)
   if column.elementNullable ~= (element_nullable or false) then
     fail("%s: the file and the generated member disagree about whether this column's " ..
       "elements are optional. The schema changed; regenerate the code or rebuild the data.",
@@ -1343,10 +1330,10 @@ function tcb.checkColumn(column, field_name, kind, count, nullable, accepted, el
   -- A negative count says the member claims no length: how many elements a row holds is
   -- what the file states. The kind is still the member's claim.
   if column.kind ~= kind
-    or (kind ~= tcb.KIND_VAR_ARRAY and count >= 0 and column.count ~= count) then
-    fail("%s: the file's column (kind %d, count %d) does not match the generated member " ..
-      "(kind %d, count %d). The schema changed shape; regenerate the code or rebuild the data.",
-      field_name, column.kind, column.count, kind, count)
+ then
+    fail("%s: the file's column (kind %d) does not match the generated member " ..
+      "(kind %d). The schema changed shape; regenerate the code or rebuild the data.",
+      field_name, column.kind, kind)
   end
 
   if not encoding_supported(column) then

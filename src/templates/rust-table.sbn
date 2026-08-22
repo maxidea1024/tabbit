@@ -246,18 +246,22 @@ impl {{ table.table_name }} {
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner vector. Which outer element it is, is which column this is - so that index
    is fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-                        for element in 0..{{ column_view.element_count }} {
-                            record.{{ column_view.name }}[{{ column_view.member_at }}][element] = {{ column_view.read_element }};
+                        let element_count = {{ column_view.length_read }}.max(0) as usize;
+                        record.{{ column_view.name }}[{{ column_view.member_at }}] =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = {{ column_view.read_element }};
+                            record.{{ column_view.name }}[{{ column_view.member_at }}].push(value);
                         }
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the vector: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-                        for element in 0..{{ column_view.element_count }} {
-                            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[element] = {{ column_view.read_element }};
-                        }
-{{~ else if column_view.kind == 'record_serial' ~}}
-                        for element in 0..{{ column_view.element_count }} {
-                            record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
+                        let element_count = {{ column_view.length_read }}.max(0) as usize;
+                        record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
+                            Vec::with_capacity(element_count.min(65536));
+                        for _ in 0..element_count {
+                            let value = {{ column_view.read_element }};
+                            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}.push(value);
                         }
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys are the vector this row's length fills - Rust
@@ -270,32 +274,6 @@ impl {{ table.table_name }} {
 {{~ end ~}}
                         for _ in 0..element_count {
                             record.{{ column_view.name }}_index.push({{ column_view.read_element }});
-{{~ if column_view.has_optional_elements ~}}
-                            record.{{ column_view.element_presence_member }}
-                                .push(tabbit::is_present(&element_presence, element_at));
-                            element_at += 1;
-{{~ end ~}}
-                        }
-{{~ else if column_view.kind == 'serial_ref' ~}}
-                        let element_count = column.count.max(0) as usize;
-                        record.{{ column_view.name }}_index = Vec::with_capacity(element_count.min(65536));
-                        for _ in 0..element_count {
-                            record.{{ column_view.name }}_index.push({{ column_view.read_element }});
-                        }
-{{~ else if column_view.kind == 'serial' ~}}
-{{~## One column owns the whole array, so how many elements a row holds is what the file
-   states rather than a number written in here. Capped up front like the row-by-row lengths
-   are: the reads are what refuse a count the block cannot honour, and reserving for it
-   before then is what a damaged file would spend.
-   spec/nullable-array-elements.md. ##~}}
-                        let element_count = column.count.max(0) as usize;
-                        record.{{ column_view.name }} = Vec::with_capacity(element_count.min(65536));
-{{~ if column_view.has_optional_elements ~}}
-                        record.{{ column_view.element_presence_member }} =
-                            Vec::with_capacity(element_count.min(65536));
-{{~ end ~}}
-                        for _ in 0..element_count {
-                            record.{{ column_view.name }}.push({{ column_view.read_element }});
 {{~ if column_view.has_optional_elements ~}}
                             record.{{ column_view.element_presence_member }}
                                 .push(tabbit::is_present(&element_presence, element_at));

@@ -112,7 +112,7 @@ func (t *TrimKitTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "TrimKit.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "TrimKit.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "TrimKit.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -123,7 +123,7 @@ func (t *TrimKitTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumnWithElements(reader, column, "TrimKit.Slot_array", tabbit.KindVarArray, 0, false, tabbit.ElementI32) {
+			if tabbit.CheckColumnWithElements(reader, column, "TrimKit.Slot_array", tabbit.KindArray, false, tabbit.ElementI32) {
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
 				// spec/nullable-array-elements.md.
@@ -145,7 +145,7 @@ func (t *TrimKitTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumnWithElements(reader, column, "TrimKit.Tier_array", tabbit.KindVarArray, 0, false, tabbit.ElementI32) {
+			if tabbit.CheckColumnWithElements(reader, column, "TrimKit.Tier_array", tabbit.KindArray, false, tabbit.ElementI32) {
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
 				// spec/nullable-array-elements.md.

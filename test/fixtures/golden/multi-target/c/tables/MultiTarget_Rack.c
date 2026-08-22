@@ -45,50 +45,61 @@ static bool MultiTarget_RackParse(MultiTarget_RackTable_t* table, tb_reader* rea
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Rack.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Rack.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Rack.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        MultiTarget_RackRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Rack.Slots.Pick", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Rack.Slots.Pick", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Rack.Slots.Pick");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         MultiTarget_RackRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        (void)tb_cursor_next_length(&cursor, &element_count);
+
+        record->slots.pick_count = element_count;
+        record->slots.pick = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slots.pick);
+
+        if (element_count > 0 && record->slots.pick == NULL)
+          return tb_fail_with(reader, "out of memory allocating a member array");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->slots.pick[element]);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Rack.Slots.Count", TB_KIND_FIXED_ARRAY, 2, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Rack.Slots.Count", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Rack.Slots.Count");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         MultiTarget_RackRecord_t* record = &table->records[row];
+        int32_t element_count = 0;
         int32_t element;
 
-        for (element = 0; element < 2; ++element)
+        (void)tb_cursor_next_length(&cursor, &element_count);
+
+        record->slots.count_count = element_count;
+        record->slots.count = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slots.count);
+
+        if (element_count > 0 && record->slots.count == NULL)
+          return tb_fail_with(reader, "out of memory allocating a member array");
+
+        for (element = 0; element < element_count && !tb_failed(reader); ++element)
           (void)tb_cursor_next_i32(&cursor, &record->slots.count[element]);
       }
       break;

@@ -85,7 +85,7 @@ class FoldedTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Folded.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Folded.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Folded.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -95,17 +95,18 @@ class FoldedTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Folded.Tag_array', kindFixedArray, -1, false, [elementString], true);
+          checkColumn(column, 'Folded.Tag_array', kindArray, false, [elementString], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
           // steps once per element of every row. spec/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
           cursor = TcbColumnCursor(reader, column, count, 'Folded.Tag_array');
           for (final record in loaded) {
-            record.tagArray = List.generate(column.count, (_) => cursor.nextString());
-            record.hasTagArrayAt = List.generate(
-                column.count, (at) => isPresent(elementPresence, elementAt + at));
-            elementAt += column.count;
+            final elementCount = cursor.nextLength();
+            record.tagArray = List.generate(elementCount, (_) => cursor.nextString());
+            record.hasTagArrayAt =
+                List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
+            elementAt += elementCount;
           }
           break;
         default:

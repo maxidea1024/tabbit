@@ -729,7 +729,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                + Access(LuaName(path[^1]) + suffix);
 
         var field = wire.TagCarrier;
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string Row(string tail) => !isArray || wire.Group.MembersAreArrays
             ? $"record{group}{tail}"
@@ -788,7 +788,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string access = !isArray || wire.Group.MembersAreArrays
             ? $"record{group}{member}"
@@ -865,7 +865,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
     private string EmptyValue(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "{}";
 
         // The resolved field points at the target row, and absence there is what nil
@@ -893,7 +893,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         if (wire.IsRef)
@@ -927,7 +927,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         if (!UsesCursor(wire))
             return "";
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         if (wire.IsRef)
@@ -1048,17 +1048,8 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "tcb.KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "tcb.KIND_FIXED_ARRAY" : "tcb.KIND_SCALAR");
+        string kind = wire.IsArray ? "tcb.KIND_ARRAY" : "tcb.KIND_SCALAR";
 
-        // -1 where one column owns the whole array: the file states how many elements it
-        // holds and the read takes it from there. A record member keeps its count -
-        // several columns fill one array and the number they agree on is part of the
-        // generated shape. spec/nullable-array-elements.md.
-        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
-
-        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
 
         string accepted;
 
@@ -1102,7 +1093,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         string nullable = wire.IsNullable ? "true" : "false";
         string elements = wire.HasOptionalElements ? ", true" : "";
 
-        return $"tcb.checkColumn(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+        return $"tcb.checkColumn(column, \"{tableName}.{wire.Name}\", {kind}, "
             + $"{nullable}, {{ {accepted} }}{elements})";
     }
 
@@ -1110,19 +1101,16 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
+        if (wire.IsArray)
             // A trimmed array of references: the length is the row's, and the key still goes
             // in the array beside the values. Read as a plain `var_array` it put the keys where
             // the resolved rows belong, and the linking pass then found nothing to resolve -
@@ -1130,9 +1118,6 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             // `foreign[]` is refused, so it is only reachable through a folded group with
             // trimming on. spec/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }

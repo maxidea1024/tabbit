@@ -88,13 +88,13 @@ class SealTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Seal.Index', kindScalar, 1, false, [elementUuid]);
+          checkColumn(column, 'Seal.Index', kindScalar, false, [elementUuid]);
           for (final record in loaded) {
             record.index = reader.readUuid();
           }
           break;
         case 2:
-          checkColumn(column, 'Seal.Label', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Seal.Label', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Seal.Label');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -104,7 +104,7 @@ class SealTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Seal.Pad', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Seal.Pad', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Seal.Pad');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -114,7 +114,7 @@ class SealTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Seal.Pad2', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Seal.Pad2', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Seal.Pad2');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -124,7 +124,7 @@ class SealTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Seal.Pad3', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Seal.Pad3', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Seal.Pad3');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);

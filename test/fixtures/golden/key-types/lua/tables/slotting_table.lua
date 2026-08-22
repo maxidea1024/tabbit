@@ -117,7 +117,7 @@ function SlottingTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Slotting.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Slotting.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Slotting.Index")
       local at = 0
 
@@ -131,7 +131,7 @@ function SlottingTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Slotting.Capacity", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Slotting.Capacity", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Slotting.Capacity")
       local at = 0
 
@@ -145,7 +145,7 @@ function SlottingTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Slotting.Serial", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I64, tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Slotting.Serial", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I64, tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Slotting.Serial")
       for i = 1, count do
         local record = records[i]

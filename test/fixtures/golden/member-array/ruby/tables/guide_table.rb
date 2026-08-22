@@ -108,7 +108,7 @@ module MemberArray
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Guide.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Guide.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Index')
           at = 0
           while at < count
@@ -119,7 +119,7 @@ module MemberArray
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Guide.Name', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Guide.Name', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Name')
           at = 0
           while at < count
@@ -130,54 +130,55 @@ module MemberArray
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Guide.Skill.Step', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Guide.Skill.Step', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Skill.Step')
           records.each do |record|
-            2.times do |element|
-              record.skill.step[element] = cursor.next_i32
-            end
+            element_count = cursor.next_length
+            record.skill.step =
+              Array.new(element_count) { cursor.next_i32 }
           end
         when 4
-          Tabbit.check_column(column, 'Guide.Skill.Order', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Guide.Skill.Order', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Skill.Order')
           records.each do |record|
-            2.times do |element|
-              record.skill.order[element] = cursor.next_string
-            end
+            element_count = cursor.next_length
+            record.skill.order =
+              Array.new(element_count) { cursor.next_string }
           end
         when 5
-          Tabbit.check_column(column, 'Guide.Pos.X', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_F32])
+          Tabbit.check_column(column, 'Guide.Pos.X', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_F32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Pos.X')
           records.each do |record|
             record.pos.x = cursor.next_f32
           end
         when 6
-          Tabbit.check_column(column, 'Guide.Pos.Y', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_F32])
+          Tabbit.check_column(column, 'Guide.Pos.Y', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_F32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Pos.Y')
           records.each do |record|
             record.pos.y = cursor.next_f32
           end
         when 7
-          Tabbit.check_column(column, 'Guide.Tag_array', Tabbit::KIND_FIXED_ARRAY, -1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Guide.Tag_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Tag_array')
           records.each do |record|
-            record.tag_array = Array.new(column.count) { cursor.next_string }
+            element_count = cursor.next_length
+            record.tag_array = Array.new(element_count) { cursor.next_string }
           end
         when 8
-          Tabbit.check_column(column, 'Guide.Grid.1', Tabbit::KIND_FIXED_ARRAY, 3, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Guide.Grid.1', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Grid.1')
           records.each do |record|
-            3.times do |element|
-              record.grid[0][element] = cursor.next_i32
-            end
+            element_count = cursor.next_length
+            record.grid[0] =
+              Array.new(element_count) { cursor.next_i32 }
           end
         when 9
-          Tabbit.check_column(column, 'Guide.Grid.2', Tabbit::KIND_FIXED_ARRAY, 3, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Guide.Grid.2', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Grid.2')
           records.each do |record|
-            3.times do |element|
-              record.grid[1][element] = cursor.next_i32
-            end
+            element_count = cursor.next_length
+            record.grid[1] =
+              Array.new(element_count) { cursor.next_i32 }
           end
         else
           # A column added after this code was generated.

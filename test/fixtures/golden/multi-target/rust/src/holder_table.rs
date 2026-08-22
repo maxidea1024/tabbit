@@ -110,7 +110,7 @@ impl HolderTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Holder.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Holder.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Holder.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -122,7 +122,7 @@ impl HolderTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Holder.Pick", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Holder.Pick", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Holder.Pick")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -134,7 +134,7 @@ impl HolderTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Holder.Wide", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Holder.Wide", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Holder.Wide")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -146,7 +146,7 @@ impl HolderTable {
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Holder.Only", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32])?;
+                    tabbit::check_column(column, "Holder.Only", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Holder.Only")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -158,7 +158,7 @@ impl HolderTable {
                     }
                 }
                 5 => {
-                    tabbit::check_column(column, "Holder.Maybe", tabbit::KIND_SCALAR, 1, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Holder.Maybe", tabbit::KIND_SCALAR, true, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.

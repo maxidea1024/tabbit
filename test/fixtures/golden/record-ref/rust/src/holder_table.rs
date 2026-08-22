@@ -114,7 +114,7 @@ impl HolderTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Holder.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Holder.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Holder.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -126,7 +126,7 @@ impl HolderTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Holder.Main.ItemId", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32])?;
+                    tabbit::check_column(column, "Holder.Main.ItemId", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Holder.Main.ItemId")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -138,7 +138,7 @@ impl HolderTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Holder.Main.Count", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Holder.Main.Count", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Holder.Main.Count")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -150,7 +150,7 @@ impl HolderTable {
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Holder.Pad", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Holder.Pad", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Holder.Pad")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -162,7 +162,7 @@ impl HolderTable {
                     }
                 }
                 5 => {
-                    tabbit::check_column(column, "Holder.Pad2", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Holder.Pad2", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Holder.Pad2")?;
                     let mut at = 0usize;
                     while at < records.len() {

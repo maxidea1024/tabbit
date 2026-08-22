@@ -138,13 +138,13 @@ public final class LedgerTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Ledger.Index", Tcb.kindScalar, 1, false, Tcb.elementI64, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Ledger.Index", Tcb.kindScalar, false, Tcb.elementI64, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Ledger.Index")
                 for record in loaded {
                     record.index = try cursor.nextI64()
                 }
             case 2:
-                try Tcb.checkColumn(column, "Ledger.Amount", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Ledger.Amount", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Ledger.Amount")
                 var at = 0
                 while at < count {
@@ -157,7 +157,7 @@ public final class LedgerTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Ledger.Batch", Tcb.kindScalar, 1, false, Tcb.elementUuid)
+                try Tcb.checkColumn(column, "Ledger.Batch", Tcb.kindScalar, false, Tcb.elementUuid)
                 for record in loaded {
                     record.batch = try reader.readUuid()
                 }

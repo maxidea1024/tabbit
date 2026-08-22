@@ -98,7 +98,7 @@ module RecordRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Badge.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Badge.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Badge.Index')
           at = 0
           while at < count
@@ -109,7 +109,7 @@ module RecordRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Badge.Mark.ClipId', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Badge.Mark.ClipId', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Badge.Mark.ClipId')
           at = 0
           while at < count
@@ -120,12 +120,12 @@ module RecordRef
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Badge.Mark.SealId', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_UUID])
+          Tabbit.check_column(column, 'Badge.Mark.SealId', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_UUID])
           records.each do |record|
             record.mark.seal_id_index = reader.read_uuid
           end
         when 4
-          Tabbit.check_column(column, 'Badge.Mark.Rank', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Badge.Mark.Rank', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Badge.Mark.Rank')
           at = 0
           while at < count
@@ -136,7 +136,7 @@ module RecordRef
             at += n
           end
         when 5
-          Tabbit.check_column(column, 'Badge.Pad', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Badge.Pad', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Badge.Pad')
           at = 0
           while at < count

@@ -95,7 +95,7 @@ function KitTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Kit.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Kit.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Kit.Index")
       local at = 0
 
@@ -109,13 +109,14 @@ function KitTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Kit.Slot_array", tcb.KIND_FIXED_ARRAY, -1, false, { tcb.ELEMENT_I32 })
+      tcb.checkColumn(column, "Kit.Slot_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 })
       local cursor = tcb.newCursor(reader, column, count, "Kit.Slot_array")
       for i = 1, count do
         local record = records[i]
+        local elementCount = cursor:nextLength()
         local values = {}
 
-        for element = 1, column.count do
+        for element = 1, elementCount do
           values[element] = cursor:nextI32()
         end
 
@@ -123,13 +124,14 @@ function KitTable:readBytes(data)
         record.slotArray = {}
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Kit.Tier_array", tcb.KIND_FIXED_ARRAY, -1, false, { tcb.ELEMENT_I32 })
+      tcb.checkColumn(column, "Kit.Tier_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 })
       local cursor = tcb.newCursor(reader, column, count, "Kit.Tier_array")
       for i = 1, count do
         local record = records[i]
+        local elementCount = cursor:nextLength()
         local values = {}
 
-        for element = 1, column.count do
+        for element = 1, elementCount do
           values[element] = cursor:nextI32()
         end
 

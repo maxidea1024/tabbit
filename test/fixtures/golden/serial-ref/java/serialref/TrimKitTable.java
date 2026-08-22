@@ -98,7 +98,7 @@ public final class TrimKitTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "TrimKit.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "TrimKit.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "TrimKit.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -109,7 +109,7 @@ public final class TrimKitTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumnWithElements(column, "TrimKit.Slot_array", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumnWithElements(column, "TrimKit.Slot_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -131,7 +131,7 @@ public final class TrimKitTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumnWithElements(column, "TrimKit.Tier_array", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumnWithElements(column, "TrimKit.Tier_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.

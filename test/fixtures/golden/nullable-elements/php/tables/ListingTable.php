@@ -136,7 +136,7 @@ final class ListingTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Listing.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Listing.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Listing.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -147,7 +147,7 @@ final class ListingTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Listing.Name', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Listing.Name', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Listing.Name');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -158,7 +158,7 @@ final class ListingTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Listing.Plain', TcbReader::KIND_VAR_ARRAY, 0, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Listing.Plain', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Listing.Plain');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
@@ -170,7 +170,7 @@ final class ListingTable
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Listing.Maybe', TcbReader::KIND_VAR_ARRAY, 0, true, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Listing.Maybe', TcbReader::KIND_ARRAY, true, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -198,7 +198,7 @@ final class ListingTable
                     break;
 
                 case 5:
-                    TcbReader::checkColumn($column, 'Listing.Holes', TcbReader::KIND_VAR_ARRAY, 0, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT], true);
+                    TcbReader::checkColumn($column, 'Listing.Holes', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT], true);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -218,7 +218,7 @@ final class ListingTable
                     break;
 
                 case 6:
-                    TcbReader::checkColumn($column, 'Listing.Both', TcbReader::KIND_VAR_ARRAY, 0, true, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT], true);
+                    TcbReader::checkColumn($column, 'Listing.Both', TcbReader::KIND_ARRAY, true, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT], true);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -254,7 +254,7 @@ final class ListingTable
                     break;
 
                 case 7:
-                    TcbReader::checkColumn($column, 'Listing.Words', TcbReader::KIND_VAR_ARRAY, 0, false, [TcbReader::ELEMENT_STRING], true);
+                    TcbReader::checkColumn($column, 'Listing.Words', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING], true);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.

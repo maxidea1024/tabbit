@@ -156,7 +156,7 @@ final class DeepTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Deep.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Deep.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Deep.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -167,30 +167,50 @@ final class DeepTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Deep.Star.Id', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Deep.Star.Id', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Deep.Star.Id');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        // The first member builds the list; the rest check. Building it
+                        // again would discard what the members before it wrote, and taking
+                        // the shorter of two counts would shift every value after it.
+                        $record->star = [];
+                        for ($j = 0; $j < $elementCount; $j++) {
+                            $record->star[] = new DeepStarEntry();
+                        }
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->star[$j]->id = $cursor->nextI32();
                         }
                     }
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Deep.Star.Position.X', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Deep.Star.Position.X', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Deep.Star.Position.X');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        if (\count($record->star) !== $elementCount) {
+                            throw new \Tabbit\TcbException(
+                                'Deep.star: the file gives one member of '
+                                . 'this record a different element count than another.');
+                        }
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->star[$j]->position->x = $cursor->nextI32();
                         }
                     }
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Deep.Star.Position.Y', TcbReader::KIND_FIXED_ARRAY, 2, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Deep.Star.Position.Y', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Deep.Star.Position.Y');
                     foreach ($records as $record) {
-                        for ($j = 0; $j < 2; $j++) {
+                        $elementCount = $cursor->nextLength();
+                        if (\count($record->star) !== $elementCount) {
+                            throw new \Tabbit\TcbException(
+                                'Deep.star: the file gives one member of '
+                                . 'this record a different element count than another.');
+                        }
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->star[$j]->position->y = $cursor->nextI32();
                         }
                     }

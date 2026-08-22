@@ -44,7 +44,8 @@ struct MultiTarget_LoadoutRecord_t {
   /* primary index */
   int32_t index;
   /* element 1 - two targets */
-  struct MultiTarget_LoadoutRecord_t_slot_entry slot[2];
+  struct MultiTarget_LoadoutRecord_t_slot_entry* slot;
+  int32_t slot_count;
 };
 
 /* Every row of Loadout.

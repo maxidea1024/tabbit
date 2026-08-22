@@ -85,7 +85,7 @@ module NullableElements
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Folded.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Folded.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Folded.Index')
           at = 0
           while at < count
@@ -96,18 +96,19 @@ module NullableElements
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Folded.Tag_array', Tabbit::KIND_FIXED_ARRAY, -1, false, [Tabbit::ELEMENT_STRING], true)
+          Tabbit.check_column(column, 'Folded.Tag_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
           # steps once per element of every row. spec/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
           element_at = 0
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Folded.Tag_array')
           records.each do |record|
-            record.tag_array = Array.new(column.count) { cursor.next_string }
-            record.has_tag_array_at = Array.new(column.count) do |at|
+            element_count = cursor.next_length
+            record.tag_array = Array.new(element_count) { cursor.next_string }
+            record.has_tag_array_at = Array.new(element_count) do |at|
               Tabbit.present?(element_presence, element_at + at)
             end
-            element_at += column.count
+            element_at += element_count
           end
         else
           # A column added after this code was generated.

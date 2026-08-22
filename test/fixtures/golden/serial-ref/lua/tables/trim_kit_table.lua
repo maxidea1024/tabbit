@@ -99,7 +99,7 @@ function TrimKitTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "TrimKit.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "TrimKit.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "TrimKit.Index")
       local at = 0
 
@@ -113,7 +113,7 @@ function TrimKitTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "TrimKit.Slot_array", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_I32 }, true)
+      tcb.checkColumn(column, "TrimKit.Slot_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
       -- steps once per element of every row. spec/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)
@@ -140,7 +140,7 @@ function TrimKitTable:readBytes(data)
         record.hasSlotArrayAt = answers
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "TrimKit.Tier_array", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_I32 }, true)
+      tcb.checkColumn(column, "TrimKit.Tier_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
       -- steps once per element of every row. spec/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)

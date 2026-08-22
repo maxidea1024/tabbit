@@ -55,65 +55,38 @@ static bool SerialRef_BitParse(SerialRef_BitTable_t* table, tb_reader* reader) {
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Bit.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Bit.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Bit.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        SerialRef_BitRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Bit.Name", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Bit.Name", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Bit.Name");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        SerialRef_BitRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].name = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->name);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Bit.Tier", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Bit.Tier", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Bit.Tier");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        SerialRef_BitRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].tier = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->tier);
       }
       break;
 

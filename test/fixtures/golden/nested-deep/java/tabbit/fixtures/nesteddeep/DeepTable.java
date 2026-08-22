@@ -96,7 +96,7 @@ public final class DeepTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Deep.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Deep.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Deep.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,30 +107,54 @@ public final class DeepTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Deep.Star.Id", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Deep.Star.Id", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Deep.Star.Id");
                     for (DeepRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        // The first member allocates; the rest check. Allocating again would
+                        // discard what the members before it wrote, and taking the shorter of
+                        // two counts would shift every value after it.
+                        record.star = new DeepRecord.StarEntry[elementCount];
+
+                        for (int j = 0; j < elementCount; j++) {
+                            record.star[j] = new DeepRecord.StarEntry();
                             record.star[j].id = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Deep.Star.Position.X", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Deep.Star.Position.X", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Deep.Star.Position.X");
                     for (DeepRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        if (record.star.length != elementCount) {
+                            throw new TcbReader.TcbException(
+                                "Deep.star: the file gives one member of "
+                                + "this record a different element count than another");
+                        }
+
+                        for (int j = 0; j < elementCount; j++) {
                             record.star[j].position.x = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 4: {
-                    TcbReader.checkColumn(column, "Deep.Star.Position.Y", TcbReader.KIND_FIXED_ARRAY, 2, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Deep.Star.Position.Y", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Deep.Star.Position.Y");
                     for (DeepRecord record : loaded) {
-                        for (int j = 0; j < 2; j++) {
+                        int elementCount;
+                        elementCount = cursor.nextLength();
+                        if (record.star.length != elementCount) {
+                            throw new TcbReader.TcbException(
+                                "Deep.star: the file gives one member of "
+                                + "this record a different element count than another");
+                        }
+
+                        for (int j = 0; j < elementCount; j++) {
                             record.star[j].position.y = cursor.nextI32();
                         }
                     }

@@ -109,7 +109,7 @@ function ListingTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Listing.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Listing.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Listing.Index")
       local at = 0
 
@@ -123,7 +123,7 @@ function ListingTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Listing.Name", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Listing.Name", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Listing.Name")
       local at = 0
 
@@ -137,7 +137,7 @@ function ListingTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Listing.Plain", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Listing.Plain", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Listing.Plain")
       for i = 1, count do
         local record = records[i]
@@ -151,7 +151,7 @@ function ListingTable:readBytes(data)
         record.plain = values
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Listing.Maybe", tcb.KIND_VAR_ARRAY, 0, true, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Listing.Maybe", tcb.KIND_ARRAY, true, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -183,7 +183,7 @@ function ListingTable:readBytes(data)
         end
       end
     elseif column.tag == 5 then
-      tcb.checkColumn(column, "Listing.Holes", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT }, true)
+      tcb.checkColumn(column, "Listing.Holes", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
       -- steps once per element of every row. spec/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)
@@ -209,7 +209,7 @@ function ListingTable:readBytes(data)
         record.hasHolesAt = answers
       end
     elseif column.tag == 6 then
-      tcb.checkColumn(column, "Listing.Both", tcb.KIND_VAR_ARRAY, 0, true, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT }, true)
+      tcb.checkColumn(column, "Listing.Both", tcb.KIND_ARRAY, true, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT }, true)
       -- The bitmap is at the front of the block, so it is read before the values. The
       -- values are written for every row either way, which is what lets the read shapes
       -- below stay as they are.
@@ -253,7 +253,7 @@ function ListingTable:readBytes(data)
         end
       end
     elseif column.tag == 7 then
-      tcb.checkColumn(column, "Listing.Words", tcb.KIND_VAR_ARRAY, 0, false, { tcb.ELEMENT_STRING }, true)
+      tcb.checkColumn(column, "Listing.Words", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
       -- steps once per element of every row. spec/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)

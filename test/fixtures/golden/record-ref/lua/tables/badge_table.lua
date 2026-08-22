@@ -106,7 +106,7 @@ function BadgeTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Badge.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Badge.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Badge.Index")
       local at = 0
 
@@ -120,7 +120,7 @@ function BadgeTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Badge.Mark.ClipId", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Badge.Mark.ClipId", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Badge.Mark.ClipId")
       local at = 0
 
@@ -134,13 +134,13 @@ function BadgeTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Badge.Mark.SealId", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_UUID })
+      tcb.checkColumn(column, "Badge.Mark.SealId", tcb.KIND_SCALAR, false, { tcb.ELEMENT_UUID })
       for i = 1, count do
         local record = records[i]
         record.mark.sealIdIndex = reader:readUuid()
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Badge.Mark.Rank", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Badge.Mark.Rank", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Badge.Mark.Rank")
       local at = 0
 
@@ -154,7 +154,7 @@ function BadgeTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 5 then
-      tcb.checkColumn(column, "Badge.Pad", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Badge.Pad", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Badge.Pad")
       local at = 0
 

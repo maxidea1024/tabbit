@@ -238,7 +238,7 @@ class HolderTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Holder.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Holder.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Holder.Index")
                     var at = 0
                     while (at < count) {
@@ -252,7 +252,7 @@ class HolderTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Holder.Pick", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Holder.Pick", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Holder.Pick")
                     var at = 0
                     while (at < count) {
@@ -266,7 +266,7 @@ class HolderTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Holder.Wide", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Holder.Wide", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Holder.Wide")
                     var at = 0
                     while (at < count) {
@@ -280,7 +280,7 @@ class HolderTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Holder.Only", KIND_SCALAR, 1, false, ELEMENT_I32)
+                    checkColumn(column, "Holder.Only", KIND_SCALAR, false, ELEMENT_I32)
                     val cursor = ColumnCursor(reader, column, count, "Holder.Only")
                     var at = 0
                     while (at < count) {
@@ -294,7 +294,7 @@ class HolderTable {
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Holder.Maybe", KIND_SCALAR, 1, true, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Holder.Maybe", KIND_SCALAR, true, ELEMENT_I32, ELEMENT_VARINT)
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.

@@ -209,7 +209,7 @@ public final class HolderTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Holder.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Holder.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Holder.Index")
                 var at = 0
                 while at < count {
@@ -222,7 +222,7 @@ public final class HolderTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Holder.Pick", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Holder.Pick", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Holder.Pick")
                 var at = 0
                 while at < count {
@@ -235,7 +235,7 @@ public final class HolderTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Holder.Wide", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Holder.Wide", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Holder.Wide")
                 var at = 0
                 while at < count {
@@ -248,7 +248,7 @@ public final class HolderTable {
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Holder.Only", Tcb.kindScalar, 1, false, Tcb.elementI32)
+                try Tcb.checkColumn(column, "Holder.Only", Tcb.kindScalar, false, Tcb.elementI32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Holder.Only")
                 var at = 0
                 while at < count {
@@ -261,7 +261,7 @@ public final class HolderTable {
                     }
                 }
             case 5:
-                try Tcb.checkColumn(column, "Holder.Maybe", Tcb.kindScalar, 1, true, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Holder.Maybe", Tcb.kindScalar, true, Tcb.elementI32, Tcb.elementVarint)
                 // The bitmap is at the front of the block, so it is read before the values.
                 // The values are written for every row either way, which is what lets the
                 // read shapes below stay as they are.

@@ -45,7 +45,8 @@ struct Nested_LoadoutRecord_t {
   /* record with no number */
   struct Nested_LoadoutRecord_t_pos_entry pos;
   /* element 1, first member */
-  struct Nested_LoadoutRecord_t_slot_entry slot[2];
+  struct Nested_LoadoutRecord_t_slot_entry* slot;
+  int32_t slot_count;
   /* plain column inside the group's span */
   const char* note;
   /* scalar serial field */

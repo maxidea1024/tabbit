@@ -114,7 +114,7 @@ final class FoldedTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Folded.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Folded.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Folded.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -125,7 +125,7 @@ final class FoldedTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Folded.Tag_array', TcbReader::KIND_FIXED_ARRAY, -1, false, [TcbReader::ELEMENT_STRING], true);
+                    TcbReader::checkColumn($column, 'Folded.Tag_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING], true);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -133,9 +133,10 @@ final class FoldedTable
                     $elementAt = 0;
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Folded.Tag_array');
                     foreach ($records as $record) {
+                        $elementCount = $cursor->nextLength();
                         $record->tagArray = [];
                         $record->hasTagArrayAt = [];
-                        for ($j = 0; $j < $column['count']; $j++) {
+                        for ($j = 0; $j < $elementCount; $j++) {
                             $record->tagArray[] = $cursor->nextString();
                             $record->hasTagArrayAt[] =
                                 TcbReader::isPresent($elementPresence, $elementAt++);

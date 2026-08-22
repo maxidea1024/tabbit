@@ -184,7 +184,7 @@ class HolderTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Holder.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Holder.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Holder.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -194,7 +194,7 @@ class HolderTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Holder.Pick', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Holder.Pick', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Holder.Pick');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -204,7 +204,7 @@ class HolderTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Holder.Wide', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Holder.Wide', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Holder.Wide');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -214,7 +214,7 @@ class HolderTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Holder.Only', kindScalar, 1, false, [elementI32]);
+          checkColumn(column, 'Holder.Only', kindScalar, false, [elementI32]);
           cursor = TcbColumnCursor(reader, column, count, 'Holder.Only');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -224,7 +224,7 @@ class HolderTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Holder.Maybe', kindScalar, 1, true, [elementI32, elementVarint]);
+          checkColumn(column, 'Holder.Maybe', kindScalar, true, [elementI32, elementVarint]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.

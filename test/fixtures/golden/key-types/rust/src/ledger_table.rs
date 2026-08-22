@@ -133,14 +133,14 @@ impl LedgerTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Ledger.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I64, tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Ledger.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I64, tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Ledger.Index")?;
                     for record in records.iter_mut() {
                         record.index = cursor.next_i64()?;
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Ledger.Amount", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Ledger.Amount", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Ledger.Amount")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -152,7 +152,7 @@ impl LedgerTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Ledger.Batch", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_UUID])?;
+                    tabbit::check_column(column, "Ledger.Batch", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_UUID])?;
                     for record in records.iter_mut() {
                         record.batch = reader.read_uuid()?;
                     }

@@ -114,7 +114,7 @@ class BitTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Bit.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Bit.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Bit.Index")
                     var at = 0
                     while (at < count) {
@@ -128,7 +128,7 @@ class BitTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Bit.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Bit.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Bit.Name")
                     var at = 0
                     while (at < count) {
@@ -142,7 +142,7 @@ class BitTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Bit.Tier", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Bit.Tier", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Bit.Tier")
                     var at = 0
                     while (at < count) {

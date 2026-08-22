@@ -807,7 +807,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// </remarks>
     private string EmptyAssignmentOf(WireColumn wire, string target)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
         {
             string keys = wire.IsRef ? $" {target}_index = NULL;" : "";
 
@@ -835,18 +835,8 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "TB_KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "TB_KIND_FIXED_ARRAY" : "TB_KIND_SCALAR");
+        string kind = wire.IsArray ? "TB_KIND_ARRAY" : "TB_KIND_SCALAR";
 
-        // -1 where one column owns the whole array: the file states how many elements it
-        // holds and the read takes it from there, so there is no length here to hold it to.
-        // A record member keeps its count - several columns fill one array and the number
-        // they agree on is part of the generated shape, so a disagreement is a schema change
-        // rather than data. spec/nullable-array-elements.md.
-        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
-
-        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
 
         string[] accepted;
 
@@ -901,11 +891,11 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         if (wire.HasOptionalElements)
         {
             return $"(void)tb_check_column_elements(reader, column, \"{tableName}.{wire.Name}\", " +
-                   $"{kind}, {count}, {nullable}, {mask}, true);";
+                   $"{kind}, {nullable}, {mask}, true);";
         }
 
         return $"(void)tb_check_column(reader, column, \"{tableName}.{wire.Name}\", " +
-               $"{kind}, {count}, {nullable}, {mask});";
+               $"{kind}, {nullable}, {mask});";
     }
 
     /// <summary>
@@ -924,7 +914,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional
@@ -984,7 +974,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries. `tb_cursor_next_same_i32` was the only
@@ -1070,7 +1060,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     private static (string Path, string Subscript) MemberPlace(
         WireColumn wire, string name, string member, string element)
     {
-        if (!wire.IsFixedArray && !wire.IsVariableLengthArray)
+        if (!wire.IsArray)
             return ($"record->{name}{member}", "");
 
         if (wire.Group.MembersAreAnonymous)
@@ -1180,12 +1170,16 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         if (sf.IsRecord)
         {
             // An array of arrays declares no element type: the outer level has no name for
-            // one to belong to, so it is a plain two-dimensional array. Fixed on both levels,
-            // so it is the record's own storage and nothing frees it.
+            // one to belong to. The outer level is how many columns fill the field and is
+            // fixed; each inner one is the row's, so it is a pointer and a count.
             if (sf.MembersAreAnonymous)
             {
                 string inner = ScalarTypeName(sf.Members[0].ElementType, sf.Members[0].FirstField!.EnumOrNull);
-                return new[] { $"{inner} {name}[{sf.Members.Count}][{sf.RecordElementCount}];" };
+                return new[]
+                {
+                    $"{inner}* {name}[{sf.Members.Count}];",
+                    $"int32_t {name}_count[{sf.Members.Count}];",
+                };
             }
 
             string entry = "struct " + RecordEntryName(table, sf);
@@ -1193,9 +1187,10 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             if (!sf.IsArray)
                 return new[] { $"{entry} {name};" };
 
-            return table.TrimTrailingArrayElements
-                ? new[] { $"{entry}* {name};", $"int32_t {name}_count;" }
-                : new[] { $"{entry} {name}[{sf.RecordElementCount}];" };
+            // A pointer and a count whether or not the table trims: since v107 the file
+            // states every array's length per row, so there is no number to build into the
+            // struct. spec/tcb-v107-dynamic-arrays.md.
+            return new[] { $"{entry}* {name};", $"int32_t {name}_count;" };
         }
 
         string elementType = ResolvedElementType(sf);
@@ -1264,10 +1259,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         // each rather than re-creating them.
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "record_member";
 
             // Which of the two owns the array decides where the index goes, and an unnamed
@@ -1275,19 +1267,16 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
+        if (wire.IsArray)
             // A trimmed array of references: the length is the row's, and the keys still go in
             // an array beside the resolved rows. Read as a plain `var_array` it allocated one
             // array and wrote keys into a pointer array, which does not compile - and nothing
             // held the shape, because `foreign[]` is refused and this is only reachable through
             // a folded group with trimming on. spec/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -1373,14 +1362,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             Access = path + subscript,
             Key = path + "_index" + subscript,
 
-            // Whichever array holds the elements. A record group's is the length the member
-            // columns agree on and it is written here; every other array carries its own
-            // count, so that is read instead.
-            Count = wire.IsVariableLengthArray || (wire.IsFixedArray && wire.Member is null)
-                ? $"record->{name}_count"
-                : wire.IsFixedArray
-                    ? wire.Cells.Count.ToString(CultureInfo.InvariantCulture)
-                    : "",
+            // Whichever array holds the elements. Every array carries its own count since
+            // v107, so there is one answer where there used to be three.
+            Count = wire.IsArray ? $"record->{name}_count" : "",
 
             RefTable = CName(refTable!.Name),
             RefLookup = PrimaryLookup(refTable),
@@ -1491,8 +1475,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             string key = ScalarTypeName(member.FirstField!.RefKeyType, null);
 
             return member.IsArray
-                ? $"{row} {name}[{member.Fields.Count}]; "
-                  + $"{key} {name}_index[{member.Fields.Count}];"
+                ? $"{row}* {name}; {key}* {name}_index; int32_t {name}_count;"
                 : $"{row} {name}; {key} {name}_index;";
         }
 
@@ -1506,14 +1489,13 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             string enumType = EnumName(multi.MultiTargetEnum!);
 
             return member.IsArray
-                ? $"{type} {name}[{member.Fields.Count}]; "
-                  + $"const void* {name}_row[{member.Fields.Count}]; "
-                  + $"{enumType} {name}_target[{member.Fields.Count}];"
+                ? $"{type}* {name}; const void** {name}_row; "
+                  + $"{enumType}* {name}_target; int32_t {name}_count;"
                 : $"{type} {name}; const void* {name}_row; {enumType} {name}_target;";
         }
 
         return member.IsArray
-            ? $"{type} {name}[{member.Fields.Count}];"
+            ? $"{type}* {name}; int32_t {name}_count;"
             : $"{type} {name};";
     }
 
@@ -1582,11 +1564,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             Target = path + "_target" + subscript,
 
             // Whichever array holds the elements, counted the way the single-target member is.
-            Count = wire.IsVariableLengthArray || (wire.IsFixedArray && wire.Member is null)
-                ? $"record->{name}_count"
-                : wire.IsFixedArray
-                    ? wire.Cells.Count.ToString(CultureInfo.InvariantCulture)
-                    : "",
+            Count = wire.IsArray ? $"record->{name}_count" : "",
 
             NoneLabel = ConstantName(field.MultiTargetEnum!.Name, "None"),
 

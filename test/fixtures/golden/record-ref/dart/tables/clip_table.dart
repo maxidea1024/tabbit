@@ -88,7 +88,7 @@ class ClipTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Clip.Index', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Clip.Index', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Clip.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -98,7 +98,7 @@ class ClipTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Clip.Length', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Clip.Length', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Clip.Length');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -108,7 +108,7 @@ class ClipTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Clip.Pad', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Clip.Pad', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Clip.Pad');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -118,7 +118,7 @@ class ClipTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Clip.Pad2', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Clip.Pad2', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Clip.Pad2');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -128,7 +128,7 @@ class ClipTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Clip.Pad3', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Clip.Pad3', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Clip.Pad3');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);

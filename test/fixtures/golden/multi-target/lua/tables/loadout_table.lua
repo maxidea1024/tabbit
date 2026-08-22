@@ -131,7 +131,7 @@ function LoadoutTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Loadout.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loadout.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Index")
       local at = 0
 
@@ -145,20 +145,32 @@ function LoadoutTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Loadout.Slot.Pick", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loadout.Slot.Pick", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Slot.Pick")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        -- The first member builds the list; the rest check. Building it again would
+        -- discard what the members before it wrote, and taking the shorter of two
+        -- counts would shift every value after it.
+        record.slot = tcb.filledArray(elementCount, newLoadoutSlotEntry)
+
+        for element = 1, elementCount do
           record.slot[element].pick = cursor:nextI32()
         end
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Loadout.Slot.Count", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loadout.Slot.Count", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Slot.Count")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        if #record.slot ~= elementCount then
+          tcb.fail("Loadout: the file gives one member of this record a " ..
+            "different element count than another")
+        end
+
+        for element = 1, elementCount do
           record.slot[element].count = cursor:nextI32()
         end
       end

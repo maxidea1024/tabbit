@@ -133,7 +133,7 @@ public final class LoadoutTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Loadout.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loadout.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Index")
                 var at = 0
                 while at < count {
@@ -146,18 +146,32 @@ public final class LoadoutTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Loadout.Slot.Pick", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loadout.Slot.Pick", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Slot.Pick")
                 for record in loaded {
-                    for element in 0 ..< 2 {
+                    let elementCount = max(0, try cursor.nextLength())
+                    // The first member allocates; the rest check. Allocating again would
+                    // discard what the members before it wrote, and taking the shorter of two
+                    // counts would shift every value after it.
+                    record.slot = [LoadoutRecord.SlotEntry](
+                        repeating: LoadoutRecord.SlotEntry(), count: elementCount)
+
+                    for element in 0 ..< elementCount {
                         record.slot[element].pick = try cursor.nextI32()
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Loadout.Slot.Count", Tcb.kindFixedArray, 2, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Loadout.Slot.Count", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Slot.Count")
                 for record in loaded {
-                    for element in 0 ..< 2 {
+                    let elementCount = max(0, try cursor.nextLength())
+                    if record.slot.count != elementCount {
+                        throw TcbError(
+                            "Loadout.slot: the file gives one "
+                            + "member of this record a different element count than another")
+                    }
+
+                    for element in 0 ..< elementCount {
                         record.slot[element].count = try cursor.nextI32()
                     }
                 }

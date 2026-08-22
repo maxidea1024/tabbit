@@ -96,7 +96,7 @@ public final class BadgeTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Badge.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Badge.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Badge.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,7 +107,7 @@ public final class BadgeTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Badge.Mark.ClipId", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Badge.Mark.ClipId", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Badge.Mark.ClipId");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -118,14 +118,14 @@ public final class BadgeTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Badge.Mark.SealId", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_UUID);
+                    TcbReader.checkColumn(column, "Badge.Mark.SealId", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_UUID);
                     for (BadgeRecord record : loaded) {
                         record.mark.sealIdIndex = reader.readUuid();
                     }
                     break;
                 }
                 case 4: {
-                    TcbReader.checkColumn(column, "Badge.Mark.Rank", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Badge.Mark.Rank", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Badge.Mark.Rank");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -136,7 +136,7 @@ public final class BadgeTable {
                     break;
                 }
                 case 5: {
-                    TcbReader.checkColumn(column, "Badge.Pad", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Badge.Pad", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Badge.Pad");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);

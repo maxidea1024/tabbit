@@ -96,7 +96,7 @@ class TrimKitTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "TrimKit.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "TrimKit.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "TrimKit.Index")
                 at = 0
                 while at < count:
@@ -105,7 +105,7 @@ class TrimKitTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "TrimKit.Slot_array", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_I32,), True)
+                tabbit.check_column(column, "TrimKit.Slot_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
                 # spec/nullable-array-elements.md.
@@ -121,7 +121,7 @@ class TrimKitTable:
                         for at in range(element_count)]
                     element_at += element_count
             elif column.tag == 3:
-                tabbit.check_column(column, "TrimKit.Tier_array", tabbit.KIND_VAR_ARRAY, 0, False, (tabbit.ELEMENT_I32,), True)
+                tabbit.check_column(column, "TrimKit.Tier_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
                 # spec/nullable-array-elements.md.

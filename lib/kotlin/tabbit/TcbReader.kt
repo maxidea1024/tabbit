@@ -37,7 +37,7 @@ import javax.crypto.spec.SecretKeySpec
 // rather than guessing. 102 replaced 101 outright - a descriptor gained its encoding
 // byte - before any 101 file had shipped. 104 is the current one: four encodings joined
 // the nine, and the flags byte gained a meaning.
-const val FORMAT_VERSION: Int = 106
+const val FORMAT_VERSION: Int = 107
 
 // The wire element types and kinds, as a column descriptor spells them.
 const val ELEMENT_VARINT = 0
@@ -50,8 +50,7 @@ const val ELEMENT_STRING = 6
 const val ELEMENT_UUID = 7
 
 const val KIND_SCALAR = 0
-const val KIND_FIXED_ARRAY = 1
-const val KIND_VAR_ARRAY = 2
+const val KIND_ARRAY = 1
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
 // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -124,8 +123,6 @@ class Column(
     val kind: Int,
     /** How the block's values are laid out: one of the ENCODING_* constants. */
     val encoding: Int,
-    /** Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
-    val count: Int,
     /** Total bytes of the column block - what a skip advances by. */
     val byteLength: Int,
     /**
@@ -550,7 +547,7 @@ class ColumnCursor(
         if (encoding == ENCODING_ARRAY) {
             encoding = reader.readUInt8()
 
-            if (column.kind == KIND_VAR_ARRAY) {
+            if (column.kind == KIND_ARRAY) {
                 val lengthEncoding = reader.readUInt8()
                 rowLengths = readLengths(reader, lengthEncoding, rowCount, fieldName)
 
@@ -563,8 +560,6 @@ class ColumnCursor(
                 }
 
                 rowsRemaining = elements.toInt()
-            } else {
-                rowsRemaining = rowCount * column.count
             }
         }
 
@@ -1390,7 +1385,6 @@ fun readTableHeader(reader: TcbReader): Header {
         val tag = reader.readCounter32()
         val wire = reader.readUInt8()
         val encoding = reader.readUInt8()
-        val elementCount = reader.readCounter32()
         val byteLength = reader.readInt32()
         columns.add(
             Column(
@@ -1423,15 +1417,6 @@ fun readTableHeader(reader: TcbReader): Header {
                     "${column.byteLength} bytes")
         }
 
-        // The same floor for the element count, which the read now allocates for: a fixed
-        // array's length is the file's rather than the generated code's. Only with rows to
-        // read - an empty table writes its columns' counts into a block of no bytes, and that
-        // is well-formed.
-        if (column.encoding == ENCODING_RAW && count > 0 && column.count > column.byteLength) {
-            throw TcbException(
-                "column tag ${column.tag} says each row holds ${column.count} elements, which " +
-                    "its ${column.byteLength} bytes cannot hold")
-        }
     }
 
     if (declared != available) {
@@ -1493,18 +1478,18 @@ fun isPresent(presence: ByteArray, row: Int): Boolean =
  * Refusal is by name and both types, never by reading anyway.
  */
 fun checkColumn(
-    column: Column, fieldName: String, kind: Int, count: Int, nullable: Boolean,
+    column: Column, fieldName: String, kind: Int, nullable: Boolean,
     vararg accepted: Int,
-) = checkColumn(column, fieldName, kind, count, nullable, false, *accepted)
+) = checkColumn(column, fieldName, kind, nullable, false, *accepted)
 
 /** The same, for a member whose array elements may be absent. */
 fun checkColumnWithElements(
-    column: Column, fieldName: String, kind: Int, count: Int, nullable: Boolean,
+    column: Column, fieldName: String, kind: Int, nullable: Boolean,
     vararg accepted: Int,
-) = checkColumn(column, fieldName, kind, count, nullable, true, *accepted)
+) = checkColumn(column, fieldName, kind, nullable, true, *accepted)
 
 private fun checkColumn(
-    column: Column, fieldName: String, kind: Int, count: Int, nullable: Boolean,
+    column: Column, fieldName: String, kind: Int, nullable: Boolean,
     elementNullable: Boolean, vararg accepted: Int,
 ) {
     // The same statement about the other bitmap: code not expecting one would read it as
@@ -1529,10 +1514,10 @@ private fun checkColumn(
     // A negative count says the member claims no length: how many elements a row holds is
     // what the file states. The kind is still the member's claim.
     // spec/nullable-array-elements.md.
-    if (column.kind != kind || (kind != KIND_VAR_ARRAY && count >= 0 && column.count != count)) {
+    if (column.kind != kind) {
         throw TcbException(
-            "$fieldName: the file column (kind ${column.kind}, count ${column.count}) does not " +
-                "match the generated member (kind $kind, count $count). The schema changed shape; " +
+            "$fieldName: the file column (kind ${column.kind}) does not match the " +
+                "generated member (kind $kind). The schema changed shape; " +
                 "regenerate the code or rebuild the data.")
     }
 

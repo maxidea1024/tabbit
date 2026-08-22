@@ -112,12 +112,12 @@ public final class SealTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Seal.Index", Tcb.kindScalar, 1, false, Tcb.elementUuid)
+                try Tcb.checkColumn(column, "Seal.Index", Tcb.kindScalar, false, Tcb.elementUuid)
                 for record in loaded {
                     record.index = try reader.readUuid()
                 }
             case 2:
-                try Tcb.checkColumn(column, "Seal.Label", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Seal.Label", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Seal.Label")
                 var at = 0
                 while at < count {
@@ -130,7 +130,7 @@ public final class SealTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Seal.Pad", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Seal.Pad", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Seal.Pad")
                 var at = 0
                 while at < count {
@@ -143,7 +143,7 @@ public final class SealTable {
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Seal.Pad2", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Seal.Pad2", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Seal.Pad2")
                 var at = 0
                 while at < count {
@@ -156,7 +156,7 @@ public final class SealTable {
                     }
                 }
             case 5:
-                try Tcb.checkColumn(column, "Seal.Pad3", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Seal.Pad3", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Seal.Pad3")
                 var at = 0
                 while at < count {

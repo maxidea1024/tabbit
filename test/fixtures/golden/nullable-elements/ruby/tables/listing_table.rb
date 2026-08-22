@@ -94,7 +94,7 @@ module NullableElements
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Listing.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Listing.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Listing.Index')
           at = 0
           while at < count
@@ -105,7 +105,7 @@ module NullableElements
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Listing.Name', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Listing.Name', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Listing.Name')
           at = 0
           while at < count
@@ -116,14 +116,14 @@ module NullableElements
             at += n
           end
         when 3
-          Tabbit.check_column(column, 'Listing.Plain', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Listing.Plain', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Listing.Plain')
           records.each do |record|
             element_count = cursor.next_length
             record.plain = Array.new(element_count) { cursor.next_i32 }
           end
         when 4
-          Tabbit.check_column(column, 'Listing.Maybe', Tabbit::KIND_VAR_ARRAY, 0, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Listing.Maybe', Tabbit::KIND_ARRAY, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -143,7 +143,7 @@ module NullableElements
             record.maybe = [] unless record.has_maybe
           end
         when 5
-          Tabbit.check_column(column, 'Listing.Holes', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT], true)
+          Tabbit.check_column(column, 'Listing.Holes', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
           # steps once per element of every row. spec/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
@@ -158,7 +158,7 @@ module NullableElements
             element_at += element_count
           end
         when 6
-          Tabbit.check_column(column, 'Listing.Both', Tabbit::KIND_VAR_ARRAY, 0, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT], true)
+          Tabbit.check_column(column, 'Listing.Both', Tabbit::KIND_ARRAY, true, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT], true)
           # The bitmap is at the front of the block, so it is read before the values. The
           # values are written for every row either way, which is what lets the read shapes
           # below stay as they are.
@@ -186,7 +186,7 @@ module NullableElements
             record.both = [] unless record.has_both
           end
         when 7
-          Tabbit.check_column(column, 'Listing.Words', Tabbit::KIND_VAR_ARRAY, 0, false, [Tabbit::ELEMENT_STRING], true)
+          Tabbit.check_column(column, 'Listing.Words', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
           # steps once per element of every row. spec/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)

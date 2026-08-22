@@ -126,7 +126,7 @@ class TrimKitTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "TrimKit.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "TrimKit.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "TrimKit.Index")
                     var at = 0
                     while (at < count) {
@@ -140,7 +140,7 @@ class TrimKitTable {
                     }
                 }
                 2 -> {
-                    checkColumnWithElements(column, "TrimKit.Slot_array", KIND_VAR_ARRAY, 0, false, ELEMENT_I32)
+                    checkColumnWithElements(column, "TrimKit.Slot_array", KIND_ARRAY, false, ELEMENT_I32)
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -161,7 +161,7 @@ class TrimKitTable {
                     }
                 }
                 3 -> {
-                    checkColumnWithElements(column, "TrimKit.Tier_array", KIND_VAR_ARRAY, 0, false, ELEMENT_I32)
+                    checkColumnWithElements(column, "TrimKit.Tier_array", KIND_ARRAY, false, ELEMENT_I32)
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.

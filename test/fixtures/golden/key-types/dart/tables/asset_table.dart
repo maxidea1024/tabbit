@@ -112,13 +112,13 @@ class AssetTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Asset.Index', kindScalar, 1, false, [elementUuid]);
+          checkColumn(column, 'Asset.Index', kindScalar, false, [elementUuid]);
           for (final record in loaded) {
             record.index = reader.readUuid();
           }
           break;
         case 2:
-          checkColumn(column, 'Asset.Path', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Asset.Path', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Asset.Path');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -128,7 +128,7 @@ class AssetTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Asset.Slot', kindScalar, 1, false, [elementVarint]);
+          checkColumn(column, 'Asset.Slot', kindScalar, false, [elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Asset.Slot');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);

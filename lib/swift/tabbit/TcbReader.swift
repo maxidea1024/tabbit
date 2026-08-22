@@ -78,7 +78,7 @@ public enum Tcb {
     // The format is column-oriented and self-describing: the header names every column
     // and how long its block is, and a reader that meets a version it does not know stops
     // rather than guessing.
-    public static let formatVersion: Int32 = 106
+    public static let formatVersion: Int32 = 107
 
     // The wire element types and kinds, as a column descriptor spells them.
     public static let elementVarint: Int32 = 0
@@ -91,8 +91,7 @@ public enum Tcb {
     public static let elementUuid: Int32 = 7
 
     public static let kindScalar: Int32 = 0
-    public static let kindFixedArray: Int32 = 1
-    public static let kindVarArray: Int32 = 2
+    public static let kindArray: Int32 = 1
 
     // How a block's values are laid out. Raw is the layout 101 had; the others compress
     // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -168,7 +167,6 @@ public enum Tcb {
         /// How the block's values are laid out: one of the encoding constants.
         public let encoding: Int32
 
-        /// Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one.
         public let count: Int
 
         /// Total bytes of the column block - what a skip advances by.
@@ -614,7 +612,7 @@ public enum Tcb {
             if encoding == encodingArray {
                 encoding = Int32(try reader.readUInt8())
 
-                if column.kind == kindVarArray {
+                if column.kind == kindArray {
                     let lengthEncoding = Int32(try reader.readUInt8())
                     let rowLengths = try Tcb.readLengths(
                         reader, lengthEncoding, rowCount, fieldName)
@@ -629,8 +627,6 @@ public enum Tcb {
 
                     lengths = rowLengths
                     rowsRemaining = Int(elements)
-                } else {
-                    rowsRemaining = rowCount * column.count
                 }
             }
 
@@ -1550,7 +1546,6 @@ public enum Tcb {
             let tag = try reader.readCounter32()
             let wire = Int32(try reader.readUInt8())
             let encoding = Int32(try reader.readUInt8())
-            let elementCount = try reader.readCounter32()
             let byteLength = Int(try reader.readInt32())
 
             columns.append(
@@ -1559,7 +1554,6 @@ public enum Tcb {
                     element: wire & 0x0F,
                     kind: (wire >> 4) & 0x03,
                     encoding: encoding,
-                    count: elementCount,
                     byteLength: byteLength,
                     nullable: (wire & 0x40) != 0,
                     elementNullable: (wire & 0x80) != 0))
@@ -1589,17 +1583,6 @@ public enum Tcb {
                 throw TcbError(
                     "the row count \(count) is larger than column tag \(column.tag) can "
                     + "hold in its \(column.byteLength) bytes")
-            }
-
-            // The same floor for the element count, which the read now allocates for: a
-            // fixed array's length is the file's rather than the generated code's. Only
-            // with rows to read - an empty table writes its columns' counts into a block
-            // of no bytes, and that is well-formed.
-            if column.encoding == encodingRaw && count > 0
-                && column.count > column.byteLength {
-                throw TcbError(
-                    "column tag \(column.tag) says each row holds \(column.count) "
-                    + "elements, which its \(column.byteLength) bytes cannot hold")
             }
         }
 
@@ -1657,24 +1640,24 @@ public enum Tcb {
     /// That a column is what the generated member expects, or a lossless promotion of it.
     /// Refusal is by name and both types, never by reading anyway.
     public static func checkColumn(
-        _ column: Column, _ fieldName: String, _ kind: Int32, _ count: Int,
+        _ column: Column, _ fieldName: String, _ kind: Int32,
         _ nullable: Bool, _ accepted: Int32...
     ) throws {
         try checkColumnCore(
-            column, fieldName, kind, count, nullable, false, accepted)
+            column, fieldName, kind, nullable, false, accepted)
     }
 
     /// The same, for a member whose array elements may be absent.
     public static func checkColumnWithElements(
-        _ column: Column, _ fieldName: String, _ kind: Int32, _ count: Int,
+        _ column: Column, _ fieldName: String, _ kind: Int32,
         _ nullable: Bool, _ accepted: Int32...
     ) throws {
         try checkColumnCore(
-            column, fieldName, kind, count, nullable, true, accepted)
+            column, fieldName, kind, nullable, true, accepted)
     }
 
     private static func checkColumnCore(
-        _ column: Column, _ fieldName: String, _ kind: Int32, _ count: Int,
+        _ column: Column, _ fieldName: String, _ kind: Int32,
         _ nullable: Bool, _ elementNullable: Bool, _ accepted: [Int32]
     ) throws {
         // The same statement about the other bitmap: code not expecting one would read it
@@ -1701,12 +1684,11 @@ public enum Tcb {
         // is what the file states. The kind is still the member's claim.
         // spec/nullable-array-elements.md.
         if column.kind != kind
-            || (kind != kindVarArray && count >= 0 && column.count != count) {
+ {
             throw TcbError(
-                "\(fieldName): the file column (kind \(column.kind), count "
-                + "\(column.count)) does not match the generated member (kind \(kind), "
-                + "count \(count)). The schema changed shape; regenerate the code or "
-                + "rebuild the data.")
+                "\(fieldName): the file column (kind \(column.kind)) does not match "
+                + "the generated member (kind \(kind)). The schema changed shape; "
+                + "regenerate the code or rebuild the data.")
         }
 
         // An encoding this build cannot decode - or one the spec does not define for this

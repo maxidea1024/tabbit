@@ -84,7 +84,7 @@ class TrinketTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Trinket.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Trinket.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Trinket.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -94,7 +94,7 @@ class TrinketTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Trinket.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Trinket.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Trinket.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -104,7 +104,7 @@ class TrinketTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Trinket.Note', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Trinket.Note', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Trinket.Note');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);

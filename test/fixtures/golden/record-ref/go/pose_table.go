@@ -119,7 +119,7 @@ func (t *PoseTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Pose.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Pose.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Pose.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -130,21 +130,31 @@ func (t *PoseTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Pose.Step.ClipId", tabbit.KindFixedArray, 2, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Pose.Step.ClipId", tabbit.KindArray, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Pose.Step.ClipId")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					// The first member allocates; the rest check. Allocating again would
+					// discard what the members before it wrote, and taking the shorter of
+					// two counts would shift every value after it.
+					r.Step = make([]PoseStepEntry, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.Step[j].ClipIdIndex = cursor.NextString()
 					}
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Pose.Step.Weight", tabbit.KindFixedArray, 2, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Pose.Step.Weight", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Pose.Step.Weight")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					for j := 0; j < 2; j++ {
+					elementCount := int(cursor.NextLength())
+					if len(r.Step) != elementCount {
+						return fmt.Errorf(
+							"Pose: the file gives one member of `Step` a different element count than another")
+					}
+					for j := 0; j < elementCount; j++ {
 						r.Step[j].Weight = cursor.NextI32()
 					}
 				}

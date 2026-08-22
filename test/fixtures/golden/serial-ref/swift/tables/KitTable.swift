@@ -108,7 +108,7 @@ public final class KitTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Kit.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Kit.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Index")
                 var at = 0
                 while at < count {
@@ -121,24 +121,26 @@ public final class KitTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Kit.Slot_array", Tcb.kindFixedArray, -1, false, Tcb.elementI32)
+                try Tcb.checkColumn(column, "Kit.Slot_array", Tcb.kindArray, false, Tcb.elementI32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Slot_array")
                 for record in loaded {
+                    let elementCount = max(0, try cursor.nextLength())
                     record.slotArrayIndex = []
-                    record.slotArrayIndex.reserveCapacity(column.count)
+                    record.slotArrayIndex.reserveCapacity(elementCount)
 
-                    for _ in 0 ..< column.count {
+                    for _ in 0 ..< elementCount {
                         record.slotArrayIndex.append(try cursor.nextI32())
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Kit.Tier_array", Tcb.kindFixedArray, -1, false, Tcb.elementI32)
+                try Tcb.checkColumn(column, "Kit.Tier_array", Tcb.kindArray, false, Tcb.elementI32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Tier_array")
                 for record in loaded {
+                    let elementCount = max(0, try cursor.nextLength())
                     record.tierArrayIndex = []
-                    record.tierArrayIndex.reserveCapacity(column.count)
+                    record.tierArrayIndex.reserveCapacity(elementCount)
 
-                    for _ in 0 ..< column.count {
+                    for _ in 0 ..< elementCount {
                         record.tierArrayIndex.append(try cursor.nextI32())
                     }
                 }

@@ -125,7 +125,7 @@ class RackTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Rack.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Rack.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Rack.Index")
                 at = 0
                 while at < count:
@@ -134,16 +134,20 @@ class RackTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Rack.Slots.Pick", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Rack.Slots.Pick", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Rack.Slots.Pick")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    record.slots.pick = [None] * element_count
+                    for element in range(element_count):
                         record.slots.pick[element] = cursor.next_i32()
             elif column.tag == 3:
-                tabbit.check_column(column, "Rack.Slots.Count", tabbit.KIND_FIXED_ARRAY, 2, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Rack.Slots.Count", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Rack.Slots.Count")
                 for record in records:
-                    for element in range(2):
+                    element_count = cursor.next_length()
+                    record.slots.count = [None] * element_count
+                    for element in range(element_count):
                         record.slots.count[element] = cursor.next_i32()
             else:
                 # A column added after this code was generated.

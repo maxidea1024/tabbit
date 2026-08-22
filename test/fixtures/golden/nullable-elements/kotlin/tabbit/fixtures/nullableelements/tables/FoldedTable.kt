@@ -117,7 +117,7 @@ class FoldedTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Folded.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Folded.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Folded.Index")
                     var at = 0
                     while (at < count) {
@@ -131,7 +131,7 @@ class FoldedTable {
                     }
                 }
                 2 -> {
-                    checkColumnWithElements(column, "Folded.Tag_array", KIND_FIXED_ARRAY, -1, false, ELEMENT_STRING)
+                    checkColumnWithElements(column, "Folded.Tag_array", KIND_ARRAY, false, ELEMENT_STRING)
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -139,9 +139,11 @@ class FoldedTable {
                     var elementAt = 0
                     val cursor = ColumnCursor(reader, column, count, "Folded.Tag_array")
                     for (record in loaded) {
-                        record.tagArray = ArrayList(column.count)
-                        record.hasTagArrayAt = ArrayList(column.count)
-                        repeat(column.count) {
+                        val elementCount = cursor.nextLength()
+                        record.tagArray = ArrayList(elementCount.coerceAtLeast(0))
+                        record.hasTagArrayAt =
+                            ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) {
                             record.tagArray.add(cursor.nextString())
                             record.hasTagArrayAt
                                 .add(isPresent(elementPresence, elementAt))

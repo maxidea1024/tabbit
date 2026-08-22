@@ -107,7 +107,7 @@ bool FPieceTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Piece.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Piece.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Piece.Index"));
 
             {
@@ -131,7 +131,7 @@ bool FPieceTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Piece.Name"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Piece.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Piece.Name"));
 
             {
@@ -155,7 +155,7 @@ bool FPieceTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Piece.Tier"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Piece.Tier"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Piece.Tier"));
 
             {
@@ -311,7 +311,7 @@ bool FKitTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Index"));
 
             {
@@ -335,31 +335,23 @@ bool FKitTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Slot_array"), Tabbit::KindFixedArray, -1, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Slot_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Slot_array"));
 
             for (FKitRow& Record : Loaded)
             {
-                Record.SlotArrayIndex.Empty(Column.Count);
-                while (Record.SlotArrayIndex.Num() < Column.Count)
-                {
-                    Cursor.NextAs(Column.Element, Record.SlotArrayIndex.AddDefaulted_GetRef());
-                }
+                Cursor.NextAs(Column.Element, Record.SlotArray);
             }
 
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Tier_array"), Tabbit::KindFixedArray, -1, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Tier_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Tier_array"));
 
             for (FKitRow& Record : Loaded)
             {
-                Record.TierArrayIndex.Empty(Column.Count);
-                while (Record.TierArrayIndex.Num() < Column.Count)
-                {
-                    Cursor.NextAs(Column.Element, Record.TierArrayIndex.AddDefaulted_GetRef());
-                }
+                Cursor.NextAs(Column.Element, Record.TierArray);
             }
 
             break;
@@ -497,7 +489,7 @@ bool FBitTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Bit.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Bit.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Bit.Index"));
 
             {
@@ -521,7 +513,7 @@ bool FBitTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Bit.Name"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Bit.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Bit.Name"));
 
             {
@@ -545,7 +537,7 @@ bool FBitTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Bit.Tier"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Bit.Tier"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Bit.Tier"));
 
             {
@@ -703,7 +695,7 @@ bool FTrimKitTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("TrimKit.Index"));
 
             {
@@ -727,7 +719,7 @@ bool FTrimKitTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Slot_array"), Tabbit::KindVarArray, 0, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Slot_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
@@ -736,33 +728,13 @@ bool FTrimKitTable::Read(const FString& Filename)
 
             for (FTrimKitRow& Record : Loaded)
             {
-                int32 ElementCount = 0;
-                Cursor.NextLength(ElementCount);
-
-                // Bounded, because the count came out of the file. The array grows past
-                // this if the elements really are there.
-                Record.SlotArray.Empty(Tabbit::ReserveBound(ElementCount));
-
-                while (Record.SlotArray.Num() < ElementCount && !Reader.HasFailed())
-                {
-                    Cursor.NextAs(Column.Element, Record.SlotArray.AddDefaulted_GetRef());
-                }
-                Record.bHasSlotArrayAt.Empty(
-                    Tabbit::ReserveBound(ElementCount));
-
-                for (int32 ElementIndex = 0; ElementIndex < ElementCount; ++ElementIndex)
-                {
-                    Record.bHasSlotArrayAt.Add(
-                        Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
-                }
-
-                ElementAt += ElementCount;
+                Cursor.NextAs(Column.Element, Record.SlotArray);
             }
 
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Tier_array"), Tabbit::KindVarArray, 0, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Tier_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
@@ -771,27 +743,7 @@ bool FTrimKitTable::Read(const FString& Filename)
 
             for (FTrimKitRow& Record : Loaded)
             {
-                int32 ElementCount = 0;
-                Cursor.NextLength(ElementCount);
-
-                // Bounded, because the count came out of the file. The array grows past
-                // this if the elements really are there.
-                Record.TierArray.Empty(Tabbit::ReserveBound(ElementCount));
-
-                while (Record.TierArray.Num() < ElementCount && !Reader.HasFailed())
-                {
-                    Cursor.NextAs(Column.Element, Record.TierArray.AddDefaulted_GetRef());
-                }
-                Record.bHasTierArrayAt.Empty(
-                    Tabbit::ReserveBound(ElementCount));
-
-                for (int32 ElementIndex = 0; ElementIndex < ElementCount; ++ElementIndex)
-                {
-                    Record.bHasTierArrayAt.Add(
-                        Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
-                }
-
-                ElementAt += ElementCount;
+                Cursor.NextAs(Column.Element, Record.TierArray);
             }
 
             break;

@@ -245,30 +245,15 @@ class {{ table.table_name }} {
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner list. Which outer element it is, is which column this is - so that index is
    fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-            for (var j = 0; j < {{ column_view.element_count }}; j++) {
-              record.{{ column_view.name }}[{{ column_view.member_at }}][j] = {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+            final elementCount = {{ column_view.length_read }};
+            record.{{ column_view.name }}[{{ column_view.member_at }}] =
+                List.generate(elementCount, (_) => {{ column_view.read_element }});
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-            for (var j = 0; j < {{ column_view.element_count }}; j++) {
-              record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == 'record_serial' ~}}
-            for (var j = 0; j < {{ column_view.element_count }}; j++) {
-              record.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == 'serial_ref' ~}}
-            record.{{ column_view.name }}Index = List.generate(column.count, (_) => {{ column_view.read_element }});
-{{~ else if column_view.kind == 'serial' ~}}
-{{~## One column owns the whole array, so how many elements a row holds is what the file
-   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
-            record.{{ column_view.name }} = List.generate(column.count, (_) => {{ column_view.read_element }});
-{{~ if column_view.has_optional_elements ~}}
-            record.{{ column_view.element_presence_member }} = List.generate(
-                column.count, (at) => isPresent(elementPresence, elementAt + at));
-            elementAt += column.count;
-{{~ end ~}}
+            final elementCount = {{ column_view.length_read }};
+            record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
+                List.generate(elementCount, (_) => {{ column_view.read_element }});
 {{~ else if column_view.kind == 'scalar_ref' ~}}
             record.{{ column_view.name }}Index = {{ column_view.read_element }};
 {{~ else ~}}

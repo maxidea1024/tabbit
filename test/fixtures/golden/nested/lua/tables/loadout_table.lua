@@ -123,7 +123,7 @@ function LoadoutTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Loadout.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loadout.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Index")
       local at = 0
 
@@ -137,7 +137,7 @@ function LoadoutTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Loadout.Name", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Loadout.Name", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Name")
       local at = 0
 
@@ -151,39 +151,51 @@ function LoadoutTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Loadout.Pos.X", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_F32 })
+      tcb.checkColumn(column, "Loadout.Pos.X", tcb.KIND_SCALAR, false, { tcb.ELEMENT_F32 })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Pos.X")
       for i = 1, count do
         local record = records[i]
         record.pos.x = cursor:nextF32()
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Loadout.Pos.Y", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_F32 })
+      tcb.checkColumn(column, "Loadout.Pos.Y", tcb.KIND_SCALAR, false, { tcb.ELEMENT_F32 })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Pos.Y")
       for i = 1, count do
         local record = records[i]
         record.pos.y = cursor:nextF32()
       end
     elseif column.tag == 5 then
-      tcb.checkColumn(column, "Loadout.Slot.Id", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Loadout.Slot.Id", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Slot.Id")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        -- The first member builds the list; the rest check. Building it again would
+        -- discard what the members before it wrote, and taking the shorter of two
+        -- counts would shift every value after it.
+        record.slot = tcb.filledArray(elementCount, newLoadoutSlotEntry)
+
+        for element = 1, elementCount do
           record.slot[element].id = cursor:nextI32()
         end
       end
     elseif column.tag == 6 then
-      tcb.checkColumn(column, "Loadout.Slot.Label", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Loadout.Slot.Label", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Slot.Label")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        if #record.slot ~= elementCount then
+          tcb.fail("Loadout: the file gives one member of this record a " ..
+            "different element count than another")
+        end
+
+        for element = 1, elementCount do
           record.slot[element].label = cursor:nextString()
         end
       end
     elseif column.tag == 7 then
-      tcb.checkColumn(column, "Loadout.Note", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Loadout.Note", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Note")
       local at = 0
 
@@ -197,13 +209,14 @@ function LoadoutTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 8 then
-      tcb.checkColumn(column, "Loadout.Tag_array", tcb.KIND_FIXED_ARRAY, -1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Loadout.Tag_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Loadout.Tag_array")
       for i = 1, count do
         local record = records[i]
+        local elementCount = cursor:nextLength()
         local values = {}
 
-        for element = 1, column.count do
+        for element = 1, elementCount do
           values[element] = cursor:nextString()
         end
 

@@ -100,7 +100,7 @@ class ListingTable {
 
       switch (column.tag) {
         case 1:
-          checkColumn(column, 'Listing.Index', kindScalar, 1, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Listing.Index', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Listing.Index');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
@@ -110,7 +110,7 @@ class ListingTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Listing.Name', kindScalar, 1, false, [elementString]);
+          checkColumn(column, 'Listing.Name', kindScalar, false, [elementString]);
           cursor = TcbColumnCursor(reader, column, count, 'Listing.Name');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
@@ -120,7 +120,7 @@ class ListingTable {
           }
           break;
         case 3:
-          checkColumn(column, 'Listing.Plain', kindVarArray, 0, false, [elementI32, elementVarint]);
+          checkColumn(column, 'Listing.Plain', kindArray, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Listing.Plain');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
@@ -128,7 +128,7 @@ class ListingTable {
           }
           break;
         case 4:
-          checkColumn(column, 'Listing.Maybe', kindVarArray, 0, true, [elementI32, elementVarint]);
+          checkColumn(column, 'Listing.Maybe', kindArray, true, [elementI32, elementVarint]);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -153,7 +153,7 @@ class ListingTable {
           }
           break;
         case 5:
-          checkColumn(column, 'Listing.Holes', kindVarArray, 0, false, [elementI32, elementVarint], true);
+          checkColumn(column, 'Listing.Holes', kindArray, false, [elementI32, elementVarint], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
           // steps once per element of every row. spec/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
@@ -168,7 +168,7 @@ class ListingTable {
           }
           break;
         case 6:
-          checkColumn(column, 'Listing.Both', kindVarArray, 0, true, [elementI32, elementVarint], true);
+          checkColumn(column, 'Listing.Both', kindArray, true, [elementI32, elementVarint], true);
           // The bitmap is at the front of the block, so it is read before the values. The
           // values are written for every row either way, which is what lets the read shapes
           // below stay as they are.
@@ -200,7 +200,7 @@ class ListingTable {
           }
           break;
         case 7:
-          checkColumn(column, 'Listing.Words', kindVarArray, 0, false, [elementString], true);
+          checkColumn(column, 'Listing.Words', kindArray, false, [elementString], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
           // steps once per element of every row. spec/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);

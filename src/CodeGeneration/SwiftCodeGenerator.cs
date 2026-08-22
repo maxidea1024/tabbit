@@ -443,7 +443,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + SwiftName(part)));
         var field = wire.TagCarrier;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -794,7 +794,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// </remarks>
     private string EmptyValue(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "[]";
 
         // The resolved property is an optional reference to the target row, and absence there
@@ -871,16 +871,8 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "Tcb.kindVarArray"
-            : (wire.IsFixedArray ? "Tcb.kindFixedArray" : "Tcb.kindScalar");
+        string kind = wire.IsArray ? "Tcb.kindArray" : "Tcb.kindScalar";
 
-        // -1 where one column owns the whole array: the file states how many elements it
-        // holds and the read takes it from there, so there is no length here to hold it to.
-        // A record member keeps its count. spec/nullable-array-elements.md.
-        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
-
-        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
 
         string accepted;
 
@@ -924,7 +916,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         string check = wire.HasOptionalElements
             ? "Tcb.checkColumnWithElements" : "Tcb.checkColumn";
 
-        return $"try {check}(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+        return $"try {check}(column, \"{tableName}.{wire.Name}\", {kind}, "
             + $"{nullable}, {accepted})";
     }
 
@@ -938,7 +930,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does.
@@ -984,7 +976,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         if (wire.IsRef)
@@ -1048,10 +1040,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "scalar";
 
             // Which of the two owns the array decides where the index goes, and an unnamed
@@ -1059,19 +1048,16 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
+        if (wire.IsArray)
             // A trimmed array of references: the length is the row's, and the key still goes
             // in the array beside the values. Read as a plain `var_array` it appended the key
             // to the array of rows, which does not compile - and nothing held the shape,
             // because `foreign[]` is refused and this is only reachable through a folded group
             // with trimming on. spec/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -1142,7 +1128,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + SwiftName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"

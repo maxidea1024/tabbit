@@ -87,7 +87,7 @@ module SerialRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Kit.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Kit.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Index')
           at = 0
           while at < count
@@ -98,18 +98,20 @@ module SerialRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Kit.Slot_array', Tabbit::KIND_FIXED_ARRAY, -1, false, [Tabbit::ELEMENT_I32])
+          Tabbit.check_column(column, 'Kit.Slot_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Slot_array')
           records.each do |record|
-            record.slot_array_index = Array.new(column.count) { cursor.next_i32 }
-            record.slot_array = Array.new(column.count)
+            element_count = cursor.next_length
+            record.slot_array_index = Array.new(element_count) { cursor.next_i32 }
+            record.slot_array = Array.new(element_count)
           end
         when 3
-          Tabbit.check_column(column, 'Kit.Tier_array', Tabbit::KIND_FIXED_ARRAY, -1, false, [Tabbit::ELEMENT_I32])
+          Tabbit.check_column(column, 'Kit.Tier_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Tier_array')
           records.each do |record|
-            record.tier_array_index = Array.new(column.count) { cursor.next_i32 }
-            record.tier_array = Array.new(column.count)
+            element_count = cursor.next_length
+            record.tier_array_index = Array.new(element_count) { cursor.next_i32 }
+            record.tier_array = Array.new(element_count)
           end
         else
           # A column added after this code was generated.

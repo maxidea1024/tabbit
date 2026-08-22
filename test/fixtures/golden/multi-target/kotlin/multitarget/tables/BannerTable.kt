@@ -114,7 +114,7 @@ class BannerTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Banner.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Banner.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Banner.Index")
                     var at = 0
                     while (at < count) {
@@ -128,7 +128,7 @@ class BannerTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Banner.Name", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Banner.Name", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Banner.Name")
                     var at = 0
                     while (at < count) {
@@ -142,7 +142,7 @@ class BannerTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Banner.Note", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Banner.Note", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Banner.Note")
                     var at = 0
                     while (at < count) {

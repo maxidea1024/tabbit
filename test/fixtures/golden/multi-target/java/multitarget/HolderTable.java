@@ -97,7 +97,7 @@ public final class HolderTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Holder.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Holder.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Holder.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -108,7 +108,7 @@ public final class HolderTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Holder.Pick", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Holder.Pick", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Holder.Pick");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -119,7 +119,7 @@ public final class HolderTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Holder.Wide", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Holder.Wide", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Holder.Wide");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -130,7 +130,7 @@ public final class HolderTable {
                     break;
                 }
                 case 4: {
-                    TcbReader.checkColumn(column, "Holder.Only", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumn(column, "Holder.Only", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Holder.Only");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -141,7 +141,7 @@ public final class HolderTable {
                     break;
                 }
                 case 5: {
-                    TcbReader.checkColumn(column, "Holder.Maybe", TcbReader.KIND_SCALAR, 1, true, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Holder.Maybe", TcbReader.KIND_SCALAR, true, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.

@@ -95,7 +95,7 @@ module RecordRef
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Pose.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Pose.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Pose.Index')
           at = 0
           while at < count
@@ -106,18 +106,29 @@ module RecordRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Pose.Step.ClipId', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_STRING])
+          Tabbit.check_column(column, 'Pose.Step.ClipId', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Pose.Step.ClipId')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            # The first member builds the array; the rest check. Building it again would
+            # discard what the members before it wrote, and taking the shorter of two counts
+            # would shift every value after it.
+            record.step = Array.new(element_count) { PoseStepEntry.new }
+            element_count.times do |element|
               record.step[element].clip_id_index = cursor.next_string
             end
           end
         when 3
-          Tabbit.check_column(column, 'Pose.Step.Weight', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Pose.Step.Weight', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Pose.Step.Weight')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            if record.step.length != element_count
+              raise Tabbit::TcbError,
+                    'Pose.step: the file gives one member of this ' \
+                    'record a different element count than another'
+            end
+            element_count.times do |element|
               record.step[element].weight = cursor.next_i32
             end
           end

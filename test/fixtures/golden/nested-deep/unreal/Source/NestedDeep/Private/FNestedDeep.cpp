@@ -107,7 +107,7 @@ bool FDeepTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Deep.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Deep.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Deep.Index"));
 
             {
@@ -131,13 +131,18 @@ bool FDeepTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Deep.Star.Id"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Deep.Star.Id"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Deep.Star.Id"));
 
             for (FDeepRow& Record : Loaded)
             {
-                Record.Star.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Star.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Star.SetNum(ElementCount);
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Star[ElementAt].Id);
                 }
@@ -146,13 +151,23 @@ bool FDeepTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Deep.Star.Position.X"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Deep.Star.Position.X"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Deep.Star.Position.X"));
 
             for (FDeepRow& Record : Loaded)
             {
-                Record.Star.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Star.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Deep.Star: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Star[ElementAt].Position.X);
                 }
@@ -161,13 +176,23 @@ bool FDeepTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Deep.Star.Position.Y"), Tabbit::KindFixedArray, 2, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Deep.Star.Position.Y"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Deep.Star.Position.Y"));
 
             for (FDeepRow& Record : Loaded)
             {
-                Record.Star.SetNum(2);
-                for (int32 ElementAt = 0; ElementAt < 2 && !Reader.HasFailed(); ++ElementAt)
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Star.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Deep.Star: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
                     Cursor.NextAs(Column.Element, Record.Star[ElementAt].Position.Y);
                 }

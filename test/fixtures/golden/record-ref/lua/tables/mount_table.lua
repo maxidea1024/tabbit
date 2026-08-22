@@ -113,7 +113,7 @@ function MountTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Mount.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Mount.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Mount.Index")
       local at = 0
 
@@ -127,20 +127,32 @@ function MountTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Mount.Rig.Core.ItemId", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32 })
+      tcb.checkColumn(column, "Mount.Rig.Core.ItemId", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 })
       local cursor = tcb.newCursor(reader, column, count, "Mount.Rig.Core.ItemId")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        -- The first member builds the list; the rest check. Building it again would
+        -- discard what the members before it wrote, and taking the shorter of two
+        -- counts would shift every value after it.
+        record.rig = tcb.filledArray(elementCount, newMountRigEntry)
+
+        for element = 1, elementCount do
           record.rig[element].core.itemIdIndex = cursor:nextI32()
         end
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Mount.Rig.Core.Count", tcb.KIND_FIXED_ARRAY, 2, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Mount.Rig.Core.Count", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Mount.Rig.Core.Count")
       for i = 1, count do
         local record = records[i]
-        for element = 1, 2 do
+        local elementCount = cursor:nextLength()
+        if #record.rig ~= elementCount then
+          tcb.fail("Mount: the file gives one member of this record a " ..
+            "different element count than another")
+        end
+
+        for element = 1, elementCount do
           record.rig[element].core.count = cursor:nextI32()
         end
       end

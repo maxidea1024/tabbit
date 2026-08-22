@@ -114,7 +114,7 @@ public final class TrimKitTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "TrimKit.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "TrimKit.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "TrimKit.Index")
                 var at = 0
                 while at < count {
@@ -127,7 +127,7 @@ public final class TrimKitTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumnWithElements(column, "TrimKit.Slot_array", Tcb.kindVarArray, 0, false, Tcb.elementI32)
+                try Tcb.checkColumnWithElements(column, "TrimKit.Slot_array", Tcb.kindArray, false, Tcb.elementI32)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
                 // spec/nullable-array-elements.md.
@@ -149,7 +149,7 @@ public final class TrimKitTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumnWithElements(column, "TrimKit.Tier_array", Tcb.kindVarArray, 0, false, Tcb.elementI32)
+                try Tcb.checkColumnWithElements(column, "TrimKit.Tier_array", Tcb.kindArray, false, Tcb.elementI32)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
                 // spec/nullable-array-elements.md.

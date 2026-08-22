@@ -24,9 +24,9 @@ extern "C" {
 /* One element of RecordRef_BagRecord_t::slots. */
 struct RecordRef_BagRecord_t_slots_entry {
   /* element 1 of the member */
-  const RecordRef_ItemRecord_t* item_id[2]; int32_t item_id_index[2];
+  const RecordRef_ItemRecord_t** item_id; int32_t* item_id_index; int32_t item_id_count;
   /* element 1 of the member beside it */
-  int32_t count[2];
+  int32_t* count; int32_t count_count;
 };
 
 struct RecordRef_BagRecord_t {

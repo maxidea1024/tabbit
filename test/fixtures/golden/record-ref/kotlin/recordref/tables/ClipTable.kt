@@ -118,7 +118,7 @@ class ClipTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Clip.Index", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Clip.Index", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Clip.Index")
                     var at = 0
                     while (at < count) {
@@ -132,7 +132,7 @@ class ClipTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Clip.Length", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Clip.Length", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Clip.Length")
                     var at = 0
                     while (at < count) {
@@ -146,7 +146,7 @@ class ClipTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Clip.Pad", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Clip.Pad", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Clip.Pad")
                     var at = 0
                     while (at < count) {
@@ -160,7 +160,7 @@ class ClipTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Clip.Pad2", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Clip.Pad2", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Clip.Pad2")
                     var at = 0
                     while (at < count) {
@@ -174,7 +174,7 @@ class ClipTable {
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Clip.Pad3", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Clip.Pad3", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Clip.Pad3")
                     var at = 0
                     while (at < count) {

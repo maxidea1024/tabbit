@@ -138,7 +138,7 @@ public final class SlottingTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Slotting.Index", Tcb.kindScalar, 1, false, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Slotting.Index", Tcb.kindScalar, false, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Slotting.Index")
                 var at = 0
                 while at < count {
@@ -151,7 +151,7 @@ public final class SlottingTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Slotting.Capacity", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Slotting.Capacity", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Slotting.Capacity")
                 var at = 0
                 while at < count {
@@ -164,7 +164,7 @@ public final class SlottingTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Slotting.Serial", Tcb.kindScalar, 1, false, Tcb.elementI64, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Slotting.Serial", Tcb.kindScalar, false, Tcb.elementI64, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Slotting.Serial")
                 for record in loaded {
                     record.serial = try cursor.nextI64()

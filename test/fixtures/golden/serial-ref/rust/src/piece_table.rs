@@ -103,7 +103,7 @@ impl PieceTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Piece.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Piece.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Piece.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -115,7 +115,7 @@ impl PieceTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Piece.Name", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Piece.Name", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Piece.Name")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -127,7 +127,7 @@ impl PieceTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Piece.Tier", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Piece.Tier", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Piece.Tier")?;
                     let mut at = 0usize;
                     while at < records.len() {

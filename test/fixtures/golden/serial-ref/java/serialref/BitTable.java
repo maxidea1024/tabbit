@@ -96,7 +96,7 @@ public final class BitTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Bit.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Bit.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Bit.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,7 +107,7 @@ public final class BitTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Bit.Name", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Bit.Name", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Bit.Name");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -118,7 +118,7 @@ public final class BitTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Bit.Tier", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Bit.Tier", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Bit.Tier");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);

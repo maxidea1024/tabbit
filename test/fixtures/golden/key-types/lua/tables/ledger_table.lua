@@ -116,14 +116,14 @@ function LedgerTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Ledger.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I64, tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Ledger.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I64, tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Ledger.Index")
       for i = 1, count do
         local record = records[i]
         record.index = cursor:nextI64()
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Ledger.Amount", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Ledger.Amount", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Ledger.Amount")
       local at = 0
 
@@ -137,7 +137,7 @@ function LedgerTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Ledger.Batch", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_UUID })
+      tcb.checkColumn(column, "Ledger.Batch", tcb.KIND_SCALAR, false, { tcb.ELEMENT_UUID })
       for i = 1, count do
         local record = records[i]
         record.batch = reader:readUuid()

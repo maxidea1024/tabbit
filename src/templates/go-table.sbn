@@ -311,39 +311,18 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner slice. Which outer element it is, is which column this is - so the outer
    index is fixed here and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-					for j := 0; j < {{ column_view.element_count }}; j++ {
+					{{ column_view.length_read }}
+					r.{{ column_view.name }}[{{ column_view.member_at }}] = make({{ column_view.array_type }}, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.{{ column_view.name }}[{{ column_view.member_at }}][j] = {{ column_view.read_value }}
 					}
-{{~ else if column_view.kind == 'record_member_serial' ~}}
+{{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-					for j := 0; j < {{ column_view.element_count }}; j++ {
+					{{ column_view.length_read }}
+					r.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = make({{ column_view.array_type }}, elementCount)
+					for j := 0; j < elementCount; j++ {
 						r.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_value }}
-					}
-{{~ else if column_view.kind == 'record_serial' ~}}
-					for j := 0; j < {{ column_view.element_count }}; j++ {
-						r.{{ column_view.name }}[j]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_value }}
-					}
-{{~ else if column_view.kind == 'serial_ref' ~}}
-					r.{{ column_view.name }} = make({{ column_view.array_type }}, int(column.Count))
-					r.{{ column_view.name }}Index = make([]{{ column_view.ref_key_type }}, int(column.Count))
-					for j := 0; j < int(column.Count); j++ {
-						r.{{ column_view.name }}Index[j] = {{ column_view.read_value }}
-					}
-{{~ else if column_view.kind == 'serial' ~}}
-{{~## One column owns the whole array, so how many elements a row holds is what the file
-   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
-					r.{{ column_view.name }} = make({{ column_view.array_type }}, int(column.Count))
-{{~ if column_view.has_optional_elements ~}}
-					r.{{ column_view.element_presence_member }} = make([]bool, int(column.Count))
-{{~ end ~}}
-					for j := 0; j < int(column.Count); j++ {
-						r.{{ column_view.name }}[j] = {{ column_view.read_value }}
-{{~ if column_view.has_optional_elements ~}}
-						r.{{ column_view.element_presence_member }}[j] =
-							tabbit.IsPresent(elementPresence, elementAt)
-						elementAt++
-{{~ end ~}}
 					}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
 					r.{{ column_view.name }}Index = {{ column_view.read_value }}

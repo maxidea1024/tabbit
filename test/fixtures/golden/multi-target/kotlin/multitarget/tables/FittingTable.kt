@@ -146,7 +146,7 @@ class FittingTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Fitting.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Fitting.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Fitting.Index")
                     var at = 0
                     while (at < count) {
@@ -160,7 +160,7 @@ class FittingTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Fitting.Main.Pick", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Fitting.Main.Pick", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Fitting.Main.Pick")
                     var at = 0
                     while (at < count) {
@@ -174,7 +174,7 @@ class FittingTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Fitting.Main.Count", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Fitting.Main.Count", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Fitting.Main.Count")
                     var at = 0
                     while (at < count) {
@@ -188,7 +188,7 @@ class FittingTable {
                     }
                 }
                 4 -> {
-                    checkColumn(column, "Fitting.Pad", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Fitting.Pad", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Fitting.Pad")
                     var at = 0
                     while (at < count) {
@@ -202,7 +202,7 @@ class FittingTable {
                     }
                 }
                 5 -> {
-                    checkColumn(column, "Fitting.Pad2", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Fitting.Pad2", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Fitting.Pad2")
                     var at = 0
                     while (at < count) {

@@ -99,7 +99,7 @@ public final class ListingTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Listing.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Listing.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Listing.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -110,7 +110,7 @@ public final class ListingTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Listing.Name", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Listing.Name", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Listing.Name");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -121,7 +121,7 @@ public final class ListingTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Listing.Plain", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Listing.Plain", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Listing.Plain");
                     for (ListingRecord record : loaded) {
                         int elementCount;
@@ -134,7 +134,7 @@ public final class ListingTable {
                     break;
                 }
                 case 4: {
-                    TcbReader.checkColumn(column, "Listing.Maybe", TcbReader.KIND_VAR_ARRAY, 0, true, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Listing.Maybe", TcbReader.KIND_ARRAY, true, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -164,7 +164,7 @@ public final class ListingTable {
                     break;
                 }
                 case 5: {
-                    TcbReader.checkColumnWithElements(column, "Listing.Holes", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumnWithElements(column, "Listing.Holes", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
@@ -185,7 +185,7 @@ public final class ListingTable {
                     break;
                 }
                 case 6: {
-                    TcbReader.checkColumnWithElements(column, "Listing.Both", TcbReader.KIND_VAR_ARRAY, 0, true, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumnWithElements(column, "Listing.Both", TcbReader.KIND_ARRAY, true, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     // The bitmap is at the front of the block, so it is read before the
                     // values. The values are written for every row either way, which is what
                     // lets the read shapes below stay as they are.
@@ -223,7 +223,7 @@ public final class ListingTable {
                     break;
                 }
                 case 7: {
-                    TcbReader.checkColumnWithElements(column, "Listing.Words", TcbReader.KIND_VAR_ARRAY, 0, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumnWithElements(column, "Listing.Words", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.

@@ -104,7 +104,7 @@ module NestedDeep
 
         case column.tag
         when 1
-          Tabbit.check_column(column, 'Deep.Index', Tabbit::KIND_SCALAR, 1, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Deep.Index', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Deep.Index')
           at = 0
           while at < count
@@ -115,26 +115,43 @@ module NestedDeep
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Deep.Star.Id', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Deep.Star.Id', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Deep.Star.Id')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            # The first member builds the array; the rest check. Building it again would
+            # discard what the members before it wrote, and taking the shorter of two counts
+            # would shift every value after it.
+            record.star = Array.new(element_count) { DeepStarEntry.new }
+            element_count.times do |element|
               record.star[element].id = cursor.next_i32
             end
           end
         when 3
-          Tabbit.check_column(column, 'Deep.Star.Position.X', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Deep.Star.Position.X', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Deep.Star.Position.X')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            if record.star.length != element_count
+              raise Tabbit::TcbError,
+                    'Deep.star: the file gives one member of this ' \
+                    'record a different element count than another'
+            end
+            element_count.times do |element|
               record.star[element].position.x = cursor.next_i32
             end
           end
         when 4
-          Tabbit.check_column(column, 'Deep.Star.Position.Y', Tabbit::KIND_FIXED_ARRAY, 2, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          Tabbit.check_column(column, 'Deep.Star.Position.Y', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Deep.Star.Position.Y')
           records.each do |record|
-            2.times do |element|
+            element_count = cursor.next_length
+            if record.star.length != element_count
+              raise Tabbit::TcbError,
+                    'Deep.star: the file gives one member of this ' \
+                    'record a different element count than another'
+            end
+            element_count.times do |element|
               record.star[element].position.y = cursor.next_i32
             end
           end
