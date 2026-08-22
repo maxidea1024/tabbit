@@ -55,7 +55,7 @@ export class TcbError extends Error {
  * 104 is the current one: four encodings joined the nine, and the flags byte gained a
  * meaning.
  */
-export const BINARY_FILE_FORMAT_VERSION = 105
+export const BINARY_FILE_FORMAT_VERSION = 107
 
 // The wire's element types and kinds, as a column descriptor spells them.
 export const ELEMENT_VARINT = 0
@@ -68,8 +68,10 @@ export const ELEMENT_STRING = 6
 export const ELEMENT_UUID = 7
 
 export const KIND_SCALAR = 0
-export const KIND_FIXED_ARRAY = 1
-export const KIND_VAR_ARRAY = 2
+// The only array kind: every row states its own length. A fixed-length kind sat at 1 until
+// v107 and was removed rather than kept, because a length stated once is a length the
+// generated code bakes in - and then a column added to a group needs the consumer rebuilt.
+export const KIND_ARRAY = 1
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
 // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -148,10 +150,15 @@ export interface TcbColumn {
    * which of those to believe and nothing about the layout after it.
    */
   nullable: boolean
+  /**
+   * Whether the block states, per element, which of an array's places hold a value.
+   * Independent of `nullable`: a column may say either, or both.
+   * spec/nullable-array-elements.md.
+   */
+  elementNullable: boolean
   /** How the block's values are laid out: one of the ENCODING_* constants. */
   encoding: number
   /** Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
-  count: number
   /** Total bytes of the column's block - what a skip advances by. */
   byteLength: number
 }
@@ -721,22 +728,18 @@ export class TcbColumnCursor {
     if (this.encoding === ENCODING_ARRAY) {
       this.encoding = reader.readFixed8()
 
-      if (column.kind === KIND_VAR_ARRAY) {
-        const lengthEncoding = reader.readFixed8()
-        this.lengths = readLengths(reader, lengthEncoding, rowCount, fieldName)
+      const lengthEncoding = reader.readFixed8()
+      this.lengths = readLengths(reader, lengthEncoding, rowCount, fieldName)
 
-        let elements = 0
-        for (const length of this.lengths) elements += length
+      let elements = 0
+      for (const length of this.lengths) elements += length
 
-        // The same ceiling every other runtime holds the count to, so a file that trips
-        // this trips it everywhere rather than only where an int is 32 bits wide.
-        if (elements > 0x7fffffff)
-          throw new TcbError(`${fieldName}: the column declares more elements than can be held`)
+      // The same ceiling every other runtime holds the count to, so a file that trips
+      // this trips it everywhere rather than only where an int is 32 bits wide.
+      if (elements > 0x7fffffff)
+        throw new TcbError(`${fieldName}: the column declares more elements than can be held`)
 
-        this.rowsRemaining = elements
-      } else {
-        this.rowsRemaining = rowCount * column.count
-      }
+      this.rowsRemaining = elements
     }
 
     // A bit-packed column states the width its range needs, the base subtracted from every
@@ -1261,15 +1264,14 @@ export function readTableHeader(reader: TcbReader): { rowCount: number, columns:
     const tag = reader.readCounter32()
     const wire = reader.readFixed8()
     const encoding = reader.readFixed8()
-    const count = reader.readCounter32()
     const byteLength = reader.readFixed32()
     columns.push({
       tag,
       element: wire & 0x0f,
       kind: (wire >> 4) & 0x03,
       nullable: (wire & 0x40) !== 0,
+      elementNullable: (wire & 0x80) !== 0,
       encoding,
-      count,
       byteLength,
     })
   }
@@ -1312,8 +1314,17 @@ export function readTableHeader(reader: TcbReader): { rowCount: number, columns:
  * Refusal is by name and both types, never by reading anyway.
  */
 export function checkColumn(
-  column: TcbColumn, fieldName: string, kind: number, count: number, nullable: boolean,
-  accepted: number[]): void {
+  column: TcbColumn, fieldName: string, kind: number, nullable: boolean,
+  accepted: number[], elementNullable = false): void {
+  // The same statement about the other bitmap: generated code not expecting one would read
+  // it as values. spec/nullable-array-elements.md.
+  if (column.elementNullable !== elementNullable) {
+    throw new TcbError(
+      `${fieldName}: the file and the generated member disagree about whether this column's elements are optional` +
+      ` (file: ${column.elementNullable ? 'optional' : 'required'}, ` +
+      `member: ${elementNullable ? 'optional' : 'required'}). ` +
+      'The schema changed; regenerate the code or rebuild the data.')
+  }
   // Nullability is part of the shape: a file that says optional puts a presence bitmap at
   // the front of the block, and generated code not expecting one would read the bitmap as
   // values. Adding or removing a `?` is a schema change like any other.
@@ -1324,10 +1335,12 @@ export function checkColumn(
       `member: ${nullable ? 'optional' : 'required'}). ` +
       'The schema changed; regenerate the code or rebuild the data.')
   }
-  if (column.kind !== kind || (kind !== KIND_VAR_ARRAY && column.count !== count)) {
+  // Shape is the kind alone since v107. How many elements a row holds is what the file
+  // states, row by row, so a group that grew a column is read rather than refused.
+  if (column.kind !== kind) {
     throw new TcbError(
-      `${fieldName}: the file's column (kind ${column.kind}, count ${column.count}) does not ` +
-      `match the generated member (kind ${kind}, count ${count}). The schema changed shape; ` +
+      `${fieldName}: the file's column (kind ${column.kind}) does not ` +
+      `match the generated member (kind ${kind}). The schema changed shape; ` +
       'regenerate the code or rebuild the data.')
   }
   // An encoding this build cannot decode - or one the spec does not define for this
@@ -1370,6 +1383,24 @@ export function readPresence(
   const encoding = reader.readFixed8()
 
   return reader.readByteStream(encoding, (rowCount + 7) >> 3, 'a presence bitmap')
+}
+
+/**
+ * A column's element bitmap, or null for a column that has none.
+ *
+ * Behind the row bitmap and in front of the values. Its length is written ahead of it as a
+ * counter32, because a variable-length column's total is the sum of row lengths and those
+ * live inside the value block - a reader meeting the bitmap first would have nothing to
+ * size it by. One bit per element written, in the order the block wrote them.
+ */
+export function readElementPresence(
+  reader: TcbReader, column: TcbColumn): Uint8Array | null {
+  if (!column.elementNullable) return null
+
+  const elements = reader.readCounter32()
+  const encoding = reader.readFixed8()
+
+  return reader.readByteStream(encoding, (elements + 7) >> 3, 'an element presence bitmap')
 }
 
 /**

@@ -292,7 +292,7 @@ export class VectorsTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Vectors.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Vectors.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -301,7 +301,7 @@ export class VectorsTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Vectors.Pos.X', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Pos.X', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Pos.X')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -309,7 +309,7 @@ export class VectorsTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Vectors.Pos.Y', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Pos.Y', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Pos.Y')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -317,7 +317,7 @@ export class VectorsTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Vectors.Pos.Z', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Pos.Z', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Pos.Z')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -325,7 +325,7 @@ export class VectorsTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Vectors.Cell.X', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Vectors.Cell.X', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Cell.X')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -334,7 +334,7 @@ export class VectorsTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'Vectors.Cell.Y', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Vectors.Cell.Y', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Cell.Y')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -343,7 +343,7 @@ export class VectorsTable {
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'Vectors.Rot.X', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Rot.X', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Rot.X')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -351,7 +351,7 @@ export class VectorsTable {
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Vectors.Rot.Y', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Rot.Y', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Rot.Y')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -359,7 +359,7 @@ export class VectorsTable {
           }
           break
         case 9:
-          tabbit.checkColumn(column, 'Vectors.Rot.Z', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Rot.Z', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Rot.Z')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -367,7 +367,7 @@ export class VectorsTable {
           }
           break
         case 10:
-          tabbit.checkColumn(column, 'Vectors.Rot.W', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Rot.W', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Rot.W')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -375,7 +375,7 @@ export class VectorsTable {
           }
           break
         case 11:
-          tabbit.checkColumn(column, 'Vectors.Tint.R', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Vectors.Tint.R', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Tint.R')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -384,7 +384,7 @@ export class VectorsTable {
           }
           break
         case 12:
-          tabbit.checkColumn(column, 'Vectors.Tint.G', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Vectors.Tint.G', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Tint.G')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -393,7 +393,7 @@ export class VectorsTable {
           }
           break
         case 13:
-          tabbit.checkColumn(column, 'Vectors.Tint.B', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Vectors.Tint.B', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Tint.B')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -402,7 +402,7 @@ export class VectorsTable {
           }
           break
         case 14:
-          tabbit.checkColumn(column, 'Vectors.Tint.A', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Vectors.Tint.A', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Tint.A')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -411,7 +411,7 @@ export class VectorsTable {
           }
           break
         case 15:
-          tabbit.checkColumn(column, 'Vectors.Glow.R', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Glow.R', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Glow.R')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -419,7 +419,7 @@ export class VectorsTable {
           }
           break
         case 16:
-          tabbit.checkColumn(column, 'Vectors.Glow.G', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Glow.G', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Glow.G')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -427,7 +427,7 @@ export class VectorsTable {
           }
           break
         case 17:
-          tabbit.checkColumn(column, 'Vectors.Glow.B', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Glow.B', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Glow.B')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -435,7 +435,7 @@ export class VectorsTable {
           }
           break
         case 18:
-          tabbit.checkColumn(column, 'Vectors.Glow.A', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Vectors.Glow.A', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Glow.A')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -443,7 +443,7 @@ export class VectorsTable {
           }
           break
         case 19:
-          tabbit.checkColumn(column, 'Vectors.Label', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Vectors.Label', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Vectors.Label')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)

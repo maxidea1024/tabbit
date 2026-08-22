@@ -162,7 +162,7 @@ class VectorsTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Vectors.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Vectors.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -175,7 +175,7 @@ class VectorsTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Vectors.Pos.X", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Pos.X", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Pos.X");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -184,7 +184,7 @@ class VectorsTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Vectors.Pos.Y", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Pos.Y", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Pos.Y");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -193,7 +193,7 @@ class VectorsTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Vectors.Pos.Z", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Pos.Z", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Pos.Z");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -202,7 +202,7 @@ class VectorsTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Vectors.Cell.X", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Vectors.Cell.X", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Cell.X");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -215,7 +215,7 @@ class VectorsTable {
           break;
         }
         case 6: {
-          tabbit::check_column(column, "Vectors.Cell.Y", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Vectors.Cell.Y", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Cell.Y");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -228,7 +228,7 @@ class VectorsTable {
           break;
         }
         case 7: {
-          tabbit::check_column(column, "Vectors.Rot.X", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Rot.X", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Rot.X");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -237,7 +237,7 @@ class VectorsTable {
           break;
         }
         case 8: {
-          tabbit::check_column(column, "Vectors.Rot.Y", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Rot.Y", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Rot.Y");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -246,7 +246,7 @@ class VectorsTable {
           break;
         }
         case 9: {
-          tabbit::check_column(column, "Vectors.Rot.Z", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Rot.Z", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Rot.Z");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -255,7 +255,7 @@ class VectorsTable {
           break;
         }
         case 10: {
-          tabbit::check_column(column, "Vectors.Rot.W", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Rot.W", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Rot.W");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -264,7 +264,7 @@ class VectorsTable {
           break;
         }
         case 11: {
-          tabbit::check_column(column, "Vectors.Tint.R", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Vectors.Tint.R", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Tint.R");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -277,7 +277,7 @@ class VectorsTable {
           break;
         }
         case 12: {
-          tabbit::check_column(column, "Vectors.Tint.G", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Vectors.Tint.G", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Tint.G");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -290,7 +290,7 @@ class VectorsTable {
           break;
         }
         case 13: {
-          tabbit::check_column(column, "Vectors.Tint.B", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Vectors.Tint.B", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Tint.B");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -303,7 +303,7 @@ class VectorsTable {
           break;
         }
         case 14: {
-          tabbit::check_column(column, "Vectors.Tint.A", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Vectors.Tint.A", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Tint.A");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -316,7 +316,7 @@ class VectorsTable {
           break;
         }
         case 15: {
-          tabbit::check_column(column, "Vectors.Glow.R", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Glow.R", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Glow.R");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -325,7 +325,7 @@ class VectorsTable {
           break;
         }
         case 16: {
-          tabbit::check_column(column, "Vectors.Glow.G", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Glow.G", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Glow.G");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -334,7 +334,7 @@ class VectorsTable {
           break;
         }
         case 17: {
-          tabbit::check_column(column, "Vectors.Glow.B", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Glow.B", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Glow.B");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -343,7 +343,7 @@ class VectorsTable {
           break;
         }
         case 18: {
-          tabbit::check_column(column, "Vectors.Glow.A", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Vectors.Glow.A", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Glow.A");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -352,7 +352,7 @@ class VectorsTable {
           break;
         }
         case 19: {
-          tabbit::check_column(column, "Vectors.Label", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Vectors.Label", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Vectors.Label");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {

@@ -9,9 +9,7 @@
 
 using System;
 using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 // Tabbit's binary reader, written into this directory beside the accessor.
@@ -329,7 +327,7 @@ namespace Tabbit.Fixtures.Composite
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Vectors.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Vectors.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Index");
                         for (int i = 0; i < count; )
                         {
@@ -345,7 +343,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Vectors.Pos.X", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Pos.X", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Pos.X");
                         for (int i = 0; i < count; i++)
                         {
@@ -355,7 +353,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Vectors.Pos.Y", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Pos.Y", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Pos.Y");
                         for (int i = 0; i < count; i++)
                         {
@@ -365,7 +363,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Vectors.Pos.Z", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Pos.Z", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Pos.Z");
                         for (int i = 0; i < count; i++)
                         {
@@ -375,7 +373,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Vectors.Cell.X", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Vectors.Cell.X", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Cell.X");
                         for (int i = 0; i < count; )
                         {
@@ -391,7 +389,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "Vectors.Cell.Y", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Vectors.Cell.Y", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Cell.Y");
                         for (int i = 0; i < count; )
                         {
@@ -407,7 +405,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Vectors.Rot.X", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Rot.X", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Rot.X");
                         for (int i = 0; i < count; i++)
                         {
@@ -417,7 +415,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "Vectors.Rot.Y", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Rot.Y", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Rot.Y");
                         for (int i = 0; i < count; i++)
                         {
@@ -427,7 +425,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 9:
-                        TcbTable.CheckColumn(column, "Vectors.Rot.Z", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Rot.Z", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Rot.Z");
                         for (int i = 0; i < count; i++)
                         {
@@ -437,7 +435,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 10:
-                        TcbTable.CheckColumn(column, "Vectors.Rot.W", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Rot.W", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Rot.W");
                         for (int i = 0; i < count; i++)
                         {
@@ -447,7 +445,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 11:
-                        TcbTable.CheckColumn(column, "Vectors.Tint.R", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Vectors.Tint.R", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Tint.R");
                         for (int i = 0; i < count; )
                         {
@@ -463,7 +461,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 12:
-                        TcbTable.CheckColumn(column, "Vectors.Tint.G", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Vectors.Tint.G", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Tint.G");
                         for (int i = 0; i < count; )
                         {
@@ -479,7 +477,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 13:
-                        TcbTable.CheckColumn(column, "Vectors.Tint.B", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Vectors.Tint.B", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Tint.B");
                         for (int i = 0; i < count; )
                         {
@@ -495,7 +493,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 14:
-                        TcbTable.CheckColumn(column, "Vectors.Tint.A", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Vectors.Tint.A", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Tint.A");
                         for (int i = 0; i < count; )
                         {
@@ -511,7 +509,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 15:
-                        TcbTable.CheckColumn(column, "Vectors.Glow.R", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Glow.R", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Glow.R");
                         for (int i = 0; i < count; i++)
                         {
@@ -521,7 +519,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 16:
-                        TcbTable.CheckColumn(column, "Vectors.Glow.G", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Glow.G", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Glow.G");
                         for (int i = 0; i < count; i++)
                         {
@@ -531,7 +529,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 17:
-                        TcbTable.CheckColumn(column, "Vectors.Glow.B", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Glow.B", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Glow.B");
                         for (int i = 0; i < count; i++)
                         {
@@ -541,7 +539,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 18:
-                        TcbTable.CheckColumn(column, "Vectors.Glow.A", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Vectors.Glow.A", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Glow.A");
                         for (int i = 0; i < count; i++)
                         {
@@ -551,7 +549,7 @@ namespace Tabbit.Fixtures.Composite
                         break;
 
                     case 19:
-                        TcbTable.CheckColumn(column, "Vectors.Label", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Vectors.Label", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Vectors.Label");
                         for (int i = 0; i < count; )
                         {
@@ -600,5 +598,4 @@ namespace Tabbit.Fixtures.Composite
             return sb.ToString();
         }
     }
-
 } // namespace Tabbit.Fixtures.Composite

@@ -4,8 +4,8 @@ binary-names/binary-names.xlsx	sheets=2 rows=14 cells=39 chars=117 names=3 skipp
 bitset/bitset.xlsx	sheets=1 rows=12 cells=41 chars=361 names=0 skipped-names=0 hash=9ed0328eed36fab1
 blank-and-null/blank-and-null.xlsx	sheets=1 rows=13 cells=61 chars=455 names=0 skipped-names=0 hash=dad07b3671efe3b5
 blank-cell/blank-cell.xlsx	sheets=1 rows=10 cells=19 chars=191 names=0 skipped-names=0 hash=5d89b1bb7ed2ee94
-composite-expanded/composite-expanded.xlsx	sheets=1 rows=11 cells=135 chars=732 names=0 skipped-names=0 notes=0 hash=7d9477e4577da778
-composite/composite.xlsx	sheets=1 rows=11 cells=51 chars=488 names=0 skipped-names=0 notes=0 hash=6cb1c2cc776e83a9
+composite-expanded/composite-expanded.xlsx	sheets=1 rows=11 cells=135 chars=732 names=0 skipped-names=0 hash=7d9477e4577da778
+composite/composite.xlsx	sheets=1 rows=11 cells=51 chars=488 names=0 skipped-names=0 hash=6cb1c2cc776e83a9
 conformance-skew/conformance-skew.xlsx	sheets=1 rows=69 cells=843 chars=9282 names=0 skipped-names=0 hash=b3851d10fc5b8893
 conformance/conformance.xlsx	sheets=1 rows=69 cells=803 chars=9065 names=0 skipped-names=0 hash=98fdf93d2457873d
 core/core.xlsx	sheets=7 rows=74 cells=380 chars=3273 names=0 skipped-names=0 hash=3a658ed65d8a73d8
