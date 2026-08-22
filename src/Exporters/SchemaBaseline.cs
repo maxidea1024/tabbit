@@ -74,11 +74,14 @@ public class SchemaBaseline
         /// <summary>The wire element, as the descriptor's low nibble.</summary>
         public byte Element { get; set; }
 
-        /// <summary>Scalar, fixed array or variable array.</summary>
+        /// <summary>Scalar or array.</summary>
+        /// <remarks>
+        /// An element count used to sit beside this. It said how many elements a fixed
+        /// array held per row, and a change to it was a breaking change; since v107 there
+        /// is no fixed array and a length is per row, so adding an element to a group is
+        /// no longer a schema change at all. spec/tcb-v107-dynamic-arrays.md.
+        /// </remarks>
         public byte Kind { get; set; }
-
-        /// <summary>Elements per row: 1, N, or 0 for a variable array.</summary>
-        public int Count { get; set; }
 
         /// <summary>
         /// Whether the column is gone and the tag is spent.
@@ -199,7 +202,7 @@ public class SchemaBaseline
                 continue;
             }
 
-            if (before.Element == now.Element && before.Kind == now.Kind && before.Count == now.Count)
+            if (before.Element == now.Element && before.Kind == now.Kind)
                 continue;
 
             if (accepted.Contains($"{table.Name}.{now.Name}"))
@@ -255,7 +258,6 @@ public class SchemaBaseline
                 Name = column.Name,
                 Element = TcbFormat.ElementFor(column),
                 Kind = TcbFormat.KindFor(column),
-                Count = TcbFormat.CountFor(column),
                 ExplicitTag = table.HasExplicitTags,
             };
         }
@@ -281,8 +283,7 @@ public class SchemaBaseline
 
         return column.Kind switch
         {
-            TcbFormat.KindFixedArray => $"{column.Count} of {element}",
-            TcbFormat.KindVarArray => $"a variable length array of {element}",
+            TcbFormat.KindArray => $"an array of {element}",
             _ => element,
         };
     }

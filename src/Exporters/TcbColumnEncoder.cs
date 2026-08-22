@@ -293,23 +293,18 @@ internal static class TcbColumnEncoder
     /// chosen for any varint column - raw, which is a counter32 apiece, or runs. A column
     /// whose rows are all the same length, which is most of them, becomes one run.
     ///
-    /// A column of a fixed number of elements per row has no length stream at all: the count
-    /// is in the descriptor, and writing it again per row would be the format restating what
-    /// it already said.
+    /// That last sentence is why v107 could drop the fixed-length kind. Its whole saving was
+    /// the length stream, and the length stream of a column that never varies is a single
+    /// run - so the format was carrying a second array shape, and a count in every
+    /// descriptor, to save a handful of bytes per column.
     /// </remarks>
-    public static TcbWriter EncodeArray(Stream elements, int[] lengths, bool varying)
+    public static TcbWriter EncodeArray(Stream elements, int[] lengths)
     {
         var chosen = Choose(elements);
 
 
         var payload = new TcbWriter();
         payload.Write(chosen.Best.Encoding);
-
-        if (!varying)
-        {
-            payload.Write(chosen.Best.Payload.WrittenSpan);
-            return payload;
-        }
 
         var lengthRaw = new TcbWriter();
         foreach (int length in lengths)

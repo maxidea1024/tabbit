@@ -167,7 +167,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// </summary>
     /// <remarks>
     /// Nothing was added to the format for it. Because the file is column oriented, an
-    /// array of records is a struct of arrays - and `KindFixedArray` with the member's
+    /// array of records is a struct of arrays - and an array column with the member's
     /// element type is exactly that. So no new kind, no version bump, and the column
     /// encodings keep applying per member, which storing a record as one blob would have
     /// defeated. spec/nested-fields.md has the layout.
@@ -513,7 +513,6 @@ public class BinaryExporter : Target<BinaryRecipe>
                 TcbFormat.ElementFor(column), TcbFormat.KindFor(column), TcbFormat.NullableFor(column),
                 TcbFormat.ElementNullableFor(column)));
             writer.Write(blocks[at].Encoding);
-            writer.WriteCounter32(TcbFormat.CountFor(column));
             writer.Write((uint)blocks[at].Payload.Length);
         }
 
@@ -617,8 +616,7 @@ public class BinaryExporter : Target<BinaryRecipe>
             {
                 selection.Offer(
                     TcbFormat.EncodingArray,
-                    TcbColumnEncoder.EncodeArray(
-                        stream, lengths.ToArray(), kind == TcbFormat.KindVarArray));
+                    TcbColumnEncoder.EncodeArray(stream, lengths.ToArray()));
             }
         }
 
@@ -689,7 +687,7 @@ public class BinaryExporter : Target<BinaryRecipe>
         var (lengths, values) = CollectElements(table, rows, column);
 
         byte element = TcbFormat.ElementFor(column);
-        bool varying = TcbFormat.KindFor(column) == TcbFormat.KindVarArray;
+        bool varying = TcbFormat.KindFor(column) == TcbFormat.KindArray;
 
         // A row's own length is a small ascending-ish integer stream, which is exactly what
         // the integer encodings are for.

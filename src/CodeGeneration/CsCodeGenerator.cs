@@ -761,10 +761,9 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // could have known how long this row's array is.
         string readKind = wire.Member switch
         {
-            not null when wire.IsVariableLengthArray => "record_var",
-            not null when wire.IsFixedArray && wire.Group.MembersAreAnonymous
+            not null when wire.IsArray && wire.Group.MembersAreAnonymous
                 => "array_of_arrays_member",
-            not null when wire.IsFixedArray => "record_serial",
+            not null when wire.IsArray => "record_var",
             _ => ReadKind(wire),
         };
 
@@ -921,9 +920,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             ElementCount = sf.RecordElementCount,
             Kind = sf.MembersAreAnonymous
                 ? "array_of_arrays"
-                : perRowLength
-                    ? "record_var_array"
-                    : sf.IsArray ? "record_array" : "record",
+                : sf.IsArray ? "record_var_array" : "record",
 
             // None of these apply to a record. A reference belongs to a member and members
             // cannot be references yet, so there is nothing to resolve.
@@ -1015,7 +1012,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // answers the single-target one gives.
             Count = subscript.Length > 0
                 ? path + ".Length"
-                : (wire.IsFixedArray || wire.IsVariableLengthArray)
+                : wire.IsArray
                     ? $"record.{fieldName}.Length"
                     : "",
 
@@ -1051,7 +1048,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // many they carry.
             Count = subscript.Length > 0
                 ? path + ".Length"
-                : (wire.IsFixedArray || wire.IsVariableLengthArray)
+                : wire.IsArray
                     ? $"record.{fieldName}.Length"
                     : "",
 
@@ -1222,7 +1219,10 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             if (sf.IsRef)
                 return "array_ref";
 
-            return table.IsVariableLength(sf) ? "var_array" : "array";
+            // One array declaration since v107. Trimming decides how many elements a row
+            // carries, not whether the length is known at generation time - the file states
+            // it either way. spec/tcb-v107-dynamic-arrays.md.
+            return "var_array";
         }
 
         return sf.IsRef ? "scalar_ref" : "scalar";
@@ -1264,7 +1264,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// </remarks>
     private static string EmptyValue(WireColumn wire, string fieldType)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return $"System.Array.Empty<{fieldType}>()";
 
         return wire.ElementType == Models.ValueType.String && !wire.IsRef
@@ -1293,12 +1293,10 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         if (!wire.IsRef || wire.Member is not null)
             return Array.Empty<string>();
 
-        string length = wire.IsFixedArray ? "column.Count"
-            : wire.IsVariableLengthArray ? "elementCount"
-            : "";
-
-        if (length.Length == 0)
+        if (!wire.IsArray)
             return Array.Empty<string>();
+
+        const string length = "elementCount";
 
         string keyType = ToCSharpTypeName(wire.RefKeyType, null, null);
 
@@ -1310,12 +1308,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     }
 
     private static string ReadKind(WireColumn wire)
-    {
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        return wire.IsFixedArray ? "serial" : "scalar";
-    }
+        => wire.IsArray ? "var_array" : "scalar";
 
     /// <summary>
     /// The lines that read one element, whether the template places them in a loop or
@@ -1333,18 +1326,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// </remarks>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "TcbTable.KindVarArray"
-            : (wire.IsFixedArray ? "TcbTable.KindFixedArray" : "TcbTable.KindScalar");
-
-        // -1 where one column owns the whole array: the file states how many elements it
-        // holds and the read takes it from there, so there is no length here to hold it to.
-        // A record member keeps its count - several columns fill one array and the number
-        // they agree on is part of the generated shape, so a disagreement is a schema change
-        // rather than data. spec/nullable-array-elements.md.
-        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
-
-        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
+        string kind = wire.IsArray ? "TcbTable.KindArray" : "TcbTable.KindScalar";
 
         string accepted;
 
@@ -1403,7 +1385,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // the accepted elements, of which there may be one, two or three.
         string elements = wire.HasOptionalElements ? ", elementNullable: true" : "";
 
-        return $"TcbTable.CheckColumn(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+        return $"TcbTable.CheckColumn(column, \"{tableName}.{wire.Name}\", {kind}, "
             + $"{nullable}, {accepted}{elements});";
     }
 
@@ -1429,7 +1411,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         if (wire.ElementType == Models.ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -1506,7 +1488,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries. `NextSameI32` was the only answer while a
@@ -1590,7 +1572,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     private static (string Path, string Subscript) MemberPlace(
         WireColumn wire, string fieldName, string memberAccess)
     {
-        if (!wire.IsFixedArray && !wire.IsVariableLengthArray)
+        if (!wire.IsArray)
             return ($"record.{fieldName}{memberAccess}", "");
 
         if (wire.Group.MembersAreAnonymous)
@@ -1605,7 +1587,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     private static IReadOnlyList<string> ElementReadLines(
         WireColumn wire, string fieldName, string fieldType, string refTable, string memberAccess)
     {
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         var (path, subscript) = MemberPlace(wire, fieldName, memberAccess);
         string target = path + subscript;

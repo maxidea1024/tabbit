@@ -60,8 +60,17 @@ public static class TcbFormat
     /// so it would take the element bitmap for the head of the value block and read the
     /// column wrong rather than refuse it - which is the same reason 103 moved.
     /// spec/nullable-array-elements.md.
+    ///
+    /// 107 replaces 106. The fixed-length array kind is gone: every array now carries its
+    /// own length per row, so the shape a column can have is scalar or array and nothing
+    /// else. A fixed length is a number the generated code had to know at build time, which
+    /// made adding a column to a group a code deploy rather than a data patch - the same
+    /// coupling wire tags exist to remove. The lengths cost a run apiece, because a column
+    /// whose rows are all the same length encodes to one. The descriptor's element count
+    /// went with it: it could only say 1 or 0, which the kind already says.
+    /// spec/tcb-v107-dynamic-arrays.md.
     /// </summary>
-    public const uint Version = 106;
+    public const uint Version = 107;
 
     // -------------------------------------------------------- file header
     //
@@ -178,11 +187,17 @@ public static class TcbFormat
     /// <summary>One value per row.</summary>
     public const byte KindScalar = 0;
 
-    /// <summary>A fixed number of elements per row; the count is in the descriptor.</summary>
-    public const byte KindFixedArray = 1;
-
-    /// <summary>Each row carries its own counter32 length ahead of its elements.</summary>
-    public const byte KindVarArray = 2;
+    /// <summary>
+    /// Each row carries its own counter32 length ahead of its elements.
+    /// </summary>
+    /// <remarks>
+    /// The only array kind. A fixed-length one existed until v107 and stated its length in
+    /// the descriptor instead; it was removed rather than kept beside this one, because a
+    /// length the file states once is a length the generated code bakes in, and then a
+    /// column added to a group needs the consumer rebuilt. Values 2 and 3 are free, and
+    /// nothing reads them - a reader that meets one refuses the file by version first.
+    /// </remarks>
+    public const byte KindArray = 1;
 
     // ----------------------------------------------------------- encodings
     //
@@ -459,22 +474,5 @@ public static class TcbFormat
 
     /// <summary>The kind of a column, mirroring what the generators emit.</summary>
     public static byte KindFor(WireColumn column)
-    {
-        if (column.IsVariableLengthArray)
-            return KindVarArray;
-
-        return column.IsFixedArray ? KindFixedArray : KindScalar;
-    }
-
-    /// <summary>
-    /// The descriptor's element count: 1 for a scalar, the element count for a fixed
-    /// array, and 0 for a variable one, whose rows carry their own.
-    /// </summary>
-    public static int CountFor(WireColumn column)
-    {
-        if (column.IsVariableLengthArray)
-            return 0;
-
-        return column.Cells.Count;
-    }
+        => column.IsArray ? KindArray : KindScalar;
 }

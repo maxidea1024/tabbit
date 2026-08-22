@@ -57,23 +57,16 @@
       spec/nullable-array-elements.md. ##~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
 {{~## No element type: the outer level has no name to be a property of, so it is an array
-      too. `_N` is the outer count and `_M` the inner one. spec/nested-multi-level.md. ##~}}
+      too. `_N` is the outer count, which is how many columns fill this field rather than
+      how long any of them is - the inner length is the row's and is read from the file.
+      spec/nested-multi-level.md. ##~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
             internal const int {{ field.pascal_name }}_N = {{ field.outer_count }};
-            internal const int {{ field.pascal_name }}_M = {{ field.element_count }};
-{{~ else if field.kind == 'record_array' ~}}
-            public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            internal const int {{ field.pascal_name }}_N = {{ field.element_count }};
 {{~ else if field.kind == 'record_var_array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'record' ~}}
             public {{ field.field_type }} {{ field.prop_name }} => {{ field.field_name }};
-{{~ if field.members_are_arrays ~}}
-{{~## One record, and the arrays are its members - so the length belongs to the group all
-      the same, because the folding requires every member to agree on it. ##~}}
-            internal const int {{ field.pascal_name }}_N = {{ field.element_count }};
-{{~ end ~}}
-{{~ else if field.kind == 'array_ref' || field.kind == 'array' ~}}
+{{~ else if field.kind == 'array_ref' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'var_array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
@@ -125,20 +118,15 @@
       exactly what a member column's read does. See spec/nested-fields.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.kind == 'array_of_arrays' }}
-{{~## Both levels allocated with the row: each column fills one element of the outer array,
-      so nothing else can create it - and the number the columns agree on is part of the
-      generated shape rather than something one of them states. spec/nested-multi-level.md. ##~}}
+{{~## The outer level only: each column fills one of its elements and nothing else can
+      create it, so its length is how many columns there are. The inner arrays are the
+      read's, at whatever length the row gives - empty until then, so a file that does not
+      carry the column leaves something indexable. spec/nested-multi-level.md. ##~}}
             private static {{ field.field_type }}[] New{{ field.pascal_name }}()
             {
                 var result = new {{ field.element_type_name }}[{{ field.pascal_name }}_N][];
                 for (int i = 0; i < result.Length; i++)
-                {
-                    result[i] = new {{ field.element_type_name }}[{{ field.pascal_name }}_M];
-{{~ if field.element_initializer != '' ~}}
-                    for (int k = 0; k < result[i].Length; k++)
-                        result[i][k]{{ field.element_initializer }};
-{{~ end ~}}
-                }
+                    result[i] = System.Array.Empty<{{ field.element_type_name }}>();
                 return result;
             }
 {{~ else if field.is_record }}
@@ -256,7 +244,7 @@
       other string member of a generated record has. It matters when a file predates the
       member: no column, so nothing writes the field, and null is a crash one field later.
       A struct cannot say so itself, so this does. ##~}}
-{{~ if field.kind == 'record_array' || field.kind == 'record_var_array' ~}}
+{{~ if field.kind == 'record_var_array' ~}}
 {{~## Takes the length, because a trimmed group's is this row's rather than the sheet's
       column count - and the fixed kind passes its constant. ##~}}
 {{~## Internal, not private: a trimmed group's read calls this from the table class, which is
@@ -342,15 +330,6 @@
 {{~ for field in table.fields ~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
             internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.pascal_name }}();
-{{~ else if field.kind == 'record_array' ~}}
-{{~## Allocated with the record, not by the read. Each member column fills one field of each
-      element, so allocating per column would discard what the previous one wrote - which is
-      also why this length is the group's rather than a column's. ##~}}
-{{~ if field.needs_element_init ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.record_type_name }}Array({{ field.pascal_name }}_N);
-{{~ else ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = new {{ field.field_type }}[{{ field.pascal_name }}_N];
-{{~ end ~}}
 {{~ else if field.kind == 'record_var_array' ~}}
 {{~## Empty, not sized: the read allocates once it knows this row's length. Empty rather
       than null so a file that does not carry the column leaves something indexable. ##~}}
@@ -365,7 +344,7 @@
             internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
             public {{ field.ref_key_type_name }}[] {{ field.field_name }}_{{ field.ref_table }}_index = System.Array.Empty<{{ field.ref_key_type_name }}>();
             public bool[] {{ field.field_name }}_F = System.Array.Empty<bool>();
-{{~ else if field.kind == 'var_array' || field.kind == 'array' ~}}
+{{~ else if field.kind == 'var_array' ~}}
             internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
 {{~ else if field.kind == 'scalar_ref' ~}}
             internal {{ field.field_type }} {{ field.field_name }};
@@ -597,31 +576,6 @@
 {{~ end ~}}
                             }
                         }
-{{~ else if column.read_kind == 'serial' ~}}
-{{~## `column.Count` rather than a constant: the file states how many elements the block
-      holds for each row, so a sheet that grew a column is read rather than refused.
-      spec/nullable-array-elements.md. ##~}}
-                        for (int i = 0; i < count; i++)
-                        {
-                            var record = records[i];
-                            record.{{ column.field_name }} = new {{ column.field_type }}[column.Count];
-{{~ for line in column.parallel_arrays ~}}
-                            {{ line }}
-{{~ end ~}}
-{{~ if column.has_optional_elements ~}}
-                            record.{{ column.element_presence_field }} = new bool[column.Count];
-{{~ end ~}}
-                            for (int j = 0; j < column.Count; ++j)
-                            {
-{{~ if column.has_optional_elements ~}}
-                                record.{{ column.element_presence_field }}[j] =
-                                    TcbTable.IsPresent(elementPresence, elementAt++);
-{{~ end ~}}
-{{~ for line in column.element_read ~}}
-                                {{ line }}
-{{~ end ~}}
-                            }
-                        }
 {{~ else if column.read_kind == 'record_var' ~}}
 {{~## A trimmed record array: the length is written per row, once per member, and every
       member of the group carries the same one. The first member allocates; the rest check,
@@ -659,27 +613,16 @@
                         }
 {{~ else if column.read_kind == 'array_of_arrays_member' ~}}
 {{~## One inner array of an array of arrays. The outer index is fixed for this column - it is
-      which column this is - and the loop runs over the inner length, which is a different
-      number from the outer one. spec/nested-multi-level.md. ##~}}
+      which column this is - and the loop runs over the inner length, which this row states
+      and the outer level does not. spec/nested-multi-level.md. ##~}}
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.{{ column.pascal_name }}_M; ++j)
-                            {
-{{~ for line in column.element_read ~}}
-                                {{ line }}
-{{~ end ~}}
-                            }
-                        }
-{{~ else if column.read_kind == 'record_serial' ~}}
-{{~## One member of a record group. No allocation: the array came with the record, and
-      re-creating it here would discard the members read before this one - which is also why
-      its length is the group's rather than this column's. Several columns fill one array, so
-      what they agree on is part of the generated shape. ##~}}
-                        for (int i = 0; i < count; i++)
-                        {
-                            var record = records[i];
-                            for (int j = 0; j < Record.{{ column.pascal_name }}_N; ++j)
+                            int elementCount;
+                            {{ column.length_read }}
+                            record.{{ column.field_name }}[{{ column.member_at }}] =
+                                new {{ column.field_type }}[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
 {{~ for line in column.element_read ~}}
                                 {{ line }}

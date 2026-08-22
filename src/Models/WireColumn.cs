@@ -161,6 +161,16 @@ public sealed class WireColumn
     public bool IsFixedArray
         => !IsVariableLengthArray && (Group.IsArray || AnyLevelIsArray);
 
+    /// <summary>Whether the column holds an array at all, however its length is decided.</summary>
+    /// <remarks>
+    /// What the wire asks since v107, where the only array kind carries its length per row.
+    /// The distinction the two properties above draw is about where the length comes from -
+    /// the sheet's column count or the row's own data - and the file stopped caring: it
+    /// writes the length either way. Generated code asks this one, so that adding a column
+    /// to a group does not change the shape the consumer was built against.
+    /// </remarks>
+    public bool IsArray => IsVariableLengthArray || IsFixedArray;
+
     /// <summary>
     /// Whether any level from the group down to this leaf repeats.
     /// </summary>
