@@ -1,0 +1,15 @@
+{
+  "rescue.enum-redefined": "enum `{Enum}` 已經定義過了。",
+  "rescue.table-redefined": "表 `{Table}` 已經定義過了。在此佈局中表名取自工作表標籤名去掉末尾的 `Table`，因此去掉之後同名的兩個標籤會衝突。",
+  "rescue.enum-label-redefined": "標籤 '{Label}' 已經在 enum '{Enum}' 中定義過了。",
+  "rescue.column-name-clash": "表 `{Table}` 中有兩個被稱作 `{Field}` 的列：{How}。名稱會被規範化，以便每種語言得到同一個成員，因此兩個列不能共用一個名稱。請重新命名其中一個，或在不再使用的那一列的說明上加 `#`。（另一個在 {Other}）",
+  "rescue.table-has-no-columns": "表 `{Table}` 沒有可讀的列。",
+  "rescue.enum-name-must-follow-marker": "若為 enum 類型，`enum:` 之後必須跟 enum 名稱。",
+  "rescue.enum-not-declared": "列 `{Field}` 是 `{Declared}` 類型，但沒有聲明名為 `{Enum}` 的 enum。enum 來自名稱中含 `{Marker}` 的工作表。",
+  "rescue.type-not-array-element": "`{Type}` 類型不能作為陣列的元素。",
+  "rescue.log-dropping-duplicate-row": "丟棄 `{Table}` 的第 {Row} 行：`{Field}` 是 `{Value}`，前面的行已經用過它了。({At})",
+  "rescue.log-replacing-duplicate-row": "用第 {Row} 行替換 `{Table}` 中較早的一行：`{Field}` 是 `{Value}`，兩者都在用它。({At})",
+  "rescue.log-skipping-sheet-bad-header": "跳過工作表 `{Sheet}`：第 {NameRow} 行應以欄位名開頭、第 {TypeRow} 行應以其類型開頭，而它們是 `{FirstName}` 和 `{FirstType}`。({At})",
+  "rescue.log-skipping-sheet-no-data": "跳過工作表 `{Sheet}`：三行表頭之下沒有資料行。({At})",
+  "rescue.log-skipping-unfinished-row": "跳過 `{Table}` 的第 {Row} 行：它沒有 `{Field}` 卻也不為空，所以這是一行未寫完的資料，而不是表的結尾。({At})"
+}
