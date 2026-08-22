@@ -241,5 +241,6 @@
   "report.group-by-sheet": "시트별",
   "report.group-by-kind": "종류별",
   "report.copy-report": "이 보고를 복사 — 시트를 가진 사람에게 보내도록",
-  "report.meta-sheets": "시트 위치"
+  "report.meta-sheets": "시트 위치",
+  "report.nothing-here": "여기에는 아무것도 없습니다."
 }

@@ -508,6 +508,7 @@ public class BuildReportTests : IDisposable
 
         Assert.Contains(".id { display: none;", page);
         Assert.Contains(".row.open .id { display: block;", page);
+        Assert.Contains("margin-left: 20px;", page);
         Assert.Contains("-webkit-line-clamp: 1;", page);
         Assert.Contains(".row.open .msg { display: block; }", page);
     }
@@ -653,6 +654,62 @@ public class BuildReportTests : IDisposable
         Assert.Contains("&#10;    at sheet-id : Item : C7", page);
         Assert.Contains("&#10;    https://docs.google.com/spreadsheets/d/x/edit#gid=1&amp;range=C7", page);
         Assert.Contains("&#10;    cook.array-gap", page);
+    }
+
+    /// <summary>
+    /// The search says where it found what it was given, and can be emptied with a click.
+    /// </summary>
+    /// <remarks>
+    /// The marking walks the text nodes rather than searching the markup. A report carries
+    /// `code` elements for the names it quotes, and a replace over `innerHTML` would match
+    /// inside a tag and take the page apart - which is a page that renders as source.
+    ///
+    /// The clear button is written rather than left to the browser: the native one is
+    /// Chromium's alone, so a field that could be emptied on one machine could not on the
+    /// next.
+    /// </remarks>
+    [Fact]
+    public void The_search_marks_what_it_found_and_can_be_emptied()
+    {
+        var options = OptionsFor();
+        var report = BuildReport.Create(options, RecipeWith(new ReportRecipe()))!;
+
+        report.Take(Found((Severity.Error, At("book.xlsx", "Item", 2, 6), "the id is not a number")));
+        report.Write(ExitCode.Failed, null);
+
+        string page = File.ReadAllText(report.HtmlPath);
+
+        Assert.Contains("document.createTreeWalker(el, NodeFilter.SHOW_TEXT", page);
+        Assert.Contains("createElement('mark')", page);
+        Assert.Contains("<button type=\"button\" class=\"clear\" id=\"clear\" hidden", page);
+        Assert.Contains("::-webkit-search-cancel-button { appearance: none; display: none; }", page);
+    }
+
+    /// <summary>
+    /// An empty list says so once, in words that fit the list it is.
+    /// </summary>
+    /// <remarks>
+    /// An empty tab was printing both "No problems were found" and "Nothing matches the
+    /// filter" - two lines saying the same thing, one of them about a filter nobody had
+    /// typed into. And under `Fixed since the last run`, "no problems were found" answers a
+    /// question nobody asked.
+    /// </remarks>
+    [Fact]
+    public void An_empty_list_says_so_once()
+    {
+        var options = OptionsFor();
+        var report = BuildReport.Create(options, RecipeWith(new ReportRecipe()))!;
+
+        report.Take(Found((Severity.Error, At("book.xlsx", "Item", 2, 6), "the id is not a number")));
+        report.Write(ExitCode.Failed, null);
+
+        string page = File.ReadAllText(report.HtmlPath);
+
+        // The filter's line is held back unless a filter is what emptied the list.
+        Assert.Contains("any > 0 || held === 0", page);
+
+        // The three lists that are not the problem list have wording of their own.
+        Assert.Contains("Nothing here.", page);
     }
 
     // ------------------------------------------------------------------ opening

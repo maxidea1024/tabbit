@@ -241,5 +241,6 @@
   "report.group-by-sheet": "按表格",
   "report.group-by-kind": "按類型",
   "report.copy-report": "複製此報告，以便傳給表格的負責人",
-  "report.meta-sheets": "表格位置"
+  "report.meta-sheets": "表格位置",
+  "report.nothing-here": "這裡沒有內容。"
 }

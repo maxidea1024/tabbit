@@ -241,5 +241,6 @@
   "report.group-by-sheet": "シート別",
   "report.group-by-kind": "種別",
   "report.copy-report": "この報告をコピー — シートの担当者に送るため",
-  "report.meta-sheets": "シートの場所"
+  "report.meta-sheets": "シートの場所",
+  "report.nothing-here": "ここには何もありません。"
 }

@@ -241,5 +241,6 @@
   "report.group-by-sheet": "Sheet",
   "report.group-by-kind": "Kind",
   "report.copy-report": "Copy this report, to send to whoever owns the sheet",
-  "report.meta-sheets": "Sheets in"
+  "report.meta-sheets": "Sheets in",
+  "report.nothing-here": "Nothing here."
 }

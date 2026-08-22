@@ -102,6 +102,16 @@ public static class ReportMessages
     // ------------------------------------------------------------------ states
 
     public const string NoProblems = "report.no-problems";
+
+    /// <summary>
+    /// An empty list that is not the problem list.
+    /// </summary>
+    /// <remarks>
+    /// "No problems were found" is the right thing to say under `Problems` and the wrong
+    /// thing under `Fixed since the last run`, where it answers a question nobody asked.
+    /// </remarks>
+    public const string NothingHere = "report.nothing-here";
+
     public const string NothingMatches = "report.nothing-matches";
 
     /// <summary>Said where the page stops listing, naming the file that does not.</summary>

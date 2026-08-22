@@ -253,10 +253,19 @@ internal static class ReportHtml
 
     private static void Toolbar(StringBuilder page, MessageCatalog catalog)
     {
+        string looking = Text(catalog, ReportMessages.SearchPlaceholder);
+
+        // The clear button is written rather than left to the browser. The native one is
+        // Chromium's alone - Firefox draws nothing - so a field that could be emptied with a
+        // click on one machine could not on the next.
         page.Append("<div class=\"tools\">")
-            .Append("<input id=\"q\" type=\"search\" placeholder=\"")
-            .Append(Attribute(Text(catalog, ReportMessages.SearchPlaceholder)))
-            .Append("\" oninput=\"filter()\">");
+            .Append("<span class=\"find\">")
+            .Append("<input id=\"q\" type=\"search\" placeholder=\"").Append(Attribute(looking))
+            .Append("\" oninput=\"filter()\">")
+            .Append("<button type=\"button\" class=\"clear\" id=\"clear\" hidden")
+            .Append(" aria-label=\"").Append(Attribute(looking))
+            .Append("\" onclick=\"unfind()\">&#215;</button>")
+            .Append("</span>");
 
         Toggle(page, "error", Text(catalog, ReportMessages.LabelErrors));
         Toggle(page, "warning", Text(catalog, ReportMessages.LabelWarnings));
@@ -363,7 +372,7 @@ internal static class ReportHtml
         if (entries.Count == 0)
         {
             page.Append("<p class=\"empty\">")
-                .Append(Escaped(Text(catalog, ReportMessages.NoProblems))).Append("</p>");
+                .Append(Escaped(Text(catalog, ReportMessages.NothingHere))).Append("</p>");
         }
 
         foreach (var entry in entries)
@@ -703,36 +712,67 @@ internal static class ReportHtml
     // -------------------------------------------------------------------- look
 
     /// <summary>
-    /// The same tokens the generated documentation uses, so both look like one tool.
+    /// GitHub's own palette, type and components.
     /// </summary>
     /// <remarks>
-    /// Defined three times over: the light set on the root, the dark set behind a media query
-    /// for a reader who has chosen no theme here, and the dark set again behind an attribute
-    /// for a reader who has. The last is what lets the control override the system in both
-    /// directions.
+    /// Primer, deliberately and closely: the colour tokens, the 14px system stack, the box
+    /// with one frame and a rule between rows, the pill labels and counters, the underline
+    /// nav, the button. Not because this page is on GitHub, but because the people reading it
+    /// spend their day on pages that look like this - a tool's own dialect of grey boxes is a
+    /// thing to learn before the content can be read.
+    ///
+    /// Nothing is fetched. One file, styles and script inline, the same closed-network rule
+    /// the generated documentation pages keep.
     /// </remarks>
     private const string Style = """
+/* ---- Primer tokens.
+
+   Three times over: the light set on the root, the dark set behind a media query for a
+   reader who has chosen no theme here, and the dark set again behind an attribute for a
+   reader who has. The last is what lets the control override the system in both
+   directions - and no colour has its only definition inside the media block. ---- */
 :root {
-  --bg:#fff; --fg:#1f2328; --muted:#59636e; --faint:#818b98;
-  --line:#d1d9e0; --line-soft:#eaeef2; --head:#f6f8fa; --zebra:#fbfcfd;
-  --link:#0969da; --bad:#cf222e; --warn:#9a6700; --ok:#0a7c4a; --bar:#f6f8fa;
-  --code:#8250df; --code-bg:#f3eefc;
+  --canvas:#ffffff; --subtle:#f6f8fa; --inset:#f6f8fa;
+  --border:#d1d9e0; --border-muted:#d8dee4;
+  --fg:#1f2328; --fg-muted:#59636e; --fg-subtle:#818b98;
+  --accent:#0969da; --danger:#d1242f; --attention:#9a6700; --success:#1a7f37; --done:#8250df;
+  --neutral:rgba(129,139,152,.12); --counter:rgba(129,139,152,.2);
+  --btn:#f6f8fa; --btn-hover:#eff2f5; --btn-border:rgba(31,35,40,.15);
+  --btn-shadow:0 1px 0 rgba(31,35,40,.04);
+  --selected:#fd8c73;
+  --flash:#ddf4ff; --flash-border:rgba(84,174,255,.4);
+  --danger-tint:rgba(255,129,130,.1); --attention-tint:rgba(212,167,44,.15);
+  --mark:#fff8c5;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --faint:#6e7681;
-    --line:#30363d; --line-soft:#21262d; --head:#161b22; --zebra:#11161d;
-    --link:#4493f8; --bad:#f85149; --warn:#d29922; --ok:#3fb950; --bar:#161b22;
-    --code:#d2a8ff; --code-bg:#221a35;
+    --canvas:#0d1117; --subtle:#151b23; --inset:#010409;
+    --border:#3d444d; --border-muted:#2f353d;
+    --fg:#f0f6fc; --fg-muted:#9198a1; --fg-subtle:#656c76;
+    --accent:#4493f8; --danger:#f85149; --attention:#d29922; --success:#3fb950; --done:#ab7df8;
+    --neutral:rgba(101,109,118,.2); --counter:rgba(101,109,118,.2);
+    --btn:#212830; --btn-hover:#262c36; --btn-border:#3d444d;
+    --btn-shadow:0 0 transparent;
+    --selected:#fd8c73;
+    --flash:rgba(56,139,253,.1); --flash-border:rgba(56,139,253,.4);
+    --danger-tint:rgba(248,81,73,.1); --attention-tint:rgba(187,128,9,.15);
+    --mark:rgba(187,128,9,.4);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --faint:#6e7681;
-  --line:#30363d; --line-soft:#21262d; --head:#161b22; --zebra:#11161d;
-  --link:#4493f8; --bad:#f85149; --warn:#d29922; --ok:#3fb950; --bar:#161b22;
-  --code:#d2a8ff; --code-bg:#221a35;
+  --canvas:#0d1117; --subtle:#151b23; --inset:#010409;
+  --border:#3d444d; --border-muted:#2f353d;
+  --fg:#f0f6fc; --fg-muted:#9198a1; --fg-subtle:#656c76;
+  --accent:#4493f8; --danger:#f85149; --attention:#d29922; --success:#3fb950; --done:#ab7df8;
+  --neutral:rgba(101,109,118,.2); --counter:rgba(101,109,118,.2);
+  --btn:#212830; --btn-hover:#262c36; --btn-border:#3d444d;
+  --btn-shadow:0 0 transparent;
+  --selected:#fd8c73;
+  --flash:rgba(56,139,253,.1); --flash-border:rgba(56,139,253,.4);
+  --danger-tint:rgba(248,81,73,.1); --attention-tint:rgba(187,128,9,.15);
+  --mark:rgba(187,128,9,.4);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -746,134 +786,181 @@ internal static class ReportHtml
 html, body { height: 100%; }
 body {
   margin: 0; display: flex; flex-direction: column; overflow: hidden;
-  background: var(--bg); color: var(--fg);
-  font: 13px/1.5 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+  background: var(--canvas); color: var(--fg);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial,
         "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
 }
-a { color: var(--link); text-decoration: none; }
+a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
-.id, .at, code { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
-
-/* What a report quotes - a column, a value, a setting - is the part that differs from the
-   report above it, and as plain text it read like the part that does not. A tint alone was
-   not enough of a difference to find by eye down a page of them, so it carries a colour of
-   its own - and one that is not the link blue already in the row. */
-code { color: var(--code); background: var(--code-bg); border-radius: 4px; padding: 0 4px; }
+.id, .at, code { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+                              "Liberation Mono", monospace; }
 * { scrollbar-width: thin; }
 
-/* One scrolling region. The header, tabs and toolbar hold their place because nothing above
-   them moves, and what scrolls is the one region with more in it than fits. */
-main { flex: 1; overflow-y: auto; padding: 10px 14px 40px; }
+/* What a report quotes - a column, a value, a setting - is the part that differs from the
+   report above it, and as plain text it read like the part that does not. The chip is the
+   one this page's readers already know; the colour is the palette's own `done`, because a
+   tint alone was not enough to find by eye down a page of them. */
+code { padding: .2em .4em; font-size: 85%; border-radius: 6px;
+       background: var(--neutral); color: var(--done); }
 
-header.bar { padding: 12px 14px 8px; background: var(--bar); border-bottom: 1px solid var(--line); }
-header.bar h1 { margin: 0 0 5px; font-size: 16px; font-weight: 600; }
-header.bar.bad h1 { color: var(--bad); }
-header.bar.good h1 { color: var(--ok); }
-header.bar.warn h1 { color: var(--warn); }
-.failure { margin: 4px 0; }
+/* One scrolling region, and the content held to a column on a wide screen. The padding
+   centres it while the rules above and below still run the full width. */
+header.bar, .tabs, .tools, main {
+  padding-inline: max(16px, calc((100% - 1280px) / 2));
+}
+main { flex: 1; overflow-y: auto; padding-top: 16px; padding-bottom: 48px; }
 
-.counts { display: flex; flex-wrap: wrap; gap: 5px; margin: 7px 0; }
-.chip { padding: 1px 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; }
-.chip b { font-variant-numeric: tabular-nums; }
-.chip.zero { color: var(--faint); }
-.chip.error b { color: var(--bad); }
-.chip.warning b { color: var(--warn); }
-.chip.new b { color: var(--bad); }
-.chip.resolved b { color: var(--ok); }
+/* ---- the subhead ---- */
+header.bar { padding-top: 16px; padding-bottom: 12px;
+             background: var(--canvas); border-bottom: 1px solid var(--border); }
+header.bar h1 { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.25; }
+header.bar.bad h1 { color: var(--danger); }
+header.bar.good h1 { color: var(--success); }
+header.bar.warn h1 { color: var(--attention); }
+.failure { margin: 6px 0 0; }
 
-p.meta { margin: 5px 0 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
-p.meta .k { color: var(--faint); }
-p.meta .dot { color: var(--faint); }
+/* ---- labels ---- */
+.counts { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+.chip { padding: 0 10px; border: 1px solid var(--border); border-radius: 2em;
+        font-size: 12px; font-weight: 500; line-height: 22px; color: var(--fg-muted); }
+.chip b { font-variant-numeric: tabular-nums; font-weight: 600; }
+.chip.zero { color: var(--fg-subtle); }
+.chip.error { color: var(--danger); border-color: var(--danger); background: var(--danger-tint); }
+.chip.warning { color: var(--attention); border-color: var(--attention);
+                background: var(--attention-tint); }
+.chip.error.zero, .chip.warning.zero { color: var(--fg-subtle); border-color: var(--border);
+                                       background: none; }
+.chip.new b { color: var(--danger); }
+.chip.resolved b { color: var(--success); }
 
-/* ---- tabs: one list at a time ---- */
-.tabs { display: flex; gap: 2px; padding: 0 14px; background: var(--bar);
-        border-bottom: 1px solid var(--line); }
-.tab { appearance: none; border: 0; background: none; color: var(--muted); cursor: pointer;
-       padding: 8px 12px; font: inherit; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.tab:hover { color: var(--fg); }
-.tab.on { color: var(--fg); border-bottom-color: var(--link); font-weight: 600; }
-.tab.zero { color: var(--faint); }
-.tab .n { margin-left: 6px; font-variant-numeric: tabular-nums; font-size: 11px;
-          padding: 1px 6px; border-radius: 999px; background: var(--line-soft); color: var(--muted); }
+p.meta { margin: 10px 0 0; font-size: 12px; color: var(--fg-muted); overflow-wrap: anywhere; }
+p.meta .k { color: var(--fg-subtle); }
+p.meta .dot { color: var(--fg-subtle); }
 
+/* ---- underline nav ---- */
+.tabs { display: flex; gap: 0; background: var(--canvas);
+        border-bottom: 1px solid var(--border); }
+.tab { appearance: none; border: 0; background: none; color: var(--fg); cursor: pointer;
+       padding: 8px 16px; font: inherit; line-height: 30px;
+       border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { background: var(--neutral); border-radius: 6px 6px 0 0; }
+.tab.on { font-weight: 600; border-bottom-color: var(--selected); }
+.tab.zero { color: var(--fg-muted); }
+.tab .n { margin-left: 8px; font-size: 12px; font-weight: 500; line-height: 18px;
+          padding: 0 6px; border-radius: 2em; background: var(--counter); color: var(--fg-muted);
+          font-variant-numeric: tabular-nums; }
+
+/* ---- the control strip ---- */
 .tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-         padding: 7px 14px; border-bottom: 1px solid var(--line); background: var(--bg); }
-.tools input[type=search] { flex: 1 1 200px; min-width: 150px; padding: 3px 8px;
-  border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
-.tools button, .tools select { padding: 3px 8px; border: 1px solid var(--line); border-radius: 6px;
-  background: var(--bg); color: var(--fg); cursor: pointer; font-size: 12px; }
-.tools button:hover { background: var(--head); }
-.toggle, .by { font-size: 12px; color: var(--muted); user-select: none; cursor: pointer; }
-.toggle input { vertical-align: -1px; margin-right: 3px; }
+         padding-top: 12px; padding-bottom: 12px; background: var(--canvas); }
+.find { position: relative; display: flex; flex: 1 1 240px; min-width: 160px; }
+.tools input[type=search] {
+  width: 100%; padding: 5px 30px 5px 12px; font: inherit; line-height: 20px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--canvas); color: var(--fg); }
+.tools input[type=search]::-webkit-search-cancel-button { appearance: none; display: none; }
+/* The glyph and nothing else. Centred by the box rather than by a line height - a line
+   height centres the line, not the mark drawn inside it, and this one sat low. */
+.clear { position: absolute; right: 6px; top: 0; bottom: 0; margin: auto 0;
+  display: flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; padding: 0; line-height: 1;
+  border: 0; background: none; color: var(--fg-subtle); font-size: 16px; cursor: pointer; }
+.clear:hover { color: var(--fg); }
+
+/* Where the search found what it was given. */
+mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 1px; }
+.tools input[type=search]:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(9,105,218,.3); }
+.tools button, .tools select {
+  padding: 5px 12px; font: inherit; font-size: 14px; font-weight: 500; line-height: 20px;
+  border: 1px solid var(--btn-border); border-radius: 6px; box-shadow: var(--btn-shadow);
+  background: var(--btn); color: var(--fg); cursor: pointer; }
+.tools button:hover, .tools select:hover { background: var(--btn-hover); }
+.toggle, .by { font-size: 12px; color: var(--fg-muted); user-select: none; cursor: pointer;
+               white-space: nowrap; }
+.toggle input { vertical-align: -2px; margin-right: 4px; accent-color: var(--accent); }
 .spacer { flex: 1 1 0; }
 
-.note { margin: 6px 0; padding: 6px 10px; border-left: 3px solid var(--warn);
-        background: var(--head); font-size: 12px; color: var(--muted); }
-.empty { color: var(--faint); }
+/* ---- flash ---- */
+.note { margin: 0 0 16px; padding: 12px 16px; border: 1px solid var(--flash-border);
+        border-radius: 6px; background: var(--flash); font-size: 14px; color: var(--fg); }
+.empty { color: var(--fg-muted); padding: 16px; margin: 0; }
 
-/* One frame around the list rather than one per group, so the page reads as a list. */
-section[data-panel] { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-section[data-panel] > details.grp { border: 0; border-top: 1px solid var(--line);
+/* ---- the box: one frame around the list, one rule between rows ---- */
+section[data-panel] { border: 1px solid var(--border); border-radius: 6px;
+                      background: var(--canvas); overflow: hidden; }
+section[data-panel] > details.grp { border: 0; border-top: 1px solid var(--border);
                                     border-radius: 0; margin: 0; }
 section[data-panel] > details.grp:first-child { border-top: 0; }
-details.grp { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 6px; overflow: hidden; }
+details.grp { border: 1px solid var(--border); border-radius: 6px; margin: 0; overflow: hidden; }
 details.grp > summary { display: flex; align-items: center; gap: 8px; cursor: pointer;
-  padding: 6px 10px; background: var(--head); }
+  padding: 8px 16px; background: var(--subtle); font-size: 14px; font-weight: 600; }
+details.grp > summary::marker { color: var(--fg-muted); }
 details.grp > summary .where { overflow-wrap: anywhere; }
-details.grp > summary .n { margin-left: auto; color: var(--faint);
-  font-variant-numeric: tabular-nums; font-size: 12px; }
+details.grp > summary .n { margin-left: auto; font-weight: 500; font-size: 12px;
+  padding: 0 6px; border-radius: 2em; background: var(--counter); color: var(--fg-muted);
+  font-variant-numeric: tabular-nums; }
 
-/* ---- a row is one line until it is asked to be more ----
-
-   A list with hairlines, not a stack of cards. Every standing-alone row used to carry its
-   own border and rounded corners, which on a page of fourteen is fourteen boxes competing
-   with what is written in them. */
-.row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
-       padding: 7px 10px 7px 8px; border-top: 1px solid var(--line-soft); cursor: pointer; }
+/* ---- a row is one line until it is asked to be more ---- */
+.row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+       padding: 8px 16px; border-top: 1px solid var(--border-muted); cursor: pointer; }
 .row:first-child { border-top: 0; }
-.row:hover { background: var(--head); }
-.row.bare { border: 0; border-top: 1px solid var(--line-soft); margin: 0; }
-.row .sev { flex: 0 0 3px; align-self: stretch; border-radius: 2px; background: transparent; }
-.row.error .sev { background: var(--bad); }
-.row.warning .sev { background: var(--warn); }
-/* Where the fix happens, at the other end of the row from what is wrong. Every row ends
-   with it, so their right edges line up without a width being set - and it is smaller and
-   quieter than the sentence, because it is the address rather than the message. */
-.at { flex: 0 0 auto; color: var(--link); white-space: nowrap; font-size: 11.5px; }
-.at.plain { color: var(--faint); }
-.row:hover .at.plain { color: var(--muted); }
+.row:hover { background: var(--subtle); }
+.row.bare { border: 0; border-top: 1px solid var(--border-muted); margin: 0; }
 
-/* Clamped, and opened by a click on the row. A report is a paragraph - what is wrong, what
-   follows, what to do - and a page of paragraphs buries the part that differs between them. */
+/* The state dot, in the palette's own danger and attention. */
+.row .sev { flex: 0 0 8px; height: 8px; border-radius: 50%; align-self: center;
+            background: var(--fg-subtle); }
+
+/* On an opened row the dot belongs beside the first line, not floating at the middle of
+   however many lines the sentence turned out to be. */
+.row.open .sev { align-self: flex-start; margin-top: 7px; }
+.row.error .sev { background: var(--danger); }
+.row.warning .sev { background: var(--attention); }
+
 /* Basis zero, not `auto`. With `auto` the base size is the whole sentence, and a wrapping
-   row then puts every message on a line of its own however wide the window is. */
+   row then puts every message on a line of its own however wide the window is.
+
+   This is the content, so it is the one thing at full strength: everything else on the row
+   is smaller, quieter, or both. */
 .msg { flex: 1 1 0; overflow-wrap: anywhere; min-width: 14rem; color: var(--fg);
        display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .row.open .msg { display: block; }
 
+/* Where the fix happens, at the other end of the row from what is wrong. Every row ends
+   with it, so their right edges line up without a width being set - and it is smaller and
+   quieter than the sentence, because it is the address rather than the message. */
+.at { flex: 0 0 auto; color: var(--accent); white-space: nowrap; font-size: 12px; }
+.at.plain { color: var(--fg-subtle); }
+.row:hover .at.plain { color: var(--fg-muted); }
+
 /* Off the closed row: it is what a pipeline filters on, not something the person holding the
    sheet can act on, and repeated down the page it is one string as many times as there are
-   rows. On the opened row it gets a line of its own rather than a column beside the
-   sentence - squeezed into one it wrapped over three lines and took the width from the
-   thing being read. */
-.id { display: none; color: var(--faint); }
-.row.open .id { display: block; flex: 0 0 100%; white-space: nowrap; overflow-x: auto;
-                padding-top: 2px; border-top: 1px dashed var(--line-soft); }
+   rows. On the opened row it gets a line of its own, indented to the sentence above it, so
+   the opened row reads as one thing with a detail under it rather than as two rows. */
+.id { display: none; color: var(--fg-subtle); font-size: 12px; }
+.row.open .id { display: block; flex: 0 0 100%; margin-left: 20px; padding-top: 6px;
+                white-space: nowrap; overflow-x: auto; }
+.row.open { padding-bottom: 10px; }
 
 /* Only `new` is ever written, so it is allowed to be loud. */
-.badge { flex: 0 0 auto; font-size: 10.5px; padding: 0 6px; border-radius: 999px;
-         color: var(--bad); border: 1px solid var(--bad); }
+.badge { flex: 0 0 auto; font-size: 12px; font-weight: 500; line-height: 18px; padding: 0 7px;
+         border-radius: 2em; color: var(--danger); border: 1px solid var(--danger);
+         background: var(--danger-tint); }
+
 /* On hover, and on hover only. A button beside every place is one control as many times as
    there are rows; a button that is also there when the row happens to be open is a control
    that appears for a reason the reader cannot see, which reads as arbitrary. One trigger. */
-.copy { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 5px; background: var(--bg);
-        color: var(--muted); font-size: 11px; padding: 0 6px; cursor: pointer;
-        visibility: hidden; }
+.copy { flex: 0 0 auto; padding: 0 8px; font: inherit; font-size: 12px; font-weight: 500;
+        line-height: 20px; border: 1px solid var(--btn-border); border-radius: 6px;
+        background: var(--btn); color: var(--fg-muted); cursor: pointer; visibility: hidden; }
+.copy:hover { background: var(--btn-hover); color: var(--fg); }
 .row:hover .copy { visibility: visible; }
 
-.defect { border: 1px solid var(--bad); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
-.defect h2 { margin-top: 0; color: var(--bad); font-size: 14px; }
-.defect pre { overflow-x: auto; font-size: 11px; color: var(--muted); }
+.defect { border: 1px solid var(--danger); border-radius: 6px; padding: 16px;
+          margin-bottom: 16px; background: var(--danger-tint); }
+.defect h2 { margin: 0 0 8px; color: var(--danger); font-size: 16px; }
+.defect pre { overflow-x: auto; font-size: 12px; color: var(--fg-muted); }
 """;
 
     /// <summary>
@@ -910,8 +997,18 @@ function open_(row, event) {
   row.classList.toggle('open');
 }
 
+function unfind() {
+  var box = document.getElementById('q');
+  box.value = '';
+  box.focus();
+  filter();
+}
+
 function filter() {
-  var q = document.getElementById('q').value.trim().toLowerCase();
+  var box = document.getElementById('q');
+  var q = box.value.trim().toLowerCase();
+
+  document.getElementById('clear').hidden = box.value.length === 0;
   var on = {};
   document.querySelectorAll('.toggle input').forEach(function (box) {
     on[box.dataset.sev] = box.checked;
@@ -920,12 +1017,24 @@ function filter() {
   var host = panel();
   if (!host) return;
 
+  unmark();
+
   var any = 0;
   host.querySelectorAll('.row').forEach(function (row) {
     var sev = row.dataset.sev;
     var keep = (on[sev] !== false) && (!q || row.dataset.t.indexOf(q) >= 0);
     row.hidden = !keep;
-    if (keep) any++;
+
+    if (!keep) return;
+
+    any++;
+
+    // Only what is on screen and matching. Marking a page of five thousand rows to show a
+    // dozen of them is work nobody sees.
+    if (q) {
+      mark(row.querySelector('.msg'), q);
+      mark(row.querySelector('.at'), q);
+    }
   });
 
   host.querySelectorAll('details.grp').forEach(function (group) {
@@ -936,12 +1045,66 @@ function filter() {
     if (q && showing > 0) group.open = true;
   });
 
-  document.getElementById('nothing').hidden = any > 0;
+  // Only when a filter is what emptied the list. A list that was empty to begin with has
+  // already said so, and two lines saying the same thing is a page arguing with itself.
+  var held = host.querySelectorAll('.row').length;
+
+  document.getElementById('nothing').hidden = any > 0 || held === 0;
 }
 
 /* Both of the things that fold on this page. A page whose places mostly hold one report
    each has almost no group folds on it, and a control that only worked on those read as a
    control that did nothing. */
+/* What the search found, shown where it found it.
+
+   The text nodes are walked rather than the markup being searched and rewritten: a report
+   carries `code` elements for what it quotes, and a replace over `innerHTML` would match
+   inside a tag and take the page apart. Each element keeps its untouched markup so the
+   marks can be lifted again on the next keystroke. */
+var marked = [];
+
+function unmark() {
+  marked.forEach(function (el) { el.innerHTML = el.dataset.html; });
+  marked = [];
+}
+
+function mark(el, q) {
+  if (!el) return;
+
+  if (el.dataset.html === undefined) el.dataset.html = el.innerHTML;
+
+  var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+  var nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+
+  var hit = false;
+
+  nodes.forEach(function (node) {
+    var text = node.nodeValue;
+    var low = text.toLowerCase();
+    var at = low.indexOf(q);
+    if (at < 0) return;
+
+    var piece = document.createDocumentFragment();
+    var from = 0;
+
+    while (at >= 0) {
+      piece.appendChild(document.createTextNode(text.slice(from, at)));
+      var found = document.createElement('mark');
+      found.textContent = text.slice(at, at + q.length);
+      piece.appendChild(found);
+      from = at + q.length;
+      at = low.indexOf(q, from);
+    }
+
+    piece.appendChild(document.createTextNode(text.slice(from)));
+    node.parentNode.replaceChild(piece, node);
+    hit = true;
+  });
+
+  if (hit) marked.push(el);
+}
+
 function fold(open) {
   var host = panel();
   if (!host) return;
