@@ -65,4 +65,70 @@ public static class ValidationMessages
 
     /// <summary>A validation folder with no rule files under it.</summary>
     public const string NoRuleFiles = "validate.no-rule-files";
+
+    /// <summary>A pre-stage rule reading tables, which do not exist yet.</summary>
+    public const string TablesBeforeSheetsRead = "validate.tables-before-sheets-read";
+
+    /// <summary>A pre-stage rule reading the schema, which does not exist yet.</summary>
+    public const string SchemaBeforeSheetsRead = "validate.schema-before-sheets-read";
+
+    /// <summary>A rule reading a validation option the recipe does not set.</summary>
+    public const string OptionNotSet = "validate.option-not-set";
+
+    /// <summary>A rule outside the runtime stage opening an external store.</summary>
+    public const string StoreOutsideRuntimeStage = "validate.store-outside-runtime-stage";
+
+    /// <summary>`Files()` called with no folder.</summary>
+    public const string FilesNeedsFolder = "validate.files-needs-folder";
+
+    /// <summary>`Files()` pointed at a folder that is not there.</summary>
+    public const string FilesFolderMissing = "validate.files-folder-missing";
+
+    /// <summary>`Json()` pointed at a file that is not there.</summary>
+    public const string JsonFileMissing = "validate.json-file-missing";
+
+    /// <summary>A file `Json()` opened that is not JSON.</summary>
+    public const string JsonUnreadable = "validate.json-unreadable";
+
+    /// <summary>A `Validation.Path` resolving to a folder that is not there.</summary>
+    public const string PathFolderMissing = "validate.path-folder-missing";
+
+    /// <summary>A subfolder of the rules folder that is not a stage.</summary>
+    public const string UnknownSubfolder = "validate.unknown-subfolder";
+
+    /// <summary>One stage folder left where the stages used to live.</summary>
+    public const string StageAtRoot = "validate.stage-at-root";
+
+    /// <summary>As <see cref="StageAtRoot"/>, for more than one.</summary>
+    public const string StagesAtRoot = "validate.stages-at-root";
+
+    /// <summary>`--new-validator` with no `Validation.Path` to write into.</summary>
+    public const string NoPathForNewRule = "validate.no-path-for-new-rule";
+
+    /// <summary>`--new-validator` with no table named.</summary>
+    public const string NewValidatorNeedsTable = "validate.new-validator-needs-table";
+
+    /// <summary>`--new-validator` pointed at a rule file that already exists.</summary>
+    public const string RuleFileExists = "validate.rule-file-exists";
+
+    /// <summary>A database a rule queried that answered with a failure.</summary>
+    public const string StoreQueryFailed = "validate.store-query-failed";
+
+    /// <summary>A cache a rule read that answered with a failure.</summary>
+    public const string StoreReadFailed = "validate.store-read-failed";
+
+    /// <summary>Something other than a read passed to a store.</summary>
+    public const string StoreNotAQuery = "validate.store-not-a-query";
+
+    /// <summary>`Db()` given a connection that is not a database.</summary>
+    public const string ConnectionNotADatabase = "validate.connection-not-a-database";
+
+    /// <summary>`Redis()` given a connection that is not Redis.</summary>
+    public const string ConnectionNotRedis = "validate.connection-not-redis";
+
+    /// <summary>A connection a rule opened that the recipe does not have.</summary>
+    public const string ConnectionNotConfigured = "validate.connection-not-configured";
+
+    /// <summary>A connection string with no scheme in front of it.</summary>
+    public const string ConnectionNoScheme = "validate.connection-no-scheme";
 }

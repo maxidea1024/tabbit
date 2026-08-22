@@ -60,4 +60,28 @@ public static class RecipeMessages
 
     /// <summary>A Google Sheets section naming no credential at all.</summary>
     public const string GoogleNoCredential = "recipe.google-no-credential";
+
+    /// <summary>An `Assets.OnMissing` this tool does not understand.</summary>
+    public const string AssetsOnMissingUnknown = "recipe.assets-on-missing-unknown";
+
+    /// <summary>An asset root pointing at a folder that is not there.</summary>
+    public const string AssetsRootMissing = "recipe.assets-root-missing";
+
+    /// <summary>A `DataFileCase` this tool does not understand.</summary>
+    public const string DataFileCaseUnknown = "recipe.data-file-case-unknown";
+
+    /// <summary>A naming spelling this tool does not understand.</summary>
+    public const string NamingCaseUnknown = "recipe.naming-case-unknown";
+
+    /// <summary>A naming `OnViolation` this tool does not understand.</summary>
+    public const string NamingOnViolationUnknown = "recipe.naming-on-violation-unknown";
+
+    /// <summary>A naming severity this tool does not understand.</summary>
+    public const string NamingSeverityUnknown = "recipe.naming-severity-unknown";
+
+    /// <summary>A row-set pattern whose table group captured a different table.</summary>
+    public const string RowSetsGroupCapturedOtherTable = "recipe.row-sets-group-captured-other-table";
+
+    /// <summary>A source asking for a sheet layout that does not exist.</summary>
+    public const string LayoutUnknown = "recipe.layout-unknown";
 }

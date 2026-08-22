@@ -185,9 +185,8 @@ public sealed class NamingRules
             case "upper-snake": into[kind] = NameCase.UpperSnake; return;
         }
 
-        throw new TabbitException(
-            $"Recipe `Naming` sets `{key}` to `{text}`. " +
-            "It takes `pascal`, `camel`, `snake` or `upper-snake`.");
+            throw new TabbitException(null,
+                Messages.Message.Of(Recipe.RecipeMessages.NamingCaseUnknown, ("Key", key), ("Value", text)));
     }
 
     private static Severity ParseViolationSeverity(string value)
@@ -202,10 +201,8 @@ public sealed class NamingRules
             case "warn": return Severity.Warning;
         }
 
-        throw new TabbitException(
-            $"Recipe `Naming` sets `OnViolation` to `{text}`. " +
-            "It takes `error` or `warn`. To leave a kind of name unchecked, leave its " +
-            "spelling blank instead.");
+            throw new TabbitException(null,
+                Messages.Message.Of(Recipe.RecipeMessages.NamingOnViolationUnknown, ("Value", text)));
     }
 
     private static Severity? ParseReportSeverity(string value, string key)
@@ -221,8 +218,7 @@ public sealed class NamingRules
             case "ignore": return null;
         }
 
-        throw new TabbitException(
-            $"Recipe `Naming` sets `{key}` to `{text}`. " +
-            "It takes `error`, `warn` or `ignore`.");
+            throw new TabbitException(null,
+                Messages.Message.Of(Recipe.RecipeMessages.NamingSeverityUnknown, ("Key", key), ("Value", text)));
     }
 }

@@ -17,6 +17,7 @@ using Tabbit.Models;
 using Tabbit.Recipe;
 using Tabbit.Targets;
 using SheetLocation = Tabbit.Models.Location;
+using Tabbit.Messages;
 
 namespace Tabbit.Validation;
 
@@ -160,19 +161,19 @@ internal sealed class RuleAccessor
 
         if (!emitted.Success)
         {
-            foreach (var problem in emitted.Diagnostics
-                                          .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                                          .Take(10))
-            {
-                var span = problem.Location.GetMappedLineSpan();
+            // One defect carrying the compiler's list, rather than ten diagnostics filed
+            // against the rule author's files. It said in each of them that the fault was
+            // ours, which is what the exception type says now - and CsAssemblyEmitter, the
+            // other place generated code fails to compile, already reports it this way.
+            var errors = emitted.Diagnostics
+                                .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                                .Take(10)
+                                .Select(problem => problem.ToString());
 
-                diagnostics.Error(
-                    SheetLocation.OfTextFile(span.Path, span.StartLinePosition.Line + 1, span.StartLinePosition.Character + 1),
-                    $"The accessor generated for validation does not compile: {problem.GetMessage()} "
-                    + $"This is a defect in Tabbit rather than in a rule file.");
-            }
-
-            return null;
+            throw new TabbitDefectException(
+                "The accessor generated for validation does not compile."
+                + System.Environment.NewLine
+                + string.Join(System.Environment.NewLine, errors));
         }
 
         byte[] image = assemblyStream.ToArray();
@@ -306,9 +307,9 @@ internal sealed class RuleAccessor
         var source = new ByteSource(bytes);
 
         var field = tables!.GetField("ReadAllBytesAsync", BindingFlags.Public | BindingFlags.Static)
-                    ?? throw new TabbitException(
+                    ?? throw new TabbitDefectException(
                         "The generated accessor has no `ReadAllBytesAsync` to point at the "
-                        + "encoded tables. This is a defect in Tabbit.");
+                        + "encoded tables.");
 
         field.SetValue(null, Delegate.CreateDelegate(
             field.FieldType, source, typeof(ByteSource).GetMethod(nameof(ByteSource.Read))!));
@@ -317,8 +318,8 @@ internal sealed class RuleAccessor
         // together. The instance is what the context hands to a rule; publishing it is what keeps
         // the static `Tables.Item` working for a rule that reaches that way instead.
         var load = tables.GetMethod("LoadAsync", BindingFlags.Public | BindingFlags.Static)
-                   ?? throw new TabbitException(
-                       "The generated accessor has no `LoadAsync`. This is a defect in Tabbit.");
+                   ?? throw new TabbitDefectException(
+                       "The generated accessor has no `LoadAsync`.");
 
         // An empty base path, because the delegate above keys on the file name alone. The
         // reader still builds a path and still asks for it, which is the point - nothing about
@@ -328,13 +329,12 @@ internal sealed class RuleAccessor
         loading.GetAwaiter().GetResult();
 
         object snapshot = loading.GetType().GetProperty("Result")?.GetValue(loading)
-                          ?? throw new TabbitException(
-                              "The generated accessor's `LoadAsync` answered with nothing. This is "
-                              + "a defect in Tabbit.");
+                          ?? throw new TabbitDefectException(
+                              "The generated accessor's `LoadAsync` answered with nothing.");
 
         var publish = tables.GetMethod("Publish", BindingFlags.Public | BindingFlags.Static)
-                      ?? throw new TabbitException(
-                          "The generated accessor has no `Publish`. This is a defect in Tabbit.");
+                      ?? throw new TabbitDefectException(
+                          "The generated accessor has no `Publish`.");
 
         publish.Invoke(null, new[] { snapshot });
 
@@ -355,9 +355,9 @@ internal sealed class RuleAccessor
 
             return _bytes.TryGetValue(name, out byte[]? found)
                 ? Task.FromResult(found)
-                : throw new TabbitException(
+                : throw new TabbitDefectException(
                     $"Validation asked the generated reader for `{name}`, which this run did not "
-                    + $"encode. This is a defect in Tabbit.");
+                    + $"encode.");
         }
     }
 }

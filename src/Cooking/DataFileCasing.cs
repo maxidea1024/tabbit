@@ -37,9 +37,7 @@ internal static class DataFileCasing
             case "upper-snake": return NameCase.UpperSnake;
         }
 
-        throw new TabbitException(
-            $"The recipe sets `DataFileCase` to `{text}`. " +
-            "It takes `pascal`, `camel`, `snake` or `upper-snake`, or nothing at all to name " +
-            "each data file after its table.");
+            throw new TabbitException(null,
+                Messages.Message.Of(Recipe.RecipeMessages.DataFileCaseUnknown, ("Value", text)));
     }
 }

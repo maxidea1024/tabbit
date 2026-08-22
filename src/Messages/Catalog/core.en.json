@@ -99,6 +99,24 @@
   "recipe.google-service-account-and-client-secret": "Recipe section `{Section}` names both a service account key and `ClientSecretFilename`. Those authenticate as different identities, so name one: the service account for an unattended run, the client secret for a person at a machine.",
   "recipe.google-no-credential": "Recipe section `{Section}` names no credential. Set `ServiceAccountKeyFile` or `ServiceAccountKeyVariable` for an unattended run, or `ClientSecretFilename` to authenticate as the person running it.",
 
+  "recipe.assets-on-missing-unknown": "Recipe setting `Assets.OnMissing` is `{Value}`. It has to be `warn`, `error` or `ignore`.",
+  "recipe.assets-root-missing": "`Assets.Roots` points at `{Path}`, and there is no folder at `{Full}`. A root that is not there is a recipe mistake rather than a tree with nothing in it - every value checked against it would be reported missing.",
+  "recipe.data-file-case-unknown": "The recipe sets `DataFileCase` to `{Value}`. It takes `pascal`, `camel`, `snake` or `upper-snake`, or nothing at all to name each data file after its table.",
+  "recipe.naming-case-unknown": "Recipe `Naming` sets `{Key}` to `{Value}`. It takes `pascal`, `camel`, `snake` or `upper-snake`.",
+  "recipe.naming-on-violation-unknown": "Recipe `Naming` sets `OnViolation` to `{Value}`. It takes `error` or `warn`. To leave a kind of name unchecked, leave its spelling blank instead.",
+  "recipe.naming-severity-unknown": "Recipe `Naming` sets `{Key}` to `{Value}`. It takes `error`, `warn` or `ignore`.",
+  "recipe.row-sets-group-captured-other-table": "`TableRowSets` matches `{Set}` but its `{TableGroup}` group captured `{Captured}`, so the pattern does not say which table this is a set of rows for.",
+  "recipe.layout-unknown": "A recipe source asks for the sheet layout `{Layout}`, which does not exist. Use one of: {Known}.",
+
+  "cook.type-has-no-empty-value": "There is no empty value for type `{Type}`, so a column of it cannot be optional.",
+  "cook.index-type-unusable-in-table": "The index field `{Field}` is `{Type}`, {Why} Use a whole-number, string, uuid or enum column as the index.",
+  "cook.index-field-optional": "The index field cannot be optional: `int?` is not allowed for the index field, because every row must have an index.",
+  "cook.index-field-target-side": "The target-side of the index field must be set to CS.",
+  "cook.wire-tag-on-serial-member": "Field `{Table}.{Field}` is part of the serial field `{Serial}` and carries wire tag {Tag}. A serial field is one column on the wire, so the tag goes on its first member only.",
+  "cook.wire-tag-only-on-tombstone": "Table `{Table}` has a `#`-excluded column reserving a wire tag, but no live field carries one. Tags are all-or-none per table: give every field its `@N`, or drop the tag from the tombstone.",
+  "cook.wire-tags-partial": "Table `{Table}` tags some fields and not others: {Untagged} carry no `@N`. Tags are all-or-none per table, because a half-tagged table gets neither mode's guarantees.",
+  "cook.wire-tag-reused": "Field `{Table}.{Field}` declares wire tag {Tag}, which {Holder} already holds. A tag identifies a column for the life of the data, so it can never be shared or reused.",
+
   "validate.rule-has-no-entry": "[{File}] has nothing to run. A rule file is a class with `public static void {Entry}({Context} context)`, and the context is how it reports. Helpers with no entry belong in `{SharedPath}/`, which is compiled with every rule but never run on its own.",
   "validate.rule-entry-declared-twice": "[{File}] declares `{Entry}()` more than once, so which one is the rule is not decided. Keep one and call the rest from it.",
   "validate.rule-entry-wrong-context": "[{File}] declares `{Owner}.{Entry}` but it does not take a `{Context}`, which is what `{Folder}/` hands over. Write `public static void {Entry}({Context} context)`. A rule moved here from another stage takes the other stage's context, and the two differ in what they carry.",
@@ -113,5 +131,32 @@
   "validate.table-rule-orphaned": "[{File}] is a rule for table `{Table}`, which this model does not have.{Hint} Rename the file to follow the table, or move its checks into `{GlobalFolder}/` if they are not about one table.",
   "validate.table-rule-declares-tier": "[{File}] declares a tier, which `{TableFolder}/` has no use for: its rules run at the same time as each other and each is about one table. Move the checks into `{GlobalFolder}/` if their order matters, or drop the attribute.",
   "validate.tier-unreadable": "[{File}] declares a tier this cannot read. Write a plain number - the tiers are settled before any rule is compiled, so a named constant is not available to read here.",
-  "validate.no-rule-files": "The validation folder `{Root}` holds no rule files. Put `.cs` files in `{TableFolder}/`, `{GlobalFolder}/`, `{RuntimeFolder}/` or `{PreFolder}/` - or clear `Validation.Path` to run without validation."
+  "validate.no-rule-files": "The validation folder `{Root}` holds no rule files. Put `.cs` files in `{TableFolder}/`, `{GlobalFolder}/`, `{RuntimeFolder}/` or `{PreFolder}/` - or clear `Validation.Path` to run without validation.",
+
+  "validate.tables-before-sheets-read": "This rule reads `Tables` through the context, which holds nothing before the sheets are read. Move it out of `{PreFolder}/` - the tables exist from `{TableFolder}/` onward.",
+  "validate.schema-before-sheets-read": "This rule reads `Schema`, which is not available before the sheets are read. Move it out of `{PreFolder}/` - the tables exist from `{TableFolder}/` onward.",
+  "validate.option-not-set": "This rule reads the validation option `{Key}`, which the recipe does not set. Add it under `Validation.Options` ({Known}).",
+  "validate.store-outside-runtime-stage": "This rule opens an external store, which only the `{RuntimeFolder}/` rules may do. Move the file there - it is the folder `--skip-runtime-validation` can leave out, and that only works if the rules that need a store are in it.",
+
+  "validate.files-needs-folder": "`Files()` needs a folder to scan. Pass one - `Option(\"ContentRoot\")` is where it usually comes from.",
+  "validate.files-folder-missing": "`Files(\"{Root}\", \"{Pattern}\")` found no folder at `{Full}`. A rule that checks assets needs the content root, which the recipe passes through `Validation.Options`.",
+  "validate.json-file-missing": "`Json(\"{Path}\")` found no file at `{Full}`.",
+  "validate.json-unreadable": "`{Full}` is not readable as JSON: {Detail}",
+
+  "validate.path-folder-missing": "The recipe's `Validation.Path` is `{Path}`, which resolves to `{Root}` - and there is no folder there. Create it with the `{RulesFolder}/pre/` `{RulesFolder}/tables/` `{RulesFolder}/global/` `{RulesFolder}/runtime/` layout, or clear `Validation.Path` to run without validation.",
+  "validate.unknown-subfolder": "`{Parent}` has a subfolder `{Name}`, which is not one this layout runs. {Advice} - or prefix it with `#` to have it skipped.",
+  "validate.stage-at-root": "The validation folder `{Root}` has {Stray} at its root, which is where the stages were before they moved under `{RulesFolder}/`. Move it there - the rules themselves need no change.",
+  "validate.stages-at-root": "The validation folder `{Root}` has {Stray} at its root, which is where the stages were before they moved under `{RulesFolder}/`. Move them there - the rules themselves need no change.",
+
+  "validate.no-path-for-new-rule": "The recipe has no `Validation.Path`, so there is no folder to put a rule in. Set it to where the rules should live - beside the sheets is the usual place.",
+  "validate.new-validator-needs-table": "`--new-validator` needs the name of the table to write a rule for.",
+  "validate.rule-file-exists": "`{Path}` already exists. Open it rather than starting it again - a rule file is somebody's work, and this command will not overwrite one.",
+
+  "validate.store-query-failed": "Validation could not query `{Name}`: {Detail} ({Connection})",
+  "validate.store-read-failed": "Validation could not read `{Name}`: {Detail} ({Connection})",
+  "validate.store-not-a-query": "Validation may only read: `{Head}` is not a query. Use SELECT, WITH or SHOW.",
+  "validate.connection-not-a-database": "`Validation.Connections.{Name}` is a `{Scheme}:` connection, which `Db()` does not open. Use `mysql:` or `postgres:` - or `Redis(\"{Name}\")` if it is a cache.",
+  "validate.connection-not-redis": "`Validation.Connections.{Name}` is a `{Scheme}:` connection, which `Redis()` does not open. Use `redis://host:port/db`, or `Db(\"{Name}\")` if it is a database.",
+  "validate.connection-not-configured": "This rule opens the connection `{Name}`, which the recipe does not have. Add it under `Validation.Connections` ({Known}).",
+  "validate.connection-no-scheme": "`Validation.Connections.{Name}` does not say which kind of store it is. Begin it with `mysql:`, `postgres:` or `redis://`."
 }

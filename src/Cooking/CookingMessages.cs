@@ -223,4 +223,27 @@ public static class CookingMessages
 
     /// <summary>Times that occur twice in the zone, read as the standard-time one.</summary>
     public const string NoticeAmbiguousTime = "cook.notice-ambiguous-time";
+    /// <summary>A type with no empty value declared optional.</summary>
+    public const string TypeHasNoEmptyValue = "cook.type-has-no-empty-value";
+
+    /// <summary>A table's index column typed something that cannot key rows.</summary>
+    public const string IndexTypeUnusableInTable = "cook.index-type-unusable-in-table";
+
+    /// <summary>A table's index column typed optional.</summary>
+    public const string IndexFieldOptional = "cook.index-field-optional";
+
+    /// <summary>A table's index column restricted to one target side.</summary>
+    public const string IndexFieldTargetSide = "cook.index-field-target-side";
+
+    /// <summary>A wire tag on a serial field member other than the first.</summary>
+    public const string WireTagOnSerialMember = "cook.wire-tag-on-serial-member";
+
+    /// <summary>A reserved wire tag with no live field carrying one.</summary>
+    public const string WireTagOnlyOnTombstone = "cook.wire-tag-only-on-tombstone";
+
+    /// <summary>A table where some fields carry a wire tag and some do not.</summary>
+    public const string WireTagsPartial = "cook.wire-tags-partial";
+
+    /// <summary>A wire tag another column already holds.</summary>
+    public const string WireTagReused = "cook.wire-tag-reused";
 }

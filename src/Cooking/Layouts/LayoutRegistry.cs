@@ -67,9 +67,9 @@ public static class LayoutRegistry
         if (found is not null)
             return found;
 
-        throw new TabbitException(
-            $"A recipe source asks for the sheet layout `{id}`, which does not exist. " +
-            $"Use one of: {KnownIds}.");
+            throw new TabbitException(null,
+                Messages.Message.Of(Recipe.RecipeMessages.LayoutUnknown,
+                    ("Layout", id), ("Known", KnownIds)));
     }
 
     /// <summary>

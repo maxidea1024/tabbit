@@ -126,10 +126,10 @@ internal static class TableRowSets
             // mistake in the sheets, so it is worth saying which is which.
             if (ownerName.Length == 0 || string.Equals(ownerName, table.RawName, StringComparison.Ordinal))
             {
-                throw new TabbitException(table.Location,
-                    $"`TableRowSets` matches `{table.RawName}` but its `{TableGroup}` group "
-                    + $"captured `{ownerName}`, so the pattern does not say which table this "
-                    + $"is a set of rows for.");
+                    throw new TabbitException(table.Location,
+                        Messages.Message.Of(Recipe.RecipeMessages.RowSetsGroupCapturedOtherTable,
+                            ("Set", table.RawName), ("TableGroup", TableGroup),
+                            ("Captured", ownerName)));
             }
 
             if (!byRawName.TryGetValue(ownerName, out var owner))

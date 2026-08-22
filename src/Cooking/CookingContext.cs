@@ -512,8 +512,8 @@ public sealed class CookingContext
             case Models.ValueType.ForeignRecord: return 0;
 
             default:
-                throw new TabbitException(
-                    $"There is no empty value for type `{type}`, so a column of it cannot be optional.");
+                    throw new TabbitException(null,
+                        Message.Of(CookingMessages.TypeHasNoEmptyValue, ("Type", type)));
         }
     }
 
@@ -1345,19 +1345,21 @@ public sealed class CookingContext
         // by name, which is why that constraint is not repeated here.
         if (!Models.ValueTypes.CanBeIndexKey(field.Type, out string? why))
         {
-            throw new TabbitException(field.TypeLocation,
-                $"The index field `{field.Name}` is `{field.TypeName}`, {why}"
-                + $" Use a whole-number, string, uuid or enum column as the index.");
+                throw new TabbitException(field.TypeLocation,
+                    Message.Of(CookingMessages.IndexTypeUnusableInTable,
+                        ("Field", field.Name), ("Type", field.TypeName), ("Why", why)));
         }
 
         // The index is what every row is identified by and what every reference to this
         // table resolves through, so a blank one has nothing to mean. `int?` gets refused
         // here rather than silently handing several rows the same index 0.
         if (!field.IsRequired)
-            throw new TabbitException(field.TypeLocation, "The index field cannot be optional: `int?` is not allowed for the index field, because every row must have an index.");
+                throw new TabbitException(field.TypeLocation,
+                    Message.Of(CookingMessages.IndexFieldOptional));
 
         if (field.TargetSide != Models.TargetSide.Both)
-            throw new TabbitException(field.TargetSideLocation, $"The target-side of the index field must be set to CS.");
+                throw new TabbitException(field.TargetSideLocation,
+                    Message.Of(CookingMessages.IndexFieldTargetSide));
     }
 
     /// <summary>
@@ -1384,10 +1386,10 @@ public sealed class CookingContext
             {
                 if (extra.Tag is not null)
                 {
-                    throw new TabbitException(extra.NameLocation,
-                        $"Field `{table.Name}.{extra.Name}` is part of the serial field " +
-                        $"`{sf.Name}` and carries wire tag {extra.Tag}. A serial field is one " +
-                        "column on the wire, so the tag goes on its first member only.");
+                        throw new TabbitException(extra.NameLocation,
+                            Message.Of(CookingMessages.WireTagOnSerialMember,
+                                ("Table", table.Name), ("Field", extra.Name),
+                                ("Serial", sf.Name), ("Tag", extra.Tag)));
                 }
             }
         }
@@ -1406,10 +1408,8 @@ public sealed class CookingContext
         {
             if (table.ReservedTags.Count > 0)
             {
-                throw new TabbitException(table.Location,
-                    $"Table `{table.Name}` has a `#`-excluded column reserving a wire tag, but " +
-                    "no live field carries one. Tags are all-or-none per table: give every " +
-                    "field its `@N`, or drop the tag from the tombstone.");
+                    throw new TabbitException(table.Location,
+                        Message.Of(CookingMessages.WireTagOnlyOnTombstone, ("Table", table.Name)));
             }
 
             // Ordinal mode: the tag is the column's position, which is safe to append
@@ -1429,10 +1429,10 @@ public sealed class CookingContext
                 .Where(c => c.TagCarrier.Tag is null)
                 .Select(c => c.Name);
 
-            throw new TabbitException(table.Location,
-                $"Table `{table.Name}` tags some fields and not others: " +
-                $"{string.Join(", ", untagged)} carry no `@N`. Tags are all-or-none per " +
-                "table, because a half-tagged table gets neither mode's guarantees.");
+                throw new TabbitException(table.Location,
+                    Message.Of(CookingMessages.WireTagsPartial,
+                        ("Table", table.Name),
+                        ("Untagged", string.Join(", ", untagged))));
         }
 
         var seen = new Dictionary<int, string>();
@@ -1448,10 +1448,10 @@ public sealed class CookingContext
 
             if (seen.TryGetValue(tag, out string? holder))
             {
-                throw new TabbitException(field.NameLocation,
-                    $"Field `{table.Name}.{name}` declares wire tag {tag}, which {holder} " +
-                    "already holds. A tag identifies a column for the life of the data, so it " +
-                    "can never be shared or reused.");
+                    throw new TabbitException(field.NameLocation,
+                        Message.Of(CookingMessages.WireTagReused,
+                            ("Table", table.Name), ("Field", name),
+                            ("Tag", tag), ("Holder", holder)));
             }
 
             seen[tag] = $"field `{name}`";
