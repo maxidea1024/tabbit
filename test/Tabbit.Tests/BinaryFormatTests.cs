@@ -207,7 +207,6 @@ public class BinaryFormatTests
             reader.ReadCounter32();                      // tag
             reader.ReadByte();                           // wire
             byte encoding = reader.ReadByte();
-            reader.ReadCounter32();                      // elements per row
             reader.ReadFixed32();                        // block length
 
             Assert.True(expected[at] == encoding,

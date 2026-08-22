@@ -1388,7 +1388,7 @@ fun readTableHeader(reader: TcbReader): Header {
         val byteLength = reader.readInt32()
         columns.add(
             Column(
-                tag, wire and 0x0F, (wire shr 4) and 0x03, encoding, elementCount, byteLength,
+                tag, wire and 0x0F, (wire shr 4) and 0x03, encoding, byteLength,
                 (wire and 0x40) != 0, (wire and 0x80) != 0))
     }
 

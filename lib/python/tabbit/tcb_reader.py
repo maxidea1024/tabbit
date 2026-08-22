@@ -117,10 +117,10 @@ CIPHER_CHACHA20 = 1
 class Column:
     """One column as the file describes it."""
 
-    __slots__ = ("tag", "element", "kind", "encoding", "count", "byte_length", "nullable",
+    __slots__ = ("tag", "element", "kind", "encoding", "byte_length", "nullable",
                  "element_nullable")
 
-    def __init__(self, tag, element, kind, encoding, count, byte_length, nullable,
+    def __init__(self, tag, element, kind, encoding, byte_length, nullable,
                  element_nullable=False):
         self.tag = tag
         self.element = element
@@ -1058,7 +1058,7 @@ def read_table_header(reader):
         encoding = reader.read_uint8()
         byte_length = reader.read_uint32()
         columns.append(
-            Column(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, element_count, byte_length,
+            Column(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, byte_length,
                    (wire & 0x40) != 0, (wire & 0x80) != 0))
 
     # What the descriptors say about the file, checked before anybody allocates for the

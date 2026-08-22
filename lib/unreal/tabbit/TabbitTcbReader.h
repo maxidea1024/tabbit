@@ -1848,6 +1848,7 @@ namespace Tabbit
             }
 
             // The block's dictionary, decoded once here and handed out per row.
+            int32 Count = 0;
             if (!Reader->ReadCounter32(Count))
             {
                 return;
@@ -2618,6 +2619,7 @@ namespace Tabbit
                 PreviousLength = Shared + Rest;
             }
 
+            int32 Count = 0;
             if (!Reader->ReadCounter32(Count))
             {
                 return;
