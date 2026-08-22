@@ -1,0 +1,11 @@
+{
+  "named-range.column-name-clash": "Table `{Table}` has two columns named `{Field}`.",
+  "named-range.table-has-no-key-column": "Table `{Table}` has no `key` column. The first column of a table in this layout is typed `key`, which is what every row is addressed by.",
+  "named-range.type-takes-no-group": "Column `{Column}` of `{Table}` is typed `{Type}`, which names a group. Only `text` is gathered into one.",
+  "named-range.column-name-problem": "Column `{Column}` of `{Table}` {Detail}",
+  "named-range.list-element-type-unsupported": "Column `{Column}` of `{Table}` is typed `{Type}`. `{Inner}` is not an element type this layout puts in a list.",
+  "named-range.type-unrecognized": "Column `{Column}` of `{Table}` is typed `{Type}`, which this layout does not recognize.",
+  "named-range.number-type-option-unknown": "`LayoutOptions.{Option}` is `{Value}`. It takes `double`, which reads a `number` column as the JSON number it means, or `narrow`, which gives it the smallest type its values fit.",
+  "named-range.grid-columns-differ-in-type": "Table `{Table}` is a grid - its column names are ids - but its columns are not all one type: `{First}` and `{Second}`. Every column of a grid is one element of one array, so they state one type.",
+  "named-range.grid-column-id-not-int32": "Column id `{Id}` of `{Table}` does not fit a 32-bit integer, and `{Companion}.Id` is one."
+}

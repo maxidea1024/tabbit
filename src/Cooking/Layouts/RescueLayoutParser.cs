@@ -4,6 +4,7 @@ using Serilog;
 using Tabbit.Extensions;
 using Tabbit.Models;
 using Tabbit.Models.Raw;
+using Tabbit.Messages;
 
 namespace Tabbit.Cooking.Layouts;
 
@@ -84,7 +85,7 @@ public sealed class RescueLayoutParser : ILayoutParser
                 if (Model.ContainsEnum(enumm.Name))
                 {
                     throw new TabbitException(enumm.Location,
-                        $"Enum `{enumm.Name}` is already defined.");
+                        Message.Of(RescueLayoutMessages.EnumRedefined, ("Enum", enumm.Name)));
                 }
 
                 Model.Enums.Add(enumm);
@@ -108,9 +109,7 @@ public sealed class RescueLayoutParser : ILayoutParser
             if (Model.ContainsTable(table.Name))
             {
                 throw new TabbitException(table.Location,
-                    $"Table `{table.Name}` is already defined. In this layout a table is named by its " +
-                    "sheet tab, less any trailing `Table`, so two tabs whose names agree once that " +
-                    "word is dropped collide.");
+                    Message.Of(RescueLayoutMessages.TableRedefined, ("Table", table.Name)));
             }
 
             Model.Tables.Add(table);
@@ -223,7 +222,8 @@ public sealed class RescueLayoutParser : ILayoutParser
             if (result.Contains(labelName))
             {
                 throw new TabbitException(labelCell.Location,
-                    $"Label '{labelName}' is already defined in enum '{result.Name}'.");
+                    Message.Of(RescueLayoutMessages.EnumLabelRedefined,
+                        ("Label", labelName), ("Enum", result.Name)));
             }
 
             // `None` takes zero wherever it sits, so a default-constructed field of this
@@ -406,11 +406,9 @@ public sealed class RescueLayoutParser : ILayoutParser
                     : $"`{clash.RawName}` and `{fieldRawName}`, which differ only in punctuation or case";
 
                 throw new TabbitException(nameCell.Location,
-                    $"Table `{table.Name}` has two columns called `{fieldName}`: it uses {how}. " +
-                    $"Names are normalized so that every language gets the same member out of them, " +
-                    $"and two columns cannot share one. Rename one of them, or put a `#` on the " +
-                    $"description of the column that is no longer used. " +
-                    $"(the other is at {clash.NameLocation})");
+                    Message.Of(RescueLayoutMessages.ColumnNameClash,
+                        ("Table", table.Name), ("Field", fieldName), ("How", how),
+                        ("Other", clash.NameLocation)));
             }
 
             var field = new Field
@@ -444,7 +442,8 @@ public sealed class RescueLayoutParser : ILayoutParser
         }
 
         if (table.Fields.Count == 0)
-            throw new TabbitException(sheet.Location, $"Table `{table.Name}` has no usable columns.");
+            throw new TabbitException(sheet.Location,
+                Message.Of(RescueLayoutMessages.TableHasNoColumns, ("Table", table.Name)));
 
         _context.CheckPrimaryIndexValidity(table.Fields[0]);
 
@@ -478,14 +477,15 @@ public sealed class RescueLayoutParser : ILayoutParser
             if (enumName.Length == 0)
             {
                 throw new TabbitException(typeCell.Location,
-                    "In case of enum type, the enum name must follow `enum:`.");
+                    Message.Of(RescueLayoutMessages.EnumNameMustFollowMarker));
             }
 
             if (!Model.ContainsEnum(enumName))
             {
                 throw new TabbitException(typeCell.Location,
-                    $"Column `{field.Name}` is typed `{declared}`, but no enum named `{enumName}` was " +
-                    $"declared. Enums come from the sheet whose name contains `{EnumSheetMarker}`.");
+                    Message.Of(RescueLayoutMessages.EnumNotDeclared,
+                        ("Field", field.Name), ("Declared", declared),
+                        ("Enum", enumName), ("Marker", EnumSheetMarker)));
             }
 
             field.TypeName = enumName;
@@ -507,7 +507,8 @@ public sealed class RescueLayoutParser : ILayoutParser
 
         var arrayType = Models.ValueTypes.ArrayOf(elementType);
         if (arrayType == Models.ValueType.None)
-            throw new TabbitException(typeCell.Location, $"type `{spelling.Name}` cannot be used as an array element.");
+            throw new TabbitException(typeCell.Location,
+                Message.Of(RescueLayoutMessages.TypeNotArrayElement, ("Type", spelling.Name)));
 
         field.Type = arrayType;
     }

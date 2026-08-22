@@ -7,6 +7,7 @@ using Tabbit.Extensions;
 using Tabbit.Helpers;
 using Tabbit.Models;
 using Tabbit.Models.Raw;
+using Tabbit.Messages;
 
 namespace Tabbit.Cooking.Layouts;
 
@@ -163,12 +164,15 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
             // Check if the label is already defined.
             if (result.Contains(name))
-                throw new TabbitException(nameCol.Location, $"Label '{name}' is already defined in enum '{result.Name}'.");
+                throw new TabbitException(nameCol.Location,
+                    Message.Of(TabbitLayoutMessages.EnumLabelRedefined,
+                        ("Label", name), ("Enum", result.Name)));
 
             if (!int.TryParse(valueCol.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int labelValue))
             {
                 throw new TabbitException(valueCol.Location,
-                    $"Label '{name}' in enum '{result.Name}' has value `{valueCol.Value}`, which is not an integer.");
+                    Message.Of(TabbitLayoutMessages.EnumLabelValueNotInteger,
+                        ("Label", name), ("Enum", result.Name), ("Value", valueCol.Value)));
             }
 
             // Add a label.
@@ -239,7 +243,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
             if (result.ContainsConstant(name))
             {
                 throw new TabbitException(nameCol.Location,
-                    $"Constant '{name}' is already defined in constant-set '{result.Name}'.");
+                    Message.Of(TabbitLayoutMessages.ConstantRedefined,
+                        ("Name", name), ("Set", result.Name)));
             }
 
             string typeName = typeCol.Value.ToLowerInvariant(); // normalize
@@ -253,15 +258,15 @@ public sealed class TabbitLayoutParser : ILayoutParser
             if (!constantRequired)
             {
                 throw new TabbitException(typeCol.Location,
-                    $"type `{typeName}`: a constant cannot be optional. A constant is a single value, " +
-                    "so drop the `?`.");
+                    Message.Of(TabbitLayoutMessages.ConstantCannotBeOptional, ("Type", typeName)));
             }
 
             Models.Enum? enumm = null;
             if (typeName == "enum")
             {
                 if (detailTypeCol.Value == "")
-                    throw new TabbitException(detailTypeCol.Location, $"In case of enum type, enum name must be specified in detail-type.");
+                    throw new TabbitException(detailTypeCol.Location,
+                        Message.Of(TabbitLayoutMessages.EnumNeedsDetailType));
 
                 typeName = detailTypeCol.Value;
 
@@ -379,15 +384,16 @@ public sealed class TabbitLayoutParser : ILayoutParser
         if (runs > 1)
         {
             throw new TabbitException(location,
-                $"Field name `{rawFieldName}` has more than one run of digits in `{groupPart}`, "
-                + $"so which one numbers the elements is ambiguous. Use a single number, as in "
-                + $"`Slot1{NestedName.MemberSeparator}Id` or `Pos{NestedName.MemberSeparator}X1`.");
+                Message.Of(TabbitLayoutMessages.FieldNameAmbiguousElementNumber,
+                    ("Field", rawFieldName), ("Group", groupPart),
+                    ("Separator", NestedName.MemberSeparator)));
         }
 
         if (!int.TryParse(digits, NumberStyles.Integer, CultureInfo.InvariantCulture, out int ordinal))
         {
             throw new TabbitException(location,
-                $"Field name `{rawFieldName}` has element number `{digits}`, which is not an integer.");
+                Message.Of(TabbitLayoutMessages.FieldNameElementNumberNotInteger,
+                    ("Field", rawFieldName), ("Digits", digits)));
         }
 
         return (Helper.StripNumber(pascal), ordinal);
@@ -430,7 +436,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 // The primary index is what every row is addressed by, so it cannot be
                 // the column somebody commented out.
                 if (colIdx == def.rect.x)
-                    throw new TabbitException(fieldNameCell.Location, $"The primary index field cannot be omitted.");
+                    throw new TabbitException(fieldNameCell.Location,
+                        Message.Of(TabbitLayoutMessages.PrimaryIndexCannotBeOmitted));
 
                 // A tagged tombstone: the column is gone from the model, but its tag
                 // stays reserved so it can never identify different data.
@@ -461,7 +468,9 @@ public sealed class TabbitLayoutParser : ILayoutParser
             // After the commented-out check above, so a column somebody parked with `#`
             // is never held to the notation's rules.
             if (!NestedName.TrySplit(rawFieldName, out var nameParts, out string? nestingProblem))
-                throw new TabbitException(fieldNameCell.Location, $"Field name `{rawFieldName}` {nestingProblem}");
+                throw new TabbitException(fieldNameCell.Location,
+                    Message.Of(TabbitLayoutMessages.FieldNameNestingProblem,
+                        ("Field", rawFieldName), ("Detail", nestingProblem)));
 
             if (nameParts.Count > 1)
             {
@@ -472,14 +481,14 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 if (colIdx == def.rect.x)
                 {
                     throw new TabbitException(fieldNameCell.Location,
-                        $"The primary index field cannot be part of a record group, but `{rawFieldName}` is.");
+                        Message.Of(TabbitLayoutMessages.PrimaryIndexInRecordGroup, ("Field", rawFieldName)));
                 }
 
                 if (groupPart.StartsWith("*"))
                 {
                     throw new TabbitException(fieldNameCell.Location,
-                        $"Field name `{rawFieldName}` marks a record member as a secondary index. "
-                        + $"An index must be a single value, so `*` cannot be used on a record group.");
+                        Message.Of(TabbitLayoutMessages.RecordMemberMarkedSecondaryIndex,
+                            ("Field", rawFieldName)));
                 }
 
                 // Each level on its own: a number on it says the level repeats, and a level
@@ -524,8 +533,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 if (fieldName.StartsWith("*"))
                 {
                     throw new TabbitException(fieldNameCell.Location,
-                        $"Field name `{rawFieldName}` has more than one leading `*`. " +
-                        $"Use a single `*` to mark a secondary index field.");
+                        Message.Of(TabbitLayoutMessages.FieldNameMultipleIndexMarks, ("Field", rawFieldName)));
                 }
             }
             field.Indexing = (colIdx == def.rect.x) || indexing;
@@ -535,7 +543,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
             // Check duplicated name
             if (table.ContainsField(fieldName))
-                throw new TabbitException(fieldNameCell.Location, $"Field name `{fieldName}` is a duplicated.");
+                throw new TabbitException(fieldNameCell.Location,
+                    Message.Of(TabbitLayoutMessages.FieldNameDuplicated, ("Field", fieldName)));
 
             field.RawName = rawFieldName;
             field.Name = fieldName;
@@ -561,9 +570,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
             if (!elementsRequired && !fieldType.EndsWith("[]"))
             {
                 throw new TabbitException(fieldTypeCell.Location,
-                    $"type `{fieldTypeCell.Value.Trim()}`: the `?` inside the brackets says an "
-                    + "element may have no value, and this column is not an array. Write the "
-                    + "`?` at the end to say the value itself may be absent.");
+                    Message.Of(TabbitLayoutMessages.ElementOptionalMarkOnNonArray,
+                        ("Type", fieldTypeCell.Value.Trim())));
             }
 
             // `int[]`, `string[]`, `enum[]`: one cell holding a delimited list.
@@ -598,7 +606,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
             if (fieldType == "enum")
             {
                 if (fieldDetailTypeCell.Value == "")
-                    throw new TabbitException(fieldDetailTypeCell.Location, $"In case of enum type, enum name must be specified in detail-type.");
+                    throw new TabbitException(fieldDetailTypeCell.Location,
+                        Message.Of(TabbitLayoutMessages.EnumNeedsDetailType));
 
                 fieldType = fieldDetailTypeCell.Value;
             }
@@ -610,8 +619,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 // which the generated readers have no shape for; letting it parse
                 // would produce code that silently never resolves.
                 throw new TabbitException(fieldTypeCell.Location,
-                    "`foreign[]` is not supported. Use a serial field (Ref1, Ref2, ...) for a fixed " +
-                    "number of references, or a plain `foreign` for a single one.");
+                    Message.Of(TabbitLayoutMessages.ForeignArrayUnsupported));
             }
 
             if (fieldType == "foreign")
@@ -627,7 +635,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     .ToList();
 
                 if (writtenTargets.Count == 0)
-                    throw new TabbitException(fieldDetailTypeCell.Location, $"In case of foreign type, `RefTable[.RefFieldName]` must be specified in detail-type.");
+                    throw new TabbitException(fieldDetailTypeCell.Location,
+                        Message.Of(TabbitLayoutMessages.ForeignNeedsDetailType));
 
                 // Names that can be used as variable or class names are normalized to Pascal case at the time of calling.
                 string detailTypeName = writtenTargets[0].ToPascalCase();
@@ -660,10 +669,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     if (dotted is not null)
                     {
                         throw new TabbitException(fieldDetailTypeCell.Location,
-                            $"`{fieldDetailTypeCell.Value}` names several tables and also a field of "
-                            + $"one of them (`{dotted}`). A reference to one of several tables names "
-                            + $"the tables alone - drop the field name, or point at them from "
-                            + $"separate columns.");
+                            Message.Of(TabbitLayoutMessages.MultiTargetNamesAField,
+                                ("Written", fieldDetailTypeCell.Value), ("Dotted", dotted)));
                     }
 
                     // In the order written, and a name written twice is kept once: the order
@@ -727,7 +734,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     if (arrayType == Models.ValueType.None)
                     {
                         throw new TabbitException(fieldTypeCell.Location,
-                            $"type `{fieldType}` cannot be used as an array element.");
+                            Message.Of(TabbitLayoutMessages.TypeNotArrayElement, ("Type", fieldType)));
                     }
 
                     field.Type = arrayType;
@@ -771,8 +778,9 @@ public sealed class TabbitLayoutParser : ILayoutParser
         if (fromType is not null && written.Length > 0)
         {
             throw new TabbitException(typeCell.Location,
-                $"Column type `{typeCell.Value.Trim()}` already names `{fromType}`, and the "
-                + $"detail-type cell beside it says `{written}`. Write it in one of the two.");
+                Message.Of(TabbitLayoutMessages.TypeNamedTwice,
+                    ("Type", typeCell.Value.Trim()), ("Names", fromType),
+                    ("Written", written)));
         }
 
         if (fromType is not null)
@@ -879,7 +887,9 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
                         // Check duplicated name
                         if (entityDefinitions.Where(x => x.name == entityName).Count() > 0)
-                            throw new TabbitException(rawCell.Location, $"Entity {entityType}'s name `{entityName}` is a duplicated.");
+                            throw new TabbitException(rawCell.Location,
+                                Message.Of(TabbitLayoutMessages.EntityNameDuplicated,
+                                    ("Kind", entityType), ("Name", entityName)));
 
                         var commentRow = rawSheet.Rows[rowIndex + 1];
 
@@ -916,10 +926,10 @@ public sealed class TabbitLayoutParser : ILayoutParser
         if (y < 0 || y >= rawSheet.Rows.Count || x < 0 || x >= rawSheet.ColumnCount)
         {
             throw new TabbitException(location,
-                $"Entity `{entityType}:{entityName}` starts outside the sheet: its marker points at " +
-                $"column {x + 1}, row {y + 1}, and the sheet holds {rawSheet.ColumnCount} column(s) " +
-                $"and {rawSheet.Rows.Count} row(s). A marker in the last cell with nothing after it " +
-                $"does this.");
+                Message.Of(TabbitLayoutMessages.EntityStartsOutsideSheet,
+                    ("Kind", entityType), ("Name", entityName),
+                    ("Column", x + 1), ("Row", y + 1),
+                    ("Columns", rawSheet.ColumnCount), ("Rows", rawSheet.Rows.Count)));
         }
 
         // Check the minimum required size.
@@ -928,8 +938,10 @@ public sealed class TabbitLayoutParser : ILayoutParser
         if (availWidth < minSize.width || availHeight < minSize.height)
         {
             throw new TabbitException(location,
-                    $"Entity `{entityType}:{entityName}` must have cells of at least {minSize.width}x{minSize.height} size. " +
-                    $"The size of the currently accessible cell is {availWidth}x{availHeight}.");
+                Message.Of(TabbitLayoutMessages.EntityTooSmall,
+                    ("Kind", entityType), ("Name", entityName),
+                    ("MinWidth", minSize.width), ("MinHeight", minSize.height),
+                    ("Width", availWidth), ("Height", availHeight)));
         }
 
         // Greedy manner scanning.
@@ -950,7 +962,9 @@ public sealed class TabbitLayoutParser : ILayoutParser
             {
                 // If the minimum size has not yet been met and an entity-marker comes, the rule is violated.
                 if (IsEntityMarkerPattern(rawCell.Value))
-                    throw new TabbitException(rawCell.Location, $"Unexpected entity-marker `{rawCell.Value}`");
+                    throw new TabbitException(rawCell.Location,
+                        Message.Of(TabbitLayoutMessages.UnexpectedEntityMarker,
+                            ("Marker", rawCell.Value)));
             }
 
             height++;
@@ -974,7 +988,9 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 {
                     // If the minimum size has not yet been met and an entity-marker comes, the rule is violated.
                     if (IsEntityMarkerPattern(rawCell.Value))
-                        throw new TabbitException(rawCell.Location, $"Unexpected entity-marker `{rawCell.Value}`");
+                        throw new TabbitException(rawCell.Location,
+                        Message.Of(TabbitLayoutMessages.UnexpectedEntityMarker,
+                            ("Marker", rawCell.Value)));
                 }
 
                 width++;
@@ -1059,14 +1075,14 @@ public sealed class TabbitLayoutParser : ILayoutParser
         if (digits.Length == 0 || !int.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out int tag))
         {
             throw new TabbitException(location,
-                $"Field name `{rawName}` has an `@` where a wire tag goes, but `{digits}` is not a " +
-                "positive integer. A tag is written as `Name@3`.");
+                Message.Of(TabbitLayoutMessages.WireTagNotPositiveInteger,
+                    ("Field", rawName), ("Digits", digits)));
         }
 
         if (tag < 1)
         {
             throw new TabbitException(location,
-                $"Field `{rawName}` declares wire tag {tag}, but a tag starts at 1.");
+                Message.Of(TabbitLayoutMessages.WireTagBelowOne, ("Field", rawName), ("Tag", tag)));
         }
 
         return (rawName.Substring(0, at).Trim(), tag);

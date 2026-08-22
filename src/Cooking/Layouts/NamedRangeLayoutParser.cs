@@ -8,6 +8,7 @@ using Tabbit.Extensions;
 using Tabbit.Helpers;
 using Tabbit.Models;
 using Tabbit.Models.Raw;
+using Tabbit.Messages;
 
 namespace Tabbit.Cooking.Layouts;
 
@@ -243,7 +244,8 @@ public sealed class UwoLayoutParser : ILayoutParser
             if (table.ContainsField(field.Name))
             {
                 throw new TabbitException(nameCell.Location,
-                    $"Table `{table.Name}` has two columns named `{field.Name}`.");
+                    Message.Of(UwoLayoutMessages.ColumnNameClash,
+                        ("Table", table.Name), ("Field", field.Name)));
             }
 
             field.Index = table.Fields.Count;
@@ -260,8 +262,7 @@ public sealed class UwoLayoutParser : ILayoutParser
         if (!table.Fields[0].Indexing)
         {
             throw new TabbitException(table.Location,
-                $"Table `{table.Name}` has no `key` column. The first column of a table in this "
-                + $"layout is typed `key`, which is what every row is addressed by.");
+                Message.Of(UwoLayoutMessages.TableHasNoKeyColumn, ("Table", table.Name)));
         }
 
         _context.CheckPrimaryIndexValidity(table.Fields[0]);
@@ -377,8 +378,9 @@ public sealed class UwoLayoutParser : ILayoutParser
         if (roleGroup is not null && typeName != "text" && typeName != "[text]")
         {
             throw new TabbitException(typeCell.Location,
-                $"Column `{nameCell.Value.Trim()}` of `{table.RawName}` is typed `{rawType}`, "
-                + $"which names a group. Only `text` is gathered into one.");
+                Message.Of(UwoLayoutMessages.TypeTakesNoGroup,
+                    ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
+                    ("Type", rawType)));
         }
 
         _context.RequiresRoleGroup(
@@ -403,7 +405,9 @@ public sealed class UwoLayoutParser : ILayoutParser
         if (!UwoColumnPath.TrySplit(rawFieldName, out var path, out string? problem))
         {
             throw new TabbitException(nameCell.Location,
-                $"Column `{nameCell.Value.Trim()}` of `{table.RawName}` {problem}");
+                Message.Of(UwoLayoutMessages.ColumnNameProblem,
+                    ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
+                    ("Detail", problem)));
         }
 
         if (path is not null)
@@ -556,8 +560,9 @@ public sealed class UwoLayoutParser : ILayoutParser
                     if (element == Models.ValueType.None)
                     {
                         throw new TabbitException(typeCell.Location,
-                            $"Column `{nameCell.Value.Trim()}` of `{table.RawName}` is typed `{rawType}`. `{inner}` "
-                            + $"is not an element type this layout puts in a list.");
+                            Message.Of(UwoLayoutMessages.ListElementTypeUnsupported,
+                                ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
+                                ("Type", rawType), ("Inner", inner)));
                     }
 
                     // Every element of the cell is gathered, the same as a scalar `text` cell.
@@ -585,8 +590,9 @@ public sealed class UwoLayoutParser : ILayoutParser
                 }
 
                 throw new TabbitException(typeCell.Location,
-                    $"Column `{nameCell.Value.Trim()}` of `{table.RawName}` is typed `{rawType}`, which this "
-                    + $"layout does not recognize.");
+                    Message.Of(UwoLayoutMessages.TypeUnrecognized,
+                        ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
+                        ("Type", rawType)));
         }
     }
 
@@ -807,9 +813,8 @@ public sealed class UwoLayoutParser : ILayoutParser
         }
 
         throw new TabbitException(sheet.Location,
-            $"`LayoutOptions.{NumberTypeOption}` is `{value}`. It takes `double`, which reads a "
-            + $"`number` column as the JSON number it means, or `narrow`, which gives it the "
-            + $"smallest type its values fit.");
+            Message.Of(UwoLayoutMessages.NumberTypeOptionUnknown,
+                ("Option", NumberTypeOption), ("Value", value)));
     }
 
     /// <summary>
@@ -1170,9 +1175,9 @@ public sealed class UwoLayoutParser : ILayoutParser
                 continue;
 
             throw new TabbitException(element.TypeLocation,
-                $"Table `{table.Name}` is a grid - its column names are ids - but its columns "
-                + $"are not all one type: `{elements[0].TypeName}` and `{element.TypeName}`. "
-                + $"Every column of a grid is one element of one array, so they state one type.");
+                Message.Of(UwoLayoutMessages.GridColumnsDifferInType,
+                    ("Table", table.Name), ("First", elements[0].TypeName),
+                    ("Second", element.TypeName)));
         }
 
         // Position is meaning here. Trimming ends an array at its last value, which is right
@@ -1261,8 +1266,9 @@ public sealed class UwoLayoutParser : ILayoutParser
             if (axisId is < int.MinValue or > int.MaxValue)
             {
                 throw new TabbitException(cell.Location,
-                    $"Column id `{axisId}` of `{table.Name}` does not fit a 32-bit integer, and "
-                    + $"`{companion.Name}.Id` is one.");
+                    Message.Of(UwoLayoutMessages.GridColumnIdNotInt32,
+                        ("Id", axisId), ("Table", table.Name),
+                        ("Companion", companion.Name)));
             }
 
             companion.Data.Add(new List<Cell>
