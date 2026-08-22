@@ -95,14 +95,19 @@ public class NamingConventionTests
             Exempt = exempt.ToList(),
         });
 
-    private static List<(Severity Severity, string Message, Location Location)> Check(
+    /// <remarks>
+    /// The id travels beside the text. These reports are the most composed ones this tool
+    /// writes - a sentence built from named phrases - so a test that reads only the wording is
+    /// a test that breaks when any one of those phrases is reworded.
+    /// </remarks>
+    private static List<(Severity Severity, string Message, string MessageId, Location Location)> Check(
         Model model, NamingRules rules)
     {
         var diagnostics = new Diagnostics();
         ModelCooker.ValidateNaming(model, rules, diagnostics);
 
         return diagnostics.Entries
-            .Select(entry => (entry.Item1, entry.Item2.Message, entry.Item2.Location))
+            .Select(entry => (entry.Item1, entry.Item2.Message, entry.Item2.MessageId, entry.Item2.Location))
             .ToList();
     }
 
@@ -127,6 +132,7 @@ public class NamingConventionTests
         var conflict = Assert.Single(found, f => f.Message.Contains("is written"));
 
         Assert.Equal(Severity.Warning, conflict.Severity);
+        Assert.Equal(Tabbit.Cooking.NamingMessages.SpellingConflict, conflict.MessageId);
         Assert.Contains("written 3 ways", conflict.Message);
         Assert.Contains("`maxHitPoints`", conflict.Message);
         Assert.Contains("`maxhitpoints`", conflict.Message);
@@ -152,6 +158,7 @@ public class NamingConventionTests
 
         var conflict = Assert.Single(found, f => f.Message.Contains("is written"));
 
+        Assert.Equal(Tabbit.Cooking.NamingMessages.SpellingConflict, conflict.MessageId);
         Assert.Contains("written 2 ways", conflict.Message);
         Assert.Contains("normalize to the same name", conflict.Message);
         Assert.DoesNotContain("separate member", conflict.Message);
@@ -204,6 +211,7 @@ public class NamingConventionTests
 
         var conflict = Assert.Single(found, f => f.Message.Contains("is written"));
 
+        Assert.Equal(Tabbit.Cooking.NamingMessages.SpellingConflict, conflict.MessageId);
         Assert.Contains("Settle on `maxHitPoints`", conflict.Message);
         Assert.Equal("Ship", conflict.Location.Sheet);
     }
@@ -255,6 +263,7 @@ public class NamingConventionTests
 
         var withoutConvention = Check(model, Rules());
         var conflict = Assert.Single(withoutConvention, f => f.Message.Contains("is written"));
+        Assert.Equal(Tabbit.Cooking.NamingMessages.SpellingConflict, conflict.MessageId);
         Assert.Contains("Settle on `MaxHitPoints`", conflict.Message);
 
         var withConvention = Check(model, Rules(field: "camel", onViolation: "warn"));
@@ -285,6 +294,7 @@ public class NamingConventionTests
             Rules(field: "camel"));
 
         var conflict = Assert.Single(found, f => f.Message.Contains("is written"));
+        Assert.Equal(Tabbit.Cooking.NamingMessages.SpellingConflict, conflict.MessageId);
         Assert.Contains("Settle on `applypointId`", conflict.Message);
     }
 
@@ -321,6 +331,7 @@ public class NamingConventionTests
 
         // And says what both spellings arrive as, which is the whole point: the difference
         // is not carried anywhere.
+        Assert.Equal(Tabbit.Cooking.NamingMessages.ConsecutiveUnderscores, report.MessageId);
         Assert.Contains("`AB`", report.Message);
 
         // And ends with the name to type, rather than leaving the reader to work it out.
@@ -369,6 +380,7 @@ public class NamingConventionTests
             ModelOfFields(("Item", ["Id", "__a__b"])),
             Rules(onSpellingConflict: "ignore")));
 
+        Assert.Equal(Tabbit.Cooking.NamingMessages.ConsecutiveUnderscores, report.MessageId);
         Assert.EndsWith("Write it as `__a_b`.", report.Message);
     }
 
@@ -391,6 +403,7 @@ public class NamingConventionTests
         Assert.Equal(Severity.Error, report.Severity);
 
         // The name lands next to the word for what it is, and what it belongs to trails.
+        Assert.Equal(Tabbit.Cooking.NamingMessages.SpellingViolation, report.MessageId);
         Assert.StartsWith("Field `MaxHitPoints` of table `Item` is not spelled", report.Message);
         Assert.Contains("`camel`", report.Message);
         Assert.EndsWith("Write it as `maxHitPoints`.", report.Message);
@@ -429,6 +442,7 @@ public class NamingConventionTests
         Assert.StartsWith(
             "Field `slot1.Id` of table `Item` has a level, `Id`, that is not spelled",
             report.Message);
+        Assert.Equal(Tabbit.Cooking.NamingMessages.SpellingViolationInLevel, report.MessageId);
         Assert.EndsWith("Write it as `id`.", report.Message);
     }
 
@@ -548,7 +562,7 @@ public class NamingConventionTests
     public void A_setting_that_is_not_a_spelling_of_anything_is_refused()
     {
         var thrown = Assert.Throws<TabbitException>(() => Rules(field: "PascalCase"));
-        Assert.Contains("`pascal`, `camel`, `snake` or `upper-snake`", thrown.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.NamingCaseUnknown, thrown.MessageId);
 
         thrown = Assert.Throws<TabbitException>(() => Rules(onSpellingConflict: "shout"));
         Assert.Contains("`error`, `warn` or `ignore`", thrown.Message);

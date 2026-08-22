@@ -439,7 +439,7 @@ public class TextRoleTests
         var failure = Assert.Throws<TabbitException>(
             () => context.SplitStringRole("int(Foo)", Somewhere(), out _, out _, out _));
 
-        Assert.Contains("`text` takes a group and `asset` takes a kind", failure.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.TypeTakesNoBrackets, failure.MessageId);
     }
 
     /// <summary>
@@ -453,6 +453,7 @@ public class TextRoleTests
 
         // In the role's own words: `text` puts a group in those brackets, and the message for
         // `asset()` says `kind` instead.
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RoleGroupEmpty, failure.MessageId);
         Assert.Contains("opens brackets and names no group", failure.Message);
     }
 
@@ -465,7 +466,7 @@ public class TextRoleTests
         var failure = Assert.Throws<TabbitException>(
             () => Context().SplitStringRole("text(Achievement,)", Somewhere(), out _, out _, out _));
 
-        Assert.Contains("names no namespace", failure.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RoleSpaceEmpty, failure.MessageId);
     }
 
     /// <summary>

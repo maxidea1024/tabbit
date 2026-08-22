@@ -170,8 +170,7 @@ public class DataFileCaseTests
         var thrown = Assert.Throws<TabbitException>(
             () => Tabbit.Cooking.DataFileCasing.From("SnakeCase"));
 
-        Assert.Contains("`DataFileCase`", thrown.Message);
-        Assert.Contains("`pascal`, `camel`, `snake` or `upper-snake`", thrown.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.DataFileCaseUnknown, thrown.MessageId);
 
         // Blank keeps each table's own name rather than being an error: a run that renamed
         // its data files without being asked to would break whatever was reading them.

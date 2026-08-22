@@ -949,11 +949,9 @@ public sealed class HistoryQuery : IDisposable
     }
 
     private static TabbitException NotFound(string commit, string project, string branch)
-        => new TabbitException(
-            $"The history has no snapshot for `{commit}` on branch `{branch}` of `{project}`, " +
-            $"and no working copy here could resolve it as a tag or a revision. Either " +
-            $"nothing converted that commit, or it is on another branch, or there is no " +
-            $"checkout to look the name up in.");
+        => new TabbitException(null,
+            Message.Of(RecordMessages.SnapshotNotFound,
+                ("Commit", commit), ("Branch", branch), ("Project", project)));
 
     private long SeqOf(long snapshotId)
     {

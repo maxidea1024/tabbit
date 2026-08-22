@@ -121,6 +121,6 @@ public class OptionalFieldTests
         field.IsRequired = false;
 
         var error = Assert.Throws<TabbitException>(() => context.CheckPrimaryIndexValidity(field));
-        Assert.Contains("index field cannot be optional", error.Message, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.IndexFieldOptional, error.MessageId);
     }
 }

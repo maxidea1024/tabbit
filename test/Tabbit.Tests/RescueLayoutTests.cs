@@ -544,7 +544,6 @@ public class RescueLayoutTests
         var error = Assert.Throws<TabbitException>(
             () => SheetImportSettings.From(recipe, "Sources.Xlsx[0]"));
 
-        Assert.Contains("ArrayDelimiter", error.Message);
-        Assert.Contains("exactly one character", error.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.EntryArrayDelimiterNotOneCharacter, error.MessageId);
     }
 }

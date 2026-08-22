@@ -220,6 +220,7 @@ public class HistoryQueryTests : IDisposable
 
         var ex = Assert.Throws<TabbitException>(() => query.Diff(_project, "main", to: "ffff"));
 
+        Assert.Equal(Tabbit.History.RecordMessages.CommitAmbiguous, ex.MessageId);
         Assert.Contains("matches 2 commits", ex.Message);
     }
 
@@ -232,7 +233,7 @@ public class HistoryQueryTests : IDisposable
 
         var ex = Assert.Throws<TabbitException>(() => query.Diff(_project, "main", to: "9999"));
 
-        Assert.Contains("no snapshot", ex.Message);
+        Assert.Equal(Tabbit.History.RecordMessages.SnapshotNotFound, ex.MessageId);
     }
 
     [Fact]
@@ -245,7 +246,7 @@ public class HistoryQueryTests : IDisposable
         var ex = Assert.Throws<TabbitException>(
             () => query.Diff(_project, "main", from: "cccccccc3333", to: "aaaaaaaa1111"));
 
-        Assert.Contains("comes after", ex.Message);
+        Assert.Equal(Tabbit.History.RecordMessages.RangeReversed, ex.MessageId);
     }
 
     [Fact]
@@ -604,7 +605,7 @@ public class HistoryQueryTests : IDisposable
 
         var ex = Assert.Throws<TabbitException>(() => query.Diff(_project, "main", from: "v1.0.0"));
 
-        Assert.Contains("no working copy", ex.Message);
+        Assert.Equal(Tabbit.History.RecordMessages.SnapshotNotFound, ex.MessageId);
     }
 
     // ------------------------------------------------------------- pruning

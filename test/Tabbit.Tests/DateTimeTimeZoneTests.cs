@@ -140,11 +140,10 @@ public class DateTimeTimeZoneTests
         var refusal = Assert.Throws<TabbitException>(
             () => Read("2022-03-13 02:30:00", "America/New_York"));
 
-        Assert.Contains("does not exist", refusal.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.TimeInDstGap, refusal.MessageId);
         Assert.Contains("America/New_York", refusal.Message);
 
         // The way out, for sheets whose authors are not going to rewrite the cell.
-        Assert.Contains("TimeZone", refusal.Message);
     }
 
     /// <summary>
@@ -223,7 +222,7 @@ public class DateTimeTimeZoneTests
     {
         var refusal = Assert.Throws<TabbitException>(() => TimeZones.OfRecipe("Seoul"));
 
-        Assert.Contains("Asia/Seoul", refusal.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.TimeZoneUnknown, refusal.MessageId);
         Assert.Contains("TimeZone", refusal.Message);
     }
 
@@ -238,6 +237,7 @@ public class DateTimeTimeZoneTests
             () => SheetImportSettings.From(
                 new RecipeModel.SourceRecipeGroup.XlsxRecipe { TimeZone = "Mars/Olympus" }, "Sources.Xlsx[0]"));
 
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.TimeZoneUnknown, refusal.MessageId);
         Assert.Contains("Sources.Xlsx[0]", refusal.Message);
     }
 
@@ -255,7 +255,7 @@ public class DateTimeTimeZoneTests
     {
         var refusal = Assert.Throws<TabbitException>(() => TimeZones.OfRecipe(written));
 
-        Assert.Contains("offset", refusal.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.TimeZoneNotAnOffset, refusal.MessageId);
     }
 
     [Theory]
@@ -265,7 +265,7 @@ public class DateTimeTimeZoneTests
     {
         var refusal = Assert.Throws<TabbitException>(() => TimeZones.OfRecipe(written));
 
-        Assert.Contains("-14:00", refusal.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.TimeZoneOffsetTooLarge, refusal.MessageId);
     }
 
     // ------------------------------------------------ forced from the command line
@@ -330,6 +330,7 @@ public class DateTimeTimeZoneTests
             () => CommandLineTimeZone.Apply(
                 new Options { TimeZone = "Mars/Olympus" }, new RecipeModel()));
 
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.TimeZoneUnknown, refusal.MessageId);
         Assert.Contains("--time-zone", refusal.Message);
     }
 

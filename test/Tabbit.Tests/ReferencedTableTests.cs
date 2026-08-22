@@ -163,6 +163,7 @@ public class ReferencedTableTests
         var reported = Assert.Single(Check(model));
 
         Assert.Equal(Severity.Error, reported.Severity);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.MultiTargetMissingRow, reported.Detail.MessageId);
         Assert.Contains("Holder.TargetId", reported.Detail.Message);
         Assert.Contains("99", reported.Detail.Message);
 
@@ -197,6 +198,7 @@ public class ReferencedTableTests
 
         var reported = Assert.Single(Check(model));
 
+        Assert.Equal(Tabbit.Cooking.CookingMessages.MultiTargetMissingRow, reported.Detail.MessageId);
         Assert.Contains("99", reported.Detail.Message);
         Assert.Contains("Weapon", reported.Detail.Message);
     }
@@ -398,6 +400,7 @@ public class ReferencedTableTests
         var overlap = Assert.Single(
             reported, entry => entry.Detail.Message.Contains("both hold"));
 
+        Assert.Equal(Tabbit.Cooking.CookingMessages.MultiTargetIdOverlap, overlap.Detail.MessageId);
         Assert.Contains("Weapon", overlap.Detail.Message);
         Assert.Contains("Armour", overlap.Detail.Message);
         Assert.Contains("11", overlap.Detail.Message);

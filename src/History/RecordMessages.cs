@@ -88,4 +88,7 @@ public static class RecordMessages
 
     /// <summary>A query-string value that had to be a number.</summary>
     public const string QueryValueNotANumber = "record.query-value-not-a-number";
+
+    /// <summary>A commit the history holds nothing for, and no checkout to resolve it in.</summary>
+    public const string SnapshotNotFound = "record.snapshot-not-found";
 }

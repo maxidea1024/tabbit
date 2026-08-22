@@ -690,7 +690,7 @@ public class UwoLayoutTests
         var reported = Assert.Single(diagnostics.Entries);
 
         Assert.Equal(Severity.Error, reported.Severity);
-        Assert.Contains("required", reported.Detail.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RecordMemberRequiredEmpty, reported.Detail.MessageId);
         Assert.Contains("Count", reported.Detail.Message);
 
         // And it points at the cell the author left empty rather than at the constraint row.

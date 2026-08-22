@@ -100,8 +100,8 @@ public class TargetSideTests
         var ex = Assert.Throws<TabbitException>(
             () => Tabbit.Recipe.RecipeTargetSide.Of("both", "Targets[1]"));
 
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.TargetSideUnknown, ex.MessageId);
         Assert.Contains("Targets[1]", ex.Message);
-        Assert.Contains("both", ex.Message);
     }
 
     /// <summary>

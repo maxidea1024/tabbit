@@ -41,8 +41,8 @@ public class FormulaErrorTests
             formulaError: "#DIV/0!",
             onFormulaError: FormulaErrorPolicy.Error));
 
+        Assert.Equal(Tabbit.Cooking.CookingMessages.FormulaError, thrown.MessageId);
         Assert.Contains("#DIV/0!", thrown.Message);
-        Assert.Contains("OnFormulaError", thrown.Message);
     }
 
     /// <summary>
@@ -101,6 +101,6 @@ public class FormulaErrorTests
             Models.ValueType.Float, null, "", Somewhere(),
             onFormulaError: FormulaErrorPolicy.Empty));
 
-        Assert.Contains("This cell is empty", thrown.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.BlankCellRequired, thrown.MessageId);
     }
 }

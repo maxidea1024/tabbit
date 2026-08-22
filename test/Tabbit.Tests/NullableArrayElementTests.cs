@@ -321,7 +321,7 @@ public class NullableArrayElementTests
         var refusal = Assert.Throws<TabbitException>(
             () => context.RequiresValidTypeName("?int[]", null!));
 
-        Assert.Contains("`int?[]` says an element may", refusal.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.UnrecognizedTypeQuestionMark, refusal.MessageId);
     }
 
     /// <summary>

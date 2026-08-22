@@ -311,7 +311,7 @@ public class SummaryTests
         var error = Assert.Throws<TabbitException>(
             () => SummaryTarget.ParseAuthorDisclosure("anonymized"));
 
-        Assert.Contains("`full`, `masked` or `none`", error.Message);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.SummaryAuthorUnknown, error.MessageId);
     }
 
     private static IReadOnlyList<string> TableNames(JsonElement summary)

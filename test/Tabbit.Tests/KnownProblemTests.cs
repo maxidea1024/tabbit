@@ -132,8 +132,8 @@ public class KnownProblemTests
 
         var about = diagnostics.Entries.Single(entry => entry.Severity == Severity.Error);
 
+        Assert.Equal(Tabbit.Cooking.NamingMessages.KnownProblemCountGrew, about.Detail.MessageId);
         Assert.Contains("accounts for 3", about.Detail.Message);
-        Assert.Contains("Something new is wrong there", about.Detail.Message);
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public class KnownProblemTests
 
         var about = diagnostics.Entries.Single(entry => entry.Severity == Severity.Error);
 
-        Assert.Contains("Some of it is fixed", about.Detail.Message);
+        Assert.Equal(Tabbit.Cooking.NamingMessages.KnownProblemCountShrank, about.Detail.MessageId);
     }
 
     /// <summary>

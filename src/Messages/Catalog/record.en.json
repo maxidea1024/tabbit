@@ -25,5 +25,6 @@
 
   "record.bind-not-an-address": "--bind {Bind} is not an address. Use an IP, `localhost`, or `0.0.0.0` for every interface.",
   "record.bind-public-without-token": "--bind {Bind} would serve the history to anything that can reach this machine, and no token is set. Set ${Variable} to a secret and send it as `Authorization: Bearer <token>`, or leave --bind at 127.0.0.1.",
-  "record.query-value-not-a-number": "`{Name}={Value}` is not a number."
+  "record.query-value-not-a-number": "`{Name}={Value}` is not a number.",
+"record.snapshot-not-found": "The history has no snapshot for `{Commit}` on branch `{Branch}` of `{Project}`, and no working copy here could resolve it as a tag or a revision. Either nothing converted that commit, or it is on another branch, or there is no checkout to look the name up in."
 }

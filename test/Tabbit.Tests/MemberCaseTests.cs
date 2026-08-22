@@ -183,8 +183,8 @@ public class MemberCaseTests
             () => Tabbit.CodeGeneration.MemberCasing.From(
                 "PascalCase", Tabbit.Extensions.NameCase.Pascal, "csharp"));
 
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.MemberCaseUnknown, thrown.MessageId);
         Assert.Contains("`csharp`", thrown.Message);
-        Assert.Contains("`pascal`, `camel`, `snake` or `upper-snake`", thrown.Message);
 
         // Blank keeps the language's own spelling rather than being an error, which is what a
         // recipe written before this setting existed holds.

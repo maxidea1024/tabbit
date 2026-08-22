@@ -282,7 +282,7 @@ public class AssetRoleTests
         var failure = Assert.Throws<TabbitException>(
             () => Context().SplitStringRole("asset(icon,ui)", Somewhere(), out _, out _, out _));
 
-        Assert.Contains("takes only a kind", failure.Message);
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RoleSpaceNotText, failure.MessageId);
 
         // The wording and the id, together, only while the move is in progress. Once every
         // report is named the wording assertions go and this one stays - that is what stops
@@ -300,6 +300,7 @@ public class AssetRoleTests
         var failure = Assert.Throws<TabbitException>(
             () => Context().SplitStringRole("asset()", Somewhere(), out _, out _, out _));
 
+        Assert.Equal(Tabbit.Cooking.CookingMessages.RoleGroupEmpty, failure.MessageId);
         Assert.Contains("names no kind", failure.Message);
         Assert.Contains("asset(icon)", failure.Message);
     }
