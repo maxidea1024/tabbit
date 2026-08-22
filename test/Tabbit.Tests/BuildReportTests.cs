@@ -507,7 +507,7 @@ public class BuildReportTests : IDisposable
         string page = File.ReadAllText(report.HtmlPath);
 
         Assert.Contains(".id { display: none;", page);
-        Assert.Contains(".row.open .id { display: inline; }", page);
+        Assert.Contains(".row.open .id { display: block;", page);
         Assert.Contains("-webkit-line-clamp: 1;", page);
         Assert.Contains(".row.open .msg { display: block; }", page);
     }
@@ -532,6 +532,36 @@ public class BuildReportTests : IDisposable
         report.Write(ExitCode.Failed, null);
 
         Assert.Contains("[hidden] { display: none !important; }", File.ReadAllText(report.HtmlPath));
+    }
+
+    /// <summary>
+    /// What a report quotes in backticks is set as code, and an odd one is left as text.
+    /// </summary>
+    /// <remarks>
+    /// Every report names a column, a value or a setting, and it names them the way this
+    /// repository's prose does. Those names are the part of the sentence that differs from
+    /// the sentence above it, and as plain text they read exactly like the part that does
+    /// not.
+    /// </remarks>
+    [Fact]
+    public void What_a_report_quotes_is_set_as_code()
+    {
+        var options = OptionsFor();
+        var report = BuildReport.Create(options, RecipeWith(new ReportRecipe()))!;
+
+        report.Take(Found(
+            (Severity.Error, At("book.xlsx", "Item", 2, 6), "`Item.Id` is not a number"),
+            (Severity.Error, At("book.xlsx", "Quest", 1, 3), "a stray ` and <b>no markup</b>")));
+
+        report.Write(ExitCode.Failed, null);
+
+        string page = File.ReadAllText(report.HtmlPath);
+
+        Assert.Contains("<code>Item.Id</code> is not a number", page);
+
+        // The odd one stays a backtick, and nothing else of markdown is read - the angle
+        // brackets are still the report's own text rather than an element.
+        Assert.Contains("a stray ` and &lt;b&gt;no markup&lt;/b&gt;", page);
     }
 
     // ------------------------------------------------------------------ opening

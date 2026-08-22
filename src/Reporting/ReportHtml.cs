@@ -408,7 +408,7 @@ internal static class ReportHtml
         else if (entry.Fate == ReportFate.Persisting)
             Badge(page, "persisting", Text(catalog, ReportMessages.BadgePersisting));
 
-        page.Append("<span class=\"msg\">").Append(Escaped(entry.Message)).Append("</span>");
+        page.Append("<span class=\"msg\">").Append(Marked(entry.Message)).Append("</span>");
 
         if (!string.IsNullOrEmpty(entry.Id))
             page.Append("<span class=\"id\">").Append(Escaped(entry.Id!)).Append("</span>");
@@ -536,6 +536,47 @@ internal static class ReportHtml
 
     private static string Attribute(string text) => Escaped(text);
 
+    /// <summary>
+    /// A report, with what it quotes in backticks set as code.
+    /// </summary>
+    /// <remarks>
+    /// Every report names things - a column, a value, a setting - and it names them the way
+    /// this repository's own prose does, in backticks. On a page they were plain text, so
+    /// the one part of the sentence that differs from the report above it read exactly like
+    /// the part that does not.
+    ///
+    /// Paired, and only paired: an odd backtick left over is text. Nothing else of markdown
+    /// is read - a report is a sentence this tool wrote, not a document somebody authored,
+    /// and taking `*` for emphasis would eat the asterisk out of a pattern a report is
+    /// quoting.
+    /// </remarks>
+    private static string Marked(string message)
+    {
+        string escaped = Escaped(message);
+
+        var parts = escaped.Split('`');
+
+        // No pair, nothing to set. An odd count means the last one opens nothing.
+        if (parts.Length < 3)
+            return escaped;
+
+        var built = new StringBuilder(escaped.Length + 16);
+
+        for (int at = 0; at < parts.Length; at++)
+        {
+            bool inside = at % 2 == 1 && at < parts.Length - 1;
+
+            if (inside)
+                built.Append("<code>").Append(parts[at]).Append("</code>");
+            else if (at % 2 == 1)
+                built.Append('`').Append(parts[at]);
+            else
+                built.Append(parts[at]);
+        }
+
+        return built.ToString();
+    }
+
     // -------------------------------------------------------------------- look
 
     /// <summary>
@@ -585,7 +626,11 @@ body {
 }
 a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
-.id, .at { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
+.id, .at, code { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
+
+/* What a report quotes - a column, a value, a setting - is the part that differs from the
+   report above it, and as plain text it read like the part that does not. */
+code { background: var(--line-soft); border-radius: 4px; padding: 0 4px; }
 * { scrollbar-width: thin; }
 
 /* One scrolling region. The header, tabs and toolbar hold their place because nothing above
@@ -646,7 +691,7 @@ details.grp > summary .n { margin-left: auto; color: var(--faint);
   font-variant-numeric: tabular-nums; font-size: 12px; }
 
 /* ---- a row is one line until it is asked to be more ---- */
-.row { display: flex; align-items: baseline; gap: 8px;
+.row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;
        padding: 5px 10px 5px 7px; border-top: 1px solid var(--line-soft); cursor: pointer; }
 .row:hover { background: var(--head); }
 .row:nth-child(even of .row) { background: var(--zebra); }
@@ -665,14 +710,20 @@ details.grp > summary .n { margin-left: auto; color: var(--faint);
 
 /* Clamped, and opened by a click on the row. A report is a paragraph - what is wrong, what
    follows, what to do - and a page of paragraphs buries the part that differs between them. */
-.msg { flex: 1 1 auto; overflow-wrap: anywhere; min-width: 0;
+/* Basis zero, not `auto`. With `auto` the base size is the whole sentence, and a wrapping
+   row then puts every message on a line of its own however wide the window is. */
+.msg { flex: 1 1 0; overflow-wrap: anywhere; min-width: 12rem;
        display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .row.open .msg { display: block; }
 
 /* Off the closed row: it is what a pipeline filters on, not something the person holding the
-   sheet can act on, and repeated down the page it is one string fourteen times. */
+   sheet can act on, and repeated down the page it is one string as many times as there are
+   rows. On the opened row it gets a line of its own rather than a column beside the
+   sentence - squeezed into one it wrapped over three lines and took the width from the
+   thing being read. */
 .id { display: none; color: var(--faint); }
-.row.open .id { display: inline; }
+.row.open .id { display: block; flex: 0 0 100%; white-space: nowrap; overflow-x: auto;
+                padding-top: 2px; border-top: 1px dashed var(--line-soft); }
 
 .badge { flex: 0 0 auto; font-size: 11px; padding: 0 6px; border-radius: 999px;
          border: 1px solid var(--line); }
