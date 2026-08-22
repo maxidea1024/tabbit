@@ -120,7 +120,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
 
     /// <summary>
-    /// A record group generates a struct and either a fixed array or a pointer and a count.
+    /// A record group generates a struct, and a pointer and a count beside it.
     /// </summary>
     /// <remarks>
     /// The fifth of the thirteen, following the same split - declaration per field, reading
@@ -621,7 +621,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// prefers: a struct has to be complete before another declares a member of it.
     ///
     /// A nested member is the struct by value, so it is the record's own storage and nothing
-    /// frees it - the same choice a fixed-length array member here already made.
+    /// frees it - the same choice every array member here makes.
     /// spec/nested-multi-level.md.
     /// </remarks>
     private List<CRecordMemberView> BuildRecordMembers(
@@ -705,8 +705,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 sf.IsRecord ? sf.Members[0].FirstField!.Comment : sf.FirstField!.Comment),
             Name = name,
             IsString = !sf.IsRecord && !sf.IsRef && sf.ElementType == ValueType.String,
-            IsFixedArray = !table.IsVariableLength(sf) && sf.IsArray,
-            IsVarArray = table.IsVariableLength(sf),
+            IsArray = sf.IsArray,
             ElementCount = sf.IsRecord ? sf.RecordElementCount : sf.Fields.Count,
             Declarations = Declarations(table, sf, name),
             IsRecord = sf.IsRecord,
@@ -1166,7 +1165,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     private IReadOnlyList<string> Declarations(Table table, SerialField sf, string name)
     {
         // A record group declares the element type above the row struct, so the member is of
-        // that type - a fixed array of it, or a pointer and a count when the table trims.
+        // that type - a pointer to it and a count, whatever the sheet's column count is.
         if (sf.IsRecord)
         {
             // An array of arrays declares no element type: the outer level has no name for
@@ -1218,9 +1217,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // else from being pointed at. spec/reference-key-types.md.
             string keyType = ScalarTypeName(sf.FirstField!.RefKeyType, null);
 
-            // A pointer and a count rather than a fixed array, for the reason below: how
-            // many elements a row holds is what the file states. Both arrays are the same
-            // length, so one count answers for the pair.
+            // A pointer and a count, for the reason below: how many elements a row holds
+            // is what the file states. Both arrays are the same length, so one count answers
+            // for the pair.
             return sf.IsArray
                 ? new[]
                 {
@@ -1235,12 +1234,10 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 };
         }
 
-        // Every array is a pointer and a count, whether the file writes the length per row
-        // or states it once in the column descriptor. A fixed array here would be the length
-        // this sheet had when the code was generated, built into the size of the struct - and
-        // C cannot size a struct from data, so the choice is between the number and the
-        // pointer. The pointer is the shape a trimming table already produced, so a consumer
-        // that reads one table reads both. spec/nullable-array-elements.md.
+        // Every array is a pointer and a count. The file writes the length per row since
+        // v107, and a length written in here would be the one this sheet had when the code
+        // was generated - built into the size of the struct, where the data cannot reach it.
+        // spec/tcb-v107-dynamic-arrays.md.
         if (sf.IsArray)
         {
             return new[]

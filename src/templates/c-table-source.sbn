@@ -56,7 +56,7 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
 {{~ for field in table.fields ~}}
 {{~## The scalars only. An array is a pointer, so a column the file does not carry leaves it
    NULL with a count of zero - an empty array rather than a row of NULL strings. ##~}}
-{{~ if field.is_string && !field.is_fixed_array && !field.is_var_array ~}}
+{{~ if field.is_string && !field.is_array ~}}
     record->{{ field.name }} = "";
 {{~ end ~}}
 {{~ end ~}}

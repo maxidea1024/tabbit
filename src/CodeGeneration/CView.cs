@@ -244,24 +244,17 @@ internal sealed class CFieldView
     public required IReadOnlyList<string> Declarations { get; set; }
 
     /// <summary>
-    /// Whether this field is a fixed array, so the string initialisation loops its elements.
-    /// </summary>
-    /// <remarks>
-    /// Was read off the field's read kind, which moved to the column view when declaring and
-    /// reading became separate lists - and the loop then emitted nothing, leaving an unused
-    /// local that the C build treats as an error. Declaring needs its own answer.
-    /// </remarks>
-    public required bool IsFixedArray { get; set; }
-
-    /// <summary>
-    /// Whether this field's length is the row's, so the string initialisation skips it.
+    /// Whether this field is an array, so the string initialisation skips it.
     /// </summary>
     /// <remarks>
     /// There is nothing to point at yet: the array is allocated by the read, out of the
     /// arena, once the count is known. The pass that gives string members `""` runs before
     /// that and would be assigning to a pointer-to-pointer.
+    ///
+    /// Two flags stood here until v107, one for each array kind, and the fixed one made the
+    /// pass loop the elements instead. There is one kind now, so there is one answer.
     /// </remarks>
-    public required bool IsVarArray { get; set; }
+    public required bool IsArray { get; set; }
 
     /// <summary>Whether this field is a record group, so a struct is declared for it.</summary>
     public required bool IsRecord { get; set; }
@@ -571,7 +564,7 @@ internal sealed class CColumnView
     /// <summary>Which member of the group this column is, for an unnamed outer level.</summary>
     public int MemberAt { get; set; }
 
-    /// <summary>Elements per row for a fixed array.</summary>
+    /// <summary>How many columns fill this field, where that is a generated shape.</summary>
     public required int ElementCount { get; set; }
 
     /// <summary>The element's C type.</summary>

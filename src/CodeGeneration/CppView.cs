@@ -514,7 +514,7 @@ internal sealed class CppColumnView
     /// <summary>How many inner vectors the group has, so a column can size the outer level.</summary>
     public int OuterCount { get; set; }
 
-    /// <summary>Elements per row for a fixed array.</summary>
+    /// <summary>How many columns fill this field, where that is a generated shape.</summary>
     public required int ElementCount { get; set; }
 
     /// <summary>What a reference member starts as, before the linking pass.</summary>
@@ -523,7 +523,7 @@ internal sealed class CppColumnView
     /// <summary>The rendered read for a scalar row.</summary>
     public required string ReadScalar { get; set; }
 
-    /// <summary>The rendered read for one element of a fixed array.</summary>
+    /// <summary>The rendered read for one element of an array.</summary>
     public required string ReadElement { get; set; }
 
     /// <summary>The rendered read for one element of a variable-length array.</summary>

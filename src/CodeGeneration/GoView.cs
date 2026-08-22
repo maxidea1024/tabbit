@@ -116,7 +116,7 @@ internal sealed class GoTableView
     public required IReadOnlyList<GoColumnView> Columns { get; set; }
 
     /// <summary>
-    /// Whether any field is a fixed-length record array, and so the read creates those
+    /// Whether any field is a record array, and so the read creates those
     /// arrays with the rows.
     /// </summary>
     public required bool NeedsRecordInit { get; set; }
