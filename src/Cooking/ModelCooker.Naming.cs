@@ -315,8 +315,16 @@ public partial class ModelCooker
                 .Distinct(StringComparer.Ordinal)
                 .Count() > 1;
 
+            // `.In` rather than letting interpolation do it. A `Message` put in a placeholder
+            // is rendered by the catalog on its way in, but one put in a `$""` is rendered by
+            // `ToString`, which for a struct is the name of its type - and this list went out
+            // reading "`Id` (Tabbit.Messages.Message, first at ...)". It is the one place a
+            // report is assembled in code rather than in the catalog, which is what made it
+            // the one place this could happen.
+            var catalog = Messages.MessageCatalog.Current;
+
             string written = string.Join(", ", spellings.Select(
-                s => $"`{s.Text}` ({Occurrences(s.Count)}, first at {s.First.Location})"));
+                s => $"`{s.Text}` ({Occurrences(s.Count).In(catalog)}, first at {s.First.Location})"));
 
             var consequence = Message.Of(splitsOutput
                 ? NamingMessages.ConsequenceSplits
