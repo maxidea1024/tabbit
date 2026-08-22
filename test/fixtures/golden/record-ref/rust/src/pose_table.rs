@@ -110,7 +110,7 @@ impl PoseTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.step = vec![PoseStepEntry::default(); 2];
+            record.step = Vec::new();
         }
 
         for column in &header.columns {

@@ -176,8 +176,6 @@ public enum Tcb {
         /// How the block's values are laid out: one of the encoding constants.
         public let encoding: Int32
 
-        public let count: Int
-
         /// Total bytes of the column block - what a skip advances by.
         public let byteLength: Int
 

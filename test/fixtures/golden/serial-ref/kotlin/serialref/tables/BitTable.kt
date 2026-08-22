@@ -33,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/serial-ref-trim/serial-ref-trim.xlsx : Refs : B2
 /** What the references point at. */

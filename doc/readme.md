@@ -46,6 +46,7 @@
 |[v104](../spec/tcb-v104-composed-encodings.md)|조합 인코딩 9종→13종과 파일 암호화|
 |[v105](../spec/tcb-v105-bit-width-packing.md)|비트폭 패킹 — **`bool`의 RAW만 정보량의 8배인 이유**와, 설계 결정 셋을 계측이 뒤집은 기록|
 |[v106](../spec/tcb-v106-element-presence.md)|원소 presence 비트맵 — 배열의 어느 자리에 값이 있는지. 와이어 바이트의 **마지막 예약 비트**와, 없는 원소가 빈 값과 같은 바이트인 자리|
+|[v107](../spec/tcb-v107-dynamic-arrays.md)|동적 배열 단일화 — 고정 길이 kind와 디스크립터의 원소 개수를 제거. **길이가 생성 코드에 굳으면 컬럼 추가가 코드 배포가 되는** 자리와, 파일이 오히려 2.5% 작아진 실측|
 |[MAC과 시그니처](../spec/tcb-mac-and-signature.md)|변조 검출. **암호화가 변조 저항을 주지 않고 있던 자리**|
 
 ## 설계 노트

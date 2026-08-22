@@ -122,7 +122,7 @@ module Tabbit
   # `element_nullable` says the block states, per element, which of an array's places hold
   # a value. Independent of `nullable`: a column may say either, or both.
   # spec/nullable-array-elements.md.
-  Column = Struct.new(:tag, :element, :kind, :encoding, :count, :byte_length, :nullable,
+  Column = Struct.new(:tag, :element, :kind, :encoding, :byte_length, :nullable,
                       :element_nullable)
 
   # A table file is truncated, malformed, or not a table file.
@@ -1037,7 +1037,7 @@ module Tabbit
       wire = reader.read_uint8
       encoding = reader.read_uint8
       byte_length = reader.read_uint32
-      Column.new(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, element_count, byte_length,
+      Column.new(tag, wire & 0x0F, (wire >> 4) & 0x03, encoding, byte_length,
                  (wire & 0x40) != 0, (wire & 0x80) != 0)
     end
 

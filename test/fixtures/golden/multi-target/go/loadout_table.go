@@ -131,12 +131,13 @@ func (t *LoadoutTable) Read(filename string) error {
 	// the table holds alone - the previous rows and an error, not an empty table.
 	records := make([]LoadoutRecord, count)
 
-	// A record array whose length is the sheet's column count is created with the row
-	// rather than by whichever member column arrives first. A Go struct has no field
-	// initializer, so otherwise the slice would stay nil until that member was read - and
-	// a file that no longer carries it would leave the members after it indexing nothing.
+	// Made with the row rather than by whichever member column arrives first: a Go struct
+	// has no field initializer, so otherwise the slice would stay nil until that member
+	// was read - and a file that no longer carries it would leave nothing behind at all.
+	// Empty rather than the sheet's column count, because the length is the file's since
+	// v107 and a number from here would be one the data need not agree with.
 	for i := int32(0); i < count; i++ {
-		records[i].Slot = make([]LoadoutSlotEntry, 2)
+		records[i].Slot = make([]LoadoutSlotEntry, 0)
 	}
 
 	for _, column := range columns {

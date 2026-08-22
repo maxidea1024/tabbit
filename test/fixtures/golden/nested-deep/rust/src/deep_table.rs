@@ -119,7 +119,7 @@ impl DeepTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.star = vec![DeepStarEntry::default(); 2];
+            record.star = Vec::new();
         }
 
         for column in &header.columns {

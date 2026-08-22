@@ -33,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/key-types/key-types.xlsx : Ledger : B2
 /** Keyed by a bigint, for ids that outgrew 32 bits. */

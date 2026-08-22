@@ -199,7 +199,6 @@ pub enum Error {
     /// The row count is larger than a column block could hold that many rows in.
     RowCountImplausible { rows: i32, tag: i32, byte_length: i32 },
     /// A fixed array column states more elements per row than its block could hold.
-    ElementCountImplausible { tag: i32, count: i32, byte_length: i32 },
     /// The blocks the columns declare and the bytes after the header do not add up.
     HeaderLengthMismatch { declared: i32, available: i32 },
     /// A lookup for a key no row carries.
@@ -283,11 +282,6 @@ impl fmt::Display for Error {
                 f,
                 "the row count {} is larger than column tag {} can hold in its {} bytes",
                 rows, tag, byte_length
-            ),
-            Error::ElementCountImplausible { tag, count, byte_length } => write!(
-                f,
-                "column tag {} says each row holds {} elements, which its {} bytes cannot hold",
-                tag, count, byte_length
             ),
             Error::HeaderLengthMismatch { declared, available } => write!(
                 f,
@@ -1568,7 +1562,7 @@ pub fn check_column_with_elements(
     accepted: &[u8],
 ) -> Result<()> {
     check_element_nullable(column, field, true)?;
-    check_column_shape(column, field, kind, count, nullable, accepted)
+    check_column_shape(column, field, kind, nullable, accepted)
 }
 
 /// That the file and the generated member agree about the element bitmap.
@@ -1591,7 +1585,7 @@ pub fn check_column(
     accepted: &[u8],
 ) -> Result<()> {
     check_element_nullable(column, field, false)?;
-    check_column_shape(column, field, kind, count, nullable, accepted)
+    check_column_shape(column, field, kind, nullable, accepted)
 }
 
 fn check_column_shape(

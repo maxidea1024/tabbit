@@ -110,8 +110,8 @@ impl RackTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.slots.pick = vec![<i32>::default(); 2];
-            record.slots.count = vec![<i32>::default(); 2];
+            record.slots.pick = Vec::new();
+            record.slots.count = Vec::new();
         }
 
         for column in &header.columns {

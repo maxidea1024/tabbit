@@ -33,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : S7
 /** Which table `Rack.SlotsPick1` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */

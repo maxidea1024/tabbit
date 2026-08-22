@@ -183,36 +183,37 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 	// the table holds alone - the previous rows and an error, not an empty table.
 	records := make([]{{ table.record_name }}, count)
 {{~ if table.needs_record_init }}
-	// A record array whose length is the sheet's column count is created with the row
-	// rather than by whichever member column arrives first. A Go struct has no field
-	// initializer, so otherwise the slice would stay nil until that member was read - and
-	// a file that no longer carries it would leave the members after it indexing nothing.
+	// Made with the row rather than by whichever member column arrives first: a Go struct
+	// has no field initializer, so otherwise the slice would stay nil until that member
+	// was read - and a file that no longer carries it would leave nothing behind at all.
+	// Empty rather than the sheet's column count, because the length is the file's since
+	// v107 and a number from here would be one the data need not agree with.
 	for i := int32(0); i < count; i++ {
 {{~ for field in table.fields ~}}
 {{~ if field.is_fixed_record_array ~}}
-		records[i].{{ field.name }} = make({{ field.array_type }}, {{ field.element_count }})
+		records[i].{{ field.name }} = make({{ field.array_type }}, 0)
 {{~ else if field.members_are_anonymous ~}}
 {{~## An array of arrays: both levels made with the row, for the same reason. ##~}}
 		records[i].{{ field.name }} = make([][]{{ field.element_type_name }}, {{ field.outer_count }})
 		for at := range records[i].{{ field.name }} {
-			records[i].{{ field.name }}[at] = make([]{{ field.element_type_name }}, {{ field.element_count }})
+			records[i].{{ field.name }}[at] = make([]{{ field.element_type_name }}, 0)
 		}
 {{~ else if field.members_are_arrays ~}}
 {{~## One record, and the slices are its members - so each of them is made here for the
    same reason. ##~}}
 {{~ for member in field.members ~}}
-		records[i].{{ field.name }}.{{ member.name }} = make({{ member.slice_type }}, {{ member.element_count }})
+		records[i].{{ field.name }}.{{ member.name }} = make({{ member.slice_type }}, 0)
 {{~ if member.ref_key_slice_type != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are made. spec/references-in-records.md. ##~}}
-		records[i].{{ field.name }}.{{ member.name }}Index = make({{ member.ref_key_slice_type }}, {{ member.element_count }})
+		records[i].{{ field.name }}.{{ member.name }}Index = make({{ member.ref_key_slice_type }}, 0)
 {{~ end ~}}
 {{~ if member.multi ~}}
 {{~## A member reaching several tables holds one slot and one discriminator per element beside
    the keys, and the linking pass writes into both - so both are made here as well.
    spec/multi-target-accessors.md. ##~}}
-		records[i].{{ field.name }}.{{ member.multi.slot_member }} = make([]any, {{ member.element_count }})
-		records[i].{{ field.name }}.{{ member.multi.target_member }} = make([]{{ member.multi.target_type_name }}, {{ member.element_count }})
+		records[i].{{ field.name }}.{{ member.multi.slot_member }} = make([]any, 0)
+		records[i].{{ field.name }}.{{ member.multi.target_member }} = make([]{{ member.multi.target_type_name }}, 0)
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

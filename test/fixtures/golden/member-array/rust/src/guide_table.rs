@@ -127,9 +127,9 @@ impl GuideTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.skill.step = vec![<i32>::default(); 2];
-            record.skill.order = vec![<String>::default(); 2];
-            record.grid = vec![vec![<i32>::default(); 3]; 2];
+            record.skill.step = Vec::new();
+            record.skill.order = Vec::new();
+            record.grid = vec![Vec::new(); 2];
         }
 
         for column in &header.columns {

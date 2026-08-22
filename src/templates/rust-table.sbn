@@ -140,15 +140,15 @@ impl {{ table.table_name }} {
         for record in records.iter_mut() {
 {{~ for field in table.fields ~}}
 {{~ if field.is_fixed_record_array ~}}
-            record.{{ field.name }} = vec![{{ field.record_type_name }}::default(); {{ field.element_count }}];
+            record.{{ field.name }} = Vec::new();
 {{~ else if field.members_are_anonymous ~}}
 {{~## An array of arrays: both levels sized here, for the same reason. ##~}}
-            record.{{ field.name }} = vec![vec![<{{ field.element_type_name }}>::default(); {{ field.element_count }}]; {{ field.outer_count }}];
+            record.{{ field.name }} = vec![Vec::new(); {{ field.outer_count }}];
 {{~ else if field.members_are_arrays ~}}
 {{~## One record, and the vectors are its members - so each of them is sized here for the
    same reason. ##~}}
 {{~ for member in field.members ~}}
-            record.{{ field.name }}.{{ member.name }} = vec![<{{ member.element_type }}>::default(); {{ member.element_count }}];
+            record.{{ field.name }}.{{ member.name }} = Vec::new();
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

@@ -123,7 +123,7 @@ const int cipherChaCha20 = 1;
 
 /// One column as the file describes it.
 class Column {
-  Column(this.tag, this.element, this.kind, this.encoding, this.count, this.byteLength,
+  Column(this.tag, this.element, this.kind, this.encoding, this.byteLength,
       this.nullable, this.elementNullable);
 
   /// What identifies the column, instead of its position.
@@ -1337,7 +1337,7 @@ Header readTableHeader(TcbReader reader) {
     final encoding = reader.readUint8();
     final byteLength = reader.readUint32();
     columns.add(
-        Column(tag, wire & 0x0f, (wire >> 4) & 0x03, encoding, elementCount, byteLength,
+        Column(tag, wire & 0x0f, (wire >> 4) & 0x03, encoding, byteLength,
             (wire & 0x40) != 0, (wire & 0x80) != 0));
   }
 

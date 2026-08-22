@@ -121,16 +121,17 @@ func (t *GuideTable) Read(filename string) error {
 	// the table holds alone - the previous rows and an error, not an empty table.
 	records := make([]GuideRecord, count)
 
-	// A record array whose length is the sheet's column count is created with the row
-	// rather than by whichever member column arrives first. A Go struct has no field
-	// initializer, so otherwise the slice would stay nil until that member was read - and
-	// a file that no longer carries it would leave the members after it indexing nothing.
+	// Made with the row rather than by whichever member column arrives first: a Go struct
+	// has no field initializer, so otherwise the slice would stay nil until that member
+	// was read - and a file that no longer carries it would leave nothing behind at all.
+	// Empty rather than the sheet's column count, because the length is the file's since
+	// v107 and a number from here would be one the data need not agree with.
 	for i := int32(0); i < count; i++ {
-		records[i].Skill.Step = make([]int32, 2)
-		records[i].Skill.Order = make([]string, 2)
+		records[i].Skill.Step = make([]int32, 0)
+		records[i].Skill.Order = make([]string, 0)
 		records[i].Grid = make([][]int32, 2)
 		for at := range records[i].Grid {
-			records[i].Grid[at] = make([]int32, 3)
+			records[i].Grid[at] = make([]int32, 0)
 		}
 	}
 

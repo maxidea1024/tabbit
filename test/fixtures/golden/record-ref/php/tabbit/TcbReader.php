@@ -807,7 +807,6 @@ final class TcbReader
             $tag = $this->readCounter32();
             $wire = $this->readFixed8();
             $encoding = $this->readFixed8();
-            $count = $this->readCounter32();
             $byteLength = $this->readFixed32();
 
             $columns[] = [
@@ -827,7 +826,6 @@ final class TcbReader
                 'elementNullable' => ($wire & 0x80) !== 0,
 
                 'encoding' => $encoding,
-                'count' => $count,
                 'byteLength' => $byteLength,
             ];
         }
