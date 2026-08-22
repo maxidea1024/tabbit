@@ -56,7 +56,7 @@ public class BinaryFormatTests
         // bytes below; what it buys is one header shape for the readers to agree on.
         // spec/tcb-mac-and-signature.md.
         expected.Add("signature", 0x54, 0x43, 0x42, 0x00);   // "TCB\0", at offset zero
-        expected.Add("version", 0x6a, 0x00, 0x00, 0x00);     // 106, fixed32
+        expected.Add("version", 0x6b, 0x00, 0x00, 0x00);     // 107, fixed32
         expected.Add("flags", 0x00);                         // no compression, no encryption
         expected.Add("cipher", 0x00);                        // not encrypted
 
@@ -77,10 +77,11 @@ public class BinaryFormatTests
 
         // ----------------------------------------------------------- descriptors
         //
-        // Five fields each: the tag, the wire byte (element in the low nibble, kind in
-        // bits 4-5, nullability in bit 6), the encoding byte, the elements per row, and
-        // the block's length in
-        // bytes. The length is a plain fixed32 rather than a counter because the writer
+        // Four fields each: the tag, the wire byte (element in the low nibble, kind in
+        // bits 4-5, nullability in bit 6), the encoding byte, and the block's length in
+        // bytes. An elements-per-row counter sat between the last two until v107, where
+        // the fixed-length array kind went and left it saying only what the kind already
+        // said. The length is a plain fixed32 rather than a counter because the writer
         // states it before the block, when a varint's size could not be known yet.
         // The encodings show the writer's measure-and-keep-the-smallest selection at
         // work even on one row: an i32 whose value fits a byte travels as a varint
@@ -89,19 +90,16 @@ public class BinaryFormatTests
         expected.Add("index: tag", 0x02);                    // counter32: zig-zag of 1
         expected.Add("index: wire", 0x02);                   // element i32, kind scalar
         expected.Add("index: encoding", 0x01);               // varint
-        expected.Add("index: count", 0x02);                  // counter32: zig-zag of 1
         expected.Add("index: block length", 0x01, 0x00, 0x00, 0x00);
 
         expected.Add("label: tag", 0x04);                    // zig-zag of 2
         expected.Add("label: wire", 0x06);                   // element string, kind scalar
         expected.Add("label: encoding", 0x00);               // raw
-        expected.Add("label: count", 0x02);
         expected.Add("label: block length", 0x06, 0x00, 0x00, 0x00);
 
         expected.Add("amount: tag", 0x06);                   // zig-zag of 3
         expected.Add("amount: wire", 0x02);                  // element i32, kind scalar
         expected.Add("amount: encoding", 0x01);              // varint
-        expected.Add("amount: count", 0x02);
         expected.Add("amount: block length", 0x01, 0x00, 0x00, 0x00);
 
         // ---------------------------------------------------------------- blocks
@@ -247,7 +245,7 @@ public class BinaryFormatTests
 
             // 'S' 'C' 'B' 0 as a fixed32: every table file starts with it, encrypted or not.
             Assert.Equal(0x00424354u, reader.ReadFixed32());
-            Assert.Equal(106u, reader.ReadFixed32());
+            Assert.Equal(Tabbit.Exporters.TcbFormat.Version, reader.ReadFixed32());
             Assert.Equal(0, reader.ReadByte());
 
             // The cipher byte, the nonce and the MAC - zero in a committed golden, which is
@@ -265,12 +263,11 @@ public class BinaryFormatTests
                 reader.ReadCounter32();                      // tag
                 byte wire = reader.ReadByte();
                 byte encoding = reader.ReadByte();
-                reader.ReadCounter32();                      // elements per row
                 int byteLength = (int)reader.ReadFixed32();
 
                 int kind = (wire >> 4) & 0x03;
 
-                if (kind > 2)
+                if (kind > 1)
                     failures.Add($"{relative}: column {at} declares kind {kind}");
 
                 if (encoding > 13)
