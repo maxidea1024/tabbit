@@ -24,7 +24,15 @@ public partial class ModelCooker
     /// <summary>Which step of a run this class's log lines belong to.</summary>
     private static Serilog.ILogger Log => LogCategory.Cooking;
 
-    public Model Cook(Options options, RecipeModel recipeModel, RawModel rawModel)
+    /// <param name="report">
+    /// Where everything found here is kept so that it survives the run. Null when the recipe
+    /// asked for no report. spec/build-report.md.
+    /// </param>
+    public Model Cook(
+        Options options,
+        RecipeModel recipeModel,
+        RawModel rawModel,
+        Reporting.BuildReport? report = null)
     {
         var result = new Model();
 
@@ -100,6 +108,11 @@ public partial class ModelCooker
         // that do not stop a run. An asset that has not been drawn yet is exactly such a
         // report, and one nobody sees is one nobody writes.
         Report(diagnostics);
+
+        // Taken before the throw, so the report holds what did not stop the run as well as
+        // what did. The throw below carries only the stopping half, and a report of only that
+        // half is a report that loses every warning the moment one error appears.
+        report?.Take(diagnostics);
 
         diagnostics.ThrowIfAny(Messages.Message.Of(CookingMessages.ValidationFailed));
 

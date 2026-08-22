@@ -55,9 +55,6 @@ public sealed class BuildCache
     /// <summary>Which step of a run this class's log lines belong to.</summary>
     private static ILogger Log => LogCategory.Caching;
 
-    /// <summary>Directory the cache lives in when the command line does not say.</summary>
-    private const string DefaultDirectory = ".tabbit";
-
     /// <summary>Most changed inputs to name before summarising the rest.</summary>
     private const int NamesShown = 5;
 
@@ -180,24 +177,10 @@ public sealed class BuildCache
     /// Where this recipe's seal is kept.
     /// </summary>
     /// <remarks>
-    /// One file per recipe, named after it and after a hash of its absolute path. The name
-    /// is there so a person can tell which is which; the hash is there because two checkouts
-    /// hold recipes of the same name and they describe different runs.
+    /// One file per recipe, under the naming every per-recipe file of this run's own shares.
+    /// The build report sits beside it under the same stem. <see cref="CacheFiles"/>.
     /// </remarks>
-    private static string SealPath(Options options)
-    {
-        string recipe = Path.GetFullPath(options.RecipeFilename!);
-
-        string directory = string.IsNullOrWhiteSpace(options.CacheDirectory)
-            ? DefaultDirectory
-            : options.CacheDirectory!;
-
-        string name = Path.GetFileNameWithoutExtension(recipe);
-        string where = ContentHash.OfText(
-            PathNames.Comparison == StringComparison.OrdinalIgnoreCase ? recipe.ToLowerInvariant() : recipe);
-
-        return Path.Combine(directory, $"{name}-{where[..12]}.seal.json");
-    }
+    private static string SealPath(Options options) => CacheFiles.PathFor(options, ".seal.json");
 
     // ----------------------------------------------------------------- deciding
 

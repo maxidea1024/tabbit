@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Serilog;
 
 namespace Tabbit;
@@ -71,6 +72,18 @@ public sealed class RunTimings
 
     /// <summary>Measures one output entry, reported only under `--verbose`.</summary>
     public IDisposable MeasureEntry(string name) => new Scope(this, name, _details);
+
+    /// <summary>
+    /// What each phase took, in the order they ran.
+    /// </summary>
+    /// <remarks>
+    /// For the build report, which carries these into a file rather than a log line. The
+    /// per-entry detail is not here: it is a `--verbose` reading of one recipe entry, and the
+    /// report answers "where did the run go" rather than "which of my twenty-five outputs is
+    /// slow".
+    /// </remarks>
+    public IReadOnlyList<(string Name, TimeSpan Elapsed)> Phases
+        => _phases.Select(entry => (entry.Name, entry.Elapsed)).ToList();
 
     /// <summary>
     /// Writes what each step took.

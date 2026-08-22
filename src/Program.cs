@@ -322,6 +322,22 @@ class Program
             }
         }
 
+        // Opening the last report is not a conversion either. It reads one file and hands it
+        // to a browser, which is the whole point of the report having a fixed path: the run
+        // that wrote it may have been days ago and may have failed. spec/build-report.md §7.
+        if (options.ShowReport)
+        {
+            try
+            {
+                return Reporting.BuildReport.ShowLast(options, recipe);
+            }
+            catch (Exception ex)
+            {
+                LogException(options, ex);
+                return 1;
+            }
+        }
+
         // Reading the history is not a conversion: no sources are imported, nothing is
         // written to the output tree, and the answer goes to standard output. The recipe
         // is still needed, because that is where the history's address is.
@@ -371,10 +387,48 @@ class Program
         }
     }
 
+    /// <summary>
+    /// Runs the conversion, and writes the report of it whichever way it ended.
+    /// </summary>
+    /// <remarks>
+    /// The report is written here rather than inside <see cref="Convert"/> because that
+    /// method has six ways out and the report belongs on all of them - including the one
+    /// that threw, which is the ending the report exists for. spec/build-report.md.
+    /// </remarks>
     private static int Process(Options options, RecipeModel recipeModel, JObject? recipeDocument)
     {
         var timings = new RunTimings();
 
+        // Built before the conversion, so a misspelled `Report.OpenInBrowser` is refused with
+        // no workbook opened. Null when the recipe asked for no report.
+        Reporting.BuildReport? report;
+
+        try
+        {
+            report = Reporting.BuildReport.Create(options, recipeModel);
+        }
+        catch (Exception ex)
+        {
+            LogException(options, ex);
+            return 1;
+        }
+
+        int rc = Convert(options, recipeModel, recipeDocument, timings, report);
+
+        // Never allowed to change the result. A report that could not be written costs its
+        // reader a list, and a conversion that succeeded still succeeded.
+        report?.Write(rc, timings);
+
+        return rc;
+    }
+
+    private static int Convert(
+        Options options,
+        RecipeModel recipeModel,
+        JObject? recipeDocument,
+        RunTimings timings,
+        Reporting.BuildReport? report)
+    {
         try
         {
             // Read before any work starts, and discarded: the consumers below take it
@@ -443,7 +497,7 @@ class Program
             ValidationPipeline? validation;
 
             using (timings.Measure(RunTimings.Phase.Rules))
-                validation = ValidationPipeline.Create(options, recipeModel);
+                validation = ValidationPipeline.Create(options, recipeModel, report);
 
             // What can be answered before a workbook is opened: file names, settings,
             // whatever a project's own conventions require of its sources.
@@ -469,7 +523,7 @@ class Program
             Models.Model model;
 
             using (timings.Measure(RunTimings.Phase.Cooking))
-                model = cooker.Cook(options, recipeModel, rawModel);
+                model = cooker.Cook(options, recipeModel, rawModel, report);
 
             // Before validation on purpose. What this writes is where the tables are, and a
             // workbook with a broken value still has its tables in the same places - so a
@@ -541,6 +595,8 @@ class Program
                     "Please return to the previous state with version control such as git or svn."
                 );
 
+                report?.Failed(ex);
+
                 return 1;
             }
 
@@ -552,6 +608,10 @@ class Program
         catch (Exception ex)
         {
             LogException(options, ex);
+
+            // The ending this report exists for. What stopped the run is written down with
+            // everything the run had already found, so the list survives the console.
+            report?.Failed(ex);
 
             return 1;
         }

@@ -47,12 +47,24 @@ public sealed class ValidationPipeline
     private RuntimeStores _stores = null!;
     private readonly ExternalFiles _files = new ExternalFiles();
 
-    private ValidationPipeline(Options options, RecipeModel recipe, RuleFolders folders)
+    /// <summary>
+    /// Where this stage's reports are kept so that they survive the run.
+    /// </summary>
+    /// <remarks>
+    /// Null when the recipe asked for no report. Every stage below hands its whole collector
+    /// over where it prints it, so the page holds what the console held rather than only what
+    /// stopped the run. spec/build-report.md.
+    /// </remarks>
+    private readonly Reporting.BuildReport? _report;
+
+    private ValidationPipeline(
+        Options options, RecipeModel recipe, RuleFolders folders, Reporting.BuildReport? report)
     {
         _options = options;
         _fullRecipe = recipe;
         _recipe = recipe.Validation;
         _folders = folders;
+        _report = report;
         _compiler = new RuleCompiler(folders);
     }
 
@@ -63,7 +75,8 @@ public sealed class ValidationPipeline
     /// Called before the sources are imported, so a folder that does not exist is reported
     /// with nothing read yet.
     /// </remarks>
-    public static ValidationPipeline? Create(Options options, RecipeModel recipe)
+    public static ValidationPipeline? Create(
+        Options options, RecipeModel recipe, Reporting.BuildReport? report = null)
     {
         var folders = RuleFolders.Discover(recipe.Validation);
         if (folders is null)
@@ -71,7 +84,7 @@ public sealed class ValidationPipeline
 
         Log.Information($"Validation rules in `{folders.Root}`.");
 
-        return new ValidationPipeline(options, recipe, folders);
+        return new ValidationPipeline(options, recipe, folders, report);
     }
 
     /// <summary>
@@ -88,7 +101,7 @@ public sealed class ValidationPipeline
 
         RunStage(RuleStage.Pre, diagnostics);
 
-        Finish(diagnostics, "Pre-validation");
+        Finish(diagnostics, "Pre-validation", _report);
     }
 
     /// <summary>
@@ -114,7 +127,7 @@ public sealed class ValidationPipeline
             // The generated code did not compile, which is ours to fix rather than an
             // author's. Running the rules now would bury that under a hundred failures
             // about types that were never emitted.
-            Finish(diagnostics, "Validation");
+            Finish(diagnostics, "Validation", _report);
             return;
         }
 
@@ -151,7 +164,7 @@ public sealed class ValidationPipeline
             _stores = null!;
         }
 
-        Finish(diagnostics, "Validation");
+        Finish(diagnostics, "Validation", _report);
     }
 
     // ------------------------------------------------------------- stages
@@ -442,7 +455,8 @@ public sealed class ValidationPipeline
     /// because a report nobody sees is a report nobody writes - the Lua validators this
     /// replaces used their warning level six times in 12,245 lines.
     /// </remarks>
-    private static void Finish(Diagnostics diagnostics, string what)
+    private static void Finish(
+        Diagnostics diagnostics, string what, Reporting.BuildReport? report)
     {
         // Before anything is printed, because the table stage ran in parallel and the order
         // reports arrived in is whichever thread finished first.
@@ -470,6 +484,11 @@ public sealed class ValidationPipeline
                 $"{what}: {diagnostics.ErrorCount} error(s), {diagnostics.WarningCount} warning(s), "
                 + $"{diagnostics.InfoCount} note(s).");
         }
+
+        // Taken before the throw, for the same reason it is printed before the throw: what
+        // does not stop the run is most of what a stage found, and the exception carries
+        // none of it.
+        report?.Take(diagnostics);
 
         diagnostics.ThrowIfAny(
             Messages.Message.Of(ValidationMessages.StageFailed, ("What", what)));

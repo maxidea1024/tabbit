@@ -320,6 +320,17 @@ public class Options
     public bool ValidateOnly { get; set; }
 
     /// <summary>
+    /// Opens the report the last run of this recipe left, and exits.
+    ///
+    /// The other half of writing the report to a fixed path. "Where was that report" has one
+    /// answer per recipe, so it can be a flag rather than a path somebody has to have kept -
+    /// and the report of a run that failed is the one most likely to be wanted again later.
+    /// </summary>
+    [Cache(CacheRelevance.NotAConversion)]
+    [Option("show-report", HelpText = "Open the last build report for this recipe, and exit.")]
+    public bool ShowReport { get; set; }
+
+    /// <summary>
     /// Writes a starting rule file for one table and exits.
     ///
     /// The header of a rule file is two lines that exist only for the IDE, and the run neither

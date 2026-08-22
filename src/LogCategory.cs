@@ -56,6 +56,9 @@ public static class LogCategory
     /// <summary>What each step of the run took.</summary>
     public static ILogger Timing => Of("Timing");
 
+    /// <summary>Writing the run's own report of what it found, and opening it.</summary>
+    public static ILogger Reporting => Of("Reporting");
+
     /// <summary>
     /// A logger that tags everything written through it with <paramref name="category"/>.
     /// </summary>

@@ -256,6 +256,15 @@ public class RecipeModel
     /// to switch it off.
     /// </summary>
     public ValidationRecipe Validation { get; set; } = new ValidationRecipe();
+
+    /// <summary>
+    /// What a run does with the problems it found: where the report goes, and when it
+    /// opens itself.
+    ///
+    /// Written whether the run succeeded or not, because a run that stopped is the one
+    /// whose report is worth reading. spec/build-report.md.
+    /// </summary>
+    public ReportRecipe Report { get; set; } = new ReportRecipe();
     #endregion
 
 

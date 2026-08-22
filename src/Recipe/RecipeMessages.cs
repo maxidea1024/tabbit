@@ -91,6 +91,9 @@ public static class RecipeMessages
     /// <summary>A history `OnFailure` this tool does not understand.</summary>
     public const string HistoryOnFailureUnknown = "recipe.history-on-failure-unknown";
 
+    /// <summary>A report `OpenInBrowser` this tool does not understand.</summary>
+    public const string ReportOpenUnknown = "recipe.report-open-unknown";
+
     /// <summary>A summary `Author` this tool does not understand.</summary>
     public const string SummaryAuthorUnknown = "recipe.summary-author-unknown";
     /// <summary>A `MemberCase` this tool does not understand.</summary>
