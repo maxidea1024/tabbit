@@ -134,8 +134,9 @@ public sealed class ValidationPipeline
             {
                 // Recorded rather than merely left undone. A gate that is switched off has to
                 // say so, or a run that skipped it reads exactly like a run that passed it.
-                diagnostics.Info(
-                    $"Skipped {skipped} runtime rule(s): --skip-runtime-validation was given.");
+                diagnostics.Info(null,
+                    Messages.Message.Of(ValidationMessages.RuntimeRulesSkipped,
+                        ("Skipped", skipped)));
             }
         }
         else
@@ -237,9 +238,10 @@ public sealed class ValidationPipeline
             // that passed.
             var skipped = tiers.Skip(index + 1).SelectMany(tier => tier).ToList();
 
-            diagnostics.Info(
-                $"Skipped {skipped.Count} rule(s) after tier {tiers[index].Key} reported: "
-                + $"{string.Join(", ", skipped.Select(file => file.Display))}.");
+            diagnostics.Info(null,
+                Messages.Message.Of(ValidationMessages.RulesSkippedAfterTier,
+                    ("Skipped", skipped.Count), ("Tier", tiers[index].Key),
+                    ("Files", string.Join(", ", skipped.Select(file => file.Display)))));
 
             return;
         }
@@ -264,14 +266,17 @@ public sealed class ValidationPipeline
             // A rule reaching for a setting nobody configured, and anything else this
             // pipeline itself refuses. The message is already written for an author.
             diagnostics.Error(failure.Location ?? SheetLocation.OfTextFile(file.Path, 1, 1),
-                $"[{file.Display}] {failure.Message}");
+                Messages.Message.Of(ValidationMessages.RuleRefused,
+                    ("File", file.Display), ("Detail", failure.Message)));
         }
         // A defect is not a rule that failed, so it is not recorded against the rule's file
         // and it does not let the run carry on to its next rule.
         catch (Exception failure) when (failure is not TabbitDefectException)
         {
             diagnostics.Error(WhereItThrew(file, failure),
-                $"[{file.Display}] threw {failure.GetType().Name}: {failure.Message}");
+                Messages.Message.Of(ValidationMessages.RuleThrew,
+                    ("File", file.Display), ("Exception", failure.GetType().Name),
+                    ("Detail", failure.Message)));
         }
 
         // Never silently. A rule that reported past the cap says how much was left out, because
@@ -280,9 +285,9 @@ public sealed class ValidationPipeline
         if (scope.Suppressed > 0)
         {
             diagnostics.Warn(SheetLocation.OfTextFile(file.Path, 1, 1),
-                $"[{file.Display}] made {scope.Suppressed} more report(s) than the "
-                + $"{RuleScope.MostReportsPerRule} shown. A rule reporting this much is usually "
-                + $"the rule being wrong rather than the data.");
+                Messages.Message.Of(ValidationMessages.ReportsOverCap,
+                    ("File", file.Display), ("Extra", scope.Suppressed),
+                    ("Shown", RuleScope.MostReportsPerRule)));
         }
     }
 
@@ -334,10 +339,9 @@ public sealed class ValidationPipeline
                 orphaned.Add(file);
 
                 diagnostics.Error(SheetLocation.OfTextFile(file.Path, 1, 1),
-                    $"[{file.Display}] does not say which table it is for. A table rule is named "
-                    + $"`<table>{RuleFolders.RuleSuffix}.cs` - rename it to "
-                    + $"`{file.Name}{RuleFolders.RuleSuffix}.cs` if it is the rule for "
-                    + $"`{file.Name}`.");
+                    Messages.Message.Of(ValidationMessages.TableRuleUnnamed,
+                        ("File", file.Display), ("Suffix", RuleFolders.RuleSuffix),
+                        ("Name", file.Name)));
 
                 continue;
             }
@@ -359,10 +363,12 @@ public sealed class ValidationPipeline
                 ? $" Did you mean {string.Join(" or ", nearest.Select(name => $"`{name}`"))}?"
                 : "";
 
+            // `Hint` is still a sentence built elsewhere, the way the index-type report's
+            // `Why` is. It reads as English inside a translated sentence until it gets an id.
             diagnostics.Error(SheetLocation.OfTextFile(file.Path, 1, 1),
-                $"[{file.Display}] is a rule for table `{file.Subject}`, which this model does not "
-                + $"have.{hint} Rename the file to follow the table, or move its checks into "
-                + $"`{RuleFolders.FolderOf(RuleStage.Global)}/` if they are not about one table.");
+                Messages.Message.Of(ValidationMessages.TableRuleOrphaned,
+                    ("File", file.Display), ("Table", file.Subject), ("Hint", hint),
+                    ("GlobalFolder", RuleFolders.FolderOf(RuleStage.Global))));
         }
 
         return orphaned;
@@ -386,11 +392,10 @@ public sealed class ValidationPipeline
             if (file.Stage == RuleStage.Table)
             {
                 diagnostics.Error(SheetLocation.OfTextFile(file.Path, 1, 1),
-                    $"[{file.Display}] declares a tier, which "
-                    + $"`{RuleFolders.FolderOf(RuleStage.Table)}/` has no use for: its rules run at "
-                    + $"the same time as each other and each is about one table. Move the checks "
-                    + $"into `{RuleFolders.FolderOf(RuleStage.Global)}/` if their order matters, or "
-                    + $"drop the attribute.");
+                    Messages.Message.Of(ValidationMessages.TableRuleDeclaresTier,
+                        ("File", file.Display),
+                        ("TableFolder", RuleFolders.FolderOf(RuleStage.Table)),
+                        ("GlobalFolder", RuleFolders.FolderOf(RuleStage.Global))));
 
                 continue;
             }
@@ -398,9 +403,8 @@ public sealed class ValidationPipeline
             if (file.Tier is null)
             {
                 diagnostics.Error(SheetLocation.OfTextFile(file.Path, 1, 1),
-                    $"[{file.Display}] declares a tier this cannot read. Write a plain number - "
-                    + $"the tiers are settled before any rule is compiled, so a named constant is "
-                    + $"not available to read here.");
+                    Messages.Message.Of(ValidationMessages.TierUnreadable,
+                        ("File", file.Display)));
             }
         }
     }
@@ -417,12 +421,12 @@ public sealed class ValidationPipeline
             return;
 
         diagnostics.Warn(null,
-            $"The validation folder `{_folders.Root}` holds no rule files. Put `.cs` files in "
-            + $"`{RuleFolders.FolderOf(RuleStage.Table)}/`, "
-            + $"`{RuleFolders.FolderOf(RuleStage.Global)}/`, "
-            + $"`{RuleFolders.FolderOf(RuleStage.Runtime)}/` or "
-            + $"`{RuleFolders.FolderOf(RuleStage.Pre)}/` - or clear `Validation.Path` to run "
-            + $"without validation.");
+            Messages.Message.Of(ValidationMessages.NoRuleFiles,
+                ("Root", _folders.Root),
+                ("TableFolder", RuleFolders.FolderOf(RuleStage.Table)),
+                ("GlobalFolder", RuleFolders.FolderOf(RuleStage.Global)),
+                ("RuntimeFolder", RuleFolders.FolderOf(RuleStage.Runtime)),
+                ("PreFolder", RuleFolders.FolderOf(RuleStage.Pre))));
     }
 
     // -------------------------------------------------------------- output

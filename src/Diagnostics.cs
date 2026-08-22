@@ -85,6 +85,28 @@ public sealed class Diagnostics
     public void Error(Location? location, Messages.Message message)
         => Add(Severity.Error, location, message);
 
+    /// <summary>
+    /// Records a refusal that was thrown and caught, keeping what it already said.
+    /// </summary>
+    /// <remarks>
+    /// For the handlers that turn one table's refusal into a report and read the next table.
+    /// Written as one call rather than three reads of the exception so that the id travels:
+    /// pulling `.Location` and `.Message` out by hand is how a report loses its name halfway
+    /// between being thrown and being printed.
+    /// </remarks>
+    public void Error(TabbitException failure)
+    {
+        lock (_entries)
+        {
+            _entries.Add((Severity.Error, new TabbitException.Detail
+            {
+                Location = failure.Location,
+                Message = failure.Message,
+                MessageId = failure.MessageId,
+            }));
+        }
+    }
+
     /// <summary>Records something named worth seeing that does not stop the run on its own.</summary>
     public void Warn(Location? location, Messages.Message message)
         => Add(Severity.Warning, location, message);

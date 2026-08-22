@@ -136,19 +136,17 @@ internal static class TableRowSets
             if (!byRawName.TryGetValue(ownerName, out var owner))
             {
                 diagnostics.Error(table.Location,
-                    $"`{table.RawName}` names another set of `{ownerName}`'s rows, which this "
-                    + $"run does not have. A name matching `TableRowSets` contributes rows to "
-                    + $"a table rather than declaring one, so the table has to be there - "
-                    + $"check the spelling, or that the source holding it is not excluded.");
+                    Messages.Message.Of(CookingMessages.RowSetOwnerMissing,
+                        ("Set", table.RawName), ("Owner", ownerName)));
                 continue;
             }
 
             if (!TryProjectOnto(owner, table, context, out var rows, out string? difference))
             {
                 diagnostics.Error(table.Location,
-                    $"`{table.RawName}` and `{owner.RawName}` are two sets of one table's rows, "
-                    + $"so `{owner.RawName}` has to declare every column `{table.RawName}` "
-                    + $"holds. {difference}");
+                    Messages.Message.Of(CookingMessages.RowSetColumnsDiffer,
+                        ("Set", table.RawName), ("Owner", owner.RawName),
+                        ("Difference", difference)));
                 continue;
             }
 

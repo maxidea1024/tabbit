@@ -284,10 +284,10 @@ public class Model
                     if (field.IsRecordMember)
                     {
                         diagnostics.Error(field.DetailTypeLocation,
-                            $"Record group `{table.Name}.{field.GroupName}` member `{field.Name}` "
-                            + $"references the field `{field.ResolvedRefField.Name}` rather than a whole "
-                            + $"row. A reference inside a record must name the table alone. Drop the "
-                            + $"`.{field.ResolvedRefField.Name}`, or move the column out of the group.");
+                            Messages.Message.Of(Cooking.CookingMessages.RecordReferenceNamesField,
+                                ("Table", table.Name), ("Group", field.GroupName),
+                                ("Field", field.Name),
+                                ("RefField", field.ResolvedRefField.Name)));
                         continue;
                     }
 
@@ -323,7 +323,8 @@ public class Model
             if (target is null)
             {
                 diagnostics.Error(field.DetailTypeLocation,
-                    $"Field `{table.Name}.{field.Name}` references table `{name}`, which does not exist.");
+                    Messages.Message.Of(Cooking.CookingMessages.ReferenceTableMissing,
+                        ("Table", table.Name), ("Field", field.Name), ("Target", name)));
                 return;
             }
 
@@ -343,11 +344,11 @@ public class Model
         if (keyTypes.Count > 1)
         {
             diagnostics.Error(field.DetailTypeLocation,
-                $"Field `{table.Name}.{field.Name}` references "
-                + $"`{string.Join("`, `", targets.Select(t => t.Name))}`, and they are not keyed "
-                + $"alike - the column holds one value and would have to be "
-                + $"`{string.Join("` and `", keyTypes.Select(k => k.ToString().ToLowerInvariant()))}` "
-                + $"at once. Key them the same way, or point at them from separate columns.");
+                Messages.Message.Of(Cooking.CookingMessages.MultiTargetKeysDiffer,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Targets", string.Join("`, `", targets.Select(t => t.Name))),
+                    ("KeyTypes", string.Join(
+                        "` and `", keyTypes.Select(k => k.ToString().ToLowerInvariant())))));
             return;
         }
 
@@ -395,7 +396,9 @@ public class Model
             if (refTable is null)
             {
                 diagnostics.Error(fieldNode.DetailTypeLocation,
-                    $"Field `{table.Name}.{refererField.Name}` references table `{fieldNode.RefTableName}`, which does not exist.");
+                    Messages.Message.Of(Cooking.CookingMessages.ReferenceTableMissing,
+                        ("Table", table.Name), ("Field", refererField.Name),
+                        ("Target", fieldNode.RefTableName)));
                 return false;
             }
 
@@ -408,9 +411,9 @@ public class Model
             if (refTable == table && !string.IsNullOrEmpty(fieldNode.RefFieldName))
             {
                 diagnostics.Error(fieldNode.DetailTypeLocation,
-                    $"Field `{table.Name}.{refererField.Name}` references `{table.Name}.{fieldNode.RefFieldName}`, "
-                    + $"which is a field of its own table. A reference that names a field is followed, "
-                    + $"so this one begins a loop.");
+                    Messages.Message.Of(Cooking.CookingMessages.ReferenceFieldOfOwnTable,
+                        ("Table", table.Name), ("Field", refererField.Name),
+                        ("RefField", fieldNode.RefFieldName)));
                 return false;
             }
 
@@ -427,8 +430,11 @@ public class Model
             if (refField is null)
             {
                 diagnostics.Error(fieldNode.DetailTypeLocation,
-                    $"Field `{table.Name}.{refererField.Name}` references `{fieldNode.RefTableName}.{fieldNode.RefFieldName}`, " +
-                    $"but table `{refTable.Name}` has no field named `{fieldNode.RefFieldName}`.");
+                    Messages.Message.Of(Cooking.CookingMessages.ReferenceFieldMissing,
+                        ("Table", table.Name), ("Field", refererField.Name),
+                        ("RefTable", fieldNode.RefTableName),
+                        ("RefField", fieldNode.RefFieldName),
+                        ("Resolved", refTable.Name)));
                 return false;
             }
 
@@ -443,8 +449,9 @@ public class Model
             if (!visited.Add(refField))
             {
                 diagnostics.Error(fieldNode.DetailTypeLocation,
-                    $"A cyclic reference has been detected while resolving `{table.Name}.{refererField.Name}`. " +
-                    $"The chain returns to `{refField.OwnerTable?.Name}.{refField.Name}`.");
+                    Messages.Message.Of(Cooking.CookingMessages.ReferenceCycle,
+                        ("Table", table.Name), ("Field", refererField.Name),
+                        ("Returns", $"{refField.OwnerTable?.Name}.{refField.Name}")));
                 return false;
             }
 

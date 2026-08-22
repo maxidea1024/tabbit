@@ -4,6 +4,7 @@ using Serilog;
 using Tabbit.Models;
 using Tabbit.Recipe;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.Cooking;
 
@@ -160,11 +161,8 @@ public partial class ModelCooker
                         : group.Fields[element]).Index];
 
                     diagnostics.Error(cell.RawCell?.Location,
-                        $"`{table.Name}.{group.Name}` leaves element {element} empty while a "
-                        + $"later element has a value. An array with a gap in it reads as one "
-                        + $"whose middle holds the type's empty value, which a consumer cannot "
-                        + $"tell from a value that was written. Fill it, move the later values "
-                        + $"up, or set `AllowArrayGaps` on the source entry.");
+                        Message.Of(CookingMessages.ArrayGap,
+                            ("Table", table.Name), ("Group", group.Name), ("Element", element)));
                 }
             }
         }
@@ -219,9 +217,8 @@ public partial class ModelCooker
                         if (field.Index < row.Count && !row[field.Index].HasValue)
                         {
                             diagnostics.Error(row[field.Index].RawCell?.Location,
-                                $"`{table.Name}.{field.Name}` has no value, and the sheet marks "
-                                + $"the column as required. It is marked required inside an "
-                                + $"object and is not part of one, which reads as required.");
+                                Message.Of(CookingMessages.RequiredInObjectOutsideObject,
+                                    ("Table", table.Name), ("Field", field.Name)));
                         }
                     }
                 }
@@ -254,10 +251,9 @@ public partial class ModelCooker
                                 continue;
 
                             diagnostics.Error(row[field.Index].RawCell?.Location,
-                                $"`{table.Name}.{group.Name}` element {element} exists and its "
-                                + $"`{member.Name}` is empty, which the sheet marks as required "
-                                + $"inside the object. Give it a value, or clear the rest of the "
-                                + $"element so that there is no record here.");
+                                Message.Of(CookingMessages.RecordMemberRequiredEmpty,
+                                    ("Table", table.Name), ("Group", group.Name),
+                                    ("Element", element), ("Member", member.Name)));
                         }
                     }
                 }
@@ -286,16 +282,14 @@ public partial class ModelCooker
         if (_assets is null)
         {
             diagnostics.Warn(null,
-                $"{columns} column(s) are typed `asset` and no folders are configured to check "
-                + $"them against, so nothing was checked. Name the folders in the recipe's "
-                + $"`Assets.Roots` to switch the check on.");
+                Message.Of(CookingMessages.AssetNoRoots, ("Columns", columns)));
             return;
         }
 
         if (_assets.OnMissingSeverity is null)
         {
-            diagnostics.Info(
-                $"{columns} column(s) are typed `asset`, and `Assets.OnMissing` is `ignore`.");
+            diagnostics.Info(null,
+                Message.Of(CookingMessages.AssetCheckIgnored, ("Columns", columns)));
         }
     }
 
@@ -316,9 +310,13 @@ public partial class ModelCooker
 
             if (!Models.ValueTypes.CanBeIndexKey(field.Type, out string? why))
             {
+                // `Why` is still a sentence built elsewhere - ValueTypes hands it over as
+                // text. It reads as English inside a translated sentence until that call
+                // site gets an id of its own, which is the next thing owed here.
                 diagnostics.Error(field.TypeLocation,
-                    $"Index field `{table.Name}.{field.Name}` is `{field.TypeName}`, {why}" +
-                    $" Use a whole-number, string, uuid or enum column as an index.");
+                    Message.Of(CookingMessages.IndexTypeUnusable,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Type", field.TypeName), ("Why", why)));
                 continue;
             }
 
@@ -328,8 +326,8 @@ public partial class ModelCooker
             if (!field.IsRequired)
             {
                 diagnostics.Error(field.TypeLocation,
-                    $"Index field `{table.Name}.{field.Name}` cannot be optional: " +
-                    $"drop the `?` from its type, because every row must have a value for an index.");
+                    Message.Of(CookingMessages.IndexOptional,
+                        ("Table", table.Name), ("Field", field.Name)));
                 continue;
             }
 
@@ -348,8 +346,9 @@ public partial class ModelCooker
                 if (seen.TryGetValue(cell.Value!, out var firstLocation))
                 {
                     diagnostics.Error(cell.RawCell.Location,
-                        $"Index field `{table.Name}.{field.Name}` repeats the value `{cell.Value}`, " +
-                        $"first used at {firstLocation}. Values in an index field must be unique.");
+                        Message.Of(CookingMessages.IndexDuplicate,
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Value", cell.Value), ("First", firstLocation)));
                     continue;
                 }
 
@@ -405,12 +404,9 @@ public partial class ModelCooker
             if (field.RefKeyType == Models.ValueType.Enum)
             {
                 diagnostics.Error(field.DetailTypeLocation,
-                    $"`{table.Name}.{field.Name}` references `{field.ResolvedRefTable.Name}`, whose "
-                    + $"index is an enum. Every other key type can be referenced; this one cannot "
-                    + $"yet, because an enum travels in an encoding of its own and the generated "
-                    + $"readers have no call for it here. Key `{field.ResolvedRefTable.Name}` by the "
-                    + $"enum's underlying `int`, or carry the value here as that enum and look the "
-                    + $"row up through `{field.ResolvedRefTable.Name}`'s own index.");
+                    Message.Of(CookingMessages.ReferenceEnumKey,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Target", field.ResolvedRefTable.Name)));
                 continue;
             }
 
@@ -459,9 +455,9 @@ public partial class ModelCooker
                 if (string.IsNullOrEmpty((cell.RawCell?.Value ?? "").Trim()))
                 {
                     diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                        $"Field `{table.Name}.{field.Name}` references `{foreignTable.Name}` and "
-                        + $"this row leaves the cell empty. Write the key of a row to point at, or "
-                        + $"`-` to say this row points at none.");
+                        Message.Of(CookingMessages.ReferenceBlank,
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Target", foreignTable.Name)));
                     continue;
                 }
 
@@ -471,9 +467,9 @@ public partial class ModelCooker
                 if (field.IsRequired)
                 {
                     diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                        $"Field `{table.Name}.{field.Name}` references `{foreignTable.Name}` and this "
-                        + $"row says it points at none, but the column is declared required. Give it "
-                        + $"a row to point at, or declare the column optional.");
+                        Message.Of(CookingMessages.ReferenceNoneButRequired,
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Target", foreignTable.Name)));
                 }
             }
         }
@@ -507,8 +503,9 @@ public partial class ModelCooker
                 continue;
 
             diagnostics.Error(cell.RawCell.Location,
-                $"Field `{table.Name}.{field.Name}` references `{foreignTable.Name}` row `{cell.Value}`, " +
-                $"which does not exist.");
+                Message.Of(CookingMessages.ReferenceMissingRow,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Target", foreignTable.Name), ("Value", cell.Value)));
         }
     }
 
@@ -678,11 +675,10 @@ public partial class ModelCooker
                     continue;
 
                 diagnostics.Error(field.Constraints.ReferencedTablesLocation ?? field.NameLocation,
-                    $"`{table.Name}.{field.Name}` may be a row of `{targets[a].Name}` or of "
-                    + $"`{targets[b].Name}`, and both hold `{string.Join("`, `", shared)}`. An id "
-                    + $"in two of them makes the generated accessors answer together, and which "
-                    + $"row the column meant is then not in the data. Give the two tables "
-                    + $"separate id bands, or point at them from separate columns.");
+                    Message.Of(CookingMessages.MultiTargetIdOverlap,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("First", targets[a].Name), ("Second", targets[b].Name),
+                        ("Shared", string.Join("`, `", shared))));
             }
         }
     }
@@ -727,8 +723,9 @@ public partial class ModelCooker
                 continue;
 
             diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                $"`{table.Name}.{field.Name}` holds `{cell.Value}`, which is not a row of "
-                + $"`{names}`.");
+                Message.Of(CookingMessages.MultiTargetMissingRow,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Value", cell.Value), ("Targets", names)));
         }
     }
 
@@ -811,8 +808,10 @@ public partial class ModelCooker
                         continue;
 
                     diagnostics.Error(field.DetailTypeLocation,
-                        $"In a `{TargetSides.Describe(side)}` build, field `{table.Name}.{field.Name}` references table " +
-                        $"`{field.RefTableName}`, which that build excludes by target side.");
+                        Message.Of(CookingMessages.ReferenceExcludedBySide,
+                            ("Side", TargetSides.Describe(side)),
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Target", field.RefTableName)));
                 }
             }
         }
@@ -921,8 +920,8 @@ public partial class ModelCooker
             if (!row[field.Index].HasValue)
             {
                 diagnostics.Error(row[field.Index].RawCell?.Location ?? field.NameLocation,
-                    $"`{table.Name}.{field.Name}` identifies the row, and this row says it has no "
-                    + $"value there. Write one: an index cannot be absent.");
+                    Message.Of(CookingMessages.IndexAbsent,
+                        ("Table", table.Name), ("Field", field.Name)));
             }
 
             return;
@@ -935,9 +934,9 @@ public partial class ModelCooker
             if (field.IsRequired)
             {
                 diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                    $"`{table.Name}.{field.Name}` has no value, and the sheet declares the "
-                    + $"column required. Write one, or type the column `{field.TypeName}?` so "
-                    + $"that a row may say it has none.");
+                    Message.Of(CookingMessages.RequiredEmpty,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Type", field.TypeName)));
             }
 
             // Nothing there to hold to a bound either: the empty value is the type's rather
@@ -979,12 +978,17 @@ public partial class ModelCooker
                 string configured = string.Join(", ",
                     _assets.Kinds.Select(known => known.Length == 0 ? "(no kind)" : known));
 
-                diagnostics.Error(field.TypeLocation,
-                    $"`{table.Name}.{field.Name}` is typed "
-                    + (kind.Length == 0 ? "`asset`" : $"`asset({kind})`")
-                    + $", and the recipe configures no folder for "
-                    + (kind.Length == 0 ? "a column without a kind" : $"kind `{kind}`")
-                    + $". Configured: {configured}.");
+                // Two ids rather than one sentence with two conditionals in it. The text was
+                // already two sentences pretending to be one, and a catalog entry cannot hold
+                // an `if` - nor could a translator do anything useful with a fragment that is
+                // sometimes `asset` and sometimes `asset(icon)`.
+                diagnostics.Error(field.TypeLocation, kind.Length == 0
+                    ? Message.Of(CookingMessages.AssetNoFolderWithoutKind,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Configured", configured))
+                    : Message.Of(CookingMessages.AssetNoFolderForKind,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Kind", kind), ("Configured", configured)));
             }
 
             return;
@@ -1057,7 +1061,11 @@ public partial class ModelCooker
     {
         var constraints = field.Constraints;
         var location = cell.RawCell?.Location ?? field.NameLocation;
-        string where = elementAt < 0 ? "" : $" (element {elementAt})";
+        // Whether this is about a row's value or one element of its array picks the id
+        // rather than a fragment glued into the sentence. `where` used to be `""` or
+        // ` (element 3)`, which is a conditional inside a message - the one thing a catalog
+        // entry cannot hold, and a phrase a translator would have been handed blind.
+        bool isElement = elementAt >= 0;
 
         if (constraints.AllowedValues is { Count: > 0 } allowed)
         {
@@ -1065,9 +1073,13 @@ public partial class ModelCooker
 
             if (!allowed.Contains(text!))
             {
-                diagnostics.Error(location,
-                    $"`{table.Name}.{field.Name}`{where} is `{text}`, which the column's list of "
-                    + $"allowed values does not name. Allowed: {string.Join(", ", allowed)}.");
+                diagnostics.Error(location, isElement
+                    ? Message.Of(CookingMessages.ElementValueNotAllowed,
+                        ("Table", table.Name), ("Field", field.Name), ("Element", elementAt),
+                        ("Value", text), ("Allowed", string.Join(", ", allowed)))
+                    : Message.Of(CookingMessages.ValueNotAllowed,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Value", text), ("Allowed", string.Join(", ", allowed))));
             }
         }
 
@@ -1081,16 +1093,24 @@ public partial class ModelCooker
 
         if (constraints.Minimum is double min && number < min)
         {
-            diagnostics.Error(location,
-                $"`{table.Name}.{field.Name}`{where} is {Text(value!)}, "
-                + $"below the minimum {Text(min)} the column declares.");
+            diagnostics.Error(location, isElement
+                ? Message.Of(CookingMessages.ElementValueBelowMinimum,
+                    ("Table", table.Name), ("Field", field.Name), ("Element", elementAt),
+                    ("Value", Text(value!)), ("Minimum", Text(min)))
+                : Message.Of(CookingMessages.ValueBelowMinimum,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Value", Text(value!)), ("Minimum", Text(min))));
         }
 
         if (constraints.Maximum is double max && number > max)
         {
-            diagnostics.Error(location,
-                $"`{table.Name}.{field.Name}`{where} is {Text(value!)}, "
-                + $"above the maximum {Text(max)} the column declares.");
+            diagnostics.Error(location, isElement
+                ? Message.Of(CookingMessages.ElementValueAboveMaximum,
+                    ("Table", table.Name), ("Field", field.Name), ("Element", elementAt),
+                    ("Value", Text(value!)), ("Maximum", Text(max)))
+                : Message.Of(CookingMessages.ValueAboveMaximum,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Value", Text(value!)), ("Maximum", Text(max))));
         }
     }
 

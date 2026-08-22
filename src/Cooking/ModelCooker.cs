@@ -362,9 +362,8 @@ public partial class ModelCooker
         if (model.Enums.Exists(existing => existing.Name == name))
         {
             diagnostics.Error(field.DetailTypeLocation,
-                $"`{table.Name}.{field.Name}` reaches several tables, so the generated code "
-                + $"needs an enum named `{name}` to say which one - and an enum of that name "
-                + $"is already declared. Rename one of them.");
+                Messages.Message.Of(CookingMessages.MultiTargetEnumNameTaken,
+                    ("Table", table.Name), ("Field", field.Name), ("Enum", name)));
             return null;
         }
 
@@ -490,10 +489,14 @@ public partial class ModelCooker
                             ? string.Join("`, `", field.ResolvedRefTables.Select(t => t.Name))
                             : field.ResolvedRefTable!.Name;
 
+                        // `Detail` is the caught parser's own message. The frame around it is
+                        // translatable; what it quotes stays as it arrived.
                         diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                            $"`{table.Name}.{field.Name}` references `{targets}`, "
-                            + $"which is addressed by `{field.RefKeyType.ToString().ToLowerInvariant()}`, "
-                            + $"and `{written}` is not one. {problem.Message}");
+                            Messages.Message.Of(CookingMessages.ReferenceKeyUnparsable,
+                                ("Table", table.Name), ("Field", field.Name),
+                                ("Targets", targets),
+                                ("KeyType", field.RefKeyType.ToString().ToLowerInvariant()),
+                                ("Written", written), ("Detail", problem.Message)));
                     }
                 }
             }

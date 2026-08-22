@@ -1,5 +1,63 @@
 {
   "cook.role-group-empty": "`{Written}` opens brackets and names no {What}. Write one - `{Example}` - or drop the brackets.",
   "cook.role-space-not-text": "`{Written}` has a second name in its brackets, and `asset` takes only a kind. A namespace is a `text` thing - the folders an asset is looked for in come from the recipe, keyed by the kind.",
-  "cook.role-space-empty": "`{Written}` ends in a comma and names no namespace. Write one - `text(Achievement,Quests)` - or drop the comma."
+  "cook.role-space-empty": "`{Written}` ends in a comma and names no namespace. Write one - `text(Achievement,Quests)` - or drop the comma.",
+
+  "cook.array-gap": "`{Table}.{Group}` leaves element {Element} empty while a later element has a value. An array with a gap in it reads as one whose middle holds the type's empty value, which a consumer cannot tell from a value that was written. Fill it, move the later values up, or set `AllowArrayGaps` on the source entry.",
+  "cook.required-in-object-outside-object": "`{Table}.{Field}` has no value, and the sheet marks the column as required. It is marked required inside an object and is not part of one, which reads as required.",
+  "cook.record-member-required-empty": "`{Table}.{Group}` element {Element} exists and its `{Member}` is empty, which the sheet marks as required inside the object. Give it a value, or clear the rest of the element so that there is no record here.",
+  "cook.required-empty": "`{Table}.{Field}` has no value, and the sheet declares the column required. Write one, or type the column `{Type}?` so that a row may say it has none.",
+
+  "cook.asset-no-roots": "{Columns} column(s) are typed `asset` and no folders are configured to check them against, so nothing was checked. Name the folders in the recipe's `Assets.Roots` to switch the check on.",
+  "cook.asset-check-ignored": "{Columns} column(s) are typed `asset`, and `Assets.OnMissing` is `ignore`.",
+  "cook.asset-no-folder-without-kind": "`{Table}.{Field}` is typed `asset`, and the recipe configures no folder for a column without a kind. Configured: {Configured}.",
+  "cook.asset-no-folder-for-kind": "`{Table}.{Field}` is typed `asset({Kind})`, and the recipe configures no folder for kind `{Kind}`. Configured: {Configured}.",
+
+  "cook.index-type-unusable": "Index field `{Table}.{Field}` is `{Type}`, {Why} Use a whole-number, string, uuid or enum column as an index.",
+  "cook.index-optional": "Index field `{Table}.{Field}` cannot be optional: drop the `?` from its type, because every row must have a value for an index.",
+  "cook.index-duplicate": "Index field `{Table}.{Field}` repeats the value `{Value}`, first used at {First}. Values in an index field must be unique.",
+  "cook.index-absent": "`{Table}.{Field}` identifies the row, and this row says it has no value there. Write one: an index cannot be absent.",
+
+  "cook.reference-enum-key": "`{Table}.{Field}` references `{Target}`, whose index is an enum. Every other key type can be referenced; this one cannot yet, because an enum travels in an encoding of its own and the generated readers have no call for it here. Key `{Target}` by the enum's underlying `int`, or carry the value here as that enum and look the row up through `{Target}`'s own index.",
+  "cook.reference-blank": "Field `{Table}.{Field}` references `{Target}` and this row leaves the cell empty. Write the key of a row to point at, or `-` to say this row points at none.",
+  "cook.reference-none-but-required": "Field `{Table}.{Field}` references `{Target}` and this row says it points at none, but the column is declared required. Give it a row to point at, or declare the column optional.",
+  "cook.reference-missing-row": "Field `{Table}.{Field}` references `{Target}` row `{Value}`, which does not exist.",
+  "cook.reference-excluded-by-side": "In a `{Side}` build, field `{Table}.{Field}` references table `{Target}`, which that build excludes by target side.",
+  "cook.reference-key-unparsable": "`{Table}.{Field}` references `{Targets}`, which is addressed by `{KeyType}`, and `{Written}` is not one. {Detail}",
+  "cook.reference-table-missing": "Field `{Table}.{Field}` references table `{Target}`, which does not exist.",
+  "cook.reference-field-of-own-table": "Field `{Table}.{Field}` references `{Table}.{RefField}`, which is a field of its own table. A reference that names a field is followed, so this one begins a loop.",
+  "cook.reference-field-missing": "Field `{Table}.{Field}` references `{RefTable}.{RefField}`, but table `{Resolved}` has no field named `{RefField}`.",
+  "cook.reference-cycle": "A cyclic reference has been detected while resolving `{Table}.{Field}`. The chain returns to `{Returns}`.",
+  "cook.record-reference-names-field": "Record group `{Table}.{Group}` member `{Field}` references the field `{RefField}` rather than a whole row. A reference inside a record must name the table alone. Drop the `.{RefField}`, or move the column out of the group.",
+
+  "cook.multi-target-id-overlap": "`{Table}.{Field}` may be a row of `{First}` or of `{Second}`, and both hold `{Shared}`. An id in two of them makes the generated accessors answer together, and which row the column meant is then not in the data. Give the two tables separate id bands, or point at them from separate columns.",
+  "cook.multi-target-missing-row": "`{Table}.{Field}` holds `{Value}`, which is not a row of `{Targets}`.",
+  "cook.multi-target-keys-differ": "Field `{Table}.{Field}` references `{Targets}`, and they are not keyed alike - the column holds one value and would have to be `{KeyTypes}` at once. Key them the same way, or point at them from separate columns.",
+  "cook.multi-target-enum-name-taken": "`{Table}.{Field}` reaches several tables, so the generated code needs an enum named `{Enum}` to say which one - and an enum of that name is already declared. Rename one of them.",
+
+  "cook.value-not-allowed": "`{Table}.{Field}` is `{Value}`, which the column's list of allowed values does not name. Allowed: {Allowed}.",
+  "cook.element-value-not-allowed": "`{Table}.{Field}` (element {Element}) is `{Value}`, which the column's list of allowed values does not name. Allowed: {Allowed}.",
+  "cook.value-below-minimum": "`{Table}.{Field}` is {Value}, below the minimum {Minimum} the column declares.",
+  "cook.element-value-below-minimum": "`{Table}.{Field}` (element {Element}) is {Value}, below the minimum {Minimum} the column declares.",
+  "cook.value-above-maximum": "`{Table}.{Field}` is {Value}, above the maximum {Maximum} the column declares.",
+  "cook.element-value-above-maximum": "`{Table}.{Field}` (element {Element}) is {Value}, above the maximum {Maximum} the column declares.",
+
+  "cook.row-set-owner-missing": "`{Set}` names another set of `{Owner}`'s rows, which this run does not have. A name matching `TableRowSets` contributes rows to a table rather than declaring one, so the table has to be there - check the spelling, or that the source holding it is not excluded.",
+  "cook.row-set-columns-differ": "`{Set}` and `{Owner}` are two sets of one table's rows, so `{Owner}` has to declare every column `{Set}` holds. {Difference}",
+
+  "validate.rule-has-no-entry": "[{File}] has nothing to run. A rule file is a class with `public static void {Entry}({Context} context)`, and the context is how it reports. Helpers with no entry belong in `{SharedPath}/`, which is compiled with every rule but never run on its own.",
+  "validate.rule-entry-declared-twice": "[{File}] declares `{Entry}()` more than once, so which one is the rule is not decided. Keep one and call the rest from it.",
+  "validate.rule-entry-wrong-context": "[{File}] declares `{Owner}.{Entry}` but it does not take a `{Context}`, which is what `{Folder}/` hands over. Write `public static void {Entry}({Context} context)`. A rule moved here from another stage takes the other stage's context, and the two differ in what they carry.",
+  "validate.rule-compile-error": "[{File}] {Detail}",
+  "validate.rule-compile-warning": "[{File}] {Detail}",
+  "validate.rule-refused": "[{File}] {Detail}",
+  "validate.rule-threw": "[{File}] threw {Exception}: {Detail}",
+  "validate.reports-over-cap": "[{File}] made {Extra} more report(s) than the {Shown} shown. A rule reporting this much is usually the rule being wrong rather than the data.",
+  "validate.runtime-rules-skipped": "Skipped {Skipped} runtime rule(s): --skip-runtime-validation was given.",
+  "validate.rules-skipped-after-tier": "Skipped {Skipped} rule(s) after tier {Tier} reported: {Files}.",
+  "validate.table-rule-unnamed": "[{File}] does not say which table it is for. A table rule is named `<table>{Suffix}.cs` - rename it to `{Name}{Suffix}.cs` if it is the rule for `{Name}`.",
+  "validate.table-rule-orphaned": "[{File}] is a rule for table `{Table}`, which this model does not have.{Hint} Rename the file to follow the table, or move its checks into `{GlobalFolder}/` if they are not about one table.",
+  "validate.table-rule-declares-tier": "[{File}] declares a tier, which `{TableFolder}/` has no use for: its rules run at the same time as each other and each is about one table. Move the checks into `{GlobalFolder}/` if their order matters, or drop the attribute.",
+  "validate.tier-unreadable": "[{File}] declares a tier this cannot read. Write a plain number - the tiers are settled before any rule is compiled, so a named constant is not available to read here.",
+  "validate.no-rule-files": "The validation folder `{Root}` holds no rule files. Put `.cs` files in `{TableFolder}/`, `{GlobalFolder}/`, `{RuntimeFolder}/` or `{PreFolder}/` - or clear `Validation.Path` to run without validation."
 }

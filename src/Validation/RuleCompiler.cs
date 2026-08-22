@@ -285,10 +285,9 @@ internal sealed class RuleCompiler
         if (declared.Count == 0)
         {
             diagnostics.Error(SheetLocation.OfTextFile(file.Path, 1, 1),
-                $"[{file.Display}] has nothing to run. A rule file is a class with "
-                + $"`public static void {EntryMethod}({contextName} context)`, and the context is how "
-                + $"it reports. Helpers with no entry belong in `{RuleFolders.SharedPath}/`, which "
-                + $"is compiled with every rule but never run on its own.");
+                Messages.Message.Of(ValidationMessages.RuleHasNoEntry,
+                    ("File", file.Display), ("Entry", EntryMethod),
+                    ("Context", contextName), ("SharedPath", RuleFolders.SharedPath)));
 
             return null;
         }
@@ -299,8 +298,8 @@ internal sealed class RuleCompiler
 
             diagnostics.Error(
                 SheetLocation.OfTextFile(file.Path, second.StartLinePosition.Line + 1, 1),
-                $"[{file.Display}] declares `{EntryMethod}()` more than once, so which one is the "
-                + $"rule is not decided. Keep one and call the rest from it.");
+                Messages.Message.Of(ValidationMessages.RuleEntryDeclaredTwice,
+                    ("File", file.Display), ("Entry", EntryMethod)));
 
             return null;
         }
@@ -317,11 +316,10 @@ internal sealed class RuleCompiler
         if (method is null)
         {
             diagnostics.Error(SheetLocation.OfTextFile(file.Path, 1, 1),
-                $"[{file.Display}] declares `{owner}.{EntryMethod}` but it does not take a "
-                + $"`{contextName}`, which is what `{RuleFolders.FolderOf(file.Stage)}/` hands over. "
-                + $"Write `public static void {EntryMethod}({contextName} context)`. A rule moved "
-                + $"here from another stage takes the other stage's context, and the two differ in "
-                + $"what they carry.");
+                Messages.Message.Of(ValidationMessages.RuleEntryWrongContext,
+                    ("File", file.Display), ("Owner", owner), ("Entry", EntryMethod),
+                    ("Context", contextName),
+                    ("Folder", RuleFolders.FolderOf(file.Stage))));
         }
 
         return method;
@@ -372,11 +370,15 @@ internal sealed class RuleCompiler
             if (problem.Severity == RoslynSeverity.Error)
             {
                 clean = false;
-                diagnostics.Error(where, $"[{file.Display}] {Explain(file, problem)}");
+                diagnostics.Error(where,
+                    Messages.Message.Of(ValidationMessages.RuleCompileError,
+                        ("File", file.Display), ("Detail", Explain(file, problem))));
             }
             else if (problem.Severity == RoslynSeverity.Warning)
             {
-                diagnostics.Warn(where, $"[{file.Display}] {problem.GetMessage()}");
+                diagnostics.Warn(where,
+                    Messages.Message.Of(ValidationMessages.RuleCompileWarning,
+                        ("File", file.Display), ("Detail", problem.GetMessage())));
             }
         }
 

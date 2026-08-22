@@ -94,7 +94,7 @@ public sealed class UwoLayoutParser : ILayoutParser
                 }
                 catch (TabbitException refusal)
                 {
-                    context.Diagnostics.Error(refusal.Location, refusal.Message);
+                    context.Diagnostics.Error(refusal);
                     continue;
                 }
 
