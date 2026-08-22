@@ -444,6 +444,24 @@ public class Options
         + "step is a publish.")]
     public bool DetailedExitCode { get; set; }
 
+    /// <summary>
+    /// Which language this run's own reports come out in.
+    /// </summary>
+    /// <remarks>
+    /// Irrelevant to the cache, and that is the point: the language a person reads decides
+    /// nothing about what is written to disk. Two people running one recipe get the same
+    /// output and different reports.
+    ///
+    /// Empty means English, not the machine's locale. A run whose language followed the
+    /// machine would produce CI logs that differ between runners, and a log diff that shows a
+    /// change every time is a log nobody reads. spec/message-ids.md §5.
+    /// </remarks>
+    [Cache(CacheRelevance.Irrelevant)]
+    [Option("messages", HelpText =
+        "Language for this tool's own reports: en, ko, ja, zh-Hans, zh-Hant. English by "
+        + "default. Also read from TABBIT_MESSAGES.")]
+    public string Messages { get; set; } = "";
+
     [Cache(CacheRelevance.Irrelevant)]
     [Option("verbose", HelpText = "Sets whether to output debugging log messages.")]
     public bool Verbose { get; set; }

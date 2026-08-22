@@ -188,6 +188,57 @@ public class MessageCatalogTests
     }
 
     /// <summary>
+    /// A Korean particle follows the value it comes after.
+    /// </summary>
+    /// <remarks>
+    /// The one place a value decides the grammar around it. The cases that matter are the ones
+    /// nobody would guess: the values here are type names and column names, not Korean words,
+    /// so the rule has to know that `int` closes and `float` does not, and that `2` is read
+    /// 이 while `3` is read 삼.
+    /// </remarks>
+    [Theory]
+    // Hangul, where the syllable itself carries the answer.
+    [InlineData("값", "은", "값은")]
+    [InlineData("자리", "은", "자리는")]
+    [InlineData("컬럼", "이", "컬럼이")]
+    [InlineData("이유", "이", "이유가")]
+    // Latin words, which is what most values are. `int` is read 인트 and `float` 플로트, and
+    // both end on a vowel - the shape of the spelling says nothing about it.
+    [InlineData("int", "은", "int는")]
+    [InlineData("float", "은", "float는")]
+    [InlineData("bool", "이", "bool이")]
+    [InlineData("uuid", "이", "uuid가")]
+    // Digits, read aloud: 영 일 이 삼 사 오 육 칠 팔 구.
+    [InlineData("0", "은", "0은")]
+    [InlineData("2", "은", "2는")]
+    [InlineData("3", "이", "3이")]
+    [InlineData("9", "이", "9가")]
+    // Trailing punctuation is not a sound, so the letter before it decides.
+    [InlineData("`int`", "은", "`int`는")]
+    [InlineData("`float`", "은", "`float`는")]
+    public void A_Korean_particle_follows_the_value(string value, string pair, string expected)
+    {
+        Assert.Equal(
+            expected,
+            Message.Fill("{Value:" + pair + "}", new (string, object)[] { ("Value", value) }));
+    }
+
+    /// <summary>
+    /// Anything after the colon that is not a particle is written as it stands.
+    /// </summary>
+    /// <remarks>
+    /// A typo in a catalog entry should be visible rather than swallowed. Dropping it would
+    /// leave a sentence that reads fine and is missing a word.
+    /// </remarks>
+    [Fact]
+    public void A_suffix_that_is_not_a_particle_is_left_where_it_is()
+    {
+        Assert.Equal(
+            "int:xyz",
+            Message.Fill("{Value:xyz}", new (string, object)[] { ("Value", "int") }));
+    }
+
+    /// <summary>
     /// Numbers are written invariantly, whatever the machine's locale.
     /// </summary>
     /// <remarks>
@@ -212,6 +263,39 @@ public class MessageCatalogTests
         {
             System.Globalization.CultureInfo.CurrentCulture = was;
         }
+    }
+
+    /// <summary>
+    /// Asking for a language really answers in it, and an id it has no text for falls back.
+    /// </summary>
+    /// <remarks>
+    /// The end of the whole design, checked in one place: a catalog is chosen, a report comes
+    /// out in that language, an untranslated one comes out in English, and the run knows how
+    /// many of the second there were. Without the count, "we decided to say that in English"
+    /// and "nobody has translated it" look the same.
+    /// </remarks>
+    [Fact]
+    public void A_chosen_language_answers_in_it_and_falls_back_where_it_cannot()
+    {
+        var korean = MessageCatalog.ForLanguage("ko");
+
+        Assert.Equal("ko", korean.Language);
+
+        // Something Korean has.
+        string translated = Message.Of(
+            Tabbit.Importers.ImportMessages.WorkbookFormatUnsupported,
+            ("Filename", "a.txt")).In(korean);
+
+        Assert.Contains("워크북", translated);
+        Assert.Contains("a.txt", translated);
+
+        // And something it has not, which arrives in English and is counted.
+        int before = korean.Untranslated;
+
+        string fallen = korean.TextOf(Tabbit.ReportMessages.ProblemsCounted);
+
+        Assert.Equal(MessageCatalog.English.TextOf(Tabbit.ReportMessages.ProblemsCounted), fallen);
+        Assert.True(korean.Untranslated > before);
     }
 
     /// <summary>

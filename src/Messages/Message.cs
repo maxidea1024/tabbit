@@ -102,11 +102,37 @@ public readonly struct Message
                 break;
             }
 
-            string name = text.Substring(at + 1, close - at - 1);
-            if (TryValue(values, name, out object? value))
-                built.Append(Written(value));
-            else
+            string inside = text.Substring(at + 1, close - at - 1);
+
+            // `{Type:은}` is the 은/는 pair, whichever the value ends in. Korean is the only
+            // catalog that writes this, and the notation is deliberately the same shape as a
+            // format specifier so that it reads as part of the placeholder rather than as
+            // stray text somebody might translate.
+            int colon = inside.IndexOf(':');
+            string name = colon < 0 ? inside : inside.Substring(0, colon);
+            string suffix = colon < 0 ? "" : inside.Substring(colon + 1);
+
+            if (!TryValue(values, name, out object? value))
+            {
                 built.Append(text, at, close - at + 1);
+                at = close + 1;
+                continue;
+            }
+
+            string written = Written(value);
+            built.Append(written);
+
+            if (suffix.Length > 0
+                && KoreanParticle.IsParticle(suffix, out string closed, out string open))
+            {
+                built.Append(KoreanParticle.For(written, closed, open));
+            }
+            else if (suffix.Length > 0)
+            {
+                // Not a particle, so it is somebody's typo rather than a notation. Written as
+                // it stands, which makes it visible instead of silently dropping a word.
+                built.Append(':').Append(suffix);
+            }
 
             at = close + 1;
         }

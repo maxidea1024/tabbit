@@ -1,0 +1,13 @@
+{
+  "import.workbooks-not-found": "recipe `{Section}`이 소스에 없는 워크북 {Count}개를 요구합니다: {Missing}.\n있는 워크북: {Present}",
+  "import.sheets-not-found": "recipe `{Section}`이 소스에 없는 시트 {Count}개를 요구합니다: {Missing}.\n있는 시트: {Present}",
+  "import.sheets-not-found-with-skipped": "recipe `{Section}`이 소스에 없는 시트 {Count}개를 요구합니다: {Missing}.\n있는 시트: {Present}\n이 항목이 건너뛴 워크북: {Skipped}",
+
+  "import.workbook-path-missing": "recipe `{Section}`이 `{Path}`에서 워크북을 읽는데, 그 경로가 없습니다.",
+  "import.workbook-format-unsupported": "`{Filename}`은 이 도구가 읽을 수 있는 워크북이 아닙니다. `.xlsx`·`.xlsm`·`.xlsb`·`.xls`를 읽습니다.",
+
+  "import.google-key-file-missing": "recipe 섹션 `{Section}`이 서비스 계정 키 파일로 `{Path}`를 지정했는데, 그 파일이 없습니다.",
+  "import.google-key-variable-not-set": "recipe 섹션 `{Section}`이 서비스 계정 키를 환경 변수 `{Variable}`에서 읽는데, 그 변수가 설정되어 있지 않습니다. 키를 환경에 두는 것은 저장소에 커밋하지 않기 위해서입니다.",
+  "import.google-key-unreadable": "recipe 섹션 `{Section}`이 {Origin}에서 서비스 계정 키를 읽지 못했습니다: {Detail} 서비스 계정 키에는 `\"type\": \"service_account\"`가 있습니다. OAuth 클라이언트 시크릿이라면 `ClientSecretFilename`에 넣으십시오.",
+  "import.google-client-secret-missing": "recipe 섹션 `{Section}`이 클라이언트 시크릿 파일로 `{Path}`를 지정했는데, 그 파일이 없습니다."
+}

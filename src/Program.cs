@@ -61,6 +61,8 @@ class Program
         if (options is null)
             return 1;
 
+        ChooseMessageLanguage(options.Messages);
+
         SetupLogging(options.Verbose, options.Silent);
 
         // Which build this is, before anything it does. A log that reaches us without it
@@ -95,7 +97,44 @@ class Program
         }
         finally
         {
+            SayWhatWasNotTranslated();
+
             Log.CloseAndFlush();
+        }
+    }
+
+    /// <summary>
+    /// Says how much of this run's reporting fell back to English.
+    /// </summary>
+    /// <remarks>
+    /// The difference between "this tool decided to say that in English" and "nobody has
+    /// translated it yet" is invisible on screen, and only the second is worth acting on. One
+    /// line at the end, and only when there is something to say.
+    ///
+    /// Counted rather than listed. A run that met forty untranslated reports would otherwise
+    /// end in forty lines about translation rather than about the sheets.
+    /// </remarks>
+    private static void SayWhatWasNotTranslated()
+    {
+        var catalog = Messages.MessageCatalog.Current;
+
+        if (catalog.Language == Messages.MessageCatalog.FallbackLanguage)
+            return;
+
+        if (catalog.Untranslated > 0)
+        {
+            Log.Information(
+                $"{catalog.Untranslated} report(s) came out in English: `{catalog.Language}` "
+                + $"has no text for them yet.");
+        }
+
+        // Impossible while the catalog gate passes, so it is worth saying loudly rather than
+        // counting quietly: it means an id reached a run that no catalog knows at all.
+        if (catalog.Unknown > 0)
+        {
+            Log.Error(
+                $"{catalog.Unknown} report(s) had no text in any catalog and came out as their "
+                + $"own id. This is a defect in tabbit.");
         }
     }
 
@@ -622,6 +661,33 @@ class Program
     /// </summary>
     private static readonly System.Text.UTF8Encoding Utf8WithoutMark =
         new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
+    /// <summary>The environment variable `--messages` can be given through instead.</summary>
+    private const string MessageLanguageVariable = "TABBIT_MESSAGES";
+
+    /// <summary>
+    /// Settles which language this run's own reports come out in.
+    /// </summary>
+    /// <remarks>
+    /// The flag wins over the variable, which is the usual way round: the variable is how a
+    /// machine is set up once and the flag is how one run differs from that.
+    ///
+    /// A language with no catalog is not refused. Every key falls back to English, so the run
+    /// works and says less than it could - which is better than a conversion that will not
+    /// start because somebody typed `kr` for `ko`. What is not silent is the shortfall: the
+    /// run says at the end how many reports came out in English.
+    /// </remarks>
+    private static void ChooseMessageLanguage(string asked)
+    {
+        string language = !string.IsNullOrWhiteSpace(asked)
+            ? asked.Trim()
+            : Environment.GetEnvironmentVariable(MessageLanguageVariable)?.Trim() ?? "";
+
+        if (language.Length == 0)
+            return;
+
+        Messages.MessageCatalog.Current = Messages.MessageCatalog.ForLanguage(language);
+    }
 
     private static void SetupLogging(bool verbose, bool silent)
     {
