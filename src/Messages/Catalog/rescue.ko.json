@@ -6,5 +6,10 @@
   "rescue.table-has-no-columns": "테이블 `{Table}`에 읽을 수 있는 컬럼이 없습니다.",
   "rescue.enum-name-must-follow-marker": "enum 타입이라면 `enum:` 뒤에 enum 이름이 와야 합니다.",
   "rescue.enum-not-declared": "컬럼 `{Field}`이 `{Declared}` 타입인데 `{Enum}`이라는 enum이 선언되어 있지 않습니다. enum은 이름에 `{Marker}`가 들어간 시트에서 옵니다.",
-  "rescue.type-not-array-element": "`{Type}` 타입은 배열의 원소로 쓸 수 없습니다."
+  "rescue.type-not-array-element": "`{Type}` 타입은 배열의 원소로 쓸 수 없습니다.",
+  "rescue.log-dropping-duplicate-row": "`{Table}`의 {Row}행을 버립니다: `{Field}`이 `{Value}`이고, 앞의 행이 이미 그것을 썼습니다. ({At})",
+  "rescue.log-replacing-duplicate-row": "`{Table}`의 앞선 행을 {Row}행으로 대체합니다: `{Field}`이 `{Value}`이고, 둘 다 그것을 씁니다. ({At})",
+  "rescue.log-skipping-sheet-bad-header": "시트 `{Sheet}`을 건너뜁니다: {NameRow}행이 필드 이름으로, {TypeRow}행이 그 타입으로 시작해야 하는데 `{FirstName}`과 `{FirstType}`이 있습니다. ({At})",
+  "rescue.log-skipping-sheet-no-data": "시트 `{Sheet}`을 건너뜁니다: 세 줄 헤더 아래에 데이터 행이 없습니다. ({At})",
+  "rescue.log-skipping-unfinished-row": "`{Table}`의 {Row}행을 건너뜁니다: `{Field}`이 없는데 비어 있지도 않으므로, 테이블의 끝이 아니라 덜 채운 행입니다. ({At})"
 }

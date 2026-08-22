@@ -289,13 +289,19 @@ public class MessageCatalogTests
         Assert.Contains("워크북", translated);
         Assert.Contains("a.txt", translated);
 
-        // And something it has not, which arrives in English and is counted.
-        int before = korean.Untranslated;
+        // And a language with no catalog at all, which is what a typo for a language code
+        // produces. Every key falls back and every fallback is counted - the run works and
+        // says how much of it came out in English.
+        //
+        // Asked of a language nobody translates rather than of an id nobody has translated:
+        // the second kind of example stops being one the moment somebody translates it, and
+        // this test should not be the reason a catalog entry cannot be filled in.
+        var untranslated = MessageCatalog.ForLanguage("qq-Fake");
 
-        string fallen = korean.TextOf(Tabbit.ReportMessages.ProblemsCounted);
+        string fallen = untranslated.TextOf(Tabbit.ReportMessages.ProblemsCounted);
 
         Assert.Equal(MessageCatalog.English.TextOf(Tabbit.ReportMessages.ProblemsCounted), fallen);
-        Assert.True(korean.Untranslated > before);
+        Assert.True(untranslated.Untranslated > 0);
     }
 
     /// <summary>
