@@ -118,7 +118,7 @@ bool FTemplateTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Template.Index"));
 
             {
@@ -142,7 +142,7 @@ bool FTemplateTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Class"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Class"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Template.Class"));
 
             {
@@ -166,7 +166,7 @@ bool FTemplateTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Int"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Int"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Template.Int"));
 
             {
@@ -190,7 +190,7 @@ bool FTemplateTable::Read(const FString& Filename)
             break;
 
         case 4:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Delete"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementBool));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Delete"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementBool));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Template.Delete"));
 
             for (FTemplateRow& Record : Loaded)
@@ -201,7 +201,7 @@ bool FTemplateTable::Read(const FString& Filename)
             break;
 
         case 5:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Operator"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Operator"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Template.Operator"));
 
             {
@@ -225,7 +225,7 @@ bool FTemplateTable::Read(const FString& Filename)
             break;
 
         case 6:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Namespace"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Namespace"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Template.Namespace"));
 
             {
@@ -249,7 +249,7 @@ bool FTemplateTable::Read(const FString& Filename)
             break;
 
         case 7:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Constructor"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Constructor"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Template.Constructor"));
 
             {
@@ -273,7 +273,7 @@ bool FTemplateTable::Read(const FString& Filename)
             break;
 
         case 8:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Function"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Template.Function"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Template.Function"));
 
             {
@@ -434,7 +434,7 @@ bool FPackageTable::Read(const FString& Filename)
         switch (Column.Tag)
         {
         case 1:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Package.Index"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Package.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Package.Index"));
 
             {
@@ -458,7 +458,7 @@ bool FPackageTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Package.Label"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Package.Label"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Package.Label"));
 
             {
@@ -482,7 +482,7 @@ bool FPackageTable::Read(const FString& Filename)
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Package.Kind"), Tabbit::KindScalar, 1, false, Tabbit::ElementMask(Tabbit::ElementVarint));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Package.Kind"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementVarint));
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("Package.Kind"));
 
             {

@@ -59,7 +59,23 @@ public class SchemaBaseline
         "converter compares the schema against this and refuses a change that would " +
         "break a reader already deployed. See doc/binary-format.md.";
 
-    public int BaselineVersion { get; set; } = 1;
+    /// <summary>
+    /// What this file's numbers mean, which is not the same question as what it holds.
+    /// </summary>
+    /// <remarks>
+    /// `Kind` is stored as the wire's own number, so the meaning of a baseline is tied to the
+    /// table format version. v107 renumbered the array kinds, and a v1 baseline compared
+    /// against a v107 build reported every variable-length array as a scalar that had become
+    /// an array - a breaking change that had not happened.
+    ///
+    /// An older baseline is therefore replaced rather than compared. Nothing is lost by it:
+    /// the question this file asks is whether an already-deployed reader would break, and a
+    /// reader from before a format version bump cannot read the new files at all. It is
+    /// refused by version at the header, so the answer is already yes and unavoidable.
+    /// </remarks>
+    public const int CurrentBaselineVersion = 2;
+
+    public int BaselineVersion { get; set; } = CurrentBaselineVersion;
 
     /// <summary>Table name to its columns, keyed by tag.</summary>
     public Dictionary<string, Dictionary<string, Column>> Tables { get; set; }
@@ -304,8 +320,22 @@ public class SchemaBaseline
 
         try
         {
-            return JsonConvert.DeserializeObject<SchemaBaseline>(File.ReadAllText(filename))
-                   ?? new SchemaBaseline();
+            var loaded = JsonConvert.DeserializeObject<SchemaBaseline>(File.ReadAllText(filename))
+                         ?? new SchemaBaseline();
+
+            if (loaded.BaselineVersion != CurrentBaselineVersion)
+            {
+                Log.Warning(
+                    $"The schema baseline at '{Path.GetFullPath(filename)}' was written by an " +
+                    $"older build (baseline version {loaded.BaselineVersion}, this build writes " +
+                    $"{CurrentBaselineVersion}). Its column shapes are recorded as wire numbers " +
+                    "and those have moved, so it is replaced rather than compared - review the " +
+                    "new file and commit it.");
+
+                return new SchemaBaseline();
+            }
+
+            return loaded;
         }
         catch (JsonException e)
         {

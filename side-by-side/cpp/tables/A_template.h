@@ -140,7 +140,7 @@ class TemplateTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Template.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Template.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Template.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -153,7 +153,7 @@ class TemplateTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Template.Class", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Template.Class", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Template.Class");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -166,7 +166,7 @@ class TemplateTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Template.Int", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Template.Int", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Template.Int");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -179,7 +179,7 @@ class TemplateTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Template.Delete", tabbit::kKindScalar, 1, false, {tabbit::kElementBool});
+          tabbit::check_column(column, "Template.Delete", tabbit::kKindScalar, false, {tabbit::kElementBool});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Template.Delete");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -188,7 +188,7 @@ class TemplateTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Template.Operator", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Template.Operator", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Template.Operator");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -201,7 +201,7 @@ class TemplateTable {
           break;
         }
         case 6: {
-          tabbit::check_column(column, "Template.Namespace", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Template.Namespace", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Template.Namespace");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -214,7 +214,7 @@ class TemplateTable {
           break;
         }
         case 7: {
-          tabbit::check_column(column, "Template.Constructor", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Template.Constructor", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Template.Constructor");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -227,7 +227,7 @@ class TemplateTable {
           break;
         }
         case 8: {
-          tabbit::check_column(column, "Template.Function", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Template.Function", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Template.Function");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {

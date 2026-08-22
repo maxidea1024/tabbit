@@ -104,7 +104,7 @@ impl PackageTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Package.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Package.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Package.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -116,7 +116,7 @@ impl PackageTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Package.Label", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Package.Label", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Package.Label")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -128,7 +128,7 @@ impl PackageTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Package.Kind", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Package.Kind", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Package.Kind")?;
                     let mut at = 0usize;
                     while at < records.len() {

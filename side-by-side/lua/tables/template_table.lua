@@ -126,7 +126,7 @@ function TemplateTable:readBytes(data)
     local blockEnd = reader.position + column.byteLength
 
     if column.tag == 1 then
-      tcb.checkColumn(column, "Template.Index", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Template.Index", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Template.Index")
       local at = 0
 
@@ -140,7 +140,7 @@ function TemplateTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Template.Class", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Template.Class", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Template.Class")
       local at = 0
 
@@ -154,7 +154,7 @@ function TemplateTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Template.Int", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      tcb.checkColumn(column, "Template.Int", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Template.Int")
       local at = 0
 
@@ -168,14 +168,14 @@ function TemplateTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 4 then
-      tcb.checkColumn(column, "Template.Delete", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_BOOL })
+      tcb.checkColumn(column, "Template.Delete", tcb.KIND_SCALAR, false, { tcb.ELEMENT_BOOL })
       local cursor = tcb.newCursor(reader, column, count, "Template.Delete")
       for i = 1, count do
         local record = records[i]
         record.delete = cursor:nextBool()
       end
     elseif column.tag == 5 then
-      tcb.checkColumn(column, "Template.Operator", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Template.Operator", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Template.Operator")
       local at = 0
 
@@ -189,7 +189,7 @@ function TemplateTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 6 then
-      tcb.checkColumn(column, "Template.Namespace", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Template.Namespace", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Template.Namespace")
       local at = 0
 
@@ -203,7 +203,7 @@ function TemplateTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 7 then
-      tcb.checkColumn(column, "Template.Constructor", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Template.Constructor", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Template.Constructor")
       local at = 0
 
@@ -217,7 +217,7 @@ function TemplateTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 8 then
-      tcb.checkColumn(column, "Template.Function", tcb.KIND_SCALAR, 1, false, { tcb.ELEMENT_STRING })
+      tcb.checkColumn(column, "Template.Function", tcb.KIND_SCALAR, false, { tcb.ELEMENT_STRING })
       local cursor = tcb.newCursor(reader, column, count, "Template.Function")
       local at = 0
 

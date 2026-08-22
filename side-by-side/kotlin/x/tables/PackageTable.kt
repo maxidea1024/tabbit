@@ -33,8 +33,7 @@ import tabbit.ELEMENT_F64
 import tabbit.ELEMENT_STRING
 import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
-import tabbit.KIND_FIXED_ARRAY
-import tabbit.KIND_VAR_ARRAY
+import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/reserved-words/reserved-words.xlsx : ReservedWords : K2
 /** 이름이 TypeScript의 바인딩 예약어인 테이블. 주석은 한글이라 MSVC 코드페이지도 함께 확인합니다. */
@@ -114,7 +113,7 @@ class PackageTable {
 
             when (column.tag) {
                 1 -> {
-                    checkColumn(column, "Package.Index", KIND_SCALAR, 1, false, ELEMENT_I32, ELEMENT_VARINT)
+                    checkColumn(column, "Package.Index", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Package.Index")
                     var at = 0
                     while (at < count) {
@@ -128,7 +127,7 @@ class PackageTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Package.Label", KIND_SCALAR, 1, false, ELEMENT_STRING)
+                    checkColumn(column, "Package.Label", KIND_SCALAR, false, ELEMENT_STRING)
                     val cursor = ColumnCursor(reader, column, count, "Package.Label")
                     var at = 0
                     while (at < count) {
@@ -142,7 +141,7 @@ class PackageTable {
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Package.Kind", KIND_SCALAR, 1, false, ELEMENT_VARINT)
+                    checkColumn(column, "Package.Kind", KIND_SCALAR, false, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Package.Kind")
                     var at = 0
                     while (at < count) {

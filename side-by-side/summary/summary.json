@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-21T16:00:37.0790426+09:00",
+    "generatedAt": "2026-08-23T03:34:49.8297550+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "a48688b7a8eb8f9e3b168814c40ade35d8212ac3",
-      "shortHash": "a48688b7a8eb",
-      "branch": "multi-target-records",
+      "hash": "b7b3c12206a202c5ad8324b6c0ed24b068200908",
+      "shortHash": "b7b3c12206a2",
+      "branch": "worktree-dynamic-arrays-only",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-21T15:20:30.0000000+09:00",
-      "subject": "Give C# the per-target accessors inside a record element",
+      "committedAt": "2026-08-23T03:34:42.0000000+09:00",
+      "subject": "Spell the header out at v107 in the byte-for-byte test",
       "origin": "git",
       "dirty": true,
       "attributable": false

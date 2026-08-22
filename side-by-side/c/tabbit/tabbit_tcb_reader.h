@@ -67,7 +67,7 @@ extern "C" {
  * stops rather than guessing. 102 replaced 101 outright - a descriptor gained its
  * encoding byte - before any 101 file had shipped. 104 is the current one: four
  * encodings joined the nine, and the flags byte gained a meaning. */
-#define TABBIT_BINARY_FILE_FORMAT_VERSION 106u
+#define TABBIT_BINARY_FILE_FORMAT_VERSION 107u
 
 /* The wire element types and kinds, as a column descriptor spells them. */
 #define TB_ELEMENT_VARINT 0
@@ -80,8 +80,10 @@ extern "C" {
 #define TB_ELEMENT_UUID 7
 
 #define TB_KIND_SCALAR 0
-#define TB_KIND_FIXED_ARRAY 1
-#define TB_KIND_VAR_ARRAY 2
+/* The only array kind: every row states its own length. A fixed-length kind sat at 1 until
+ * v107 and was removed rather than kept, because a length stated once is a length the
+ * generated code bakes in - and then a column added to a group needs the consumer rebuilt. */
+#define TB_KIND_ARRAY 1
 
 /* How a block's values are laid out. Raw is the layout 101 had; the others compress
  * a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract. */
@@ -167,8 +169,6 @@ typedef struct tb_column {
   bool element_nullable;
   /* How the block's values are laid out: one of the TB_ENCODING_* constants. */
   uint8_t encoding;
-  /* Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
-  int32_t count;
   /* Total bytes of the column block - what a skip advances by. */
   int32_t byte_length;
 } tb_column;
@@ -301,11 +301,11 @@ bool tb_read_f64_as(tb_reader* reader, uint8_t element, double* out);
  * Refusal is by name and both types, never by reading anyway. `accepted` is the set the
  * member can read, built out of TB_ELEMENT_MASK. */
 bool tb_check_column(tb_reader* reader, const tb_column* column, const char* field_name,
-          uint8_t kind, int32_t count, bool nullable, unsigned accepted);
+          uint8_t kind, bool nullable, unsigned accepted);
 
 /* The same, for a member whose array elements may be absent. */
 bool tb_check_column_elements(tb_reader* reader, const tb_column* column,
-          const char* field_name, uint8_t kind, int32_t count, bool nullable,
+          const char* field_name, uint8_t kind, bool nullable,
           unsigned accepted, bool element_nullable);
 
 /* A nullable column's presence bitmap, read into the caller's buffer.
@@ -1132,7 +1132,6 @@ bool tb_read_table_header(tb_reader* reader, int32_t* out_row_count,
     (void)tb_read_counter32(reader, &columns[at].tag);
     (void)tb_read_fixed8(reader, &wire);
     (void)tb_read_fixed8(reader, &encoding);
-    (void)tb_read_counter32(reader, &columns[at].count);
     (void)tb_read_fixed32(reader, &byte_length);
 
     columns[at].element = (uint8_t)(wire & 0x0f);
@@ -1174,21 +1173,6 @@ bool tb_read_table_header(tb_reader* reader, int32_t* out_row_count,
         return tb_fail(reader,
                "the row count %d is larger than column tag %d can hold in "
                "its %d bytes", bad, columns[at].tag, columns[at].byte_length);
-      }
-
-      /* The same floor for the element count, which the read now allocates for: a fixed
-       * array's length is the file's rather than the generated code's, so a count no raw
-       * block could hold is refused before anybody makes room for it. Only with rows to
-       * read - an empty table writes its columns' counts into a block of no bytes, and
-       * that is well-formed. */
-      if (columns[at].encoding == TB_ENCODING_RAW
-          && *out_row_count > 0
-          && columns[at].count > columns[at].byte_length) {
-        *out_row_count = 0;
-        return tb_fail(reader,
-               "column tag %d says each row holds %d elements, which its %d "
-               "bytes cannot hold",
-               columns[at].tag, columns[at].count, columns[at].byte_length);
       }
     }
 
@@ -1388,13 +1372,13 @@ bool tb_is_present(const uint8_t* presence, int32_t row) {
 }
 
 bool tb_check_column(tb_reader* reader, const tb_column* column, const char* field_name,
-          uint8_t kind, int32_t count, bool nullable, unsigned accepted) {
-  return tb_check_column_elements(reader, column, field_name, kind, count, nullable, accepted,
+          uint8_t kind, bool nullable, unsigned accepted) {
+  return tb_check_column_elements(reader, column, field_name, kind, nullable, accepted,
             false);
 }
 
 bool tb_check_column_elements(tb_reader* reader, const tb_column* column,
-          const char* field_name, uint8_t kind, int32_t count, bool nullable,
+          const char* field_name, uint8_t kind, bool nullable,
           unsigned accepted, bool element_nullable) {
   char elements[48];
 
@@ -1419,16 +1403,14 @@ bool tb_check_column_elements(tb_reader* reader, const tb_column* column,
         field_name);
   }
 
-  /* A negative count says the member claims no length: how many elements a row holds is
-   * what the file states. The kind is still the member's claim.
-   * spec/nullable-array-elements.md. */
-  if (column->kind != kind
-      || (kind != TB_KIND_VAR_ARRAY && count >= 0 && column->count != count)) {
+  /* Shape is the kind alone since v107. How many elements a row holds is what the file
+   * states, row by row, so a group that grew a column is read rather than refused. */
+  if (column->kind != kind) {
     return tb_fail(reader,
-           "%s: the file column (kind %d, count %d) does not match the generated "
-           "member (kind %d, count %d). The schema changed shape; regenerate the "
+           "%s: the file column (kind %d) does not match the generated "
+           "member (kind %d). The schema changed shape; regenerate the "
            "code or rebuild the data.",
-           field_name, (int)column->kind, column->count, (int)kind, count);
+           field_name, (int)column->kind, (int)kind);
   }
 
   /* An encoding this build cannot decode - or one the spec does not define for this
@@ -1895,7 +1877,7 @@ bool tb_cursor_init(tb_cursor* cursor, tb_reader* reader, const tb_column* colum
 
     cursor->encoding = element_encoding;
 
-    if (column->kind == TB_KIND_VAR_ARRAY) {
+    {
       uint8_t length_encoding = 0;
       int32_t at;
 
@@ -1912,8 +1894,6 @@ bool tb_cursor_init(tb_cursor* cursor, tb_reader* reader, const tb_column* colum
 
       for (at = 0; at < row_count; ++at)
         elements += cursor->lengths[at];
-    } else {
-      elements = (int64_t)row_count * column->count;
     }
 
     if (elements > INT32_MAX) {

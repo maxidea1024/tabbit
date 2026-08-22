@@ -55,65 +55,40 @@ static bool A_PackageParse(A_PackageTable_t* table, tb_reader* reader) {
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Package.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Package.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Package.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_PackageRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Package.Label", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Package.Label", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Package.Label");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_PackageRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].label = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->label);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Package.Kind", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Package.Kind", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Package.Kind");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_PackageRecord_t* record = &table->records[row];
+        int32_t scratch = 0;
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].kind = (A_Keyword_t)value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &scratch);
+        record->kind = (A_Keyword_t)scratch;
       }
       break;
 

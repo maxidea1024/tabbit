@@ -241,7 +241,7 @@ export class TemplateTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Template.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Template.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Template.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -250,7 +250,7 @@ export class TemplateTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Template.Class', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Template.Class', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Template.Class')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -259,7 +259,7 @@ export class TemplateTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Template.Int', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Template.Int', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Template.Int')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -268,7 +268,7 @@ export class TemplateTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Template.Delete', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_BOOL])
+          tabbit.checkColumn(column, 'Template.Delete', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_BOOL])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Template.Delete')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -276,7 +276,7 @@ export class TemplateTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Template.Operator', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Template.Operator', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Template.Operator')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -285,7 +285,7 @@ export class TemplateTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'Template.Namespace', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Template.Namespace', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Template.Namespace')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -294,7 +294,7 @@ export class TemplateTable {
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'Template.Constructor', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Template.Constructor', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Template.Constructor')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -303,7 +303,7 @@ export class TemplateTable {
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Template.Function', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Template.Function', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Template.Function')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)

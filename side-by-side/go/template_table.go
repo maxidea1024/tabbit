@@ -150,7 +150,7 @@ func (t *TemplateTable) Read(filename string) error {
 
 		switch column.Tag {
 		case 1:
-			if tabbit.CheckColumn(reader, column, "Template.Index", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Template.Index", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Template.Index")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -161,7 +161,7 @@ func (t *TemplateTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Template.Class", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Template.Class", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Template.Class")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -172,7 +172,7 @@ func (t *TemplateTable) Read(filename string) error {
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Template.Int", tabbit.KindScalar, 1, false, tabbit.ElementI32, tabbit.ElementVarint) {
+			if tabbit.CheckColumn(reader, column, "Template.Int", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Template.Int")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
@@ -183,7 +183,7 @@ func (t *TemplateTable) Read(filename string) error {
 				}
 			}
 		case 4:
-			if tabbit.CheckColumn(reader, column, "Template.Delete", tabbit.KindScalar, 1, false, tabbit.ElementBool) {
+			if tabbit.CheckColumn(reader, column, "Template.Delete", tabbit.KindScalar, false, tabbit.ElementBool) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Template.Delete")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
@@ -191,7 +191,7 @@ func (t *TemplateTable) Read(filename string) error {
 				}
 			}
 		case 5:
-			if tabbit.CheckColumn(reader, column, "Template.Operator", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Template.Operator", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Template.Operator")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -202,7 +202,7 @@ func (t *TemplateTable) Read(filename string) error {
 				}
 			}
 		case 6:
-			if tabbit.CheckColumn(reader, column, "Template.Namespace", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Template.Namespace", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Template.Namespace")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -213,7 +213,7 @@ func (t *TemplateTable) Read(filename string) error {
 				}
 			}
 		case 7:
-			if tabbit.CheckColumn(reader, column, "Template.Constructor", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Template.Constructor", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Template.Constructor")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
@@ -224,7 +224,7 @@ func (t *TemplateTable) Read(filename string) error {
 				}
 			}
 		case 8:
-			if tabbit.CheckColumn(reader, column, "Template.Function", tabbit.KindScalar, 1, false, tabbit.ElementString) {
+			if tabbit.CheckColumn(reader, column, "Template.Function", tabbit.KindScalar, false, tabbit.ElementString) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Template.Function")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)

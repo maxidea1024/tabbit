@@ -106,7 +106,7 @@ public final class PackageTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Package.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Package.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Package.Index")
                 var at = 0
                 while at < count {
@@ -119,7 +119,7 @@ public final class PackageTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Package.Label", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Package.Label", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Package.Label")
                 var at = 0
                 while at < count {
@@ -132,7 +132,7 @@ public final class PackageTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Package.Kind", Tcb.kindScalar, 1, false, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Package.Kind", Tcb.kindScalar, false, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Package.Kind")
                 var at = 0
                 while at < count {

@@ -65,70 +65,43 @@ static bool A_TemplateParse(A_TemplateTable_t* table, tb_reader* reader) {
     switch (column->tag) {
 
     case 1:
-      (void)tb_check_column(reader, column, "Template.Index", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Template.Index", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Template.Index");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_TemplateRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].index = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->index);
       }
       break;
 
     case 2:
-      (void)tb_check_column(reader, column, "Template.Class", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Template.Class", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Template.Class");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_TemplateRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].class_ = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->class_);
       }
       break;
 
     case 3:
-      (void)tb_check_column(reader, column, "Template.Int", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Template.Int", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Template.Int");
 
-      {
-        int32_t run_length = 0;
-        int32_t value = 0;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_TemplateRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_i32(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].int_ = value;
-        }
+        (void)tb_cursor_next_i32(&cursor, &record->int_);
       }
       break;
 
     case 4:
-      (void)tb_check_column(reader, column, "Template.Delete", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_BOOL));
+      (void)tb_check_column(reader, column, "Template.Delete", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_BOOL));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Template.Delete");
 
@@ -140,86 +113,50 @@ static bool A_TemplateParse(A_TemplateTable_t* table, tb_reader* reader) {
       break;
 
     case 5:
-      (void)tb_check_column(reader, column, "Template.Operator", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Template.Operator", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Template.Operator");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_TemplateRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].operator_ = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->operator_);
       }
       break;
 
     case 6:
-      (void)tb_check_column(reader, column, "Template.Namespace", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Template.Namespace", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Template.Namespace");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_TemplateRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].namespace_ = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->namespace_);
       }
       break;
 
     case 7:
-      (void)tb_check_column(reader, column, "Template.Constructor", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Template.Constructor", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Template.Constructor");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_TemplateRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].constructor = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->constructor);
       }
       break;
 
     case 8:
-      (void)tb_check_column(reader, column, "Template.Function", TB_KIND_SCALAR, 1, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Template.Function", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Template.Function");
 
-      {
-        int32_t run_length = 0;
-        const char* value = NULL;
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        A_TemplateRecord_t* record = &table->records[row];
 
-        row = 0;
-
-        while (row < table->count && !tb_failed(reader)) {
-          if (!tb_cursor_next_same_string(&cursor, table->count - row, &run_length, &value))
-            break;
-
-          for (; run_length > 0; --run_length, ++row)
-            table->records[row].function = value;
-        }
+        (void)tb_cursor_next_string(&cursor, &record->function);
       }
       break;
 

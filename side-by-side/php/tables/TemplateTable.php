@@ -164,7 +164,7 @@ final class TemplateTable
 
             switch ($column['tag']) {
                 case 1:
-                    TcbReader::checkColumn($column, 'Template.Index', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Template.Index', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Template.Index');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -175,7 +175,7 @@ final class TemplateTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Template.Class', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Template.Class', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Template.Class');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -186,7 +186,7 @@ final class TemplateTable
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Template.Int', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    TcbReader::checkColumn($column, 'Template.Int', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Template.Int');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
@@ -197,7 +197,7 @@ final class TemplateTable
                     break;
 
                 case 4:
-                    TcbReader::checkColumn($column, 'Template.Delete', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_BOOL]);
+                    TcbReader::checkColumn($column, 'Template.Delete', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_BOOL]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Template.Delete');
                     foreach ($records as $record) {
                         $record->delete = $cursor->nextBool();
@@ -205,7 +205,7 @@ final class TemplateTable
                     break;
 
                 case 5:
-                    TcbReader::checkColumn($column, 'Template.Operator', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Template.Operator', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Template.Operator');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -216,7 +216,7 @@ final class TemplateTable
                     break;
 
                 case 6:
-                    TcbReader::checkColumn($column, 'Template.Namespace', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Template.Namespace', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Template.Namespace');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -227,7 +227,7 @@ final class TemplateTable
                     break;
 
                 case 7:
-                    TcbReader::checkColumn($column, 'Template.Constructor', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Template.Constructor', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Template.Constructor');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
@@ -238,7 +238,7 @@ final class TemplateTable
                     break;
 
                 case 8:
-                    TcbReader::checkColumn($column, 'Template.Function', TcbReader::KIND_SCALAR, 1, false, [TcbReader::ELEMENT_STRING]);
+                    TcbReader::checkColumn($column, 'Template.Function', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_STRING]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Template.Function');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);

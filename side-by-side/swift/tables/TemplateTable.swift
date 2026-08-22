@@ -153,7 +153,7 @@ public final class TemplateTable {
 
             switch column.tag {
             case 1:
-                try Tcb.checkColumn(column, "Template.Index", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Template.Index", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Template.Index")
                 var at = 0
                 while at < count {
@@ -166,7 +166,7 @@ public final class TemplateTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Template.Class", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Template.Class", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Template.Class")
                 var at = 0
                 while at < count {
@@ -179,7 +179,7 @@ public final class TemplateTable {
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Template.Int", Tcb.kindScalar, 1, false, Tcb.elementI32, Tcb.elementVarint)
+                try Tcb.checkColumn(column, "Template.Int", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Template.Int")
                 var at = 0
                 while at < count {
@@ -192,13 +192,13 @@ public final class TemplateTable {
                     }
                 }
             case 4:
-                try Tcb.checkColumn(column, "Template.Delete", Tcb.kindScalar, 1, false, Tcb.elementBool)
+                try Tcb.checkColumn(column, "Template.Delete", Tcb.kindScalar, false, Tcb.elementBool)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Template.Delete")
                 for record in loaded {
                     record.delete = try cursor.nextBool()
                 }
             case 5:
-                try Tcb.checkColumn(column, "Template.Operator", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Template.Operator", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Template.Operator")
                 var at = 0
                 while at < count {
@@ -211,7 +211,7 @@ public final class TemplateTable {
                     }
                 }
             case 6:
-                try Tcb.checkColumn(column, "Template.Namespace", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Template.Namespace", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Template.Namespace")
                 var at = 0
                 while at < count {
@@ -224,7 +224,7 @@ public final class TemplateTable {
                     }
                 }
             case 7:
-                try Tcb.checkColumn(column, "Template.Constructor", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Template.Constructor", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Template.Constructor")
                 var at = 0
                 while at < count {
@@ -237,7 +237,7 @@ public final class TemplateTable {
                     }
                 }
             case 8:
-                try Tcb.checkColumn(column, "Template.Function", Tcb.kindScalar, 1, false, Tcb.elementString)
+                try Tcb.checkColumn(column, "Template.Function", Tcb.kindScalar, false, Tcb.elementString)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Template.Function")
                 var at = 0
                 while at < count {

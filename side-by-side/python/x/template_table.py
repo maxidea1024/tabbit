@@ -126,7 +126,7 @@ class TemplateTable:
         for column in columns:
             block_end = reader.position + column.byte_length
             if column.tag == 1:
-                tabbit.check_column(column, "Template.Index", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Template.Index", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Template.Index")
                 at = 0
                 while at < count:
@@ -135,7 +135,7 @@ class TemplateTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Template.Class", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Template.Class", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Template.Class")
                 at = 0
                 while at < count:
@@ -144,7 +144,7 @@ class TemplateTable:
                         records[i].class_ = value
                     at += n
             elif column.tag == 3:
-                tabbit.check_column(column, "Template.Int", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
+                tabbit.check_column(column, "Template.Int", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Template.Int")
                 at = 0
                 while at < count:
@@ -153,12 +153,12 @@ class TemplateTable:
                         records[i].int = value
                     at += n
             elif column.tag == 4:
-                tabbit.check_column(column, "Template.Delete", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_BOOL,))
+                tabbit.check_column(column, "Template.Delete", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_BOOL,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Template.Delete")
                 for record in records:
                     record.delete = cursor.next_bool()
             elif column.tag == 5:
-                tabbit.check_column(column, "Template.Operator", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Template.Operator", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Template.Operator")
                 at = 0
                 while at < count:
@@ -167,7 +167,7 @@ class TemplateTable:
                         records[i].operator = value
                     at += n
             elif column.tag == 6:
-                tabbit.check_column(column, "Template.Namespace", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Template.Namespace", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Template.Namespace")
                 at = 0
                 while at < count:
@@ -176,7 +176,7 @@ class TemplateTable:
                         records[i].namespace = value
                     at += n
             elif column.tag == 7:
-                tabbit.check_column(column, "Template.Constructor", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Template.Constructor", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Template.Constructor")
                 at = 0
                 while at < count:
@@ -185,7 +185,7 @@ class TemplateTable:
                         records[i].constructor = value
                     at += n
             elif column.tag == 8:
-                tabbit.check_column(column, "Template.Function", tabbit.KIND_SCALAR, 1, False, (tabbit.ELEMENT_STRING,))
+                tabbit.check_column(column, "Template.Function", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_STRING,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Template.Function")
                 at = 0
                 while at < count:

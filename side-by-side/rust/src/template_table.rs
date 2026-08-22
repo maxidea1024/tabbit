@@ -143,7 +143,7 @@ impl TemplateTable {
 
             match column.tag {
                 1 => {
-                    tabbit::check_column(column, "Template.Index", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Template.Index", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Template.Index")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -155,7 +155,7 @@ impl TemplateTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Template.Class", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Template.Class", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Template.Class")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -167,7 +167,7 @@ impl TemplateTable {
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Template.Int", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    tabbit::check_column(column, "Template.Int", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Template.Int")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -179,14 +179,14 @@ impl TemplateTable {
                     }
                 }
                 4 => {
-                    tabbit::check_column(column, "Template.Delete", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_BOOL])?;
+                    tabbit::check_column(column, "Template.Delete", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_BOOL])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Template.Delete")?;
                     for record in records.iter_mut() {
                         record.delete = cursor.next_bool()?;
                     }
                 }
                 5 => {
-                    tabbit::check_column(column, "Template.Operator", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Template.Operator", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Template.Operator")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -198,7 +198,7 @@ impl TemplateTable {
                     }
                 }
                 6 => {
-                    tabbit::check_column(column, "Template.Namespace", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Template.Namespace", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Template.Namespace")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -210,7 +210,7 @@ impl TemplateTable {
                     }
                 }
                 7 => {
-                    tabbit::check_column(column, "Template.Constructor", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Template.Constructor", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Template.Constructor")?;
                     let mut at = 0usize;
                     while at < records.len() {
@@ -222,7 +222,7 @@ impl TemplateTable {
                     }
                 }
                 8 => {
-                    tabbit::check_column(column, "Template.Function", tabbit::KIND_SCALAR, 1, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column(column, "Template.Function", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_STRING])?;
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Template.Function")?;
                     let mut at = 0usize;
                     while at < records.len() {

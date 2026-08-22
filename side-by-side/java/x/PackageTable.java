@@ -96,7 +96,7 @@ public final class PackageTable {
 
             switch (column.tag) {
                 case 1: {
-                    TcbReader.checkColumn(column, "Package.Index", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Package.Index", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Package.Index");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
@@ -107,7 +107,7 @@ public final class PackageTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Package.Label", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumn(column, "Package.Label", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_STRING);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Package.Label");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
@@ -118,7 +118,7 @@ public final class PackageTable {
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Package.Kind", TcbReader.KIND_SCALAR, 1, false, TcbReader.ELEMENT_VARINT);
+                    TcbReader.checkColumn(column, "Package.Kind", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Package.Kind");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);

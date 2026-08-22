@@ -59,7 +59,7 @@ namespace Tabbit
      * 104 is the current one: four encodings joined the nine, and the flags byte gained a
      * meaning.
      */
-    static constexpr uint32 BinaryFileFormatVersion = 106;
+    static constexpr uint32 BinaryFileFormatVersion = 107;
 
     // The wire element types and kinds, as a column descriptor spells them.
     static constexpr uint8 ElementVarint = 0;
@@ -80,8 +80,7 @@ namespace Tabbit
     constexpr uint32 ElementMask(uint8 Element) { return 1u << Element; }
 
     static constexpr uint8 KindScalar = 0;
-    static constexpr uint8 KindFixedArray = 1;
-    static constexpr uint8 KindVarArray = 2;
+    static constexpr uint8 KindArray = 1;
 
     // How a block's values are laid out. Raw is the layout 101 had; the others compress
     // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -175,8 +174,6 @@ namespace Tabbit
         /** How the block's values are laid out: one of the Encoding* constants. */
         uint8 Encoding = 0;
 
-        /** Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one. */
-        int32 Count = 0;
 
         /** Total bytes of the column block - what a skip advances by. */
         int32 ByteLength = 0;
@@ -1418,7 +1415,6 @@ namespace Tabbit
 
             Reader.Read(Column.Encoding);
 
-            Reader.ReadCounter32(Column.Count);
 
             uint32 ByteLength = 0;
             Reader.Read(ByteLength);
@@ -1454,21 +1450,6 @@ namespace Tabbit
                 return Reader.FailWith(FString::Printf(
                     TEXT("the row count %d is larger than column tag %d can hold in its %d bytes"),
                     Bad, Column.Tag, Column.ByteLength));
-            }
-
-            // The same floor for the element count, which the read now allocates for: a fixed
-            // array's length is the file's rather than the generated code's. Only with rows to
-            // read - an empty table writes its columns' counts into a block of no bytes, and
-            // that is well-formed.
-            if (Column.Encoding == EncodingRaw
-                && OutHeader.RowCount > 0
-                && Column.Count > Column.ByteLength)
-            {
-                OutHeader.RowCount = 0;
-                return Reader.FailWith(FString::Printf(
-                    TEXT("column tag %d says each row holds %d elements, which its %d bytes ")
-                    TEXT("cannot hold"),
-                    Column.Tag, Column.Count, Column.ByteLength));
             }
         }
 
@@ -1616,7 +1597,7 @@ namespace Tabbit
     }
 
     inline bool CheckColumn(FTabbitBinaryReader& Reader, const FTabbitColumn& Column,
-        const TCHAR* FieldName, uint8 Kind, int32 Count, bool bNullable, uint32 Accepted,
+        const TCHAR* FieldName, uint8 Kind, bool bNullable, uint32 Accepted,
         bool bElementNullable = false)
     {
         if (Reader.HasFailed())
@@ -1647,15 +1628,15 @@ namespace Tabbit
         }
 
         // A negative count says the member claims no length: how many elements a row holds
-        // is what the file states. The kind is still the member's claim.
-        // spec/nullable-array-elements.md.
-        if (Column.Kind != Kind || (Kind != KindVarArray && Count >= 0 && Column.Count != Count))
+        // is what the file states, row by row, so a group that grew a column is read
+        // rather than refused. spec/tcb-v107-dynamic-arrays.md.
+        if (Column.Kind != Kind)
         {
             return Reader.FailWith(FString::Printf(
-                TEXT("%s: the file column (kind %d, count %d) does not match the generated ")
-                TEXT("member (kind %d, count %d). The schema changed shape; regenerate the ")
+                TEXT("%s: the file column (kind %d) does not match the generated ")
+                TEXT("member (kind %d). The schema changed shape; regenerate the ")
                 TEXT("code or rebuild the data."),
-                FieldName, Column.Kind, Column.Count, Kind, Count));
+                FieldName, Column.Kind, Kind));
         }
 
         // An encoding this build cannot decode - or one the spec does not define for
@@ -2472,7 +2453,7 @@ namespace Tabbit
             // than a multiplication to let wrap.
             int64 Elements = 0;
 
-            if (Column.Kind == KindVarArray)
+            if (Column.Kind == KindArray)
             {
                 uint8 LengthEncoding = 0;
                 if (!Reader->Read(LengthEncoding))
@@ -2489,10 +2470,6 @@ namespace Tabbit
                 {
                     Elements += Length;
                 }
-            }
-            else
-            {
-                Elements = static_cast<int64>(RowCount) * Column.Count;
             }
 
             constexpr int64 Holdable = 0x7FFFFFFF;
