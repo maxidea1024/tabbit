@@ -230,7 +230,6 @@
   "report.collapse-all": "全部折叠",
   "report.copy": "复制",
   "report.copied": "已复制",
-  "report.open-in-sheet": "在表格中打开此单元格",
   "report.no-problems": "未发现问题。",
   "report.nothing-matches": "没有符合筛选条件的项。",
   "report.truncated": "共 {Total} 条，本页列出 {Shown} 条。全部内容在 {File} 中。",
@@ -240,5 +239,7 @@
   "report.defect-note": "这是 tabbit 的缺陷，而不是数据或配方的问题。请连同下方的调用堆栈一起反馈。",
   "report.group-by": "分组",
   "report.group-by-sheet": "按表格",
-  "report.group-by-kind": "按类型"
+  "report.group-by-kind": "按类型",
+  "report.copy-report": "复制此报告，以便发给表格的负责人",
+  "report.meta-sheets": "表格位置"
 }

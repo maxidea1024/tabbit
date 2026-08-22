@@ -230,7 +230,6 @@
   "report.collapse-all": "全部摺疊",
   "report.copy": "複製",
   "report.copied": "已複製",
-  "report.open-in-sheet": "在表格中開啟此儲存格",
   "report.no-problems": "未發現問題。",
   "report.nothing-matches": "沒有符合篩選條件的項目。",
   "report.truncated": "共 {Total} 筆，本頁列出 {Shown} 筆。全部內容在 {File} 中。",
@@ -240,5 +239,7 @@
   "report.defect-note": "這是 tabbit 的缺陷，而不是資料或配方的問題。請連同下方的呼叫堆疊一起回報。",
   "report.group-by": "分組",
   "report.group-by-sheet": "按表格",
-  "report.group-by-kind": "按類型"
+  "report.group-by-kind": "按類型",
+  "report.copy-report": "複製此報告，以便傳給表格的負責人",
+  "report.meta-sheets": "表格位置"
 }

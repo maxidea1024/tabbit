@@ -67,6 +67,9 @@ public static class ReportMessages
     public const string MetaStarted = "report.meta-started";
     public const string MetaElapsed = "report.meta-elapsed";
 
+    /// <summary>The folder every place shares, said once instead of on every row.</summary>
+    public const string MetaSheets = "report.meta-sheets";
+
     // ---------------------------------------------------------------- controls
 
     public const string SearchPlaceholder = "report.search-placeholder";
@@ -85,7 +88,16 @@ public static class ReportMessages
     public const string GroupByKind = "report.group-by-kind";
     public const string Copy = "report.copy";
     public const string Copied = "report.copied";
-    public const string OpenInSheet = "report.open-in-sheet";
+
+    /// <summary>
+    /// What the copy button carries, said where a reader hovers it.
+    /// </summary>
+    /// <remarks>
+    /// The whole report rather than the location. What gets pasted into a message to whoever
+    /// owns the sheet is the sentence, the place under it and the link that opens the cell -
+    /// a location on its own is not a thing anybody sends.
+    /// </remarks>
+    public const string CopyReport = "report.copy-report";
 
     // ------------------------------------------------------------------ states
 

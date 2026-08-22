@@ -592,6 +592,69 @@ public class BuildReportTests : IDisposable
         Assert.DoesNotContain(".row.open .copy", page);
     }
 
+    /// <summary>
+    /// A folder every place shares is said once, not down the left of every row.
+    /// </summary>
+    /// <remarks>
+    /// A real page had `samples/named-range/` on fourteen rows: the most prominent position on every
+    /// line, saying the same thing every time, in front of the part that differs. What the
+    /// copy button carries keeps the whole path - that goes to somebody who does not have
+    /// this page in front of them.
+    /// </remarks>
+    [Fact]
+    public void A_folder_every_place_shares_is_said_once()
+    {
+        var options = OptionsFor();
+        var report = BuildReport.Create(options, RecipeWith(new ReportRecipe()))!;
+
+        report.Take(Found(
+            (Severity.Error, At("data/books/Item.xlsx", "Item", 2, 6), "one"),
+            (Severity.Error, At("data/books/Quest.xlsx", "Quest", 1, 3), "two")));
+
+        report.Write(ExitCode.Failed, null);
+
+        string page = File.ReadAllText(report.HtmlPath);
+
+        Assert.Contains("Item.xlsx : Item : C7", page);
+        Assert.Contains("Quest.xlsx : Quest : B4", page);
+
+        // Once in the header, and in what gets sent to somebody else.
+        Assert.Contains("data/books/", page);
+        Assert.Contains("at data/books/Item.xlsx : Item : C7", page);
+    }
+
+    /// <summary>
+    /// The copy button carries the report, not the location.
+    /// </summary>
+    /// <remarks>
+    /// A location on its own is not a thing anybody sends. What gets pasted into a message
+    /// to whoever owns the sheet is the sentence, the place under it, and - for a hosted
+    /// document - the link that opens the cell, so they can go straight there.
+    /// </remarks>
+    [Fact]
+    public void The_copy_button_carries_the_whole_report()
+    {
+        var options = OptionsFor();
+        var report = BuildReport.Create(options, RecipeWith(new ReportRecipe()))!;
+
+        var linked = At("sheet-id", "Item", 2, 6);
+        linked.SheetUrl = "https://docs.google.com/spreadsheets/d/x/edit#gid=1&range=C7";
+
+        var diagnostics = new Diagnostics();
+        diagnostics.Error(linked, Tabbit.Messages.Message.Of("cook.array-gap"));
+
+        report.Take(diagnostics);
+        report.Write(ExitCode.Failed, null);
+
+        string page = File.ReadAllText(report.HtmlPath);
+
+        // Three lines, in the shape the console prints: the sentence, the place, the link -
+        // and the id last, for us.
+        Assert.Contains("&#10;    at sheet-id : Item : C7", page);
+        Assert.Contains("&#10;    https://docs.google.com/spreadsheets/d/x/edit#gid=1&amp;range=C7", page);
+        Assert.Contains("&#10;    cook.array-gap", page);
+    }
+
     // ------------------------------------------------------------------ opening
 
     /// <summary>

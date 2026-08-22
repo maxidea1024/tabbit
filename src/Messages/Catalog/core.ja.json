@@ -230,7 +230,6 @@
   "report.collapse-all": "すべて折りたたむ",
   "report.copy": "コピー",
   "report.copied": "コピーしました",
-  "report.open-in-sheet": "シートでこのセルを開く",
   "report.no-problems": "問題はありません。",
   "report.nothing-matches": "フィルタに一致するものはありません。",
   "report.truncated": "全 {Total} 件のうち {Shown} 件を載せています。すべては {File} にあります。",
@@ -240,5 +239,7 @@
   "report.defect-note": "これはデータやレシピの問題ではなく tabbit の不具合です。下のコールスタックとともに報告してください。",
   "report.group-by": "グループ",
   "report.group-by-sheet": "シート別",
-  "report.group-by-kind": "種別"
+  "report.group-by-kind": "種別",
+  "report.copy-report": "この報告をコピー — シートの担当者に送るため",
+  "report.meta-sheets": "シートの場所"
 }

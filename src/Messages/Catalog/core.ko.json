@@ -230,7 +230,6 @@
   "report.collapse-all": "모두 접기",
   "report.copy": "복사",
   "report.copied": "복사됨",
-  "report.open-in-sheet": "시트에서 이 셀 열기",
   "report.no-problems": "문제가 없습니다.",
   "report.nothing-matches": "필터에 맞는 것이 없습니다.",
   "report.truncated": "전체 {Total}건 중 {Shown}건을 실었습니다. 전량은 {File}에 있습니다.",
@@ -240,5 +239,7 @@
   "report.defect-note": "이것은 데이터나 레시피의 문제가 아니라 tabbit의 결함입니다. 아래 호출 스택과 함께 알려 주십시오.",
   "report.group-by": "묶기",
   "report.group-by-sheet": "시트별",
-  "report.group-by-kind": "종류별"
+  "report.group-by-kind": "종류별",
+  "report.copy-report": "이 보고를 복사 — 시트를 가진 사람에게 보내도록",
+  "report.meta-sheets": "시트 위치"
 }

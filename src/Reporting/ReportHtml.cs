@@ -53,6 +53,8 @@ internal static class ReportHtml
     {
         var page = new StringBuilder(64 * 1024);
 
+        _root = Root(document);
+
         var shown = Shown(document, maxEntries, out int total);
 
         var problems = shown.Where(entry => entry.Severity != "info").ToList();
@@ -191,6 +193,11 @@ internal static class ReportHtml
         page.Append("</div><p class=\"meta\">");
 
         Meta(page, Text(catalog, ReportMessages.MetaRecipe), document.Recipe, first: true);
+
+        // Said once here because it was dropped from every row.
+        if (_root.Length > 0)
+            Meta(page, Text(catalog, ReportMessages.MetaSheets), _root, first: false);
+
         Meta(page, Text(catalog, ReportMessages.MetaTool), document.Tool, first: false);
         Meta(page, Text(catalog, ReportMessages.MetaStarted),
             document.Started?.ToString("yyyy-MM-dd HH:mm:ss") ?? document.StartedAt, first: false);
@@ -405,15 +412,21 @@ internal static class ReportHtml
 
         page.Append("<span class=\"sev\"></span>");
 
-        if (entry.Location is not null)
-            Place(page, entry.Location, catalog, place, cell, whole);
+        // What is wrong, first and in the reading face. The place is where the fix happens
+        // and it is a column of its own at the other end of the row - putting it first gave
+        // the most prominent position on every line to the part that repeats.
+        page.Append("<span class=\"msg\">").Append(Marked(entry.Message)).Append("</span>");
 
+        // Only what is new. "Still here" is the ordinary state of a problem, so a badge
+        // saying it on every row says nothing - the count in the header is where that
+        // belongs.
         if (entry.Fate == ReportFate.New)
             Badge(page, "new", Text(catalog, ReportMessages.BadgeNew));
-        else if (entry.Fate == ReportFate.Persisting)
-            Badge(page, "persisting", Text(catalog, ReportMessages.BadgePersisting));
 
-        page.Append("<span class=\"msg\">").Append(Marked(entry.Message)).Append("</span>");
+        if (entry.Location is not null)
+            Place(page, entry.Location, place, cell, whole);
+
+        Copy(page, catalog, entry);
 
         if (!string.IsNullOrEmpty(entry.Id))
             page.Append("<span class=\"id\">").Append(Escaped(entry.Id!)).Append("</span>");
@@ -434,15 +447,14 @@ internal static class ReportHtml
     /// its sheet, and the row has to say the part the heading does not.
     /// </remarks>
     private static void Place(
-        StringBuilder page, ReportLocation location, MessageCatalog catalog,
-        string place, string cell, bool whole)
+        StringBuilder page, ReportLocation location, string place, string cell, bool whole)
     {
         string shown = whole ? place : cell;
 
         if (!string.IsNullOrEmpty(location.Url))
         {
             page.Append("<a class=\"at\" target=\"_blank\" rel=\"noopener\" title=\"")
-                .Append(Attribute(Text(catalog, ReportMessages.OpenInSheet)))
+                .Append(Attribute(place))
                 .Append("\" data-cell=\"").Append(Attribute(cell))
                 .Append("\" data-full=\"").Append(Attribute(place))
                 .Append("\" href=\"").Append(Attribute(location.Url)).Append("\">")
@@ -451,11 +463,42 @@ internal static class ReportHtml
             return;
         }
 
-        page.Append("<span class=\"at plain\" data-cell=\"").Append(Attribute(cell))
+        page.Append("<span class=\"at plain\" title=\"").Append(Attribute(place))
+            .Append("\" data-cell=\"").Append(Attribute(cell))
             .Append("\" data-full=\"").Append(Attribute(place)).Append("\">")
-            .Append(Escaped(shown)).Append("</span>")
-            .Append("<button type=\"button\" class=\"copy\" data-copy=\"")
-            .Append(Attribute(place))
+            .Append(Escaped(shown)).Append("</span>");
+    }
+
+    /// <summary>
+    /// Copies the whole report, in the shape the console prints it.
+    /// </summary>
+    /// <remarks>
+    /// It used to copy the location and nothing else, which is not the thing anybody sends.
+    /// What gets pasted into a message to whoever owns the sheet is the sentence, the place
+    /// under it, and - for a hosted document - the link that opens the cell, so the person
+    /// receiving it can go straight there. The id goes last, for us.
+    ///
+    /// The same three lines the console writes, because a report quoted in a message and the
+    /// same report quoted from a log should not read as two different things.
+    /// </remarks>
+    private static void Copy(StringBuilder page, MessageCatalog catalog, ReportEntry entry)
+    {
+        var said = new StringBuilder(entry.Message);
+
+        // The whole path, not the page's shortened one. This goes to somebody who does not
+        // have the page in front of them.
+        if (entry.Location is not null)
+            said.Append("\n    at ").Append(Where(entry.Location, whole: true));
+
+        if (!string.IsNullOrEmpty(entry.Location?.Url))
+            said.Append("\n    ").Append(entry.Location!.Url);
+
+        if (!string.IsNullOrEmpty(entry.Id))
+            said.Append("\n    ").Append(entry.Id);
+
+        page.Append("<button type=\"button\" class=\"copy\" title=\"")
+            .Append(Attribute(Text(catalog, ReportMessages.CopyReport)))
+            .Append("\" data-copy=\"").Append(Attribute(said.ToString()))
             .Append("\" data-done=\"")
             .Append(Attribute(Text(catalog, ReportMessages.Copied)))
             .Append("\" onclick=\"copy(this, event)\">")
@@ -472,23 +515,93 @@ internal static class ReportHtml
     /// </remarks>
     private static string Sheet(ReportLocation location)
         => string.IsNullOrEmpty(location.Sheet)
-            ? location.File
-            : $"{location.File} : {location.Sheet}";
+            ? Shortened(location.File)
+            : $"{Shortened(location.File)} : {location.Sheet}";
+
+    /// <summary>
+    /// The folder every place on this page shares, dropped from the rows and said once.
+    /// </summary>
+    /// <remarks>
+    /// A real page had `samples/named-range/` down the left of fourteen rows: twelve characters of
+    /// the most prominent position on every line, saying the same thing every time, in front
+    /// of the part that differs.
+    ///
+    /// Only a whole folder is dropped, and only when more than one place shares it - cutting
+    /// a common run of letters would leave names that are not names. What the copy button
+    /// carries is unaffected: that goes to somebody who does not have this page in front of
+    /// them.
+    ///
+    /// Static, and settled once at the top of a render. That holds because a run writes one
+    /// report and writes it on one thread; two renders at once would read each other's. If a
+    /// second caller ever appears, this becomes an argument.
+    /// </remarks>
+    private static string _root = "";
+
+    /// <summary>Works out that folder, or empty when the places share none.</summary>
+    private static string Root(ReportDocument document)
+    {
+        var files = document.Entries
+            .Concat(document.KnownProblems)
+            .Concat(document.Resolved)
+            .Where(entry => entry.Location is not null && !entry.Location.InTextFile)
+            .Select(entry => entry.Location!.File)
+            .Where(file => file.Contains('/'))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (files.Count < 2)
+            return "";
+
+        string first = files[0];
+        int at = first.Length;
+
+        foreach (string file in files)
+        {
+            at = Math.Min(at, Shared(first, file));
+
+            if (at == 0)
+                return "";
+        }
+
+        // Back to the last separator: half a folder name is not a folder.
+        int slash = first.LastIndexOf('/', Math.Max(0, at - 1));
+
+        return slash <= 0 ? "" : first[..(slash + 1)];
+    }
+
+    private static int Shared(string one, string other)
+    {
+        int at = 0;
+
+        while (at < one.Length && at < other.Length && one[at] == other[at])
+            at++;
+
+        return at;
+    }
+
+    private static string Shortened(string file)
+        => _root.Length > 0 && file.StartsWith(_root, StringComparison.Ordinal)
+            ? file[_root.Length..]
+            : file;
 
     /// <summary>Just the cell, for a row sitting under a heading that names the sheet.</summary>
     private static string Cell(ReportLocation location)
         => string.IsNullOrEmpty(location.Cell) ? location.File : location.Cell;
 
     /// <summary>The place, written the way this tool has always written one.</summary>
-    private static string Where(ReportLocation location)
+    private static string Where(ReportLocation location) => Where(location, whole: false);
+
+    private static string Where(ReportLocation location, bool whole)
     {
+        string file = whole ? location.File : Shortened(location.File);
+
         if (location.InTextFile)
-            return $"{location.File}{location.Cell}";
+            return $"{file}{location.Cell}";
 
         if (string.IsNullOrEmpty(location.Sheet))
-            return location.File;
+            return file;
 
-        return $"{location.File} : {location.Sheet} : {location.Cell}";
+        return $"{file} : {location.Sheet} : {location.Cell}";
     }
 
     private static void Defect(StringBuilder page, ReportDefect defect, MessageCatalog catalog)
@@ -539,7 +652,12 @@ internal static class ReportHtml
         return built.ToString();
     }
 
-    private static string Attribute(string text) => Escaped(text);
+    /// <remarks>
+    /// Newlines are written as entities. What the copy button carries is three lines, and a
+    /// raw newline inside an attribute survives some parsers and not others.
+    /// </remarks>
+    private static string Attribute(string text)
+        => Escaped(text).Replace("\r\n", "&#10;").Replace("\n", "&#10;");
 
     /// <summary>
     /// A report, with what it quotes in backticks set as code.
@@ -693,6 +811,11 @@ p.meta .dot { color: var(--faint); }
         background: var(--head); font-size: 12px; color: var(--muted); }
 .empty { color: var(--faint); }
 
+/* One frame around the list rather than one per group, so the page reads as a list. */
+section[data-panel] { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+section[data-panel] > details.grp { border: 0; border-top: 1px solid var(--line);
+                                    border-radius: 0; margin: 0; }
+section[data-panel] > details.grp:first-child { border-top: 0; }
 details.grp { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 6px; overflow: hidden; }
 details.grp > summary { display: flex; align-items: center; gap: 8px; cursor: pointer;
   padding: 6px 10px; background: var(--head); }
@@ -700,29 +823,31 @@ details.grp > summary .where { overflow-wrap: anywhere; }
 details.grp > summary .n { margin-left: auto; color: var(--faint);
   font-variant-numeric: tabular-nums; font-size: 12px; }
 
-/* ---- a row is one line until it is asked to be more ---- */
-.row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;
-       padding: 5px 10px 5px 7px; border-top: 1px solid var(--line-soft); cursor: pointer; }
+/* ---- a row is one line until it is asked to be more ----
+
+   A list with hairlines, not a stack of cards. Every standing-alone row used to carry its
+   own border and rounded corners, which on a page of fourteen is fourteen boxes competing
+   with what is written in them. */
+.row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+       padding: 7px 10px 7px 8px; border-top: 1px solid var(--line-soft); cursor: pointer; }
+.row:first-child { border-top: 0; }
 .row:hover { background: var(--head); }
-.row:nth-child(even of .row) { background: var(--zebra); }
-.row.bare { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 5px; }
-.row .sev { flex: 0 0 3px; align-self: stretch; border-radius: 2px; background: var(--faint); }
+.row.bare { border: 0; border-top: 1px solid var(--line-soft); margin: 0; }
+.row .sev { flex: 0 0 3px; align-self: stretch; border-radius: 2px; background: transparent; }
 .row.error .sev { background: var(--bad); }
 .row.warning .sev { background: var(--warn); }
-/* A column rather than however wide this one place happens to be, so the sentences start
-   at the same place down the page and can be read by running an eye down them. A place
-   wider than the column pushes past it - the sheet name is the one thing here that must
-   not be cut - and the width is in `rem` rather than `ch`, because `ch` is the width of a
-   zero and a sheet named in Korean is nothing like one. */
-.at { flex: 0 0 auto; color: var(--link); white-space: nowrap; min-width: 3rem; }
-.row.full .at { min-width: 25rem; }
-.at.plain { color: var(--muted); }
+/* Where the fix happens, at the other end of the row from what is wrong. Every row ends
+   with it, so their right edges line up without a width being set - and it is smaller and
+   quieter than the sentence, because it is the address rather than the message. */
+.at { flex: 0 0 auto; color: var(--link); white-space: nowrap; font-size: 11.5px; }
+.at.plain { color: var(--faint); }
+.row:hover .at.plain { color: var(--muted); }
 
 /* Clamped, and opened by a click on the row. A report is a paragraph - what is wrong, what
    follows, what to do - and a page of paragraphs buries the part that differs between them. */
 /* Basis zero, not `auto`. With `auto` the base size is the whole sentence, and a wrapping
    row then puts every message on a line of its own however wide the window is. */
-.msg { flex: 1 1 0; overflow-wrap: anywhere; min-width: 12rem;
+.msg { flex: 1 1 0; overflow-wrap: anywhere; min-width: 14rem; color: var(--fg);
        display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .row.open .msg { display: block; }
 
@@ -735,10 +860,9 @@ details.grp > summary .n { margin-left: auto; color: var(--faint);
 .row.open .id { display: block; flex: 0 0 100%; white-space: nowrap; overflow-x: auto;
                 padding-top: 2px; border-top: 1px dashed var(--line-soft); }
 
-.badge { flex: 0 0 auto; font-size: 11px; padding: 0 6px; border-radius: 999px;
-         border: 1px solid var(--line); }
-.badge.new { color: var(--bad); border-color: var(--bad); }
-.badge.persisting { color: var(--faint); }
+/* Only `new` is ever written, so it is allowed to be loud. */
+.badge { flex: 0 0 auto; font-size: 10.5px; padding: 0 6px; border-radius: 999px;
+         color: var(--bad); border: 1px solid var(--bad); }
 /* On hover, and on hover only. A button beside every place is one control as many times as
    there are rows; a button that is also there when the row happens to be open is a control
    that appears for a reason the reader cannot see, which reads as arbitrary. One trigger. */
