@@ -119,7 +119,7 @@ class LoadoutTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Loadout.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Loadout.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -132,7 +132,7 @@ class LoadoutTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Loadout.Name", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Loadout.Name", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Name");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -145,7 +145,7 @@ class LoadoutTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Loadout.Pos.X", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Loadout.Pos.X", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Pos.X");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -154,7 +154,7 @@ class LoadoutTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Loadout.Pos.Y", tabbit::kKindScalar, 1, false, {tabbit::kElementF32});
+          tabbit::check_column(column, "Loadout.Pos.Y", tabbit::kKindScalar, false, {tabbit::kElementF32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Pos.Y");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -163,31 +163,38 @@ class LoadoutTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Loadout.Slot.Id", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Loadout.Slot.Id", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Slot.Id");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slot.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.slot[j].id = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            record.slot.assign(static_cast<std::size_t>(element_count), LoadoutRecord_slot_entry());
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.slot[static_cast<std::size_t>(j)].id = cursor.next_i32();
             }
           }
           break;
         }
         case 6: {
-          tabbit::check_column(column, "Loadout.Slot.Label", tabbit::kKindFixedArray, 2, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Loadout.Slot.Label", tabbit::kKindArray, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Slot.Label");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slot.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.slot[j].label = cursor.next_string();
+            const std::int32_t element_count = cursor.next_length();
+            if (record.slot.size() != static_cast<std::size_t>(element_count)) {
+              throw tabbit::TcbError(
+                  "Loadout.slot: the file gives this row a different "
+                  "element count for one member of the record than for another; every member of a "
+                  "record carries the same count, so the file is damaged");
+            }
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.slot[static_cast<std::size_t>(j)].label = cursor.next_string();
             }
           }
           break;
         }
         case 7: {
-          tabbit::check_column(column, "Loadout.Note", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Loadout.Note", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Note");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -200,13 +207,14 @@ class LoadoutTable {
           break;
         }
         case 8: {
-          tabbit::check_column(column, "Loadout.Tag_array", tabbit::kKindFixedArray, -1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Loadout.Tag_array", tabbit::kKindArray, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Tag_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.tag_array.resize(static_cast<std::size_t>(column.count));
-            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
-              record.tag_array[j] = cursor.next_string();
+            const std::int32_t element_count = cursor.next_length();
+            record.tag_array.resize(static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.tag_array[static_cast<std::size_t>(j)] = cursor.next_string();
             }
           }
           break;

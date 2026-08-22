@@ -183,7 +183,7 @@ namespace Tabbit.Fixtures.X
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "OffsetTable.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "OffsetTable.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "OffsetTable.Index");
                         for (int i = 0; i < count; )
                         {
@@ -199,7 +199,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "OffsetTable.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "OffsetTable.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "OffsetTable.Name");
                         for (int i = 0; i < count; )
                         {
@@ -215,7 +215,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "OffsetTable.Value", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "OffsetTable.Value", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "OffsetTable.Value");
                         for (int i = 0; i < count; )
                         {

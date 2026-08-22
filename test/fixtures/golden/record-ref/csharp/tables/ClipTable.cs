@@ -197,7 +197,7 @@ namespace Tabbit.Fixtures.RecordRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Clip.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Clip.Index", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Clip.Index");
                         for (int i = 0; i < count; )
                         {
@@ -213,7 +213,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Clip.Length", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Clip.Length", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Clip.Length");
                         for (int i = 0; i < count; )
                         {
@@ -229,7 +229,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Clip.Pad", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Clip.Pad", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Clip.Pad");
                         for (int i = 0; i < count; )
                         {
@@ -245,7 +245,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Clip.Pad2", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Clip.Pad2", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Clip.Pad2");
                         for (int i = 0; i < count; )
                         {
@@ -261,7 +261,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Clip.Pad3", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Clip.Pad3", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Clip.Pad3");
                         for (int i = 0; i < count; )
                         {

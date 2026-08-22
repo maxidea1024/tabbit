@@ -1,12 +1,12 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "bf6070edf29c31e3d66391f0156f8619",
-  "TotalSize": 90,
+  "MasterHash": "8c64fc2cf838dd2281f8b6429fa1c20e",
+  "TotalSize": 95,
   "Items": [
     {
       "Name": "Deep.tcb",
-      "Size": 90,
-      "Hash": "bf6070edf29c31e3d66391f0156f8619",
+      "Size": 95,
+      "Hash": "8c64fc2cf838dd2281f8b6429fa1c20e",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

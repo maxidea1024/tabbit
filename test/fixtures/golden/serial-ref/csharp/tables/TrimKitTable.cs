@@ -206,7 +206,7 @@ namespace Tabbit.Fixtures.SerialRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "TrimKit.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "TrimKit.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "TrimKit.Index");
                         for (int i = 0; i < count; )
                         {
@@ -222,7 +222,7 @@ namespace Tabbit.Fixtures.SerialRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "TrimKit.Slot_array", TcbTable.KindVarArray, 0, false, TcbTable.ElementI32, elementNullable: true);
+                        TcbTable.CheckColumn(column, "TrimKit.Slot_array", TcbTable.KindArray, false, TcbTable.ElementI32, elementNullable: true);
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
                         cursor = new TcbColumnCursor(reader, column, count, "TrimKit.Slot_array");
@@ -247,7 +247,7 @@ namespace Tabbit.Fixtures.SerialRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "TrimKit.Tier_array", TcbTable.KindVarArray, 0, false, TcbTable.ElementI32, elementNullable: true);
+                        TcbTable.CheckColumn(column, "TrimKit.Tier_array", TcbTable.KindArray, false, TcbTable.ElementI32, elementNullable: true);
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
                         cursor = new TcbColumnCursor(reader, column, count, "TrimKit.Tier_array");

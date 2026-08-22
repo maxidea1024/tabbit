@@ -119,7 +119,7 @@ class LootTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Loot.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Loot.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -132,7 +132,7 @@ class LootTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Loot.Name", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Loot.Name", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Name");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -145,7 +145,7 @@ class LootTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Loot.Slot.Id", tabbit::kKindVarArray, 0, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Loot.Slot.Id", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Slot.Id");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -158,7 +158,7 @@ class LootTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Loot.Slot.Count", tabbit::kKindVarArray, 0, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Loot.Slot.Count", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Slot.Count");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -176,7 +176,7 @@ class LootTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Loot.Slot.Label", tabbit::kKindVarArray, 0, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Loot.Slot.Label", tabbit::kKindArray, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Slot.Label");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -194,7 +194,7 @@ class LootTable {
           break;
         }
         case 6: {
-          tabbit::check_column(column, "Loot.Pos.X", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Loot.Pos.X", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Pos.X");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -207,7 +207,7 @@ class LootTable {
           break;
         }
         case 7: {
-          tabbit::check_column(column, "Loot.Pos.Y", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Loot.Pos.Y", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Pos.Y");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -220,7 +220,7 @@ class LootTable {
           break;
         }
         case 8: {
-          tabbit::check_column(column, "Loot.Tag_array", tabbit::kKindVarArray, 0, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Loot.Tag_array", tabbit::kKindArray, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Tag_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];

@@ -267,61 +267,51 @@ class {{ table.table_name }} {
             }
 {{~ else if column_view.kind == "array_of_arrays_member" ~}}
 {{~## One inner vector. Which outer element it is, is which column this is - so the outer
-   level is sized once by the first column and this sizes its own inner vector. ##~}}
+   level is sized by how many columns there are and the inner one by what this row says. ##~}}
+            {{ column_view.length_read }}
             record.{{ column_view.name }}.resize({{ column_view.outer_count }});
-            record.{{ column_view.name }}[{{ column_view.member_at }}].resize({{ column_view.element_count }});
-            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
-              {{ column_view.read_element }};
+            record.{{ column_view.name }}[{{ column_view.member_at }}].resize(
+                static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              {{ column_view.read_var_element }};
             }
-{{~ else if column_view.kind == "record_member_serial" ~}}
+{{~ else if column_view.kind == "record_member_var" ~}}
 {{~## The member is the vector: it is sized and indexed rather than the record. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+            {{ column_view.length_read }}
 {{~ if column_view.member_ref_suffix != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are sized. spec/references-in-records.md. ##~}}
-            record.{{ column_view.name }}{{ column_view.member_access }}.assign({{ column_view.element_count }}, nullptr);
-            record.{{ column_view.name }}{{ column_view.member_access }}_index.resize({{ column_view.element_count }});
+            record.{{ column_view.name }}{{ column_view.member_access }}.assign(
+                static_cast<std::size_t>(element_count), nullptr);
+            record.{{ column_view.name }}{{ column_view.member_access }}_index.resize(
+                static_cast<std::size_t>(element_count));
 {{~ else if column_view.multi_target_type_name != '' ~}}
 {{~## A member reaching several tables holds one slot and one discriminator per element beside
    the keys, and the linking pass assigns into both - so all three are sized.
    spec/multi-target-accessors.md. ##~}}
-            record.{{ column_view.name }}{{ column_view.member_access }}.resize({{ column_view.element_count }});
-            record.{{ column_view.name }}{{ column_view.member_access }}_row.assign({{ column_view.element_count }}, nullptr);
-            record.{{ column_view.name }}{{ column_view.member_access }}_target.assign({{ column_view.element_count }}, {{ column_view.multi_target_type_name }}::None);
+            record.{{ column_view.name }}{{ column_view.member_access }}.resize(
+                static_cast<std::size_t>(element_count));
+            record.{{ column_view.name }}{{ column_view.member_access }}_row.assign(
+                static_cast<std::size_t>(element_count), nullptr);
+            record.{{ column_view.name }}{{ column_view.member_access }}_target.assign(
+                static_cast<std::size_t>(element_count), {{ column_view.multi_target_type_name }}::None);
 {{~ else ~}}
-            record.{{ column_view.name }}{{ column_view.member_access }}.resize({{ column_view.element_count }});
+            record.{{ column_view.name }}{{ column_view.member_access }}.resize(
+                static_cast<std::size_t>(element_count));
 {{~ end ~}}
-            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
-              {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == "record_serial" ~}}
-{{~## One member of a fixed record array. The vector and its elements came with the record,
-   so this fills a field of each rather than re-creating them. ##~}}
-            record.{{ column_view.name }}.resize({{ column_view.element_count }});
-            for (std::size_t j = 0; j < {{ column_view.element_count }}; ++j) {
-              {{ column_view.read_element }};
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              {{ column_view.read_var_element }};
             }
 {{~ else if column_view.kind == "record_member" ~}}
             {{ column_view.read_scalar }};
-{{~ else if column_view.kind == "serial_ref" ~}}
-            record.{{ column_view.name }}.assign(static_cast<std::size_t>(column.count), {{ column_view.ref_default }});
-            record.{{ column_view.name }}_index.resize(static_cast<std::size_t>(column.count));
-            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
-              {{ column_view.read_element }};
-            }
-{{~ else if column_view.kind == "serial" ~}}
-{{~## One column owns the whole array, so how many elements a row holds is what the file
-   states rather than a number written in here. spec/nullable-array-elements.md. ##~}}
-            record.{{ column_view.name }}.resize(static_cast<std::size_t>(column.count));
-{{~ if column_view.has_optional_elements ~}}
-            record.{{ column_view.element_presence_member }}.assign(static_cast<std::size_t>(column.count), true);
-{{~ end ~}}
-            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
-              {{ column_view.read_element }};
-{{~ if column_view.has_optional_elements ~}}
-              record.{{ column_view.element_presence_member }}[j] =
-                  tabbit::is_present(element_presence, element_at++);
-{{~ end ~}}
+{{~ else if column_view.kind == "var_array_ref" ~}}
+            {{ column_view.length_read }}
+            record.{{ column_view.name }}.assign(
+                static_cast<std::size_t>(element_count), {{ column_view.ref_default }});
+            record.{{ column_view.name }}_index.resize(static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              {{ column_view.read_var_element }};
             }
 {{~ else ~}}
             {{ column_view.read_scalar }};

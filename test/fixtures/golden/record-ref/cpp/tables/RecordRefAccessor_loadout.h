@@ -109,7 +109,7 @@ class LoadoutTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Loadout.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Loadout.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -122,37 +122,50 @@ class LoadoutTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Loadout.Slot.ItemId", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32});
+          tabbit::check_column(column, "Loadout.Slot.ItemId", tabbit::kKindArray, false, {tabbit::kElementI32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Slot.ItemId");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slot.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.slot[j].item_id_index = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            record.slot.assign(static_cast<std::size_t>(element_count), LoadoutRecord_slot_entry());
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.slot[static_cast<std::size_t>(j)].item_id_index = cursor.next_i32();
             }
           }
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Loadout.Slot.SwapId", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32});
+          tabbit::check_column(column, "Loadout.Slot.SwapId", tabbit::kKindArray, false, {tabbit::kElementI32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Slot.SwapId");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slot.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.slot[j].swap_id_index = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            if (record.slot.size() != static_cast<std::size_t>(element_count)) {
+              throw tabbit::TcbError(
+                  "Loadout.slot: the file gives this row a different "
+                  "element count for one member of the record than for another; every member of a "
+                  "record carries the same count, so the file is damaged");
+            }
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.slot[static_cast<std::size_t>(j)].swap_id_index = cursor.next_i32();
             }
           }
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Loadout.Slot.Count", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Loadout.Slot.Count", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loadout.Slot.Count");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slot.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.slot[j].count = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            if (record.slot.size() != static_cast<std::size_t>(element_count)) {
+              throw tabbit::TcbError(
+                  "Loadout.slot: the file gives this row a different "
+                  "element count for one member of the record than for another; every member of a "
+                  "record carries the same count, so the file is damaged");
+            }
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.slot[static_cast<std::size_t>(j)].count = cursor.next_i32();
             }
           }
           break;

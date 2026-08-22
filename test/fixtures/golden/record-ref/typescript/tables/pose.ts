@@ -54,7 +54,7 @@ export class PoseRecord {
   public get step(): StepEntry[] { return this._step }
 
   public _index: number = 0
-  public _step: StepEntry[] = Array.from({ length: 2 }, () => ({ clipId: undefined, clipId_index: "", clipId_F: false, weight: 0 }))
+  public _step: StepEntry = Array.from({ length: 2 }, () => ({ clipId: undefined, clipId_index: "", clipId_F: false, weight: 0 }))
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -189,7 +189,7 @@ export class PoseTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Pose.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Pose.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Pose.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -198,20 +198,25 @@ export class PoseTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Pose.Step.ClipId', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Pose.Step.ClipId', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Pose.Step.ClipId')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            record._step = Array.from({ length: elementCount }, () => ({ clipId: undefined, clipId_index: "", clipId_F: false, weight: 0 }))
+            for (let j = 0; j < elementCount; ++j)
               record._step[j].clipId_index = cursor.nextString()
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Pose.Step.Weight', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Pose.Step.Weight', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Pose.Step.Weight')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            if (record._step.length !== elementCount)
+              throw new Error(`Pose.Step: the file gives this row ${elementCount} elements for one member of the record and ${record._step.length} for another. Every member of a record carries the same element count, so the file is damaged.`)
+            for (let j = 0; j < elementCount; ++j)
               record._step[j].weight = cursor.nextI32()
           }
           break

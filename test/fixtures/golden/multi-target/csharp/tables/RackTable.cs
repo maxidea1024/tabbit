@@ -38,7 +38,6 @@ namespace Tabbit.Fixtures.MultiTarget
             /// element 1 of the member
             /// </summary>
             public SlotsEntry Slots => _slots;
-            internal const int Slots_N = 2;
             #endregion
 
             /// <summary>One element of <see cref="Slots"/>.</summary>
@@ -224,7 +223,7 @@ namespace Tabbit.Fixtures.MultiTarget
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Rack.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Rack.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Rack.Index");
                         for (int i = 0; i < count; )
                         {
@@ -240,12 +239,16 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Rack.Slots.Pick", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Rack.Slots.Pick", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Rack.Slots.Pick");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slots_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._slots.Pick =
+                                new int[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slots.Pick[j] = cursor.NextI32();
                             }
@@ -253,12 +256,16 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Rack.Slots.Count", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Rack.Slots.Count", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Rack.Slots.Count");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slots_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._slots.Count =
+                                new int[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slots.Count[j] = cursor.NextI32();
                             }

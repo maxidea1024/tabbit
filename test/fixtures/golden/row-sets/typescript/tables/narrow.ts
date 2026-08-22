@@ -198,7 +198,7 @@ export class NarrowTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Narrow.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Narrow.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Narrow.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -207,7 +207,7 @@ export class NarrowTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Narrow.Kept', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Narrow.Kept', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Narrow.Kept')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -216,7 +216,7 @@ export class NarrowTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Narrow.Also', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Narrow.Also', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Narrow.Also')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -225,7 +225,7 @@ export class NarrowTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Narrow.Dropped', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Narrow.Dropped', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Narrow.Dropped')
           for (let i = 0; i < rowCount; ) {
@@ -244,7 +244,7 @@ export class NarrowTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Narrow.Firm', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Narrow.Firm', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Narrow.Firm')
           for (let i = 0; i < rowCount; ) {

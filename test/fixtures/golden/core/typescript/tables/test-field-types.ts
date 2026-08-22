@@ -232,7 +232,7 @@ export class TestFieldTypesTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'TestFieldTypes.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'TestFieldTypes.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -241,7 +241,7 @@ export class TestFieldTypesTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'TestFieldTypes.StringField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'TestFieldTypes.StringField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.StringField')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -250,7 +250,7 @@ export class TestFieldTypesTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'TestFieldTypes.BoolField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_BOOL])
+          tabbit.checkColumn(column, 'TestFieldTypes.BoolField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_BOOL])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.BoolField')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -258,7 +258,7 @@ export class TestFieldTypesTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'TestFieldTypes.IntField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'TestFieldTypes.IntField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.IntField')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -267,7 +267,7 @@ export class TestFieldTypesTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'TestFieldTypes.BigIntField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'TestFieldTypes.BigIntField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.BigIntField')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -275,7 +275,7 @@ export class TestFieldTypesTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'TestFieldTypes.FloatField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'TestFieldTypes.FloatField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.FloatField')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -283,7 +283,7 @@ export class TestFieldTypesTable {
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'TestFieldTypes.DoubleField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F64, tabbit.ELEMENT_F32, tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'TestFieldTypes.DoubleField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F64, tabbit.ELEMENT_F32, tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.DoubleField')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -291,7 +291,7 @@ export class TestFieldTypesTable {
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'TestFieldTypes.DatetimeField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I64])
+          tabbit.checkColumn(column, 'TestFieldTypes.DatetimeField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I64])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.DatetimeField')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -299,7 +299,7 @@ export class TestFieldTypesTable {
           }
           break
         case 9:
-          tabbit.checkColumn(column, 'TestFieldTypes.TimespanField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I64])
+          tabbit.checkColumn(column, 'TestFieldTypes.TimespanField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I64])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.TimespanField')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -307,14 +307,14 @@ export class TestFieldTypesTable {
           }
           break
         case 10:
-          tabbit.checkColumn(column, 'TestFieldTypes.UuidField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_UUID])
+          tabbit.checkColumn(column, 'TestFieldTypes.UuidField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_UUID])
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._uuidField = reader.readUuid()
           }
           break
         case 11:
-          tabbit.checkColumn(column, 'TestFieldTypes.ValueTypeField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'TestFieldTypes.ValueTypeField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TestFieldTypes.ValueTypeField')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)

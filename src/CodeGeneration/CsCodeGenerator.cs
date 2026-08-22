@@ -763,6 +763,13 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         {
             not null when wire.IsArray && wire.Group.MembersAreAnonymous
                 => "array_of_arrays_member",
+
+            // The member is the array rather than the record: one record, and each of its
+            // members is as long as this row says. Read as `record_var` it allocated an
+            // array of records over a field that is one.
+            not null when wire.IsArray && wire.Group.MembersAreArrays
+                => "record_member_var",
+
             not null when wire.IsArray => "record_var",
             _ => ReadKind(wire),
         };
@@ -782,6 +789,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             RecordTypeName = wire.Group.Name.ToPascalCase() + "Entry",
             RecordNeedsInit = wire.Group.IsRecord && RecordNeedsFactory(wire.Group),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),
+            MemberAccess = memberAccess,
             ElementRead = ElementReadLines(wire, fieldName, fieldType, refTable, memberAccess),
             ParallelArrays = ParallelArrayLines(wire, fieldName, refTable),
             LengthRead = UsesCursor(wire)

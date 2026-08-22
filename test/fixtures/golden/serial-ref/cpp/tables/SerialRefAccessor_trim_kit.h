@@ -117,7 +117,7 @@ class TrimKitTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "TrimKit.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "TrimKit.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TrimKit.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -130,39 +130,35 @@ class TrimKitTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "TrimKit.Slot_array", tabbit::kKindVarArray, 0, false, {tabbit::kElementI32}, true);
+          tabbit::check_column(column, "TrimKit.Slot_array", tabbit::kKindArray, false, {tabbit::kElementI32}, true);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TrimKit.Slot_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.slot_array.resize(static_cast<std::size_t>(element_count));
-            record.has_slot_array_at_.assign(
-                static_cast<std::size_t>(element_count), true);
+            record.slot_array.assign(
+                static_cast<std::size_t>(element_count), nullptr);
+            record.slot_array_index.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
               record.slot_array_index[static_cast<std::size_t>(j)] = cursor.next_i32();
-              record.has_slot_array_at_[static_cast<std::size_t>(j)] =
-                  tabbit::is_present(element_presence, element_at++);
             }
           }
           break;
         }
         case 3: {
-          tabbit::check_column(column, "TrimKit.Tier_array", tabbit::kKindVarArray, 0, false, {tabbit::kElementI32}, true);
+          tabbit::check_column(column, "TrimKit.Tier_array", tabbit::kKindArray, false, {tabbit::kElementI32}, true);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TrimKit.Tier_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.tier_array.resize(static_cast<std::size_t>(element_count));
-            record.has_tier_array_at_.assign(
-                static_cast<std::size_t>(element_count), true);
+            record.tier_array.assign(
+                static_cast<std::size_t>(element_count), 0);
+            record.tier_array_index.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
               record.tier_array_index[static_cast<std::size_t>(j)] = cursor.next_i32();
-              record.has_tier_array_at_[static_cast<std::size_t>(j)] =
-                  tabbit::is_present(element_presence, element_at++);
             }
           }
           break;

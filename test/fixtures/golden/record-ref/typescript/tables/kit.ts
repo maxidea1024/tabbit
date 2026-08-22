@@ -187,7 +187,7 @@ export class KitTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Kit.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Kit.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -196,7 +196,7 @@ export class KitTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Kit.Part.ItemId', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Kit.Part.ItemId', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Part.ItemId')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -207,7 +207,7 @@ export class KitTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Kit.Part.Count', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Kit.Part.Count', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Part.Count')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]

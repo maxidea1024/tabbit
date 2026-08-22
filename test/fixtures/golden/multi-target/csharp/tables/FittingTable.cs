@@ -227,7 +227,7 @@ namespace Tabbit.Fixtures.MultiTarget
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Fitting.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Fitting.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Fitting.Index");
                         for (int i = 0; i < count; )
                         {
@@ -243,7 +243,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Fitting.Main.Pick", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Fitting.Main.Pick", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Fitting.Main.Pick");
                         for (int i = 0; i < count; )
                         {
@@ -259,7 +259,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Fitting.Main.Count", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Fitting.Main.Count", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Fitting.Main.Count");
                         for (int i = 0; i < count; )
                         {
@@ -275,7 +275,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Fitting.Pad", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Fitting.Pad", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Fitting.Pad");
                         for (int i = 0; i < count; )
                         {
@@ -291,7 +291,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Fitting.Pad2", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Fitting.Pad2", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Fitting.Pad2");
                         for (int i = 0; i < count; )
                         {

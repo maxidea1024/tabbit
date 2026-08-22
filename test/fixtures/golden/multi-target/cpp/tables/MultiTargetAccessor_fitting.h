@@ -128,7 +128,7 @@ class FittingTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Fitting.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Fitting.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Fitting.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -141,7 +141,7 @@ class FittingTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Fitting.Main.Pick", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Fitting.Main.Pick", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Fitting.Main.Pick");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -154,7 +154,7 @@ class FittingTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Fitting.Main.Count", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Fitting.Main.Count", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Fitting.Main.Count");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -167,7 +167,7 @@ class FittingTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Fitting.Pad", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Fitting.Pad", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Fitting.Pad");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -180,7 +180,7 @@ class FittingTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Fitting.Pad2", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Fitting.Pad2", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Fitting.Pad2");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {

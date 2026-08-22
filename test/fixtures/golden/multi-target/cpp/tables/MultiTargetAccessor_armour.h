@@ -99,7 +99,7 @@ class ArmourTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Armour.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Armour.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Armour.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -112,7 +112,7 @@ class ArmourTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Armour.Name", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Armour.Name", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Armour.Name");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -125,7 +125,7 @@ class ArmourTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Armour.Note", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Armour.Note", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Armour.Note");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {

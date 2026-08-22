@@ -219,7 +219,7 @@ namespace Tabbit.Fixtures.KeyTypes
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Ledger.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Ledger.Index", TcbTable.KindScalar, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Ledger.Index");
                         for (int i = 0; i < count; i++)
                         {
@@ -229,7 +229,7 @@ namespace Tabbit.Fixtures.KeyTypes
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Ledger.Amount", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Ledger.Amount", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Ledger.Amount");
                         for (int i = 0; i < count; )
                         {
@@ -245,7 +245,7 @@ namespace Tabbit.Fixtures.KeyTypes
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Ledger.Batch", TcbTable.KindScalar, 1, false, TcbTable.ElementUuid);
+                        TcbTable.CheckColumn(column, "Ledger.Batch", TcbTable.KindScalar, false, TcbTable.ElementUuid);
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];

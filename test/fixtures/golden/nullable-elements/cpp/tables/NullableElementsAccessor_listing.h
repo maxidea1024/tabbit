@@ -133,7 +133,7 @@ class ListingTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Listing.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Listing.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Listing.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -146,7 +146,7 @@ class ListingTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Listing.Name", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Listing.Name", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Listing.Name");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -159,7 +159,7 @@ class ListingTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Listing.Plain", tabbit::kKindVarArray, 0, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Listing.Plain", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Listing.Plain");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -172,7 +172,7 @@ class ListingTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Listing.Maybe", tabbit::kKindVarArray, 0, true, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Listing.Maybe", tabbit::kKindArray, true, {tabbit::kElementI32, tabbit::kElementVarint});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Listing.Maybe");
           for (std::size_t i = 0; i < row_count; ++i) {
@@ -193,7 +193,7 @@ class ListingTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Listing.Holes", tabbit::kKindVarArray, 0, false, {tabbit::kElementI32, tabbit::kElementVarint}, true);
+          tabbit::check_column(column, "Listing.Holes", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint}, true);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Listing.Holes");
@@ -212,7 +212,7 @@ class ListingTable {
           break;
         }
         case 6: {
-          tabbit::check_column(column, "Listing.Both", tabbit::kKindVarArray, 0, true, {tabbit::kElementI32, tabbit::kElementVarint}, true);
+          tabbit::check_column(column, "Listing.Both", tabbit::kKindArray, true, {tabbit::kElementI32, tabbit::kElementVarint}, true);
           presence = tabbit::read_presence(reader, column, row_count);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
@@ -239,7 +239,7 @@ class ListingTable {
           break;
         }
         case 7: {
-          tabbit::check_column(column, "Listing.Words", tabbit::kKindVarArray, 0, false, {tabbit::kElementString}, true);
+          tabbit::check_column(column, "Listing.Words", tabbit::kKindArray, false, {tabbit::kElementString}, true);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Listing.Words");

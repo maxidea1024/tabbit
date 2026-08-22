@@ -300,7 +300,7 @@ export class DropTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Drop.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Drop.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -309,7 +309,7 @@ export class DropTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Drop.Hp', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Drop.Hp', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Hp')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -318,7 +318,7 @@ export class DropTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Drop.Bonus', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Drop.Bonus', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Bonus')
           for (let i = 0; i < rowCount; ) {
@@ -337,7 +337,7 @@ export class DropTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Drop.Weight', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_F64, tabbit.ELEMENT_F32, tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Drop.Weight', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_F64, tabbit.ELEMENT_F32, tabbit.ELEMENT_I32])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Weight')
           for (let i = 0; i < rowCount; ++i) {
@@ -355,7 +355,7 @@ export class DropTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Drop.Ratio', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Drop.Ratio', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_F32])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Ratio')
           for (let i = 0; i < rowCount; ++i) {
@@ -373,7 +373,7 @@ export class DropTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'Drop.Count', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Drop.Count', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Count')
           for (let i = 0; i < rowCount; ++i) {
@@ -391,7 +391,7 @@ export class DropTable {
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'Drop.OpenAt', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_I64])
+          tabbit.checkColumn(column, 'Drop.OpenAt', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_I64])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.OpenAt')
           for (let i = 0; i < rowCount; ++i) {
@@ -409,7 +409,7 @@ export class DropTable {
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Drop.Cooldown', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_I64])
+          tabbit.checkColumn(column, 'Drop.Cooldown', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_I64])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Cooldown')
           for (let i = 0; i < rowCount; ++i) {
@@ -427,7 +427,7 @@ export class DropTable {
           }
           break
         case 9:
-          tabbit.checkColumn(column, 'Drop.Batch', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_UUID])
+          tabbit.checkColumn(column, 'Drop.Batch', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_UUID])
           presence = tabbit.readPresence(reader, column, rowCount)
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -444,7 +444,7 @@ export class DropTable {
           }
           break
         case 10:
-          tabbit.checkColumn(column, 'Drop.Grade', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Drop.Grade', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_VARINT])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Grade')
           for (let i = 0; i < rowCount; ) {
@@ -463,7 +463,7 @@ export class DropTable {
           }
           break
         case 11:
-          tabbit.checkColumn(column, 'Drop.Costs', tabbit.KIND_VAR_ARRAY, 0, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Drop.Costs', tabbit.KIND_ARRAY, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Costs')
           for (let i = 0; i < rowCount; ++i) {
@@ -485,7 +485,7 @@ export class DropTable {
           }
           break
         case 12:
-          tabbit.checkColumn(column, 'Drop.Label', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Drop.Label', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_STRING])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Label')
           for (let i = 0; i < rowCount; ) {
@@ -504,7 +504,7 @@ export class DropTable {
           }
           break
         case 13:
-          tabbit.checkColumn(column, 'Drop.Hidden', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_BOOL])
+          tabbit.checkColumn(column, 'Drop.Hidden', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_BOOL])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Drop.Hidden')
           for (let i = 0; i < rowCount; ++i) {

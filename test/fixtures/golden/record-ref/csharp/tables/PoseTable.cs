@@ -38,7 +38,6 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, a string key
             /// </summary>
             public StepEntry[] Step => _step;
-            internal const int Step_N = 2;
             #endregion
 
             /// <summary>One element of <see cref="Step"/>.</summary>
@@ -64,7 +63,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             #region Storage
             internal int _index;
-            internal StepEntry[] _step = new StepEntry[Step_N];
+            internal StepEntry[] _step = System.Array.Empty<StepEntry>();
             #endregion
 
             #region ToString
@@ -198,7 +197,7 @@ namespace Tabbit.Fixtures.RecordRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Pose.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Pose.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Pose.Index");
                         for (int i = 0; i < count; )
                         {
@@ -214,12 +213,15 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Pose.Step.ClipId", TcbTable.KindFixedArray, 2, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Pose.Step.ClipId", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Pose.Step.ClipId");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Step_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._step = new Record.StepEntry[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._step[j].ClipId_index = cursor.NextString();
                                 record._step[j].ClipId = default(ClipTable.Record); // will be assigned.
@@ -229,12 +231,22 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Pose.Step.Weight", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Pose.Step.Weight", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Pose.Step.Weight");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Step_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            if (record._step.Length != elementCount)
+                            {
+                                throw new TcbException(
+                                    "Pose.Step: the file gives this row "
+                                    + elementCount + " elements for one member of the record and "
+                                    + record._step.Length + " for another. Every member of a "
+                                    + "record carries the same element count, so the file is damaged.");
+                            }
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._step[j].Weight = cursor.NextI32();
                             }

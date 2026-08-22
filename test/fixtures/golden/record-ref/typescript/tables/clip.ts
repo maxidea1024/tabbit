@@ -187,7 +187,7 @@ export class ClipTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Clip.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Clip.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Clip.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -196,7 +196,7 @@ export class ClipTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Clip.Length', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Clip.Length', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Clip.Length')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -205,7 +205,7 @@ export class ClipTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Clip.Pad', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Clip.Pad', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Clip.Pad')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -214,7 +214,7 @@ export class ClipTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Clip.Pad2', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Clip.Pad2', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Clip.Pad2')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -223,7 +223,7 @@ export class ClipTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Clip.Pad3', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Clip.Pad3', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Clip.Pad3')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)

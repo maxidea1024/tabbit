@@ -1,42 +1,42 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "08a1a2ade229c07359faf5f9a17bc862",
-  "TotalSize": 1100,
+  "MasterHash": "dc0eedc03a9e7cc6be66670a306fac93",
+  "TotalSize": 1074,
   "Items": [
     {
       "Name": "TestFieldTypes.tcb",
-      "Size": 297,
-      "Hash": "3ed6807aeaee4052a59d45bba7d669e6",
+      "Size": 287,
+      "Hash": "1bf5b91f637c5307ce3d23cdb3450b8e",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "ItemCategory.tcb",
-      "Size": 125,
-      "Hash": "5e842392b82342e36138383d27b6456e",
+      "Size": 122,
+      "Hash": "bb52a9e7432cb5db3f690244cd8b699e",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Item.tcb",
-      "Size": 238,
-      "Hash": "b13ec5bbe1889c019b098114b037c9a3",
+      "Size": 232,
+      "Hash": "e868c592178f5a6a48cf7d6c4c240355",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Localization.tcb",
-      "Size": 162,
-      "Hash": "95af5b17d44652b3cfc9570d8bfb986f",
+      "Size": 161,
+      "Hash": "790e968248f1bfc4bb3c4cf5eb4f3a56",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "ArrayTypes.tcb",
-      "Size": 182,
-      "Hash": "8eb57325e6c621d474825f28bf2bddf0",
+      "Size": 179,
+      "Hash": "35257d1fa7d1861854095cd2c3343141",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "ClientStrings.tcb",
-      "Size": 96,
-      "Hash": "e5948714400af5b354c1f2b8a895af85",
+      "Size": 93,
+      "Hash": "0add172856ed942be4508307f567e932",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

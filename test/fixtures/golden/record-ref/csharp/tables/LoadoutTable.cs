@@ -38,7 +38,6 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, the reference
             /// </summary>
             public SlotEntry[] Slot => _slot;
-            internal const int Slot_N = 2;
             #endregion
 
             /// <summary>One element of <see cref="Slot"/>.</summary>
@@ -69,7 +68,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             #region Storage
             internal int _index;
-            internal SlotEntry[] _slot = new SlotEntry[Slot_N];
+            internal SlotEntry[] _slot = System.Array.Empty<SlotEntry>();
             #endregion
 
             #region ToString
@@ -203,7 +202,7 @@ namespace Tabbit.Fixtures.RecordRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Loadout.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loadout.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Index");
                         for (int i = 0; i < count; )
                         {
@@ -219,12 +218,15 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Loadout.Slot.ItemId", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Loadout.Slot.ItemId", TcbTable.KindArray, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Slot.ItemId");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slot_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._slot = new Record.SlotEntry[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot[j].ItemId_index = cursor.NextI32();
                                 record._slot[j].ItemId = default(ItemTable.Record); // will be assigned.
@@ -234,12 +236,22 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Loadout.Slot.SwapId", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Loadout.Slot.SwapId", TcbTable.KindArray, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Slot.SwapId");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slot_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            if (record._slot.Length != elementCount)
+                            {
+                                throw new TcbException(
+                                    "Loadout.Slot: the file gives this row "
+                                    + elementCount + " elements for one member of the record and "
+                                    + record._slot.Length + " for another. Every member of a "
+                                    + "record carries the same element count, so the file is damaged.");
+                            }
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot[j].SwapId_index = cursor.NextI32();
                                 record._slot[j].SwapId = default(ItemTable.Record); // will be assigned.
@@ -249,12 +261,22 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Loadout.Slot.Count", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loadout.Slot.Count", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Slot.Count");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slot_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            if (record._slot.Length != elementCount)
+                            {
+                                throw new TcbException(
+                                    "Loadout.Slot: the file gives this row "
+                                    + elementCount + " elements for one member of the record and "
+                                    + record._slot.Length + " for another. Every member of a "
+                                    + "record carries the same element count, so the file is damaged.");
+                            }
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot[j].Count = cursor.NextI32();
                             }

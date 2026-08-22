@@ -209,7 +209,7 @@ export class SlottingTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Slotting.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Slotting.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Slotting.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -218,7 +218,7 @@ export class SlottingTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Slotting.Capacity', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Slotting.Capacity', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Slotting.Capacity')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -227,7 +227,7 @@ export class SlottingTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Slotting.Serial', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Slotting.Serial', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Slotting.Serial')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]

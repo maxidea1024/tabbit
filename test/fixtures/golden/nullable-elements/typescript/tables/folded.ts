@@ -41,7 +41,7 @@ export class FoldedRecord {
   }
 
   public _index: number = 0
-  public _tagArray: string[] = []
+  public _tagArray: string = ''
   public _tagArrayHasValueAt: boolean[] | null = null
 
   /** Populate field values. */
@@ -176,7 +176,7 @@ export class FoldedTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Folded.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Folded.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Folded.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -185,15 +185,16 @@ export class FoldedTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Folded.Tag_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_STRING], true)
+          tabbit.checkColumn(column, 'Folded.Tag_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING], true)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Folded.Tag_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
+            const elementCount = cursor.nextLength()
             record._tagArray = []
             record._tagArrayHasValueAt = []
-            for (let j = 0; j < column.count; ++j) {
+            for (let j = 0; j < elementCount; ++j) {
               record._tagArray.push(cursor.nextString())
               record._tagArrayHasValueAt.push(
                 tabbit.isPresent(elementPresence, elementAt++))

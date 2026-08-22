@@ -291,7 +291,7 @@ export class HolderTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Holder.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Holder.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Holder.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -300,7 +300,7 @@ export class HolderTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Holder.Pick', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Holder.Pick', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Holder.Pick')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -309,7 +309,7 @@ export class HolderTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Holder.Wide', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Holder.Wide', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Holder.Wide')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -318,7 +318,7 @@ export class HolderTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Holder.Only', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Holder.Only', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Holder.Only')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -327,7 +327,7 @@ export class HolderTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Holder.Maybe', tabbit.KIND_SCALAR, 1, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Holder.Maybe', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Holder.Maybe')
           for (let i = 0; i < rowCount; ) {

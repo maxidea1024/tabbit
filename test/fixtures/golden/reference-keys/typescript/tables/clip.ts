@@ -195,7 +195,7 @@ export class ClipTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Clip.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Clip.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Clip.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -204,7 +204,7 @@ export class ClipTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Clip.Anim', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Clip.Anim', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Clip.Anim')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -213,7 +213,7 @@ export class ClipTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Clip.Entry', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Clip.Entry', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Clip.Entry')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -221,7 +221,7 @@ export class ClipTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Clip.Cover', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_UUID])
+          tabbit.checkColumn(column, 'Clip.Cover', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_UUID])
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._cover_Art_index = reader.readUuid()

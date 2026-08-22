@@ -111,7 +111,7 @@ class BadgeTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Badge.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Badge.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Badge.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -124,7 +124,7 @@ class BadgeTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Badge.Mark.ClipId", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Badge.Mark.ClipId", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Badge.Mark.ClipId");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -137,7 +137,7 @@ class BadgeTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Badge.Mark.SealId", tabbit::kKindScalar, 1, false, {tabbit::kElementUuid});
+          tabbit::check_column(column, "Badge.Mark.SealId", tabbit::kKindScalar, false, {tabbit::kElementUuid});
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             reader.read(record.mark.seal_id_index);
@@ -145,7 +145,7 @@ class BadgeTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Badge.Mark.Rank", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Badge.Mark.Rank", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Badge.Mark.Rank");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -158,7 +158,7 @@ class BadgeTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Badge.Pad", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Badge.Pad", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Badge.Pad");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {

@@ -183,7 +183,7 @@ namespace Tabbit.Fixtures.Core.Server
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "ServerTuning.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ServerTuning.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ServerTuning.Index");
                         for (int i = 0; i < count; )
                         {
@@ -199,7 +199,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "ServerTuning.Key", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "ServerTuning.Key", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "ServerTuning.Key");
                         for (int i = 0; i < count; )
                         {
@@ -215,7 +215,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "ServerTuning.Amount", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ServerTuning.Amount", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ServerTuning.Amount");
                         for (int i = 0; i < count; )
                         {

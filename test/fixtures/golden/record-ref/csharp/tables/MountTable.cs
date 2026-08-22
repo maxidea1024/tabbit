@@ -38,7 +38,6 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, two levels in
             /// </summary>
             public RigEntry[] Rig => _rig;
-            internal const int Rig_N = 2;
             #endregion
 
             /// <summary>A record inside <see cref="Rig"/>.</summary>
@@ -88,7 +87,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             #region Storage
             internal int _index;
-            internal RigEntry[] _rig = NewRigEntryArray(Rig_N);
+            internal RigEntry[] _rig = System.Array.Empty<RigEntry>();
             #endregion
 
             #region ToString
@@ -222,7 +221,7 @@ namespace Tabbit.Fixtures.RecordRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Mount.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Mount.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Mount.Index");
                         for (int i = 0; i < count; )
                         {
@@ -238,12 +237,15 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Mount.Rig.Core.ItemId", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Mount.Rig.Core.ItemId", TcbTable.KindArray, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Mount.Rig.Core.ItemId");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Rig_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._rig = Record.NewRigEntryArray(elementCount);
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._rig[j].Core.ItemId_index = cursor.NextI32();
                                 record._rig[j].Core.ItemId = default(ItemTable.Record); // will be assigned.
@@ -253,12 +255,22 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Mount.Rig.Core.Count", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Mount.Rig.Core.Count", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Mount.Rig.Core.Count");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Rig_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            if (record._rig.Length != elementCount)
+                            {
+                                throw new TcbException(
+                                    "Mount.Rig: the file gives this row "
+                                    + elementCount + " elements for one member of the record and "
+                                    + record._rig.Length + " for another. Every member of a "
+                                    + "record carries the same element count, so the file is damaged.");
+                            }
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._rig[j].Core.Count = cursor.NextI32();
                             }

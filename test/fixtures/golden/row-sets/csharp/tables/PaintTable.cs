@@ -192,7 +192,7 @@ namespace Tabbit.Fixtures.RowSets
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Paint.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Paint.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Paint.Index");
                         for (int i = 0; i < count; )
                         {
@@ -208,7 +208,7 @@ namespace Tabbit.Fixtures.RowSets
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Paint.ColourId", TcbTable.KindScalar, 1, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Paint.ColourId", TcbTable.KindScalar, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Paint.ColourId");
                         for (int i = 0; i < count; )
                         {
@@ -226,7 +226,7 @@ namespace Tabbit.Fixtures.RowSets
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Paint.BrushId", TcbTable.KindScalar, 1, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Paint.BrushId", TcbTable.KindScalar, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Paint.BrushId");
                         for (int i = 0; i < count; )
                         {

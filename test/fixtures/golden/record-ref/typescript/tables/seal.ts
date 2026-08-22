@@ -187,14 +187,14 @@ export class SealTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Seal.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_UUID])
+          tabbit.checkColumn(column, 'Seal.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_UUID])
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._index = reader.readUuid()
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Seal.Label', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Seal.Label', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Seal.Label')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -203,7 +203,7 @@ export class SealTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Seal.Pad', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Seal.Pad', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Seal.Pad')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -212,7 +212,7 @@ export class SealTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Seal.Pad2', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Seal.Pad2', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Seal.Pad2')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -221,7 +221,7 @@ export class SealTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Seal.Pad3', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Seal.Pad3', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Seal.Pad3')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)

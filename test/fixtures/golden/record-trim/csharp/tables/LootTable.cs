@@ -248,7 +248,7 @@ namespace Tabbit.Fixtures.RecordTrim
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Loot.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loot.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loot.Index");
                         for (int i = 0; i < count; )
                         {
@@ -264,7 +264,7 @@ namespace Tabbit.Fixtures.RecordTrim
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Loot.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Loot.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Loot.Name");
                         for (int i = 0; i < count; )
                         {
@@ -280,7 +280,7 @@ namespace Tabbit.Fixtures.RecordTrim
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Loot.Slot.Id", TcbTable.KindVarArray, 0, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loot.Slot.Id", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loot.Slot.Id");
                         for (int i = 0; i < count; i++)
                         {
@@ -296,7 +296,7 @@ namespace Tabbit.Fixtures.RecordTrim
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Loot.Slot.Count", TcbTable.KindVarArray, 0, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loot.Slot.Count", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loot.Slot.Count");
                         for (int i = 0; i < count; i++)
                         {
@@ -319,7 +319,7 @@ namespace Tabbit.Fixtures.RecordTrim
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Loot.Slot.Label", TcbTable.KindVarArray, 0, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Loot.Slot.Label", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Loot.Slot.Label");
                         for (int i = 0; i < count; i++)
                         {
@@ -342,7 +342,7 @@ namespace Tabbit.Fixtures.RecordTrim
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "Loot.Pos.X", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loot.Pos.X", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loot.Pos.X");
                         for (int i = 0; i < count; )
                         {
@@ -358,7 +358,7 @@ namespace Tabbit.Fixtures.RecordTrim
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Loot.Pos.Y", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loot.Pos.Y", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loot.Pos.Y");
                         for (int i = 0; i < count; )
                         {
@@ -374,7 +374,7 @@ namespace Tabbit.Fixtures.RecordTrim
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "Loot.Tag_array", TcbTable.KindVarArray, 0, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Loot.Tag_array", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Loot.Tag_array");
                         for (int i = 0; i < count; i++)
                         {

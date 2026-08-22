@@ -180,14 +180,14 @@ export class ArtTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Art.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_UUID])
+          tabbit.checkColumn(column, 'Art.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_UUID])
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._index = reader.readUuid()
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Art.Path', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Art.Path', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Art.Path')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -196,7 +196,7 @@ export class ArtTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Art.Pad1', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Art.Pad1', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Art.Pad1')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -205,7 +205,7 @@ export class ArtTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Art.Pad2', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Art.Pad2', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Art.Pad2')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)

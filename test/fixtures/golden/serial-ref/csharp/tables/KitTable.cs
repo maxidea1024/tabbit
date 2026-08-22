@@ -192,7 +192,7 @@ namespace Tabbit.Fixtures.SerialRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Kit.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Kit.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Kit.Index");
                         for (int i = 0; i < count; )
                         {
@@ -208,15 +208,17 @@ namespace Tabbit.Fixtures.SerialRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Kit.Slot_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Kit.Slot_array", TcbTable.KindArray, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Kit.Slot_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._slotArray = new PieceTable.Record[column.Count];
-                            record._slotArray_Piece_index = new int[column.Count];
-                            record._slotArray_F = new bool[column.Count];
-                            for (int j = 0; j < column.Count; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._slotArray = new PieceTable.Record[elementCount];
+                            record._slotArray_Piece_index = new int[elementCount];
+                            record._slotArray_F = new bool[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slotArray_Piece_index[j] = cursor.NextI32();
                                 record._slotArray[j] = default(PieceTable.Record); // will be assigned.
@@ -226,15 +228,17 @@ namespace Tabbit.Fixtures.SerialRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Kit.Tier_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Kit.Tier_array", TcbTable.KindArray, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Kit.Tier_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._tierArray = new int[column.Count];
-                            record._tierArray_Piece_index = new int[column.Count];
-                            record._tierArray_F = new bool[column.Count];
-                            for (int j = 0; j < column.Count; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._tierArray = new int[elementCount];
+                            record._tierArray_Piece_index = new int[elementCount];
+                            record._tierArray_F = new bool[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._tierArray_Piece_index[j] = cursor.NextI32();
                                 record._tierArray[j] = default(int); // will be assigned.

@@ -184,7 +184,7 @@ export class PaintTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Paint.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Paint.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Paint.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -193,7 +193,7 @@ export class PaintTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Paint.ColourId', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Paint.ColourId', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Paint.ColourId')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -202,7 +202,7 @@ export class PaintTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Paint.BrushId', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Paint.BrushId', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Paint.BrushId')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)

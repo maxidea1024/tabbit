@@ -1,48 +1,48 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "3fb9cd486f1afc4ee5be3443f4bbf68d",
-  "TotalSize": 589,
+  "MasterHash": "09bff5b47f2535dafc8114f9a2e07b90",
+  "TotalSize": 564,
   "Items": [
     {
       "Name": "Colour.tcb",
-      "Size": 82,
-      "Hash": "5715fb00107c914966d41856862726e4",
+      "Size": 79,
+      "Hash": "c4c9918f2f5490ef6aaf97a0dcf66e22",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Colour_alt.tcb",
-      "Size": 85,
-      "Hash": "84e08499754871abe9618cbd2057f492",
+      "Size": 82,
+      "Hash": "6f3209f6408809e7c0b89cd5766965ae",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Brush.tcb",
-      "Size": 74,
-      "Hash": "225e4999804c4a208e9f416e0b9682c3",
+      "Size": 71,
+      "Hash": "91f93c411c5129d77dd375c6c9c24ed0",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Narrow.tcb",
-      "Size": 102,
-      "Hash": "fbb85905872b9f069991375c155259d8",
+      "Size": 97,
+      "Hash": "3a386b6b5ef56989e2d06cacfedf7567",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Narrow_alt.tcb",
-      "Size": 98,
-      "Hash": "f98addfdc97a8351b326a1201acc7793",
+      "Size": 93,
+      "Hash": "9759544e5914b1c6832018eefa055d60",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Paint.tcb",
-      "Size": 74,
-      "Hash": "2801ee808f8d2cc1612d10d9fb012bb1",
+      "Size": 71,
+      "Hash": "9659be2bb6ccc1053ea00d7a06ba2525",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Paint_alt.tcb",
-      "Size": 74,
-      "Hash": "16849727da133e6161e9c4ac4ffd08aa",
+      "Size": 71,
+      "Hash": "e0c249d84c56de4ab07d8ff667ac59d0",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

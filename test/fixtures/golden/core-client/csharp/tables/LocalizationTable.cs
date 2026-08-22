@@ -190,7 +190,7 @@ namespace Tabbit.Fixtures.Core.Client
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Localization.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Localization.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Localization.Index");
                         for (int i = 0; i < count; )
                         {
@@ -206,7 +206,7 @@ namespace Tabbit.Fixtures.Core.Client
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Localization.Key", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Localization.Key", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Localization.Key");
                         for (int i = 0; i < count; )
                         {
@@ -222,13 +222,15 @@ namespace Tabbit.Fixtures.Core.Client
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Localization.TextEn_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Localization.TextEn_array", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Localization.TextEn_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._textEnArray = new string[column.Count];
-                            for (int j = 0; j < column.Count; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._textEnArray = new string[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._textEnArray[j] = cursor.NextString();
                             }
@@ -236,13 +238,15 @@ namespace Tabbit.Fixtures.Core.Client
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Localization.TextKo_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Localization.TextKo_array", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Localization.TextKo_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._textKoArray = new string[column.Count];
-                            for (int j = 0; j < column.Count; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._textKoArray = new string[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._textKoArray[j] = cursor.NextString();
                             }

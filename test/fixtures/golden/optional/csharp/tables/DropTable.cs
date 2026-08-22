@@ -287,7 +287,7 @@ namespace Tabbit.Fixtures.Optional
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Drop.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Drop.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Index");
                         for (int i = 0; i < count; )
                         {
@@ -303,7 +303,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Drop.Hp", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Drop.Hp", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Hp");
                         for (int i = 0; i < count; )
                         {
@@ -319,7 +319,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Drop.Bonus", TcbTable.KindScalar, 1, true, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Drop.Bonus", TcbTable.KindScalar, true, TcbTable.ElementI32, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Bonus");
                         for (int i = 0; i < count; )
@@ -346,7 +346,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Drop.Weight", TcbTable.KindScalar, 1, true, TcbTable.ElementF64, TcbTable.ElementF32, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Drop.Weight", TcbTable.KindScalar, true, TcbTable.ElementF64, TcbTable.ElementF32, TcbTable.ElementI32);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Weight");
                         for (int i = 0; i < count; i++)
@@ -367,7 +367,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Drop.Ratio", TcbTable.KindScalar, 1, true, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Drop.Ratio", TcbTable.KindScalar, true, TcbTable.ElementF32);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Ratio");
                         for (int i = 0; i < count; i++)
@@ -388,7 +388,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "Drop.Count", TcbTable.KindScalar, 1, true, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Drop.Count", TcbTable.KindScalar, true, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Count");
                         for (int i = 0; i < count; i++)
@@ -409,7 +409,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Drop.OpenAt", TcbTable.KindScalar, 1, true, TcbTable.ElementI64);
+                        TcbTable.CheckColumn(column, "Drop.OpenAt", TcbTable.KindScalar, true, TcbTable.ElementI64);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.OpenAt");
                         for (int i = 0; i < count; i++)
@@ -430,7 +430,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "Drop.Cooldown", TcbTable.KindScalar, 1, true, TcbTable.ElementI64);
+                        TcbTable.CheckColumn(column, "Drop.Cooldown", TcbTable.KindScalar, true, TcbTable.ElementI64);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Cooldown");
                         for (int i = 0; i < count; i++)
@@ -451,7 +451,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 9:
-                        TcbTable.CheckColumn(column, "Drop.Batch", TcbTable.KindScalar, 1, true, TcbTable.ElementUuid);
+                        TcbTable.CheckColumn(column, "Drop.Batch", TcbTable.KindScalar, true, TcbTable.ElementUuid);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         for (int i = 0; i < count; i++)
                         {
@@ -471,7 +471,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 10:
-                        TcbTable.CheckColumn(column, "Drop.Grade", TcbTable.KindScalar, 1, true, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Drop.Grade", TcbTable.KindScalar, true, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Grade");
                         for (int i = 0; i < count; )
@@ -498,7 +498,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 11:
-                        TcbTable.CheckColumn(column, "Drop.Costs", TcbTable.KindVarArray, 0, true, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Drop.Costs", TcbTable.KindArray, true, TcbTable.ElementI32, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Costs");
                         for (int i = 0; i < count; i++)
@@ -525,7 +525,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 12:
-                        TcbTable.CheckColumn(column, "Drop.Label", TcbTable.KindScalar, 1, true, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Drop.Label", TcbTable.KindScalar, true, TcbTable.ElementString);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Label");
                         for (int i = 0; i < count; )
@@ -552,7 +552,7 @@ namespace Tabbit.Fixtures.Optional
                         break;
 
                     case 13:
-                        TcbTable.CheckColumn(column, "Drop.Hidden", TcbTable.KindScalar, 1, true, TcbTable.ElementBool);
+                        TcbTable.CheckColumn(column, "Drop.Hidden", TcbTable.KindScalar, true, TcbTable.ElementBool);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Drop.Hidden");
                         for (int i = 0; i < count; i++)

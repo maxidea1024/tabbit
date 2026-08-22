@@ -187,7 +187,7 @@ export class FlagsTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Flags.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Flags.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Flags.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -196,7 +196,7 @@ export class FlagsTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Flags.Mask', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Flags.Mask', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Flags.Mask')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -204,7 +204,7 @@ export class FlagsTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Flags.Same', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Flags.Same', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Flags.Same')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -212,7 +212,7 @@ export class FlagsTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Flags.Set', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Flags.Set', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I64, tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Flags.Set')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -224,7 +224,7 @@ export class FlagsTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Flags.Label', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Flags.Label', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Flags.Label')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)

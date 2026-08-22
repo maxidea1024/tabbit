@@ -141,7 +141,7 @@ class DropTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Drop.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Drop.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -154,7 +154,7 @@ class DropTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Drop.Hp", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Drop.Hp", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Hp");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -167,7 +167,7 @@ class DropTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Drop.Bonus", tabbit::kKindScalar, 1, true, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Drop.Bonus", tabbit::kKindScalar, true, {tabbit::kElementI32, tabbit::kElementVarint});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Bonus");
           std::int32_t value{};
@@ -188,7 +188,7 @@ class DropTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Drop.Weight", tabbit::kKindScalar, 1, true, {tabbit::kElementF64, tabbit::kElementF32, tabbit::kElementI32});
+          tabbit::check_column(column, "Drop.Weight", tabbit::kKindScalar, true, {tabbit::kElementF64, tabbit::kElementF32, tabbit::kElementI32});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Weight");
           for (std::size_t i = 0; i < row_count; ++i) {
@@ -205,7 +205,7 @@ class DropTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Drop.Ratio", tabbit::kKindScalar, 1, true, {tabbit::kElementF32});
+          tabbit::check_column(column, "Drop.Ratio", tabbit::kKindScalar, true, {tabbit::kElementF32});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Ratio");
           for (std::size_t i = 0; i < row_count; ++i) {
@@ -222,7 +222,7 @@ class DropTable {
           break;
         }
         case 6: {
-          tabbit::check_column(column, "Drop.Count", tabbit::kKindScalar, 1, true, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Drop.Count", tabbit::kKindScalar, true, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Count");
           for (std::size_t i = 0; i < row_count; ++i) {
@@ -239,7 +239,7 @@ class DropTable {
           break;
         }
         case 7: {
-          tabbit::check_column(column, "Drop.OpenAt", tabbit::kKindScalar, 1, true, {tabbit::kElementI64});
+          tabbit::check_column(column, "Drop.OpenAt", tabbit::kKindScalar, true, {tabbit::kElementI64});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.OpenAt");
           for (std::size_t i = 0; i < row_count; ++i) {
@@ -256,7 +256,7 @@ class DropTable {
           break;
         }
         case 8: {
-          tabbit::check_column(column, "Drop.Cooldown", tabbit::kKindScalar, 1, true, {tabbit::kElementI64});
+          tabbit::check_column(column, "Drop.Cooldown", tabbit::kKindScalar, true, {tabbit::kElementI64});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Cooldown");
           for (std::size_t i = 0; i < row_count; ++i) {
@@ -273,7 +273,7 @@ class DropTable {
           break;
         }
         case 9: {
-          tabbit::check_column(column, "Drop.Batch", tabbit::kKindScalar, 1, true, {tabbit::kElementUuid});
+          tabbit::check_column(column, "Drop.Batch", tabbit::kKindScalar, true, {tabbit::kElementUuid});
           presence = tabbit::read_presence(reader, column, row_count);
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -289,7 +289,7 @@ class DropTable {
           break;
         }
         case 10: {
-          tabbit::check_column(column, "Drop.Grade", tabbit::kKindScalar, 1, true, {tabbit::kElementVarint});
+          tabbit::check_column(column, "Drop.Grade", tabbit::kKindScalar, true, {tabbit::kElementVarint});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Grade");
           std::int32_t value{};
@@ -310,7 +310,7 @@ class DropTable {
           break;
         }
         case 11: {
-          tabbit::check_column(column, "Drop.Costs", tabbit::kKindVarArray, 0, true, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Drop.Costs", tabbit::kKindArray, true, {tabbit::kElementI32, tabbit::kElementVarint});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Costs");
           for (std::size_t i = 0; i < row_count; ++i) {
@@ -331,7 +331,7 @@ class DropTable {
           break;
         }
         case 12: {
-          tabbit::check_column(column, "Drop.Label", tabbit::kKindScalar, 1, true, {tabbit::kElementString});
+          tabbit::check_column(column, "Drop.Label", tabbit::kKindScalar, true, {tabbit::kElementString});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Label");
           std::string value{};
@@ -352,7 +352,7 @@ class DropTable {
           break;
         }
         case 13: {
-          tabbit::check_column(column, "Drop.Hidden", tabbit::kKindScalar, 1, true, {tabbit::kElementBool});
+          tabbit::check_column(column, "Drop.Hidden", tabbit::kKindScalar, true, {tabbit::kElementBool});
           presence = tabbit::read_presence(reader, column, row_count);
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Drop.Hidden");
           for (std::size_t i = 0; i < row_count; ++i) {

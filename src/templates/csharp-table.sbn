@@ -611,6 +611,23 @@
 {{~ end ~}}
                             }
                         }
+{{~ else if column.read_kind == 'record_member_var' ~}}
+{{~## One record whose members are arrays: the member is the array, so it is sized here at
+      the length this row states rather than the record being re-created. ##~}}
+                        for (int i = 0; i < count; i++)
+                        {
+                            var record = records[i];
+                            int elementCount;
+                            {{ column.length_read }}
+                            record.{{ column.field_name }}{{ column.member_access }} =
+                                new {{ column.field_type }}[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
+                            {
+{{~ for line in column.element_read ~}}
+                                {{ line }}
+{{~ end ~}}
+                            }
+                        }
 {{~ else if column.read_kind == 'array_of_arrays_member' ~}}
 {{~## One inner array of an array of arrays. The outer index is fixed for this column - it is
       which column this is - and the loop runs over the inner length, which this row states

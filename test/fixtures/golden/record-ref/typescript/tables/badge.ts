@@ -198,7 +198,7 @@ export class BadgeTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Badge.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Badge.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Badge.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -207,7 +207,7 @@ export class BadgeTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Badge.Mark.ClipId', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Badge.Mark.ClipId', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Badge.Mark.ClipId')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -216,14 +216,14 @@ export class BadgeTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Badge.Mark.SealId', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_UUID])
+          tabbit.checkColumn(column, 'Badge.Mark.SealId', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_UUID])
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._mark.sealId_index = reader.readUuid()
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Badge.Mark.Rank', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Badge.Mark.Rank', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Badge.Mark.Rank')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -232,7 +232,7 @@ export class BadgeTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Badge.Pad', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Badge.Pad', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Badge.Pad')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)

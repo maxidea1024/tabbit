@@ -111,7 +111,7 @@ class DeepTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Deep.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Deep.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Deep.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -124,37 +124,50 @@ class DeepTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Deep.Star.Id", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Deep.Star.Id", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Deep.Star.Id");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.star.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.star[j].id = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            record.star.assign(static_cast<std::size_t>(element_count), DeepRecord_star_entry());
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.star[static_cast<std::size_t>(j)].id = cursor.next_i32();
             }
           }
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Deep.Star.Position.X", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Deep.Star.Position.X", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Deep.Star.Position.X");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.star.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.star[j].position.x = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            if (record.star.size() != static_cast<std::size_t>(element_count)) {
+              throw tabbit::TcbError(
+                  "Deep.star: the file gives this row a different "
+                  "element count for one member of the record than for another; every member of a "
+                  "record carries the same count, so the file is damaged");
+            }
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.star[static_cast<std::size_t>(j)].position.x = cursor.next_i32();
             }
           }
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Deep.Star.Position.Y", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Deep.Star.Position.Y", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Deep.Star.Position.Y");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.star.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.star[j].position.y = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            if (record.star.size() != static_cast<std::size_t>(element_count)) {
+              throw tabbit::TcbError(
+                  "Deep.star: the file gives this row a different "
+                  "element count for one member of the record than for another; every member of a "
+                  "record carries the same count, so the file is damaged");
+            }
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.star[static_cast<std::size_t>(j)].position.y = cursor.next_i32();
             }
           }
           break;

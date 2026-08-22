@@ -238,7 +238,7 @@ namespace Tabbit.Fixtures.NullableElements
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Listing.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Listing.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Listing.Index");
                         for (int i = 0; i < count; )
                         {
@@ -254,7 +254,7 @@ namespace Tabbit.Fixtures.NullableElements
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Listing.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Listing.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Listing.Name");
                         for (int i = 0; i < count; )
                         {
@@ -270,7 +270,7 @@ namespace Tabbit.Fixtures.NullableElements
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Listing.Plain", TcbTable.KindVarArray, 0, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Listing.Plain", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Listing.Plain");
                         for (int i = 0; i < count; i++)
                         {
@@ -286,7 +286,7 @@ namespace Tabbit.Fixtures.NullableElements
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Listing.Maybe", TcbTable.KindVarArray, 0, true, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Listing.Maybe", TcbTable.KindArray, true, TcbTable.ElementI32, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Listing.Maybe");
                         for (int i = 0; i < count; i++)
@@ -313,7 +313,7 @@ namespace Tabbit.Fixtures.NullableElements
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Listing.Holes", TcbTable.KindVarArray, 0, false, TcbTable.ElementI32, TcbTable.ElementVarint, elementNullable: true);
+                        TcbTable.CheckColumn(column, "Listing.Holes", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint, elementNullable: true);
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
                         cursor = new TcbColumnCursor(reader, column, count, "Listing.Holes");
@@ -334,7 +334,7 @@ namespace Tabbit.Fixtures.NullableElements
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "Listing.Both", TcbTable.KindVarArray, 0, true, TcbTable.ElementI32, TcbTable.ElementVarint, elementNullable: true);
+                        TcbTable.CheckColumn(column, "Listing.Both", TcbTable.KindArray, true, TcbTable.ElementI32, TcbTable.ElementVarint, elementNullable: true);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
@@ -366,7 +366,7 @@ namespace Tabbit.Fixtures.NullableElements
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Listing.Words", TcbTable.KindVarArray, 0, false, TcbTable.ElementString, elementNullable: true);
+                        TcbTable.CheckColumn(column, "Listing.Words", TcbTable.KindArray, false, TcbTable.ElementString, elementNullable: true);
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
                         cursor = new TcbColumnCursor(reader, column, count, "Listing.Words");

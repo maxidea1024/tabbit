@@ -100,7 +100,7 @@ class ItemCategoryTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "ItemCategory.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "ItemCategory.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ItemCategory.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -113,7 +113,7 @@ class ItemCategoryTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "ItemCategory.Name", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "ItemCategory.Name", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ItemCategory.Name");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -126,7 +126,7 @@ class ItemCategoryTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "ItemCategory.Description", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "ItemCategory.Description", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ItemCategory.Description");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {

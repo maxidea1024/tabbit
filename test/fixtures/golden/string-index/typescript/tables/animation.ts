@@ -206,7 +206,7 @@ export class AnimationTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Animation.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Animation.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Animation.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -215,7 +215,7 @@ export class AnimationTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Animation.Blend', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Animation.Blend', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Animation.Blend')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -223,7 +223,7 @@ export class AnimationTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Animation.Slot', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Animation.Slot', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Animation.Slot')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)

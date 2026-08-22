@@ -216,6 +216,13 @@ internal sealed class CsTableView
 /// </remarks>
 internal sealed class CsColumnView
 {
+    /// <summary>The dotted path from the group to this member, empty for a plain column.</summary>
+    /// <remarks>
+    /// What the allocation of a member-owned array is written against - the read of a record
+    /// whose members are arrays sizes `record._pos.X` rather than `record._pos`.
+    /// </remarks>
+    public string MemberAccess { get; init; } = "";
+
     /// <summary>The column's wire tag, which is how the read matches it in a file.</summary>
     public required int Tag { get; set; }
 

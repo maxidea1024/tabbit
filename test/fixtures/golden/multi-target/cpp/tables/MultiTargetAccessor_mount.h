@@ -99,7 +99,7 @@ class MountTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Mount.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Mount.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Mount.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -112,7 +112,7 @@ class MountTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Mount.Name", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Mount.Name", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Mount.Name");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -125,7 +125,7 @@ class MountTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Mount.Note", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Mount.Note", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Mount.Note");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {

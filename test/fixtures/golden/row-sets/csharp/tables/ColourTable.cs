@@ -183,7 +183,7 @@ namespace Tabbit.Fixtures.RowSets
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Colour.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Colour.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Colour.Index");
                         for (int i = 0; i < count; )
                         {
@@ -199,7 +199,7 @@ namespace Tabbit.Fixtures.RowSets
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Colour.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Colour.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Colour.Name");
                         for (int i = 0; i < count; )
                         {
@@ -215,7 +215,7 @@ namespace Tabbit.Fixtures.RowSets
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Colour.Ordinal", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Colour.Ordinal", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Colour.Ordinal");
                         for (int i = 0; i < count; )
                         {

@@ -1,24 +1,24 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "2496ce05cb67ef39f2733ec55cdf44fe",
-  "TotalSize": 387,
+  "MasterHash": "6f4498455d54b6eba51cf6bcb48dc524",
+  "TotalSize": 378,
   "Items": [
     {
       "Name": "Asset.tcb",
-      "Size": 159,
-      "Hash": "20bd6de153a07490e1330030748bd480",
+      "Size": 156,
+      "Hash": "48cec4e45af6e4460428d306c0c60f2d",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Ledger.tcb",
-      "Size": 143,
-      "Hash": "e6d53058bfc80009e201fa3bd917eb66",
+      "Size": 140,
+      "Hash": "e6448131903989658c8661dd49b221c0",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "Slotting.tcb",
-      "Size": 85,
-      "Hash": "6e040919fdd450ad21a44fe68485c1d9",
+      "Size": 82,
+      "Hash": "7757c5a56a0c3ec90287d023b28ae0ed",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

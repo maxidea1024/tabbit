@@ -128,7 +128,7 @@ class LedgerTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Ledger.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Ledger.Index", tabbit::kKindScalar, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Ledger.Index");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -137,7 +137,7 @@ class LedgerTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Ledger.Amount", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Ledger.Amount", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Ledger.Amount");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -150,7 +150,7 @@ class LedgerTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Ledger.Batch", tabbit::kKindScalar, 1, false, {tabbit::kElementUuid});
+          tabbit::check_column(column, "Ledger.Batch", tabbit::kKindScalar, false, {tabbit::kElementUuid});
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             reader.read(record.batch);

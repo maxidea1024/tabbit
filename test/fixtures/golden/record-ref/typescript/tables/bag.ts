@@ -186,7 +186,7 @@ export class BagTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Bag.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Bag.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Bag.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -195,20 +195,24 @@ export class BagTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Bag.Slots.ItemId', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Bag.Slots.ItemId', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Bag.Slots.ItemId')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            record._slots.itemId_index = []
+            for (let j = 0; j < elementCount; ++j)
               record._slots.itemId_index[j] = cursor.nextI32()
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Bag.Slots.Count', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Bag.Slots.Count', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Bag.Slots.Count')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            record._slots.count = []
+            for (let j = 0; j < elementCount; ++j)
               record._slots.count[j] = cursor.nextI32()
           }
           break

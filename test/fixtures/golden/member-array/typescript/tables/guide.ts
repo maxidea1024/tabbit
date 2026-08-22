@@ -82,7 +82,7 @@ export class GuideRecord {
   public _name: string = ''
   public _skill: SkillEntry = { step: [0, 0], order: ['', ''] }
   public _pos: PosEntry = { x: 0, y: 0 }
-  public _tagArray: string[] = []
+  public _tagArray: string = ''
   public _grid: number[][] = Array.from({ length: 2 }, () => new Array(3).fill(0))
 
   /** Populate field values. */
@@ -225,7 +225,7 @@ export class GuideTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Guide.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Guide.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -234,7 +234,7 @@ export class GuideTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Guide.Name', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Guide.Name', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Name')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -243,25 +243,29 @@ export class GuideTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Guide.Skill.Step', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Guide.Skill.Step', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Skill.Step')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            record._skill.step = []
+            for (let j = 0; j < elementCount; ++j)
               record._skill.step[j] = cursor.nextI32()
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Guide.Skill.Order', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Guide.Skill.Order', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Skill.Order')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            record._skill.order = []
+            for (let j = 0; j < elementCount; ++j)
               record._skill.order[j] = cursor.nextString()
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Guide.Pos.X', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Guide.Pos.X', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Pos.X')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -269,7 +273,7 @@ export class GuideTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'Guide.Pos.Y', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_F32])
+          tabbit.checkColumn(column, 'Guide.Pos.Y', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Pos.Y')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -277,31 +281,36 @@ export class GuideTable {
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'Guide.Tag_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Guide.Tag_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Tag_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
+            const elementCount = cursor.nextLength()
             record._tagArray = []
-            for (let j = 0; j < column.count; ++j) {
+            for (let j = 0; j < elementCount; ++j) {
               record._tagArray.push(cursor.nextString())
             }
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Guide.Grid.1', tabbit.KIND_FIXED_ARRAY, 3, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Guide.Grid.1', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Grid.1')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 3; ++j)
+            const elementCount = cursor.nextLength()
+            record._grid[0] = []
+            for (let j = 0; j < elementCount; ++j)
               record._grid[0][j] = cursor.nextI32()
           }
           break
         case 9:
-          tabbit.checkColumn(column, 'Guide.Grid.2', tabbit.KIND_FIXED_ARRAY, 3, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Guide.Grid.2', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Grid.2')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 3; ++j)
+            const elementCount = cursor.nextLength()
+            record._grid[1] = []
+            for (let j = 0; j < elementCount; ++j)
               record._grid[1][j] = cursor.nextI32()
           }
           break

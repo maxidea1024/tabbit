@@ -219,7 +219,7 @@ namespace Tabbit.Fixtures.StringIndex
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Animation.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Animation.Index", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Animation.Index");
                         for (int i = 0; i < count; )
                         {
@@ -235,7 +235,7 @@ namespace Tabbit.Fixtures.StringIndex
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Animation.Blend", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Animation.Blend", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Animation.Blend");
                         for (int i = 0; i < count; i++)
                         {
@@ -245,7 +245,7 @@ namespace Tabbit.Fixtures.StringIndex
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Animation.Slot", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Animation.Slot", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Animation.Slot");
                         for (int i = 0; i < count; )
                         {

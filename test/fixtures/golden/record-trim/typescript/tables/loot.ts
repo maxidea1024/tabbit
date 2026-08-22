@@ -222,7 +222,7 @@ export class LootTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Loot.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loot.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -231,7 +231,7 @@ export class LootTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Loot.Name', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Loot.Name', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Name')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -240,7 +240,7 @@ export class LootTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Loot.Slot.Id', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loot.Slot.Id', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Slot.Id')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -251,7 +251,7 @@ export class LootTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Loot.Slot.Count', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loot.Slot.Count', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Slot.Count')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -263,7 +263,7 @@ export class LootTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Loot.Slot.Label', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Loot.Slot.Label', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Slot.Label')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -275,7 +275,7 @@ export class LootTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'Loot.Pos.X', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loot.Pos.X', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Pos.X')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -284,7 +284,7 @@ export class LootTable {
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'Loot.Pos.Y', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loot.Pos.Y', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Pos.Y')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -293,7 +293,7 @@ export class LootTable {
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Loot.Tag_array', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Loot.Tag_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Tag_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]

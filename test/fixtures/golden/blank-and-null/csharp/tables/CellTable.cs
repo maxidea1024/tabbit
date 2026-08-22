@@ -227,7 +227,7 @@ namespace Tabbit.Fixtures.BlankAndNull
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Cell.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Cell.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Cell.Index");
                         for (int i = 0; i < count; )
                         {
@@ -243,7 +243,7 @@ namespace Tabbit.Fixtures.BlankAndNull
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Cell.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Cell.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Cell.Name");
                         for (int i = 0; i < count; )
                         {
@@ -259,7 +259,7 @@ namespace Tabbit.Fixtures.BlankAndNull
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Cell.Text", TcbTable.KindScalar, 1, true, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Cell.Text", TcbTable.KindScalar, true, TcbTable.ElementString);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Cell.Text");
                         for (int i = 0; i < count; )
@@ -286,7 +286,7 @@ namespace Tabbit.Fixtures.BlankAndNull
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Cell.Count", TcbTable.KindScalar, 1, true, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Cell.Count", TcbTable.KindScalar, true, TcbTable.ElementI32, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Cell.Count");
                         for (int i = 0; i < count; )
@@ -313,7 +313,7 @@ namespace Tabbit.Fixtures.BlankAndNull
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Cell.Flag", TcbTable.KindScalar, 1, true, TcbTable.ElementBool);
+                        TcbTable.CheckColumn(column, "Cell.Flag", TcbTable.KindScalar, true, TcbTable.ElementBool);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Cell.Flag");
                         for (int i = 0; i < count; i++)
@@ -334,7 +334,7 @@ namespace Tabbit.Fixtures.BlankAndNull
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "Cell.Tags", TcbTable.KindVarArray, 0, true, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Cell.Tags", TcbTable.KindArray, true, TcbTable.ElementString);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Cell.Tags");
                         for (int i = 0; i < count; i++)
@@ -361,7 +361,7 @@ namespace Tabbit.Fixtures.BlankAndNull
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Cell.Costs", TcbTable.KindVarArray, 0, true, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Cell.Costs", TcbTable.KindArray, true, TcbTable.ElementI32, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Cell.Costs");
                         for (int i = 0; i < count; i++)

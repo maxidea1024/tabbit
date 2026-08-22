@@ -110,7 +110,7 @@ class HolderTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Holder.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Holder.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Holder.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -123,7 +123,7 @@ class HolderTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Holder.Main.ItemId", tabbit::kKindScalar, 1, false, {tabbit::kElementI32});
+          tabbit::check_column(column, "Holder.Main.ItemId", tabbit::kKindScalar, false, {tabbit::kElementI32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Holder.Main.ItemId");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -136,7 +136,7 @@ class HolderTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Holder.Main.Count", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Holder.Main.Count", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Holder.Main.Count");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -149,7 +149,7 @@ class HolderTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Holder.Pad", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Holder.Pad", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Holder.Pad");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -162,7 +162,7 @@ class HolderTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Holder.Pad2", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Holder.Pad2", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Holder.Pad2");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {

@@ -70,7 +70,7 @@ export class LoadoutRecord {
   public get slot(): SlotEntry[] { return this._slot }
 
   public _index: number = 0
-  public _slot: SlotEntry[] = Array.from({ length: 2 }, () => ({ pick: 0, pickRow: undefined, pickTarget: LoadoutSlotPickTarget.None, count: 0 }))
+  public _slot: SlotEntry = Array.from({ length: 2 }, () => ({ pick: 0, pickRow: undefined, pickTarget: LoadoutSlotPickTarget.None, count: 0 }))
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -205,7 +205,7 @@ export class LoadoutTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Loadout.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loadout.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -214,20 +214,25 @@ export class LoadoutTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Loadout.Slot.Pick', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loadout.Slot.Pick', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Slot.Pick')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            record._slot = Array.from({ length: elementCount }, () => ({ pick: 0, pickRow: undefined, pickTarget: LoadoutSlotPickTarget.None, count: 0 }))
+            for (let j = 0; j < elementCount; ++j)
               record._slot[j].pick = cursor.nextI32()
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Loadout.Slot.Count', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Loadout.Slot.Count', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Slot.Count')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            if (record._slot.length !== elementCount)
+              throw new Error(`Loadout.Slot: the file gives this row ${elementCount} elements for one member of the record and ${record._slot.length} for another. Every member of a record carries the same element count, so the file is damaged.`)
+            for (let j = 0; j < elementCount; ++j)
               record._slot[j].count = cursor.nextI32()
           }
           break

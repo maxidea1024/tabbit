@@ -232,7 +232,7 @@ namespace Tabbit.Fixtures.Core.Server
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "TestFieldTypes.Index");
                         for (int i = 0; i < count; )
                         {
@@ -248,7 +248,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.StringField", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.StringField", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "TestFieldTypes.StringField");
                         for (int i = 0; i < count; )
                         {
@@ -264,7 +264,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.IntField", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.IntField", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "TestFieldTypes.IntField");
                         for (int i = 0; i < count; )
                         {
@@ -280,7 +280,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.BigIntField", TcbTable.KindScalar, 1, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.BigIntField", TcbTable.KindScalar, false, TcbTable.ElementI64, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "TestFieldTypes.BigIntField");
                         for (int i = 0; i < count; i++)
                         {
@@ -290,7 +290,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.FloatField", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.FloatField", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "TestFieldTypes.FloatField");
                         for (int i = 0; i < count; i++)
                         {
@@ -300,7 +300,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.DoubleField", TcbTable.KindScalar, 1, false, TcbTable.ElementF64, TcbTable.ElementF32, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.DoubleField", TcbTable.KindScalar, false, TcbTable.ElementF64, TcbTable.ElementF32, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "TestFieldTypes.DoubleField");
                         for (int i = 0; i < count; i++)
                         {
@@ -310,7 +310,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.DatetimeField", TcbTable.KindScalar, 1, false, TcbTable.ElementI64);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.DatetimeField", TcbTable.KindScalar, false, TcbTable.ElementI64);
                         cursor = new TcbColumnCursor(reader, column, count, "TestFieldTypes.DatetimeField");
                         for (int i = 0; i < count; i++)
                         {
@@ -320,7 +320,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 9:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.TimespanField", TcbTable.KindScalar, 1, false, TcbTable.ElementI64);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.TimespanField", TcbTable.KindScalar, false, TcbTable.ElementI64);
                         cursor = new TcbColumnCursor(reader, column, count, "TestFieldTypes.TimespanField");
                         for (int i = 0; i < count; i++)
                         {
@@ -330,7 +330,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 10:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.UuidField", TcbTable.KindScalar, 1, false, TcbTable.ElementUuid);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.UuidField", TcbTable.KindScalar, false, TcbTable.ElementUuid);
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
@@ -339,7 +339,7 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 11:
-                        TcbTable.CheckColumn(column, "TestFieldTypes.ValueTypeField", TcbTable.KindScalar, 1, false, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "TestFieldTypes.ValueTypeField", TcbTable.KindScalar, false, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "TestFieldTypes.ValueTypeField");
                         for (int i = 0; i < count; )
                         {

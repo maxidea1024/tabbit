@@ -203,7 +203,7 @@ export class TrimKitTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'TrimKit.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'TrimKit.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TrimKit.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -212,7 +212,7 @@ export class TrimKitTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'TrimKit.Slot_array', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I32], true)
+          tabbit.checkColumn(column, 'TrimKit.Slot_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32], true)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TrimKit.Slot_array')
@@ -231,7 +231,7 @@ export class TrimKitTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'TrimKit.Tier_array', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I32], true)
+          tabbit.checkColumn(column, 'TrimKit.Tier_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32], true)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TrimKit.Tier_array')

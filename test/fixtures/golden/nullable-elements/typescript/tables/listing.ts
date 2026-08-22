@@ -231,7 +231,7 @@ export class ListingTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Listing.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Listing.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Listing.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -240,7 +240,7 @@ export class ListingTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Listing.Name', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Listing.Name', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Listing.Name')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -249,7 +249,7 @@ export class ListingTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Listing.Plain', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Listing.Plain', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Listing.Plain')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
@@ -261,7 +261,7 @@ export class ListingTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Listing.Maybe', tabbit.KIND_VAR_ARRAY, 0, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Listing.Maybe', tabbit.KIND_ARRAY, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           presence = tabbit.readPresence(reader, column, rowCount)
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Listing.Maybe')
           for (let i = 0; i < rowCount; ++i) {
@@ -283,7 +283,7 @@ export class ListingTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Listing.Holes', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT], true)
+          tabbit.checkColumn(column, 'Listing.Holes', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT], true)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Listing.Holes')
@@ -300,7 +300,7 @@ export class ListingTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'Listing.Both', tabbit.KIND_VAR_ARRAY, 0, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT], true)
+          tabbit.checkColumn(column, 'Listing.Both', tabbit.KIND_ARRAY, true, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT], true)
           presence = tabbit.readPresence(reader, column, rowCount)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
@@ -327,7 +327,7 @@ export class ListingTable {
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'Listing.Words', tabbit.KIND_VAR_ARRAY, 0, false, [tabbit.ELEMENT_STRING], true)
+          tabbit.checkColumn(column, 'Listing.Words', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING], true)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Listing.Words')

@@ -187,7 +187,7 @@ export class KitTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Kit.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Kit.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -196,27 +196,31 @@ export class KitTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Kit.Slot_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Kit.Slot_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Slot_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            record._slotArray = new Array(column.count).fill(undefined)
-            record._slotArray_F = new Array(column.count).fill(false)
+            const elementCount = cursor.nextLength()
+            record._slotArray = new Array(elementCount).fill(undefined)
+            record._slotArray_F = new Array(elementCount).fill(false)
             record._slotArray_Piece_index = []
-            for (let j = 0; j < column.count; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._slotArray_Piece_index.push(cursor.nextI32())
+            }
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Kit.Tier_array', tabbit.KIND_FIXED_ARRAY, -1, false, [tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Kit.Tier_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Tier_array')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            record._tierArray = new Array(column.count).fill(undefined)
-            record._tierArray_F = new Array(column.count).fill(false)
+            const elementCount = cursor.nextLength()
+            record._tierArray = new Array(elementCount).fill(undefined)
+            record._tierArray_F = new Array(elementCount).fill(false)
             record._tierArray_Piece_index = []
-            for (let j = 0; j < column.count; ++j)
+            for (let j = 0; j < elementCount; ++j) {
               record._tierArray_Piece_index.push(cursor.nextI32())
+            }
           }
           break
         default:

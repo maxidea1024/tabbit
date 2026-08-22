@@ -219,7 +219,7 @@ namespace Tabbit.Fixtures.KeyTypes
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Asset.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementUuid);
+                        TcbTable.CheckColumn(column, "Asset.Index", TcbTable.KindScalar, false, TcbTable.ElementUuid);
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
@@ -228,7 +228,7 @@ namespace Tabbit.Fixtures.KeyTypes
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Asset.Path", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Asset.Path", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Asset.Path");
                         for (int i = 0; i < count; )
                         {
@@ -244,7 +244,7 @@ namespace Tabbit.Fixtures.KeyTypes
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Asset.Slot", TcbTable.KindScalar, 1, false, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Asset.Slot", TcbTable.KindScalar, false, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Asset.Slot");
                         for (int i = 0; i < count; )
                         {

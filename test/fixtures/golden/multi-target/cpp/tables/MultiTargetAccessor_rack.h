@@ -124,7 +124,7 @@ class RackTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Rack.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Rack.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Rack.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -137,27 +137,33 @@ class RackTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Rack.Slots.Pick", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Rack.Slots.Pick", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Rack.Slots.Pick");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slots.pick.resize(2);
-            record.slots.pick_row.assign(2, nullptr);
-            record.slots.pick_target.assign(2, RackSlotsPickTarget::None);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.slots.pick[j] = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            record.slots.pick.resize(
+                static_cast<std::size_t>(element_count));
+            record.slots.pick_row.assign(
+                static_cast<std::size_t>(element_count), nullptr);
+            record.slots.pick_target.assign(
+                static_cast<std::size_t>(element_count), RackSlotsPickTarget::None);
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.slots.pick[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Rack.Slots.Count", tabbit::kKindFixedArray, 2, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Rack.Slots.Count", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Rack.Slots.Count");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slots.count.resize(2);
-            for (std::size_t j = 0; j < 2; ++j) {
-              record.slots.count[j] = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            record.slots.count.resize(
+                static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.slots.count[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;

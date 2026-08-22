@@ -183,7 +183,7 @@ namespace Tabbit.Fixtures.X
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "ItemCategory.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "ItemCategory.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "ItemCategory.Index");
                         for (int i = 0; i < count; )
                         {
@@ -199,7 +199,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "ItemCategory.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "ItemCategory.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "ItemCategory.Name");
                         for (int i = 0; i < count; )
                         {
@@ -215,7 +215,7 @@ namespace Tabbit.Fixtures.X
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "ItemCategory.Description", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "ItemCategory.Description", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "ItemCategory.Description");
                         for (int i = 0; i < count; )
                         {

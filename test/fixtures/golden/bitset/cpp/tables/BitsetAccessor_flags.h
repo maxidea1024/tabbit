@@ -104,7 +104,7 @@ class FlagsTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Flags.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Flags.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Flags.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -117,7 +117,7 @@ class FlagsTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Flags.Mask", tabbit::kKindScalar, 1, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Flags.Mask", tabbit::kKindScalar, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Flags.Mask");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -126,7 +126,7 @@ class FlagsTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Flags.Same", tabbit::kKindScalar, 1, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Flags.Same", tabbit::kKindScalar, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Flags.Same");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -135,7 +135,7 @@ class FlagsTable {
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Flags.Set", tabbit::kKindVarArray, 0, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Flags.Set", tabbit::kKindArray, false, {tabbit::kElementI64, tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Flags.Set");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -148,7 +148,7 @@ class FlagsTable {
           break;
         }
         case 5: {
-          tabbit::check_column(column, "Flags.Label", tabbit::kKindScalar, 1, false, {tabbit::kElementString});
+          tabbit::check_column(column, "Flags.Label", tabbit::kKindScalar, false, {tabbit::kElementString});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Flags.Label");
           std::string value{};
           for (std::size_t i = 0; i < row_count; ) {

@@ -154,8 +154,10 @@ constexpr std::uint8_t kElementString = 6;
 constexpr std::uint8_t kElementUuid = 7;
 
 constexpr std::uint8_t kKindScalar = 0;
-constexpr std::uint8_t kKindFixedArray = 1;
-constexpr std::uint8_t kKindVarArray = 2;
+// The only array kind: every row states its own length. A fixed-length kind sat at 1 until
+// v107 and was removed rather than kept, because a length stated once is a length the
+// generated code bakes in - and then a column added to a group needs the consumer rebuilt.
+constexpr std::uint8_t kKindArray = 1;
 
 /// The little-endian scalars, read out of bytes the caller already holds.
 ///
@@ -392,7 +394,7 @@ inline std::vector<std::uint8_t> read_all_bytes(const std::string& filename) {
 // rather than guessing. 102 replaced 101 outright - a descriptor gained its encoding
 // byte - before any 101 file had shipped. 104 is the current one: four encodings joined
 // the nine, and the flags byte gained a meaning.
-constexpr std::uint32_t kBinaryFileFormatVersion = 106;
+constexpr std::uint32_t kBinaryFileFormatVersion = 107;
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
 // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
@@ -852,8 +854,6 @@ struct Column {
   bool element_nullable;
   // How the block's values are laid out: one of the kEncoding* constants.
   std::uint8_t encoding;
-  // Elements per row: 1 for a scalar, N for a fixed array, 0 for a variable one.
-  std::int32_t count;
   // Total bytes of the column block - what a skip advances by.
   std::int32_t byte_length;
 };
@@ -1028,7 +1028,6 @@ inline Header read_table_header(TcbReader& reader) {
 
     column.encoding = reader.read_fixed8();
 
-    column.count = reader.read_counter32();
     column.byte_length = static_cast<std::int32_t>(reader.read_fixed32());
 
     header.columns.push_back(column);
@@ -1059,15 +1058,6 @@ inline Header read_table_header(TcbReader& reader) {
                             " can hold in its " + std::to_string(column.byte_length) + " bytes");
     }
 
-    // The same floor for the element count, which the read now allocates for: a fixed array's
-    // length is the file's rather than the generated code's. Only with rows to read - an empty
-    // table writes its columns' counts into a block of no bytes, and that is well-formed.
-    if (column.encoding == kEncodingRaw && header.row_count > 0
-        && column.count > column.byte_length) {
-      throw TcbError("column tag " + std::to_string(column.tag) + " says each row holds " +
-                            std::to_string(column.count) + " elements, which its " +
-                            std::to_string(column.byte_length) + " bytes cannot hold");
-    }
   }
 
   if (declared != available) {
@@ -1126,7 +1116,7 @@ inline bool encoding_supported(const Column& column) {
 // That a column is what the generated member expects, or a lossless promotion of it.
 // Refusal is by name and both types, never by reading anyway.
 inline void check_column(const Column& column, const char* field_name, std::uint8_t kind,
-                         std::int32_t count, bool nullable,
+                         bool nullable,
                          std::initializer_list<std::uint8_t> accepted,
                          bool element_nullable = false) {
   // The same statement about the other bitmap: generated code not expecting one would read
@@ -1147,10 +1137,9 @@ inline void check_column(const Column& column, const char* field_name, std::uint
                    "; the schema changed, regenerate the code or rebuild the data");
   }
 
-  // A negative count says the member claims no length: how many elements a row holds is
-  // what the file states. The kind is still the member's claim.
-  // spec/nullable-array-elements.md.
-  if (column.kind != kind || (kind != kKindVarArray && count >= 0 && column.count != count)) {
+  // Shape is the kind alone since v107. How many elements a row holds is what the file
+  // states, row by row, so a group that grew a column is read rather than refused.
+  if (column.kind != kind) {
     throw TcbError(std::string(field_name) +
                           ": the file's column does not match the generated member's shape; "
                           "the schema changed shape, regenerate the code or rebuild the data");
@@ -1201,22 +1190,18 @@ class TcbColumnCursor {
     if (encoding_ == kEncodingArray) {
       encoding_ = reader.read_fixed8();
 
-      if (column.kind == kKindVarArray) {
-        const std::uint8_t length_encoding = reader.read_fixed8();
-        read_lengths(reader, length_encoding, row_count, field_name);
+      const std::uint8_t length_encoding = reader.read_fixed8();
+      read_lengths(reader, length_encoding, row_count, field_name);
 
-        std::int64_t elements = 0;
-        for (const std::int32_t length : lengths_) elements += length;
+      std::int64_t elements = 0;
+      for (const std::int32_t length : lengths_) elements += length;
 
-        if (elements > static_cast<std::int64_t>(INT32_MAX)) {
-          throw TcbError(std::string(field_name) +
-                         ": the column declares more elements than can be held");
-        }
-
-        rows_remaining_ = static_cast<std::int32_t>(elements);
-      } else {
-        rows_remaining_ = row_count * column.count;
+      if (elements > static_cast<std::int64_t>(INT32_MAX)) {
+        throw TcbError(std::string(field_name) +
+                       ": the column declares more elements than can be held");
       }
+
+      rows_remaining_ = static_cast<std::int32_t>(elements);
     }
 
     // A bit-packed column states the width its range needs, the base subtracted from

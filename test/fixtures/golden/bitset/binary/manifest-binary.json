@@ -1,12 +1,12 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "206869c8b6e01f1d94669e03fbc645f4",
-  "TotalSize": 153,
+  "MasterHash": "ec3f9ad66ff71e33ca4f2ee9b79c091a",
+  "TotalSize": 148,
   "Items": [
     {
       "Name": "Flags.tcb",
-      "Size": 153,
-      "Hash": "206869c8b6e01f1d94669e03fbc645f4",
+      "Size": 148,
+      "Hash": "ec3f9ad66ff71e33ca4f2ee9b79c091a",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

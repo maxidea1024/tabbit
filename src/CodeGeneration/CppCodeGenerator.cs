@@ -759,7 +759,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + CppName(part)));
         var field = wire.TagCarrier;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -923,7 +923,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// </summary>
     private string EmptyValueOf(WireColumn wire)
     {
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "{}";
 
         return wire.ElementType switch
@@ -999,10 +999,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         // the members before it wrote.
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "record_member";
 
             // Which of the two owns the vector decides where the index goes, and an unnamed
@@ -1010,14 +1007,11 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_serial" : "record_serial";
+            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
         }
 
-        if (wire.IsVariableLengthArray)
-            return "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "serial_ref" : "serial";
+        if (wire.IsArray)
+            return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -1097,7 +1091,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         string member = string.Concat(wire.MemberPath.Select(part => "." + CppName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
@@ -1138,7 +1132,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. It used to be an
@@ -1200,7 +1194,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries. `next_same_i32` was the only answer while
@@ -1372,18 +1366,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "tabbit::kKindVarArray"
-            : (wire.IsFixedArray ? "tabbit::kKindFixedArray" : "tabbit::kKindScalar");
-
-        // -1 where one column owns the whole array: the file states how many elements it
-        // holds and the read takes it from there, so there is no length here to hold it to.
-        // A record member keeps its count - several columns fill one array and the number
-        // they agree on is part of the generated shape, so a disagreement is a schema change
-        // rather than data. spec/nullable-array-elements.md.
-        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
-
-        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
+        string kind = wire.IsArray ? "tabbit::kKindArray" : "tabbit::kKindScalar";
 
         string accepted;
 
@@ -1436,7 +1419,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         // And the other bitmap, by the same argument as the row one.
         string elements = wire.HasOptionalElements ? ", true" : "";
 
-        return $"tabbit::check_column(column, \"{tableName}.{wire.Name}\", {kind}, {count}, "
+        return $"tabbit::check_column(column, \"{tableName}.{wire.Name}\", {kind}, "
             + $"{nullable}, {{{accepted}}}{elements});";
     }
 

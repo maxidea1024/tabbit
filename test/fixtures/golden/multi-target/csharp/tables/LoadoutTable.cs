@@ -38,7 +38,6 @@ namespace Tabbit.Fixtures.MultiTarget
             /// element 1 - two targets
             /// </summary>
             public SlotEntry[] Slot => _slot;
-            internal const int Slot_N = 2;
             #endregion
 
             /// <summary>One element of <see cref="Slot"/>.</summary>
@@ -80,7 +79,7 @@ namespace Tabbit.Fixtures.MultiTarget
 
             #region Storage
             internal int _index;
-            internal SlotEntry[] _slot = new SlotEntry[Slot_N];
+            internal SlotEntry[] _slot = System.Array.Empty<SlotEntry>();
             #endregion
 
             #region ToString
@@ -214,7 +213,7 @@ namespace Tabbit.Fixtures.MultiTarget
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Loadout.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loadout.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Index");
                         for (int i = 0; i < count; )
                         {
@@ -230,12 +229,15 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Loadout.Slot.Pick", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loadout.Slot.Pick", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Slot.Pick");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slot_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._slot = new Record.SlotEntry[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot[j].Pick = cursor.NextI32();
                             }
@@ -243,12 +245,22 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Loadout.Slot.Count", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loadout.Slot.Count", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Slot.Count");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slot_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            if (record._slot.Length != elementCount)
+                            {
+                                throw new TcbException(
+                                    "Loadout.Slot: the file gives this row "
+                                    + elementCount + " elements for one member of the record and "
+                                    + record._slot.Length + " for another. Every member of a "
+                                    + "record carries the same element count, so the file is damaged.");
+                            }
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot[j].Count = cursor.NextI32();
                             }

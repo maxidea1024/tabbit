@@ -183,7 +183,7 @@ namespace Tabbit.Fixtures.SerialRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Piece.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Piece.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Piece.Index");
                         for (int i = 0; i < count; )
                         {
@@ -199,7 +199,7 @@ namespace Tabbit.Fixtures.SerialRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Piece.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Piece.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Piece.Name");
                         for (int i = 0; i < count; )
                         {
@@ -215,7 +215,7 @@ namespace Tabbit.Fixtures.SerialRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Piece.Tier", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Piece.Tier", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Piece.Tier");
                         for (int i = 0; i < count; )
                         {

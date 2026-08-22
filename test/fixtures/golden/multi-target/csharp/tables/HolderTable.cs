@@ -312,7 +312,7 @@ namespace Tabbit.Fixtures.MultiTarget
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Holder.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Holder.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Index");
                         for (int i = 0; i < count; )
                         {
@@ -328,7 +328,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Holder.Pick", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Holder.Pick", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Pick");
                         for (int i = 0; i < count; )
                         {
@@ -344,7 +344,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Holder.Wide", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Holder.Wide", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Wide");
                         for (int i = 0; i < count; )
                         {
@@ -360,7 +360,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Holder.Only", TcbTable.KindScalar, 1, false, TcbTable.ElementI32);
+                        TcbTable.CheckColumn(column, "Holder.Only", TcbTable.KindScalar, false, TcbTable.ElementI32);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Only");
                         for (int i = 0; i < count; )
                         {
@@ -378,7 +378,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Holder.Maybe", TcbTable.KindScalar, 1, true, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Holder.Maybe", TcbTable.KindScalar, true, TcbTable.ElementI32, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Holder.Maybe");
                         for (int i = 0; i < count; )

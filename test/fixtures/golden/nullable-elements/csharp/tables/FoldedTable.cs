@@ -184,7 +184,7 @@ namespace Tabbit.Fixtures.NullableElements
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Folded.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Folded.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Folded.Index");
                         for (int i = 0; i < count; )
                         {
@@ -200,16 +200,18 @@ namespace Tabbit.Fixtures.NullableElements
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Folded.Tag_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString, elementNullable: true);
+                        TcbTable.CheckColumn(column, "Folded.Tag_array", TcbTable.KindArray, false, TcbTable.ElementString, elementNullable: true);
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
                         cursor = new TcbColumnCursor(reader, column, count, "Folded.Tag_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._tagArray = new string[column.Count];
-                            record._tagArrayHasValueAt = new bool[column.Count];
-                            for (int j = 0; j < column.Count; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._tagArray = new string[elementCount];
+                            record._tagArrayHasValueAt = new bool[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._tagArrayHasValueAt[j] =
                                     TcbTable.IsPresent(elementPresence, elementAt++);

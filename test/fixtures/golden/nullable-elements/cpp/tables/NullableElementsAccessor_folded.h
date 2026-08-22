@@ -104,7 +104,7 @@ class FoldedTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Folded.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Folded.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Folded.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -117,17 +117,19 @@ class FoldedTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Folded.Tag_array", tabbit::kKindFixedArray, -1, false, {tabbit::kElementString}, true);
+          tabbit::check_column(column, "Folded.Tag_array", tabbit::kKindArray, false, {tabbit::kElementString}, true);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Folded.Tag_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.tag_array.resize(static_cast<std::size_t>(column.count));
-            record.has_tag_array_at_.assign(static_cast<std::size_t>(column.count), true);
-            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
-              record.tag_array[j] = cursor.next_string();
-              record.has_tag_array_at_[j] =
+            const std::int32_t element_count = cursor.next_length();
+            record.tag_array.resize(static_cast<std::size_t>(element_count));
+            record.has_tag_array_at_.assign(
+                static_cast<std::size_t>(element_count), true);
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.tag_array[static_cast<std::size_t>(j)] = cursor.next_string();
+              record.has_tag_array_at_[static_cast<std::size_t>(j)] =
                   tabbit::is_present(element_presence, element_at++);
             }
           }

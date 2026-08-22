@@ -190,7 +190,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Art.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementUuid);
+                        TcbTable.CheckColumn(column, "Art.Index", TcbTable.KindScalar, false, TcbTable.ElementUuid);
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
@@ -199,7 +199,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Art.Path", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Art.Path", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Art.Path");
                         for (int i = 0; i < count; )
                         {
@@ -215,7 +215,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Art.Pad1", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Art.Pad1", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Art.Pad1");
                         for (int i = 0; i < count; )
                         {
@@ -231,7 +231,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Art.Pad2", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Art.Pad2", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Art.Pad2");
                         for (int i = 0; i < count; )
                         {

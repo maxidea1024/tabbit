@@ -204,7 +204,7 @@ namespace Tabbit.Fixtures.RowSets
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Narrow.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Narrow.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Narrow.Index");
                         for (int i = 0; i < count; )
                         {
@@ -220,7 +220,7 @@ namespace Tabbit.Fixtures.RowSets
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Narrow.Kept", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Narrow.Kept", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Narrow.Kept");
                         for (int i = 0; i < count; )
                         {
@@ -236,7 +236,7 @@ namespace Tabbit.Fixtures.RowSets
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Narrow.Also", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Narrow.Also", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Narrow.Also");
                         for (int i = 0; i < count; )
                         {
@@ -252,7 +252,7 @@ namespace Tabbit.Fixtures.RowSets
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Narrow.Dropped", TcbTable.KindScalar, 1, true, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Narrow.Dropped", TcbTable.KindScalar, true, TcbTable.ElementI32, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Narrow.Dropped");
                         for (int i = 0; i < count; )
@@ -279,7 +279,7 @@ namespace Tabbit.Fixtures.RowSets
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Narrow.Firm", TcbTable.KindScalar, 1, true, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Narrow.Firm", TcbTable.KindScalar, true, TcbTable.ElementI32, TcbTable.ElementVarint);
                         presence = TcbTable.ReadPresence(reader, column, count);
                         cursor = new TcbColumnCursor(reader, column, count, "Narrow.Firm");
                         for (int i = 0; i < count; )

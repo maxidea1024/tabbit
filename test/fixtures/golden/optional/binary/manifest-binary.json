@@ -1,12 +1,12 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "49346940d35ed651afa2384f8ed9f249",
-  "TotalSize": 333,
+  "MasterHash": "ea6af80a679bf24447b55e5026e02e09",
+  "TotalSize": 320,
   "Items": [
     {
       "Name": "Drop.tcb",
-      "Size": 333,
-      "Hash": "49346940d35ed651afa2384f8ed9f249",
+      "Size": 320,
+      "Hash": "ea6af80a679bf24447b55e5026e02e09",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

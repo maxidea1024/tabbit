@@ -203,7 +203,7 @@ export class ItemTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Item.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Item.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Item.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -212,7 +212,7 @@ export class ItemTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Item.Name', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Item.Name', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Item.Name')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
@@ -221,7 +221,7 @@ export class ItemTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Item.CategoryId', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32])
+          tabbit.checkColumn(column, 'Item.CategoryId', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Item.CategoryId')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -230,7 +230,7 @@ export class ItemTable {
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Item.GradeField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Item.GradeField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Item.GradeField')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -239,7 +239,7 @@ export class ItemTable {
           }
           break
         case 5:
-          tabbit.checkColumn(column, 'Item.SkillField', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Item.SkillField', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Item.SkillField')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -248,7 +248,7 @@ export class ItemTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'Item.Description', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_STRING])
+          tabbit.checkColumn(column, 'Item.Description', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Item.Description')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)

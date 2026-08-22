@@ -422,7 +422,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         string member = string.Concat(wire.MemberPath.Select(name => "." + TsName(name)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         // Where the element number goes is the whole difference between the record shapes -
         // the group's array, the member's, or neither. spec/nested-multi-level.md.
@@ -658,7 +658,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         string memberAccess = string.Concat(wire.MemberPath.Select(name => "." + TsName(name)));
         var field = wire.TagCarrier;
 
-        bool isArray = wire.IsFixedArray || wire.IsVariableLengthArray;
+        bool isArray = wire.IsArray;
 
         // Where the element number goes is the whole difference between the record shapes -
         // the group's array, the member's, or neither. spec/nested-multi-level.md.
@@ -828,17 +828,16 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     {
         if (wire.Member is not null)
         {
-            if (wire.IsVariableLengthArray)
-                return "record_var_array_member";
-
-            if (!wire.IsFixedArray)
+            if (!wire.IsArray)
                 return "record_member";
 
             // Which of the two owns the array decides where the index goes.
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_array" : "record_array_member";
+            return wire.Group.MembersAreArrays
+                ? "record_member_array"
+                : "record_var_array_member";
         }
 
         // A trimmed array of references: the length is the row's, and the keys still arrive in
@@ -846,11 +845,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // array of rows, which `tsc` refuses - and nothing held the shape, because `foreign[]`
         // is refused and this is only reachable through a folded group with trimming on.
         // spec/variable-length-record-arrays.md.
-        if (wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return wire.IsRef ? "var_array_ref" : "var_array";
-
-        if (wire.IsFixedArray)
-            return wire.IsRef ? "array_ref" : "array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
@@ -1800,18 +1796,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// </summary>
     private static string ColumnCheck(WireColumn wire, string tableName)
     {
-        string kind = wire.IsVariableLengthArray
-            ? "tabbit.KIND_VAR_ARRAY"
-            : (wire.IsFixedArray ? "tabbit.KIND_FIXED_ARRAY" : "tabbit.KIND_SCALAR");
-
-        // -1 where one column owns the whole array: the file states how many elements it
-        // holds and the read takes it from there, so there is no length here to hold it to.
-        // A record member keeps its count - several columns fill one array and the number
-        // they agree on is part of the generated shape, so a disagreement is a schema change
-        // rather than data. spec/nullable-array-elements.md.
-        bool ownsItsArray = wire.IsFixedArray && wire.Member is null;
-
-        int count = wire.IsVariableLengthArray ? 0 : (ownsItsArray ? -1 : wire.Cells.Count);
+        string kind = wire.IsArray ? "tabbit.KIND_ARRAY" : "tabbit.KIND_SCALAR";
 
         string accepted;
 
@@ -1861,7 +1846,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // And the other bitmap, by the same argument as the row one.
         string elements = wire.HasOptionalElements ? ", true" : "";
 
-        return $"tabbit.checkColumn(column, '{tableName}.{wire.Name}', {kind}, {count}, "
+        return $"tabbit.checkColumn(column, '{tableName}.{wire.Name}', {kind}, "
             + $"{nullable}, [{accepted}]{elements})";
     }
 
@@ -1881,7 +1866,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         if (wire.ElementType == ValueType.Uuid)
             return false;
 
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return true;
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
@@ -1941,7 +1926,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         // A run says "this many rows hold the same value", which an array column's row does
         // not have one of. Its elements are read one at a time.
-        if (wire.IsFixedArray || wire.IsVariableLengthArray)
+        if (wire.IsArray)
             return "";
 
         // A reference runs on the key it carries. `nextSameI32` was the only answer while a

@@ -101,7 +101,7 @@ class KitTable {
 
       switch (column.tag) {
         case 1: {
-          tabbit::check_column(column, "Kit.Index", tabbit::kKindScalar, 1, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::check_column(column, "Kit.Index", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Kit.Index");
           std::int32_t value{};
           for (std::size_t i = 0; i < row_count; ) {
@@ -114,27 +114,31 @@ class KitTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Kit.Slot_array", tabbit::kKindFixedArray, -1, false, {tabbit::kElementI32});
+          tabbit::check_column(column, "Kit.Slot_array", tabbit::kKindArray, false, {tabbit::kElementI32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Kit.Slot_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.slot_array.assign(static_cast<std::size_t>(column.count), nullptr);
-            record.slot_array_index.resize(static_cast<std::size_t>(column.count));
-            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
-              record.slot_array_index[j] = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            record.slot_array.assign(
+                static_cast<std::size_t>(element_count), nullptr);
+            record.slot_array_index.resize(static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.slot_array_index[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Kit.Tier_array", tabbit::kKindFixedArray, -1, false, {tabbit::kElementI32});
+          tabbit::check_column(column, "Kit.Tier_array", tabbit::kKindArray, false, {tabbit::kElementI32});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Kit.Tier_array");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            record.tier_array.assign(static_cast<std::size_t>(column.count), 0);
-            record.tier_array_index.resize(static_cast<std::size_t>(column.count));
-            for (std::size_t j = 0; j < static_cast<std::size_t>(column.count); ++j) {
-              record.tier_array_index[j] = cursor.next_i32();
+            const std::int32_t element_count = cursor.next_length();
+            record.tier_array.assign(
+                static_cast<std::size_t>(element_count), 0);
+            record.tier_array_index.resize(static_cast<std::size_t>(element_count));
+            for (std::int32_t j = 0; j < element_count; ++j) {
+              record.tier_array_index[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;

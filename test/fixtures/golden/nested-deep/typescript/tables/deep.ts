@@ -63,7 +63,7 @@ export class DeepRecord {
   public get star(): StarEntry[] { return this._star }
 
   public _index: number = 0
-  public _star: StarEntry[] = Array.from({ length: 2 }, () => ({ id: 0, position: { x: 0, y: 0 } }))
+  public _star: StarEntry = Array.from({ length: 2 }, () => ({ id: 0, position: { x: 0, y: 0 } }))
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -200,7 +200,7 @@ export class DeepTable {
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'Deep.Index', tabbit.KIND_SCALAR, 1, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Deep.Index', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Deep.Index')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
@@ -209,29 +209,37 @@ export class DeepTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Deep.Star.Id', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Deep.Star.Id', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Deep.Star.Id')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            record._star = Array.from({ length: elementCount }, () => ({ id: 0, position: { x: 0, y: 0 } }))
+            for (let j = 0; j < elementCount; ++j)
               record._star[j].id = cursor.nextI32()
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Deep.Star.Position.X', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Deep.Star.Position.X', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Deep.Star.Position.X')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            if (record._star.length !== elementCount)
+              throw new Error(`Deep.Star: the file gives this row ${elementCount} elements for one member of the record and ${record._star.length} for another. Every member of a record carries the same element count, so the file is damaged.`)
+            for (let j = 0; j < elementCount; ++j)
               record._star[j].position.x = cursor.nextI32()
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Deep.Star.Position.Y', tabbit.KIND_FIXED_ARRAY, 2, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          tabbit.checkColumn(column, 'Deep.Star.Position.Y', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Deep.Star.Position.Y')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            for (let j = 0; j < 2; ++j)
+            const elementCount = cursor.nextLength()
+            if (record._star.length !== elementCount)
+              throw new Error(`Deep.Star: the file gives this row ${elementCount} elements for one member of the record and ${record._star.length} for another. Every member of a record carries the same element count, so the file is damaged.`)
+            for (let j = 0; j < elementCount; ++j)
               record._star[j].position.y = cursor.nextI32()
           }
           break

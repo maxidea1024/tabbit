@@ -183,7 +183,7 @@ namespace Tabbit.Fixtures.MultiTarget
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Mount.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Mount.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Mount.Index");
                         for (int i = 0; i < count; )
                         {
@@ -199,7 +199,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Mount.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Mount.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Mount.Name");
                         for (int i = 0; i < count; )
                         {
@@ -215,7 +215,7 @@ namespace Tabbit.Fixtures.MultiTarget
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Mount.Note", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Mount.Note", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Mount.Note");
                         for (int i = 0; i < count; )
                         {

@@ -48,7 +48,6 @@ namespace Tabbit.Fixtures.Nested
             /// element 1, first member
             /// </summary>
             public SlotEntry[] Slot => _slot;
-            internal const int Slot_N = 2;
 
             /// <summary>
             /// plain column inside the group's span
@@ -113,7 +112,7 @@ namespace Tabbit.Fixtures.Nested
             internal int _index;
             internal string _name = "";
             internal PosEntry _pos;
-            internal SlotEntry[] _slot = NewSlotEntryArray(Slot_N);
+            internal SlotEntry[] _slot = System.Array.Empty<SlotEntry>();
             internal string _note = "";
             internal string[] _tagArray = System.Array.Empty<string>();
             #endregion
@@ -253,7 +252,7 @@ namespace Tabbit.Fixtures.Nested
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Loadout.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loadout.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Index");
                         for (int i = 0; i < count; )
                         {
@@ -269,7 +268,7 @@ namespace Tabbit.Fixtures.Nested
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Loadout.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Loadout.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Name");
                         for (int i = 0; i < count; )
                         {
@@ -285,7 +284,7 @@ namespace Tabbit.Fixtures.Nested
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Loadout.Pos.X", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Loadout.Pos.X", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Pos.X");
                         for (int i = 0; i < count; i++)
                         {
@@ -295,7 +294,7 @@ namespace Tabbit.Fixtures.Nested
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Loadout.Pos.Y", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Loadout.Pos.Y", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Pos.Y");
                         for (int i = 0; i < count; i++)
                         {
@@ -305,12 +304,15 @@ namespace Tabbit.Fixtures.Nested
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Loadout.Slot.Id", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Loadout.Slot.Id", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Slot.Id");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slot_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._slot = Record.NewSlotEntryArray(elementCount);
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot[j].Id = cursor.NextI32();
                             }
@@ -318,12 +320,22 @@ namespace Tabbit.Fixtures.Nested
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "Loadout.Slot.Label", TcbTable.KindFixedArray, 2, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Loadout.Slot.Label", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Slot.Label");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Slot_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            if (record._slot.Length != elementCount)
+                            {
+                                throw new TcbException(
+                                    "Loadout.Slot: the file gives this row "
+                                    + elementCount + " elements for one member of the record and "
+                                    + record._slot.Length + " for another. Every member of a "
+                                    + "record carries the same element count, so the file is damaged.");
+                            }
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot[j].Label = cursor.NextString();
                             }
@@ -331,7 +343,7 @@ namespace Tabbit.Fixtures.Nested
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Loadout.Note", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Loadout.Note", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Note");
                         for (int i = 0; i < count; )
                         {
@@ -347,13 +359,15 @@ namespace Tabbit.Fixtures.Nested
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "Loadout.Tag_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Loadout.Tag_array", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Loadout.Tag_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._tagArray = new string[column.Count];
-                            for (int j = 0; j < column.Count; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._tagArray = new string[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._tagArray[j] = cursor.NextString();
                             }

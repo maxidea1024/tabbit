@@ -43,7 +43,6 @@ namespace Tabbit.Fixtures.MemberArray
             /// member array, element 1
             /// </summary>
             public SkillEntry Skill => _skill;
-            internal const int Skill_N = 2;
 
             /// <summary>
             /// a record with no number at all - still one record, members not arrays
@@ -60,7 +59,6 @@ namespace Tabbit.Fixtures.MemberArray
             /// </summary>
             public int[][] Grid => _grid;
             internal const int Grid_N = 2;
-            internal const int Grid_M = 3;
             #endregion
 
             /// <summary>One element of <see cref="Skill"/>.</summary>
@@ -115,9 +113,7 @@ namespace Tabbit.Fixtures.MemberArray
             {
                 var result = new int[Grid_N][];
                 for (int i = 0; i < result.Length; i++)
-                {
-                    result[i] = new int[Grid_M];
-                }
+                    result[i] = System.Array.Empty<int>();
                 return result;
             }
 
@@ -265,7 +261,7 @@ namespace Tabbit.Fixtures.MemberArray
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Guide.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Guide.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Index");
                         for (int i = 0; i < count; )
                         {
@@ -281,7 +277,7 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Guide.Name", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Guide.Name", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Name");
                         for (int i = 0; i < count; )
                         {
@@ -297,12 +293,16 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Guide.Skill.Step", TcbTable.KindFixedArray, 2, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Guide.Skill.Step", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Skill.Step");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Skill_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._skill.Step =
+                                new int[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._skill.Step[j] = cursor.NextI32();
                             }
@@ -310,12 +310,16 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Guide.Skill.Order", TcbTable.KindFixedArray, 2, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Guide.Skill.Order", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Skill.Order");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Skill_N; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._skill.Order =
+                                new string[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._skill.Order[j] = cursor.NextString();
                             }
@@ -323,7 +327,7 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Guide.Pos.X", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Guide.Pos.X", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Pos.X");
                         for (int i = 0; i < count; i++)
                         {
@@ -333,7 +337,7 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "Guide.Pos.Y", TcbTable.KindScalar, 1, false, TcbTable.ElementF32);
+                        TcbTable.CheckColumn(column, "Guide.Pos.Y", TcbTable.KindScalar, false, TcbTable.ElementF32);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Pos.Y");
                         for (int i = 0; i < count; i++)
                         {
@@ -343,13 +347,15 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Guide.Tag_array", TcbTable.KindFixedArray, -1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Guide.Tag_array", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Tag_array");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            record._tagArray = new string[column.Count];
-                            for (int j = 0; j < column.Count; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._tagArray = new string[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._tagArray[j] = cursor.NextString();
                             }
@@ -357,12 +363,16 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "Guide.Grid.1", TcbTable.KindFixedArray, 3, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Guide.Grid.1", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Grid.1");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Grid_M; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._grid[0] =
+                                new int[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._grid[0][j] = cursor.NextI32();
                             }
@@ -370,12 +380,16 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 9:
-                        TcbTable.CheckColumn(column, "Guide.Grid.2", TcbTable.KindFixedArray, 3, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Guide.Grid.2", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Guide.Grid.2");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            for (int j = 0; j < Record.Grid_M; ++j)
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._grid[1] =
+                                new int[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
                                 record._grid[1][j] = cursor.NextI32();
                             }

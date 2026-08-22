@@ -209,7 +209,7 @@ namespace Tabbit.Fixtures.RecordRef
                 switch (column.Tag)
                 {
                     case 1:
-                        TcbTable.CheckColumn(column, "Badge.Index", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Badge.Index", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Badge.Index");
                         for (int i = 0; i < count; )
                         {
@@ -225,7 +225,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Badge.Mark.ClipId", TcbTable.KindScalar, 1, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Badge.Mark.ClipId", TcbTable.KindScalar, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Badge.Mark.ClipId");
                         for (int i = 0; i < count; )
                         {
@@ -243,7 +243,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Badge.Mark.SealId", TcbTable.KindScalar, 1, false, TcbTable.ElementUuid);
+                        TcbTable.CheckColumn(column, "Badge.Mark.SealId", TcbTable.KindScalar, false, TcbTable.ElementUuid);
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
@@ -254,7 +254,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Badge.Mark.Rank", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Badge.Mark.Rank", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Badge.Mark.Rank");
                         for (int i = 0; i < count; )
                         {
@@ -270,7 +270,7 @@ namespace Tabbit.Fixtures.RecordRef
                         break;
 
                     case 5:
-                        TcbTable.CheckColumn(column, "Badge.Pad", TcbTable.KindScalar, 1, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        TcbTable.CheckColumn(column, "Badge.Pad", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                         cursor = new TcbColumnCursor(reader, column, count, "Badge.Pad");
                         for (int i = 0; i < count; )
                         {

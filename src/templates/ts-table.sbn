@@ -208,7 +208,7 @@ export class {{ name }}Record {
   public {{ field.field_name }}: {{ field.field_type }}[] = []
   public {{ field.field_name }}_{{ field.ref_table }}_index: {{ field.ref_key_type_name }}[] = []
   public {{ field.field_name }}_F: boolean[] = []
-{{~ else if field.kind == 'record_array' || field.kind == 'record_var_array' || field.kind == 'array_of_arrays' ~}}
+{{~ else if field.kind == 'record_var_array' || field.kind == 'array_of_arrays' ~}}
 {{~## Created with the record, not by the read. Each member column fills one property of
    each element, so there has to be an element there to fill - and a member whose column
    the file does not carry then holds its empty value rather than undefined.
@@ -216,7 +216,7 @@ export class {{ name }}Record {
    A trimmed group is the exception and starts empty: how long this row's array is only
    becomes known as it is read. ##~}}
   public {{ field.field_name }}: {{ field.field_type }}[] = {{ field.default_value }}
-{{~ else if field.kind == 'var_array' || field.kind == 'array' ~}}
+{{~ else if field.kind == 'var_array' ~}}
   public {{ field.field_name }}: {{ field.field_type }}[] = []
 {{~ else if field.kind == 'scalar_ref' ~}}
   public {{ field.field_name }}: {{ field.field_type }}
@@ -455,34 +455,6 @@ export class {{ name }}Table {
                 tabbit.isPresent(elementPresence, elementAt++))
 {{~ end ~}}
             }
-{{~ else if column.kind == 'array_ref' ~}}
-{{~## All three arrays as long as the column states, which is what every other language does.
-   Only the keys arrive on the wire; the values are filled in once every table is in memory,
-   and the flag says whether that happened.
-
-   Left empty, the resolved array ended up holding only the elements that resolved - so a row
-   whose second reference pointed at nothing had a one-element array, and `for (const x of
-   record.slots)` walked past the hole without a sign. Its length is the column's.
-   spec/nullable-array-elements.md. ##~}}
-            record.{{ column.field_name }} = new Array(column.count).fill(undefined)
-            record.{{ column.field_name }}_F = new Array(column.count).fill(false)
-            record.{{ column.field_name }}_{{ column.ref_table }}_index = []
-            for (let j = 0; j < column.count; ++j)
-              record.{{ column.field_name }}_{{ column.ref_table }}_index.push({{ column.binary_read }})
-{{~ else if column.kind == 'array' ~}}
-{{~## One column owns the whole array, so how many elements it holds is what the file states
-   rather than a number written in here. spec/nullable-array-elements.md. ##~}}
-            record.{{ column.field_name }} = []
-{{~ if column.has_optional_elements ~}}
-            record.{{ column.element_presence_field }} = []
-{{~ end ~}}
-            for (let j = 0; j < column.count; ++j) {
-              record.{{ column.field_name }}.push({{ column.binary_read }})
-{{~ if column.has_optional_elements ~}}
-              record.{{ column.element_presence_field }}.push(
-                tabbit.isPresent(elementPresence, elementAt++))
-{{~ end ~}}
-            }
 {{~ else if column.kind == 'record_var_array_member' ~}}
 {{~## A trimmed record array: the length is written per row, once per member, and every
    member carries the same one. The first member creates the elements - no declaration
@@ -499,19 +471,18 @@ export class {{ name }}Table {
               record.{{ column.field_name }}[j]{{ column.member_access }}{{ column.member_ref_suffix }} = {{ column.binary_read }}
 {{~ else if column.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
-   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
-            for (let j = 0; j < {{ column.element_count }}; ++j)
+   fixed and the loop runs the inner length, which this row states. ##~}}
+            const elementCount = {{ column.length_read }}
+            record.{{ column.field_name }}[{{ column.member_at }}] = []
+            for (let j = 0; j < elementCount; ++j)
               record.{{ column.field_name }}[{{ column.member_at }}][j] = {{ column.binary_read }}
 {{~ else if column.kind == 'record_member_array' ~}}
-{{~## The member is the array: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
-            for (let j = 0; j < {{ column.element_count }}; ++j)
+{{~## The member is the array: the index goes after its name rather than before, and its
+   length is this row's - see spec/nested-multi-level.md. ##~}}
+            const elementCount = {{ column.length_read }}
+            record.{{ column.field_name }}{{ column.member_access }}{{ column.member_ref_suffix }} = []
+            for (let j = 0; j < elementCount; ++j)
               record.{{ column.field_name }}{{ column.member_access }}{{ column.member_ref_suffix }}[j] = {{ column.binary_read }}
-{{~ else if column.kind == 'record_array_member' ~}}
-{{~## One member of an array-valued record. The array and its objects were created
-   with the record, so this fills a field of each rather than pushing. ##~}}
-            for (let j = 0; j < {{ column.element_count }}; ++j)
-              record.{{ column.field_name }}[j]{{ column.member_access }}{{ column.member_ref_suffix }} = {{ column.binary_read }}
 {{~ else if column.kind == 'record_member' ~}}
             record.{{ column.field_name }}{{ column.member_access }}{{ column.member_ref_suffix }} = {{ column.binary_read }}
 {{~ else if column.kind == 'scalar_ref' ~}}
