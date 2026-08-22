@@ -48,9 +48,9 @@ public sealed class StringListConverter : JsonConverter
                 return result;
         }
 
-        throw new TabbitException(
-            $"Expected a string or an array of strings, and found {token.Type}. " +
-            $"(at {token.Path})");
+            throw new TabbitException(null,
+                Messages.Message.Of(RecipeMessages.StringListExpected,
+                    ("Found", token.Type), ("Path", token.Path)));
     }
 
     public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)

@@ -99,4 +99,21 @@ public static class ExportMessages
 
     /// <summary>A line ending that is neither `lf` nor `crlf`.</summary>
     public const string TextLineEndingUnknown = "export.text-line-ending-unknown";
+    /// <summary>A constant whose type a generator has no rendering for.</summary>
+    public const string ConstantTypeNotRendered = "export.constant-type-not-rendered";
+
+    /// <summary>A target that does not carry optional fields yet.</summary>
+    public const string TargetNoOptionalFields = "export.target-no-optional-fields";
+
+    /// <summary>A target that does not carry optional array elements yet.</summary>
+    public const string TargetNoOptionalElements = "export.target-no-optional-elements";
+
+    /// <summary>A target that does not carry record groups yet.</summary>
+    public const string TargetNoNestedFields = "export.target-no-nested-fields";
+
+    /// <summary>A target that does not carry a record inside a record yet.</summary>
+    public const string TargetNoRecordInRecord = "export.target-no-record-in-record";
+
+    /// <summary>Two model entities whose names reduce to one file name.</summary>
+    public const string GeneratedFileNameClash = "export.generated-file-name-clash";
 }

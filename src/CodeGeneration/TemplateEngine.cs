@@ -54,9 +54,9 @@ internal static class TemplateEngine
 
         if (template.HasErrors)
         {
-            throw new TabbitException(
-                $"Template `{templateName}` failed to parse:{Environment.NewLine}" +
-                string.Join(Environment.NewLine, template.Messages));
+                throw new TabbitDefectException(
+                    $"Template `{templateName}` failed to parse:{Environment.NewLine}" +
+                    string.Join(Environment.NewLine, template.Messages));
         }
 
         var context = new TemplateContext
@@ -175,7 +175,7 @@ internal static class TemplateEngine
     {
         string resourceName = "Tabbit.Templates." + templateName;
 
-        using var stream = typeof(TemplateEngine).Assembly.GetManifestResourceStream(resourceName) ?? throw new TabbitException($"Embedded template `{resourceName}` is missing from the build.");
+        using var stream = typeof(TemplateEngine).Assembly.GetManifestResourceStream(resourceName) ?? throw new TabbitDefectException($"Embedded template `{resourceName}` is missing from the build.");
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }

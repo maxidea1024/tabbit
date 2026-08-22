@@ -410,11 +410,9 @@ public static class StagingFiles
         // ReadAllText strips a BOM, so this compares the text either way.
         if (alreadyStaged && File.ReadAllText(stagingFilename) != text)
         {
-            throw new TabbitException(
-                $"Two different files were generated for `{Path.GetFullPath(filename)}`. " +
-                "A generated file is named after a table, an enum or a constant set, and two " +
-                "of those have names that reduce to the same file name. Rename one of them " +
-                "in the sheets.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Exporters.ExportMessages.GeneratedFileNameClash,
+                        ("Path", Path.GetFullPath(filename))));
         }
 
         File.WriteAllText(stagingFilename, text, withByteOrderMark ? Utf8WithBom : Utf8WithoutBom);

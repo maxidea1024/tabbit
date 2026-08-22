@@ -197,7 +197,7 @@ public sealed class Diagnostics
     /// Headline shown above the list. Should say what was being checked, since the
     /// individual entries carry their own locations.
     /// </param>
-    public void ThrowIfAny(string summary)
+    public void ThrowIfAny(Messages.Message summary)
     {
         var stopping = _entries.Where(entry => Stops(entry.Severity))
                                .Select(entry => entry.Detail)
@@ -206,11 +206,19 @@ public sealed class Diagnostics
         if (stopping.Count == 0)
             return;
 
-        string headline = stopping.Count == 1
-            ? summary
-            : $"{summary} ({stopping.Count} problems)";
+        var catalog = Messages.MessageCatalog.Current;
+        string said = summary.In(catalog);
 
-        throw new TabbitException(headline) { Details = stopping };
+        // The count is added by a message of its own rather than glued on, because the caller
+        // cannot know it - and because a sentence with a parenthetical sometimes there and
+        // sometimes not is a sentence nobody can translate.
+        string headline = stopping.Count == 1
+            ? said
+            : Messages.Message.Fill(
+                catalog.TextOf(ReportMessages.ProblemsCounted),
+                [("Summary", said), ("Count", stopping.Count)]);
+
+        throw new TabbitException(null, headline) { Details = stopping };
     }
 
     /// <summary>

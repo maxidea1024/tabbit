@@ -54,9 +54,9 @@ internal static class RecipeSectionReader
 
             if (member is null)
             {
-                throw new TabbitException(
-                    $"`{ownerType.Name}` declares recipe section `{section}`, " +
-                    $"but `{current.Name}` has no `{part}`.");
+                    throw new TabbitDefectException(
+                        $"`{ownerType.Name}` declares recipe section `{section}`, " +
+                        $"but `{current.Name}` has no `{part}`.");
             }
 
             chain.Add(member);
@@ -65,9 +65,9 @@ internal static class RecipeSectionReader
 
         if (!typeof(IEnumerable<>).MakeGenericType(entryType).IsAssignableFrom(current))
         {
-            throw new TabbitException(
-                $"`{ownerType.Name}` declares recipe section `{section}`, but that is " +
-                $"`{current!.Name}` rather than a list of `{entryType.Name}`.");
+                throw new TabbitDefectException(
+                    $"`{ownerType.Name}` declares recipe section `{section}`, but that is " +
+                    $"`{current!.Name}` rather than a list of `{entryType.Name}`.");
         }
 
         return recipe =>

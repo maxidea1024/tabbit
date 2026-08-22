@@ -246,4 +246,60 @@ public static class CookingMessages
 
     /// <summary>A wire tag another column already holds.</summary>
     public const string WireTagReused = "cook.wire-tag-reused";
+    /// <summary>A constant a caller asked for that its set does not have.</summary>
+    public const string ConstantNotFound = "cook.constant-not-found";
+
+    /// <summary>An enum label a caller asked for by name.</summary>
+    public const string EnumLabelNotFound = "cook.enum-label-not-found";
+
+    /// <summary>An enum label a caller asked for by value.</summary>
+    public const string EnumValueNotFound = "cook.enum-value-not-found";
+
+    /// <summary>A table a caller asked for that the model does not have.</summary>
+    public const string TableNotFound = "cook.table-not-found";
+
+    /// <summary>An enum a caller asked for that the model does not have.</summary>
+    public const string EnumNotFound = "cook.enum-not-found";
+
+    /// <summary>A field a caller asked for that the table does not have.</summary>
+    public const string FieldNotFound = "cook.field-not-found";
+
+    /// <summary>An enum asked of a column that is not one.</summary>
+    public const string FieldIsNotAnEnum = "cook.field-is-not-an-enum";
+
+    /// <summary>An array whose elements are not all one type.</summary>
+    public const string ArrayMixesTypes = "cook.array-mixes-types";
+
+    /// <summary>A record level used as a value in one column and a record in another.</summary>
+    public const string RecordLevelIsValueAndRecord = "cook.record-level-is-value-and-record";
+
+    /// <summary>A record group numbering two of its levels.</summary>
+    public const string RecordNumbersTwoLevels = "cook.record-numbers-two-levels";
+
+    /// <summary>A record group numbering more levels than one.</summary>
+    public const string RecordNumbersTooManyLevels = "cook.record-numbers-too-many-levels";
+
+    /// <summary>A record group numbering an inner level and nesting as well.</summary>
+    public const string RecordNumbersInnerAndNests = "cook.record-numbers-inner-and-nests";
+
+    /// <summary>A numbered inner level holding a reference, which needs a name.</summary>
+    public const string RecordNumberedLevelReferences = "cook.record-numbered-level-references";
+
+    /// <summary>Members of one record group with different element counts.</summary>
+    public const string RecordMemberElementCountsDiffer = "cook.record-member-element-counts-differ";
+
+    /// <summary>Members of one record group numbered differently.</summary>
+    public const string RecordNumberedInconsistently = "cook.record-numbered-inconsistently";
+
+    /// <summary>Elements of one member typed differently.</summary>
+    public const string RecordMemberTypesDiffer = "cook.record-member-types-differ";
+
+    /// <summary>Members of one record group on different target sides.</summary>
+    public const string RecordMixesTargetSides = "cook.record-mixes-target-sides";
+
+    /// <summary>Columns folded into an array whose types do not agree.</summary>
+    public const string FoldedColumnTypesDiffer = "cook.folded-column-types-differ";
+
+    /// <summary>The headline over the reports that stopped a conversion.</summary>
+    public const string ValidationFailed = "cook.validation-failed";
 }

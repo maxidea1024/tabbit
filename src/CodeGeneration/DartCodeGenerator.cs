@@ -1349,7 +1349,9 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the dart generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "dart")));
         }
     }
 

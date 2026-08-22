@@ -131,4 +131,7 @@ public static class ValidationMessages
 
     /// <summary>A connection string with no scheme in front of it.</summary>
     public const string ConnectionNoScheme = "validate.connection-no-scheme";
+
+    /// <summary>The headline over the reports that stopped a validation stage.</summary>
+    public const string StageFailed = "validate.stage-failed";
 }

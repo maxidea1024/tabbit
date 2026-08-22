@@ -181,9 +181,10 @@ public sealed class SheetLayout
             if (known.Contains(key, StringComparer.OrdinalIgnoreCase))
                 continue;
 
-            throw new TabbitException(
-                $"Recipe `{section}` sets `LayoutOptions.{key}`, which the `{Id}` layout does "
-                + $"not read. It takes: {(known.Length == 0 ? "none" : string.Join(", ", known))}.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Recipe.RecipeMessages.LayoutOptionUnknown,
+                        ("Section", section), ("Key", key), ("Layout", Id),
+                        ("Known", known.Length == 0 ? "none" : string.Join(", ", known))));
         }
     }
 

@@ -158,7 +158,7 @@ public class LanguageProfileTests
             if (profile.ReadCalls == null)
             {
                 // Asking a reader that resolves by overload says so, rather than answering.
-                var overloaded = Assert.Throws<TabbitException>(
+                var overloaded = Assert.Throws<TabbitDefectException>(
                     () => profile.ReadCall(ValueType.Int32));
 
                 Assert.Contains(profile.Id, overloaded.Message);
@@ -166,7 +166,7 @@ public class LanguageProfileTests
                 continue;
             }
 
-            var thrown = Assert.Throws<TabbitException>(
+            var thrown = Assert.Throws<TabbitDefectException>(
                 () => profile.ReadCall(ValueType.Unresolved));
 
             Assert.Contains(profile.Id, thrown.Message);
@@ -223,7 +223,11 @@ public class LanguageProfileTests
     {
         foreach (var profile in Profiles())
         {
-            var ex = Assert.Throws<TabbitException>(
+            // TabbitDefectException, not TabbitException: a type a generator has no case for
+            // is a gap only this repository can close, so it is not a report anybody else can
+            // act on. What the test is about - refused by name rather than answered with
+            // something that looks like a call - is unchanged.
+            var ex = Assert.Throws<TabbitDefectException>(
                 () => profile.ScalarTypeName(ValueType.Unresolved));
 
             Assert.Contains(profile.Id, ex.Message);

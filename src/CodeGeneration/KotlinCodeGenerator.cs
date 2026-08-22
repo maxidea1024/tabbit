@@ -1331,7 +1331,9 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the kotlin generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "kotlin")));
         }
     }
 

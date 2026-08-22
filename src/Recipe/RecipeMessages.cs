@@ -93,4 +93,55 @@ public static class RecipeMessages
 
     /// <summary>A summary `Author` this tool does not understand.</summary>
     public const string SummaryAuthorUnknown = "recipe.summary-author-unknown";
+    /// <summary>A `MemberCase` this tool does not understand.</summary>
+    public const string MemberCaseUnknown = "recipe.member-case-unknown";
+
+    /// <summary>A `--template` no starting recipe answers to.</summary>
+    public const string TemplateUnknown = "recipe.template-unknown";
+
+    /// <summary>A `TargetSide` this tool does not understand.</summary>
+    public const string TargetSideUnknown = "recipe.target-side-unknown";
+
+    /// <summary>A setting that had to be a string or a list of them.</summary>
+    public const string StringListExpected = "recipe.string-list-expected";
+
+    /// <summary>A layout option the named layout does not read.</summary>
+    public const string LayoutOptionUnknown = "recipe.layout-option-unknown";
+
+    /// <summary>A target section that would not read.</summary>
+    public const string SectionCouldNotBeRead = "recipe.section-could-not-be-read";
+
+    /// <summary>A target entry with no `Type` to say what it configures.</summary>
+    public const string TargetEntryHasNoType = "recipe.target-entry-has-no-type";
+
+    /// <summary>A target entry naming a target that does not exist.</summary>
+    public const string TargetUnknown = "recipe.target-unknown";
+
+    /// <summary>Environment variables a recipe names that are not set.</summary>
+    public const string VariablesNotSet = "recipe.variables-not-set";
+
+    /// <summary>
+    /// As <see cref="VariablesNotSet"/>, where one of them is the environment name.
+    /// </summary>
+    /// <remarks>
+    /// Its own id for the sake of one extra paragraph. A recipe carrying that variable is a
+    /// recipe written for more than one environment, and somebody meeting it is usually running
+    /// a colleague's - so the sentence worth adding is which flag names the environment.
+    /// </remarks>
+    public const string VariablesNotSetWithEnvironment = "recipe.variables-not-set-with-environment";
+
+    /// <summary>A time zone this machine does not know.</summary>
+    public const string TimeZoneUnknown = "recipe.time-zone-unknown";
+
+    /// <summary>As <see cref="TimeZoneUnknown"/>, where near-misses were found.</summary>
+    public const string TimeZoneUnknownWithSuggestions = "recipe.time-zone-unknown-with-suggestions";
+
+    /// <summary>A time zone whose data this machine cannot read.</summary>
+    public const string TimeZoneDataUnreadable = "recipe.time-zone-data-unreadable";
+
+    /// <summary>A value that is neither a zone name nor an offset.</summary>
+    public const string TimeZoneNotAnOffset = "recipe.time-zone-not-an-offset";
+
+    /// <summary>An offset further from UTC than anywhere on earth.</summary>
+    public const string TimeZoneOffsetTooLarge = "recipe.time-zone-offset-too-large";
 }

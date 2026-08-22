@@ -58,10 +58,10 @@ internal static class CarriedReferences
 
             if (references.Count == 0)
             {
-                throw new TabbitException(
-                    $"This build of Tabbit carries no `{archive}`, so it cannot compile against "
-                    + $"anything. The build writes it - see `EmbedRuleCompilationReferences` in "
-                    + $"src/Tabbit.csproj.");
+                    throw new TabbitDefectException(
+                        $"This build of Tabbit carries no `{archive}`, so it cannot compile against "
+                        + $"anything. The build writes it - see `EmbedRuleCompilationReferences` in "
+                        + $"src/Tabbit.csproj.");
             }
 
             Cache[archive] = references;

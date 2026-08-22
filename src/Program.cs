@@ -350,9 +350,8 @@ class Program
             // done or not done.
             if (options.ValidateOnly && options.ForceOutput)
             {
-                throw new TabbitException(
-                    "`--validate-only` and `--force-output` ask for opposite things: one stops "
-                    + "before any output, the other insists every output entry runs. Pass one.");
+                    throw new TabbitException(null,
+                        Messages.Message.Of(RunMessages.ValidateOnlyWithForceOutput));
             }
 
             // Stamped onto the recipe before anything reads it, so the zone every dated cell

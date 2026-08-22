@@ -45,9 +45,8 @@ internal static class MemberCasing
             case "upper-snake": return NameCase.UpperSnake;
         }
 
-        throw new TabbitException(
-            $"The `{target}` target sets `MemberCase` to `{text}`. " +
-            "It takes `pascal`, `camel`, `snake` or `upper-snake`, or nothing at all to keep " +
-            "the spelling this language normally uses.");
+            throw new TabbitException(null,
+                Messages.Message.Of(Recipe.RecipeMessages.MemberCaseUnknown,
+                    ("Target", target), ("Value", text)));
     }
 }

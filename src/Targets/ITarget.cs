@@ -224,11 +224,9 @@ public abstract class Target<TEntry> : ITarget
                 string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
 
                 throw new TabbitException(wire.TagCarrier.TypeLocation,
-                    $"Target `{id}` does not support optional fields yet.\n"
-                    + $"  Table `{table.Name}` column `{wire.Name}` is typed "
-                    + $"`{wire.TagCarrier.TypeName}?`, so a row may have no value for it.\n"
-                    + $"  Remove the target from the recipe, or drop the `?` and let the "
-                    + $"column read a blank as the type's empty value.");
+                    Messages.Message.Of(Exporters.ExportMessages.TargetNoOptionalFields,
+                        ("Target", id), ("Table", table.Name), ("Column", wire.Name),
+                        ("Type", wire.TagCarrier.TypeName)));
             }
         }
     }
@@ -251,11 +249,9 @@ public abstract class Target<TEntry> : ITarget
                 string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
 
                 throw new TabbitException(wire.TagCarrier.TypeLocation,
-                    $"Target `{id}` does not support arrays whose elements may be absent yet.\n"
-                    + $"  Table `{table.Name}` column `{wire.Name}` is typed "
-                    + $"`{wire.TagCarrier.TypeName}?[]`, so an element may have no value.\n"
-                    + $"  Remove the target from the recipe, or move the `?` outside the "
-                    + $"brackets and let every element hold a value.");
+                    Messages.Message.Of(Exporters.ExportMessages.TargetNoOptionalElements,
+                        ("Target", id), ("Table", table.Name), ("Column", wire.Name),
+                        ("Type", wire.TagCarrier.TypeName)));
             }
         }
     }
@@ -280,11 +276,10 @@ public abstract class Target<TEntry> : ITarget
                 string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
 
                 throw new TabbitException(group.AnyField?.NameLocation,
-                    $"Target `{id}` does not support nested fields yet.\n"
-                    + $"  Table `{table.Name}` field `{group.Name}` is a record group of "
-                    + $"{group.Members.Count} member(s).\n"
-                    + $"  Remove the target from the recipe, or write the columns flat "
-                    + $"without `{Helpers.NestedName.MemberSeparator}`.");
+                    Messages.Message.Of(Exporters.ExportMessages.TargetNoNestedFields,
+                        ("Target", id), ("Table", table.Name), ("Field", group.Name),
+                        ("Count", group.Members.Count),
+                        ("Separator", Helpers.NestedName.MemberSeparator)));
             }
         }
     }
@@ -312,14 +307,11 @@ public abstract class Target<TEntry> : ITarget
                 string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
 
                 throw new TabbitException(deep.FirstField?.NameLocation,
-                    $"Target `{id}` does not support a record inside a record yet.\n"
-                    + $"  Table `{table.Name}` field `{group.Name}` has member `{deep.Name}`, "
-                    + $"which is a record of {deep.Members.Count} member(s) rather than a value.\n"
-                    + $"  Remove the target from the recipe, or flatten that level - "
-                    + $"`{group.Name}{Helpers.NestedName.MemberSeparator}{deep.Name}"
-                    + $"{deep.Members[0].Name}` instead of "
-                    + $"`{group.Name}{Helpers.NestedName.MemberSeparator}{deep.Name}"
-                    + $"{Helpers.NestedName.MemberSeparator}{deep.Members[0].Name}`.");
+                    Messages.Message.Of(Exporters.ExportMessages.TargetNoRecordInRecord,
+                        ("Target", id), ("Table", table.Name), ("Field", group.Name),
+                        ("Member", deep.Name), ("Count", deep.Members.Count),
+                        ("Separator", Helpers.NestedName.MemberSeparator),
+                        ("Inner", deep.Members[0].Name)));
             }
         }
     }

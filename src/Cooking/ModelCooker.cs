@@ -101,7 +101,7 @@ public partial class ModelCooker
         // report, and one nobody sees is one nobody writes.
         Report(diagnostics);
 
-        diagnostics.ThrowIfAny("The workbook did not pass validation.");
+        diagnostics.ThrowIfAny(Messages.Message.Of(CookingMessages.ValidationFailed));
 
         return result;
     }

@@ -471,6 +471,7 @@ public sealed class ValidationPipeline
                 + $"{diagnostics.InfoCount} note(s).");
         }
 
-        diagnostics.ThrowIfAny($"{what} did not pass.");
+        diagnostics.ThrowIfAny(
+            Messages.Message.Of(ValidationMessages.StageFailed, ("What", what)));
     }
 }

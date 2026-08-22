@@ -268,8 +268,10 @@ public static class TargetRegistry
         }
         catch (JsonException ex)
         {
-            throw new TabbitException(
-                $"Recipe `{section}` sets up target `{descriptor.Id}`, but could not be read: {ex.Message}");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Recipe.RecipeMessages.SectionCouldNotBeRead,
+                        ("Section", section), ("Target", descriptor.Id),
+                        ("Detail", ex.Message)));
         }
     }
 
@@ -295,16 +297,16 @@ public static class TargetRegistry
 
             if (string.IsNullOrWhiteSpace(id))
             {
-                throw new TabbitException(
-                    $"Recipe `Targets[{index}]` has no `Type`, so there is nothing to say which " +
-                    $"target it configures. Use one of: {KnownIds}.");
+                    throw new TabbitException(null,
+                        Messages.Message.Of(Recipe.RecipeMessages.TargetEntryHasNoType,
+                            ("Index", index), ("Known", KnownIds)));
             }
 
             if (!All.Any(d => string.Equals(d.Id, id, StringComparison.OrdinalIgnoreCase)))
             {
-                throw new TabbitException(
-                    $"Recipe `Targets[{index}]` names target `{id}`, which does not exist. " +
-                    $"Use one of: {KnownIds}.");
+                    throw new TabbitException(null,
+                        Messages.Message.Of(Recipe.RecipeMessages.TargetUnknown,
+                            ("Index", index), ("Target", id), ("Known", KnownIds)));
             }
         }
     }
@@ -323,8 +325,8 @@ public static class TargetRegistry
 
             if (type.IsAbstract || !typeof(ITarget).IsAssignableFrom(type))
             {
-                throw new TabbitException(
-                    $"`{type.Name}` is marked [TabbitTarget] but is not a concrete {nameof(ITarget)}.");
+                    throw new TabbitDefectException(
+                        $"`{type.Name}` is marked [TabbitTarget] but is not a concrete {nameof(ITarget)}.");
             }
 
             var target = (ITarget)Activator.CreateInstance(type)!;
@@ -336,7 +338,7 @@ public static class TargetRegistry
         var duplicate = descriptors.GroupBy(d => d.Id, StringComparer.OrdinalIgnoreCase)
                                    .FirstOrDefault(g => g.Count() > 1);
         if (duplicate is not null)
-            throw new TabbitException($"Two targets both claim the id `{duplicate.Key}`.");
+                throw new TabbitDefectException($"Two targets both claim the id `{duplicate.Key}`.");
 
         descriptors.Sort((left, right) =>
         {

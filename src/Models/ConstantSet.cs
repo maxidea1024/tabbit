@@ -81,7 +81,10 @@ public class ConstantSet
     /// </summary>
     public Constant GetConstant(string constantName, Location callerLocation)
     {
-        var result = FindConstant(constantName) ?? throw new TabbitException(callerLocation, $"constant `{constantName}` was not found in the constant-set `{Name}`");
+            var result = FindConstant(constantName)
+                ?? throw new TabbitException(callerLocation,
+                    Messages.Message.Of(Cooking.CookingMessages.ConstantNotFound,
+                        ("Name", constantName), ("Set", Name)));
         return result;
     }
 

@@ -1380,7 +1380,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the ruby generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "ruby")));
         }
     }
 

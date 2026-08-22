@@ -77,10 +77,10 @@ internal static class RecipeSkeleton
 
         if (stream is null)
         {
-            throw new TabbitException(
-                $"There is no starting recipe called `{template}`. " +
-                $"Use one of: {string.Join(", ", TemplateNames)} - or leave --template off " +
-                "for one holding every setting at its default.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(RecipeMessages.TemplateUnknown,
+                        ("Template", template),
+                        ("Known", string.Join(", ", TemplateNames))));
         }
 
         using var reader = new StreamReader(stream);

@@ -716,7 +716,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                 return reader + "As";
 
             default:
-                throw new TabbitException($"The unreal generator cannot read type `{wire.Type}`.");
+                    throw new TabbitDefectException($"The unreal generator cannot read type `{wire.Type}`.");
         }
     }
 

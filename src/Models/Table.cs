@@ -450,10 +450,11 @@ public class Table
             if (field.Type == first.Type)
                 continue;
 
-            throw new TabbitException(field.TypeLocation,
-                $"Array `{Name}.{groupName}` mixes types: element {ElementNumber(first)} is "
-                + $"`{first.TypeName}` and element {ElementNumber(field)} is `{field.TypeName}`. "
-                + $"Every element of an array is the same type.");
+                throw new TabbitException(field.TypeLocation,
+                    Messages.Message.Of(Cooking.CookingMessages.ArrayMixesTypes,
+                        ("Table", Name), ("Group", groupName),
+                        ("FirstElement", ElementNumber(first)), ("FirstType", first.TypeName),
+                        ("Element", ElementNumber(field)), ("Type", field.TypeName)));
         }
 
         return result;
@@ -487,7 +488,9 @@ public class Table
     {
         var found = FindField(nameToFind);
         if (found is null)
-            throw new TabbitException(callerLocation, $"No found field '{nameToFind}' in table '{Name}'");
+                throw new TabbitException(callerLocation,
+                    Messages.Message.Of(Cooking.CookingMessages.FieldNotFound,
+                        ("Name", nameToFind), ("Table", Name)));
 
         return found;
     }
@@ -679,11 +682,13 @@ public class Table
             var deeper = own.Where(field => field.NamePath!.Count - 1 > level).ToList();
             if (deeper.Count > 0 && deeper.Count < own.Count)
             {
-                throw new TabbitException(deeper[0].NameLocation,
-                    $"Record group `{Name}.{columns[0].GroupName}` uses `{member.Name}` as both a "
-                    + $"value and a record: `{FieldPath.Describe(own.First(f => f.NamePath!.Count - 1 == level).NamePath!)}` "
-                    + $"ends there where `{FieldPath.Describe(deeper[0].NamePath!)}` goes further in. "
-                    + $"A level is one or the other.");
+                    throw new TabbitException(deeper[0].NameLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.RecordLevelIsValueAndRecord,
+                            ("Table", Name), ("Group", columns[0].GroupName),
+                            ("Member", member.Name),
+                            ("Ends", FieldPath.Describe(
+                                own.First(f => f.NamePath!.Count - 1 == level).NamePath!)),
+                            ("Deeper", FieldPath.Describe(deeper[0].NamePath!))));
             }
 
             // The last level the path names is where the columns live. Above it, the
@@ -778,11 +783,10 @@ public class Table
                 continue;
 
             throw new TabbitException(field.NameLocation,
-                $"Record group `{Name}.{groupName}` puts its element number in two places: "
-                + $"`{FieldPath.Describe(shape)}` numbers a different level than "
-                + $"`{FieldPath.Describe(field.NamePath!)}`. `name[\"Member\"][0]` is one record "
-                + $"whose members are arrays and `name[0][\"Member\"]` is an array of records; a "
-                + $"group is one or the other.");
+                Messages.Message.Of(Cooking.CookingMessages.RecordNumbersTwoLevels,
+                    ("Table", Name), ("Group", groupName),
+                    ("Shape", FieldPath.Describe(shape)),
+                    ("Other", FieldPath.Describe(field.NamePath!))));
         }
 
         return shape;
@@ -818,11 +822,11 @@ public class Table
         if (repeating.Count == 2 && repeating[0] == 0 && repeating[1] == 1 && shape[1].IsAnonymous)
             return 1;
 
-        throw new TabbitException(columns[0].NameLocation,
-            $"Record group `{Name}.{groupName}` numbers {repeating.Count} of its levels in "
-            + $"`{FieldPath.Describe(shape)}`. One level of a group holds the element number; "
-            + $"an array nested inside another array is only supported where the inner level "
-            + $"has no name of its own, as in `Grid1{Helpers.NestedName.MemberSeparator}2`.");
+            throw new TabbitException(columns[0].NameLocation,
+                Messages.Message.Of(Cooking.CookingMessages.RecordNumbersTooManyLevels,
+                    ("Table", Name), ("Group", groupName), ("Count", repeating.Count),
+                    ("Shape", FieldPath.Describe(shape)),
+                    ("Separator", Helpers.NestedName.MemberSeparator)));
     }
 
     /// <summary>
@@ -844,12 +848,11 @@ public class Table
             var deep = group.Members.Find(member => !member.IsLeaf);
             if (deep is not null)
             {
-                throw new TabbitException(deep.FirstField?.NameLocation,
-                    $"Record group `{Name}.{group.Name}` numbers a level inside itself and also "
-                    + $"nests: member `{deep.Name}` is a record, and the element number is not on "
-                    + $"`{group.Name}`. Number the group instead - "
-                    + $"`{group.Name}1{Helpers.NestedName.MemberSeparator}{deep.Name}"
-                    + $"{Helpers.NestedName.MemberSeparator}{deep.Members[0].Name}`.");
+                    throw new TabbitException(deep.FirstField?.NameLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.RecordNumbersInnerAndNests,
+                            ("Table", Name), ("Group", group.Name), ("Member", deep.Name),
+                            ("Separator", Helpers.NestedName.MemberSeparator),
+                            ("Inner", deep.Members[0].Name)));
             }
         }
 
@@ -863,12 +866,11 @@ public class Table
             var referencing = leaves.Find(member => member.IsRef);
             if (referencing is not null)
             {
-                throw new TabbitException(referencing.FirstField!.DetailTypeLocation,
-                    $"Record group `{Name}.{group.Name}` numbers its inner level rather than naming "
-                    + $"it, and element {referencing.Name} references another table. A reference "
-                    + $"needs a name to keep its key under. Name the level - "
-                    + $"`{group.Name}{Helpers.NestedName.MemberSeparator}<name>` - or carry the key "
-                    + $"as a plain `int`.");
+                    throw new TabbitException(referencing.FirstField!.DetailTypeLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.RecordNumberedLevelReferences,
+                            ("Table", Name), ("Group", group.Name),
+                            ("Element", referencing.Name),
+                            ("Separator", Helpers.NestedName.MemberSeparator)));
             }
         }
 
@@ -879,10 +881,11 @@ public class Table
             // the missing column it is.
             if (member.Fields.Count != first.Fields.Count)
             {
-                throw new TabbitException(member.FirstField!.NameLocation,
-                    $"Record group `{Name}.{group.Name}` has {first.Fields.Count} element(s) for member "
-                    + $"`{first.Name}` but {member.Fields.Count} for `{member.Name}`. "
-                    + $"Every element of a record must declare every member.");
+                    throw new TabbitException(member.FirstField!.NameLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.RecordMemberElementCountsDiffer,
+                            ("Table", Name), ("Group", group.Name),
+                            ("FirstCount", first.Fields.Count), ("First", first.Name),
+                            ("Count", member.Fields.Count), ("Member", member.Name)));
             }
 
             // And the elements lined up: element k of one member has to be element k of
@@ -893,10 +896,12 @@ public class Table
                 if (ElementNumber(member.Fields[i]) == ElementNumber(first.Fields[i]))
                     continue;
 
-                throw new TabbitException(member.Fields[i].NameLocation,
-                    $"Record group `{Name}.{group.Name}` is numbered inconsistently: member `{first.Name}` "
-                    + $"has element {ElementNumber(first.Fields[i])} where `{member.Name}` has "
-                    + $"{ElementNumber(member.Fields[i])}. Every member must use the same element numbers.");
+                    throw new TabbitException(member.Fields[i].NameLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.RecordNumberedInconsistently,
+                            ("Table", Name), ("Group", group.Name), ("First", first.Name),
+                            ("FirstElement", ElementNumber(first.Fields[i])),
+                            ("Member", member.Name),
+                            ("Element", ElementNumber(member.Fields[i]))));
             }
 
             // Which level carries the element number is settled for the whole group before
@@ -919,22 +924,24 @@ public class Table
                 if (field.Type == member.FirstField!.Type)
                     continue;
 
-                throw new TabbitException(field.TypeLocation,
-                    $"Record group `{Name}.{group.Name}` member `{member.Name}` has type "
-                    + $"`{member.FirstField!.TypeName}` at element {ElementNumber(member.FirstField)} and "
-                    + $"`{field.TypeName}` at element {ElementNumber(field)}. Every element of a member "
-                    + $"must have the same type - the file stores the member as one column and states "
-                    + $"one type for it.");
+                    throw new TabbitException(field.TypeLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.RecordMemberTypesDiffer,
+                            ("Table", Name), ("Group", group.Name), ("Member", member.Name),
+                            ("FirstType", member.FirstField!.TypeName),
+                            ("FirstElement", ElementNumber(member.FirstField)),
+                            ("Type", field.TypeName), ("Element", ElementNumber(field))));
             }
 
             // Target side belongs to the record, not to its members. Half a record in one
             // build is not a shape any generator has.
             if (member.FirstField!.TargetSide != first.FirstField!.TargetSide)
             {
-                throw new TabbitException(member.FirstField!.TargetSideLocation,
-                    $"Record group `{Name}.{group.Name}` mixes target sides: `{first.Name}` is "
-                    + $"`{first.FirstField!.TargetSide}` and `{member.Name}` is `{member.FirstField!.TargetSide}`. "
-                    + $"A record is included in a build or not, so its members must agree.");
+                    throw new TabbitException(member.FirstField!.TargetSideLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.RecordMixesTargetSides,
+                            ("Table", Name), ("Group", group.Name),
+                            ("First", first.Name), ("FirstSide", first.FirstField!.TargetSide),
+                            ("Member", member.Name),
+                            ("Side", member.FirstField!.TargetSide)));
             }
         }
     }
@@ -1014,8 +1021,9 @@ public class Table
         var expectedType = output.Fields[0].Type;
         if (field.Type != expectedType)
         {
-            string message = $"The consecutive column name rules are applied, but the column types do not match each other. (The type of {field.Index} must be {expectedType}.";
-            throw new TabbitException(field.NameLocation, message);
+            throw new TabbitException(field.NameLocation,
+                Messages.Message.Of(Cooking.CookingMessages.FoldedColumnTypesDiffer,
+                    ("Index", field.Index), ("Type", expectedType)));
         }
 
         if (output.Fields.Count == 1)

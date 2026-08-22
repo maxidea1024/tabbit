@@ -72,15 +72,16 @@ public static class TimeZones
         }
         catch (TimeZoneNotFoundException)
         {
-            throw new TabbitException(Unknown(value, subject));
+                throw new TabbitException(null, Unknown(value, subject));
         }
         catch (InvalidTimeZoneException problem)
         {
             // The name exists and its data does not load. Nothing a recipe can fix, so the
             // message says where the fault is rather than offering spellings.
-            throw new TabbitException(
-                $"{subject} is `{value}`, and this machine's time zone data for it cannot "
-                + $"be read. ({problem.Message})");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Recipe.RecipeMessages.TimeZoneDataUnreadable,
+                        ("Subject", subject), ("Value", value),
+                        ("Detail", problem.Message)));
         }
     }
 
@@ -102,17 +103,16 @@ public static class TimeZones
 
         if (!TryOffset(value, out TimeSpan offset))
         {
-            throw new TabbitException(
-                $"{subject} is `{value}`, which is not an offset from UTC. An offset is "
-                + "written `+09:00`, `-05:30`, `+0900` or `+09`, and `Z` is UTC itself. A "
-                + "region's name works too, as `Asia/Seoul`.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Recipe.RecipeMessages.TimeZoneNotAnOffset,
+                        ("Subject", subject), ("Value", value)));
         }
 
         if (offset > OffsetLimit || offset < -OffsetLimit)
         {
-            throw new TabbitException(
-                $"{subject} is `{value}`, which is further from UTC than any place on "
-                + $"earth. Offsets run from `-14:00` to `+14:00`.");
+                throw new TabbitException(null,
+                    Messages.Message.Of(Recipe.RecipeMessages.TimeZoneOffsetTooLarge,
+                        ("Subject", subject), ("Value", value)));
         }
 
         if (offset == TimeSpan.Zero)
@@ -196,18 +196,24 @@ public static class TimeZones
     /// gets written is `Seoul` or `seoul`, and both reach `Asia/Seoul` this way while
     /// neither is an edit distance from it.
     /// </remarks>
-    private static string Unknown(string value, string subject)
+    /// <remarks>
+    /// Two ids rather than one sentence with a clause spliced into the middle of it. Whether
+    /// this machine had a near-miss to offer decides which sentence is written, and a catalog
+    /// entry cannot hold that choice.
+    /// </remarks>
+    private static Messages.Message Unknown(string value, string subject)
     {
         var suggestions = Nearest(value);
 
-        string nearby = suggestions.Count == 0
-            ? ""
-            : " Did you mean " + string.Join(", ", suggestions.Select(id => $"`{id}`")) + "?";
+        if (suggestions.Count == 0)
+        {
+            return Messages.Message.Of(Recipe.RecipeMessages.TimeZoneUnknown,
+                ("Subject", subject), ("Value", value));
+        }
 
-        return $"{subject} is `{value}`, which is not a time zone this machine knows."
-               + nearby
-               + " A zone is named as `Asia/Seoul` or `Korea Standard Time`, and an offset is"
-               + " written `+09:00` for sheets whose authors keep one offset all year.";
+        return Messages.Message.Of(Recipe.RecipeMessages.TimeZoneUnknownWithSuggestions,
+            ("Subject", subject), ("Value", value),
+            ("Suggestions", string.Join(", ", suggestions.Select(id => $"`{id}`"))));
     }
 
     /// <summary>Zone ids that hold what was written, however it was capitalized.</summary>

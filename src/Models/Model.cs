@@ -160,7 +160,8 @@ public class Model
     {
         var found = FindTable(name);
         if (found is null)
-            throw new TabbitException(callerLocation, $"No found table '{name}'");
+                throw new TabbitException(callerLocation,
+                    Messages.Message.Of(Cooking.CookingMessages.TableNotFound, ("Name", name)));
 
         return found;
     }
@@ -187,7 +188,8 @@ public class Model
     {
         var found = FindEnum(name);
         if (found is null)
-            throw new TabbitException(callerLocation, $"No found enum '{name}'");
+                throw new TabbitException(callerLocation,
+                    Messages.Message.Of(Cooking.CookingMessages.EnumNotFound, ("Name", name)));
 
         return found;
     }

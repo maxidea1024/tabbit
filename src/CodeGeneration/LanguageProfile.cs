@@ -94,14 +94,14 @@ public sealed class LanguageProfile
     public string ReadCall(ValueType type, string? destination = null)
     {
         if (ReadCalls is null)
-            throw new TabbitException($"The {Id} reader resolves reads by overload, so it has no call table.");
+                throw new TabbitDefectException($"The {Id} reader resolves reads by overload, so it has no call table.");
 
         var element = ValueTypes.ElementOf(type);
 
         if (ReadCalls.TryGetValue(element, out string? call))
             return string.Format(call, destination);
 
-        throw new TabbitException($"The {Id} generator cannot read type `{type}`.");
+            throw new TabbitDefectException($"The {Id} generator cannot read type `{type}`.");
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public sealed class LanguageProfile
         if (ScalarTypes.TryGetValue(element, out string? name))
             return name;
 
-        throw new TabbitException($"The {Id} generator cannot render type `{type}`.");
+            throw new TabbitDefectException($"The {Id} generator cannot render type `{type}`.");
     }
 
     /// <summary>Wraps an already-rendered element type as an array.</summary>

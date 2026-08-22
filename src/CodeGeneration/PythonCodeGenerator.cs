@@ -1511,7 +1511,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
             default:
                 throw new TabbitException(constant.Location,
-                    $"Constant `{constant.Name}` has type `{constant.Type}`, which the python generator cannot render.");
+                        Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Generator", "python")));
         }
     }
 

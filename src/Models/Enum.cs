@@ -104,11 +104,17 @@ public class Enum
         if (found is null)
         {
             if (labelNameOrValue is string name)
-                throw new TabbitException(callerLocation, $"Label '{name}' was not found in the enum '{Name}'");
+                    throw new TabbitException(callerLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.EnumLabelNotFound,
+                            ("Label", name), ("Enum", Name)));
             else if (labelNameOrValue is int value)
-                throw new TabbitException(callerLocation, $"Value '{value}' was not found in the enum '{Name}'");
+                    throw new TabbitException(callerLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.EnumValueNotFound,
+                            ("Value", value), ("Enum", Name)));
             else
-                throw new TabbitException();
+                    throw new TabbitDefectException(
+                        "An enum label was looked up with neither a name nor a value, which the "
+                        + "check above is supposed to have refused already.");
         }
 
         return found;
@@ -138,9 +144,9 @@ public class Enum
             return null;
         }
 
-        throw new TabbitException(
-            $"Enum `{Name}` was looked up with a {labelNameOrValue?.GetType().Name ?? "null"}, " +
-            $"but only a label name or an integer value can identify a label.");
+            throw new TabbitDefectException(
+                $"Enum `{Name}` was looked up with a {labelNameOrValue?.GetType().Name ?? "null"}, " +
+                $"but only a label name or an integer value can identify a label.");
     }
 
     /// <summary>

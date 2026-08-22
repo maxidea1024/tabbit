@@ -383,8 +383,9 @@ public class Field
             // declaration a scalar `enum` field would.
             if (ElementType != ValueType.Enum)
             {
-                throw new TabbitException(NameLocation,
-                    $"Field `{OwnerTable?.Name}.{Name}` has type `{TypeName}`, which is not an enum.");
+                    throw new TabbitException(NameLocation,
+                        Messages.Message.Of(Cooking.CookingMessages.FieldIsNotAnEnum,
+                            ("Table", OwnerTable?.Name), ("Field", Name), ("Type", TypeName)));
             }
 
             return Model.Current.GetEnum(TypeName, null)!;

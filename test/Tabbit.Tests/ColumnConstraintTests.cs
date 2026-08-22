@@ -67,7 +67,10 @@ public class ColumnConstraintTests
 
         // The collector holds them; the message is what a reader sees, so that is what
         // these assert on.
-        var thrown = Record.Exception(() => diagnostics.ThrowIfAny("bad"));
+        // The headline is not what these assert on - the entries under it are - but it has to
+        // be a named report now, because that is the only kind ThrowIfAny takes.
+        var thrown = Record.Exception(() => diagnostics.ThrowIfAny(
+            Tabbit.Messages.Message.Of(Tabbit.Cooking.CookingMessages.ValidationFailed)));
         if (thrown is null)
             return System.Array.Empty<string>();
 

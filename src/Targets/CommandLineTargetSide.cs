@@ -46,8 +46,7 @@ public static class CommandLineTargetSide
                 return TargetSide.Both;
         }
 
-        throw new TabbitException(
-            $"--target-side `{text}` is not recognized. " +
-            "Use `client`, `server`, or `both` (the default).");
+            throw new TabbitException(null,
+                Messages.Message.Of(RunMessages.TargetSideUnknown, ("Value", text)));
     }
 }
