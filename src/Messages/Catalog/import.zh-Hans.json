@@ -8,7 +8,6 @@
   "import.google-key-variable-not-set": "recipe 小节 `{Section}` 从环境变量 `{Variable}` 读取服务账号密钥，但该变量没有设置。把密钥放在环境里是为了不必提交到仓库。",
   "import.google-key-unreadable": "recipe 小节 `{Section}` 无法从 {Origin} 读取服务账号密钥：{Detail} 服务账号密钥里有 `\"type\": \"service_account\"`。若是 OAuth 客户端密钥，请放到 `ClientSecretFilename`。",
   "import.google-client-secret-missing": "recipe 小节 `{Section}` 指定客户端密钥文件为 `{Path}`，但该文件不存在。",
-  "import.log-binary-workbook-no-notes": "`{File}` 是二进制工作簿，其单元格批注不会被读取。",
   "import.log-cached-token-predates-scope": "本机缓存的令牌是在 Tabbit 请求 `{Scope}` 之前签发的，而缓存的令牌不会自行重新征得同意。请删除 `{TokenStore}` 后重新运行：下一次运行会打开一次浏览器来征得同意。",
   "import.log-defined-name-no-range": "`{Document}` 的已定义名称 `{Name}` 没有指向任何范围。跳过。",
   "import.log-defined-name-not-a-range": "`{File}` 的已定义名称 `{Name}` 指向 `{Range}`，但那不是一个范围。跳过。",

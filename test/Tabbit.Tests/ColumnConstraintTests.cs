@@ -57,7 +57,6 @@ public class ColumnConstraintTests
         {
             Location = new Location { Filename = "book.xlsx", Sheet = "S", Row = row, Column = column },
             Value = "",
-            Note = "",
         };
 
     private static IReadOnlyList<string> Check(Table table)

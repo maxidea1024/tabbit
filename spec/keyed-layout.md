@@ -220,10 +220,11 @@ float · double · bool · datetime · timespan · uuid · enum · enum[] · for
 컬럼의 설명입니다. 긴 한국어 설명은 컬럼 폭을 증가시키고, 그만큼 한 화면에 표시되는 데이터가
 감소합니다.
 
-**대안으로 `[field]` 셀의 메모를 설명으로 수용하는 방법이 있습니다.** 두 임포터 모두 셀
-메모를 `RawCell.Note`에 이미 기록하고 있으나([XlsxImporter.cs:435](../src/Importers/XlsxImporter.cs#L435)),
-현재 어느 레이아웃도 사용하지 않습니다. 폭을 전혀 점유하지 않고 마우스를 올리는 것으로
-확인됩니다. 양쪽에 모두 기재된 경우는 오류로 처리합니다.
+~~**대안으로 `[field]` 셀의 메모를 설명으로 수용하는 방법이 있습니다.**~~ **없어진
+대안입니다.** 그때는 두 임포터가 셀 메모를 `RawCell.Note`에 기록하고 있었고 어느 레이아웃도
+사용하지 않는 상태였습니다. 이제는 기록하지도 않습니다 — 폭을 점유하지 않는다는 장점이 곧
+단점이어서, 올려놓지 않으면 보이지 않고 한 컬럼을 한눈에 볼 방법이 없습니다. 결정과 근거는
+[`RawCell`](../src/Models/Raw/RawCell.cs)에 있습니다.
 
 ---
 
@@ -382,7 +383,6 @@ float · double · bool · datetime · timespan · uuid · enum · enum[] · for
 
 |대상|용도|
 |--|--|
-|`RawCell.Note`|`[field]` 셀 메모를 설명으로 수용|
 |`Field.Constraints`|`[min]` · `[max]` · `[allow]` 행을 나중에 추가할 때|
 |`CookingContext.SplitStringRole`|`[detail]`의 `그룹,네임스페이스` 분해|
 

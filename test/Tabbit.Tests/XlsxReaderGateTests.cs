@@ -54,8 +54,12 @@ public class XlsxReaderGateTests
 
         if (Recording)
         {
+            // LF, and joined by hand rather than through WriteAllLines - which writes the
+            // platform's own line ending, so the same fixtures recorded on Windows and on
+            // Linux produce two files that differ on every line. The same reason the JSON
+            // export settles its line endings rather than leaving them to the serializer.
             var lines = measured.Select(entry => $"{entry.Key}\t{entry.Value}");
-            File.WriteAllLines(RecordPath, lines);
+            File.WriteAllText(RecordPath, string.Join("\n", lines) + "\n");
             return;
         }
 
@@ -147,16 +151,17 @@ public class XlsxReaderGateTests
             return $"unreadable:{e.GetType().Name}";
         }
 
-        // Names and notes come from the package rather than the cell reader, and a reader
-        // swap has to keep them too - they are the doc comments of everything a sheet
-        // declares, and the table boundaries of the layouts that read names.
-        int names, skipped, notes;
+        // Names come from the package rather than the cell reader, and a reader swap has to
+        // keep them too - they are the table boundaries of the layouts that read names.
+        //
+        // A note count used to be recorded beside them. Cell notes are not read any more, so
+        // there is nothing to record - see `RawCell`.
+        int names, skipped;
         try
         {
             var package = WorkbookPackage.Read(path, _ => true);
             names = package.DefinedNames.Count;
             skipped = package.SkippedNames.Count;
-            notes = CountNotes(package, path);
         }
         catch (Exception e)
         {
@@ -170,38 +175,7 @@ public class XlsxReaderGateTests
             $"chars={chars}",
             $"names={names}",
             $"skipped-names={skipped}",
-            $"notes={notes}",
             $"hash={hash.ToString("x16", CultureInfo.InvariantCulture)}");
     }
 
-    /// <summary>
-    /// How many cells of the workbook carry a note.
-    /// </summary>
-    /// <remarks>
-    /// Counted by asking about the cells that exist, because the package reader answers per
-    /// cell rather than handing out its table - which is what the importer needs of it.
-    /// </remarks>
-    private static int CountNotes(WorkbookPackage package, string path)
-    {
-        if (!package.HasNotes) return 0;
-
-        int found = 0;
-        using var reader = SheetGridReader.Open(path);
-
-        while (reader.MoveToNextSheet())
-        {
-            string sheetName = reader.SheetName.Trim();
-            while (reader.ReadRow())
-            {
-                int columnCount = reader.ColumnCount;
-                for (int column = 0; column < columnCount; column++)
-                {
-                    if (package.Note(sheetName, reader.RowIndex, column).Length > 0)
-                        found++;
-                }
-            }
-        }
-
-        return found;
-    }
 }

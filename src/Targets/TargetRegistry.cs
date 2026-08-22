@@ -178,30 +178,71 @@ public static class TargetRegistry
         // most conversions have no target that records anything.
         var commit = new Lazy<CommitInfo>(() => CommitInfo.Resolve(options, recipe));
 
-        foreach (var planned in Plan(recipe, requested))
+        // Asked before anything is built, because narrowing the model is work too. A false
+        // answer has already declared that entry's previous output as still standing -
+        // otherwise the sweep would delete it for not having been written.
+        var building = Plan(recipe, requested).Where(cache.ShouldRun).ToList();
+
+        // The projections, made once per side rather than once per entry.
+        //
+        // Two reasons, and the second is the one that matters. It is less work - a recipe
+        // naming ten client-side outputs was narrowing the same model ten times - and
+        // `ProjectTo` cannot be called from several threads at once: it publishes the
+        // projected model as `Model.Current` and puts the previous one back when it is done,
+        // which is not a thing two threads can do to one static field.
+        var sided = new Dictionary<TargetSide, Model>();
+
+        foreach (var planned in building)
         {
-            // Asked before the model is narrowed, because narrowing it is work too. A false
-            // answer has already declared this entry's previous output as still standing -
-            // otherwise the sweep below would delete it for not having been written.
-            if (!cache.ShouldRun(planned))
-                continue;
+            if (!sided.ContainsKey(planned.Side))
+                sided[planned.Side] = model.ProjectTo(planned.Side);
+        }
 
-            var sided = model.ProjectTo(planned.Side);
+        // Every table's derived column lists, built before anything reads them.
+        //
+        // The exporters and the generators all read `WireColumns` and `SerialFields`, and
+        // those are built on first use - which is not something two entries can do at once.
+        // Built here, once, they are read-only for the rest of the run.
+        foreach (var projection in sided.Values)
+        {
+            foreach (var table in projection.Tables)
+                table.BuildDerivedColumns();
+        }
 
-            // What this entry staged, taken as the difference across its run rather than
-            // reported by the target itself. A target writes through StagingFiles and does
-            // not keep a list, and asking twenty-five of them to start keeping one - so
-            // that a cache can be sealed - would put the cache's bookkeeping into every
-            // one of them.
-            int before = StagingFiles.PendingCount;
+        // Built in parallel, grouped by target.
+        //
+        // **The entries of one target run in order, and the targets run beside each other.**
+        // A target is one object serving every entry that names it - it holds its manifest
+        // and its keys in fields - so two of its entries at once would be two runs sharing
+        // that state. Different targets share nothing but the staging ledger, which locks.
+        //
+        // What each entry staged is attributed by name rather than by counting the ledger
+        // before and after, which is what made this sequential: a slice of a shared list is
+        // an answer only while one entry is writing to it.
+        // spec/conversion-time.md section 5.
+        var byTarget = building.GroupBy(planned => planned.Descriptor).ToList();
 
-            using (timings.MeasureEntry($"{planned.Section} {planned.Descriptor.Id}"))
+        System.Threading.Tasks.Parallel.ForEach(byTarget, group =>
+        {
+            foreach (var planned in group)
             {
-                planned.Descriptor.Target.Run(
-                    new TargetContext(options, recipe, sided, model, commit, planned.Entry, planned.Section));
+                using (StagingFiles.Attributing(planned.Section!))
+                using (timings.MeasureEntry($"{planned.Section} {planned.Descriptor.Id}"))
+                {
+                    planned.Descriptor.Target.Run(new TargetContext(
+                        options, recipe, sided[planned.Side], model, commit,
+                        planned.Entry, planned.Section));
+                }
             }
+        });
 
-            cache.Wrote(planned.Section!, StagingFiles.PendingSince(before), planned.Descriptor.Deterministic);
+        // Told to the cache afterwards, in the order the recipe lists the entries. What goes
+        // into the seal is then the same whichever order the entries finished in.
+        foreach (var planned in building)
+        {
+            cache.Wrote(
+                planned.Section!, StagingFiles.StagedBy(planned.Section!),
+                planned.Descriptor.Deterministic);
         }
     }
 

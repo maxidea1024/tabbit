@@ -181,12 +181,22 @@ public class Table
             // flat columns they were written as.
             if (_serialFields is null)
             {
-                _serialFields = FoldSerialFields
+                // Built into a local and published when it is finished.
+                //
+                // It used to be assigned first and then walked, so for the length of that
+                // walk the field held a list whose requiredness had not been applied. That
+                // is a window a second reader can see through, and the output entries now
+                // read this while running beside each other - so what would have been an
+                // odd ordering becomes a column that is optional in one target's output and
+                // required in another's. spec/conversion-time.md section 5.
+                var groups = FoldSerialFields
                     ? BuildSerialFieldsFromPlainFields(Fields)
                     : BuildRecordGroupsOnly(Fields);
 
-                foreach (var group in _serialFields)
+                foreach (var group in groups)
                     TakeRequirednessFromFirstElement(group);
+
+                _serialFields = groups;
             }
 
             return _serialFields;
@@ -346,6 +356,26 @@ public class Table
     [JsonIgnore]
     public List<WireColumn> WireColumns => _wireColumns ??= WireColumn.Of(this);
     private List<WireColumn>? _wireColumns;
+
+    /// <summary>
+    /// Builds the derived column lists now, so that nothing has to build them later.
+    /// </summary>
+    /// <remarks>
+    /// **For the callers that are about to read this table from several threads.** The two
+    /// lists above are built on first use, and building them on first use is not something
+    /// two threads can do at once: `??=` is a read, a call and a write rather than one step,
+    /// so both would build and one would publish a list the other is already reading.
+    ///
+    /// Called once by whoever is about to fan out, rather than guarded here with a lock. A
+    /// lock on the getter would be paid by every read for the whole run - and these are read
+    /// per row by the exporters - to make safe a window that only exists before the first
+    /// one. spec/conversion-time.md section 5.
+    /// </remarks>
+    public void BuildDerivedColumns()
+    {
+        // Reading the wire columns builds the serial fields too, because it is made from them.
+        _ = WireColumns;
+    }
 
     /// <summary>
     /// Drops the column views derived from the field list, so the next reader rebuilds them.

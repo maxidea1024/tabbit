@@ -675,7 +675,6 @@ public sealed class RescueLayoutParser : ILayoutParser
                 {
                     Location = rawRow[0].Location,
                     Value = (table.Data.Count + 1).ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    Note = "",
                 };
 
             // `-` is no value and `\-` is the one character `-`, read where every layout

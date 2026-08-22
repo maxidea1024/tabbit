@@ -11,7 +11,6 @@
   "import.google-key-unreadable": "Recipe section `{Section}` could not read a service account key from {Origin}: {Detail} A service account key has `\"type\": \"service_account\"`; an OAuth client secret goes in `ClientSecretFilename` instead.",
   "import.google-client-secret-missing": "Recipe section `{Section}` names client secret file `{Path}`, which does not exist.",
 
-  "import.log-binary-workbook-no-notes": "`{File}` is a binary workbook, whose cell notes are not read.",
   "import.log-cached-token-predates-scope": "This machine's cached token was issued before Tabbit asked for `{Scope}`, and a cached token is not re-consented on its own. Delete `{TokenStore}` and run again: the next run opens a browser once to ask for it.",
   "import.log-defined-name-no-range": "Defined name `{Name}` of `{Document}` refers to no range. Skipped.",
   "import.log-defined-name-not-a-range": "Defined name `{Name}` of `{File}` refers to `{Range}`, which is not a range. Skipped.",

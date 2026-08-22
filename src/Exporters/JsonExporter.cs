@@ -112,10 +112,102 @@ public class JsonExporter : Target<JsonRecipe>
             _manifest.PruneStaleFiles(recipe.Path);
 
         // context.Model is already narrowed to this entry's target side.
-        foreach (var table in context.Model.Tables)
-            ExportTable(recipe, table);
+        //
+        // Planned first, then written at once, then recorded. **The plan is what makes the
+        // parallel write a refactoring**: the staging list's order reaches the build cache's
+        // seal and the manifest's order is the manifest file, so both are settled here, in
+        // table order, before any thread starts. spec/conversion-time.md section 5.
+        var planned = Plan(recipe, context.Model);
+
+        if (planned is null)
+        {
+            // Something else holds one of these files, or two of this entry's tables want
+            // one. Whether that is allowed is a question the sequential writer answers - it
+            // compares the text - and that comparison needs a file to compare against, which
+            // a claimed-but-unwritten staging path does not have.
+            foreach (var table in context.Model.Tables)
+                ExportTable(recipe, table);
+        }
+        else
+        {
+            System.Threading.Tasks.Parallel.ForEach(planned, job =>
+            {
+                Log.Information($"Exporting json file `{job.Destination}`");
+
+                StagingFiles.WriteJsonInto(job.Staged, Composed(recipe, job.Table, job.Set), recipe.Indented);
+            });
+
+            foreach (var job in planned)
+                _manifest.Add(job.Name, job.Staged);
+        }
 
         _manifest.BuildAndWriteToFile(manifestFilename);
+    }
+
+    /// <summary>One file this entry will write, and the staging file it will write it into.</summary>
+    private sealed class Job
+    {
+        public required Table Table { get; init; }
+        public required RowSet Set { get; init; }
+
+        /// <summary>File name as the manifest records it, extension included.</summary>
+        public required string Name { get; init; }
+
+        /// <summary>Where it will end up, for the log line.</summary>
+        public required string Destination { get; init; }
+
+        /// <summary>Where it is written first, claimed in table order.</summary>
+        public required string Staged { get; init; }
+    }
+
+    /// <summary>
+    /// Every file this entry will write, in table order - or null when one of them cannot be
+    /// claimed.
+    /// </summary>
+    /// <remarks>
+    /// The claiming is all-or-nothing, and it has to be: a partial claim would leave the
+    /// ledger holding files the sequential path is about to claim again, and that path's own
+    /// check reads what is already there. <see cref="StagingFiles.ClaimAll"/>.
+    /// </remarks>
+    private static List<Job>? Plan(JsonRecipe recipe, Model model)
+    {
+        var names = new List<(Table Table, RowSet Set, string Name, string Destination)>();
+
+        foreach (var table in model.Tables)
+        {
+            foreach (var rowSet in table.RowSets)
+            {
+                string name = table.DataFileName + rowSet.Name + ".json";
+
+                names.Add((
+                    table, rowSet, name,
+                    Path.GetFullPath(Path.Combine(recipe.Path, name))));
+            }
+        }
+
+        // All of them or none. What comes back is the staging file for each, in this order -
+        // and null means something else has one of these files, which the sequential path
+        // reports properly.
+        var staged = StagingFiles.ClaimAll(names.ConvertAll(planned => planned.Destination));
+
+        if (staged is null)
+            return null;
+
+        var jobs = new List<Job>(names.Count);
+
+        for (int at = 0; at < names.Count; at++)
+        {
+            jobs.Add(new Job
+            {
+                Table = names[at].Table,
+                Set = names[at].Set,
+                Name = names[at].Name,
+                Destination = names[at].Destination,
+                Staged = staged[at],
+            });
+        }
+
+        return jobs;
     }
 
     /// <summary>
@@ -305,12 +397,30 @@ public class JsonExporter : Target<JsonRecipe>
     private void ExportRowSet(JsonRecipe recipe, Table table, RowSet rowSet)
     {
         string fileName = table.DataFileName + rowSet.Name;
-        var rows = rowSet.Rows;
 
         var filename = Path.Combine(recipe.Path, fileName + ".json");
         filename = Path.GetFullPath(filename);
 
         Log.Information($"Exporting json file `{filename}`");
+
+        string stagingFilename = StagingFiles.WriteToJsonFile(
+            filename, Composed(recipe, table, rowSet), recipe.Indented);
+
+        _manifest.Add(fileName + ".json", stagingFilename);
+    }
+
+    /// <summary>
+    /// One set of rows as the objects the serializer will write, and nothing else.
+    /// </summary>
+    /// <remarks>
+    /// Split out from writing them because this half is where the work is - a row becomes a
+    /// dictionary or a positional array per column - and it is the half that runs for every
+    /// table at once. It touches the model and produces a new object graph, so there is
+    /// nothing in here for two tables to share. spec/conversion-time.md section 5.
+    /// </remarks>
+    private static object Composed(JsonRecipe recipe, Table table, RowSet rowSet)
+    {
+        var rows = rowSet.Rows;
 
         object? sourceRows = null;
 
@@ -457,7 +567,6 @@ public class JsonExporter : Target<JsonRecipe>
             sourceRows = writableRows;
         }
 
-        string stagingFilename = StagingFiles.WriteToJsonFile(filename, sourceRows, recipe.Indented);
-        _manifest.Add(fileName + ".json", stagingFilename);
+        return sourceRows;
     }
 }

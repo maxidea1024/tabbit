@@ -8,7 +8,6 @@
   "import.google-key-variable-not-set": "recipe セクション `{Section}` がサービスアカウントキーを環境変数 `{Variable}` から読みますが、その変数が設定されていません。キーを環境に置くのはリポジトリにコミットしないためです。",
   "import.google-key-unreadable": "recipe セクション `{Section}` が {Origin} からサービスアカウントキーを読めませんでした: {Detail} サービスアカウントキーには `\"type\": \"service_account\"` があります。OAuth クライアントシークレットなら `ClientSecretFilename` に入れてください。",
   "import.google-client-secret-missing": "recipe セクション `{Section}` がクライアントシークレットのファイルに `{Path}` を指定していますが、そのファイルがありません。",
-  "import.log-binary-workbook-no-notes": "`{File}` はバイナリワークブックで、そのセルのメモは読みません。",
   "import.log-cached-token-predates-scope": "このマシンにキャッシュされたトークンは Tabbit が `{Scope}` を要求する前に発行されたもので、キャッシュされたトークンは自分から再同意されません。`{TokenStore}` を削除して再実行してください: 次の実行がブラウザを一度開いて同意を求めます。",
   "import.log-defined-name-no-range": "`{Document}` の定義された名前 `{Name}` はどの範囲も指していません。飛ばします。",
   "import.log-defined-name-not-a-range": "`{File}` の定義された名前 `{Name}` が `{Range}` を指していますが、範囲ではありません。飛ばします。",

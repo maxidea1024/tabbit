@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
 using System.IO;
 
 namespace Tabbit.Helpers;
@@ -56,14 +57,37 @@ public static class FileHelper
     /// Takes the file name rather than the directory, since that is what every caller
     /// has in hand.
     /// </summary>
+    /// <summary>
+    /// Makes sure the directory a file is about to be written to exists.
+    /// </summary>
+    /// <remarks>
+    /// **Remembers the directories it has already answered for.** This is called once per
+    /// file, and a conversion commits thousands of them into a few dozen directories - so
+    /// asking the filesystem every time was thousands of round trips to learn the same
+    /// several dozen facts.
+    ///
+    /// The memory only ever holds directories this process has seen exist. A directory
+    /// removed by something else mid-run would then not be recreated, and that is a trade
+    /// worth naming: the alternative is a stat per file for the whole run, and a tool whose
+    /// output directory is being deleted underneath it has a larger problem than this.
+    /// spec/conversion-time.md section 5.
+    /// </remarks>
     public static void EnsurePathExists(string filename)
     {
         var path = Path.GetDirectoryName(filename);
 
-        var di = new DirectoryInfo(path!);
-        if (!di.Exists)
-            Directory.CreateDirectory(path!);
+        // TryAdd answers "was this the first time" and adds, in one step - so only the first
+        // caller for a directory reaches the filesystem, however many threads arrive at once.
+        if (string.IsNullOrEmpty(path) || !_directoriesMade.TryAdd(path, true))
+            return;
+
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
     }
+
+    /// <summary>Directories this process has already made sure of.</summary>
+    private static readonly ConcurrentDictionary<string, bool> _directoriesMade =
+        new ConcurrentDictionary<string, bool>(PathNames.Comparer);
 
     /// <summary>
     /// Size of a file, or -1 when it cannot be read.

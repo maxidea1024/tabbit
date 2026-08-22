@@ -226,8 +226,40 @@ public class BinaryExporter : Target<BinaryRecipe>
         var report = string.IsNullOrEmpty(binaryRecipe.EncodingReport) ? null : new TcbEncodingReport();
 
         // context.Model is already narrowed to this entry's target side.
-        foreach (var table in context.Model.Tables)
-            ExportTable(binaryRecipe, table, report!);
+        //
+        // Planned first, then written at once, then recorded - the same three steps the json
+        // export takes and for the same reason: the staging list's order reaches the build
+        // cache's seal and the manifest's order is the manifest file, so both are settled
+        // here in table order before any thread starts.
+        //
+        // A run that asked for the encoding report takes the sequential path. The report is a
+        // list in the order the columns were measured and it is written to a file, so a run
+        // asking for it is asking a question about the encoding rather than for the fastest
+        // export. spec/conversion-time.md section 5.
+        var planned = report is null ? Plan(binaryRecipe, context.Model) : null;
+
+        if (planned is null)
+        {
+            foreach (var table in context.Model.Tables)
+                ExportTable(binaryRecipe, table, report!);
+        }
+        else
+        {
+            System.Threading.Tasks.Parallel.ForEach(planned, job =>
+            {
+                var writer = Encode(job.Table, job.Set.Rows, null, Spread.Nothing);
+
+                Seal(writer);
+
+                ReadOnlySpan<byte> bytes = writer.WrittenSpan;
+
+                Log.Information($"Exporting binary file '{job.Destination}' ({bytes.Length} bytes)");
+                StagingFiles.WriteBytesInto(job.Staged, bytes);
+            });
+
+            foreach (var job in planned)
+                _manifest.Add(job.Name, job.Staged);
+        }
 
         _manifest.BuildAndWriteToFile(manifestFilename);
 
@@ -265,6 +297,90 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// ordinary path rather than a branch around it. The schema is the table's and is written
     /// into each file identically; only the rows differ. spec/table-row-sets.md.
     /// </remarks>
+    /// <summary>One file this entry will write, and the staging file it will write it into.</summary>
+    private sealed class Job
+    {
+        public required Table Table { get; init; }
+        public required RowSet Set { get; init; }
+
+        /// <summary>File name as the manifest records it, extension included.</summary>
+        public required string Name { get; init; }
+
+        /// <summary>Where it will end up, for the log line.</summary>
+        public required string Destination { get; init; }
+
+        /// <summary>Where it is written first, claimed in table order.</summary>
+        public required string Staged { get; init; }
+    }
+
+    /// <summary>
+    /// Every file this entry will write, in table order - or null when one of them cannot be
+    /// claimed.
+    /// </summary>
+    /// <remarks>
+    /// The claiming is all-or-nothing, and it has to be: a partial claim would leave the
+    /// ledger holding files the sequential path is about to claim again, and that path's own
+    /// check reads what is already there. <see cref="StagingFiles.ClaimAll"/>.
+    /// </remarks>
+    private static List<Job>? Plan(BinaryRecipe recipe, Model model)
+    {
+        var names = new List<(Table Table, RowSet Set, string Name, string Destination)>();
+
+        foreach (var table in model.Tables)
+        {
+            foreach (var rowSet in table.RowSets)
+            {
+                string name = table.DataFileName + rowSet.Name + recipe.FileExtension;
+
+                names.Add((
+                    table, rowSet, name,
+                    Path.GetFullPath(Path.Combine(recipe.Path, name))));
+            }
+        }
+
+        // All of them or none. What comes back is the staging file for each, in this order -
+        // and null means something else has one of these files, which the sequential path
+        // reports properly.
+        var staged = StagingFiles.ClaimAll(names.ConvertAll(planned => planned.Destination));
+
+        if (staged is null)
+            return null;
+
+        var jobs = new List<Job>(names.Count);
+
+        for (int at = 0; at < names.Count; at++)
+        {
+            jobs.Add(new Job
+            {
+                Table = names[at].Table,
+                Set = names[at].Set,
+                Name = names[at].Name,
+                Destination = names[at].Destination,
+                Staged = staged[at],
+            });
+        }
+
+        return jobs;
+    }
+
+    /// <summary>
+    /// Applies the outermost layers to a finished table, in the order a reader undoes them.
+    /// </summary>
+    /// <remarks>
+    /// Encryption then the tag, so a reader can refuse an altered file before it decrypts
+    /// one - and so that the nonce the encryption just wrote is covered by the tag. Here
+    /// rather than inside the encoder because what they work over is a finished file, and the
+    /// encoder stays the one path that both the export and the validation pipeline go through.
+    /// </remarks>
+    private void Seal(TcbWriter writer)
+    {
+        if (_key != null)
+            TcbEnvelope.Seal(writer.WrittenBytes, _key);
+
+        if (_macKey != null)
+            TcbMac.Sign(writer.WrittenBytes, _macKey);
+    }
+
     private void ExportTable(
         BinaryRecipe recipe, Table table, TcbEncodingReport report)
     {
@@ -282,18 +398,7 @@ public class BinaryExporter : Target<BinaryRecipe>
         var filename = Path.Combine(recipe.Path, name + recipe.FileExtension);
         filename = Path.GetFullPath(filename);
 
-        // Encryption and the MAC are the outermost layers, so they happen here rather than
-        // inside the encoder: what they work over is a finished file, and the encoder stays
-        // the one path that both the export and the validation pipeline go through.
-        //
-        // In that order. The tag is computed over the bytes as they will be stored, so a
-        // reader can refuse an altered file before it decrypts one, and so that the nonce
-        // this just wrote is covered by it.
-        if (_key != null)
-            TcbEnvelope.Seal(writer.WrittenBytes, _key);
-
-        if (_macKey != null)
-            TcbMac.Sign(writer.WrittenBytes, _macKey);
+        Seal(writer);
 
         ReadOnlySpan<byte> bytes = writer.WrittenSpan;
 
@@ -318,9 +423,29 @@ public class BinaryExporter : Target<BinaryRecipe>
     internal static TcbWriter Encode(Table table) => Encode(table, table.Data, null);
 
     /// <summary>
+    /// Whether this call may spread a table's columns across threads.
+    /// </summary>
+    /// <remarks>
+    /// **Off when the caller is already running a table per thread.** Both axes are real -
+    /// a project has more tables than a table has columns, and one table encoded on its own
+    /// still has columns to spread - but only the outer one should be taken, or every table
+    /// pays to set up a fan-out that has no core to run on.
+    ///
+    /// The export takes the tables; the validation pipeline encodes one table at a time and
+    /// takes the columns. spec/conversion-time.md section 5.
+    /// </remarks>
+    internal enum Spread
+    {
+        Columns,
+        Nothing,
+    }
+
+    /// <summary>
     /// The same, recording what every candidate measured into <paramref name="report"/>.
     /// </summary>
-    internal static TcbWriter Encode(Table table, List<List<Cell>> rows, TcbEncodingReport? report)
+    internal static TcbWriter Encode(
+        Table table, List<List<Cell>> rows, TcbEncodingReport? report,
+        Spread spread = Spread.Columns)
     {
         TcbWriter writer = new TcbWriter();
 
@@ -349,18 +474,20 @@ public class BinaryExporter : Target<BinaryRecipe>
         // Two things had to be true first, and both are, above: `table.WireColumns` forces
         // this table's lazily built column lists before any thread reads them, and those
         // are the only caches in the model that a column encoder touches.
-        if (report is null)
+        if (report is null && spread == Spread.Columns)
         {
             System.Threading.Tasks.Parallel.For(0, columns.Count, at =>
             {
-                blocks[at] = EncodeColumn(table, rows, columns[at], report!);
+                blocks[at] = EncodeColumn(table, rows, columns[at], report);
             });
         }
         else
         {
-            // The report is a list in the order the columns were measured, and it is written
-            // to a file. A run that asks for it is asking a question about the encoding
-            // rather than for the fastest export, so it gets the sequential answer.
+            // Sequential for two reasons that arrive separately. A report is a list in the
+            // order the columns were measured and it is written to a file, so a run that asks
+            // for one is asking a question about the encoding rather than for the fastest
+            // export. And a caller already running a table per thread has taken the outer
+            // axis - see `Spread`.
             for (int at = 0; at < columns.Count; at++)
                 blocks[at] = EncodeColumn(table, rows, columns[at], report);
         }
@@ -425,7 +552,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// and their layouts are spec/tcb-v102-column-encoding.md.
     /// </summary>
     private static ColumnBlock EncodeColumn(
-        Table table, List<List<Cell>> rows, WireColumn column, TcbEncodingReport report)
+        Table table, List<List<Cell>> rows, WireColumn column, TcbEncodingReport? report)
     {
         var raw = new TcbWriter();
 

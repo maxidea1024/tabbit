@@ -124,15 +124,32 @@ public sealed class RunTimings
             name, elapsed.TotalSeconds, share);
     }
 
+    /// <summary>
+    /// Records one span, adding to the entry of that name when there already is one.
+    /// </summary>
+    /// <remarks>
+    /// Locked because the output entries are timed while they run beside each other, so
+    /// several of these close at once. A List that two threads append to loses entries -
+    /// which here would be a timing quietly missing from the report rather than a failure.
+    ///
+    /// The per-entry detail is printed in whatever order the entries finished, which is what
+    /// it should say: it is a reading of one recipe entry's own cost, and a run where the
+    /// slowest finished first is a run worth seeing that way.
+    /// </remarks>
     private void Add(List<Entry> into, string name, TimeSpan elapsed)
     {
-        int at = into.FindIndex(entry => entry.Name == name);
+        lock (_lock)
+        {
+            int at = into.FindIndex(entry => entry.Name == name);
 
-        if (at < 0)
-            into.Add(new Entry(name, elapsed));
-        else
-            into[at] = new Entry(name, into[at].Elapsed + elapsed);
+            if (at < 0)
+                into.Add(new Entry(name, elapsed));
+            else
+                into[at] = new Entry(name, into[at].Elapsed + elapsed);
+        }
     }
+
+    private readonly object _lock = new object();
 
     private readonly record struct Entry(string Name, TimeSpan Elapsed);
 

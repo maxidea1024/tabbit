@@ -8,7 +8,6 @@
   "import.google-key-variable-not-set": "recipe 小節 `{Section}` 從環境變數 `{Variable}` 讀取服務帳號金鑰，但該變數沒有設定。把金鑰放在環境裡是為了不必提交到倉庫。",
   "import.google-key-unreadable": "recipe 小節 `{Section}` 無法從 {Origin} 讀取服務帳號金鑰：{Detail} 服務帳號金鑰裡有 `\"type\": \"service_account\"`。若是 OAuth 客戶端金鑰，請放到 `ClientSecretFilename`。",
   "import.google-client-secret-missing": "recipe 小節 `{Section}` 指定客戶端金鑰檔案為 `{Path}`，但該檔案不存在。",
-  "import.log-binary-workbook-no-notes": "`{File}` 是二進位工作簿，其儲存格註解不會被讀取。",
   "import.log-cached-token-predates-scope": "本機快取的令牌是在 Tabbit 請求 `{Scope}` 之前簽發的，而快取的令牌不會自行重新徵得同意。請刪除 `{TokenStore}` 後重新執行：下一次執行會打開一次瀏覽器來徵得同意。",
   "import.log-defined-name-no-range": "`{Document}` 的已定義名稱 `{Name}` 沒有指向任何範圍。跳過。",
   "import.log-defined-name-not-a-range": "`{File}` 的已定義名稱 `{Name}` 指向 `{Range}`，但那不是一個範圍。跳過。",

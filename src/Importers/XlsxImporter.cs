@@ -224,15 +224,6 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                 ("Range", skipped.Reference)).In(MessageCatalog.Current));
         }
 
-        if (package.HasUnreadNotes)
-        {
-            // Cell notes are not read out of a binary workbook. Said aloud because the
-            // notes become doc comments, and a workbook converted to `.xlsb` would lose
-            // them with nothing else changing.
-            Log.Warning(Message.Of(ImportMessages.LogBinaryWorkbookNoNotes,
-                ("File", filename)).In(MessageCatalog.Current));
-        }
-
         using var reader = SheetGridReader.Open(path);
 
         while (reader.MoveToNextSheet())
@@ -264,12 +255,12 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                 continue;
             }
 
-            ImportSheet(read, reader, package, sheetName);
+            ImportSheet(read, reader, sheetName);
         }
     }
 
     private void ImportSheet(
-        WorkbookRead read, SheetGridReader reader, WorkbookPackage package, string sheetName)
+        WorkbookRead read, SheetGridReader reader, string sheetName)
     {
         string filename = read.Filename;
 
@@ -284,10 +275,6 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                 Row = 0
             }
         };
-
-        // Only asked when the workbook has any, so a workbook without notes pays nothing
-        // per cell for the lookup.
-        bool hasNotes = package.HasNotes;
 
         // Where this sheet's tables are, when the layout says a table is a defined name. A
         // cell outside all of them is never read as data, so it is not this run's to report:
@@ -348,7 +335,6 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                     Location = location,
                     Value = value,
                     FormulaError = formulaError,
-                    Note = hasNotes ? package.Note(sheetName, rowIndex, colIndex) : ""
                 });
             }
 

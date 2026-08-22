@@ -59,7 +59,6 @@ public static class ImportMessages
     public const string GoogleClientSecretMissing = "import.google-client-secret-missing";
 
     /// <summary>A log line: `{File}` is a binary workbook, whose cell notes are not read.</summary>
-    public const string LogBinaryWorkbookNoNotes = "import.log-binary-workbook-no-notes";
 
     /// <summary>A log line: This machine's cached token was issued before Tabbit asked for `{Scope}`, and a cached token is.</summary>
     public const string LogCachedTokenPredatesScope = "import.log-cached-token-predates-scope";

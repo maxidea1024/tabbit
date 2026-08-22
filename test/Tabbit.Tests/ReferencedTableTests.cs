@@ -63,7 +63,6 @@ public class ReferencedTableTests
                         Column = column,
                     },
                     Value = column < cells.Length ? cells[column] : "",
-                    Note = "",
                 }).ToList());
             }
 
@@ -78,7 +77,6 @@ public class ReferencedTableTests
                     Column = column,
                 },
                 Value = "",
-                Note = "",
             }).ToList());
         }
 

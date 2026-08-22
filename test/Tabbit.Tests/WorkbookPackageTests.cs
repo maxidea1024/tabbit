@@ -150,49 +150,7 @@ public class WorkbookPackageTests
     public void A_malformed_cell_reference_is_refused(string cell)
         => Assert.False(WorkbookPackage.TryParseCell(cell, out _, out _));
 
-    // ---- escaped characters ----
-
-    /// <summary>
-    /// The format spells characters XML cannot carry as `_xHHHH_`. A carriage return is the
-    /// one that occurs, and passing it through put the literal text `_x000D_` into a note -
-    /// which is the defect that decided the reader this tool uses.
-    /// </summary>
-    [Fact]
-    public void An_escaped_carriage_return_becomes_one()
-        => Assert.Equal("first\rsecond", WorkbookPackage.Unescape("first_x000D_second"));
-
-    [Theory]
-    [InlineData("_x0041_", "A")]
-    [InlineData("a_x000D_b_x000D_c", "a\rb\rc")]
-    // Nothing that is not the escape is touched, including the near misses.
-    [InlineData("plain text", "plain text")]
-    [InlineData("under_score", "under_score")]
-    [InlineData("_x00_", "_x00_")]
-    [InlineData("_xZZZZ_", "_xZZZZ_")]
-    [InlineData("trailing_x000D", "trailing_x000D")]
-    [InlineData("", "")]
-    public void Escapes_are_read_and_everything_else_is_left_alone(string text, string expected)
-        => Assert.Equal(expected, WorkbookPackage.Unescape(text));
-
-    // ---- the author prefix of a note ----
-
-    /// <summary>
-    /// A spreadsheet program puts the author's name at the head of a note. What is left
-    /// becomes the doc comment of whatever the cell declares, and the name is not part of it.
-    /// </summary>
-    [Fact]
-    public void The_author_prefix_is_removed()
-        => Assert.Equal("what the column means",
-            WorkbookPackage.StripAuthorPrefix("Somebody:\nwhat the column means"));
-
-    [Theory]
-    // A colon with no line break after it is part of the text.
-    [InlineData("ratio: one to three", "ratio: one to three")]
-    // No colon at all.
-    [InlineData("just a note", "just a note")]
-    // Surrounding whitespace goes either way.
-    [InlineData("  padded  ", "padded")]
-    [InlineData("", "")]
-    public void Text_that_is_not_an_author_prefix_is_kept(string text, string expected)
-        => Assert.Equal(expected, WorkbookPackage.StripAuthorPrefix(text));
+    // The escape reader and the note author-prefix stripper used to be tested here. Both
+    // were only ever used to read a cell's note, and cell notes are not read any more -
+    // see `RawCell` for why.
 }

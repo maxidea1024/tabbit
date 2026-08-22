@@ -138,7 +138,6 @@ public class RawSheet
                 {
                     Location = anchor.CloneWithXY(anchor.Column + 1 + i, anchor.Row),
                     Value = "",
-                    Note = ""
                 };
                 row.Add(rawCell);
             }
@@ -212,7 +211,6 @@ public class RawSheet
                                 // on a filled row pointed at an unrelated cell.
                                 Location = origin.CloneWithXY(origin.Column + colIdx, origin.Row + insertion + 1),
                                 Value = "",
-                                Note = ""
                             };
                             row.Add(cell);
                         }

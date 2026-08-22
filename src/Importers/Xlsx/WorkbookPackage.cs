@@ -9,24 +9,25 @@ using System.Xml.Linq;
 namespace Tabbit.Importers.Xlsx;
 
 /// <summary>
-/// The two things a workbook holds that are not cells: its defined names, and the notes
-/// attached to cells.
+/// The one thing a workbook holds that is not a cell: its defined names.
 /// </summary>
 /// <remarks>
 /// Read straight out of the package rather than through a spreadsheet library, because a
-/// streaming cell reader does not report either one - and because both live in parts small
-/// enough that reading them costs nothing beside the sheets. In the largest workbook of the
-/// sample set that is 25 KB of names and 59 KB of notes, against 61 MiB of sheets.
+/// streaming cell reader does not report them - and because they live in a part small enough
+/// that reading it costs nothing beside the sheets. In the largest workbook of the sample set
+/// that is 25 KB of names against 61 MiB of sheets.
 ///
-/// Checked against what the object model reports for the same workbooks: names, references
-/// and note text are identical across all 29 of the sample set.
+/// Checked against what the object model reports for the same workbooks: names and references
+/// are identical across all 29 of the sample set.
+///
+/// **The notes attached to cells were read here too, and are not any more.** That removed the
+/// `xl/comments*.xml` parts from every workbook this opens and the entry scan from every
+/// `.xlsb` one; the reasoning is written where the field they filled used to be, in
+/// <see cref="Models.Raw.RawCell"/>.
 /// </remarks>
 internal sealed class WorkbookPackage
 {
     private const string Main = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}";
-    private const string DocRels = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}";
-    private const string PackageRels = "{http://schemas.openxmlformats.org/package/2006/relationships}";
-    private const string CommentsRelType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments";
 
     /// <summary>One of the workbook's defined names, resolved to a sheet and a rectangle.</summary>
     internal sealed record DefinedName(
@@ -45,18 +46,10 @@ internal sealed class WorkbookPackage
 
     internal sealed record SkippedName(string Name, string Reference, NameProblem Problem);
 
-    private readonly Dictionary<(string Sheet, int Row, int Column), string> _notes;
-
-    private WorkbookPackage(
-        List<DefinedName> definedNames,
-        List<SkippedName> skippedNames,
-        Dictionary<(string, int, int), string> notes,
-        bool hasUnreadNotes = false)
+    private WorkbookPackage(List<DefinedName> definedNames, List<SkippedName> skippedNames)
     {
         DefinedNames = definedNames;
         SkippedNames = skippedNames;
-        _notes = notes;
-        HasUnreadNotes = hasUnreadNotes;
     }
 
     /// <summary>Workbook-scoped defined names that resolve to one rectangle. Empty when not asked for.</summary>
@@ -65,22 +58,8 @@ internal sealed class WorkbookPackage
     /// <summary>Names that were asked for but could not be resolved, for the caller to report.</summary>
     public List<SkippedName> SkippedNames { get; }
 
-    /// <summary>Whether any note was found, so a caller can skip the per-cell lookup entirely.</summary>
-    public bool HasNotes => _notes.Count > 0;
-
     /// <summary>
-    /// Whether the workbook holds notes this reader does not read - a binary workbook's,
-    /// which live in binary parts of their own. True so the caller can say so, rather than
-    /// letting them come back as zero notes indistinguishable from a workbook that has none.
-    /// </summary>
-    public bool HasUnreadNotes { get; }
-
-    /// <summary>The note on a cell, or an empty string when it has none.</summary>
-    public string Note(string sheetName, int row, int column)
-        => _notes.TryGetValue((sheetName, row, column), out string? note) ? note : "";
-
-    /// <summary>
-    /// Reads a workbook's names and notes.
+    /// Reads a workbook's defined names.
     /// </summary>
     /// <param name="acceptName">
     /// Which defined names are worth resolving, asked before the reference is parsed - so a
@@ -92,7 +71,6 @@ internal sealed class WorkbookPackage
     {
         var definedNames = new List<DefinedName>();
         var skippedNames = new List<SkippedName>();
-        var notes = new Dictionary<(string, int, int), string>();
 
         // Opened through a stream of our own rather than ZipFile.OpenRead, which asks for
         // FileShare.Read and so fails on a workbook somebody has open in Excel. The cell
@@ -102,32 +80,24 @@ internal sealed class WorkbookPackage
 
         var workbook = Part(zip, "xl/workbook.xml");
         if (workbook is null)
-            return ReadBinary(zip, acceptName, definedNames, skippedNames, notes);
+            return ReadBinary(zip, acceptName, definedNames, skippedNames);
 
         if (acceptName is not null)
             ReadDefinedNames(workbook, acceptName, definedNames, skippedNames);
 
-        ReadNotes(zip, workbook, notes);
-
-        return new WorkbookPackage(definedNames, skippedNames, notes);
+        return new WorkbookPackage(definedNames, skippedNames);
     }
 
     /// <summary>
     /// The `.xlsb` half of <see cref="Read"/>: the same names out of `xl/workbook.bin`.
     /// </summary>
-    /// <remarks>
-    /// Notes are not read from a binary workbook - no consumer of a note reads one from
-    /// these - but their presence is noticed, so the caller can say they were left behind
-    /// instead of them coming back as silently zero.
-    /// </remarks>
     private static WorkbookPackage ReadBinary(
         ZipArchive zip, Func<string, bool>? acceptName,
-        List<DefinedName> definedNames, List<SkippedName> skippedNames,
-        Dictionary<(string, int, int), string> notes)
+        List<DefinedName> definedNames, List<SkippedName> skippedNames)
     {
         var entry = zip.GetEntry("xl/workbook.bin");
         if (entry is null)
-            return new WorkbookPackage(definedNames, skippedNames, notes);
+            return new WorkbookPackage(definedNames, skippedNames);
 
         if (acceptName is not null)
         {
@@ -135,11 +105,7 @@ internal sealed class WorkbookPackage
             BinaryDefinedNames.Read(stream, acceptName, definedNames, skippedNames);
         }
 
-        bool hasUnreadNotes = zip.Entries.Any(e =>
-            e.FullName.StartsWith("xl/comments", StringComparison.Ordinal)
-            && e.FullName.EndsWith(".bin", StringComparison.Ordinal));
-
-        return new WorkbookPackage(definedNames, skippedNames, notes, hasUnreadNotes);
+        return new WorkbookPackage(definedNames, skippedNames);
     }
 
     private static void ReadDefinedNames(
@@ -304,115 +270,6 @@ internal sealed class WorkbookPackage
         return true;
     }
 
-    /// <summary>
-    /// Reads every sheet's notes, keyed by the sheet name and cell they are attached to.
-    /// </summary>
-    /// <remarks>
-    /// The sheet a notes part belongs to is only knowable through the relationships: the
-    /// workbook names its sheets and points at their parts by relationship id, and each
-    /// sheet part points at its own notes part the same way. Nothing in a notes part says
-    /// which sheet it is for.
-    /// </remarks>
-    private static void ReadNotes(
-        ZipArchive zip, XDocument workbook, Dictionary<(string, int, int), string> notes)
-    {
-        // Walked through the relationships even though it is one small read per sheet, and
-        // even though a notes part is conventionally named `xl/commentsN.xml` so the entry
-        // list would answer faster. That name is a convention rather than a rule - the
-        // relationship is what actually says where the part is - and a workbook whose
-        // producer named it otherwise would lose every note in silence.
-        var workbookRels = Relationships(zip, "xl/workbook.xml");
-        if (workbookRels.Count == 0) return;
-
-        foreach (var sheet in workbook.Descendants(Main + "sheet"))
-        {
-            string sheetName = (sheet.Attribute("name")?.Value ?? "").Trim();
-            string relId = sheet.Attribute(DocRels + "id")?.Value ?? "";
-            if (sheetName!.Length == 0 || relId.Length == 0) continue;
-
-            if (!workbookRels.TryGetValue(relId, out var sheetRel)) continue;
-
-            string sheetPart = Resolve("xl/workbook.xml", sheetRel.Target);
-            var sheetRels = Relationships(zip, sheetPart);
-
-            foreach (var rel in sheetRels)
-            {
-                if (rel.Value.Type != CommentsRelType) continue;
-
-                var comments = Part(zip, Resolve(sheetPart, rel.Value.Target));
-                if (comments is null) continue;
-
-                foreach (var comment in comments.Descendants(Main + "comment"))
-                {
-                    string cell = comment.Attribute("ref")?.Value ?? "";
-                    if (!TryParseCell(cell.Replace("$", ""), out int row, out int column))
-                        continue;
-
-                    string text = StripAuthorPrefix(
-                        Unescape(string.Concat(comment.Descendants(Main + "t").Select(t => t.Value))));
-
-                    if (text.Length > 0)
-                        notes[(sheetName, row, column)] = text;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Removes the author prefix that a spreadsheet program puts at the head of a note.
-    /// </summary>
-    /// <remarks>
-    /// What is left becomes the doc comment of whatever the cell defines, and the name of
-    /// whoever typed it is not part of that. Recognised by shape - a run of text, a colon,
-    /// a line break - because the note itself does not say where the author's name ends.
-    /// </remarks>
-    internal static string StripAuthorPrefix(string text)
-    {
-        int colon = text.IndexOf(':');
-        if (colon >= 0)
-        {
-            string prefix = text.Substring(0, colon) + ":" + "\n";
-            if (text.StartsWith(prefix, StringComparison.Ordinal))
-                text = text.Substring(colon + 2);
-        }
-
-        return text.Trim();
-    }
-
-    /// <summary>
-    /// Turns `_xHHHH_` back into the character it stands for.
-    /// </summary>
-    /// <remarks>
-    /// The format spells characters that XML cannot carry - a carriage return is the one
-    /// that actually occurs - as that escape. Left alone, a note holding a line break would
-    /// reach generated code as the literal text `_x000D_`.
-    /// </remarks>
-    internal static string Unescape(string text)
-    {
-        int at = text.IndexOf("_x", StringComparison.Ordinal);
-        if (at < 0) return text;
-
-        var result = new StringBuilder(text.Length);
-        int i = 0;
-        while (i < text.Length)
-        {
-            if (text[i] == '_' && i + 6 < text.Length && (text[i + 1] == 'x' || text[i + 1] == 'X')
-                && text[i + 6] == '_'
-                && ushort.TryParse(text.AsSpan(i + 2, 4), System.Globalization.NumberStyles.HexNumber,
-                                   System.Globalization.CultureInfo.InvariantCulture, out ushort code))
-            {
-                result.Append((char)code);
-                i += 7;
-                continue;
-            }
-
-            result.Append(text[i]);
-            i++;
-        }
-
-        return result.ToString();
-    }
-
     private static XDocument? Part(ZipArchive zip, string path)
     {
         var entry = zip.GetEntry(path);
@@ -420,58 +277,5 @@ internal sealed class WorkbookPackage
 
         using var stream = entry.Open();
         return XDocument.Load(stream);
-    }
-
-    private static Dictionary<string, (string Type, string Target)> Relationships(
-        ZipArchive zip, string partPath)
-    {
-        var result = new Dictionary<string, (string, string)>(StringComparer.Ordinal);
-
-        string directory = Directory(partPath);
-        string relsPath = directory.Length == 0
-            ? $"_rels/{Path.GetFileName(partPath)}.rels"
-            : $"{directory}/_rels/{Path.GetFileName(partPath)}.rels";
-
-        var rels = Part(zip, relsPath);
-        if (rels is null) return result;
-
-        foreach (var rel in rels.Descendants(PackageRels + "Relationship"))
-        {
-            string id = rel.Attribute("Id")?.Value ?? "";
-            if (id.Length == 0) continue;
-
-            result[id] = (rel.Attribute("Type")?.Value ?? "", rel.Attribute("Target")?.Value ?? "");
-        }
-
-        return result;
-    }
-
-    /// <summary>Resolves a relationship target against the part that declared it.</summary>
-    private static string Resolve(string fromPart, string target)
-    {
-        if (target.StartsWith('/')) return target.Substring(1);
-
-        var segments = new List<string>(Directory(fromPart).Split('/', StringSplitOptions.RemoveEmptyEntries));
-
-        foreach (string segment in target.Split('/', StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (segment == ".") continue;
-
-            if (segment == "..")
-            {
-                if (segments.Count > 0) segments.RemoveAt(segments.Count - 1);
-                continue;
-            }
-
-            segments.Add(segment);
-        }
-
-        return string.Join('/', segments);
-    }
-
-    private static string Directory(string path)
-    {
-        int slash = path.LastIndexOf('/');
-        return slash < 0 ? "" : path.Substring(0, slash);
     }
 }

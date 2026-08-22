@@ -132,16 +132,23 @@ Numeric 이고 GetString()이 ISO 날짜 모양이면  →  GetDateTime()을 우
 
 |필요한 것|어떻게|
 |--|--|
-|**셀 노트** (doc 주석이 됩니다)|패키지의 `xl/comments*.xml`을 직접 읽습니다. 가장 큰 워크북에서 12개 파트 합쳐 59 KB입니다|
+|~~**셀 노트** (doc 주석이 됩니다)~~|**지금은 읽지 않습니다** — 아래|
 |**워크북 정의된 이름** (이름을 테이블 경계로 쓰는 레이아웃)|`xl/workbook.xml`을 직접 읽습니다. 25 KB이고 2 ms입니다|
 |**수식 오류** (`OnFormulaError`)|Sylvan이 냅니다 — `GetFormulaError` → `ExcelErrorCode`가 7종 전부입니다. `GetErrorAsNull`을 켜지 않아야 오류가 오류로 옵니다|
 
-앞의 둘을 NPOI가 보는 것과 대조했습니다. **29개 워크북 전부 차이 0건입니다** — 이름·참조·본문까지
-같습니다(61 MiB 워크북에서 워크북 스코프 이름 142개, 노트 39개).
+정의된 이름을 NPOI가 보는 것과 대조했습니다. **29개 워크북 전부 차이 0건입니다** — 이름·참조까지
+같습니다(61 MiB 워크북에서 워크북 스코프 이름 142개).
 
-**이 둘은 범위 축소의 대상이 아닙니다.** 노트를 빼면 doc 주석이 사라지고, 이름을 빼면 이름을
-경계로 쓰는 레이아웃이 테이블을 찾지 못합니다. 둘 다 산출물이 달라지는 일이라 엔진 교체와 같은
-커밋에 있어야 합니다.
+> **셀 노트는 이제 읽지 않습니다.** 이 문서를 쓸 때는 「범위 축소의 대상이 아니다」로
+> 적었습니다 — 노트가 doc 주석이 되니 빼면 산출물이 달라진다는 것이었습니다. 그 전제가
+> 틀렸습니다: **어떤 레이아웃도 노트를 설명으로 읽지 않았고**, 실제로 쓰는 사람도 없었습니다.
+> 이유는 어느 도구의 문제가 아니라 스프레드시트 쪽입니다 — 노트는 쓰기 번거롭고, 올려놓지
+> 않으면 보이지 않고, 한 컬럼을 한눈에 볼 방법이 없습니다. 시트가 컬럼을 설명할 때 쓰는 것은
+> 셀이고, `Field.Comment`는 거기서 옵니다.
+>
+> 그래서 워크북마다 `xl/comments*.xml`을 파싱하던 것과 `.xlsb` 패키지의 항목을 훑던 것이
+> 없어졌고, 셀마다 있던 사전 조회와 문자열 참조도 없어졌습니다. 결정과 그 근거는
+> [`RawCell`](../src/Models/Raw/RawCell.cs)에 적혀 있습니다.
 
 ## 8. 설계 — 무엇이 어디로
 
@@ -152,7 +159,7 @@ Numeric 이고 GetString()이 ISO 날짜 모양이면  →  GetDateTime()을 우
 |파일|역할|
 |--|--|
 |`src/Importers/Xlsx/SheetGridReader.cs`|Sylvan을 감싸 시트·행·셀을 돌며 임포터의 규칙으로 텍스트를 만듭니다. 6절의 날짜 규칙과 오류 셀 정책이 여기 있습니다|
-|`src/Importers/Xlsx/WorkbookPackage.cs`|패키지에서 정의된 이름과 셀 노트를 읽습니다. `System.IO.Compression` + `XmlReader`만 씁니다|
+|`src/Importers/Xlsx/WorkbookPackage.cs`|패키지에서 정의된 이름을 읽습니다. `System.IO.Compression` + `XmlReader`만 씁니다|
 |`src/Importers/XlsxImporter.cs`|위 둘을 부릅니다. NPOI 참조가 사라집니다|
 
 **코어에 프로젝트 이름이 들어가지 않습니다.** 두 새 파일은 「워크북을 읽는 법」만 알고, 어느
@@ -187,7 +194,7 @@ NPOI를 걷으면 [csproj](../src/Tabbit.csproj)에서 두 가지가 함께 사�
 
 |무엇|어디|
 |--|--|
-|**픽스처 워크북 33개가 읽히는 값의 기록** — 시트·행·셀 개수, 문자 총량, 값 해시, 이름과 노트 개수|`XlsxReaderGateTests` + `test/fixtures/golden/xlsx-reader.tsv`. 재기록은 골든과 같은 `TABBIT_UPDATE_GOLDEN=1`|
+|**픽스처 워크북 33개가 읽히는 값의 기록** — 시트·행·셀 개수, 문자 총량, 값 해시, 이름 개수|`XlsxReaderGateTests` + `test/fixtures/golden/xlsx-reader.tsv`. 재기록은 골든과 같은 `TABBIT_UPDATE_GOLDEN=1`|
 |**우리가 손으로 쓴 것의 단위 테스트** — 참조 파서, `_xHHHH_` 해제, 노트의 작성자 접두어|`WorkbookPackageTests`|
 
 두 번째가 필요한 이유가 첫 번째의 한계입니다. **픽스처 워크북에는 정의된 이름도 셀 노트도

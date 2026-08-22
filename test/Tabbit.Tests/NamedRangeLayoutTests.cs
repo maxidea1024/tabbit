@@ -74,7 +74,6 @@ public class UwoLayoutTests
                         Column = column,
                     },
                     Value = CellAt(row, column),
-                    Note = "",
                 }).ToList()).ToList(),
             NamedRanges =
             {
@@ -129,7 +128,6 @@ public class UwoLayoutTests
                     Column = column,
                 },
                 Value = text,
-                Note = "",
             }).ToList()).ToList(),
             NamedRanges =
             {

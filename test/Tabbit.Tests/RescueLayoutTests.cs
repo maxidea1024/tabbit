@@ -59,7 +59,6 @@ public class RescueLayoutTests
                         Row = rowIndex,
                     },
                     Value = column < all[rowIndex].Length ? all[rowIndex][column] : "",
-                    Note = "",
                 });
             }
 

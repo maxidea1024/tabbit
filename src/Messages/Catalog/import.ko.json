@@ -8,7 +8,6 @@
   "import.google-key-variable-not-set": "recipe 섹션 `{Section}`이 서비스 계정 키를 환경 변수 `{Variable}`에서 읽는데, 그 변수가 설정되어 있지 않습니다. 키를 환경에 두는 것은 저장소에 커밋하지 않기 위해서입니다.",
   "import.google-key-unreadable": "recipe 섹션 `{Section}`이 {Origin}에서 서비스 계정 키를 읽지 못했습니다: {Detail} 서비스 계정 키에는 `\"type\": \"service_account\"`가 있습니다. OAuth 클라이언트 시크릿이라면 `ClientSecretFilename`에 넣으십시오.",
   "import.google-client-secret-missing": "recipe 섹션 `{Section}`이 클라이언트 시크릿 파일로 `{Path}`를 지정했는데, 그 파일이 없습니다.",
-  "import.log-binary-workbook-no-notes": "`{File}`은 바이너리 워크북이고, 그 셀 노트는 읽지 않습니다.",
   "import.log-cached-token-predates-scope": "이 머신에 캐시된 토큰은 Tabbit이 `{Scope}`를 요청하기 전에 발급된 것이고, 캐시된 토큰은 스스로 재동의되지 않습니다. `{TokenStore}`를 지우고 다시 실행하십시오: 다음 실행이 브라우저를 한 번 열어 동의를 받습니다.",
   "import.log-defined-name-no-range": "`{Document}`의 정의된 이름 `{Name}`이 어떤 범위도 가리키지 않습니다. 건너뜁니다.",
   "import.log-defined-name-not-a-range": "`{File}`의 정의된 이름 `{Name}`이 `{Range}`를 가리키는데, 범위가 아닙니다. 건너뜁니다.",

@@ -319,9 +319,24 @@ internal sealed class SheetGridReader : IDisposable
            && text[4] == '-' && text[7] == '-'
            && char.IsAsciiDigit(text[0]) && char.IsAsciiDigit(text[5]) && char.IsAsciiDigit(text[8]);
 
+    /// <summary>
+    /// Closes everything this reader opened, the repair's own handle included.
+    /// </summary>
+    /// <remarks>
+    /// **The repair holds a second view of the same file** - its own FileStream and the
+    /// ZipArchive over it - because it reads parts the cell reader does not expose. It was
+    /// not being closed here, so every binary workbook left a stream, an archive and its
+    /// inflaters to the finalizer: the run's finalizer thread was spending 17.5 s releasing
+    /// zlib handles and file handles that nothing had asked it to.
+    ///
+    /// A leak with no message. Nothing fails and the numbers are right; what happens is that
+    /// unmanaged handles stay open until a collection notices, and objects with finalizers
+    /// survive a generation they had no reason to. spec/conversion-time.md section 4.
+    /// </remarks>
     public void Dispose()
     {
         _reader.Dispose();
         _file.Dispose();
+        _repair?.Dispose();
     }
 }

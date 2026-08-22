@@ -123,6 +123,20 @@ public class GoogleSheetsImporter
         var request = sheetsService.Spreadsheets.Get(sheetsId);
         request.IncludeGridData = true;
 
+        // **What comes back is stated rather than left to the API.** Without a mask, grid
+        // data arrives with everything Google holds about every cell - the formula, the
+        // effective value, the number format, the borders, the note - and the response for a
+        // real document is many times the size of what is read from it.
+        //
+        // Written as the list of what this importer actually reads, which is also where the
+        // decision not to read a cell's note is enforced: it is not filtered out after
+        // arriving, it never comes over the wire. See `RawCell` for why.
+        request.Fields =
+            "properties.title,"
+            + "namedRanges,"
+            + "sheets(properties(sheetId,title),"
+            + "data(startRow,startColumn,rowData(values(formattedValue))))";
+
         Log.Information($"Importing google-spreadsheets `{sheetsId}`");
 
         // Timed because this is the one step that can take tens of seconds, and a run
@@ -244,7 +258,6 @@ public class GoogleSheetsImporter
                     foreach (var v in r.Values)
                     {
                         string value = v.FormattedValue.SafeTrim();
-                        string note = v.Note.SafeTrim();
 
                         RawCell rawCell = new RawCell
                         {
@@ -255,7 +268,6 @@ public class GoogleSheetsImporter
                                 Row = rowIndex
                             },
                             Value = value,
-                            Note = note
                         };
 
                         rawCell.Location.Filename = $"googlesheets.{sheetsTitle}";///{sheetTitle}",
