@@ -213,6 +213,11 @@ public class MessageCatalogTests
     [InlineData("2", "은", "2는")]
     [InlineData("3", "이", "3이")]
     [InlineData("9", "이", "9가")]
+    // The copula is a pair too: 이어야/여야. It reads as a word rather than a particle,
+    // which is why it was written by hand as 이어야 in an entry whose value was `bool` -
+    // correct there, and wrong for every type that ends on a vowel.
+    [InlineData("bool", "이어야", "bool이어야")]
+    [InlineData("float", "이어야", "float여야")]
     // Trailing punctuation is not a sound, so the letter before it decides.
     [InlineData("`int`", "은", "`int`는")]
     [InlineData("`float`", "은", "`float`는")]
@@ -221,6 +226,54 @@ public class MessageCatalogTests
         Assert.Equal(
             expected,
             Message.Fill("{Value:" + pair + "}", new (string, object)[] { ("Value", value) }));
+    }
+
+    /// <summary>
+    /// No Korean entry writes a particle after a placeholder without asking for the pair.
+    /// </summary>
+    /// <remarks>
+    /// The one gate here that was written after the mistake rather than before it. Forty
+    /// entries spelled `{Element}가` where they meant `{Element:가}` - a particle chosen once,
+    /// by hand, for a value that is different on every run. They read correctly for whatever
+    /// value happened to be in front of me while I wrote them, which is exactly why no other
+    /// check saw it: the id is right, the placeholder is right, the text renders.
+    ///
+    /// Only Korean has this failure mode, and only Korean pays for the gate.
+    /// </remarks>
+    [Fact]
+    public void A_Korean_particle_is_never_hardcoded_after_a_placeholder()
+    {
+        var pairs = new[]
+        {
+            // Longest first, so 으로 is not read as 로 with a stray 으 in front of it.
+            "이어야", "여야", "으로", "이라", "이나",
+            "이든", "이며", "은", "는", "이", "가", "을",
+            "를", "와", "과", "로", "라", "나", "든", "며",
+            "아", "야",
+        };
+
+        // A placeholder, not an escaped brace, followed straight by one of the pairs -
+        // and then a word boundary, because a particle is only a particle at the end of
+        // one. `{Count}가지` is "N kinds", where 가 opens a noun, and `{Type}이어야` is the
+        // copula. Both read as a hardcoded particle to anything that matches on shape
+        // alone, and both are correct as they stand.
+        var hardcoded = new Regex(
+            @"(?<!\{)\{[A-Za-z0-9_]+\}(" + string.Join("|", pairs)
+            + @")(?![가-힣])");
+
+        var written = MessageCatalog.ForLanguage("ko");
+
+        var sites = MessageRegistry.Ids
+            .Where(id => written.Has(id))
+            .Where(id => hardcoded.IsMatch(written.TextOf(id)))
+            .ToList();
+
+        Assert.True(
+            sites.Count == 0,
+            "A Korean entry writes a particle straight after a placeholder, so it was "
+            + "chosen once for a value that changes every run. Ask for the pair instead - "
+            + "`{Name:은}` - and KoreanParticle picks: "
+            + string.Join(", ", sites));
     }
 
     /// <summary>
@@ -344,9 +397,14 @@ public class MessageCatalogTests
     /// A doubled brace is a literal one, so `{{group}}` names nothing - the lookarounds are
     /// what keep this from reporting the `text` target's quoted patterns as placeholders that
     /// every translation has to carry.
+    ///
+    /// The suffix after a colon is not part of the name. Without that, `{Element:가}` named
+    /// nothing here, and this check - the one a person cannot do by eye - was blind to every
+    /// placeholder that asked for a Korean particle. Which is every placeholder that most
+    /// needed watching.
     /// </remarks>
     private static HashSet<string> Placeholders(string text)
-        => Regex.Matches(text, "(?<!\\{)\\{([A-Za-z0-9_]+)\\}(?!\\})")
+        => Regex.Matches(text, "(?<!\\{)\\{([A-Za-z0-9_]+)(?::[^{}]+)?\\}(?!\\})")
                 .Select(match => match.Groups[1].Value)
                 .ToHashSet(StringComparer.Ordinal);
 

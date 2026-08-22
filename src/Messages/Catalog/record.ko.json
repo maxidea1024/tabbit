@@ -17,14 +17,13 @@
   "record.lock-held": "다른 프로세스가 `{Name}`을 {Seconds}초 넘게 잡고 있습니다. 같은 브랜치의 다른 변환이거나 prune입니다. 끝나기를 기다린 뒤 다시 시도하십시오.",
   "record.migration-lock-held": "다른 프로세스가 히스토리 데이터베이스를 {Seconds}초 넘게 마이그레이션하고 있습니다. 다른 것이 돌고 있지 않다면 락이 남은 것이고, 그 연결이 닫히면 풀립니다.",
   "record.schema-newer-than-build": "히스토리 데이터베이스의 스키마 버전이 {Current}인데, 이 Tabbit 빌드가 아는 것은 {Understood}입니다. 더 낮은 버전이 쓰게 하지 말고 Tabbit을 올리십시오.",
-  "record.migration-failed": "마이그레이션 {Version}이 {Total}개 문장 중 {Step}번째에서 실패했습니다: {Detail}\n\n{Statement}",
-  "record.bind-not-an-address": "--bind {Bind}가 주소가 아닙니다. IP나 `localhost`를 쓰거나, 모든 인터페이스라면 `0.0.0.0`을 쓰십시오.",
-  "record.bind-public-without-token": "--bind {Bind}는 이 머신에 닿을 수 있는 모든 것에 히스토리를 제공하고, 토큰이 설정되어 있지 않습니다. ${Variable}에 비밀값을 넣고 `Authorization: Bearer <토큰>`으로 보내거나, --bind를 127.0.0.1에 두십시오.",
+  "record.migration-failed": "마이그레이션 {Version:이} {Total}개 문장 중 {Step}번째에서 실패했습니다: {Detail}\n\n{Statement}",
+  "record.bind-not-an-address": "--bind {Bind:가} 주소가 아닙니다. IP나 `localhost`를 쓰거나, 모든 인터페이스라면 `0.0.0.0`을 쓰십시오.",
+  "record.bind-public-without-token": "--bind {Bind:는} 이 머신에 닿을 수 있는 모든 것에 히스토리를 제공하고, 토큰이 설정되어 있지 않습니다. ${Variable}에 비밀값을 넣고 `Authorization: Bearer <토큰>`으로 보내거나, --bind를 127.0.0.1에 두십시오.",
   "record.query-value-not-a-number": "`{Name}={Value}`는 숫자가 아닙니다.",
   "record.snapshot-not-found": "히스토리에 프로젝트 `{Project}`의 브랜치 `{Branch}`에 대한 `{Commit}` 스냅샷이 없고, 여기의 작업 사본으로도 그것을 태그나 리비전으로 해석할 수 없었습니다. 그 커밋을 변환한 적이 없거나, 다른 브랜치에 있거나, 이름을 찾아볼 체크아웃이 없는 것입니다.",
-
   "record.log-branch-has-no-snapshots": "프로젝트 `{Project}`의 브랜치 `{Branch}`에 스냅샷이 없습니다.",
-  "record.log-commit-is-behind": "커밋 {Commit}이 {Head}보다 뒤에 있고, 히스토리는 브랜치 `{Branch}`에 대해 이미 {Head}를 담고 있습니다. 이것을 기록하면 그 커밋의 작업이 이 커밋의 저자에 의해 되돌려진 것으로 보고됩니다. 아무것도 기록되지 않았습니다. 더 새 커밋을 변환하거나, 정말로 체인이 이렇게 간다면 AllowOutOfOrder를 지정하십시오.",
+  "record.log-commit-is-behind": "커밋 {Commit:이} {Head}보다 뒤에 있고, 히스토리는 브랜치 `{Branch}`에 대해 이미 {Head:를} 담고 있습니다. 이것을 기록하면 그 커밋의 작업이 이 커밋의 저자에 의해 되돌려진 것으로 보고됩니다. 아무것도 기록되지 않았습니다. 더 새 커밋을 변환하거나, 정말로 체인이 이렇게 간다면 AllowOutOfOrder를 지정하십시오.",
   "record.log-next-snapshot-covers-this": "다음에 기록되는 스냅샷이 이 커밋의 변경까지 함께 담게 됩니다.",
   "record.log-no-commit-identity": "이 변환에는 커밋 신원이 없어서, 변경을 누구에게도 귀속시킬 수 없습니다. --commit을 주거나, 시트가 있는 작업 사본 안에서 변환을 돌리십시오.",
   "record.log-no-snapshot-at": "히스토리에 브랜치 `{Branch}`의 `{At}` 스냅샷이 없습니다.",
@@ -32,5 +31,5 @@
   "record.log-nothing-recorded-dirty": "이 변환에 대해 히스토리에 아무것도 기록되지 않았습니다. 시트를 커밋하고 다시 변환하거나, RecordDirty를 지정해 {Commit} 아래에 그대로 기록하십시오 — 그러면 그 커밋의 깨끗한 빌드는 영구히 기록할 수 없게 됩니다.",
   "record.log-project-empty": "히스토리에 프로젝트 `{Project}`의 것이 없습니다.",
   "record.log-project-empty-run-first": "히스토리에 프로젝트 `{Project}`의 것이 없습니다. 히스토리 타깃을 켠 변환을 먼저 한 번 돌리십시오.",
-  "record.log-working-copy-dirty": "`{Path}`의 작업 사본에 커밋되지 않은 변경이 있어, 이 변환은 커밋 {Commit}과 일치하지 않습니다. 그에 대해 기록되는 것은 귀속 불가로 표시됩니다."
+  "record.log-working-copy-dirty": "`{Path}`의 작업 사본에 커밋되지 않은 변경이 있어, 이 변환은 커밋 {Commit:과} 일치하지 않습니다. 그에 대해 기록되는 것은 귀속 불가로 표시됩니다."
 }

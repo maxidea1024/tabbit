@@ -9,7 +9,7 @@
   "export.schema-broke-readers": "이전 스키마로 이미 만들어진 리더가 견디지 못하는 방식으로 스키마가 {Count}가지 바뀌었습니다:\n\n  {Problems}\n\n아무것도 쓰지 않았습니다. 대조 기준이 된 베이스라인은 `{Baseline}`입니다.",
   "export.schema-baseline-unreadable": "스키마 베이스라인 `{Baseline}`을 읽지 못했습니다: {Detail}. 파일을 고치거나 지우십시오 — 지우면 이번 실행의 검사를 포기하고 지금 스키마로 새 베이스라인을 씁니다.",
   "export.file-not-encrypted": "이 파일은 암호화되어 있지 않습니다.",
-  "export.cipher-unknown": "암호 {Cipher}는 이 빌드가 아는 것이 아닙니다.",
+  "export.cipher-unknown": "암호 {Cipher:는} 이 빌드가 아는 것이 아닙니다.",
   "export.decrypt-failed": "파일이 테이블로 복호화되지 않았습니다. 그 파일을 쓸 때 사용한 키가 아닙니다.",
   "export.same-key-for-mac": "바이너리 산출이 암호화와 MAC에 같은 키를 쓰고 있습니다. `--new-encryption-key`로 두 번째 키를 만들어, 비밀값 하나가 두 일을 하지 않게 하십시오.",
   "export.key-named-twice": "바이너리 산출이 `{VariableSetting}`과 `{FileSetting}`을 둘 다 지목했습니다. 하나만 쓰십시오 — 그러면 파일들이 어느 {Purpose} 키로 쓰였는지 물을 일이 없습니다.",
@@ -32,7 +32,6 @@
   "export.target-no-nested-fields": "타깃 `{Target}`은 아직 중첩 필드를 지원하지 않습니다.\n  테이블 `{Table}`의 필드 `{Field}`이 멤버 {Count}개인 레코드 그룹입니다.\n  recipe에서 그 타깃을 빼거나, `{Separator}` 없이 컬럼을 평평하게 적으십시오.",
   "export.target-no-record-in-record": "타깃 `{Target}`은 아직 레코드 안의 레코드를 지원하지 않습니다.\n  테이블 `{Table}`의 필드 `{Field}`에 멤버 `{Member}`가 있고, 그것이 값이 아니라 멤버 {Count}개인 레코드입니다.\n  recipe에서 그 타깃을 빼거나, 그 레벨을 펴십시오 — `{Field}{Separator}{Member}{Separator}{Inner}` 대신 `{Field}{Separator}{Member}{Inner}`입니다.",
   "export.generated-file-name-clash": "`{Path}`에 대해 서로 다른 파일 둘이 생성되었습니다. 생성 파일의 이름은 테이블·enum·상수 집합의 이름에서 오고, 그중 둘의 이름이 같은 파일 이름으로 줄어듭니다. 시트에서 하나를 개명하십시오.",
-
   "export.log-mongodb-cleanup-failed": "MongoDB 그림자 컬렉션을 정리하지 못했습니다: {Detail}",
   "export.log-mysql-cleanup-failed": "MySQL 그림자 테이블을 정리하지 못했습니다: {Detail}",
   "export.log-redis-cleanup-failed": "Redis 그림자 키를 정리하지 못했습니다: {Detail}",
