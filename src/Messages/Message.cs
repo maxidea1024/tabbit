@@ -130,11 +130,25 @@ public readonly struct Message
         return false;
     }
 
+    /// <remarks>
+    /// A value may itself be a <see cref="Message"/>, and that is what keeps the composed
+    /// reports from multiplying. The naming checks say things like "One field name is written
+    /// 3 ways: … These normalize to the same name … rewrite the other 2 places." - four
+    /// subjects, two consequences and a singular, which as whole sentences would be sixteen
+    /// entries saying nearly the same thing. As one sentence with three nested phrases it is
+    /// one entry and eight short ones, and every one of them is something a translator can
+    /// read whole rather than a fragment they have to guess the shape of.
+    ///
+    /// Rendered against <see cref="MessageCatalog.Current"/>, the same catalog the sentence
+    /// around it came from - a phrase in one language inside a sentence in another is the one
+    /// outcome worth ruling out.
+    /// </remarks>
     private static string Written(object? value)
         => value switch
         {
             null => "",
             string text => text,
+            Message nested => nested.In(MessageCatalog.Current),
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
             _ => value.ToString() ?? "",
         };

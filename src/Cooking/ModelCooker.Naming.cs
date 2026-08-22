@@ -4,6 +4,7 @@ using System.Linq;
 using Tabbit.Extensions;
 using Tabbit.Helpers;
 using Tabbit.Models;
+using Tabbit.Messages;
 
 namespace Tabbit.Cooking;
 
@@ -64,10 +65,11 @@ public partial class ModelCooker
         /// is. Putting the owner first gave "Field of table Item MaxHitPoints", where two
         /// quoted names sit against each other and neither reads as the subject.
         /// </remarks>
-        public string Say(string subject)
+        public Message Say(string subject)
             => Owner.Length == 0
-                ? $"{KindWord} {subject}"
-                : $"{KindWord} {subject} of {Owner}";
+                ? Message.Of(NamingMessages.SaidAlone, ("Kind", KindWord), ("Subject", subject))
+                : Message.Of(NamingMessages.SaidOfOwner,
+                    ("Kind", KindWord), ("Subject", subject), ("Owner", Owner));
     }
 
     internal static void ValidateNaming(Model model, NamingRules rules, Diagnostics diagnostics)
@@ -219,17 +221,24 @@ public partial class ModelCooker
 
                 // A nested name says which level is at fault, because the others may be
                 // spelled correctly and the author has to know which part of the cell to edit.
-                string fault = site.Levels.Length > 1
-                    ? $"{site.Say($"`{site.Raw}`")} has a level, `{level}`, that is"
-                    : $"{site.Say($"`{site.Raw}`")} is";
+                // The two shapes are two ids rather than a clause spliced in: which one is
+                // written depends on whether the name has levels, and a translator handed the
+                // fragment could not know.
+                bool inLevel = site.Levels.Length > 1;
 
                 // Ends with the spelling to type, not with the verdict. A report that only
                 // says a name is wrong leaves the reader to work out the casing rule and
                 // apply it by hand, which is the work the tool has already done to decide
                 // there was something to report.
-                diagnostics.Add(rules.OnViolation, site.Location,
-                    $"{fault} not spelled in `{spelling}` case, which this recipe declares "
-                    + $"for {NamingRules.Describe(site.Kind)}. Write it as `{wanted}`.");
+                diagnostics.Add(rules.OnViolation, site.Location, inLevel
+                    ? Message.Of(NamingMessages.SpellingViolationInLevel,
+                        ("Said", site.Say($"`{site.Raw}`")), ("Level", level),
+                        ("Spelling", spelling), ("Kinds", NamingRules.Describe(site.Kind)),
+                        ("Wanted", wanted))
+                    : Message.Of(NamingMessages.SpellingViolation,
+                        ("Said", site.Say($"`{site.Raw}`")),
+                        ("Spelling", spelling), ("Kinds", NamingRules.Describe(site.Kind)),
+                        ("Wanted", wanted)));
             }
         }
     }
@@ -309,12 +318,9 @@ public partial class ModelCooker
             string written = string.Join(", ", spellings.Select(
                 s => $"`{s.Text}` ({Occurrences(s.Count)}, first at {s.First.Location})"));
 
-            string consequence = splitsOutput
-                ? "These do not normalize to one name, so the generated code carries a "
-                  + "separate member for each spelling and every consumer has to know which "
-                  + "one it is reading."
-                : "These normalize to the same name, so the generated code is unaffected - "
-                  + "but the sheets disagree, and the next spelling of it may not be.";
+            var consequence = Message.Of(splitsOutput
+                ? NamingMessages.ConsequenceSplits
+                : NamingMessages.ConsequenceSame);
 
             // A conflict the generated code carries weighs more than one it does not. Both
             // are reported - the sheets disagree either way, and the next spelling of the
@@ -341,9 +347,10 @@ public partial class ModelCooker
                 .Sum(s => s.Count);
 
             diagnostics.Add(weight, blame.First.Location,
-                $"{Subject(key.Item1)} is written {spellings.Count} ways: {written}. "
-                + $"{consequence} Settle on `{recommended}` and rewrite the other "
-                + $"{Occurrences(toChange)}.");
+                Message.Of(NamingMessages.SpellingConflict,
+                    ("Subject", Subject(key.Item1)), ("Count", spellings.Count),
+                    ("Spellings", written), ("Consequence", consequence),
+                    ("Recommended", recommended), ("Places", Occurrences(toChange))));
         }
     }
 
@@ -408,17 +415,17 @@ public partial class ModelCooker
                 if (!interior.Contains("__", StringComparison.Ordinal))
                     continue;
 
-                string fault = site.Levels.Length > 1
-                    ? $"{site.Say($"`{site.Raw}`")} has a level, `{level}`, holding"
-                    : $"{site.Say($"`{site.Raw}`")} holds";
+                bool inLevel = site.Levels.Length > 1;
 
                 string collapsed = CollapseUnderscoreRuns(site.Raw);
 
-                diagnostics.Add(rules.OnConsecutiveUnderscores.Value, site.Location,
-                    $"{fault} two or more underscores in a row. A run of them reads as one "
-                    + $"word boundary, so this name and `{collapsed}` both reach the generated "
-                    + $"code as `{site.Normalized}` - the difference is not carried anywhere. "
-                    + $"Write it as `{collapsed}`.");
+                diagnostics.Add(rules.OnConsecutiveUnderscores.Value, site.Location, inLevel
+                    ? Message.Of(NamingMessages.ConsecutiveUnderscoresInLevel,
+                        ("Said", site.Say($"`{site.Raw}`")), ("Level", level),
+                        ("Collapsed", collapsed), ("Normalized", site.Normalized))
+                    : Message.Of(NamingMessages.ConsecutiveUnderscores,
+                        ("Said", site.Say($"`{site.Raw}`")),
+                        ("Collapsed", collapsed), ("Normalized", site.Normalized)));
             }
         }
     }
@@ -481,13 +488,25 @@ public partial class ModelCooker
     private static Severity Soften(Severity severity)
         => severity == Severity.Error ? Severity.Warning : Severity.Info;
 
-    private static string Subject(NameKind kind) => kind switch
+    /// <remarks>
+    /// Four phrases rather than four whole sentences. What differs between them is one noun,
+    /// and writing the sentence out four times would mean four places to keep in step every
+    /// time it is reworded.
+    /// </remarks>
+    private static Message Subject(NameKind kind) => Message.Of(kind switch
     {
-        NameKind.Entity => "One entity name",
-        NameKind.Field => "One field name",
-        NameKind.Label => "One enum label",
-        _ => "One constant name",
-    };
+        NameKind.Entity => NamingMessages.SubjectEntity,
+        NameKind.Field => NamingMessages.SubjectField,
+        NameKind.Label => NamingMessages.SubjectLabel,
+        _ => NamingMessages.SubjectConstant,
+    });
 
-    private static string Occurrences(int count) => count == 1 ? "1 place" : $"{count} places";
+    /// <remarks>
+    /// The singular is the one place English needs a form the other four catalogs do not.
+    /// Two ids keep that out of the sentence it sits in.
+    /// </remarks>
+    private static Message Occurrences(int count)
+        => count == 1
+            ? Message.Of(NamingMessages.PlacesOne)
+            : Message.Of(NamingMessages.PlacesMany, ("Count", count));
 }

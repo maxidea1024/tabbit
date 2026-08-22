@@ -86,6 +86,21 @@ public sealed class Diagnostics
         => Add(Severity.Error, location, message);
 
     /// <summary>
+    /// Records a named report that belongs to no place in particular.
+    /// </summary>
+    /// <remarks>
+    /// For the reports about the known-problem list itself - an entry with no reason, an entry
+    /// matching nothing. They are about the recipe rather than about a cell, so they carry no
+    /// location, and the list is already locked by the caller.
+    /// </remarks>
+    private void Record(Severity severity, Messages.Message message)
+        => _entries.Add((severity, new TabbitException.Detail
+        {
+            Message = message.In(Messages.MessageCatalog.Current),
+            MessageId = message.Id,
+        }));
+
+    /// <summary>
     /// Records a refusal that was thrown and caught, keeping what it already said.
     /// </summary>
     /// <remarks>
@@ -260,10 +275,14 @@ public sealed class Diagnostics
 
                 matched[entry]++;
 
+                var noted = Messages.Message.Of(Cooking.NamingMessages.KnownProblemNoted,
+                    ("Report", detail.Message), ("Reason", known[entry].Reason));
+
                 _entries[at] = (Severity.Info, new TabbitException.Detail
                 {
                     Location = detail.Location,
-                    Message = $"{detail.Message} (Known problem: {known[entry].Reason})",
+                    Message = noted.In(Messages.MessageCatalog.Current),
+                    MessageId = noted.Id,
                 });
             }
 
@@ -280,37 +299,29 @@ public sealed class Diagnostics
 
                 if (item.Reason.Length == 0 || item.At.Length == 0)
                 {
-                    _entries.Add((Severity.Error, new TabbitException.Detail
-                    {
-                        Message = $"`Validation.KnownProblems` entry {entry + 1} needs both `At` "
-                            + $"and `Reason`. An entry without a place covers everything, and one "
-                            + $"without a reason is a switch rather than a note.",
-                    }));
+                    Record(Severity.Error, Messages.Message.Of(
+                        Cooking.NamingMessages.KnownProblemEntryIncomplete, ("Entry", entry + 1)));
 
                     continue;
                 }
 
                 if (matched[entry] == 0)
                 {
-                    _entries.Add((Severity.Error, new TabbitException.Detail
-                    {
-                        Message = $"`Validation.KnownProblems` names `{item.At}`, and nothing was "
-                            + $"reported there. Either it is fixed or the place is wrong; both are "
-                            + $"reasons to take the entry out. (`{item.Reason}`)",
-                    }));
+                    Record(Severity.Error, Messages.Message.Of(
+                        Cooking.NamingMessages.KnownProblemMatchedNothing,
+                        ("At", item.At), ("Reason", item.Reason)));
 
                     continue;
                 }
 
                 if (item.Count > 0 && matched[entry] != item.Count)
                 {
-                    _entries.Add((Severity.Error, new TabbitException.Detail
-                    {
-                        Message = $"`Validation.KnownProblems` says `{item.At}` accounts for "
-                            + $"{item.Count} report(s) and it accounts for {matched[entry]}. "
-                            + $"{(matched[entry] > item.Count ? "Something new is wrong there" : "Some of it is fixed")}, "
-                            + $"so the entry no longer says what is known. (`{item.Reason}`)",
-                    }));
+                    Record(Severity.Error, Messages.Message.Of(
+                        matched[entry] > item.Count
+                            ? Cooking.NamingMessages.KnownProblemCountGrew
+                            : Cooking.NamingMessages.KnownProblemCountShrank,
+                        ("At", item.At), ("Expected", item.Count),
+                        ("Found", matched[entry]), ("Reason", item.Reason)));
                 }
             }
         }

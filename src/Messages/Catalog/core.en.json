@@ -202,5 +202,30 @@
   "run.target-side-unknown": "--target-side `{Value}` is not recognized. Use `client`, `server`, or `both` (the default).",
   "run.validate-only-with-force-output": "`--validate-only` and `--force-output` ask for opposite things: one stops before any output, the other insists every output entry runs. Pass one.",
   "run.environment-named-twice": "`--env {Asked}` was given while {Variable} is already set to `{Inherited}`. They label the same run and decide the same paths, so one of them is wrong. Clear the variable, or pass the environment it names.",
-  "run.environment-name-illegal": "{Described} is not an environment name. This word goes into the paths a recipe builds with `${{{Variable}}}`, so it is limited to letters, digits, `.`, `_` and `-` - anything else would write the output somewhere the recipe does not describe."
+  "run.environment-name-illegal": "{Described} is not an environment name. This word goes into the paths a recipe builds with `${{{Variable}}}`, so it is limited to letters, digits, `.`, `_` and `-` - anything else would write the output somewhere the recipe does not describe.",
+
+  "cook.naming-said-alone": "{Kind} {Subject}",
+  "cook.naming-said-of-owner": "{Kind} {Subject} of {Owner}",
+  "cook.naming-subject-entity": "One entity name",
+  "cook.naming-subject-field": "One field name",
+  "cook.naming-subject-label": "One enum label",
+  "cook.naming-subject-constant": "One constant name",
+  "cook.naming-consequence-splits": "These do not normalize to one name, so the generated code carries a separate member for each spelling and every consumer has to know which one it is reading.",
+  "cook.naming-consequence-same": "These normalize to the same name, so the generated code is unaffected - but the sheets disagree, and the next spelling of it may not be.",
+  "cook.naming-places-one": "1 place",
+  "cook.naming-places-many": "{Count} places",
+  "cook.naming-spelling-violation": "{Said} is not spelled in `{Spelling}` case, which this recipe declares for {Kinds}. Write it as `{Wanted}`.",
+  "cook.naming-spelling-violation-in-level": "{Said} has a level, `{Level}`, that is not spelled in `{Spelling}` case, which this recipe declares for {Kinds}. Write it as `{Wanted}`.",
+  "cook.naming-consecutive-underscores": "{Said} holds two or more underscores in a row. A run of them reads as one word boundary, so this name and `{Collapsed}` both reach the generated code as `{Normalized}` - the difference is not carried anywhere. Write it as `{Collapsed}`.",
+  "cook.naming-consecutive-underscores-in-level": "{Said} has a level, `{Level}`, holding two or more underscores in a row. A run of them reads as one word boundary, so this name and `{Collapsed}` both reach the generated code as `{Normalized}` - the difference is not carried anywhere. Write it as `{Collapsed}`.",
+  "cook.naming-spelling-conflict": "{Subject} is written {Count} ways: {Spellings}. {Consequence} Settle on `{Recommended}` and rewrite the other {Places}.",
+
+  "cook.asset-file-missing": "`{Table}.{Field}` names `{Name}`, and no file of that name is in the configured folders.",
+  "cook.asset-file-missing-for-kind": "`{Table}.{Field}` names `{Name}`, and no file of that name is in the folders for kind `{Kind}`.",
+
+  "cook.known-problem-noted": "{Report} (Known problem: {Reason})",
+  "cook.known-problem-entry-incomplete": "`Validation.KnownProblems` entry {Entry} needs both `At` and `Reason`. An entry without a place covers everything, and one without a reason is a switch rather than a note.",
+  "cook.known-problem-matched-nothing": "`Validation.KnownProblems` names `{At}`, and nothing was reported there. Either it is fixed or the place is wrong; both are reasons to take the entry out. (`{Reason}`)",
+  "cook.known-problem-count-grew": "`Validation.KnownProblems` says `{At}` accounts for {Expected} report(s) and it accounts for {Found}. Something new is wrong there, so the entry no longer says what is known. (`{Reason}`)",
+  "cook.known-problem-count-shrank": "`Validation.KnownProblems` says `{At}` accounts for {Expected} report(s) and it accounts for {Found}. Some of it is fixed, so the entry no longer says what is known. (`{Reason}`)"
 }

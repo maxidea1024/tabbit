@@ -1005,9 +1005,12 @@ public partial class ModelCooker
                 continue;
 
             diagnostics.Add(severity.Value, cell.RawCell?.Location ?? field.NameLocation,
-                $"`{table.Name}.{field.Name}` names `{name}`, and no file of that name is in "
-                + (kind.Length == 0 ? "the configured folders" : $"the folders for kind `{kind}`")
-                + $".");
+                kind.Length == 0
+                    ? Message.Of(NamingMessages.AssetFileMissing,
+                        ("Table", table.Name), ("Field", field.Name), ("Name", name))
+                    : Message.Of(NamingMessages.AssetFileMissingForKind,
+                        ("Table", table.Name), ("Field", field.Name), ("Name", name),
+                        ("Kind", kind)));
         }
     }
 
