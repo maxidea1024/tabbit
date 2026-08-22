@@ -1,4 +1,5 @@
 {
+  "schema.path-missing": "`{Path}` is named as a directory of schema files and there is no such directory. Name one that exists, or drop the entry from `Schemas`.",
   "schema.unknown-keyword": "`{Written}` starts a line and is not a declaration. A line begins with `struct`, `field`, `enum` or `value`, or it is a comment or blank.",
   "schema.polymorphism-reserved": "`{Word}` is reserved and does not mean anything yet. Inheritance is held back until the wire design for it is known to work, so that a notation nobody can remove is not left behind. A column that may hold one of several shapes is written today as a reference naming each of them.",
   "schema.field-outside-struct": "`field` with no `struct` above it. A member belongs to the struct declared before it, and there is none in this file yet.",
@@ -30,5 +31,12 @@
   "schema.enum-number-duplicate": "`{Enum}.{Entry}` is given {Number}, which `{First}` already carries. Two names for one number cannot be told apart in the data.",
   "schema.enum-value-not-a-number": "`{Entry}` is given `{Written}`, and an enum entry carries a whole number.",
   "schema.doc-comment-attached-to-nothing": "A `///` description with no declaration after it. A description belongs to what it introduces; write the declaration, or make these lines `//` notes.",
-  "schema.default-value-expected": "`{Member} =` with nothing after it. Write the default value, or drop the `=`."
+  "schema.default-value-expected": "`{Member} =` with nothing after it. Write the default value, or drop the `=`.",
+  "schema.declared-twice": "`{Name}` is declared twice, first at {First}. A name means one thing across every schema file a recipe reads.",
+  "schema.name-taken-by-sheet": "`{Name}` is declared here and a sheet already declares {What} of that name at {Where}. Two declarations of one name leave nothing to say which a type cell meant; move the sheet's into these files, or rename one of them.",
+  "schema.type-unknown": "`{Struct}.{Member}` is typed `{Type}`, which is neither a built-in type nor anything declared in these files.",
+  "schema.type-is-sheet-enum": "`{Struct}.{Member}` is typed `{Type}`, which a sheet declares. A member's type has to be found in these files alone, so that an editor can read them without opening a workbook - move the enum here, or type the member with the integer it carries.",
+  "schema.container-not-supported": "`{Struct}.{Member}` is typed `{Type}`. The notation reads it and this build does not carry it yet; the file format needs no change for it, so what is missing is the container in each generated language.",
+  "schema.struct-cycle": "`{Cycle}` holds itself. A struct is spread across columns, so a struct that contains itself has no end - a relationship that loops is written as a reference, which is what `foreign` is for.",
+  "schema.enum-number-out-of-range": "`{Enum}.{Entry}` is given {Number}, and an enum entry carries a 32-bit number."
 }

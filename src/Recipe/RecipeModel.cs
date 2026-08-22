@@ -122,6 +122,23 @@ public class RecipeModel
     public SourceRecipeGroup Sources { get; set; } = new SourceRecipeGroup();
 
     /// <summary>
+    /// Where the type declarations are read from.
+    /// </summary>
+    /// <remarks>
+    /// <code>
+    /// "Schemas": [{ "Path": "./schemas" }]
+    /// </code>
+    ///
+    /// Empty is a project whose types are all written in its sheets, which is every project
+    /// that existed before these files did. Nothing here changes what a sheet may say - a
+    /// declaration made in one of these files is another way to say it, and one that does
+    /// not have to be repeated in every table that uses the type.
+    ///
+    /// notes/struct-dsl-design.md section 7.4.
+    /// </remarks>
+    public List<SchemaSourceRecipe> Schemas { get; set; } = new List<SchemaSourceRecipe>();
+
+    /// <summary>
     /// Inserts a `None = 0` label into any enum that declares neither the name `None`
     /// nor the value zero.
     ///

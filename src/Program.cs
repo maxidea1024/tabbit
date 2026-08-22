@@ -19,6 +19,7 @@ using Tabbit.Targets;
 using Tabbit.Sources;
 using Tabbit.Validation;
 using Tabbit.Caching;
+using Tabbit.Schema;
 using Newtonsoft.Json.Linq;
 
 namespace Tabbit;
@@ -600,7 +601,15 @@ class Program
             RawModel rawModel = new RawModel();
 
             using (timings.Measure(RunTimings.Phase.Importing))
+            {
+                // Before the workbooks, because a sheet's type cell may name what these
+                // declare - and because a directory the recipe named and that is not there
+                // should be said with no workbook opened. Text only: what the declarations
+                // mean is settled in the cooker, where the sheets are beside them.
+                rawModel.SchemaFiles = SchemaFiles.ReadAll(recipeModel, cache.Inputs);
+
                 SourceRegistry.ImportAll(options, recipeModel, rawModel, cache.Inputs);
+            }
 
 
             // Cooking

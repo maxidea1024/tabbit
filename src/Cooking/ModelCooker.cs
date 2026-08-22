@@ -45,7 +45,19 @@ public partial class ModelCooker
 
         var context = new CookingContext(result, recipeModel, diagnostics);
 
+        // What the schema files declared, gathered from all of them at once so that a type
+        // may be named before it is declared and in whichever file the recipe listed first.
+        // The enums go into the model before a sheet is read, because a type cell may name
+        // one and the check that a type name is recognized asks the model.
+        var declarations = Schema.SchemaDeclarations.Read(rawModel.SchemaFiles, diagnostics);
+        declarations.DeclareEnums(result, diagnostics);
+
         ParseRawModel(context, rawModel);
+
+        // And the rest of what the declarations say, now that the sheets are here too: a name
+        // a table has already taken, and a member typed with an enum a sheet declared rather
+        // than these files. notes/struct-dsl-design.md section 4.4.
+        declarations.Resolve(result, context, diagnostics);
 
         // What was worth saying once per column rather than once per cell, now that every
         // cell has been read and the counts are final.

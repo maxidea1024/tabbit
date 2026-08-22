@@ -17,6 +17,9 @@ namespace Tabbit.Schema;
 [TabbitMessages("schema")]
 public static class SchemaMessages
 {
+    /// <summary>A directory of schema files the recipe names and there is none.</summary>
+    public const string PathMissing = "schema.path-missing";
+
     /// <summary>A line whose first word is not one of the seven keywords.</summary>
     public const string UnknownKeyword = "schema.unknown-keyword";
 
@@ -112,4 +115,27 @@ public static class SchemaMessages
 
     /// <summary>A `=` with nothing after it where a default value belongs.</summary>
     public const string DefaultValueExpected = "schema.default-value-expected";
+
+    // ------------------------------------------------------ once every file is read
+
+    /// <summary>One name declared by two declarations.</summary>
+    public const string DeclaredTwice = "schema.declared-twice";
+
+    /// <summary>A declaration whose name a sheet has already given to something.</summary>
+    public const string NameTakenBySheet = "schema.name-taken-by-sheet";
+
+    /// <summary>A member typed with a name nothing declares.</summary>
+    public const string TypeUnknown = "schema.type-unknown";
+
+    /// <summary>A member typed with an enum a sheet declared rather than these files.</summary>
+    public const string TypeIsSheetEnum = "schema.type-is-sheet-enum";
+
+    /// <summary>A container type, which the notation reads and this does not yet carry.</summary>
+    public const string ContainerNotSupported = "schema.container-not-supported";
+
+    /// <summary>A struct that holds itself, however far around.</summary>
+    public const string StructCycle = "schema.struct-cycle";
+
+    /// <summary>An enum entry whose number will not fit what the data carries.</summary>
+    public const string EnumNumberOutOfRange = "schema.enum-number-out-of-range";
 }
