@@ -89,8 +89,8 @@ public static class CanonicalValue
                 return ((Guid)value!).ToString("D").ToLowerInvariant();
 
             default:
-                throw new TabbitException(
-                    $"The history cannot render a value of type `{type}`.");
+                    throw new TabbitDefectException(
+                        $"The history cannot render a value of type `{type}`.");
         }
     }
 

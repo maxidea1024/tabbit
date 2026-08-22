@@ -95,6 +95,20 @@ public class TabbitException : Exception
     }
 
     /// <summary>
+    /// Construct from a named report and the exception that caused it.
+    /// </summary>
+    /// <remarks>
+    /// For the reports that quote something they caught. The quoted text arrives as a value
+    /// like any other; the exception is kept as well, so a defect underneath a well-worded
+    /// report still has its stack.
+    /// </remarks>
+    public TabbitException(Messages.Message message, Exception inner)
+        : base(message.In(Messages.MessageCatalog.Current), inner)
+    {
+        MessageId = message.Id;
+    }
+
+    /// <summary>
     /// Construct with cell-location and message.
     /// </summary>
     /// <param name="location"></param>

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Serilog;
 using Tabbit.Recipe;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -304,9 +305,8 @@ public sealed class CommitInfo
             return parsed;
         }
 
-        throw new TabbitException(
-            $"--commit-date `{text}` is not a date. Use an ISO 8601 timestamp, such as " +
-            $"`2026-08-03T14:05:00+09:00`.");
+            throw new TabbitException(null,
+                Message.Of(RecordMessages.CommitDateNotADate, ("Text", text)));
     }
 
     private static string? Trimmed(string? value)

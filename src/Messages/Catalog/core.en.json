@@ -107,6 +107,9 @@
   "recipe.naming-severity-unknown": "Recipe `Naming` sets `{Key}` to `{Value}`. It takes `error`, `warn` or `ignore`.",
   "recipe.row-sets-group-captured-other-table": "`TableRowSets` matches `{Set}` but its `{TableGroup}` group captured `{Captured}`, so the pattern does not say which table this is a set of rows for.",
   "recipe.layout-unknown": "A recipe source asks for the sheet layout `{Layout}`, which does not exist. Use one of: {Known}.",
+  "recipe.history-no-project-key": "Recipe `{Section}` records history but names no ProjectKey. One database can hold several projects and they are told apart by it.",
+  "recipe.history-on-failure-unknown": "Recipe `{Section}` sets OnFailure to `{Value}`, which is not a value. Use `warn` or `fail`.",
+  "recipe.summary-author-unknown": "The summary target sets `Author` to `{Value}`. It takes `full`, `masked` or `none`.",
 
   "cook.type-has-no-empty-value": "There is no empty value for type `{Type}`, so a column of it cannot be optional.",
   "cook.index-type-unusable-in-table": "The index field `{Field}` is `{Type}`, {Why} Use a whole-number, string, uuid or enum column as the index.",

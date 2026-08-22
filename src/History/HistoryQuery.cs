@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using MySqlConnector;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -227,9 +228,10 @@ public sealed class HistoryQuery : IDisposable
                 return "(SELECT COUNT(*) FROM cell_change c WHERE c.snapshot_id = s.id)";
 
             default:
-                throw new TabbitException(
-                    $"`{metric}` is not a metric. Use rows, cells, contentBytes, tables, fields" +
-                    (perTable ? "." : ", or changes."));
+                    throw new TabbitException(null,
+                        Message.Of(perTable
+                            ? RecordMessages.MetricUnknownPerTable
+                            : RecordMessages.MetricUnknown, ("Metric", metric)));
         }
     }
 
@@ -841,9 +843,10 @@ public sealed class HistoryQuery : IDisposable
 
         if (matches.Count > 1)
         {
-            throw new TabbitException(
-                $"`{commit}` matches {matches.Count} commits on branch `{branch}`: " +
-                $"{string.Join(", ", matches.Select(m => Short(m.Hash)))}. Use more of the hash.");
+                throw new TabbitException(null,
+                    Message.Of(RecordMessages.CommitAmbiguous,
+                        ("Commit", commit), ("Count", matches.Count), ("Branch", branch),
+                        ("Matches", string.Join(", ", matches.Select(m => Short(m.Hash))))));
         }
 
         return matches[0].Id;
@@ -937,9 +940,9 @@ public sealed class HistoryQuery : IDisposable
 
         if (fromSeq > toSeq)
         {
-            throw new TabbitException(
-                $"`{from}` comes after `{to}` on branch `{branch}`, so there is no range between " +
-                $"them. Swap them, or leave one out.");
+                throw new TabbitException(null,
+                    Message.Of(RecordMessages.RangeReversed,
+                        ("From", from), ("To", to), ("Branch", branch)));
         }
 
         return (fromSeq, toSeq);

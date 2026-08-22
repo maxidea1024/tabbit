@@ -11,6 +11,7 @@ using Tabbit.Exporters;
 using Tabbit.Models;
 using Tabbit.Recipe;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -148,9 +149,7 @@ public static class HistoryCommand
 
         if (before is null && options.Keep <= 0)
         {
-            throw new TabbitException(
-                "--prune with neither --before nor --keep would remove every snapshot's " +
-                "detail. Say how far back to go.");
+                throw new TabbitException(null, Message.Of(RecordMessages.PruneNeedsBound));
         }
 
         var (connectionString, projectKey) = Connection(options, recipe);
@@ -209,8 +208,8 @@ public static class HistoryCommand
             case "html": return ReportFormat.Html;
 
             default:
-                throw new TabbitException(
-                    $"`--format {options.Format}` is not a format. Use `json`, `text` or `html`.");
+                    throw new TabbitException(null,
+                        Message.Of(RecordMessages.FormatUnknown, ("Format", options.Format)));
         }
     }
 
@@ -259,18 +258,16 @@ public static class HistoryCommand
 
         if (planned.Count == 0)
         {
-            throw new TabbitException(
-                "This recipe has no `history` target, so there is nothing to read. Add one, or " +
-                "point --recipe at the recipe the conversions use.");
+                throw new TabbitException(null, Message.Of(RecordMessages.NoHistoryTarget));
         }
 
         if (planned.Count > 1 && options.Project is null)
         {
             var keys = planned.Select(p => ((HistoryRecipe)p.Entry).ProjectKey).Distinct().ToList();
 
-            throw new TabbitException(
-                $"This recipe has {planned.Count} history targets ({string.Join(", ", keys)}). " +
-                $"Name the one to read with --project.");
+                throw new TabbitException(null,
+                    Message.Of(RecordMessages.SeveralHistoryTargets,
+                        ("Count", planned.Count), ("Keys", string.Join(", ", keys))));
         }
 
         var chosen = options.Project is null
@@ -280,8 +277,8 @@ public static class HistoryCommand
 
         if (chosen.Entry is null)
         {
-            throw new TabbitException(
-                $"This recipe has no history target for project `{options.Project}`.");
+                throw new TabbitException(null,
+                    Message.Of(RecordMessages.NoTargetForProject, ("Project", options.Project)));
         }
 
         var entry = (HistoryRecipe)chosen.Entry;

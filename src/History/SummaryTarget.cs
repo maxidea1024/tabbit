@@ -5,6 +5,7 @@ using Newtonsoft.Json.Serialization;
 using Serilog;
 using Tabbit.Helpers;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -136,9 +137,8 @@ public class SummaryTarget : Target<SummaryRecipe>
             case "none": return AuthorDisclosure.None;
         }
 
-        throw new TabbitException(
-            $"The summary target sets `Author` to `{text}`. " +
-            "It takes `full`, `masked` or `none`.");
+            throw new TabbitException(null,
+                Message.Of(Recipe.RecipeMessages.SummaryAuthorUnknown, ("Value", text)));
     }
 
     /// <summary>

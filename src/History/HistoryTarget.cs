@@ -3,6 +3,7 @@ using MySqlConnector;
 using Serilog;
 using Tabbit.Exporters;
 using Tabbit.Targets;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -84,9 +85,8 @@ public class HistoryTarget : Target<HistoryRecipe>
 
         if (string.IsNullOrWhiteSpace(recipe.ProjectKey!))
         {
-            throw new TabbitException(
-                $"Recipe `{context.Section}` records history but names no ProjectKey. One database " +
-                $"can hold several projects and they are told apart by it.");
+                throw new TabbitException(null,
+                    Message.Of(Recipe.RecipeMessages.HistoryNoProjectKey, ("Section", context.Section)));
         }
 
         if (!HistoryRecorder.CanRecord(context.Commit, recipe))
@@ -122,17 +122,20 @@ public class HistoryTarget : Target<HistoryRecipe>
         if (!string.Equals(recipe.OnFailure, "warn", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(recipe.OnFailure, "fail", StringComparison.OrdinalIgnoreCase))
         {
-            throw new TabbitException(
-                $"Recipe `{section}` sets OnFailure to `{recipe.OnFailure}`, which is not a value. " +
-                $"Use `warn` or `fail`.");
+                throw new TabbitException(null,
+                    Message.Of(Recipe.RecipeMessages.HistoryOnFailureUnknown,
+                        ("Section", section), ("Value", recipe.OnFailure)));
         }
 
-        string message =
-            $"The history at `{section}` could not be reached, so nothing was recorded for this " +
-            $"conversion: {ex.Message}";
+        // One named report for both surfaces. Which one it goes to is the recipe's choice,
+        // and it is the same sentence either way.
+        var unreachable = Message.Of(RecordMessages.Unreachable,
+            ("Section", section), ("Detail", ex.Message));
+
+        string message = unreachable.In(MessageCatalog.Current);
 
         if (string.Equals(recipe.OnFailure, "fail", StringComparison.OrdinalIgnoreCase))
-            throw new TabbitException(message);
+            throw new TabbitException(null, unreachable);
 
         // Error rather than warning. The build is not failing, but a gap has opened: the
         // next snapshot's changes will be measured from the last one recorded and

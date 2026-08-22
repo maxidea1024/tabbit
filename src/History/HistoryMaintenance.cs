@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using MySqlConnector;
 using Serilog;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -54,7 +55,8 @@ internal static class HistoryMaintenance
         MySqlConnection connection, string project, string branch, DateTime? before, int keep)
     {
         int projectId = ProjectId(connection, project)
-            ?? throw new TabbitException($"The history holds no project called `{project}`.");
+                ?? throw new TabbitException(null,
+                    Message.Of(RecordMessages.ProjectUnknown, ("Project", project)));
 
         string lockName = HistorySchema.WriteLockFor(projectId, branch ?? "");
 
@@ -310,8 +312,7 @@ internal static class HistoryMaintenance
             return parsed.UtcDateTime;
         }
 
-        throw new TabbitException(
-            $"`--before {text}` is neither a date nor an age. Use an ISO 8601 date, or a " +
-            $"number of days such as `90d`.");
+            throw new TabbitException(null,
+                Message.Of(RecordMessages.BeforeNotADateOrAge, ("Text", text)));
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Serilog;
+using Tabbit.Messages;
 
 namespace Tabbit.History;
 
@@ -90,12 +91,9 @@ internal static class HistoryRecorder
                 return RecordOutcome.AlreadyPresent;
             }
 
-            throw new TabbitException(
-                $"The history already holds a different model for commit {commit.ShortHash} on branch " +
-                $"`{BranchOf(commit)}`. That happens when a snapshot was recorded from a working copy " +
-                $"with uncommitted changes, or when --commit named a value already used for other " +
-                $"data. The history is not rewritten automatically: whichever of the two is wrong, " +
-                $"overwriting hides it.");
+            throw new TabbitException(null,
+                Message.Of(RecordMessages.ModelDiffersForCommit,
+                    ("Commit", commit.ShortHash), ("Branch", BranchOf(commit))));
         }
 
         var head = store.ReadHead();

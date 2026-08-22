@@ -84,4 +84,13 @@ public static class RecipeMessages
 
     /// <summary>A source asking for a sheet layout that does not exist.</summary>
     public const string LayoutUnknown = "recipe.layout-unknown";
+
+    /// <summary>A history target with no project key to tell its rows apart by.</summary>
+    public const string HistoryNoProjectKey = "recipe.history-no-project-key";
+
+    /// <summary>A history `OnFailure` this tool does not understand.</summary>
+    public const string HistoryOnFailureUnknown = "recipe.history-on-failure-unknown";
+
+    /// <summary>A summary `Author` this tool does not understand.</summary>
+    public const string SummaryAuthorUnknown = "recipe.summary-author-unknown";
 }
