@@ -200,6 +200,23 @@ public partial class ModelCooker
         SchemaDeclarations declarations,
         Diagnostics diagnostics)
     {
+        // Once per packed column rather than once per cell. The literal is the same string
+        // in every row, so parsing it is the same answer - and a literal its member's type
+        // cannot read would otherwise be reported once for every row of the table.
+        var defaults = new Dictionary<Field, List<object?>>();
+
+        foreach (var field in original)
+        {
+            if (SepStructOf(field, declarations) is not { } declared)
+                continue;
+
+            defaults[field] = declared.LiveFields
+                .Select(member => SchemaFieldTypes.ResolvedOf(context, member, declarations) is { } r
+                    ? SchemaDefaults.Read(context, member, r, diagnostics)
+                    : null)
+                .ToList();
+        }
+
         foreach (var row in table.Data)
         {
             var rewritten = new List<Cell>(table.Fields.Count);
@@ -216,8 +233,9 @@ public partial class ModelCooker
                     continue;
                 }
 
-                rewritten.AddRange(
-                    Split(context, table, field, declared, declarations, cell, diagnostics));
+                rewritten.AddRange(Split(
+                    context, table, field, declared, declarations,
+                    defaults[field], cell, diagnostics));
             }
 
             row.Clear();
@@ -242,6 +260,7 @@ public partial class ModelCooker
         Field field,
         SchemaStruct declared,
         SchemaDeclarations declarations,
+        List<object?> defaults,
         Cell cell,
         Diagnostics diagnostics)
     {
@@ -296,9 +315,10 @@ public partial class ModelCooker
                 // as columns says with an empty cell. Giving them all the cell's own answer
                 // would make the two notations produce different files, and section 7.1
                 // requires that they produce the same one.
-                HasValue = cell.HasValue && !string.IsNullOrEmpty(part),
+                HasValue = (cell.HasValue && !string.IsNullOrEmpty(part))
+                    || (member.DefaultValue is not null && defaults[at] is not null),
 
-                Value = Read(context, resolved, member, part, cell)!,
+                Value = Read(context, resolved, member, defaults[at], part, cell)!,
             };
         }
     }
@@ -307,9 +327,15 @@ public partial class ModelCooker
         CookingContext context,
         SchemaFieldTypes.Resolved resolved,
         SchemaField member,
+        object? declared,
         string? part,
         Cell cell)
     {
+        // Nothing written where a member declares what nothing means. The same answer the
+        // written-out notation gives an empty cell, which is what keeps the two identical.
+        if (string.IsNullOrEmpty(part) && member.DefaultValue is not null)
+            return declared ?? (part ?? "");
+
         // A reference keeps its text until the pass that resolves it: which type its key is
         // depends on the target, which may not have been read yet.
         if (resolved.RefTables is not null)

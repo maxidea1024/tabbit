@@ -13,6 +13,8 @@ struct Reward (sep=",")
     field count int (min=1, max=9999)
     /// Shown beside the count. Blank where there is nothing to show.
     field icon string? (asset=icon)
+    /// What it is made of. A row that says nothing here says `Fire`.
+    field grade Element = Fire
 
 /// What a reward is made of.
 enum Element

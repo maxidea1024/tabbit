@@ -106,9 +106,81 @@ internal static class TabbitRunner
     /// Further command line arguments, for the options whose whole purpose is to change
     /// what a run produces from an unchanged recipe.
     /// </param>
+    /// <summary>
+    /// Converts a scenario, or hands back the answer from the first time this run did.
+    /// </summary>
+    /// <remarks>
+    /// **The suite converts 73 scenarios from 214 call sites**, because a class asks for one
+    /// per `[Fact]` and several classes ask for the same one. The other 141 runs recompute an
+    /// answer that cannot have changed: the workbooks, the recipe and the tool are the same
+    /// file on disk for the length of a test run, and the conversion is deterministic - which
+    /// the golden tree is the standing proof of.
+    ///
+    /// So the plain form is shared. A call that names environment variables or extra
+    /// arguments is asking for a particular run and gets one - and takes the shared answer
+    /// away with it, because such a run leaves a different tree behind than the one the
+    /// shared answer described.
+    ///
+    /// <see cref="ConvertFresh"/> is for the caller that needs the output tree itself to be
+    /// untouched, rather than just the result.
+    /// </remarks>
     public static RunResult Convert(string scenario,
                                     IReadOnlyDictionary<string, string> environment = null,
                                     params string[] extraArgs)
+    {
+        bool plain = environment is null && (extraArgs is null || extraArgs.Length == 0);
+
+        if (plain)
+        {
+            return Shared.GetOrAdd(scenario, key => new Lazy<RunResult>(
+                () => ConvertOnce(key, null, Array.Empty<string>()),
+                LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+        }
+
+        var particular = ConvertOnce(scenario, environment, extraArgs);
+
+        // This run wrote a tree the shared answer no longer describes, so the next plain
+        // caller converts again rather than being told about output that is not there.
+        Shared.TryRemove(scenario, out _);
+
+        return particular;
+    }
+
+    /// <summary>
+    /// Converts a scenario with its output tree rebuilt from nothing, whatever this run has
+    /// already done.
+    /// </summary>
+    /// <remarks>
+    /// **For a test that walks the output tree and judges every file in it**, rather than
+    /// opening the ones it named. The conformance harness builds Go, Rust, Java, Kotlin,
+    /// Dart and Python **inside** the directory each was generated into, so a tree that has
+    /// been compiled in holds `go.sum`, a Dart package config, a Cargo target directory -
+    /// files a walker will find and take for output. Converting fresh is what says "nothing
+    /// has built in here since this was written".
+    ///
+    /// Three tests need it, and they are the three that walk: the golden comparison, the
+    /// file-ending gate and the generated-marker gate. **A new test that walks a tree needs
+    /// this too** - the shared conversion is for a test that reads the files it asked for.
+    ///
+    /// The answer replaces the shared one rather than clearing it: the tree it just wrote is
+    /// the same tree, so a later caller is not made to convert a third time.
+    /// </remarks>
+    public static RunResult ConvertFresh(string scenario)
+    {
+        var result = ConvertOnce(scenario, null, Array.Empty<string>());
+
+        Shared[scenario] = new Lazy<RunResult>(result);
+
+        return result;
+    }
+
+    /// <summary>One conversion per scenario per test run, unless somebody asks otherwise.</summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Lazy<RunResult>>
+        Shared = new(StringComparer.Ordinal);
+
+    private static RunResult ConvertOnce(string scenario,
+                                         IReadOnlyDictionary<string, string> environment,
+                                         string[] extraArgs)
     {
         // Each scenario owns its output tree, and it is rebuilt from scratch so a
         // file that stops being generated shows up as a deletion rather than

@@ -123,7 +123,10 @@ public class ConversionGoldenTests
     [InlineData("multi-target")]
     public void Fixture_matches_golden(string scenario)
     {
-        var result = TabbitRunner.Convert(scenario);
+        // Fresh, and this is the one test that needs it: the comparison below walks the
+        // whole tree and reports what it does not recognise, so it has to be looking at
+        // a tree nothing has built inside since it was generated.
+        var result = TabbitRunner.ConvertFresh(scenario);
 
         Assert.True(result.Succeeded,
             $"Conversion of `{scenario}` failed.{Environment.NewLine}{result.Describe()}");

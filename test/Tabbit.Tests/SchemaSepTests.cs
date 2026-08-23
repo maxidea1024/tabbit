@@ -89,4 +89,27 @@ public class SchemaSepTests
         Assert.Equal(20, second.GetProperty("itemId").GetInt32());
         Assert.Equal("", second.GetProperty("icon").GetString());
     }
+
+    /// <summary>
+    /// A declared default reaches a row that wrote nothing, in both notations.
+    /// </summary>
+    /// <remarks>
+    /// The comparison above already says the two agree; this says what they agree on. `grade`
+    /// is declared `= Fire` and rows two and three leave it out - as an empty component on one
+    /// side and an empty cell on the other, which is the same statement said two ways.
+    ///
+    /// Row one writes `Ice`, so what is being read is a default rather than the type's empty
+    /// value: an enum's empty value is zero, and `Fire` is one.
+    /// </remarks>
+    [Fact]
+    public void A_declared_default_fills_a_row_that_wrote_nothing()
+    {
+        Convert("packed");
+
+        var rows = JsonDocument.Parse(Json("packed")).RootElement;
+
+        Assert.Equal(2, rows[0].GetProperty("reward").GetProperty("grade").GetInt32());
+        Assert.Equal(1, rows[1].GetProperty("reward").GetProperty("grade").GetInt32());
+        Assert.Equal(1, rows[2].GetProperty("reward").GetProperty("grade").GetInt32());
+    }
 }

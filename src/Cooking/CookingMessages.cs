@@ -29,6 +29,27 @@ public static class CookingMessages
     /// <summary>A trailing comma in a role's brackets with no namespace after it.</summary>
     public const string RoleSpaceEmpty = "cook.role-space-empty";
 
+    /// <summary>A value that does not match the pattern its column declares.</summary>
+    public const string ValueDoesNotMatch = "cook.value-does-not-match";
+
+    /// <summary>One element of an array that does not match it.</summary>
+    public const string ElementValueDoesNotMatch = "cook.element-value-does-not-match";
+
+    /// <summary>A value equal to the type's empty one where that is refused.</summary>
+    public const string ValueIsTheDefault = "cook.value-is-the-default";
+
+    /// <summary>One element of an array equal to it.</summary>
+    public const string ElementValueIsTheDefault = "cook.element-value-is-the-default";
+
+    /// <summary>An array cell holding fewer elements than its column allows.</summary>
+    public const string ArrayTooShort = "cook.array-too-short";
+
+    /// <summary>An array cell holding more elements than its column allows.</summary>
+    public const string ArrayTooLong = "cook.array-too-long";
+
+    /// <summary>A pattern that is not a regular expression.</summary>
+    public const string PatternUnreadable = "cook.pattern-unreadable";
+
     /// <summary>An array element left empty with a later one filled in.</summary>
     public const string ArrayGap = "cook.array-gap";
 

@@ -17,35 +17,36 @@
 **v107이 먼저 들어간 것이 이 순서의 이유입니다.** 설계 §4.9가 「배열은 100% 동적」을 전제로
 쓰여 있고, 그 전제가 이제 코드에 있습니다.
 
-## 2. 1단계의 범위 — 파서와 모델 결합
+## 2. 어디까지 왔는가
 
-설계 §11의 1단계입니다. **끝났다고 말할 수 있는 상태를 먼저 정합니다.**
+설계 §11의 단계입니다.
 
-|끝난 상태|지금|
-|--|--|
-|`.tbs` 파일에 `struct` · `field` · `enum` · `value`를 적고, `///` 주석과 괄호 메타데이터를 붙일 수 있습니다|**됨**|
-|recipe가 그 파일들의 자리를 지정하고, **빌드 캐시의 입력에 포함됩니다**|**됨**|
-|시트의 타입 칸이 struct 이름을 쓰면 그 컬럼 그룹이 그 타입이 됩니다 — 설계 §7.2의 **(나)**|**됨**|
-|생성 코드의 타입 이름에 **테이블 접두가 붙지 않습니다.** 두 테이블의 `Pos`가 같은 타입입니다|**남음 — 단계를 나누기를 권고합니다** · §2.2|
-|형식은 움직이지 않습니다. 골든의 `.tcb`가 한 바이트도 바뀌지 않아야 합니다|**여기까지는 안 움직였습니다**|
+|단계|무엇|상태|
+|--|--|--|
+|0|합성 값 타입 브랜치 병합|**됨**|
+|1|파서 · recipe · 선언 해석 · 시트 결합 (나)|**됨** — 타입 신원 하나만 남았습니다(§2.2)|
+|2|제약 메타데이터와 시트와의 교집합|**됨**|
+|3|`sep` 한 셀 표기|**됨** — 번호 없는 레코드 하나까지|
+|4|기본값|**됨**|
+|5|`regex` · `size` · `notDefault`|**됨.** `uniqueBy`는 붙을 자리가 없습니다|
+|5′|`set` · `map`|**안 함** — 형식 무변경이지만 모든 언어의 컨테이너 산출이 필요합니다|
+|6|다형|**안 함** — 와이어 설계 확인이 선행|
+
+**형식은 한 번도 안 움직였습니다.** 변환 골든이 처음부터 끝까지 무변경입니다.
 
 ### 된 것 — 자리
 
 |무엇|어디|
 |--|--|
 |렉서 · 파서 · AST · 메타데이터|`src/Schema/` — `SchemaLexer` · `SchemaParser` · `SchemaSyntax` · `SchemaMeta`|
-|메시지|`SchemaMessages`(접두어 `schema`) · `src/Messages/Catalog/schema.en.json`. **영어만**입니다 — id가 더 움직일 수 있어서 나머지 넷은 id 집합이 굳은 뒤에|
-|recipe|`Schemas` 항목과 `SchemaSourceRecipe`. 워크북 디렉터리와 같은 규칙(`#`은 끔, 순서 고정)|
-|빌드 캐시|파일 하나씩 `Inputs.Read`, **목록은 `Inputs.Listed`** — 파일이 늘어난 것은 기존 파일을 하나도 안 바꾸므로 목록이 없으면 캐시에 적중합니다|
-|읽기와 해석의 분리|읽기는 `Program`에서 임포트 옆, 텍스트가 `RawModel.SchemaFiles`로. 해석은 쿠커에서|
-|선언 해석|`SchemaDeclarations` — 전부 모은 뒤 검사하므로 전방·후방·파일 간 참조가 전부 됩니다|
-|시트 결합 (나)|`CookingContext`의 지연 타입 + `ModelCooker.Schemas.cs`의 결합 패스 + `SchemaFieldTypes`|
-|테스트|`SchemaParserTests`(63) · `SchemaDeclarationsTests`(26) · `SchemaBindingTests`(6, 픽스처 3벌)|
+|선언 해석 · 메타 · 기본값|`SchemaDeclarations` · `SchemaMetadata` · `SchemaDefaults` · `SchemaFieldTypes`|
+|시트 결합|`ModelCooker.Schemas.cs`(나) · `ModelCooker.SchemaSep.cs`(다)|
+|메시지|`SchemaMessages`(접두어 `schema`) · 카탈로그 **영어 · 한국어**. ja · zh는 남았습니다|
+|recipe · 빌드 캐시|`Schemas` 항목과 `SchemaSourceRecipe`, 파일별 `Inputs.Read` + **목록** `Inputs.Listed`|
+|테스트|`SchemaParserTests` · `SchemaDeclarationsTests` · `SchemaMetadataTests` · `SchemaBindingTests` · `SchemaSepTests`|
 
-**해석이 두 조각으로 갈린 이유가 하나 있습니다.** DSL의 enum은 **시트를 읽기 전에** 모델에
-넣어야 합니다 — 시트의 타입 칸이 그 이름을 쓸 수 있고, 「이 타입 이름이 있는가」를 묻는 검사가
-모델에게 묻기 때문입니다. 나머지 검사(이름이 테이블과 겹치는가 · 멤버가 시트의 enum으로
-타이핑되었는가)는 시트가 있어야 하므로 그 뒤입니다.
+**게이트는 `.tcb` 바이트 동일 짝입니다** — 같은 테이블을 두 표기로 적고 파일이 같아야 합니다.
+합성 값 타입이 세운 방식이고, (나)·(다)·기본값을 전부 그것으로 잡았습니다.
 
 ### 2.1 (나)는 어떻게 풀렸는가
 

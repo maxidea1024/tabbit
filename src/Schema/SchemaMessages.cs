@@ -173,8 +173,17 @@ public static class SchemaMessages
     /// <summary>`refs`, which says what `foreign` already says in this tool.</summary>
     public const string MetaRefsIsForeign = "schema.meta-refs-is-foreign";
 
-    /// <summary>A default value, which nothing applies yet.</summary>
-    public const string DefaultNotCarried = "schema.default-not-carried";
+    /// <summary>A default written beside a `?`, which says two things about one blank.</summary>
+    public const string DefaultAndOptional = "schema.default-and-optional";
+
+    /// <summary>A default the member's own type cannot read.</summary>
+    public const string DefaultUnreadable = "schema.default-unreadable";
+
+    /// <summary>A default on the column that identifies the row.</summary>
+    public const string DefaultOnAnIndex = "schema.default-on-an-index";
+
+    /// <summary>A defaulted member on a column that wrote its own type.</summary>
+    public const string DefaultNeedsAnEmptyTypeCell = "schema.default-needs-an-empty-type-cell";
 
     /// <summary>`text` or `asset` on a member that is not a string.</summary>
     public const string RoleNotAString = "schema.role-not-a-string";
@@ -190,6 +199,18 @@ public static class SchemaMessages
 
     /// <summary>A sheet's whitelist and a declaration's with nothing in common.</summary>
     public const string AllowedIntersectionEmpty = "schema.allowed-intersection-empty";
+
+    /// <summary>A pattern on a column that already has a different one.</summary>
+    public const string PatternWrittenTwice = "schema.pattern-written-twice";
+
+    /// <summary>`size` given something that is not a count.</summary>
+    public const string SizeNotACount = "schema.size-not-a-count";
+
+    /// <summary>`regex` on a member that is not a string.</summary>
+    public const string PatternNotAString = "schema.pattern-not-a-string";
+
+    /// <summary>`size` on a member that is not an array.</summary>
+    public const string SizeNotAnArray = "schema.size-not-an-array";
 
     // ------------------------------------------------ a whole value written in one cell
 

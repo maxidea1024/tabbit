@@ -1096,10 +1096,95 @@ public partial class ModelCooker
     /// An array cell is checked element by element: the bound is on the column and every
     /// element of it is a value of that column.
     /// </remarks>
+    /// <summary>
+    /// How many elements an array cell holds, against what its column allows.
+    /// </summary>
+    /// <remarks>
+    /// About the cell rather than about any one value in it, which is why it is here and not
+    /// in the per-value check. Reported on the row that breaks it: the column is right and
+    /// the row is short.
+    /// </remarks>
+    private static void CheckLength(
+        Table table, Field field, Cell cell, System.Array array, Diagnostics diagnostics)
+    {
+        var constraints = field.Constraints;
+        var location = cell.RawCell?.Location ?? field.NameLocation;
+
+        if (constraints.MinimumLength is int least && array.Length < least)
+        {
+            diagnostics.Error(location, Message.Of(CookingMessages.ArrayTooShort,
+                ("Table", table.Name), ("Field", field.Name),
+                ("Given", array.Length), ("Wanted", least)));
+        }
+
+        if (constraints.MaximumLength is int most && array.Length > most)
+        {
+            diagnostics.Error(location, Message.Of(CookingMessages.ArrayTooLong,
+                ("Table", table.Name), ("Field", field.Name),
+                ("Given", array.Length), ("Wanted", most)));
+        }
+    }
+
+    /// <summary>
+    /// A column's pattern, compiled once and kept.
+    /// </summary>
+    /// <remarks>
+    /// Compiling per row would compile it per row - a table of ninety thousand rows pays for
+    /// the same expression ninety thousand times. A pattern that will not compile is the
+    /// column's mistake rather than any row's, so it is reported once against the column and
+    /// then stops being asked about.
+    /// </remarks>
+    private System.Text.RegularExpressions.Regex? PatternFor(
+        Table table, Field field, string pattern, Diagnostics diagnostics)
+    {
+        if (_patterns.TryGetValue(field, out var known))
+            return known;
+
+        try
+        {
+            known = new System.Text.RegularExpressions.Regex(pattern);
+        }
+        catch (System.ArgumentException problem)
+        {
+            diagnostics.Error(field.Constraints.PatternLocation ?? field.TypeLocation,
+                Message.Of(CookingMessages.PatternUnreadable,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Pattern", pattern), ("Detail", problem.Message)));
+
+            known = null;
+        }
+
+        _patterns[field] = known;
+        return known;
+    }
+
+    private readonly Dictionary<Field, System.Text.RegularExpressions.Regex?> _patterns = new();
+
+    /// <summary>
+    /// Whether a value is the one a type holds when nobody wrote anything.
+    /// </summary>
+    /// <remarks>
+    /// Compared as text against the type's own empty value, so every type answers the same
+    /// way and none of them needs a case here. What makes the question worth asking is that a
+    /// blank cell and a written zero reach everything downstream identically - so a column
+    /// where zero means nothing has no other way to refuse it.
+    /// </remarks>
+    private static bool IsTheTypesEmptyValue(Models.ValueType type, object? value)
+    {
+        if (value is null)
+            return true;
+
+        var element = Models.ValueTypes.ElementOf(type);
+
+        return Text(value) == Text(CookingContext.EmptyValueOfType(element));
+    }
+
     private void CheckAgainstConstraints(Table table, Field field, Cell cell, Diagnostics diagnostics)
     {
         if (cell.Value is System.Array array)
         {
+            CheckLength(table, field, cell, array, diagnostics);
+
             for (int at = 0; at < array.Length; at++)
             {
                 // An element the sheet said has no value holds the type's empty one, which is
@@ -1142,6 +1227,32 @@ public partial class ModelCooker
                     : Message.Of(CookingMessages.ValueNotAllowed,
                         ("Table", table.Name), ("Field", field.Name),
                         ("Value", text), ("Allowed", string.Join(", ", allowed))));
+            }
+        }
+
+        if (constraints.NotDefault && IsTheTypesEmptyValue(field.Type, value))
+        {
+            diagnostics.Error(location, isElement
+                ? Message.Of(CookingMessages.ElementValueIsTheDefault,
+                    ("Table", table.Name), ("Field", field.Name), ("Element", elementAt),
+                    ("Value", Text(value!)))
+                : Message.Of(CookingMessages.ValueIsTheDefault,
+                    ("Table", table.Name), ("Field", field.Name),
+                    ("Value", Text(value!))));
+        }
+
+        if (constraints.Pattern is { } pattern && value is string written)
+        {
+            if (PatternFor(table, field, pattern, diagnostics) is { } compiled
+                && !compiled.IsMatch(written))
+            {
+                diagnostics.Error(location, isElement
+                    ? Message.Of(CookingMessages.ElementValueDoesNotMatch,
+                        ("Table", table.Name), ("Field", field.Name), ("Element", elementAt),
+                        ("Value", written), ("Pattern", pattern))
+                    : Message.Of(CookingMessages.ValueDoesNotMatch,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Value", written), ("Pattern", pattern)));
             }
         }
 

@@ -12,11 +12,12 @@
 
 /// One thing a row hands out.
 struct Reward
-    // `mn` is nobody's key, `regex` is one this build does not act on, and `refs` says
-    // what `foreign` already says here. Three different answers, and each says which.
+    // `mn` is nobody's key, `uniqueBy` is one the notation defines and this build has
+    // nowhere to put, and `refs` says what `foreign` already says here. Three
+    // different answers, and each report says which of the three it is.
     field itemId int (refs=Item)
     field count string (mn=1)
-    field bonus int (regex="^[0-9]+$")
+    field bonus int (uniqueBy=id)
 
 /// What a reward is made of.
 enum Element

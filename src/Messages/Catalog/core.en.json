@@ -242,5 +242,12 @@
   "report.group-by-kind": "Kind",
   "report.copy-report": "Copy this report, to send to whoever owns the sheet",
   "report.meta-sheets": "Sheets in",
-  "report.nothing-here": "Nothing here."
+  "report.nothing-here": "Nothing here.",
+  "cook.value-does-not-match": "`{Table}.{Field}` is `{Value}`, which does not match the pattern `{Pattern}` the column declares.",
+  "cook.element-value-does-not-match": "`{Table}.{Field}` element {Element} is `{Value}`, which does not match the pattern `{Pattern}` the column declares.",
+  "cook.value-is-the-default": "`{Table}.{Field}` is `{Value}`, and the column refuses the type's own empty value. A blank cell and a written `{Value}` reach everything downstream as the same thing, so a column where that value means nothing has to say so here.",
+  "cook.element-value-is-the-default": "`{Table}.{Field}` element {Element} is `{Value}`, and the column refuses the type's own empty value.",
+  "cook.array-too-short": "`{Table}.{Field}` holds {Given} element(s), and the column declares at least {Wanted}.",
+  "cook.array-too-long": "`{Table}.{Field}` holds {Given} element(s), and the column declares at most {Wanted}.",
+  "cook.pattern-unreadable": "`{Table}.{Field}` declares the pattern `{Pattern}`, which is not a regular expression: {Detail}"
 }

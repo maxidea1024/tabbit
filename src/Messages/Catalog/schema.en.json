@@ -49,7 +49,6 @@
   "schema.meta-key-unknown": "`{Key}` on `{Where}` is not a key anything reads. Nothing here checks a key's spelling as it is written, so a key nobody claims is reported once every declaration is in - which is what stops a misspelt one from quietly saying nothing. A key of your own goes under `x.`, which is never reported.",
   "schema.meta-key-not-carried": "`{Key}` on `{Where}` is a key this notation defines and this build does not act on yet. Ignoring it would leave you believing it applies; take it out until it is carried.",
   "schema.meta-refs-is-foreign": "`{Key}` on `{Where}` says what `foreign` already says here. This tool resolves a named table rather than only checking against it, so the two would be one thing with two spellings - write `foreign` and the tables.",
-  "schema.default-not-carried": "`{Where}` is given the default `{Written}`, and this build does not apply one yet. A default nobody applies is worse than none, because the file says what a blank cell means and nothing makes it mean that.",
   "schema.role-not-a-string": "`{Key}` on `{Member}` says what a string is for, and the member is declared `{Type}`.",
   "schema.role-written-twice": "`{Member}` is marked both `text` and `asset`. A string has one thing it is for.",
   "schema.bound-not-a-number": "`{Key}` on `{Member}` is `{Written}`, and a bound is a number.",
@@ -60,5 +59,13 @@
   "schema.sep-column-is-an-index": "`{Table}.{Column}` is `{Struct}`, which holds several values in one cell, and the column identifies the row. A key is one value: index the table by one of the members instead.",
   "schema.sep-table-writes-tags": "`{Table}` writes its wire tags out with `@N`, and `{Column}` is `{Struct}` - which becomes one column per member and so needs a tag for each. Write the members as their own columns, each with its own tag.",
   "schema.sep-column-has-constraints": "`{Table}.{Column}` is `{Struct}` and declares a column constraint. What a bound means for a value with several members is not decided, so it is refused rather than read one of the ways. Declare the bound on the member instead.",
-  "schema.sep-component-count": "`{Table}.{Column}` holds {Given} value(s) and `{Struct}` has {Wanted} member(s). A cell is read by position, so the count has to match exactly - written: `{Written}`."
+  "schema.sep-component-count": "`{Table}.{Column}` holds {Given} value(s) and `{Struct}` has {Wanted} member(s). A cell is read by position, so the count has to match exactly - written: `{Written}`.",
+  "schema.default-and-optional": "`{Struct}.{Member}` is `{Type}` and is given the default `{Written}`, which says two things about one blank cell: that a row may leave the value out, and that leaving it out means `{Written}`. The second answer makes the first unreachable. Drop the `?`, or drop the default.",
+  "schema.default-unreadable": "`{Member}` is given the default `{Written}`, which `{Type}` cannot read: {Detail}",
+  "schema.default-on-an-index": "`{Table}.{Column}` identifies the row and `{Struct}.{Member}` declares the default `{Written}`. Every row leaving the cell blank would take that same key, which is what an absent index is refused for.",
+  "schema.default-needs-an-empty-type-cell": "`{Table}.{Column}` writes the type `{Written}` and `{Struct}.{Member}` declares a default. A written type is read while the sheet is being parsed, which settles what a blank cell means before the declaration is consulted - so a member with a default needs its column's type cell left empty for the declaration to fill in.",
+  "schema.pattern-written-twice": "`{Table}.{Column}` declares the pattern `{Sheet}` and `{Member}` declares `{Declared}`. Two bounds have a tighter one and two whitelists have what they share, but two patterns have neither - so which of these applies is not something this can decide. Write one of them.",
+  "schema.size-not-a-count": "`size` on `{Member}` is `{Written}`, and a length is a whole number or a range of them - `4`, `1..3`, `2..`.",
+  "schema.pattern-not-a-string": "`regex` on `{Member}` is a pattern for text, and the member is declared `{Type}`. Matching against a formatted number is not what a pattern here would mean.",
+  "schema.size-not-an-array": "`size` on `{Member}` is how many elements a cell holds, and the member is declared `{Type}`. A value that is not an array holds one by being one."
 }

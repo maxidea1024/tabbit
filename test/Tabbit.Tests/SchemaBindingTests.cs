@@ -202,7 +202,7 @@ public class SchemaBindingTests
         // Defined by the notation, not acted on by this build. Refused rather than ignored,
         // because ignoring it leaves somebody believing a check is running.
         Assert.Contains(
-            "`regex` on `Reward.bonus` is a key this notation defines and this build does not act on",
+            "`uniqueBy` on `Reward.bonus` is a key this notation defines and this build does not act on",
             result.StdOut);
 
         // And the one that says what `foreign` already says here.
@@ -225,6 +225,26 @@ public class SchemaBindingTests
 
         Assert.Contains("is 1, below the minimum 2 the column declares", result.StdOut);
         Assert.Contains("declared.xlsx", result.StdOut);
+    }
+
+    /// <summary>
+    /// The constraints that had no home in the model until now reach the cell as well.
+    /// </summary>
+    /// <remarks>
+    /// `notDefault` and `regex` on the same member, and both fire on the same blank cells -
+    /// which is the point of `notDefault`. A `string` reads a blank as an empty string, so a
+    /// column where the empty string means nothing has no other way to refuse one: to
+    /// everything downstream a blank cell and a written empty string are one value.
+    /// </remarks>
+    [Fact]
+    public void The_declared_pattern_and_default_refusal_reach_the_cell()
+    {
+        var result = TabbitRunner.Convert("declared-constraints");
+
+        Assert.False(result.Succeeded, "A value the declaration refuses was accepted.");
+
+        Assert.Contains("the column refuses the type's own empty value", result.StdOut);
+        Assert.Contains("does not match the pattern `^icon_[a-z]$`", result.StdOut);
     }
 
     /// <summary>

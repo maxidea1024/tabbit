@@ -1031,6 +1031,10 @@ internal static class Program
     /// so a packed column cannot be one element of one. The written-out notation is what a
     /// sheet uses for an array of records, and it is unaffected.
     ///
+    /// `grade` is declared with a default, and the row that leaves it out is what says the
+    /// two notations reach it the same way: an empty component and an empty cell are the same
+    /// statement, and the declaration answers both.
+    ///
     /// One cell is written in brackets and one without, because the notation takes both -
     /// inherited from the composite value types rather than invented here. And `icon` is
     /// declared `string?`, so a row leaving its last component empty says that member has no
@@ -1058,10 +1062,16 @@ internal static class Program
         }
         else
         {
+            // The group's first column names the struct and the rest leave their type
+            // cells empty - notation (나). It has to be that way rather than each column
+            // writing its own type, because `grade` declares a default: a written-out type
+            // is read while the sheet is parsed, which refuses the blank cell before the
+            // declaration is ever consulted.
             spec
-                .Field(FieldSpec.Of("Reward.ItemId", "int"))
-                .Field(FieldSpec.Of("Reward.Count", "int"))
-                .Field(FieldSpec.Of("Reward.Icon", "string?"));
+                .Field(FieldSpec.Of("Reward.ItemId", "Reward"))
+                .Field(FieldSpec.Of("Reward.Count", ""))
+                .Field(FieldSpec.Of("Reward.Icon", ""))
+                .Field(FieldSpec.Of("Reward.Grade", ""));
         }
 
         spec.Field(FieldSpec.Of("Grade", "enum", "an enum the schema file declares", "Element"));
@@ -1069,16 +1079,18 @@ internal static class Program
         if (inOneCell)
         {
             spec
-                .Row("1", "10,1,icon_a", "Fire")
-                .Row("2", "(20,3,)", "Ice")
-                .Row("3", "20,3,", "Ice");
+                .Row("1", "10,1,icon_a,Ice", "Fire")
+                // Nothing in the last component, so the declared default stands.
+                .Row("2", "(20,3,,)", "Ice")
+                .Row("3", "20,3,,", "Ice");
         }
         else
         {
             spec
-                .Row("1", "10", "1", "icon_a", "Fire")
-                .Row("2", "20", "3", "", "Ice")
-                .Row("3", "20", "3", "", "Ice");
+                .Row("1", "10", "1", "icon_a", "Ice", "Fire")
+                // The same blank, written as an empty cell.
+                .Row("2", "20", "3", "", "", "Ice")
+                .Row("3", "20", "3", "", "", "Ice");
         }
 
         b.Table(1, 1, spec);

@@ -1,13 +1,16 @@
 // The `declared` workbook against a bound its data breaks.
 //
-// `count` is declared to start at two and the first row writes one, so the run must refuse
-// that cell. What is being checked is that a bound written in a declaration reaches the
-// same validation a bound written in a sheet does - the declaration is not a comment.
+// Three checks the data breaks. `count` starts at two and the first row writes one;
+// `icon` refuses the type's own empty value and two rows leave it blank; and the same
+// `icon` has to match a pattern those blanks do not.
+//
+// What is being checked is that a constraint written in a declaration reaches the same
+// validation one written in a sheet reaches - the declaration is not a comment.
 
 struct Reward
     field itemId int
     field count int (min=2)
-    field icon string?
+    field icon string? (notDefault, regex=^icon_[a-z]$)
 
 enum Element
     value Fire = 1

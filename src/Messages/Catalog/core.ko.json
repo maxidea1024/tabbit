@@ -242,5 +242,12 @@
   "report.group-by-kind": "종류별",
   "report.copy-report": "이 보고를 복사 — 시트를 가진 사람에게 보내도록",
   "report.meta-sheets": "시트 위치",
-  "report.nothing-here": "여기에는 아무것도 없습니다."
+  "report.nothing-here": "여기에는 아무것도 없습니다.",
+  "cook.value-does-not-match": "`{Table}.{Field}`의 값 `{Value}`이(가) 컬럼이 선언한 패턴 `{Pattern}`에 맞지 않습니다.",
+  "cook.element-value-does-not-match": "`{Table}.{Field}`의 원소 {Element}의 값 `{Value}`이(가) 컬럼이 선언한 패턴 `{Pattern}`에 맞지 않습니다.",
+  "cook.value-is-the-default": "`{Table}.{Field}`의 값이 `{Value}`인데, 이 컬럼은 타입의 빈 값을 거절합니다. 빈 칸과 적어 넣은 `{Value}`은(는) 이 아래로는 같은 것으로 전해지므로, 그 값이 아무 뜻도 없는 컬럼은 여기서 그렇게 말해야 합니다.",
+  "cook.element-value-is-the-default": "`{Table}.{Field}`의 원소 {Element}의 값이 `{Value}`인데, 이 컬럼은 타입의 빈 값을 거절합니다.",
+  "cook.array-too-short": "`{Table}.{Field}`이(가) 원소 {Given}개를 담는데, 컬럼이 선언한 최소는 {Wanted}개입니다.",
+  "cook.array-too-long": "`{Table}.{Field}`이(가) 원소 {Given}개를 담는데, 컬럼이 선언한 최대는 {Wanted}개입니다.",
+  "cook.pattern-unreadable": "`{Table}.{Field}`이(가) 패턴 `{Pattern}`을(를) 선언하는데 정규식이 아닙니다: {Detail}"
 }

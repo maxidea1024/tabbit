@@ -92,10 +92,59 @@ public sealed class ColumnConstraints
     [JsonIgnore]
     public Location? ReferencedTablesLocation { get; set; }
 
+    /// <summary>
+    /// A pattern every value has to match, or null when none was declared.
+    /// </summary>
+    /// <remarks>
+    /// Held as the text it was written as rather than a compiled `Regex`: this class is the
+    /// model, and it is serialized. Whatever checks it compiles it once and keeps that.
+    ///
+    /// Meaningful on strings. A column of another type carrying one is a statement this
+    /// cannot check, and the check says so rather than matching against a formatted number.
+    /// </remarks>
+    public string? Pattern { get; set; }
+
+    /// <summary>Where the pattern was declared. Null when there is none.</summary>
+    [JsonIgnore]
+    public Location? PatternLocation { get; set; }
+
+    /// <summary>Fewest elements an array cell may hold, or null for no floor.</summary>
+    /// <remarks>
+    /// **A check, not a declaration.** Every array is dynamic - v107 removed the other kind -
+    /// so there is no length to declare and nothing here could be mistaken for declaring one.
+    /// What this says is that a row holding fewer than this many is wrong.
+    /// </remarks>
+    public int? MinimumLength { get; set; }
+
+    /// <summary>Most elements an array cell may hold, or null for no ceiling.</summary>
+    public int? MaximumLength { get; set; }
+
+    /// <summary>Where the length was declared. Null when it was not.</summary>
+    [JsonIgnore]
+    public Location? LengthLocation { get; set; }
+
+    /// <summary>
+    /// Whether a value equal to the type's empty one is refused.
+    /// </summary>
+    /// <remarks>
+    /// Different from being required, and both can be true. Required is about the cell being
+    /// filled in; this is about what was filled in - a column where zero is not a number
+    /// anybody means, and where a row holding it is a row somebody forgot rather than a row
+    /// saying zero. That distinction is exactly why a sheet needs to be able to say it: a
+    /// blank and a written `0` are the same value to everything downstream.
+    /// </remarks>
+    public bool NotDefault { get; set; }
+
+    /// <summary>Where it was declared. Null when it was not.</summary>
+    [JsonIgnore]
+    public Location? NotDefaultLocation { get; set; }
+
     /// <summary>Whether anything at all was declared.</summary>
     [JsonIgnore]
     public bool IsEmpty
         => Minimum is null && Maximum is null && !RequiredInRecord
+            && Pattern is null && MinimumLength is null && MaximumLength is null
+            && !NotDefault
             && (AllowedValues is null || AllowedValues.Count == 0)
             && (ReferencedTables is null || ReferencedTables.Count == 0);
 }
