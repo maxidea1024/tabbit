@@ -1,4 +1,5 @@
 using System.Linq;
+using Tabbit.Cooking;
 using Tabbit.Models;
 using Tabbit.Schema;
 using Xunit;
@@ -221,4 +222,115 @@ public class SchemaMetadataTests
         => Assert.Contains(
             "has one thing it is for",
             Reported(Apply(Column(ValueType.String), "string (text, asset=icon)")));
+
+    // -------------------------------------------------------------- stage five
+
+    [Fact]
+    public void A_declared_pattern_reaches_the_column()
+    {
+        var field = Column(ValueType.String);
+        Apply(field, "string (regex=^[a-z]+$)");
+
+        Assert.Equal("^[a-z]+$", field.Constraints.Pattern);
+    }
+
+    /// <summary>
+    /// Two patterns are refused rather than resolved. A bound has a tighter of the two and a
+    /// whitelist has an intersection; two regular expressions have neither.
+    /// </summary>
+    [Fact]
+    public void A_second_pattern_is_refused()
+    {
+        var field = Column(ValueType.String);
+        field.Constraints.Pattern = "^a$";
+
+        string reported = Reported(Apply(field, "string (regex=^b$)"));
+
+        Assert.Contains("two patterns", reported);
+        Assert.Equal("^a$", field.Constraints.Pattern);
+    }
+
+    /// <summary>The same pattern twice is not two patterns.</summary>
+    [Fact]
+    public void The_same_pattern_written_on_both_sides_is_accepted()
+    {
+        var field = Column(ValueType.String);
+        field.Constraints.Pattern = "^a$";
+
+        Assert.Equal(0, Apply(field, "string (regex=^a$)").Count);
+    }
+
+    [Theory]
+    [InlineData("int[] (size=4)", 4, 4)]
+    [InlineData("int[] (size=1..3)", 1, 3)]
+    [InlineData("int[] (size=2..)", 2, null)]
+    [InlineData("int[] (size=..5)", null, 5)]
+    public void A_declared_length_reads_as_a_count_or_a_range(
+        string declaration, int? least, int? most)
+    {
+        var field = Column(ValueType.Int32Array);
+        Apply(field, declaration);
+
+        Assert.Equal(least, field.Constraints.MinimumLength);
+        Assert.Equal(most, field.Constraints.MaximumLength);
+    }
+
+    /// <summary>The tighter of the two, the same rule the bounds follow.</summary>
+    [Fact]
+    public void Two_lengths_meet_at_the_tighter_one()
+    {
+        var field = Column(ValueType.Int32Array);
+        field.Constraints.MinimumLength = 2;
+        field.Constraints.MaximumLength = 9;
+
+        Apply(field, "int[] (size=1..5)");
+
+        Assert.Equal(2, field.Constraints.MinimumLength);
+        Assert.Equal(5, field.Constraints.MaximumLength);
+    }
+
+    [Fact]
+    public void A_length_that_is_not_a_count_is_refused()
+        => Assert.Contains(
+            "a length is a whole number",
+            Reported(Apply(Column(ValueType.Int32Array), "int[] (size=few)")));
+
+    /// <summary>
+    /// A flag, so there is nothing to narrow - either side saying it makes it true.
+    /// </summary>
+    [Fact]
+    public void The_not_default_flag_reaches_the_column()
+    {
+        var field = Column();
+        Apply(field, "int (notDefault)");
+
+        Assert.True(field.Constraints.NotDefault);
+    }
+
+    /// <summary>
+    /// `uniqueBy` is the one of the four that has nowhere to go, and says so rather than
+    /// being ignored.
+    /// </summary>
+    [Fact]
+    public void Uniqueness_by_a_member_is_still_refused_by_name()
+    {
+        var diagnostics = new Diagnostics();
+        var model = new Model();
+        var context = new CookingContext(model, new Tabbit.Recipe.RecipeModel(), diagnostics);
+
+        var declarations = SchemaDeclarations.Read(
+            [new Tabbit.Models.Raw.RawSchemaFile
+             {
+                 Name = "s.tbs",
+                 Text = "struct S\n    field x int (uniqueBy=id)\n",
+             }],
+            diagnostics);
+
+        declarations.DeclareEnums(model, diagnostics);
+        declarations.Resolve(model, context, diagnostics);
+
+        Assert.Contains(
+            "does not act on yet",
+            string.Join("\n", diagnostics.Entries.Select(entry => entry.Detail.Message)));
+    }
 }

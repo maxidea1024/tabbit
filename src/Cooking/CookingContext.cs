@@ -597,6 +597,15 @@ public sealed class CookingContext
     /// for every one of these - correctly, since a blank where a number belongs is what it
     /// exists to catch. A column saying a blank is expected is a different statement.
     /// </remarks>
+    /// <summary>
+    /// What a type holds when a row wrote nothing, for a caller outside this class.
+    /// </summary>
+    /// <remarks>
+    /// The constraint that refuses the empty value needs to know what it is, and working it
+    /// out a second time is how the two answers come to disagree.
+    /// </remarks>
+    public static object EmptyValueOfType(Models.ValueType type) => EmptyValueOf(type);
+
     private static object EmptyValueOf(Models.ValueType type)
     {
         switch (type)

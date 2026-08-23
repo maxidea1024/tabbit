@@ -53,11 +53,14 @@ internal static class SchemaMetadata
         // than only checking against it, so carrying both would be one thing spelled twice.
         ["refs"] = MetaKey.SaidByForeign,
 
-        // Constraints with no place in the model yet - section 5.8 of the Luban comparison
-        // and stage five of the design.
-        ["notDefault"] = MetaKey.NotCarried,
-        ["regex"] = MetaKey.NotCarried,
-        ["size"] = MetaKey.NotCarried,
+        ["notDefault"] = MetaKey.Carried,
+        ["regex"] = MetaKey.Carried,
+        ["size"] = MetaKey.Carried,
+
+        // The one of the four that has nowhere to go. Section 6.5 puts uniqueness on
+        // the array rather than on the type, because the same struct used somewhere
+        // that is not an array has nothing for it to mean - and the array a struct is
+        // used as is a group of sheet columns, which has no brackets to write it in.
         ["uniqueBy"] = MetaKey.NotCarried,
 
         // A consumer's own label. Nothing in this tool has anywhere to put one.
@@ -149,6 +152,15 @@ internal static class SchemaMetadata
         ApplyRole(field, member, diagnostics);
         ApplyBounds(field, member, diagnostics);
         ApplyAllowedValues(table, field, member, diagnostics);
+        ApplyPattern(table, field, member, diagnostics);
+        ApplyLength(field, member, diagnostics);
+
+        // A flag, so there is nothing to narrow: either side saying it makes it true.
+        if (member.Meta.Has("notDefault"))
+        {
+            field.Constraints.NotDefault = true;
+            field.Constraints.NotDefaultLocation = member.Meta.LocationOf("notDefault");
+        }
     }
 
     /// <summary>
@@ -233,6 +245,127 @@ internal static class SchemaMetadata
         diagnostics.Error(member.Meta.LocationOf(key), Message.Of(
             SchemaMessages.BoundNotANumber,
             ("Key", key), ("Member", member.Name), ("Written", written)));
+
+        return null;
+    }
+
+    /// <summary>
+    /// `regex`, which one column may have one of.
+    /// </summary>
+    /// <remarks>
+    /// **Two patterns cannot be narrowed into one.** A bound has a tighter of the two and a
+    /// whitelist has an intersection; two regular expressions have neither, and the
+    /// conjunction of them is not a regular expression anybody could read in a report. So a
+    /// column that already declares one and a member that declares another is refused rather
+    /// than resolved - which of them applies is not something this can decide.
+    /// </remarks>
+    private static void ApplyPattern(
+        Table table, Field field, SchemaField member, Diagnostics diagnostics)
+    {
+        string? pattern = member.Meta.Value("regex");
+
+        if (pattern is null)
+            return;
+
+        // Matching against a formatted number is not what a pattern on a number would
+        // mean to whoever wrote it, and there is no reading of it that is. Refused
+        // rather than skipped: a check that silently does nothing is worse than none.
+        if (field.Type is not (Models.ValueType.String or Models.ValueType.StringArray))
+        {
+            diagnostics.Error(member.Meta.LocationOf("regex"), Message.Of(
+                SchemaMessages.PatternNotAString,
+                ("Member", member.Name), ("Type", member.Type.ToString())));
+
+            return;
+        }
+
+        if (field.Constraints.Pattern is { } already && already != pattern)
+        {
+            diagnostics.Error(field.TypeLocation, Message.Of(
+                SchemaMessages.PatternWrittenTwice,
+                ("Table", table.Name),
+                ("Column", field.RawName),
+                ("Member", member.Name),
+                ("Sheet", already),
+                ("Declared", pattern)));
+
+            return;
+        }
+
+        field.Constraints.Pattern = pattern;
+        field.Constraints.PatternLocation = member.Meta.LocationOf("regex");
+    }
+
+    /// <summary>
+    /// `size`, as a count or a range, kept as the tighter of the two.
+    /// </summary>
+    /// <remarks>
+    /// **A check rather than a declaration, and there is no longer anything for it to be
+    /// mistaken for.** The design left open whether to rename it - `size` reads like a
+    /// statement of how long an array is - but v107 removed fixed-length arrays from the
+    /// format entirely, so no notation declares a length any more and this is the only thing
+    /// the word can mean.
+    /// </remarks>
+    private static void ApplyLength(Field field, SchemaField member, Diagnostics diagnostics)
+    {
+        string? written = member.Meta.Value("size");
+
+        if (written is null)
+            return;
+
+        // A length is how many elements a cell holds, and a scalar holds one by being
+        // one. Refused for the reason a pattern on a number is.
+        if (!member.Type.IsArray)
+        {
+            diagnostics.Error(member.Meta.LocationOf("size"), Message.Of(
+                SchemaMessages.SizeNotAnArray,
+                ("Member", member.Name), ("Type", member.Type.ToString())));
+
+            return;
+        }
+
+        int? least = null;
+        int? most = null;
+
+        int dots = written.IndexOf("..", System.StringComparison.Ordinal);
+
+        if (dots < 0)
+        {
+            least = Count(member, written, diagnostics);
+            most = least;
+        }
+        else
+        {
+            string low = written[..dots];
+            string high = written[(dots + 2)..];
+
+            least = low.Length > 0 ? Count(member, low, diagnostics) : null;
+            most = high.Length > 0 ? Count(member, high, diagnostics) : null;
+        }
+
+        if (least is int floor
+            && (field.Constraints.MinimumLength is null || floor > field.Constraints.MinimumLength))
+        {
+            field.Constraints.MinimumLength = floor;
+        }
+
+        if (most is int ceiling
+            && (field.Constraints.MaximumLength is null || ceiling < field.Constraints.MaximumLength))
+        {
+            field.Constraints.MaximumLength = ceiling;
+        }
+
+        field.Constraints.LengthLocation = member.Meta.LocationOf("size");
+    }
+
+    private static int? Count(SchemaField member, string written, Diagnostics diagnostics)
+    {
+        if (int.TryParse(
+                written, NumberStyles.None, CultureInfo.InvariantCulture, out int count))
+            return count;
+
+        diagnostics.Error(member.Meta.LocationOf("size"), Message.Of(
+            SchemaMessages.SizeNotACount, ("Member", member.Name), ("Written", written)));
 
         return null;
     }

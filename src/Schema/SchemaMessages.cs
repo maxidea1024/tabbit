@@ -200,6 +200,18 @@ public static class SchemaMessages
     /// <summary>A sheet's whitelist and a declaration's with nothing in common.</summary>
     public const string AllowedIntersectionEmpty = "schema.allowed-intersection-empty";
 
+    /// <summary>A pattern on a column that already has a different one.</summary>
+    public const string PatternWrittenTwice = "schema.pattern-written-twice";
+
+    /// <summary>`size` given something that is not a count.</summary>
+    public const string SizeNotACount = "schema.size-not-a-count";
+
+    /// <summary>`regex` on a member that is not a string.</summary>
+    public const string PatternNotAString = "schema.pattern-not-a-string";
+
+    /// <summary>`size` on a member that is not an array.</summary>
+    public const string SizeNotAnArray = "schema.size-not-an-array";
+
     // ------------------------------------------------ a whole value written in one cell
 
     /// <summary>`sep` given something other than a single character.</summary>
