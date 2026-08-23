@@ -82,20 +82,31 @@ secondary index는 `*` **하나**입니다.
 
 ### `The index field 'Index' is 'bool', 'and a table keyed by a bool can only hold two rows.' Use a whole-number, string, uuid or enum column as the index`
 
-인덱스가 될 수 있는 것은 `int`·`bigint`·`string`·`uuid`·`enum`입니다. 거부되는 이유는 서로
-다릅니다 — `bool`은 값이 둘뿐이어서 행이 두 개를 넘을 수 없고, `float`·`double`은 정확히
-비교되지 않아 조회가 실패 없이 빗나가고, 배열은 한 셀에 값이 여럿입니다. `datetime`·`timespan`은
-틱이라 비교는 정확하지만, **행을 시각으로 찾는 시트가 없어서** 받지 않습니다.
-[인덱스 필드](sheets.md#인덱스-필드) 참고.
+인덱스가 될 수 있는 것은 `int`, `bigint`, `string`, `uuid`, `enum`입니다.
+
+거부되는 이유는 서로 다릅니다.
+
+- `bool`은 값이 둘뿐이어서 행이 두 개를 넘을 수 없습니다.
+- `float`와 `double`은 정확히 비교되지 않아 조회가 실패 없이 빗나갑니다.
+- 배열은 한 셀에 값이 여럿입니다.
+- `datetime`과 `timespan`은 틱이라 비교는 정확하지만, 행을 시각으로 찾는 시트가 없어서 받지
+  않습니다.
+
+[인덱스 필드](sheets.md#인덱스-필드)를 참고하세요.
 
 보조 인덱스(`*`)도 같은 문장으로 거부됩니다. 두 자리의 규칙이 하나이기 때문입니다.
 
 ### `Target 'html' does not support optional fields yet`
 
-그 타깃이 「값이 없음」을 표현하지 못합니다. 없음을 잃은 채로 내보내면 「비었다」와 「0」이
-같아 보이는데, 그게 바로 `?`가 없애려는 것이라 말없이 내보내는 대신 그 이름과 함께 멈춥니다.
-recipe에서 그 타깃을 빼거나, 컬럼에서 `?`를 떼세요. **모든 언어와 `json`·`binary`가
-지원하고**, 남은 것은 `html`·데이터베이스·`summary`·`history`입니다.
+그 타깃이 「값이 없음」을 표현하지 못합니다.
+
+없음을 잃은 채로 내보내면 「비었다」와 「0」이 같아 보이는데, 그것이 바로 `?`가 없애려는
+것입니다. 그래서 말없이 내보내는 대신 그 이름과 함께 멈춥니다.
+
+recipe에서 그 타깃을 빼거나, 컬럼에서 `?`를 떼세요.
+
+모든 언어와 `json`, `binary`가 지원합니다.
+남은 것은 `html`, 데이터베이스, `summary`, `history`입니다.
 
 ### `references 'X', whose index is an enum`
 
@@ -196,7 +207,15 @@ primary index가 중복입니다. 행을 복사하고 인덱스를 안 고쳤을
 
 ### `... refuses this column rather than reading it wrongly`
 
-컬럼의 타입이나 구조가 바뀌었습니다. 넓히는 변경(int→bigint 등)이라도 **구 테이블 리더는 거절합니다** — 잘릴 수 있는 값을 읽지 않는 것이 설계이기 때문입니다. 그래서 이 변경은 재생성된 코드와 함께 나가야 하고, 그 사실을 `AcceptSchemaChanges: ["테이블.컬럼"]`로 적어 확인합니다. 한 번 통과하면 베이스라인이 갱신되니 목록에서 지워도 됩니다.
+컬럼의 타입이나 구조가 바뀌었습니다.
+
+넓히는 변경(int에서 bigint 등)이라도 구 테이블 리더는 거절합니다.
+잘릴 수 있는 값을 읽지 않는 것이 설계이기 때문입니다.
+
+그래서 이 변경은 재생성된 코드와 함께 나가야 하고, 그 사실을
+`AcceptSchemaChanges: ["테이블.컬럼"]`로 적어 확인합니다.
+
+한 번 통과하면 베이스라인이 갱신되므로 목록에서 지워도 됩니다.
 
 ### `... has taken tag ..., which ... used and gave up`
 
@@ -242,7 +261,12 @@ table format version 103 is not supported (expected 104)
 
 ### `the table is encrypted and was not decrypted - pass the key through Open first`
 
-암호화된 파일의 바이트를 `envelope`을 열지 않고 리더에 그대로 넘겼습니다. 로드 경로에서 `envelope`을 여는 호출을 먼저 거치세요 — **암호화되지 않은 파일은 그 호출에서 그대로 돌아오므로**, 키를 쓰는지 여부로 경로를 나눌 필요가 없습니다. 「[파일 암호화](binary-format.md#파일-암호화)」
+암호화된 파일의 바이트를 `envelope`을 열지 않고 리더에 그대로 넘겼습니다.
+
+로드 경로에서 `envelope`을 여는 호출을 먼저 거치세요.
+
+암호화되지 않은 파일은 그 호출에서 그대로 돌아오므로, 키를 쓰는지 여부로 경로를 나눌 필요가
+없습니다. [파일 암호화](binary-format.md#파일-암호화)
 
 ### `the file did not decrypt to a table - the key is not the one it was written with`
 
@@ -429,7 +453,12 @@ IP, `localhost`, 또는 모든 인터페이스를 뜻하는 `0.0.0.0`이어야 �
 
 ### 데이터 파일을 못 찾음
 
-확장자가 어긋났을 가능성이 큽니다. 익스포터의 `FileExtension`과 코드 생성 타깃의 `BinaryTableFileExtension`이 같아야 합니다. 패키징 과정에서 이름이 바뀌었다면 `readAll`에 확장자를 인자로 넘기세요 — [언어별 가이드](languages/readme.md)의 「데이터 파일 확장자」.
+확장자가 어긋났을 가능성이 큽니다.
+
+익스포터의 `FileExtension`과 코드 생성 타깃의 `BinaryTableFileExtension`이 같아야 합니다.
+
+패키징 과정에서 이름이 바뀌었다면 `readAll`에 확장자를 인자로 넘기세요.
+[언어별 가이드](languages/readme.md)의 「데이터 파일 확장자」에 있습니다.
 
 ### `Embedded resource ... is missing from the build` / `Embedded template ...`
 

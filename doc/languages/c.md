@@ -86,7 +86,11 @@ GameData_LoadAllWithExtension(&data, "./data", ".bytes", error, sizeof error);
 
 ## 데이터만 갱신하기 (`WriteUpdater`)
 
-recipe에 `"WriteUpdater": true`를 적으면 `tabbit/tabbit_updater.h`와 그 구현을 담는 `<AccessorName>_Updater.c`가 함께 나옵니다. CDN이나 버킷에 올려둔 데이터를 받아 로컬 사본을 최신으로 유지하는 코드이고, **배포를 다시 하지 않고 데이터만 패치**하기 위한 것입니다.
+recipe에 `"WriteUpdater": true`를 적으면 `tabbit/tabbit_updater.h`와 그 구현을 담는
+`<AccessorName>_Updater.c`가 함께 나옵니다.
+
+CDN이나 버킷에 올려둔 데이터를 받아 로컬 사본을 최신으로 유지하는 코드입니다.
+배포를 다시 하지 않고 데이터만 패치하기 위한 것입니다.
 
 **여기서만 외부 라이브러리가 붙습니다 — libcurl.** C에는 HTTP 클라이언트가 없고 대신 쓸 만한 표준 수단도 없습니다. 그것 하나뿐입니다: 매니페스트 JSON 파서와 MD5는 그 파일 안에 직접 써 두었으므로, 켜는 값은 **링크 플래그 한 줄**입니다.
 

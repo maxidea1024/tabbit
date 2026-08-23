@@ -142,7 +142,13 @@ await GameData.ReadAllAsync("");
 
 ## 데이터만 갱신하기 (`WriteUpdater`)
 
-recipe에 `"WriteUpdater": true`를 적으면 `TabbitUpdater.cs`가 함께 나옵니다. CDN이나 버킷에 올려둔 데이터를 받아 로컬 사본을 최신으로 유지하는 코드이고, **빌드를 새로 내보내지 않고 데이터만 패치**하기 위한 것입니다. 기본값이 `false`인 이유는 네트워크를 쓰기 때문이고, 데이터를 빌드 안에 넣어 배포한다면 필요가 없기 때문입니다.
+recipe에 `"WriteUpdater": true`를 적으면 `TabbitUpdater.cs`가 함께 나옵니다.
+
+CDN이나 버킷에 올려둔 데이터를 받아 로컬 사본을 최신으로 유지하는 코드입니다.
+빌드를 새로 내보내지 않고 데이터만 패치하기 위한 것입니다.
+
+기본값이 `false`인 이유는 네트워크를 쓰기 때문이고, 데이터를 빌드 안에 넣어 배포한다면 필요가
+없기 때문입니다.
 
 익스포터가 데이터 옆에 이미 쓰고 있는 **매니페스트**(`manifest-binary.json` — 파일별 크기와 MD5)가 전부입니다. 서버에는 익스포트 결과를 그대로 올리면 되고, 따로 준비할 것이 없습니다.
 
@@ -230,7 +236,13 @@ var result = await TabbitUpdater.UpdateAsync(baseUrl, cacheDirectory: null, opti
 await Tables.ReadAllAsync("https://cdn.example.com/data", ".bytes");
 ```
 
-다만 이것은 **매번 받습니다.** 캐시도, 재시도도, 버전 확인도 없습니다. 그것들이 필요하면 recipe에서 `"WriteUpdater": true`로 두세요 — `tabbit/TabbitUpdater.cs`가 함께 생성되고, `persistentDataPath` 아래에 캐시하며 일시적 실패만 재시도합니다. 그 경우 읽는 곳은 CDN이 아니라 캐시 폴더가 됩니다.
+다만 이것은 매번 받습니다. 캐시도, 재시도도, 버전 확인도 없습니다.
+
+그것들이 필요하면 recipe에서 `"WriteUpdater": true`로 두세요.
+`tabbit/TabbitUpdater.cs`가 함께 생성되고, `persistentDataPath` 아래에 캐시하며 일시적 실패만
+재시도합니다.
+
+그 경우 읽는 곳은 CDN이 아니라 캐시 폴더가 됩니다.
 
 ### Addressables — 델리게이트 교체
 

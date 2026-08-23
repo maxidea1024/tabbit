@@ -69,9 +69,13 @@ if let sword = data.item.findByIndex(1) {
 for row in data.item.records { /* ... */ }
 ```
 
-전역 정적이 아닌 이유는 두 가지입니다. Swift 6는 **가변 전역 상태를 오류로** 보므로 `static var`
-테이블은 컴파일되지 않고, 인스턴스는 그 자체로 얻는 것이 있습니다 — 테스트 격리, 두 버전 동시
-로드, 한쪽을 읽는 동안 다른 쪽으로 바꾸는 핫 리로드([설계](../../spec/accessor-instances.md)).
+전역 정적이 아닌 이유는 두 가지입니다.
+
+Swift 6는 가변 전역 상태를 오류로 보므로 `static var` 테이블은 컴파일되지 않습니다.
+
+그리고 인스턴스는 그 자체로 얻는 것이 있습니다. 테스트 격리, 두 버전 동시 로드, 한쪽을 읽는 동안
+다른 쪽으로 바꾸는 핫 리로드입니다([설계](../../spec/accessor-instances.md)).
+
 싱글턴처럼 쓰고 싶으면 `let` 하나를 어디든 두면 됩니다.
 
 확장자는 기본 인자입니다.
@@ -216,10 +220,12 @@ let package = Package(
 
 ## 데이터만 갱신하기 (`WriteUpdater`)
 
-recipe에 `"WriteUpdater": true`를 적으면 `tabbit/Updater.swift`가 함께 나옵니다. CDN이나 버킷에
-올려둔 데이터를 받아 로컬 사본을 최신으로 유지하는 코드이고, **배포를 다시 하지 않고 데이터만
-패치**하기 위한 것입니다. 기본값이 `false`인 이유는 네트워크를 쓰는 유일한 생성물이기
-때문입니다.
+recipe에 `"WriteUpdater": true`를 적으면 `tabbit/Updater.swift`가 함께 나옵니다.
+
+CDN이나 버킷에 올려둔 데이터를 받아 로컬 사본을 최신으로 유지하는 코드입니다.
+배포를 다시 하지 않고 데이터만 패치하기 위한 것입니다.
+
+기본값이 `false`인 이유는 네트워크를 쓰는 유일한 생성물이기 때문입니다.
 
 **여기에는 의존성이 없습니다.** 전송은 Foundation의 `URLSession`(리눅스·윈도우에서는
 `FoundationNetworking`을 조건부로 import합니다), 매니페스트는 `JSONSerialization`, MD5는 그 파일

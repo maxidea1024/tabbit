@@ -95,7 +95,13 @@ FGameData::ReadAll(BasePath, TEXT(".bytes"));
 
 ## 데이터만 갱신하기 (`WriteUpdater`)
 
-recipe의 언리얼 타깃에 `"WriteUpdater": true`를 적으면 모듈에 `TabbitUpdater.h/.cpp`가 함께 나오고, 생성되는 `Build.cs`에 **`HTTP` 모듈 의존성이 추가**됩니다. CDN에 올려둔 데이터를 받아 로컬 사본을 최신으로 유지하는 코드이고, **패키징을 새로 하지 않고 데이터만 패치**하기 위한 것입니다. 기본값이 `false`인 이유가 그 의존성입니다 — 데이터를 .pak에 넣어 배포한다면 필요가 없습니다.
+recipe의 언리얼 타깃에 `"WriteUpdater": true`를 적으면 모듈에 `TabbitUpdater.h`와 `.cpp`가 함께
+나오고, 생성되는 `Build.cs`에 `HTTP` 모듈 의존성이 추가됩니다.
+
+CDN에 올려둔 데이터를 받아 로컬 사본을 최신으로 유지하는 코드입니다.
+패키징을 새로 하지 않고 데이터만 패치하기 위한 것입니다.
+
+기본값이 `false`인 이유가 그 의존성입니다. 데이터를 .pak에 넣어 배포한다면 필요가 없습니다.
 
 ```cpp
 FTabbitUpdateOptions Options;
@@ -133,7 +139,13 @@ FTabbitUpdater::Update(
 
 `.tcb`는 애셋이 아니므로 언리얼이 그냥 무시합니다. **Project Settings → Packaging → "Additional Non-Asset Directories to Package"** 에 데이터 폴더를 반드시 등록하세요.
 
-등록하면 `.pak`에 들어가고, 생성 코드가 쓰는 `FFileHelper`는 `IPlatformFile`을 거치므로 **pak 안을 로컬 파일처럼 읽습니다** (안드로이드 `.obb`도 동일). 등록하지 않으면 에디터에서는 되고 패키징한 빌드에서만 파일이 없습니다 — 생성된 로더가 그 설정 이름을 로그에 그대로 적으니 메시지를 보면 바로 알 수 있습니다.
+등록하면 `.pak`에 들어갑니다.
+
+생성 코드가 쓰는 `FFileHelper`는 `IPlatformFile`을 거치므로 pak 안을 로컬 파일처럼 읽습니다.
+안드로이드 `.obb`도 같습니다.
+
+등록하지 않으면 에디터에서는 되고 패키징한 빌드에서만 파일이 없습니다.
+생성된 로더가 그 설정 이름을 로그에 그대로 적으므로 메시지를 보면 바로 알 수 있습니다.
 
 ### 예외 미사용
 
@@ -141,7 +153,13 @@ FTabbitUpdater::Update(
 
 `bEnableExceptions = true`를 넣지 않은 것도 의도입니다 — 넣으면 이 모듈에 의존하는 모든 모듈이 그 비용을 냅니다.
 
-같은 이유로 **조회 함수가 둘입니다** — 인덱싱된 필드마다 `FindBy<Field>`와 `Contains<Field>`만 나오고, 다른 언어들이 내는 `GetBy<Field>OrThrow`는 없습니다. 없으면 안 되는 키는 `nullptr` 검사로 확인하세요. 자세한 것은 [조회 함수](readme.md#레코드-조회)에 있습니다.
+같은 이유로 조회 함수가 둘입니다.
+
+인덱싱된 필드마다 `FindBy<Field>`와 `Contains<Field>`만 나오고, 다른 언어들이 내는
+`GetBy<Field>OrThrow`는 없습니다.
+
+없으면 안 되는 키는 `nullptr` 검사로 확인하세요.
+자세한 내용은 [조회 함수](readme.md#레코드-조회)에 있습니다.
 
 ### 엔진 타입 전용
 
@@ -149,7 +167,13 @@ FTabbitUpdater::Update(
 
 ### uint8을 넘는 enum
 
-`UENUM(BlueprintType)`은 uint8이어야 하므로 레이블 값이 0~255를 벗어나면 그 enum은 **int32로 넓어지고 블루프린트 노출을 포기합니다.** 여전히 `UENUM`이라 리플렉션과 직렬화는 되고, C++에서는 그대로 읽힙니다. 그 enum으로 선언된 필드도 `UPROPERTY`를 잃습니다 — 블루프린트가 볼 수 없는 타입의 프로퍼티를 UHT가 노출하지 않기 때문입니다.
+`UENUM(BlueprintType)`은 uint8이어야 합니다.
+
+레이블 값이 0에서 255를 벗어나면 그 enum은 int32로 넓어지고 블루프린트 노출을 포기합니다.
+여전히 `UENUM`이라 리플렉션과 직렬화는 되고, C++에서는 그대로 읽힙니다.
+
+그 enum으로 선언된 필드도 `UPROPERTY`를 잃습니다.
+블루프린트가 볼 수 없는 타입의 프로퍼티를 UHT가 노출하지 않기 때문입니다.
 
 변환이 실패하지는 않고, 어느 레이블 때문인지 경고합니다.
 
