@@ -99,7 +99,7 @@ Spreadsheet
 |사유|엑셀에서의 판정|구글에서의 판정|
 |--|--|--|
 |`NotARange`|참조가 비었거나 `#REF!`를 포함|`Range` 또는 `SheetId`가 null|
-|`NotOneRectangle`|union·열 전체·외부 참조를 문자열 모양으로 판별|네 인덱스 중 하나 이상이 null|
+|`NotOneRectangle`|union·열 전체·외부 참조를 문자열 형태로 판별|네 인덱스 중 하나 이상이 null|
 
 ## 4. 설계
 

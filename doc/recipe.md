@@ -54,7 +54,7 @@
 |키|기본값|설명|
 |--|--|--|
 |`ArrayDelimiter`|`";"`|배열 셀의 요소 구분자. 정확히 한 글자여야 합니다.|
-|`TimeZone`|`""`|`datetime` 셀에 적힌 벽시계를 어느 시간대의 것으로 읽을지. [아래](#timezone--시트의-날짜를-어느-시간대로-읽을지) 참고.|
+|`TimeZone`|`""`|`datetime` 셀에 적힌 시각을 어느 시간대의 것으로 읽을지. [아래](#timezone--시트의-날짜를-어느-시간대로-읽을지) 참고.|
 |`Naming`|(아래 참조)|시트에 적은 이름의 표기 규약. 소스별이 아니라 전역입니다 — 이름은 모델의 것이고, 워크북마다 다르게 적힌 한 이름을 찾는 것이 이 검사의 목적입니다|
 |`DataFileCase`|`""`|내보낸 데이터 파일 이름의 표기. `pascal` · `camel` · `snake` · `upper-snake`. 비우면 테이블 이름 그대로입니다|
 
@@ -67,7 +67,7 @@
 "TimeZone": "Asia/Seoul",     // 또는 "+09:00"
 ```
 
-|적는 형태|예|비고|
+|적는 형식|예|비고|
 |--|--|--|
 |지역 이름|`Asia/Seoul` · `America/New_York` · `Korea Standard Time`|서머타임을 포함한 그 지역의 역사를 따릅니다. 기계에 시간대 데이터가 있어야 합니다|
 |고정 오프셋|`+09:00` · `-05:30` · `+0900` · `+09` · `Z`|일 년 내내 같은 오프셋입니다. 시간대 데이터가 필요 없습니다|
@@ -81,7 +81,7 @@ recipe의 산출물은 이 설정이 없던 때와 같습니다.
 |`2022-01-24T10:30:00Z`|10:30|10:30 — **셀이 우선합니다**|
 |`2022-01-24T10:30:00+09:00`|01:30|01:30 — **셀이 우선합니다**|
 
-셀이 오프셋을 직접 적었으면 그것이 이깁니다. 이미 한 순간을 가리키는 값을 다시 지역 시간으로
+셀이 오프셋을 직접 적었으면 그것이 우선합니다. 이미 한 순간을 가리키는 값을 다시 지역 시간으로
 읽을 여지가 없기 때문입니다.
 
 **지역 이름을 쓰면 서머타임의 두 자리가 생깁니다.** 시계가 건너뛴 시각(예: `America/New_York`의
@@ -448,7 +448,7 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 |`binary`, `json`|파일 내보내기|
 |`text`|`text` 컬럼의 값을 그룹마다 파일 하나로 수집 — 「[수집된 텍스트](exports.md#수집된-텍스트--text-타깃)」|
 |`mysql`, `postgresql`, `mongodb`, `redis`|데이터베이스 내보내기|
-|`cpp`, `csharp`, `typescript`, `html`, `c`, `go`, `rust`, `python`, `java`, `kotlin`, `swift`, `ruby`, `php`, `dart`|코드 생성 — 설정은 [언어별 가이드](languages/readme.md)|
+|`cpp`, `csharp`, `typescript`, `html`, `c`, `go`, `rust`, `python`, `java`, `kotlin`, `swift`, `lua`, `ruby`, `php`, `dart`|코드 생성 — 설정은 [언어별 가이드](languages/readme.md)|
 |`unreal`|Unreal 모듈 생성|
 |`summary`, `history`|변환 자체를 기록 — 「[Summary와 히스토리](history.md)」|
 
@@ -534,7 +534,7 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 |--|--|
 |`Path`|규칙 폴더. **비우는 것이 검증을 끄는 유일한 방법**이고, 그것은 diff에 남습니다. 지정했는데 폴더가 없으면 오류입니다 — 오타 하나로 검증 전체가 그냥 통과하지 않도록|
 |`Options`|규칙만 읽는 자유 키/값. 로케일·콘텐츠 경로처럼 **코어가 몰라야 하는 것**이 지나가는 자리입니다|
-|`Connections`|`rules/runtime/` 규칙이 여는 읽기 전용 연결. `mysql:` · `postgres:` · `redis://` 중 하나로 시작해야 합니다 — ADO 연결 문자열과 Redis 설정 문자열은 모양으로 구별되지 않아 추측하지 않습니다|
+|`Connections`|`rules/runtime/` 규칙이 여는 읽기 전용 연결. `mysql:` · `postgres:` · `redis://` 중 하나로 시작해야 합니다 — ADO 연결 문자열과 Redis 설정 문자열은 형식으로 구별되지 않아 추측하지 않습니다|
 |`EmitIdeProject`|편집기가 `Tables`를 해석할 프로젝트를 검증 폴더 루트에 씁니다. **기본은 켜짐** — 액세서 소스는 어차피 `.generated/`에 쓰이고, 이 파일은 그것을 편집기가 읽을 수 있게 하는 것뿐입니다. 프레임워크보다 오래된 Visual Studio는 이 프로젝트를 열지 못하므로 그때 끕니다 (「[검증](validation.md)」 §17)|
 |`TreatWarningsAsErrors`|경고를 오류로. 기본은 꺼짐이고 CI에서 켭니다|
 
@@ -635,7 +635,7 @@ tabbit --new-recipe my-recipe.json --template unity
 |Dart · Java · Kotlin · Lua · PHP · Swift · TypeScript|`camel`|
 |C · C++ · Python · Ruby · Rust|`snake`|
 |Go|**제공하지 않습니다** — 첫 글자의 대소문자가 export 여부를 정하므로, 표기를 바꾸면 소비자가 멤버를 읽을 수 없게 됩니다|
-|Unreal|**제공하지 않습니다** — 멤버 이름이 표기가 아닙니다. bool UPROPERTY는 `bIsOpen`처럼 소문자 `b` + Pascal이고, 그 모양에 대응하는 snake·camel이 없습니다(`bis_open`은 어느 관례도 아닙니다). UHT가 이 선언을 읽는 것도 함께 걸립니다|
+|Unreal|**제공하지 않습니다** — 멤버 이름이 표기가 아닙니다. bool UPROPERTY는 `bIsOpen`처럼 소문자 `b` + Pascal이고, 그 형태에 대응하는 snake·camel이 없습니다(`bis_open`은 어느 관례도 아닙니다). UHT가 이 선언을 읽는 것도 함께 걸립니다|
 
 **멤버만 움직이고 나머지는 그대로입니다.** 타입 이름, 조회 메서드(`FindByIndex`),
 원소 개수 상수(`Index_N`), 데이터 파일은 멤버 표기와 무관합니다 — 그것들은 멤버 이름을 한
@@ -694,10 +694,10 @@ tabbit --new-recipe my-recipe.json --template unity
 |`Compress`|Binary|`false`|**예약. 구현되어 있지 않습니다.** 형식이 압축 플래그 자리를 비워두고 있을 뿐, 아무것도 읽거나 쓰지 않습니다|
 |`SchemaBaseline`|Binary|`""`|지난 스키마의 기록을 둘 경로. **커밋하세요.** 매 실행이 스키마를 그것과 비교해서, 이미 배포된 테이블 리더가 읽지 못할 변경이면 **아무것도 쓰기 전에** 컬럼 이름과 함께 멈춥니다. 비워두면 검사하지 않습니다|
 |`AcceptSchemaChanges`|Binary|`[]`|의도한 변경을 `"테이블.컬럼"`으로 승인. 타입 변경은 재생성된 코드와 함께 나가야 하므로 자동 통과가 아닙니다. 한 번 통과하면 베이스라인이 갱신되니 다시 지워도 됩니다|
-|`EncodingReport`|Binary|`""`|컬럼마다 무엇을 재서 그 인코딩을 골랐는지 적을 경로. 후보별 크기는 추정이 아니라 선택이 근거한 실측입니다. 형식에 **없는** 레이아웃까지 재느라 큰 익스포트에서는 시간이 들므로, 경로를 적었을 때만 합니다. 「[내보내기](exports.md#바이너리-익스포트의-recipe-옵션)」|
+|`EncodingReport`|Binary|`""`|컬럼마다 무엇을 측정해 그 인코딩을 골랐는지 적을 경로. 후보별 크기는 추정이 아니라 선택이 근거한 실측입니다. 형식에 **없는** 레이아웃까지 재느라 큰 익스포트에서는 시간이 들므로, 경로를 적었을 때만 합니다. 「[내보내기](exports.md#바이너리-익스포트의-recipe-옵션)」|
 |`EncryptionKeyVariable`|Binary|`""`|암호화 키가 든 **환경 변수의 이름**. 키가 아니라 이름입니다 — recipe는 커밋되는 파일입니다. 키는 64자리 16진수이고 `tabbit --new-encryption-key`가 만듭니다. 비워두면 파일은 평문입니다|
 |`EncryptionKeyFile`|Binary|`""`|암호화 키가 든 **파일의 경로**. `EncryptionKeyVariable`의 대안이고, **둘을 함께 적으면 거절합니다.** 키가 없거나 형식이 틀리면 첫 테이블을 쓰기 전에 멈춥니다|
-|`MacKeyVariable`|Binary|`""`|MAC 키가 든 **환경 변수의 이름**. 켜면 파일이 변조되었는지 리더가 검출합니다 — 암호화만으로는 검출되지 않습니다([근거](binary-format.md#변조-검출--mac)). 암호화 키와 **다른 값**이어야 하고, 모양은 같으므로 같은 명령으로 만듭니다. 비워두면 `mac` 필드가 0으로 남습니다|
+|`MacKeyVariable`|Binary|`""`|MAC 키가 든 **환경 변수의 이름**. 켜면 파일이 변조되었는지 리더가 검출합니다 — 암호화만으로는 검출되지 않습니다([근거](binary-format.md#변조-검출--mac)). 암호화 키와 **다른 값**이어야 하고, 형식은 같으므로 같은 명령으로 만듭니다. 비워두면 `mac` 필드가 0으로 남습니다|
 |`MacKeyFile`|Binary|`""`|MAC 키가 든 **파일의 경로**. `MacKeyVariable`의 대안이고, **둘을 함께 적으면 거절합니다.** 켜는 순서는 데이터가 먼저, 클라이언트의 키가 나중입니다|
 |`UseCompactRowFormat`|Json|`false`|각 행을 필드 이름 있는 객체 대신 **값만 담은 배열**로. 작아지지만 사람이 보기 어렵습니다|
 |`Indented`|Json|`false`|들여쓰기. 사람이 들여다볼 때만 켜세요|
@@ -710,7 +710,7 @@ tabbit --new-recipe my-recipe.json --template unity
 |--|--|--|--|
 |`FileName`|Summary|`"summary.json"`|문서의 파일 이름|
 |`Author`|Summary|`"full"`|파일에 커밋 작성자를 얼마나 싣는가. `full`은 이름·이메일을 커밋 그대로, `masked`는 각각 첫 글자만 남기고(`서*`, `m*@gmail.com`), `none`은 두 필드를 뺍니다. summary는 산출물 옆에 커밋되거나 다른 팀에 전달되기 쉬운 파일이라, 개인정보를 내보내고 싶지 않으면 낮추세요. 히스토리에는 영향이 없습니다 — 귀속이 목적인 기록이라 전체 작성자를 유지합니다|
-|`ConnectionString`|History|`""`|히스토리가 사는 곳. `${NAME}` 지원|
+|`ConnectionString`|History|`""`|히스토리가 저장되는 곳. `${NAME}` 지원|
 |`ProjectKey`|History|`""`|어느 프로젝트의 히스토리인가. 데이터베이스 하나가 여럿을 담을 수 있고, **이 값을 바꾸면 이어지는 게 아니라 새 히스토리가 시작됩니다**|
 |`RecordDirty`|History|`false`|커밋되지 않은 변경이 있는 워킹카피의 변환도 기록할 것인가. 꺼져 있는 이유는 그런 변환이 어느 커밋에도 없는 작업을 담고 있기 때문입니다|
 |`AllowOutOfOrder`|History|`false`|브랜치가 이미 도달한 것보다 오래된 커밋도 기록할 것인가|
@@ -942,7 +942,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe side-by-side/side-by-side.jso
   // 배열 셀의 구분자. 쉼표가 기본이 아닌 이유는 문장과 숫자 표기에 너무 흔하기 때문입니다.
   "ArrayDelimiter": ";",
 
-  // datetime 셀의 벽시계를 어느 시간대로 읽을지. 지역 이름 또는 고정 오프셋("+09:00").
+  // datetime 셀에 적힌 시각을 어느 시간대로 읽을지. 지역 이름 또는 고정 오프셋("+09:00").
   // 비우면 셀이 이미 UTC로 적힌 것으로 봅니다. 저장되는 값은 어느 쪽이든 UTC입니다.
   "TimeZone": "",
 

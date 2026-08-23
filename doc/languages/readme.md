@@ -231,7 +231,7 @@ Ruby의 존재 확인만 `contains_index?`입니다. 물음표가 술어 메서�
 
 ### 긴 이름을 쓰는 이유
 
-`GetByIndexOrThrow`는 `Get`보다 10글자 깁니다. 그 10글자가 사는 이유는 하나입니다 — **호출부만 보고 다음 줄이 무엇이어야 하는지 알 수 있어야 하기 때문**입니다.
+`GetByIndexOrThrow`는 `Get`보다 10글자 깁니다. 그 10글자가 필요한 이유는 하나입니다 — **호출부만 보고 다음 줄이 무엇이어야 하는지 알 수 있어야 하기 때문**입니다.
 
 ```csharp
 var name = data.Item.GetByIndex(id).Name;   // 이 줄은 throw하는가? 널을 주는가?

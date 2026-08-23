@@ -36,7 +36,7 @@ Details:
 
 ### `Unexpected entity-marker`
 
-마커 문법이 어긋났습니다. `~~table:Item~~`, `~~enum:Grade~~`, `~~const:GameConfig~~` 형태여야 하고, 서버/클라를 나눌 때는 `~~table:Item:c~~`처럼 뒤에 붙입니다.
+마커 문법이 어긋났습니다. `~~table:Item~~`, `~~enum:Grade~~`, `~~const:GameConfig~~` 형식이어야 하고, 서버/클라를 나눌 때는 `~~table:Item:c~~`처럼 뒤에 붙입니다.
 
 임시로 빼려면 이름 앞에 `#`을 붙이세요 — [시트 작성](sheets.md)의 「작성중인 데이터 임시로 제외하기」.
 
@@ -188,7 +188,7 @@ primary index가 중복입니다. 행을 복사하고 인덱스를 안 고쳤을
 
 ### `... refuses this column rather than reading it wrongly`
 
-컬럼의 타입이나 모양이 바뀌었습니다. 넓히는 변경(int→bigint 등)이라도 **구 테이블 리더는 거절합니다** — 잘릴 수 있는 값을 읽지 않는 것이 설계이기 때문입니다. 그래서 이 변경은 재생성된 코드와 함께 나가야 하고, 그 사실을 `AcceptSchemaChanges: ["테이블.컬럼"]`로 적어 확인합니다. 한 번 통과하면 베이스라인이 갱신되니 목록에서 지워도 됩니다.
+컬럼의 타입이나 구조가 바뀌었습니다. 넓히는 변경(int→bigint 등)이라도 **구 테이블 리더는 거절합니다** — 잘릴 수 있는 값을 읽지 않는 것이 설계이기 때문입니다. 그래서 이 변경은 재생성된 코드와 함께 나가야 하고, 그 사실을 `AcceptSchemaChanges: ["테이블.컬럼"]`로 적어 확인합니다. 한 번 통과하면 베이스라인이 갱신되니 목록에서 지워도 됩니다.
 
 ### `... has taken tag ..., which ... used and gave up`
 
@@ -204,7 +204,7 @@ primary index가 중복입니다. 행을 복사하고 인덱스를 안 고쳤을
 
 ### 생성된 테이블 리더가 컬럼을 거부함
 
-런타임에 다음 형태의 메시지가 납니다.
+런타임에 다음과 같은 메시지가 납니다.
 
 ```
 Item.Price: the file carries element type 3, which this member cannot read
@@ -214,11 +214,11 @@ or rebuild the data.
 
 파일의 컬럼과 그것을 읽는 멤버의 타입이 맞지 않습니다. 데이터가 코드보다 새롭다면(넓어진 컬럼) 코드를 재생성하고, 코드가 새롭다면 데이터를 다시 뽑으세요. **읽고 나서 틀린 값을 주는 것보다 여기서 멈추는 것이 낫다**는 판단이고, `SchemaBaseline`을 켜두면 이 상황이 배포 전에 잡힙니다.
 
-모양이 바뀐 경우(스칼라 ↔ 배열, 고정배열 길이 변경)에는 `does not match the generated member`가 붙은 메시지가 같은 자리에서 납니다.
+구조가 바뀐 경우(스칼라 ↔ 배열, 고정배열 길이 변경)에는 `does not match the generated member`가 붙은 메시지가 같은 자리에서 납니다.
 
 ### `the file and the generated member disagree about whether this column is optional`
 
-컬럼에 `?`가 붙거나 떨어진 뒤에 **한쪽만** 다시 만들었습니다. 옵셔널 컬럼은 블록 앞에 presence 비트맵을 달고 있어서, 그것을 기다리지 않는 코드는 비트맵을 값으로 읽습니다. 그래서 이것도 모양 변경으로 취급해 거부합니다 — 코드를 다시 생성하거나 데이터를 다시 내보내세요.
+컬럼에 `?`가 붙거나 떨어진 뒤에 **한쪽만** 다시 만들었습니다. 옵셔널 컬럼은 블록 앞에 presence 비트맵을 달고 있어서, 그것을 기다리지 않는 코드는 비트맵을 값으로 읽습니다. 그래서 이것도 구조 변경으로 취급해 거부합니다 — 코드를 다시 생성하거나 데이터를 다시 내보내세요.
 
 **모든 리더가 비트 6을 nullability로 읽으므로**, 옛 데이터든 옛 코드든 위의 메시지로 나옵니다. 롤아웃 중에는 아직 지원하지 않는 리더들이 비트 6을 kind 쪽에 함께 읽어서 **kind가 맞지 않는다**는 메시지를 냈는데 — 비트맵을 값으로 읽는 것보다 낫기 때문이었고 — 그 리더들이 전부 지원하고 있으므로, 현재는 그 경로가 없습니다.
 
@@ -355,7 +355,7 @@ recipe의 `Validation.Options`에 넣거나, 없어도 되는 값이면 `Option(
 
 ### 연결 문자열의 비밀번호 취급
 
-**적지 마세요.** `${VAR}` 형태로 쓰면 환경 변수에서 채웁니다.
+**적지 마세요.** `${VAR}` 형식으로 쓰면 환경 변수에서 채웁니다.
 
 ```
 Server=db;Database=game;Uid=tabbit;Pwd=${DB_PASSWORD}

@@ -114,7 +114,7 @@ ptg(1)  ixti(2)  rowFirst(4)  rowLast(4)  colFirst(2)  colLast(2)      = 15바�
 0x3B                                                                     PtgArea3d
 ```
 
-**하나의 사각형인지 여부가 토큰의 종류로 판정됩니다.** 지금 문자열의 모양으로 걸러내는 것들
+**하나의 사각형인지 여부가 토큰의 종류로 판정됩니다.** 지금 문자열의 형태로 걸러내는 것들
 — union, 열 전체(`A:A`), 다른 통합문서로의 참조 — 이 전부 다른 토큰이거나 다른 길이입니다.
 문자열 파싱보다 정밀합니다.
 
@@ -155,7 +155,7 @@ rgXti 항목      = iSupBook(4)  itabFirst(4)  itabLast(4)
 ## 5. 설계
 
 `WorkbookPackage.Read`가 확장자로 두 갈래로 분기합니다. **호출하는 쪽은 바뀌지 않습니다** —
-`DefinedNames`와 `SkippedNames`의 모양이 같기 때문입니다.
+`DefinedNames`와 `SkippedNames`의 형태가 같기 때문입니다.
 
 |확장자|이름을 읽는 곳|
 |--|--|
@@ -167,7 +167,7 @@ rgXti 항목      = iSupBook(4)  itabFirst(4)  itabLast(4)
 |사유|XML에서의 판정|이진에서의 판정|
 |--|--|--|
 |`NotARange`|참조가 비었거나 `#REF!` 를 포함|`rgce`가 비었거나 참조 토큰이 아님|
-|`NotOneRectangle`|union·열 전체·외부 통합문서를 문자열 모양으로 판별|`PtgArea3d` 단독이 아니거나, XTI가 다른 통합문서 또는 여러 시트를 지시|
+|`NotOneRectangle`|union·열 전체·외부 통합문서를 문자열 형태로 판별|`PtgArea3d` 단독이 아니거나, XTI가 다른 통합문서 또는 여러 시트를 지시|
 
 **코어에 새 개념이 생기지 않습니다.** 레이아웃도, 어트리뷰트도, recipe 스키마도 관여하지
 않습니다 — 「이 확장자의 워크북에서 정의된 이름을 읽는다」는 임포터 내부의 일입니다.

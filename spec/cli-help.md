@@ -25,7 +25,7 @@ Copyright (C) 2026 Tabbit
 
   --template                   Which starting recipe --new-recipe writes. Omit
                                for one holding every setting.
-       ⋮  (같은 모양으로 41개 더)
+       ⋮  (같은 형태로 41개 더)
 ```
 
 [CommandLineParser](../src/Program.cs)의 `HelpText.AutoBuild`가 만드는 형태입니다. 결함을
@@ -318,7 +318,7 @@ Tabbit 0.0.0+c401cb366657
 조건은 **로컬 빌드에서는 심지 않는 것**입니다. `$([System.DateTime]::UtcNow)`를 프로퍼티로
 평가하면 아무것도 고치지 않아도 컴파일 입력이 매번 달라집니다 — 결정론적 빌드가 깨지고,
 증분 빌드가 매번 재컴파일합니다. 이 저장소에서는
-[22분 스위트](../doc/architecture.md#개발--테스트) 앞에 그것이 매번 붙습니다.
+[13분 스위트](../doc/architecture.md#개발--테스트) 앞에 그것이 매번 붙습니다.
 
 ```xml
 <!-- CI가 넘기지 않으면 아이템 자체가 붙지 않습니다. -->

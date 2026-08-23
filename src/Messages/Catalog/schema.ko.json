@@ -1,7 +1,7 @@
 {
   "schema.path-missing": "`{Path}`이(가) 스키마 파일 디렉터리로 지정되어 있는데 그런 디렉터리가 없습니다. 있는 곳을 적거나 `Schemas`에서 그 항목을 지우십시오.",
   "schema.unknown-keyword": "`{Written}`이(가) 줄의 첫 낱말인데 선언이 아닙니다. 줄은 `struct` · `field` · `enum` · `value`로 시작하거나, 주석이거나, 빈 줄입니다.",
-  "schema.polymorphism-reserved": "`{Word}`는 예약어이고 아직 아무 뜻도 없습니다. 상속은 그 와이어 설계가 성립하는 것이 확인될 때까지 미뤄 두었습니다 — 지울 수 없는 표기를 남기지 않기 위해서입니다. 여러 모양 중 하나를 담는 컬럼은 지금은 그 각각을 가리키는 참조로 적습니다.",
+  "schema.polymorphism-reserved": "`{Word}`는 예약어이고 아직 아무 뜻도 없습니다. 상속은 그 와이어 설계가 성립하는 것이 확인될 때까지 미뤄 두었습니다 — 지울 수 없는 표기를 남기지 않기 위해서입니다. 여러 종류 중 하나를 담는 컬럼은 지금은 그 각각을 가리키는 참조로 적습니다.",
   "schema.field-outside-struct": "위에 `struct`가 없는 `field`입니다. 멤버는 바로 앞에 선언된 struct에 붙는데, 이 파일에는 아직 없습니다.",
   "schema.field-in-enum": "바로 위의 선언이 `enum {Enum}`인 자리의 `field`입니다. enum은 `value` 항목을 담고, `field`는 struct의 것입니다.",
   "schema.value-outside-enum": "위에 `enum`이 없는 `value`입니다. 항목은 바로 앞에 선언된 enum에 붙는데, 이 파일에는 아직 없습니다.",

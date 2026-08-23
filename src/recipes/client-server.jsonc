@@ -40,7 +40,7 @@
       "TargetSide": "c"
     },
 
-    // 서버는 Go. cpp / rust / java / kotlin / python 등으로 바꿔도 같은 모양입니다.
+    // 서버는 Go. cpp / rust / java / kotlin / python 등으로 바꿔도 같습니다.
     {
       "Type": "go",
       "Path": "./server/internal/gamedata",

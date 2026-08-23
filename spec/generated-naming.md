@@ -145,7 +145,7 @@ csharp · cpp에 `AccessorName: "Tables"`를, ruby · dart에 `"tables"`를 명�
 
 - **레시피 구조의 분산.** 14개 코드생성 타깃 중 4개(cpp · csharp · typescript · html)만
   `CodeGenerations.*` 전용 섹션을 갖고, 나머지 10개는 `Targets[]` 리스트로만 도달합니다.
-  같은 성격의 옵션이 레시피 안에서 두 군데에 삽니다.
+  같은 성격의 옵션이 레시피 안에서 두 군데에 있습니다.
   → **해소되었습니다.** 전용 섹션을 없애고 `Targets` 하나로 통일하였습니다
   ([설계](target-section-unification.md)).
 - **`Namespace` 키의 과적재.** 코드 네임스페이스 외에 텍스트 익스포트의 그룹 토큰도

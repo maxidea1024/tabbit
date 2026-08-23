@@ -179,7 +179,7 @@ sword.GradeField;           // Common`}
         </section>
 
         <section className={styles.closing}>
-          <h2>형식이 왜 지금의 모양인지도 적어 두었습니다</h2>
+          <h2>형식이 왜 지금처럼 되었는지도 적어 두었습니다</h2>
           <p>
             무엇을 얻고 무엇을 포기했는지, 무엇을 거절했는지, 그리고 예측이 어디서 틀렸는지까지.
           </p>

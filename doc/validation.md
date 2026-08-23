@@ -155,7 +155,7 @@ validation/
 > 파일이 하나씩 들어 있으므로 **빈 폴더도 git에 남습니다.** 받은 사람이 폴더 구조를 그대로
 > 봅니다.
 
-## 5. 규칙 파일의 모양
+## 5. 규칙 파일의 형태
 
 **평범한 `.cs` 파일이고, 프로젝트에 등재되지 않습니다.** 클래스 하나에 `Validate` 하나이고,
 파일 이름과 클래스 이름이 같습니다 — `ItemRules.cs`의 `ItemRules`입니다.
@@ -405,7 +405,7 @@ if (!context.Redis("Cache").Exists($"event:{row.EventId}"))
 |`Column<T>(sql)` · `Set<T>(sql)` · `Scalar<T>(sql)` · `Rows(sql)`|`Exists(key)` · `Get(key)` · `Field(key, field)` · `Members(key)`|
 
 연결 문자열의 **스킴이 종류를 나타냅니다** — `mysql:` · `postgres:` · `redis://`. ADO 연결 문자열과
-Redis 설정 문자열은 모양으로 구별되지 않으므로 추측하지 않습니다.
+Redis 설정 문자열은 형식으로 구별되지 않으므로 추측하지 않습니다.
 
 |정책|내용|
 |--|--|

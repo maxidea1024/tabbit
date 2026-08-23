@@ -1,4 +1,4 @@
-<a href="https://maxidea1024.github.io/tabbit/">
+<a href="doc/readme.md">
   <img src="brand/dist/readme-header.jpg" alt="Tabbit — Game Data Authoring & Build Tool" width="100%">
 </a>
 
@@ -6,15 +6,17 @@
 
 **Game Data Authoring & Build Tool**
 
-[![build](https://github.com/maxidea1024/tabbit/actions/workflows/dotnet.yml/badge.svg)](https://github.com/maxidea1024/tabbit/actions/workflows/dotnet.yml)
-[![docs](https://github.com/maxidea1024/tabbit/actions/workflows/docs.yml/badge.svg)](https://maxidea1024.github.io/tabbit/)
-[![release](https://img.shields.io/github/v/release/maxidea1024/tabbit?sort=semver)](https://github.com/maxidea1024/tabbit/releases)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+> **저장소가 비공개인 동안은 CI · 문서 사이트 · 릴리즈가 서지 않습니다.** Actions가 결제 때문에
+> 실행되지 않고, 문서 사이트(GitHub Pages)는 비공개 저장소에서 게시되지 않으며, 릴리즈는 아직
+> 하나도 없습니다. 그래서 그 셋을 가리키던 배지를 뺐습니다 — [설치](doc/install.md)의 내려받기
+> 절차도 릴리즈가 서기 전까지는 쓸 수 없고, 그동안은 소스에서 빌드합니다.
 
 게임 시스템의 근간은 정적 데이터입니다. 아이템·스테이지·밸런스·설정 — 코드보다 자주 바뀌고,
 손이 더 많이 타고, 틀렸을 때 가장 늦게 드러납니다.
 
-**Tabbit**(테빗)은 그 데이터를 **짜고, 검증하고, 런타임 데이터로 빌드하는** 도구입니다.
+**Tabbit**(테빗)은 그 데이터를 **작성하고, 검증하고, 런타임 데이터로 빌드하는** 도구입니다.
 
 |단계|하는 일|
 |--|--|
@@ -32,7 +34,8 @@
 
 ## 빠른 시작
 
-[내려받아 압축을 풀면 끝입니다](doc/install.md) — .NET을 설치하지 않아도 됩니다.
+지금은 [소스에서 빌드합니다](doc/install.md#소스에서-빌드하기). 릴리즈가 서면 내려받아 압축을
+푸는 것으로 끝나고, 그때는 .NET을 설치하지 않아도 됩니다 — 런타임이 실행 파일 안에 들어갑니다.
 
 ```
 tabbit --new-recipe my-recipe.json --template unity   # 상황에 맞는 시작점
@@ -57,9 +60,9 @@ var sword = GameData.Item.FindByIndex(1);
 
 |종류|타깃|
 |--|--|
-|익스포트|`binary` `json`|
+|익스포트|`binary` `json` `text`|
 |데이터베이스|`mysql` `postgresql` `mongodb` `redis`|
-|코드 생성|`csharp` `typescript` `cpp` `c` `unreal` `go` `rust` `python` `java` `kotlin` `ruby` `php` `dart`|
+|코드 생성|`csharp` `typescript` `cpp` `c` `unreal` `go` `rust` `python` `java` `kotlin` `swift` `lua` `ruby` `php` `dart`|
 |문서|`html`|
 |기록|`summary` `history`|
 
@@ -73,18 +76,20 @@ var sword = GameData.Item.FindByIndex(1);
 ## 왜 이걸 쓰나
 
 - **문제를 게임이 아니라 변환에서 만납니다.** 걸러낼 수 있는 실수는 걸러내고, 남은 것은 **어느 셀인지** 알려줍니다. 구글 시트라면 링크를 눌러 그 자리로 갑니다.
+- **찾은 것은 로그가 아니라 보고서로 옵니다.** 실행마다 HTML 한 장이 남고 경고 이상이면 브라우저가 열립니다. 직전 실행과 대조해 **신규 · 지속 · 해소**를 셉니다.
 - **시트에 적을 수 없는 규칙은 C#으로 적습니다.** 그 게이트가 모든 타깃보다 앞이라, 실패한 실행은 파일에도 데이터베이스에도 흔적을 남기지 않습니다.
 - **중간에 실패해도 이전 결과가 그대로 남습니다.** 쓰는 쪽도, 읽는 쪽도 — 전부 준비한 다음 한 번에 교체합니다.
 - **모든 언어가 같은 파일을 읽습니다.** 포맷을 정의하는 것은 writer 하나이고, 각 언어의 리더는 그 하나를 각자 구현한 것입니다. 회귀 스위트가 **하나로 쓰고 언어마다 읽어 대조**합니다.
+- **바뀐 것이 없으면 아무것도 하지 않습니다.** 지난 실행이 무엇을 읽고 썼는지 기록해 두었다가 비교하고, 전체를 다시 하게 되면 그 이유를 함께 출력합니다.
 - **이 도구의 규칙으로 쓰이지 않은 시트도 읽습니다.** 시트를 먼저 고치지 않아도 됩니다.
 
 전부 보려면 [기능](doc/features.md)에 있습니다.
 
 ## 문서
 
-같은 문서가 두 곳에 있습니다. 검색하고 사이드바로 옮겨 다니려면
-[**maxidea1024.github.io/tabbit**](https://maxidea1024.github.io/tabbit/) 쪽이 편하고, 저장소
-안에서 읽는다면 [문서 목록](doc/readme.md)이 시작점입니다. 자주 찾는 것만 옮기면,
+[문서 목록](doc/readme.md)이 시작점입니다. 검색하고 사이드바로 옮겨 다니는 사이트 판도 같은
+문서로 만들어지지만, 위에 적은 이유로 지금은 게시되지 않습니다 — 손에서 돌려보려면
+[문서 사이트](website/readme.md)에 방법이 있습니다. 자주 찾는 것만 옮기면,
 
 |문서|내용|
 |--|--|
@@ -93,7 +98,7 @@ var sword = GameData.Item.FindByIndex(1);
 |[검증](doc/validation.md)|시트에 적을 수 없는 규칙을 C#으로 — 실행 전·테이블별·전역·런타임 네 단계와 공용 코드|
 |[내보내기](doc/exports.md)|바이너리·JSON 파일과 데이터베이스 적재. **바이너리를 쓰는 이유**|
 |[트러블슈팅](doc/troubleshooting.md)|변환이 실패했을 때 어디를 볼 것인가. 도구가 실제로 출력하는 메시지별로|
-|[설계 노트](doc/readme.md#설계-노트)|형식과 기능이 **왜 지금의 모양인지** — 무엇을 거절했고, 예측이 어디서 틀렸는지|
+|[설계 노트](doc/readme.md#설계-노트)|형식과 기능이 **왜 지금처럼 되었는지** — 무엇을 거절했고, 예측이 어디서 틀렸는지|
 
 ## 기여하기
 
