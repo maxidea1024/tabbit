@@ -63,6 +63,7 @@
 |[매트릭스 표](../spec/matrix-tables.md)|컬럼 이름이 행 id인 격자 — 배열 하나와 컬럼 id 테이블로 내는 이유, 그리고 long-form과 map을 채택하지 않은 이유|
 |[가변 길이 레코드 배열](../spec/variable-length-record-arrays.md)|레코드 배열의 길이를 로우마다 다르게 — **뒤에서만 자르는 이유**|
 |[비트셋](../spec/bitset.md)|`bitset` 타입과 진법 리터럴 — **엄격함이 의도 선언을 요구하는 이유**|
+|[합성 값 타입](../spec/composite-value-types.md)|`vec3f`·`quat`·`color`/`color32`와 `(1,2)`·`#3366CC`·`red` 표기 — **타입 추가가 아니라 레코드로 접는 이유**, 그리고 규약이 필요해서 주지 않는 이름|
 |[옵셔널 필드](../spec/optional-fields.md)|타입 끝 `?`의 설계 — 빈 칸을 받는 것과, 존재 여부를 와이어에 담는 것|
 |[빈 칸과 없음](../spec/blank-and-null-cells.md)|`-`는 없음, `\-`는 문자열 `-` — **빈 칸이 값과 없음을 겸하던 것**을 표기 하나로 나누는 설계|
 |[원소가 없을 수 있는 배열](../spec/nullable-array-elements.md)|`T?[]` · `T[]?` · `T?[]?` — **원소의 없음**을 시트가 적고 파일이 담는 설계. 와이어의 마지막 예약 비트와 원소 비트맵|

@@ -82,6 +82,13 @@ public class ConversionGoldenTests
     // ever reaches an exported byte shows up here as a diff in a file that has nothing to do
     // with the feature.
     [InlineData("text")]
+    // Composite columns - `vec3f`, `vec2i`, `quat`, `color32`, `color` - each row writing its
+    // values in a different notation. What this tree pins is that they arrive as records: the
+    // JSON nests, the file holds one column per component, and three languages declare the
+    // struct their own way. `CompositeExpansionTests` holds the other half, which is that the
+    // same table written with `Pos.X` columns produces the same bytes.
+    // spec/composite-value-types.md.
+    [InlineData("composite")]
     // A `bitset` column beside a `bigint` one holding the same values. What this tree pins is
     // an absence: the type exists for as long as parsing lasts, and the cooker folds it to a
     // 64-bit integer once every cell has been read - so no artifact here may be able to tell

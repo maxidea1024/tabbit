@@ -108,6 +108,19 @@ public class CsNestedAndOptionalTests
     [Fact]
     public void A_multi_target_column_compiles() => AssertCompiles("multi-target", "MultiTargetAccessor");
 
+    /// <summary>
+    /// Five composite columns, each of which the cooker turned into a record.
+    /// </summary>
+    /// <remarks>
+    /// The equivalence gate says the file is the same as a hand-written record's, and the
+    /// golden says the page looks right. Neither says the page is a program - and the record
+    /// here was assembled by a cooker pass rather than by a sheet, so what compiles is the
+    /// part nothing else asks about. spec/composite-value-types.md.
+    /// </remarks>
+    [Fact]
+    public void Composite_columns_compile()
+        => AssertCompiles("composite", "CompositeAccessor");
+
     private static void AssertCompiles(string scenario, string accessor)
     {
         var conversion = TabbitRunner.Convert(scenario);

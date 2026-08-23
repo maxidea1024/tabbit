@@ -166,6 +166,24 @@ public class Field
     public ValueType Type { get; set; }
 
     /// <summary>
+    /// The composite type this column was expanded out of, or <see cref="ValueType.None"/>
+    /// for a column the sheet wrote as itself.
+    /// </summary>
+    /// <remarks>
+    /// A `vec3f` column reaches the model as three `float` columns, and the three are exactly
+    /// what a sheet writing `Pos.X`/`Pos.Y`/`Pos.Z` by hand produces - that identity is what
+    /// keeps the wire and thirteen generators out of this feature. What is lost with it is
+    /// the knowledge that the three were one thing, and this is where that is kept.
+    ///
+    /// Nothing reads it yet. It is what a later revision needs to give the group a shared
+    /// type - the engine's own vector rather than a struct per column - without having to
+    /// infer from three members that they were a vector.
+    /// spec/composite-value-types.md section 7.
+    /// </remarks>
+    [JsonIgnore]
+    public ValueType CompositeOrigin { get; set; }
+
+    /// <summary>
     /// What this column's strings are for, beyond being strings. <see cref="StringRole.None"/>
     /// for every other type.
     /// </summary>

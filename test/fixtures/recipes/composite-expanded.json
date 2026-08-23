@@ -1,0 +1,30 @@
+{
+  // The other half of the composite gate: the same table, the same table name and the same
+  // values, with every component written out as its own `Group.Member` column.
+  //
+  // Nothing here is new. It exists so `composite` has something to be compared against, and
+  // the comparison is byte-for-byte on the produced file - which is why the table is named
+  // the same and the columns are declared in the same order.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/composite-expanded"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/composite-expanded/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/composite-expanded/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}

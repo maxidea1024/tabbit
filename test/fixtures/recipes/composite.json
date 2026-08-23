@@ -1,0 +1,54 @@
+{
+  // Composite columns: `vec3f`, `vec2i`, `quat`, `color32` and `color`, each row writing its
+  // values in a different notation.
+  //
+  // What this tree pins is an absence. A composite exists for as long as parsing lasts - the
+  // notation it accepts is what makes it a type - and the cooker expands a column of one into
+  // the record a sheet could have written by hand. So no artifact here may be able to tell
+  // the two apart, and `composite-expanded` is the same table written the other way for the
+  // gate to compare against.
+  //
+  // Three languages rather than thirteen: the shape below the generators is a record, which
+  // every one of them already builds, and what is worth pinning is that a composite column
+  // arrives there as one. C#, TypeScript and C++ because they assemble a record three
+  // different ways.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/composite"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/composite/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/composite/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/composite/csharp",
+      "Namespace": "Tabbit.Fixtures.Composite",
+      "AccessorName": "CompositeAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/composite/typescript"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/composite/cpp",
+      "Namespace": "tabbit_fixtures::composite",
+      "AccessorName": "CompositeAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ]
+}

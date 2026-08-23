@@ -71,6 +71,15 @@ internal static class Program
         WriteReservedWords(Prepare(outputDir, "reserved-words", "reserved-words.xlsx"));
         WriteText(Prepare(outputDir, "text", "text.xlsx"));
         WriteBitset(Prepare(outputDir, "bitset", "bitset.xlsx"));
+
+        // The same table twice: once with composite columns and once with the components
+        // written out. Two workbooks rather than two tables in one, so both can carry the
+        // same table name and the gate can compare the two files byte for byte.
+        WriteComposite(
+            Prepare(outputDir, "composite", "composite.xlsx"), asComponents: false);
+        WriteComposite(
+            Prepare(outputDir, "composite-expanded", "composite-expanded.xlsx"),
+            asComponents: true);
         WriteReferenceOptional(
             Prepare(outputDir, "reference-optional", "reference-optional.xlsx"));
         WriteReferenceRequiredBlank(
@@ -665,6 +674,105 @@ internal static class Program
             // Every bit. Decimal cannot reach bit 63, which is the whole reason the pattern
             // notations exist for this type.
             .Row("4", "0xFFFFFFFFFFFFFFFF", "-1", "", "every bit");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// Composite columns, and the same table with every component written out by hand.
+    /// </summary>
+    /// <remarks>
+    /// **The pair is the point.** A composite is a type for as long as parsing lasts, and the
+    /// cooker expands a column of one into the record a sheet could have written itself. So
+    /// the two workbooks must produce the same file, byte for byte - a fold that did not
+    /// happen, or a notation read as the wrong number, shows up as a difference between them
+    /// rather than as an assertion somebody had to think to write.
+    ///
+    /// Every row of the composite side writes its values in a different notation - tuples
+    /// with and without parentheses, a hex colour, a CSS name, `one`, `identity` - and the
+    /// other side writes the plain numbers those must come to.
+    ///
+    /// The float colour only takes values that are exact eighths and fifths of 255, so the
+    /// decimal on the expanded side parses to the same `float` the division produces. A
+    /// component like 128/255 would differ in the last bit and the gate would be measuring
+    /// the fixture rather than the feature.
+    ///
+    /// spec/composite-value-types.md.
+    /// </remarks>
+    private static void WriteComposite(string path, bool asComponents)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Vectors"));
+
+        var spec = new TableSpec
+        {
+            Name = "Vectors",
+            Comment = "Vectors, a rotation and two colours, in one notation or the other.",
+        };
+
+        spec.Field(FieldSpec.Of("index", "int", "primary index"));
+
+        if (asComponents)
+        {
+            spec
+                .Field(FieldSpec.Of("Pos.X", "float", "where it is"))
+                .Field(FieldSpec.Of("Pos.Y", "float", "where it is"))
+                .Field(FieldSpec.Of("Pos.Z", "float", "where it is"))
+                .Field(FieldSpec.Of("Cell.X", "int", "which tile"))
+                .Field(FieldSpec.Of("Cell.Y", "int", "which tile"))
+                .Field(FieldSpec.Of("Rot.X", "float", "how it is turned"))
+                .Field(FieldSpec.Of("Rot.Y", "float", "how it is turned"))
+                .Field(FieldSpec.Of("Rot.Z", "float", "how it is turned"))
+                .Field(FieldSpec.Of("Rot.W", "float", "how it is turned"))
+                .Field(FieldSpec.Of("Tint.R", "int", "8-bit colour"))
+                .Field(FieldSpec.Of("Tint.G", "int", "8-bit colour"))
+                .Field(FieldSpec.Of("Tint.B", "int", "8-bit colour"))
+                .Field(FieldSpec.Of("Tint.A", "int", "8-bit colour"))
+                .Field(FieldSpec.Of("Glow.R", "float", "float colour"))
+                .Field(FieldSpec.Of("Glow.G", "float", "float colour"))
+                .Field(FieldSpec.Of("Glow.B", "float", "float colour"))
+                .Field(FieldSpec.Of("Glow.A", "float", "float colour"))
+                .Field(FieldSpec.Of("Label", "string", "a plain column after the components"));
+
+            spec
+                .Row("1", "1.5", "-2.5", "0", "3", "4",
+                     "0", "0", "0", "1",
+                     "51", "153", "204", "255",
+                     "0.2", "0.8", "1", "1", "tuples and a hex colour")
+                .Row("2", "1", "1", "1", "0", "0",
+                     "0", "1", "0", "0",
+                     "100", "149", "237", "255",
+                     "0", "0", "0", "0", "literals and a css name")
+                .Row("3", "0", "0", "0", "1", "1",
+                     "1", "0", "0", "0",
+                     "255", "0", "0", "128",
+                     "1", "0", "1", "1", "no parentheses, a qualified literal");
+        }
+        else
+        {
+            spec
+                .Field(FieldSpec.Of("Pos", "vec3f", "where it is"))
+                .Field(FieldSpec.Of("Cell", "vec2i", "which tile"))
+                .Field(FieldSpec.Of("Rot", "quat", "how it is turned"))
+                .Field(FieldSpec.Of("Tint", "color32", "8-bit colour"))
+                .Field(FieldSpec.Of("Glow", "color", "float colour"))
+                // A plain column after the composites, and not decoration: every field before
+                // it moves when one column becomes four, so a rewrite that renumbered before
+                // it copied the cells would read this one from the wrong place.
+                .Field(FieldSpec.Of("Label", "string", "a plain column after the components"));
+
+            spec
+                // Parenthesised tuples, a hex colour, and the literal for the rotation that
+                // turns nothing.
+                .Row("1", "(1.5, -2.5, 0)", "(3, 4)", "identity", "#3399CC", "#33CCFF", "tuples and a hex colour")
+                // Symbolic literals, a CSS name, and a colour keyword.
+                .Row("2", "one", "zero", "(0, 1, 0, 0)", "cornflowerblue", "transparent", "literals and a css name")
+                // No parentheses, a qualified literal in the engine's spelling, and a tuple
+                // whose alpha is written out.
+                .Row("3", "0,0,0", "Vector2i.one", "(1,0,0,0)", "(255, 0, 0, 128)", "#FF00FF", "no parentheses, a qualified literal");
+        }
 
         b.Table(1, 1, spec);
 
@@ -3097,21 +3205,27 @@ internal static class Program
         Console.WriteLine($"  wrote {Path.GetFileName(path)}");
     }
 
+    /// <summary>
+    /// The repository this generator is running inside.
+    /// </summary>
+    /// <remarks>
+    /// A file as well as a directory: a linked worktree's `.git` is a **file** pointing at
+    /// the shared one. Looking only for the directory walked straight past the worktree and
+    /// found the checkout it was made from - so a run inside a worktree rewrote every
+    /// committed fixture of that other tree, and dropped its new ones there too. The same
+    /// reasoning and the same fix as `RepoLayout.Locate` in the test project, which had this
+    /// hazard first.
+    /// </remarks>
     private static string FindRepoRoot()
     {
-        // A directory or a file. In a linked worktree `.git` is a file naming where the real
-        // one is, so looking only for a directory walks straight past the worktree's root and
-        // finds the main checkout - which is a generator that quietly rewrites the fixtures of
-        // whichever tree it was not run from.
-        static bool IsRepository(DirectoryInfo dir)
-        {
-            string marker = Path.Combine(dir.FullName, ".git");
-            return Directory.Exists(marker) || File.Exists(marker);
-        }
-
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null && !IsRepository(dir))
+
+        while (dir != null
+            && !Directory.Exists(Path.Combine(dir.FullName, ".git"))
+            && !File.Exists(Path.Combine(dir.FullName, ".git")))
+        {
             dir = dir.Parent;
+        }
 
         if (dir == null)
             throw new InvalidOperationException("Could not locate the repository root.");
