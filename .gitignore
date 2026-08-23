@@ -243,3 +243,6 @@ test/fixtures/validation/*/lib/
 
 # `--cache-dir`로 저장소 안을 가리킨 경우까지. 이름이 이 도구의 것이므로 이 패턴으로 잡힙니다.
 *.seal.json
+
+# `dotnet test --logger trx` writes here. A test run's own record, not the repository's.
+TestResults/
