@@ -1,0 +1,24 @@
+// Declarations that disagree with the `declared` workbook, three ways at once.
+//
+// The workbook is the same one the `declared` scenario converts - what is wrong here is
+// the declaration, which is the point: a sheet and a file that disagree should say which
+// of the two disagrees with which, and say it for every column rather than the first.
+//
+//   `count`  is declared `string` and the sheet types the column `int`
+//   `icon`   is not declared at all and the sheet has a column for it
+//   `bonus`  is declared and the sheet has no column for it
+//
+// And three bracketed keys that nothing acts on, one of each kind.
+
+/// One thing a row hands out.
+struct Reward
+    // `mn` is nobody's key, `regex` is one this build does not act on, and `refs` says
+    // what `foreign` already says here. Three different answers, and each says which.
+    field itemId int (refs=Item)
+    field count string (mn=1)
+    field bonus int (regex="^[0-9]+$")
+
+/// What a reward is made of.
+enum Element
+    value Fire = 1
+    value Ice = 2

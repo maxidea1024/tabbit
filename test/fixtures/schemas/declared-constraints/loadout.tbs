@@ -1,0 +1,14 @@
+// The `declared` workbook against a bound its data breaks.
+//
+// `count` is declared to start at two and the first row writes one, so the run must refuse
+// that cell. What is being checked is that a bound written in a declaration reaches the
+// same validation a bound written in a sheet does - the declaration is not a comment.
+
+struct Reward
+    field itemId int
+    field count int (min=2)
+    field icon string?
+
+enum Element
+    value Fire = 1
+    value Ice = 2

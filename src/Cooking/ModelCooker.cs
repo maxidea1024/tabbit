@@ -43,13 +43,39 @@ public partial class ModelCooker
             PromoteWarnings = recipeModel.Validation?.TreatWarningsAsErrors ?? false,
         };
 
-        var context = new CookingContext(result, recipeModel, diagnostics);
+        // What the schema files declared, gathered from all of them at once so that a type
+        // may be named before it is declared and in whichever file the recipe listed first.
+        // Before the context, which holds them: they decide whether a type cell naming a
+        // struct - or left empty inside a group that one covers - is something a layout may
+        // hand over unresolved.
+        var declarations = Schema.SchemaDeclarations.Read(rawModel.SchemaFiles, diagnostics);
+
+        var context = new CookingContext(result, recipeModel, diagnostics, declarations);
+
+        // The enums go in before a sheet is read, because a type cell may name one and the
+        // check that a type name is recognized asks the model.
+        declarations.DeclareEnums(result, diagnostics);
 
         ParseRawModel(context, rawModel);
+
+        // And the rest of what the declarations say, now that the sheets are here too: a name
+        // a table has already taken, and a member typed with an enum a sheet declared rather
+        // than these files. notes/struct-dsl-design.md section 4.4.
+        declarations.Resolve(result, context, diagnostics);
 
         // What was worth saying once per column rather than once per cell, now that every
         // cell has been read and the counts are final.
         context.ReportCellNotices();
+
+        // Column groups whose sheet named a struct for them take their members' types from
+        // it, and their cells are read again now that there is a type to read them as. Before
+        // the folds below and before references are promoted, because a bound column is an
+        // ordinary column from here on and those passes should meet it as one.
+        //
+        // Before the extra row sets are folded as well, and that is not a gap: a set that has
+        // not been folded yet is still a table of its own, with the same columns, so this
+        // pass reaches its cells while it is one. notes/struct-dsl-design.md section 7.2.
+        BindDeclaredStructs(context, result, declarations, diagnostics);
 
 
         // Every cell has been read, so the two type kinds that existed for the reading are

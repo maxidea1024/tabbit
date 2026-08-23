@@ -44,6 +44,14 @@ internal static class Program
         WriteStrictValues(Prepare(outputDir, "strict-values", "strict-values.xlsx"));
         WriteDoubleStar(Prepare(outputDir, "double-star", "double-star.xlsx"));
         WriteNested(Prepare(outputDir, "nested", "nested.xlsx"));
+        // The same table twice: once leaving its member types to a schema file and once
+        // writing every one of them in its own cell.
+        WriteDeclared(Prepare(outputDir, "declared", "declared.xlsx"), fromSchema: true);
+        WriteDeclared(
+            Prepare(outputDir, "declared-expanded", "declared-expanded.xlsx"), fromSchema: false);
+        // One record, written into one cell and written as its own columns.
+        WritePacked(Prepare(outputDir, "packed", "packed.xlsx"), inOneCell: true);
+        WritePacked(Prepare(outputDir, "packed-expanded", "packed-expanded.xlsx"), inOneCell: false);
         WriteNestedHole(Prepare(outputDir, "nested-hole", "nested-hole.xlsx"));
         WriteNestedDeep(Prepare(outputDir, "nested-deep", "nested-deep.xlsx"));
         WriteRecordTrim(Prepare(outputDir, "record-trim", "record-trim.xlsx"));
@@ -929,6 +937,155 @@ internal static class Program
     ///
     /// spec/nested-fields.md has the notation.
     /// </remarks>
+    /// <summary>
+    /// A record group typed by a schema file, and the same table typed by its own cells.
+    /// </summary>
+    /// <remarks>
+    /// **The pair is the gate.** Everything about the notation rests on one claim - that a
+    /// group whose type cell names a struct arrives as the columns a sheet could have typed
+    /// by hand - and two workbooks holding the same table under the same name is how that
+    /// claim is checked rather than asserted.
+    ///
+    /// So the two sides must differ in the header and nowhere else. Same table name, same
+    /// column names, same rows.
+    ///
+    /// The `fromSchema` side leaves one member typed anyway - `Count`, at both its elements -
+    /// because a sheet part-way through moving to the notation looks exactly like that, and
+    /// what happens to such a column is checked against the declaration rather than
+    /// overwritten.
+    ///
+    /// `Grade` names an enum the schema file declares, through the type row's ordinary
+    /// `enum` plus a detail cell. That is the other half of what a declaration file is for:
+    /// a type cell reading a declaration this run read from a file rather than from a sheet.
+    ///
+    /// notes/struct-dsl-design.md section 7.2.
+    /// </remarks>
+    private static void WriteDeclared(string path, bool fromSchema)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Declared"));
+
+        var spec = new TableSpec
+        {
+            Name = "Loadout",
+            Comment = "A record group whose members a schema file declares.",
+        };
+
+        // Empty where the declaration answers, and the declaration's own description with it:
+        // what the sheet leaves out is exactly what section 7.2 says it may.
+        string Typed(string written) => fromSchema ? "" : written;
+        string Said(string written) => fromSchema ? "" : written;
+
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "plain column, outside the group"))
+
+            // The group's first column names the struct. Exactly one column of a group may.
+            .Field(FieldSpec.Of(
+                "Slot1.ItemId",
+                fromSchema ? "Reward" : "int",
+                Said("Which item, as that table's key.")))
+
+            // Typed by the sheet on both sides, so the agreement check runs on one of them.
+            .Field(FieldSpec.Of("Slot1.Count", "int", Said("How many of it.")))
+            .Field(FieldSpec.Of(
+                "Slot1.Icon", Typed("string?"),
+                Said("Shown beside the count. Blank where there is nothing to show.")))
+
+            .Field(FieldSpec.Of("Slot2.ItemId", Typed("int"), Said("Which item, as that table's key.")))
+
+            // Typed at both elements, not one. A member is one column in the file and states
+            // one type, so the layout already refuses a group that types an element and not
+            // its sibling - a sheet moving to the notation moves a member at a time.
+            .Field(FieldSpec.Of("Slot2.Count", "int", Said("How many of it.")))
+            .Field(FieldSpec.Of(
+                "Slot2.Icon", Typed("string?"),
+                Said("Shown beside the count. Blank where there is nothing to show.")))
+
+            .Field(FieldSpec.Of("Grade", "enum", "an enum the schema file declares", "Element"));
+
+        spec
+            .Row("1", "first",  "10", "1", "icon_a", "11", "2", "icon_b", "Fire")
+            .Row("2", "second", "20", "3", "",       "21", "4", "icon_c", "Ice")
+            // A run of equal values in every column, which is what the column encodings read.
+            .Row("3", "third",  "20", "3", "",       "21", "4", "icon_c", "Ice");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// One record written into a single cell, and the same record written as its columns.
+    /// </summary>
+    /// <remarks>
+    /// **The pair is the gate**, the same one the composite value types are held to: two
+    /// workbooks, one table name, and a file that must come out identical byte for byte.
+    /// `Reward` holding `10,1,icon_a` and `Reward.ItemId` / `Reward.Count` / `Reward.Icon`
+    /// are the same three columns on the wire, because a record has always been one column
+    /// per member.
+    ///
+    /// **The group carries no number, and that is the shape this notation reaches.** A
+    /// numbered pair - `Reward1`, `Reward2` - does not become an array here: deciding that a
+    /// digit means an array is the layout's judgement and it is made after this pass has run,
+    /// so a packed column cannot be one element of one. The written-out notation is what a
+    /// sheet uses for an array of records, and it is unaffected.
+    ///
+    /// One cell is written in brackets and one without, because the notation takes both -
+    /// inherited from the composite value types rather than invented here. And `icon` is
+    /// declared `string?`, so a row leaving its last component empty says that member has no
+    /// value: the packed side and the written-out side have to agree about that, and the
+    /// presence bitmap is where a disagreement would show.
+    ///
+    /// notes/struct-dsl-design.md section 7.3.
+    /// </remarks>
+    private static void WritePacked(string path, bool inOneCell)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Packed"));
+
+        var spec = new TableSpec
+        {
+            Name = "Payout",
+            Comment = "A record a schema file declares, written into one cell.",
+        };
+
+        spec.Field(FieldSpec.Of("index", "int", "primary index"));
+
+        if (inOneCell)
+        {
+            spec.Field(FieldSpec.Of("Reward", "Reward"));
+        }
+        else
+        {
+            spec
+                .Field(FieldSpec.Of("Reward.ItemId", "int"))
+                .Field(FieldSpec.Of("Reward.Count", "int"))
+                .Field(FieldSpec.Of("Reward.Icon", "string?"));
+        }
+
+        spec.Field(FieldSpec.Of("Grade", "enum", "an enum the schema file declares", "Element"));
+
+        if (inOneCell)
+        {
+            spec
+                .Row("1", "10,1,icon_a", "Fire")
+                .Row("2", "(20,3,)", "Ice")
+                .Row("3", "20,3,", "Ice");
+        }
+        else
+        {
+            spec
+                .Row("1", "10", "1", "icon_a", "Fire")
+                .Row("2", "20", "3", "", "Ice")
+                .Row("3", "20", "3", "", "Ice");
+        }
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
     private static void WriteNested(string path)
     {
         var workbook = new XSSFWorkbook();
@@ -3136,6 +3293,7 @@ internal static class Program
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
+
         while (dir != null
             && !Directory.Exists(Path.Combine(dir.FullName, ".git"))
             && !File.Exists(Path.Combine(dir.FullName, ".git")))

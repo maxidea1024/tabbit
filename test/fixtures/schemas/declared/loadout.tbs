@@ -1,0 +1,28 @@
+// The declarations the `declared` fixture's sheet leaves its type cells empty for.
+//
+// The point of the pair is that `declared-expanded` writes the same table with every
+// member's type in its own cell, and the two produce the same file. So nothing here may
+// say anything about a value that the other workbook does not also say.
+//
+// The bracketed keys are the exception, and deliberately so: a bound and a role are
+// checked and acted on, and neither reaches the wire. The pair passing with them written
+// on one side only is what says that.
+
+/// One thing a row hands out.
+struct Reward
+    /// Which item, as that table's key.
+    field itemId int
+    /// How many of it.
+    field count int (min=1, max=9999)
+    /// Shown beside the count. Blank where there is nothing to show.
+    field icon string? (asset=icon)
+
+/// What a reward is made of.
+///
+/// Declared here rather than in a sheet, so the type cell that names it is reading a
+/// declaration this run read from a file.
+enum Element
+    /// Burns.
+    value Fire = 1
+    /// Freezes.
+    value Ice = 2

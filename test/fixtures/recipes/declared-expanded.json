@@ -1,0 +1,41 @@
+{
+  // The same table as `declared`, with every member's type written in its own cell.
+  //
+  // The control half of the pair. It reads the same schema file - the enum `Element` is
+  // declared there and this sheet names it - but its record group names no struct, so the
+  // binding pass does not touch it and these columns are typed the way they always were.
+  //
+  // Everything else about the two recipes is identical on purpose. A difference here would
+  // be a difference the gate would report as a difference in the notation.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/declared" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/declared-expanded" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/declared-expanded/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/declared-expanded/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/declared-expanded/csharp",
+      "Namespace": "Tabbit.Fixtures.DeclaredExpanded",
+      "AccessorName": "DeclaredExpandedAccessor"
+    }
+  ]
+}
