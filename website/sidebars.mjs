@@ -151,6 +151,7 @@ const sidebars = {
           type: 'category',
           label: '아직 하지 않은 것',
           items: [
+            'spec/constant-set-removal',
             'spec/message-ids',
             'spec/cli-help',
             'spec/export-formats',
