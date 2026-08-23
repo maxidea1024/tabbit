@@ -97,16 +97,6 @@ internal static class SchemaMetadata
                 string where = $"{declared.Name}.{member.Name}";
 
                 Check(member.Meta, OnField, where, declared.Name, diagnostics);
-
-                // Applied at conversion time, and this build does not apply it. A default
-                // nobody applies is worse than none: the file says what a blank cell means
-                // and nothing makes it mean that. Stage four of the design.
-                if (member.DefaultValue is not null)
-                {
-                    diagnostics.Error(member.Location, Message.Of(
-                        SchemaMessages.DefaultNotCarried,
-                        ("Where", where), ("Written", member.DefaultValue)));
-                }
             }
         }
 

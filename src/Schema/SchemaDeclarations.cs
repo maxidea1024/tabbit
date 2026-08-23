@@ -194,6 +194,7 @@ public sealed class SchemaDeclarations
         // Once per declaration rather than once per column that uses it: a struct three
         // tables share has one misspelt key, not three.
         SchemaMetadata.Check(this, diagnostics);
+        SchemaDefaults.Check(this, diagnostics);
     }
 
     /// <summary>

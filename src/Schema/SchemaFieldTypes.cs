@@ -38,6 +38,7 @@ internal static class SchemaFieldTypes
         SchemaField member,
         SchemaDeclarations declarations,
         bool waiting,
+        Diagnostics diagnostics,
         out string wanted)
     {
         wanted = member.Type.ToString();
@@ -64,7 +65,11 @@ internal static class SchemaFieldTypes
         // depends on the target, and the target may not have been read yet. Everything else
         // is read now, because the type is settled and the text is what a cell still holds.
         if (resolved.RefTables is null)
-            Convert(context, table, field);
+        {
+            Convert(
+                context, table, field,
+                SchemaDefaults.Read(context, member, resolved, diagnostics));
+        }
 
         return true;
     }
@@ -77,6 +82,14 @@ internal static class SchemaFieldTypes
     /// </param>
     public readonly record struct Resolved(
         Models.ValueType Type, string TypeName, List<string>? RefTables);
+
+    /// <summary>
+    /// The same as <see cref="Resolve(CookingContext, SchemaTypeRef, SchemaDeclarations, out Resolved)"/>,
+    /// for a caller that has a member rather than a type and wants null on failure.
+    /// </summary>
+    public static Resolved? ResolvedOf(
+        CookingContext context, SchemaField member, SchemaDeclarations declarations)
+        => Resolve(context, member.Type, declarations, out var resolved) ? resolved : null;
 
     /// <summary>
     /// What a written member type is in the terms a column carries, or false when a single
@@ -162,8 +175,14 @@ internal static class SchemaFieldTypes
     /// A cell that is not text was parsed by the layout already, which happens where a column
     /// wrote its own type and only its description was left to the declaration. Left as it
     /// is - it is already the value it should be.
+    ///
+    /// **A column whose member declares a default must leave its type cell empty.** Written
+    /// out, the layout reads the cell while the sheet is being parsed and refuses a blank
+    /// before anything here runs; left empty, the cell arrives as text and this is where a
+    /// blank becomes what the declaration says it means.
     /// </remarks>
-    private static void Convert(CookingContext context, Table table, Field field)
+    private static void Convert(
+        CookingContext context, Table table, Field field, object? fallback)
     {
         foreach (var rowSet in table.RowSets)
         foreach (var row in rowSet.Rows)
@@ -179,6 +198,17 @@ internal static class SchemaFieldTypes
             var declaredEnum = field.Type is Models.ValueType.Enum or Models.ValueType.EnumArray
                 ? context.Model.FindEnum(field.TypeName)
                 : null;
+
+            // **Here rather than in a pass of its own, because here is where the written
+            // text still exists.** A column left for a declaration to type is carried as a
+            // string until now, so its blank cell already reads as an empty string that a
+            // row wrote - and nothing later could tell it from one somebody meant.
+            if (fallback is not null && written.Length == 0)
+            {
+                cell.Value = fallback;
+                cell.HasValue = true;
+                continue;
+            }
 
             cell.Value = context.ParseValue(
                 field.Type, declaredEnum, written, cell.RawCell?.Location,

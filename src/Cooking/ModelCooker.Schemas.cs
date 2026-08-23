@@ -143,7 +143,8 @@ public partial class ModelCooker
         bool waiting = context.IsDeferredTypeName(field.TypeName);
 
         if (!SchemaFieldTypes.Apply(
-                context, table, field, member, declarations, waiting, out string wanted))
+                context, table, field, member, declarations, waiting, diagnostics,
+                out string wanted))
         {
             diagnostics.Error(waiting ? member.Type.Location : field.TypeLocation, Message.Of(
                 waiting ? SchemaMessages.MemberTypeUnusable : SchemaMessages.ColumnTypeDisagrees,
@@ -155,6 +156,36 @@ public partial class ModelCooker
                 ("Written", field.TypeName)));
 
             return;
+        }
+
+        // Two shapes a default cannot survive, reported where the column is.
+        //
+        // An index, because every row leaving it blank would take that same key. And a
+        // written-out type cell, because the layout reads such a column while the sheet is
+        // being parsed - which settles what the blank means before the declaration is ever
+        // consulted. notes/struct-dsl-design.md section 11 stage 4.
+        if (member.DefaultValue is not null)
+        {
+            if (field.Indexing)
+            {
+                diagnostics.Error(field.NameLocation, Message.Of(
+                    SchemaMessages.DefaultOnAnIndex,
+                    ("Table", table.Name),
+                    ("Column", field.RawName),
+                    ("Struct", declared.Name),
+                    ("Member", member.Name),
+                    ("Written", member.DefaultValue)));
+            }
+            else if (!waiting)
+            {
+                diagnostics.Error(field.TypeLocation, Message.Of(
+                    SchemaMessages.DefaultNeedsAnEmptyTypeCell,
+                    ("Table", table.Name),
+                    ("Column", field.RawName),
+                    ("Struct", declared.Name),
+                    ("Member", member.Name),
+                    ("Written", field.TypeName)));
+            }
         }
 
         // What the brackets said, narrowed against whatever the sheet's own rows said about
