@@ -24,7 +24,15 @@ namespace Tabbit.Tests;
 /// </summary>
 public class SweepTests
 {
-    private const string Scenario = "core";
+    /// <summary>
+    /// This scenario is these tests' own, and it has to be.
+    /// </summary>
+    /// <remarks>
+    /// They plant a file in the output tree and convert a second time over it. A tree that
+    /// is being changed cannot also be the tree twenty other tests read, so this is the
+    /// `core` workbook under a recipe nothing else names.
+    /// </remarks>
+    private const string Scenario = "sweep";
 
     private static string TypescriptDir => Path.Combine(RepoLayout.OutputDir(Scenario), "typescript");
 

@@ -67,7 +67,7 @@ public class GeneratedFileEndingTests
 
         foreach (var scenario in Scenarios)
         {
-            var conversion = TabbitRunner.ConvertFresh(scenario);
+            var conversion = TabbitRunner.Convert(scenario);
 
             Assert.True(conversion.Succeeded,
                 $"Conversion of `{scenario}` failed.{Environment.NewLine}{conversion.Describe()}");
@@ -124,7 +124,7 @@ public class GeneratedFileEndingTests
 
         foreach (var scenario in Scenarios)
         {
-            var conversion = TabbitRunner.ConvertFresh(scenario);
+            var conversion = TabbitRunner.Convert(scenario);
 
             Assert.True(conversion.Succeeded,
                 $"Conversion of `{scenario}` failed.{Environment.NewLine}{conversion.Describe()}");

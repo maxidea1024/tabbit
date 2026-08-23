@@ -2,20 +2,21 @@
   "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
 
   "//": [
-    "Off, and what keeps it off is narrower than it used to be.",
+    "Off, and three attempts at turning it on are what keeps it off.",
     "",
-    "A scenario is converted once per test run now, so the wipe-and-regenerate that classes",
-    "used to do to each other is gone. What is left is three tests that walk an output tree",
-    "and judge every file in it - the golden comparison, the file-ending gate and the",
-    "generated-marker gate. Those convert fresh, because the conformance harness builds Go,",
-    "Rust, Java, Kotlin, Dart and Python inside the directory each was generated into, and a",
-    "walker would take a compiler's working files for output. Fresh means clearing, and in",
-    "parallel that clears a tree another class is compiling in.",
+    "The tests share scenario output trees: one converts and another reads what it wrote.",
+    "That works because nothing runs beside anything else. Turning it on measures 3m20s",
+    "against 13m08s serial, and fails - 52 tests, then 18 once the language harnesses stopped",
+    "building inside the trees they were generated into, then 65 once a test that plants files",
+    "in an output tree got a scenario of its own and two builds stopped sharing a directory.",
     "",
-    "Measured, so the trade is not a guess: serial is 13m21s and every test passes; parallel",
-    "is 3m25s and 52 fail, all of them that race. What would earn the four minutes back is",
-    "moving the in-place builds out of the generated trees - CsToolchain already builds in",
-    "`_cscheck` and only reads what was generated. doc/roadmap.md, 아직 안 함."
+    "The set is different every run, which is what says the remainder is not a list of known",
+    "races. What it would take is every test that shares a tree owning what it writes. The",
+    "updater tests look like a second problem on top of that - they start HTTP servers, so a",
+    "port rather than a directory.",
+    "",
+    "doc/roadmap.md, the not-yet list, carries the numbers so the next attempt starts from",
+    "them rather than from the guess that a few places need fixing."
   ],
   "parallelizeTestCollections": false
 }
