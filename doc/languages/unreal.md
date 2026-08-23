@@ -141,7 +141,7 @@ FTabbitUpdater::Update(
 
 `bEnableExceptions = true`를 넣지 않은 것도 의도입니다 — 넣으면 이 모듈에 의존하는 모든 모듈이 그 비용을 냅니다.
 
-같은 이유로 **조회 함수가 둘입니다** — 인덱싱된 필드마다 `FindBy<Field>`와 `Contains<Field>`만 나오고, 다른 언어들이 내는 `GetBy<Field>OrThrow`는 없습니다. 없으면 안 되는 키는 `nullptr` 검사로 확인하세요. 자세한 것은 [조회 함수](readme.md#레코드-조회--같은-세-함수-모든-언어에서-같은-이름)에 있습니다.
+같은 이유로 **조회 함수가 둘입니다** — 인덱싱된 필드마다 `FindBy<Field>`와 `Contains<Field>`만 나오고, 다른 언어들이 내는 `GetBy<Field>OrThrow`는 없습니다. 없으면 안 되는 키는 `nullptr` 검사로 확인하세요. 자세한 것은 [조회 함수](readme.md#레코드-조회)에 있습니다.
 
 ### 엔진 타입 전용
 
