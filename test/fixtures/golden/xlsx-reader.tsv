@@ -32,6 +32,8 @@ no-value-refused/no-value-refused.xlsx	sheets=1 rows=10 cells=40 chars=384 names
 nullable-elements/nullable-elements.xlsx	sheets=1 rows=13 cells=98 chars=690 names=0 skipped-names=0 hash=701446bf7191da83
 optional-index/optional-index.xlsx	sheets=1 rows=9 cells=17 chars=165 names=0 skipped-names=0 hash=06dc31a0e3c60c01
 optional/optional.xlsx	sheets=1 rows=11 cells=108 chars=704 names=0 skipped-names=0 hash=c5ebd5b58a0ef7b1
+packed-expanded/packed-expanded.xlsx	sheets=1 rows=11 cells=33 chars=227 names=0 skipped-names=0 hash=54b4a50d4407386c
+packed/packed.xlsx	sheets=1 rows=11 cells=23 chars=194 names=0 skipped-names=0 hash=da82931e98da8c2e
 record-ref-trim/record-ref-trim.xlsx	sheets=1 rows=11 cells=54 chars=337 names=0 skipped-names=0 hash=902c6b28955acc89
 record-ref/record-ref.xlsx	sheets=1 rows=10 cells=313 chars=2825 names=0 skipped-names=0 hash=29f82c73a78aa24a
 record-trim/record-trim.xlsx	sheets=1 rows=13 cells=141 chars=743 names=0 skipped-names=0 hash=aa2b9b8c18294d33

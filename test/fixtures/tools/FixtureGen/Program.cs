@@ -49,6 +49,9 @@ internal static class Program
         WriteDeclared(Prepare(outputDir, "declared", "declared.xlsx"), fromSchema: true);
         WriteDeclared(
             Prepare(outputDir, "declared-expanded", "declared-expanded.xlsx"), fromSchema: false);
+        // One record, written into one cell and written as its own columns.
+        WritePacked(Prepare(outputDir, "packed", "packed.xlsx"), inOneCell: true);
+        WritePacked(Prepare(outputDir, "packed-expanded", "packed-expanded.xlsx"), inOneCell: false);
         WriteNestedHole(Prepare(outputDir, "nested-hole", "nested-hole.xlsx"));
         WriteNestedDeep(Prepare(outputDir, "nested-deep", "nested-deep.xlsx"));
         WriteRecordTrim(Prepare(outputDir, "record-trim", "record-trim.xlsx"));
@@ -1006,6 +1009,77 @@ internal static class Program
             .Row("2", "second", "20", "3", "",       "21", "4", "icon_c", "Ice")
             // A run of equal values in every column, which is what the column encodings read.
             .Row("3", "third",  "20", "3", "",       "21", "4", "icon_c", "Ice");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// One record written into a single cell, and the same record written as its columns.
+    /// </summary>
+    /// <remarks>
+    /// **The pair is the gate**, the same one the composite value types are held to: two
+    /// workbooks, one table name, and a file that must come out identical byte for byte.
+    /// `Reward` holding `10,1,icon_a` and `Reward.ItemId` / `Reward.Count` / `Reward.Icon`
+    /// are the same three columns on the wire, because a record has always been one column
+    /// per member.
+    ///
+    /// **The group carries no number, and that is the shape this notation reaches.** A
+    /// numbered pair - `Reward1`, `Reward2` - does not become an array here: deciding that a
+    /// digit means an array is the layout's judgement and it is made after this pass has run,
+    /// so a packed column cannot be one element of one. The written-out notation is what a
+    /// sheet uses for an array of records, and it is unaffected.
+    ///
+    /// One cell is written in brackets and one without, because the notation takes both -
+    /// inherited from the composite value types rather than invented here. And `icon` is
+    /// declared `string?`, so a row leaving its last component empty says that member has no
+    /// value: the packed side and the written-out side have to agree about that, and the
+    /// presence bitmap is where a disagreement would show.
+    ///
+    /// notes/struct-dsl-design.md section 7.3.
+    /// </remarks>
+    private static void WritePacked(string path, bool inOneCell)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Packed"));
+
+        var spec = new TableSpec
+        {
+            Name = "Payout",
+            Comment = "A record a schema file declares, written into one cell.",
+        };
+
+        spec.Field(FieldSpec.Of("index", "int", "primary index"));
+
+        if (inOneCell)
+        {
+            spec.Field(FieldSpec.Of("Reward", "Reward"));
+        }
+        else
+        {
+            spec
+                .Field(FieldSpec.Of("Reward.ItemId", "int"))
+                .Field(FieldSpec.Of("Reward.Count", "int"))
+                .Field(FieldSpec.Of("Reward.Icon", "string?"));
+        }
+
+        spec.Field(FieldSpec.Of("Grade", "enum", "an enum the schema file declares", "Element"));
+
+        if (inOneCell)
+        {
+            spec
+                .Row("1", "10,1,icon_a", "Fire")
+                .Row("2", "(20,3,)", "Ice")
+                .Row("3", "20,3,", "Ice");
+        }
+        else
+        {
+            spec
+                .Row("1", "10", "1", "icon_a", "Fire")
+                .Row("2", "20", "3", "", "Ice")
+                .Row("3", "20", "3", "", "Ice");
+        }
 
         b.Table(1, 1, spec);
 

@@ -31,9 +31,9 @@ internal static class SchemaMetadata
     /// <summary>Keys a struct declaration may carry, and what this build does with them.</summary>
     private static readonly Dictionary<string, MetaKey> OnStruct = new(StringComparer.Ordinal)
     {
-        // The one-cell notation. Read and refused by name until the pass that expands a
-        // composite value type is widened to user-declared structs - section 7.3.
-        ["sep"] = MetaKey.NotCarried,
+        // The one-cell notation, which widens the composite value types' expansion pass to
+        // a declared struct - section 7.3.
+        ["sep"] = MetaKey.Carried,
     };
 
     /// <summary>Keys a member may carry.</summary>

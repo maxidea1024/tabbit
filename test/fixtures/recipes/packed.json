@@ -1,0 +1,38 @@
+{
+  // One record written into a single cell - notation (다) of the design's section 7.1.
+  //
+  // Paired with `packed-expanded`, which writes the same record as its own columns. The two
+  // must produce the same file: what `sep` changes is how a sheet is written, and a record
+  // has always been one column per member on the wire.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/packed" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/packed" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/packed/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/packed/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/packed/csharp",
+      "Namespace": "Tabbit.Fixtures.Packed",
+      "AccessorName": "PackedAccessor"
+    }
+  ]
+}

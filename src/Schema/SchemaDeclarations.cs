@@ -189,6 +189,7 @@ public sealed class SchemaDeclarations
         }
 
         RefuseCycles(diagnostics);
+        RefuseWhatOneCellCannotHold(diagnostics);
 
         // Once per declaration rather than once per column that uses it: a struct three
         // tables share has one misspelt key, not three.
@@ -279,6 +280,52 @@ public sealed class SchemaDeclarations
         diagnostics.Error(type.Location, Message.Of(
             SchemaMessages.TypeUnknown,
             ("Struct", declared.Name), ("Member", member.Name), ("Type", type.Name)));
+    }
+
+    /// <summary>
+    /// Checks the shape of every struct that writes itself into one cell.
+    /// </summary>
+    /// <remarks>
+    /// Once per declaration rather than once per column, because it is a fact about the
+    /// struct: a member that is itself several values has no place in a positional cell
+    /// wherever the struct is used. Section 7.3 of the design, which inherits the
+    /// restriction from the composite value types rather than inventing it.
+    /// </remarks>
+    private void RefuseWhatOneCellCannotHold(Diagnostics diagnostics)
+    {
+        foreach (var declared in _structs.Values)
+        {
+            string? separator = declared.Meta.Value("sep");
+
+            if (separator is null)
+                continue;
+
+            if (separator.Length != 1)
+            {
+                diagnostics.Error(declared.Meta.LocationOf("sep"), Message.Of(
+                    SchemaMessages.SepNotOneCharacter,
+                    ("Struct", declared.Name), ("Written", separator)));
+            }
+
+            foreach (var member in declared.LiveFields)
+            {
+                bool scalar = member.Type.Form == SchemaTypeForm.Named
+                    && !member.Type.IsArray
+                    && FindStruct(member.Type.Name) is null;
+
+                // A reference is one value - the target's key - so it fits a component. What
+                // does not is a member that is itself several: a record, an array, or a
+                // container.
+                if (scalar || (member.Type.Form == SchemaTypeForm.Foreign && !member.Type.IsArray))
+                    continue;
+
+                diagnostics.Error(member.Type.Location, Message.Of(
+                    SchemaMessages.SepMemberNotScalar,
+                    ("Struct", declared.Name),
+                    ("Member", member.Name),
+                    ("Type", member.Type.ToString())));
+            }
+        }
     }
 
     /// <summary>

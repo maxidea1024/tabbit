@@ -70,10 +70,19 @@ internal static class SchemaFieldTypes
     }
 
     /// <summary>What a member's type is, once resolved.</summary>
-    private readonly record struct Resolved(
+    /// <param name="RefTables">
+    /// The tables a reference may point at, or null when the member is not one. A reference
+    /// keeps <see cref="CookingContext.DeferredType"/> until the pass that resolves it runs,
+    /// because which type its key is depends on the target.
+    /// </param>
+    public readonly record struct Resolved(
         Models.ValueType Type, string TypeName, List<string>? RefTables);
 
-    private static bool Resolve(
+    /// <summary>
+    /// What a written member type is in the terms a column carries, or false when a single
+    /// column cannot hold one.
+    /// </summary>
+    public static bool Resolve(
         CookingContext context,
         SchemaTypeRef written,
         SchemaDeclarations declarations,

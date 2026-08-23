@@ -49,6 +49,11 @@ public partial class ModelCooker
                 BindGroup(context, table, group, declarations, claimed, diagnostics);
         }
 
+        // A whole value written into one cell, folded back into the columns it is made of.
+        // After the groups, because a column inside one is already a member's own column and
+        // there is nothing to unpack. notes/struct-dsl-design.md section 7.3.
+        ExpandSepColumns(context, model, declarations, diagnostics);
+
         RefuseColumnsNobodyTyped(context, model, claimed, diagnostics);
     }
 

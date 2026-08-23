@@ -1,0 +1,37 @@
+{
+  // The control half of the `packed` pair: the same record written as its own columns.
+  //
+  // It reads the same schema file, which is what keeps the pair honest - the declarations
+  // are identical and only the workbook differs.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/packed" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/packed-expanded" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/packed-expanded/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/packed-expanded/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/packed-expanded/csharp",
+      "Namespace": "Tabbit.Fixtures.Packed",
+      "AccessorName": "PackedAccessor"
+    }
+  ]
+}

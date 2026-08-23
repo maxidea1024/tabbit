@@ -1,0 +1,22 @@
+// The declarations the `packed` pair shares.
+//
+// `sep` is the only thing that decides which of the two workbooks is legal: the packed one
+// writes a whole reward into one cell and the other writes its members as columns, and both
+// read this file. Take `sep` off and the packed workbook stops converting; leave it on and
+// both do.
+
+/// One thing a row hands out.
+struct Reward (sep=",")
+    /// Which item, as that table's key.
+    field itemId int (min=1)
+    /// How many of it.
+    field count int (min=1, max=9999)
+    /// Shown beside the count. Blank where there is nothing to show.
+    field icon string? (asset=icon)
+
+/// What a reward is made of.
+enum Element
+    /// Burns.
+    value Fire = 1
+    /// Freezes.
+    value Ice = 2

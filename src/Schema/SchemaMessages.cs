@@ -190,4 +190,24 @@ public static class SchemaMessages
 
     /// <summary>A sheet's whitelist and a declaration's with nothing in common.</summary>
     public const string AllowedIntersectionEmpty = "schema.allowed-intersection-empty";
+
+    // ------------------------------------------------ a whole value written in one cell
+
+    /// <summary>`sep` given something other than a single character.</summary>
+    public const string SepNotOneCharacter = "schema.sep-not-one-character";
+
+    /// <summary>A member of a `sep` struct that one component cannot hold.</summary>
+    public const string SepMemberNotScalar = "schema.sep-member-not-scalar";
+
+    /// <summary>A `sep` column used as an index.</summary>
+    public const string SepColumnIsAnIndex = "schema.sep-column-is-an-index";
+
+    /// <summary>A `sep` column in a table that writes its wire tags out.</summary>
+    public const string SepTableWritesTags = "schema.sep-table-writes-tags";
+
+    /// <summary>A column constraint on a `sep` column.</summary>
+    public const string SepColumnHasConstraints = "schema.sep-column-has-constraints";
+
+    /// <summary>A cell with the wrong number of components in it.</summary>
+    public const string SepComponentCount = "schema.sep-component-count";
 }
