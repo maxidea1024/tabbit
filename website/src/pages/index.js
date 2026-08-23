@@ -54,7 +54,7 @@ export default function Home() {
   return (
     <Layout
       title="Game Data Authoring & Build Tool"
-      description="게임의 정적 데이터를 짜고, 검증하고, 런타임 바이너리로 빌드하는 도구입니다."
+      description="게임의 정적 데이터를 작성하고, 검증하고, 런타임 바이너리로 빌드하는 도구입니다."
     >
       <div className={styles.page}>
         <header className={styles.hero}>

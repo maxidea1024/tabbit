@@ -15,7 +15,7 @@ const pink = '#fc8490'
 const amber = '#fcc024'
 const green = '#3ddc97'
 
-// WORK 좌표에서 눈으로 잰 앞발. y1이 시트에 가려지는 선입니다.
+// WORK 좌표에서 눈으로 측정한 앞발. y1이 시트에 가려지는 선입니다.
 const PAWS = [
   { x: 174, w: 56, y0: 352, y1: 391 },
   { x: 285, w: 44, y0: 352, y1: 391 },
