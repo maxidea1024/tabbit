@@ -93,7 +93,7 @@ internal static class ConformanceHarness
             "build",
             Path.Combine(HarnessDir("csharp"), "conformance-csharp.csproj"),
             "--nologo",
-            $"-p:GeneratedDir={Path.Combine(RepoLayout.OutputDir(scenario), "csharp")}",
+            $"-p:GeneratedDir={Generated(scenario, "csharp")}",
             "-o", workDir);
 
         if (!build.Succeeded)
@@ -126,7 +126,7 @@ internal static class ConformanceHarness
     public static ToolResult RunUnreal(string scenario, string dataScenario = null)
         => UnrealToolchain.BuildAndRunOffEngine(
             WorkDir(scenario, "unreal"),
-            moduleDir: Path.Combine(RepoLayout.OutputDir(scenario), "unreal", "Conformance"),
+            moduleDir: Path.Combine(Generated(scenario, "unreal"), "Conformance"),
             accessorName: "ConformanceData",
             harness: Path.Combine(HarnessDir("unreal"), "main.cpp"),
             dataDir: BinaryDir(dataScenario ?? scenario));
@@ -137,7 +137,7 @@ internal static class ConformanceHarness
 
         var build = CppToolchain.CompileHarness(
             workDir,
-            includeDir: Path.Combine(RepoLayout.OutputDir(scenario), "cpp"),
+            includeDir: Generated(scenario, "cpp"),
             source: Path.Combine(HarnessDir("cpp"), "main.cpp"),
             accessorName: "ConformanceAccessor",
             exeName: "conformance-cpp");
@@ -154,7 +154,7 @@ internal static class ConformanceHarness
         // The harness is copied in beside the generated modules rather than importing
         // across directories, because its import paths are the ones a consumer would
         // write and those are relative to the generated output.
-        string generatedDir = Path.Combine(RepoLayout.OutputDir(scenario), "typescript");
+        string generatedDir = Generated(scenario, "typescript");
         string entry = Path.Combine(generatedDir, "conformance-main.ts");
 
         File.Copy(Path.Combine(HarnessDir("ts"), "main.ts"), entry, overwrite: true);
@@ -183,7 +183,7 @@ internal static class ConformanceHarness
         // The harness goes inside the generated module, as a package of its own, because
         // Go has no relative imports and the generated code is only importable from
         // within the module its go.mod declares.
-        string moduleDir = Path.Combine(RepoLayout.OutputDir(scenario), "go");
+        string moduleDir = Generated(scenario, "go");
         string harnessDir = Path.Combine(moduleDir, "harness");
 
         Directory.CreateDirectory(harnessDir);
@@ -214,7 +214,7 @@ internal static class ConformanceHarness
         // As a binary inside the generated crate, for the same reason the Go harness is
         // a package inside the generated module: that is the only place the generated
         // types are importable from.
-        string crateDir = Path.Combine(RepoLayout.OutputDir(scenario), "rust");
+        string crateDir = Generated(scenario, "rust");
         string binDir = Path.Combine(crateDir, "src", "bin");
 
         Directory.CreateDirectory(binDir);
@@ -251,7 +251,7 @@ internal static class ConformanceHarness
         // Beside the generated package rather than inside it, so the package's own
         // directory holds only generated files and the import reads as a consumer's
         // would.
-        string root = Path.Combine(RepoLayout.OutputDir(scenario), "python");
+        string root = Generated(scenario, "python");
         string harness = Path.Combine(root, "harness.py");
 
         File.Copy(Path.Combine(HarnessDir("python"), "harness.py"), harness, overwrite: true);
@@ -277,7 +277,7 @@ internal static class ConformanceHarness
     {
         // From the generated output directory, so `require("tables")` resolves through
         // the default package.path; the harness file itself stays where it is.
-        string root = Path.Combine(RepoLayout.OutputDir(scenario), "lua");
+        string root = Generated(scenario, "lua");
 
         return Execute(LuaToolchain.HostExecutable, root, environment,
                        Path.Combine(HarnessDir("lua"), "harness.lua"),
@@ -299,7 +299,7 @@ internal static class ConformanceHarness
 
     public static ToolResult RunLuaJit(string scenario, string dataScenario = null)
     {
-        string root = Path.Combine(RepoLayout.OutputDir(scenario), "lua");
+        string root = Generated(scenario, "lua");
 
         var environment = new Dictionary<string, string> { [MacKeyVariable] = "" };
 
@@ -328,7 +328,7 @@ internal static class ConformanceHarness
     {
         // Beside the generated packages, because a Java source tree is rooted at the
         // package directories and the harness is in the default package.
-        string root = Path.Combine(RepoLayout.OutputDir(scenario), "java");
+        string root = Generated(scenario, "java");
         string classes = Path.Combine(root, "classes");
 
         File.Copy(Path.Combine(HarnessDir("java"), "Harness.java"),
@@ -371,7 +371,7 @@ internal static class ConformanceHarness
     {
         // Beside the generated package, in the default package, for the same reason the
         // Java harness is: a JVM source tree is rooted at the package directories.
-        string root = Path.Combine(RepoLayout.OutputDir(scenario), "kotlin");
+        string root = Generated(scenario, "kotlin");
         string jar = Path.Combine(root, "harness.jar");
 
         File.Copy(Path.Combine(HarnessDir("kotlin"), "Harness.kt"),
@@ -433,7 +433,7 @@ internal static class ConformanceHarness
         // Into the generated directory rather than beside it: the manifest declares one
         // target over the files as they are, which is the layout the generator writes and
         // the one a consumer drops into a project.
-        string root = Path.Combine(RepoLayout.OutputDir(scenario), "swift");
+        string root = Generated(scenario, "swift");
 
         // `main.swift` and not `harness.swift`: top-level statements are only allowed in a
         // file of that name, and every other harness in this corpus is top-level code.
@@ -490,7 +490,7 @@ internal static class ConformanceHarness
     /// </remarks>
     public static ToolResult CompileSwift(string scenario)
     {
-        string root = Path.Combine(RepoLayout.OutputDir(scenario), "swift");
+        string root = Generated(scenario, "swift");
 
         var sources = Directory
             .EnumerateFiles(root, "*.swift", SearchOption.AllDirectories)
@@ -837,7 +837,7 @@ internal static class ConformanceHarness
     {
         // Beside the generated file, because `require_relative` resolves against the
         // requiring file and that is the import a consumer would write.
-        string root = Path.Combine(RepoLayout.OutputDir(scenario), "ruby");
+        string root = Generated(scenario, "ruby");
 
         File.Copy(Path.Combine(HarnessDir("ruby"), "harness.rb"),
                   Path.Combine(root, "harness.rb"), overwrite: true);
@@ -1076,7 +1076,7 @@ internal static class ConformanceHarness
     public static ToolResult RunDart(string scenario, string dataScenario = null)
     {
         // Beside the generated library, whose import of the reader is relative.
-        string root = Path.Combine(RepoLayout.OutputDir(scenario), "dart");
+        string root = Generated(scenario, "dart");
 
         File.Copy(Path.Combine(HarnessDir("dart"), "harness.dart"),
                   Path.Combine(root, "harness.dart"), overwrite: true);
@@ -1339,8 +1339,67 @@ internal static class ConformanceHarness
         return Execute(DartExecutable, root, "run", "check.dart");
     }
 
+    /// <summary>
+    /// A scenario's generated sources for one language, in a copy nothing else looks at.
+    /// </summary>
+    /// <remarks>
+    /// **Nothing builds inside a generated tree.** Every harness here puts its own file into
+    /// the tree it is about to compile - a `main.go` beside the module, a `harness.rs` in the
+    /// crate - and the tool then leaves its working files there as well: a `go.sum`, a Cargo
+    /// target directory, a Dart package config. Three tests walk a generated tree and judge
+    /// every file in it, and to them all of that is output nothing generated.
+    ///
+    /// Making the copy is what lets those three read a shared conversion instead of clearing
+    /// the tree and converting again - and clearing is the one thing that cannot be done
+    /// while another class is compiling in there, which is what kept the collections serial.
+    ///
+    /// Copied once per language per scenario per test run, so whatever build caching
+    /// accumulates inside survives from one test to the next exactly as it did when this was
+    /// the tree itself.
+    /// </remarks>
     private static string Generated(string scenario, string language)
-        => Path.Combine(RepoLayout.OutputDir(scenario), language);
+        => StagedTrees.GetOrAdd(
+            (scenario, language),
+            key => new Lazy<string>(
+                () => Stage(key.Scenario, key.Language),
+                System.Threading.LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<
+        (string Scenario, string Language), Lazy<string>> StagedTrees = new();
+
+    /// <summary>
+    /// Copies one language's generated sources out of the tree they were written into.
+    /// </summary>
+    /// <remarks>
+    /// Under a scenario of its own - `_lang` - because the output directories are keyed by
+    /// scenario and a name no recipe uses cannot collide with one. `_cscheck` is the same
+    /// device for the C# compile check.
+    /// </remarks>
+    private static string Stage(string scenario, string language)
+    {
+        string source = Path.Combine(RepoLayout.OutputDir(scenario), language);
+        string staged = Path.Combine(RepoLayout.OutputDir("_lang"), scenario, language);
+
+        if (Directory.Exists(staged))
+            Directory.Delete(staged, recursive: true);
+
+        Directory.CreateDirectory(staged);
+
+        // A language the recipe did not ask for. The caller is about to fail on the file it
+        // wanted, which says more than a message about an empty directory would.
+        if (!Directory.Exists(source))
+            return staged;
+
+        foreach (string file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+        {
+            string target = Path.Combine(staged, Path.GetRelativePath(source, file));
+
+            Directory.CreateDirectory(Path.GetDirectoryName(target));
+            File.Copy(file, target, overwrite: true);
+        }
+
+        return staged;
+    }
 
     private static string HarnessDir(params string[] parts)
         => Path.GetFullPath(Path.Combine(
@@ -1556,7 +1615,38 @@ internal static class ConformanceHarness
     private static ToolResult Execute(string fileName, string workingDirectory, params string[] args)
         => Execute(fileName, workingDirectory, null, args);
 
+    /// <summary>
+    /// Runs a tool, and never two at once in one directory.
+    /// </summary>
+    /// <remarks>
+    /// Two classes ask for the same language of the same scenario - the corpus and the
+    /// tampered-corpus tests both run every reader against `conformance` - and they get the
+    /// same staged tree, because staging it twice would build it twice. Two builds in one
+    /// directory then write over each other's object files.
+    ///
+    /// A lock per directory rather than one for everything: what must not overlap is two
+    /// tools in one place, and Go compiling `conformance` has nothing to do with Rust
+    /// compiling `nested`.
+    /// </remarks>
     private static ToolResult Execute(
+        string fileName,
+        string workingDirectory,
+        IReadOnlyDictionary<string, string> environment,
+        params string[] args)
+    {
+        lock (WorkingDirectoryLocks.GetOrAdd(
+                  Path.GetFullPath(workingDirectory).TrimEnd(Path.DirectorySeparatorChar)
+                      .ToLowerInvariant(),
+                  _ => new object()))
+        {
+            return ExecuteHere(fileName, workingDirectory, environment, args);
+        }
+    }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, object>
+        WorkingDirectoryLocks = new();
+
+    private static ToolResult ExecuteHere(
         string fileName,
         string workingDirectory,
         IReadOnlyDictionary<string, string> environment,

@@ -121,8 +121,10 @@ internal static class TabbitRunner
     /// away with it, because such a run leaves a different tree behind than the one the
     /// shared answer described.
     ///
-    /// <see cref="ConvertFresh"/> is for the caller that needs the output tree itself to be
-    /// untouched, rather than just the result.
+    /// Nothing needs a conversion of its own to get a clean tree any more. The harnesses
+    /// that used to build inside a generated tree build in a copy of it, so a tree holds
+    /// what was generated into it and nothing else - which is what the tests that walk one
+    /// were clearing it for.
     /// </remarks>
     public static RunResult Convert(string scenario,
                                     IReadOnlyDictionary<string, string> environment = null,
@@ -144,34 +146,6 @@ internal static class TabbitRunner
         Shared.TryRemove(scenario, out _);
 
         return particular;
-    }
-
-    /// <summary>
-    /// Converts a scenario with its output tree rebuilt from nothing, whatever this run has
-    /// already done.
-    /// </summary>
-    /// <remarks>
-    /// **For a test that walks the output tree and judges every file in it**, rather than
-    /// opening the ones it named. The conformance harness builds Go, Rust, Java, Kotlin,
-    /// Dart and Python **inside** the directory each was generated into, so a tree that has
-    /// been compiled in holds `go.sum`, a Dart package config, a Cargo target directory -
-    /// files a walker will find and take for output. Converting fresh is what says "nothing
-    /// has built in here since this was written".
-    ///
-    /// Three tests need it, and they are the three that walk: the golden comparison, the
-    /// file-ending gate and the generated-marker gate. **A new test that walks a tree needs
-    /// this too** - the shared conversion is for a test that reads the files it asked for.
-    ///
-    /// The answer replaces the shared one rather than clearing it: the tree it just wrote is
-    /// the same tree, so a later caller is not made to convert a third time.
-    /// </remarks>
-    public static RunResult ConvertFresh(string scenario)
-    {
-        var result = ConvertOnce(scenario, null, Array.Empty<string>());
-
-        Shared[scenario] = new Lazy<RunResult>(result);
-
-        return result;
     }
 
     /// <summary>One conversion per scenario per test run, unless somebody asks otherwise.</summary>

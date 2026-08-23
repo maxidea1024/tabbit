@@ -37,7 +37,7 @@ public class GeneratedFileMarkerTests
     [Fact]
     public void Every_emitted_source_file_says_that_Tabbit_wrote_it()
     {
-        var result = TabbitRunner.ConvertFresh("core");
+        var result = TabbitRunner.Convert("core");
         Assert.True(result.Succeeded, $"Conversion failed.{Environment.NewLine}{result.Describe()}");
 
         var unmarked = new List<string>();

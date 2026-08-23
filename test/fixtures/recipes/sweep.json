@@ -1,0 +1,78 @@
+{
+  // The `core` workbook again, under a name the sweep tests own.
+  //
+  // Those tests plant a file in the output and convert a second time over it, which is the
+  // only way to see a sweep at all - and which makes the tree theirs to change. Sharing
+  // `core` meant every other test reading that tree was reading whatever they had left in
+  // it, which is a race the moment classes run beside each other.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/core",
+
+        // Text1/Text2 fold into one array here, which is what this fixture
+        // covers. Off unless asked for, because a number in a name does not say
+        // whether it means an array.
+        "FoldSerialFields": true
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/sweep/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/sweep/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/sweep/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/sweep/cpp",
+      "Namespace": "tabbit_fixtures::core",
+      "AccessorName": "SweepAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/sweep/csharp",
+
+      // On here so the regression suite compiles it - including the Unity branches, which
+      // reach UnityWebRequest and are the ones no plain build ever sees.
+      "WriteUpdater": true,
+      "Namespace": "Tabbit.Fixtures.Sweep",
+      "AccessorName": "SweepAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/sweep/typescript",
+
+      // On here so the updater is type-checked and compiled by the TypeScript gates.
+      "WriteUpdater": true
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/sweep/html"
+    },
+
+    // The summary describes the whole model rather than producing anything a build
+    // consumes, so it is the one target that reads the unnarrowed model.
+    {
+      "Type": "summary",
+      "Path": "test/fixtures/output/sweep/summary",
+      "TargetSide": "cs"
+    }
+  ]
+}
