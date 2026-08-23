@@ -138,4 +138,27 @@ public static class SchemaMessages
 
     /// <summary>An enum entry whose number will not fit what the data carries.</summary>
     public const string EnumNumberOutOfRange = "schema.enum-number-out-of-range";
+
+    // ------------------------------------------------- binding a group to a declaration
+
+    /// <summary>Two columns of one group naming a struct.</summary>
+    public const string GroupTypedTwice = "schema.group-typed-twice";
+
+    /// <summary>A column of a typed group that the struct has no member for.</summary>
+    public const string ColumnNotAMember = "schema.column-not-a-member";
+
+    /// <summary>A column that wrote a type the declaration disagrees with.</summary>
+    public const string ColumnTypeDisagrees = "schema.column-type-disagrees";
+
+    /// <summary>A member whose type cannot be what a single column holds.</summary>
+    public const string MemberTypeUnusable = "schema.member-type-unusable";
+
+    /// <summary>A member of a typed group that the sheet gave no column.</summary>
+    public const string MemberHasNoColumn = "schema.member-has-no-column";
+
+    /// <summary>A column left untyped that no group claimed.</summary>
+    public const string ColumnHasNoType = "schema.column-has-no-type";
+
+    /// <summary>A struct named on a column that is not a group.</summary>
+    public const string ColumnTypedWithAStruct = "schema.column-typed-with-a-struct";
 }

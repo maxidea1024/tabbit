@@ -25,8 +25,15 @@ namespace Tabbit.Schema;
 /// </remarks>
 public sealed class SchemaDeclarations
 {
-    private readonly Dictionary<string, SchemaStruct> _structs = new(System.StringComparer.Ordinal);
-    private readonly Dictionary<string, SchemaEnum> _enums = new(System.StringComparer.Ordinal);
+    // Case-insensitive, and that is not a convenience. A sheet's type cell reaches here
+    // through a layout, and one of them lowers the cell before anything looks at it - so
+    // `CEquip` arrives as `cequip` and an exact lookup would miss the struct it names. Two
+    // declarations differing only in case are refused below, so nothing is ambiguous.
+    private readonly Dictionary<string, SchemaStruct> _structs =
+        new(System.StringComparer.OrdinalIgnoreCase);
+
+    private readonly Dictionary<string, SchemaEnum> _enums =
+        new(System.StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Every struct, by the name generated code will spell it with.</summary>
     public IReadOnlyDictionary<string, SchemaStruct> Structs => _structs;
@@ -36,6 +43,15 @@ public sealed class SchemaDeclarations
 
     /// <summary>Whether the recipe read any declarations at all.</summary>
     public bool IsEmpty => _structs.Count == 0 && _enums.Count == 0;
+
+    /// <summary>The struct a type cell names, or null when it names something else.</summary>
+    public SchemaStruct? FindStruct(string? written)
+        => written is { Length: > 0 } && _structs.TryGetValue(written, out var found) ? found : null;
+
+    /// <summary>The enum a type cell names, or null when it names something else.</summary>
+    public SchemaEnum? FindEnum(string? written)
+        => written is { Length: > 0 } && _enums.TryGetValue(written, out var found) ? found : null;
+
 
     /// <summary>
     /// Parses every file and gathers what they declare, reporting a name declared twice.
@@ -49,7 +65,7 @@ public sealed class SchemaDeclarations
         IEnumerable<RawSchemaFile> files, Diagnostics diagnostics)
     {
         var gathered = new SchemaDeclarations();
-        var taken = new Dictionary<string, Location>(System.StringComparer.Ordinal);
+        var taken = new Dictionary<string, Location>(System.StringComparer.OrdinalIgnoreCase);
 
         foreach (var raw in files)
         {

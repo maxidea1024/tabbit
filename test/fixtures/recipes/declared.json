@@ -1,0 +1,45 @@
+{
+  // A record group whose members a schema file declares - notation (나) of the STRUCT DSL
+  // design, section 7.2.
+  //
+  // The pair with `declared-expanded` is the gate: the same table written both ways must
+  // produce the same file, byte for byte. So this recipe and that one differ only in which
+  // workbook they read.
+  //
+  // Binary and named JSON. The first is the claim; the second is where a difference is
+  // readable, since two `.tcb` files that differ say so in an offset.
+  //
+  // C# as well, and deliberately with no golden tree: what it is here for is the doc
+  // comments, which are the one thing a declaration supplies that the wire does not carry.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/declared" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/declared" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/declared/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/declared/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/declared/csharp",
+      "Namespace": "Tabbit.Fixtures.Declared",
+      "AccessorName": "DeclaredAccessor"
+    }
+  ]
+}

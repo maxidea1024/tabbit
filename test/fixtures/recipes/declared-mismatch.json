@@ -1,0 +1,38 @@
+{
+  // The `declared` workbook against declarations that disagree with it.
+  //
+  // A run that must fail, and must fail three times: a column typed against a member
+  // declared as something else, a column no member answers for, and a member no column
+  // does. What is being checked is that all three are reported rather than the first.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/declared-mismatch" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/declared" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/declared-mismatch/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/declared-mismatch/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/declared-mismatch/csharp",
+      "Namespace": "Tabbit.Fixtures.DeclaredMismatch",
+      "AccessorName": "DeclaredMismatchAccessor"
+    }
+  ]
+}

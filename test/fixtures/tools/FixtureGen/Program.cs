@@ -44,6 +44,11 @@ internal static class Program
         WriteStrictValues(Prepare(outputDir, "strict-values", "strict-values.xlsx"));
         WriteDoubleStar(Prepare(outputDir, "double-star", "double-star.xlsx"));
         WriteNested(Prepare(outputDir, "nested", "nested.xlsx"));
+        // The same table twice: once leaving its member types to a schema file and once
+        // writing every one of them in its own cell.
+        WriteDeclared(Prepare(outputDir, "declared", "declared.xlsx"), fromSchema: true);
+        WriteDeclared(
+            Prepare(outputDir, "declared-expanded", "declared-expanded.xlsx"), fromSchema: false);
         WriteNestedHole(Prepare(outputDir, "nested-hole", "nested-hole.xlsx"));
         WriteNestedDeep(Prepare(outputDir, "nested-deep", "nested-deep.xlsx"));
         WriteRecordTrim(Prepare(outputDir, "record-trim", "record-trim.xlsx"));
@@ -821,6 +826,84 @@ internal static class Program
     ///
     /// spec/nested-fields.md has the notation.
     /// </remarks>
+    /// <summary>
+    /// A record group typed by a schema file, and the same table typed by its own cells.
+    /// </summary>
+    /// <remarks>
+    /// **The pair is the gate.** Everything about the notation rests on one claim - that a
+    /// group whose type cell names a struct arrives as the columns a sheet could have typed
+    /// by hand - and two workbooks holding the same table under the same name is how that
+    /// claim is checked rather than asserted.
+    ///
+    /// So the two sides must differ in the header and nowhere else. Same table name, same
+    /// column names, same rows.
+    ///
+    /// The `fromSchema` side leaves one member typed anyway - `Count`, at both its elements -
+    /// because a sheet part-way through moving to the notation looks exactly like that, and
+    /// what happens to such a column is checked against the declaration rather than
+    /// overwritten.
+    ///
+    /// `Grade` names an enum the schema file declares, through the type row's ordinary
+    /// `enum` plus a detail cell. That is the other half of what a declaration file is for:
+    /// a type cell reading a declaration this run read from a file rather than from a sheet.
+    ///
+    /// notes/struct-dsl-design.md section 7.2.
+    /// </remarks>
+    private static void WriteDeclared(string path, bool fromSchema)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Declared"));
+
+        var spec = new TableSpec
+        {
+            Name = "Loadout",
+            Comment = "A record group whose members a schema file declares.",
+        };
+
+        // Empty where the declaration answers, and the declaration's own description with it:
+        // what the sheet leaves out is exactly what section 7.2 says it may.
+        string Typed(string written) => fromSchema ? "" : written;
+        string Said(string written) => fromSchema ? "" : written;
+
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "plain column, outside the group"))
+
+            // The group's first column names the struct. Exactly one column of a group may.
+            .Field(FieldSpec.Of(
+                "Slot1.ItemId",
+                fromSchema ? "Reward" : "int",
+                Said("Which item, as that table's key.")))
+
+            // Typed by the sheet on both sides, so the agreement check runs on one of them.
+            .Field(FieldSpec.Of("Slot1.Count", "int", Said("How many of it.")))
+            .Field(FieldSpec.Of(
+                "Slot1.Icon", Typed("string?"),
+                Said("Shown beside the count. Blank where there is nothing to show.")))
+
+            .Field(FieldSpec.Of("Slot2.ItemId", Typed("int"), Said("Which item, as that table's key.")))
+
+            // Typed at both elements, not one. A member is one column in the file and states
+            // one type, so the layout already refuses a group that types an element and not
+            // its sibling - a sheet moving to the notation moves a member at a time.
+            .Field(FieldSpec.Of("Slot2.Count", "int", Said("How many of it.")))
+            .Field(FieldSpec.Of(
+                "Slot2.Icon", Typed("string?"),
+                Said("Shown beside the count. Blank where there is nothing to show.")))
+
+            .Field(FieldSpec.Of("Grade", "enum", "an enum the schema file declares", "Element"));
+
+        spec
+            .Row("1", "first",  "10", "1", "icon_a", "11", "2", "icon_b", "Fire")
+            .Row("2", "second", "20", "3", "",       "21", "4", "icon_c", "Ice")
+            // A run of equal values in every column, which is what the column encodings read.
+            .Row("3", "third",  "20", "3", "",       "21", "4", "icon_c", "Ice");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
     private static void WriteNested(string path)
     {
         var workbook = new XSSFWorkbook();
@@ -3016,8 +3099,18 @@ internal static class Program
 
     private static string FindRepoRoot()
     {
+        // A directory or a file. In a linked worktree `.git` is a file naming where the real
+        // one is, so looking only for a directory walks straight past the worktree's root and
+        // finds the main checkout - which is a generator that quietly rewrites the fixtures of
+        // whichever tree it was not run from.
+        static bool IsRepository(DirectoryInfo dir)
+        {
+            string marker = Path.Combine(dir.FullName, ".git");
+            return Directory.Exists(marker) || File.Exists(marker);
+        }
+
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null && !Directory.Exists(Path.Combine(dir.FullName, ".git")))
+        while (dir != null && !IsRepository(dir))
             dir = dir.Parent;
 
         if (dir == null)

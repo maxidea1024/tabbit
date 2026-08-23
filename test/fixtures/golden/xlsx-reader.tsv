@@ -9,6 +9,8 @@ composite/composite.xlsx	sheets=1 rows=11 cells=44 chars=359 names=0 skipped-nam
 conformance-skew/conformance-skew.xlsx	sheets=1 rows=69 cells=843 chars=9282 names=0 skipped-names=0 hash=b3851d10fc5b8893
 conformance/conformance.xlsx	sheets=1 rows=69 cells=803 chars=9065 names=0 skipped-names=0 hash=98fdf93d2457873d
 core/core.xlsx	sheets=7 rows=74 cells=380 chars=3273 names=0 skipped-names=0 hash=3a658ed65d8a73d8
+declared-expanded/declared-expanded.xlsx	sheets=1 rows=11 cells=64 chars=576 names=0 skipped-names=0 hash=fdaf1dd9ebb97502
+declared/declared.xlsx	sheets=1 rows=11 cells=55 chars=346 names=0 skipped-names=0 hash=549494cce8cfa29c
 double-star/double-star.xlsx	sheets=1 rows=9 cells=17 chars=130 names=0 skipped-names=0 hash=25fdf4db492df0d8
 element-only/element-only.xlsx	sheets=1 rows=10 cells=20 chars=196 names=0 skipped-names=0 hash=3c6e3ffbe8653408
 enum-by-value/enum-by-value.xlsx	sheets=1 rows=10 cells=35 chars=234 names=0 skipped-names=0 hash=ac207e36b779d30f

@@ -33,9 +33,27 @@ public sealed class CookingContext
     private const NumberStyles DecimalStyles = NumberStyles.Float | NumberStyles.AllowThousands;
 
     public CookingContext(Model model, RecipeModel recipe, Diagnostics diagnostics)
+        : this(model, recipe, diagnostics, null)
+    {
+    }
+
+    /// <param name="declarations">
+    /// What the schema files declared, or null for a run that reads none.
+    /// </param>
+    /// <remarks>
+    /// Held for one question: whether a type cell names something. A cell naming a declared
+    /// struct - and a cell left blank inside a group that one covers - is a type this cannot
+    /// resolve on its own, so both are carried as text and settled once every column of the
+    /// group is here. `foreign` is already read that way, for the same reason and by the same
+    /// route. notes/struct-dsl-design.md section 7.2.
+    /// </remarks>
+    public CookingContext(
+        Model model, RecipeModel recipe, Diagnostics diagnostics,
+        Schema.SchemaDeclarations? declarations)
     {
         Model = model;
         Diagnostics = diagnostics;
+        Declarations = declarations;
         ArrayDelimiter = ResolveArrayDelimiter(recipe);
         TimeZone = Helpers.TimeZones.OfRecipe(recipe.TimeZone);
         AutoInsertEnumNoneLabel = recipe.AutoInsertEnumNoneLabel;
@@ -53,6 +71,24 @@ public sealed class CookingContext
 
     /// <summary>The model every parser adds to.</summary>
     public Model Model { get; }
+
+    /// <summary>
+    /// What the schema files declared, or null for a run that reads none.
+    /// </summary>
+    public Schema.SchemaDeclarations? Declarations { get; }
+
+    /// <summary>
+    /// Whether this run read any declarations, which is what opens the two type cells a
+    /// layout would otherwise refuse.
+    /// </summary>
+    /// <remarks>
+    /// The gate is deliberate. A blank type cell is a mistake in every project that declares
+    /// its types in its sheets, and this must not stop being one for them - so blank is a
+    /// type only where there are declarations for it to have come from, and even then only
+    /// until <see cref="ModelCooker"/> has bound the groups and reported whatever is still
+    /// untyped.
+    /// </remarks>
+    public bool HasDeclarations => Declarations is { IsEmpty: false };
 
     /// <summary>
     /// Separator for array cells, taken from the recipe. A source entry may override it.
@@ -353,6 +389,13 @@ public sealed class CookingContext
         if (typeName is null)
             return false;
 
+        // Both of these are settled later rather than here - see `DeferredType`. A blank is a
+        // member column inside a group whose type cell named a struct, and a declared name is
+        // that type cell. Neither is a type this can resolve, because the answer is a
+        // property of the whole group.
+        if (IsDeferredTypeName(typeName))
+            return true;
+
         // `int?`: the optional marker is not part of the type's name, so it comes off before
         // the name is recognized. Callers that want to know about it use SplitOptionalMarker.
         typeName = SplitOptionalMarker(typeName, out _);
@@ -473,9 +516,40 @@ public sealed class CookingContext
         if (Model.ContainsEnum(typeName))
             return Models.ValueType.Enum;
 
+        if (IsDeferredTypeName(typeName))
+            return DeferredType;
+
         throw new TabbitException(location,
             Message.Of(CookingMessages.UnsupportedType, ("Type", typeName)));
     }
+
+    /// <summary>
+    /// What a column is carried as until the group it belongs to has been bound.
+    /// </summary>
+    /// <remarks>
+    /// Text, because text is what the cell holds and what the real type will be read from.
+    /// The same answer a reference is given and for the same reason: the type depends on
+    /// something that is not known while the sheet is being read, so the cell is kept as
+    /// written and converted by the pass that finds out.
+    /// <see cref="ModelCooker"/> does the conversion, and reports any column still carrying
+    /// this once every group has been bound.
+    /// </remarks>
+    public const Models.ValueType DeferredType = Models.ValueType.String;
+
+    /// <summary>
+    /// Whether a type cell is one this cannot answer on its own.
+    /// </summary>
+    /// <remarks>
+    /// Only where the run read declarations. Without them a blank type cell is what it has
+    /// always been - a column nobody typed - and this must not quietly turn that into a
+    /// string.
+    ///
+    /// Structs only. A declared enum is a type name like any other and resolves above, on
+    /// the same line a sheet's own enums do - there is nothing about it that has to wait.
+    /// </remarks>
+    public bool IsDeferredTypeName(string? typeName)
+        => HasDeclarations
+           && (string.IsNullOrEmpty(typeName) || Declarations!.FindStruct(typeName) is not null);
 
     /// <summary>
     /// The empty value of a type, for a blank cell in an optional column.

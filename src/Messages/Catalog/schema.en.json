@@ -38,5 +38,12 @@
   "schema.type-is-sheet-enum": "`{Struct}.{Member}` is typed `{Type}`, which a sheet declares. A member's type has to be found in these files alone, so that an editor can read them without opening a workbook - move the enum here, or type the member with the integer it carries.",
   "schema.container-not-supported": "`{Struct}.{Member}` is typed `{Type}`. The notation reads it and this build does not carry it yet; the file format needs no change for it, so what is missing is the container in each generated language.",
   "schema.struct-cycle": "`{Cycle}` holds itself. A struct is spread across columns, so a struct that contains itself has no end - a relationship that loops is written as a reference, which is what `foreign` is for.",
-  "schema.enum-number-out-of-range": "`{Enum}.{Entry}` is given {Number}, and an enum entry carries a 32-bit number."
+  "schema.enum-number-out-of-range": "`{Enum}.{Entry}` is given {Number}, and an enum entry carries a 32-bit number.",
+  "schema.group-typed-twice": "`{Table}.{Group}` is typed `{First}` by one of its columns and `{Second}` by another. One column of a group names the struct and the rest leave their type cells empty; two of them naming one leaves nothing to say which the group is.",
+  "schema.column-not-a-member": "`{Table}.{Column}` is in a group typed `{Struct}`, and `{Struct}` has no member of that name. Add the member to the declaration, or take the column out of the group.",
+  "schema.column-type-disagrees": "`{Table}.{Column}` is typed `{Written}` and `{Struct}.{Member}` is declared `{Declared}`. Empty the type cell to take the declaration's, or make the two agree.",
+  "schema.member-type-unusable": "`{Struct}.{Member}` is declared `{Declared}`, which one column cannot hold. A member that is a struct is written as a column per its own members; an array of references is not carried at all.",
+  "schema.member-has-no-column": "`{Table}.{Group}` is typed `{Struct}` and has no column for its member `{Member}`. A type says what a value of it holds, so a group missing one of its members is not that type - write the column, or take the member out of the declaration.",
+  "schema.column-has-no-type": "`{Table}.{Column}` has an empty type cell and is in no group that names a struct. A type cell may be left empty only where a declaration fills it in.",
+  "schema.column-typed-with-a-struct": "`{Table}.{Column}` is typed `{Written}`, which is a declared struct, and the column is not part of a group. A struct types a group of columns - `{Written}1.Member` - and writing one whole value into a single cell is a notation this build does not carry yet."
 }
