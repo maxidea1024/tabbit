@@ -45,5 +45,14 @@
   "schema.member-type-unusable": "`{Struct}.{Member}` is declared `{Declared}`, which one column cannot hold. A member that is a struct is written as a column per its own members; an array of references is not carried at all.",
   "schema.member-has-no-column": "`{Table}.{Group}` is typed `{Struct}` and has no column for its member `{Member}`. A type says what a value of it holds, so a group missing one of its members is not that type - write the column, or take the member out of the declaration.",
   "schema.column-has-no-type": "`{Table}.{Column}` has an empty type cell and is in no group that names a struct. A type cell may be left empty only where a declaration fills it in.",
-  "schema.column-typed-with-a-struct": "`{Table}.{Column}` is typed `{Written}`, which is a declared struct, and the column is not part of a group. A struct types a group of columns - `{Written}1.Member` - and writing one whole value into a single cell is a notation this build does not carry yet."
+  "schema.column-typed-with-a-struct": "`{Table}.{Column}` is typed `{Written}`, which is a declared struct, and the column is not part of a group. A struct types a group of columns - `{Written}1.Member` - and writing one whole value into a single cell is a notation this build does not carry yet.",
+  "schema.meta-key-unknown": "`{Key}` on `{Where}` is not a key anything reads. Nothing here checks a key's spelling as it is written, so a key nobody claims is reported once every declaration is in - which is what stops a misspelt one from quietly saying nothing. A key of your own goes under `x.`, which is never reported.",
+  "schema.meta-key-not-carried": "`{Key}` on `{Where}` is a key this notation defines and this build does not act on yet. Ignoring it would leave you believing it applies; take it out until it is carried.",
+  "schema.meta-refs-is-foreign": "`{Key}` on `{Where}` says what `foreign` already says here. This tool resolves a named table rather than only checking against it, so the two would be one thing with two spellings - write `foreign` and the tables.",
+  "schema.default-not-carried": "`{Where}` is given the default `{Written}`, and this build does not apply one yet. A default nobody applies is worse than none, because the file says what a blank cell means and nothing makes it mean that.",
+  "schema.role-not-a-string": "`{Key}` on `{Member}` says what a string is for, and the member is declared `{Type}`.",
+  "schema.role-written-twice": "`{Member}` is marked both `text` and `asset`. A string has one thing it is for.",
+  "schema.bound-not-a-number": "`{Key}` on `{Member}` is `{Written}`, and a bound is a number.",
+  "schema.allowed-empty": "`allowed` on `{Member}` lists no values. Write them separated by `;`, or drop the key.",
+  "schema.allowed-intersection-empty": "`{Table}.{Column}` allows `{Sheet}` and `{Member}` is declared to allow `{Declared}`, and the two have nothing in common. A value must satisfy both, so this column can hold nothing at all."
 }

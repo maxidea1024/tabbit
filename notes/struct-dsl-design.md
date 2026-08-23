@@ -51,8 +51,8 @@
 |이름 · 타입|`<var name="x" type="int"/>`|`field x int`|
 |설명|`comment="…"`|`/// …`|
 |참조 — 해석까지|(없음. Luban은 검사만)|`field itemId foreign Item` — **접근자까지 냅니다.** tabbit이 넓습니다|
-|참조 — 검사만|`type="int#ref=item.TbItem"`|`field itemId int (refs=Item)`|
-|다중 대상 참조|`ref=` 에 refgroup|`foreign Item\|CEquip` 또는 `(refs="Item\|CEquip")`|
+|참조 — 검사만|`type="int#ref=item.TbItem"`|**두지 않습니다** — 이 도구에 「검사만」이 없습니다(아래)|
+|다중 대상 참조|`ref=` 에 refgroup|`foreign Item\|CEquip`|
 |자원 경로|`#path=unity`|`field icon string (asset=icon)` — 종류별 루트는 recipe|
 |번역 대상|`type="text"`|`field name string (text)`|
 |산출 그룹|`group="s"`|**시트에 남습니다** — target-side는 레코드 단위로 이미 강제됩니다|
@@ -64,6 +64,36 @@
 |원소 유일성|`(list#index=id),Foo`|`(uniqueBy=id)` — **배열에 붙습니다.** `index`라는 이름은 tabbit에서 테이블 인덱스이므로 쓰지 않습니다|
 |nullable|`int?`|`int?` · `int[]?` · `int?[]` · `int?[]?` — **tabbit이 넓습니다**|
 |필드 자유 태그|`tag="a=b"`|괄호의 미지정 키|
+
+> **`refs`를 두지 않는 이유 — 이 도구에 「검사만」이 없습니다.**
+> Luban은 `ref=`를 대조만 하고 끝내는데, 그쪽에 코드 생성이 없기 때문입니다. tabbit은
+> **승격합니다** — 「이 값은 저 테이블의 행이다」라고 적힌 컬럼은
+> [`PromoteReferencedTablesToReferences`](../src/Cooking/ModelCooker.cs)가 참조로 바꾸고,
+> 해석된 행과 접근자까지 냅니다([로드맵 7](../doc/roadmap.md)에 그 결정이 적혀 있습니다).
+> 그래서 `(refs=Item)`은 `foreign Item`과 **같은 것을 두 번째 방법으로 적는 것**이 되고,
+> §3이 막으려는 바로 그 모양입니다. 문법은 `foreign` 하나입니다.
+>
+> **이름은 예약해 둡니다.** Luban에서 오는 사람이 `refs`를 적을 것이므로, 파서가 받고
+> **`foreign`을 안내하면서 거절합니다** — 조용히 무시하면 검사가 도는 줄 알게 됩니다.
+
+#### 반대 방향도 봤습니다 — `foreign`을 없애고 메타만 두는 안
+
+「키워드를 하나 줄이고 `field itemId int (refs=Item;CEquip)` 하나로 끝내면 되지 않나」입니다.
+**중복이 안 생긴다는 점에서는 위와 똑같이 일관됩니다** — 둘 중 하나만 남기는 것이므로. 그래도
+**`foreign`을 남기기를 권고하고**, 이유가 셋입니다.
+
+|  |내용|
+|--|--|
+|**§3의 채널 규칙**|괄호는 「기계가 읽는 메타데이터」이고 타입 칸은 타입입니다. 참조는 **생성 코드가 내는 것을 바꿉니다** — 멤버가 `int`가 아니라 해석된 행과 접근자가 됩니다. 그것을 괄호에서 하면 **타입 칸이 거짓말을 합니다**: `int`라고 적혀 있는데 나오는 것은 행입니다|
+|**키 타입의 정본이 둘이 됩니다**|`(refs=Item)` 앞에 무슨 타입을 적든 그것은 **대상의 키에 대한 두 번째 주장**입니다. 지금은 정본이 하나입니다 — 대상 테이블의 인덱스가 정하고, 변환 시점에 그 폭으로 좁힙니다([`ConvertReferenceCells`](../src/Cooking/ModelCooker.cs)). `Item`의 키가 `int`에서 `string`으로 바뀌면 메타 안 쪽은 그대로 남아 조용히 틀립니다|
+|**읽는 사람**|`field itemId foreign Item`은 첫 줄에서 참조임이 보입니다. `field itemId int (…)`는 괄호를 끝까지 읽어야 압니다 — 이 DSL을 도입한 이유가 편집 표면인데 그 표면이 나빠집니다|
+
+> **구분자도 한 표 보탭니다.** 쉼표는 메타 항목 구분자라서 `refs=a,b,c`는 따옴표가 필요하고
+> (`refs="a,b,c"`), 안 쓰려면 `allowed`처럼 `;`를 써야 합니다. 작은 것이지만 같은 쪽을
+> 가리킵니다 — 참조 목록은 괄호 안에 있을 것이 아닙니다.
+
+**남는 이점 하나는 인정합니다** — 키워드가 7개에서 6개로 줍니다. 그런데 `foreign`은
+**시트의 타입 칸이 이미 쓰는 낱말**이므로, 배우는 사람에게 새 낱말이 아닙니다.
 
 ### 2.3 enum
 
@@ -476,7 +506,6 @@ for (int j = 0; j < Record.Slot_N; ++j)      // 읽기 루프가 그 상수를 �
 |`sep`|한 글자|**struct**|없음 — 신규(§7.3)|
 |`text`|플래그|`string` 필드|`text` 역할|
 |`asset`|종류 이름|`string` 필드|`asset(icon)`|
-|`refs`|`A` 또는 `A\|B`|키 타입 필드|`ReferencedTables`|
 |`min` · `max`|수|스칼라 · **원소**|`Minimum` · `Maximum`|
 |`allowed`|`a;b;c`|스칼라 · **원소**|`AllowedValues`|
 |`notDefault`|플래그|스칼라 · **원소**|없음 → [§5.8](luban-comparison.md#58-시트에-기재하는-제약의-확대)|
@@ -677,7 +706,7 @@ struct HealEffect extends Effect
 |--|--|--|--|
 |0|**합성 값 타입 브랜치의 병합** — 이 설계의 3단계가 그 위에 얹힙니다. **실측한 병합 비용은 아래**|무변경|무변경|
 |1|**파서와 모델 결합** — `struct` · `field` · `enum` · `value`, `///`, 괄호 메타데이터. 시트 결합은 (나)|무변경|타입 이름이 테이블 접두 없이 나옵니다|
-|2|**제약 메타데이터** — `min` · `max` · `allowed` · `refs` · `text` · `asset`, 그리고 시트와의 교집합|무변경|무변경|
+|2|**제약 메타데이터** — `min` · `max` · `allowed` · `text` · `asset`, 그리고 시트와의 교집합. `refs`는 빠졌습니다(§2.2)|무변경|무변경|
 |3|**`sep` 한 셀 표기** — 합성 값 타입의 확장 패스를 사용자 정의 struct로 넓힘. **그 개정의 병합이 선행입니다**|무변경|무변경|
 |4|**기본값** — 변환 시점 적용|무변경|무변경|
 |5|**`regex` · `size` · `uniqueBy` · `notDefault`**|무변경|무변경|

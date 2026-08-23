@@ -7,12 +7,16 @@
 //   `count`  is declared `string` and the sheet types the column `int`
 //   `icon`   is not declared at all and the sheet has a column for it
 //   `bonus`  is declared and the sheet has no column for it
+//
+// And three bracketed keys that nothing acts on, one of each kind.
 
 /// One thing a row hands out.
 struct Reward
-    field itemId int
-    field count string
-    field bonus int
+    // `mn` is nobody's key, `regex` is one this build does not act on, and `refs` says
+    // what `foreign` already says here. Three different answers, and each says which.
+    field itemId int (refs=Item)
+    field count string (mn=1)
+    field bonus int (regex="^[0-9]+$")
 
 /// What a reward is made of.
 enum Element

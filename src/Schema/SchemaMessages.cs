@@ -161,4 +161,33 @@ public static class SchemaMessages
 
     /// <summary>A struct named on a column that is not a group.</summary>
     public const string ColumnTypedWithAStruct = "schema.column-typed-with-a-struct";
+
+    // ------------------------------------------------------- what the brackets said
+
+    /// <summary>A metadata key nothing defines.</summary>
+    public const string MetaKeyUnknown = "schema.meta-key-unknown";
+
+    /// <summary>A key the notation defines and this build does not act on yet.</summary>
+    public const string MetaKeyNotCarried = "schema.meta-key-not-carried";
+
+    /// <summary>`refs`, which says what `foreign` already says in this tool.</summary>
+    public const string MetaRefsIsForeign = "schema.meta-refs-is-foreign";
+
+    /// <summary>A default value, which nothing applies yet.</summary>
+    public const string DefaultNotCarried = "schema.default-not-carried";
+
+    /// <summary>`text` or `asset` on a member that is not a string.</summary>
+    public const string RoleNotAString = "schema.role-not-a-string";
+
+    /// <summary>Both `text` and `asset` on one member.</summary>
+    public const string RoleWrittenTwice = "schema.role-written-twice";
+
+    /// <summary>A bound that is not a number.</summary>
+    public const string BoundNotANumber = "schema.bound-not-a-number";
+
+    /// <summary>`allowed` with nothing in it.</summary>
+    public const string AllowedEmpty = "schema.allowed-empty";
+
+    /// <summary>A sheet's whitelist and a declaration's with nothing in common.</summary>
+    public const string AllowedIntersectionEmpty = "schema.allowed-intersection-empty";
 }

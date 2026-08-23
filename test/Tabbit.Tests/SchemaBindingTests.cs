@@ -179,4 +179,71 @@ public class SchemaBindingTests
 
         Assert.DoesNotContain("has an empty type cell and is in no group", result.StdOut);
     }
+
+    // ------------------------------------------------------------------ metadata
+
+    /// <summary>
+    /// A key nothing reads is reported, and the report says which of three kinds it is.
+    /// </summary>
+    /// <remarks>
+    /// The parser carries every key without checking one, which is what lets a project write
+    /// its own. The other half of that policy is this: once every declaration is in, a key
+    /// nobody claimed is named. Three answers rather than two - see `SchemaMetadata` - and
+    /// each sends the reader somewhere different.
+    /// </remarks>
+    [Fact]
+    public void A_key_nothing_reads_says_which_kind_of_nothing_it_is()
+    {
+        var result = TabbitRunner.Convert("declared-mismatch");
+
+        // Nobody's key. A misspelling, almost always.
+        Assert.Contains("`mn` on `Reward.count` is not a key anything reads", result.StdOut);
+
+        // Defined by the notation, not acted on by this build. Refused rather than ignored,
+        // because ignoring it leaves somebody believing a check is running.
+        Assert.Contains(
+            "`regex` on `Reward.bonus` is a key this notation defines and this build does not act on",
+            result.StdOut);
+
+        // And the one that says what `foreign` already says here.
+        Assert.Contains("`refs` on `Reward.itemId` says what `foreign` already says", result.StdOut);
+    }
+
+    /// <summary>
+    /// A bound written in a declaration reaches the check a bound written in a sheet reaches.
+    /// </summary>
+    /// <remarks>
+    /// The whole of what makes a declared constraint worth writing. Reported at the cell that
+    /// breaks it, not at the declaration: the declaration is right and the value is not.
+    /// </remarks>
+    [Fact]
+    public void A_declared_bound_refuses_the_cell_that_breaks_it()
+    {
+        var result = TabbitRunner.Convert("declared-constraints");
+
+        Assert.False(result.Succeeded, "A value below the declared minimum was accepted.");
+
+        Assert.Contains("is 1, below the minimum 2 the column declares", result.StdOut);
+        Assert.Contains("declared.xlsx", result.StdOut);
+    }
+
+    /// <summary>
+    /// A declared role reaches the column, and the run says so.
+    /// </summary>
+    /// <remarks>
+    /// `icon` is declared `(asset=icon)` and the recipe configures no folders, so the run
+    /// says two columns went unchecked - which is the report saying the role arrived. Both
+    /// elements of the group, from one declaration.
+    ///
+    /// A role does not reach the wire, so the equivalence gate above passes with the keys
+    /// written on one side only. That is the other half of what this checks.
+    /// </remarks>
+    [Fact]
+    public void A_declared_role_reaches_every_column_of_the_group()
+    {
+        var result = TabbitRunner.Convert("declared");
+
+        Assert.True(result.Succeeded, result.Describe());
+        Assert.Contains("2 column(s) are typed `asset`", result.StdOut);
+    }
 }

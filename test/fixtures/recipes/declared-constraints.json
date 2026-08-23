@@ -1,0 +1,37 @@
+{
+  // The `declared` workbook against a declaration whose bound its data breaks.
+  //
+  // A run that must fail, at the cell. A bound written in a schema file has to reach the
+  // same check a bound written in a sheet reaches, or the declaration is a comment.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/declared-constraints" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/declared" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/declared-constraints/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/declared-constraints/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/declared-constraints/csharp",
+      "Namespace": "Tabbit.Fixtures.DeclaredConstraints",
+      "AccessorName": "DeclaredConstraintsAccessor"
+    }
+  ]
+}

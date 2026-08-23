@@ -152,6 +152,10 @@ public partial class ModelCooker
             return;
         }
 
+        // What the brackets said, narrowed against whatever the sheet's own rows said about
+        // this one column. notes/struct-dsl-design.md section 6.3.
+        SchemaMetadata.Apply(table, field, member, diagnostics);
+
         // The description cell wins where a sheet wrote one, and the declaration answers
         // where it did not. The other way round would silently reword the generated code of
         // every sheet that has one written today, which is a change nobody asked for in a
