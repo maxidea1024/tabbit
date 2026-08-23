@@ -10,7 +10,13 @@
 
 `recipe` 파일은 입력 소스와 출력 대상을 지정하는 `.json` 파일입니다. `//` 주석을 사용할 수 있습니다.
 
-`tabbit --new-recipe myrecipe.json` 으로 시작용 recipe를 만들 수 있습니다. 모든 목록에 기본값이 채워진 항목 하나가 들어 있고, 파일 앞부분에 사용 가능한 소스/타깃 이름이 적혀 나옵니다. 그대로 실행해도 아무것도 만들지 않고 정상 종료합니다 — 경로가 비어 있으면 꺼진 것으로 취급되기 때문입니다.
+`tabbit --new-recipe myrecipe.json`으로 시작용 recipe를 만들 수 있습니다.
+
+모든 목록에 기본값이 채워진 항목 하나가 들어 있고, 파일 앞부분에 사용 가능한 소스와 타깃 이름이
+적혀 나옵니다.
+
+그대로 실행해도 아무것도 만들지 않고 정상 종료합니다.
+경로가 비어 있으면 꺼진 것으로 취급되기 때문입니다.
 
 ### 환경 변수 — `${NAME}`
 
@@ -162,9 +168,10 @@ reads as one word boundary, so this name and `a_b` both reach the generated code
 |`warn` (기본)|경고|노트|
 |`error`|오류|경고|
 
-`Item.maxHitPoints`와 `Ship.maxhitpoints`는 각각 `MaxHitPoints` · `Maxhitpoints`로
-정규화되어 **생성 코드에 멤버가 두 개** 생깁니다. `my_flag`와 `myFlag`는 둘 다 `MyFlag`가
-되므로 생성물은 같고 시트만 어긋난 것이라 노트입니다.
+`Item.maxHitPoints`와 `Ship.maxhitpoints`는 각각 `MaxHitPoints`와 `Maxhitpoints`로 정규화되어
+생성 코드에 멤버가 두 개 생깁니다.
+
+`my_flag`와 `myFlag`는 둘 다 `MyFlag`가 되므로 생성물은 같고 시트만 어긋난 것이라 노트입니다.
 
 ```
 One field name is written 2 ways: `Id` (66 places, first at Collection.xlsx : GroupTable : A2),
