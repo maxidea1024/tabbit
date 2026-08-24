@@ -27,7 +27,11 @@
   "primary.repeated-index-mark": "Column `{Column}` of `{Entity}` begins with more than one `*`. One marks a secondary index.",
   "primary.index-mark-on-group-member": "Column `{Column}` of `{Entity}` is marked `*` and is a member of `{Group}`. An index addresses a row by a field of its own.",
 
-  "primary.multi-row-not-yet-supported": "Column `{Column}` of `{Entity}` is written `[]`, which puts a record's elements on the rows below it. This build does not read it yet. Write the elements as numbered columns - `{Example}` - or as a delimited cell.",
+  "primary.multi-row-nested": "Column `{Column}` of `{Entity}` writes `[]` beside another repeating level. A `[]` group whose member repeats again would replicate the whole set of columns per element, which this layout does not read. Write the inner array as a delimited cell or as numbered columns.",
+  "primary.multi-row-cell-array": "Column `{Column}` of `{Entity}` is written `[]` and typed `{Written}`. The name says the elements come from the rows below and the type says they come from inside the cell, so each row would hold an array of them - which this layout does not read. Pick one place for the elements.",
+  "primary.multi-row-on-index-column": "Column `{Column}` of `{Entity}` is written `[]` and is the column the primary index is read from. An index addresses one row by one value, which an array is not.",
+  "primary.extension-row-has-scalar-value": "`{Value}` is written in column `{Column}` of `{Entity}` on a row that extends the record above it. Only `[]` columns carry values on an extension row - this one belongs on the record's first row. If a new record was meant, write its index.",
+  "primary.extension-row-without-record": "`{Entity}` has a row with no index value before any record has begun. A row that leaves the index blank extends the record above it, and here there is none.",
   "primary.variant-not-yet-supported": "`{Entity}` has a `:variant` row. This build does not read it yet, so every column it names would be read as the field itself.",
   "primary.column-meta-not-yet-supported": "Column `{Column}` of `{Entity}` is typed `{Written}`, and everything from the first `(` is meta this build does not read yet. Write the type on its own - `{Bare}`.",
   "primary.key-meta-not-yet-supported": "`{Written}` sets `key`, which moves the primary index off the first column. This build does not read it yet, so the first field column is the primary index.",

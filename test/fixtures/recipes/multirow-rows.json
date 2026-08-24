@@ -1,0 +1,36 @@
+{
+  // An array whose elements come from the rows below the record - `reward[]`, section 6 of
+  // spec/primary-layout.md.
+  //
+  // What this tree pins is a sameness. `multirow-columns` holds the same data with the elements
+  // in columns beside the record, and the gate requires the produced files to be identical byte
+  // for byte - so an element read into the wrong slot, an array that did not end where the rows
+  // did, or a record boundary found in the wrong place fails here on its own.
+  //
+  // `TrimTrailingArrayElements` is not set. A multi-row table trims whatever a recipe says,
+  // because its elements are the rows that exist - which is the other half of what the
+  // comparison checks.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/multirow-rows",
+        "Layout": "primary"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/multirow-rows/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/multirow-rows/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}

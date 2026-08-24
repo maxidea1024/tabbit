@@ -477,20 +477,245 @@ public class PrimaryLayoutTests
         Assert.Contains("[]", problem.Message);
     }
 
+    #endregion
+
+
+    #region Multi-row - section 6
+
     [Fact]
-    public void A_multi_row_column_is_refused_by_name_until_it_is_read()
+    public void A_bracket_pair_on_a_name_takes_the_elements_from_the_rows_below()
+    {
+        var model = Cook(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "title", "reward[].itemId", "reward[].count"],
+            [":type", "int", "string", "int", "int"],
+            ["", "1", "first", "10", "1"],
+            ["", "", "", "11", "2"],
+            ["", "2", "second", "20", "5"]));
+
+        var table = Assert.Single(model.Tables);
+
+        // Two records, not three rows: the blank index cell extends the record above it.
+        Assert.Equal(2, table.Data.Count);
+
+        var group = table.SerialFields.Single(g => g.Name == "Reward");
+        Assert.True(group.IsArray);
+
+        // The longest record decides how many element columns the group has, and each row says
+        // how many of them it filled.
+        Assert.Equal(2, table.ElementCountIn(group, table.Data[0]));
+        Assert.Equal(1, table.ElementCountIn(group, table.Data[1]));
+    }
+
+    [Fact]
+    public void A_scalar_group_works_the_same_way()
+    {
+        var model = Cook(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "cost[]"],
+            [":type", "int", "int"],
+            ["", "1", "10"],
+            ["", "", "20"],
+            ["", "", "30"],
+            ["", "2", "5"]));
+
+        var table = Assert.Single(model.Tables);
+        var group = table.SerialFields.Single(g => g.Name == "Cost");
+
+        Assert.Equal(2, table.Data.Count);
+        Assert.Equal(3, table.ElementCountIn(group, table.Data[0]));
+        Assert.Equal(1, table.ElementCountIn(group, table.Data[1]));
+    }
+
+    [Fact]
+    public void Two_groups_side_by_side_fill_up_independently()
+    {
+        // Section 6.1 rule 5, and section 8.6.5: the same row holding one element of each does
+        // not pair them, and one group running out does not stop the other.
+        var model = Cook(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "reward[].id", "cost[]"],
+            [":type", "int", "int", "int"],
+            ["", "1", "10", "5"],
+            ["", "", "11", ""],
+            ["", "", "12", "7"]));
+
+        var table = Assert.Single(model.Tables);
+        var rewards = table.SerialFields.Single(g => g.Name == "Reward");
+        var costs = table.SerialFields.Single(g => g.Name == "Cost");
+
+        Assert.Equal(3, table.ElementCountIn(rewards, table.Data[0]));
+        Assert.Equal(2, table.ElementCountIn(costs, table.Data[0]));
+    }
+
+    [Fact]
+    public void A_row_holding_none_of_a_group_columns_is_not_an_element_of_it()
+    {
+        // Rule 4. The middle row holds no reward, so the second reward is the third row - the
+        // elements close up rather than leaving a hole.
+        var model = Cook(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "reward[].id", "cost[]"],
+            [":type", "int", "int", "int"],
+            ["", "1", "10", "1"],
+            ["", "", "", "2"],
+            ["", "", "11", "3"]));
+
+        var table = Assert.Single(model.Tables);
+        var rewards = table.SerialFields.Single(g => g.Name == "Reward");
+
+        Assert.Equal(2, table.ElementCountIn(rewards, table.Data[0]));
+    }
+
+    [Fact]
+    public void A_scalar_value_on_an_extension_row_names_the_cell_holding_it()
+    {
+        // Section 6.2: the mistake and the message are in the same place. The layout this
+        // notation came from turned the row into a new record and reported a missing key.
+        var problem = Refuses(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "title", "reward[].id"],
+            [":type", "int", "string", "int"],
+            ["", "1", "first", "10"],
+            ["", "", "second", "11"]));
+
+        Assert.Contains("second", problem.Message);
+        Assert.Contains("title", problem.Message);
+    }
+
+    [Fact]
+    public void An_index_on_a_row_meant_as_an_extension_becomes_a_record_with_no_scalars()
+    {
+        // The other half of section 6.2. This one becomes a new record rather than an
+        // extension, and what catches it is the blank-cell policy: the scalars the author did
+        // not mean to write are empty, and a blank where a number belongs is already an error.
+        // So neither direction of the mistake passes quietly.
+        var problem = Refuses(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "weight", "reward[].id"],
+            [":type", "int", "int", "int"],
+            ["", "1", "5", "10"],
+            ["", "2", "", "11"]));
+
+        Assert.Contains("empty", problem.Message);
+    }
+
+    [Fact]
+    public void A_hash_on_the_first_row_of_a_record_leaves_the_whole_record_out()
+    {
+        // Rule 8. Record 2 spans two rows, and the `#` on its first takes both.
+        var model = Cook(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "reward[].id"],
+            [":type", "int", "int"],
+            ["", "1", "10"],
+            ["#", "2", "20"],
+            ["", "", "21"],
+            ["", "3", "30"]));
+
+        var table = Assert.Single(model.Tables);
+
+        Assert.Equal(2, table.Data.Count);
+        Assert.Equal([1, 3], table.Data.Select(row => row[0].Value).Cast<int>());
+    }
+
+    [Fact]
+    public void A_hash_on_an_extension_row_leaves_only_that_row_elements_out()
+    {
+        var model = Cook(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "reward[].id"],
+            [":type", "int", "int"],
+            ["", "1", "10"],
+            ["#", "", "11"],
+            ["", "", "12"]));
+
+        var table = Assert.Single(model.Tables);
+        var rewards = table.SerialFields.Single(g => g.Name == "Reward");
+
+        Assert.Single(table.Data);
+        Assert.Equal(2, table.ElementCountIn(rewards, table.Data[0]));
+    }
+
+    [Fact]
+    public void A_blank_row_still_ends_the_entity_so_records_cannot_be_spaced_apart()
+    {
+        // Rule 7. The blank row closes the table, so what follows is not read at all.
+        var model = Cook(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "reward[].id"],
+            [":type", "int", "int"],
+            ["", "1", "10"],
+            ["", "", ""],
+            ["", "2", "20"]));
+
+        Assert.Single(Assert.Single(model.Tables).Data);
+    }
+
+    [Fact]
+    public void The_index_column_cannot_be_a_multi_row_column()
     {
         var problem = Refuses(Sheet(
             [":table Quest", "a quest"],
-            [":field", "code", "reward[].itemId"],
-            [":type", "int", "int"],
-            ["", "1", "10"]));
+            [":field", "code[]", "title"],
+            [":type", "int", "string"],
+            ["", "1", "first"]));
 
-        Assert.Contains("[]", problem.Message);
+        Assert.Contains("code[]", problem.Message);
+    }
+
+    [Fact]
+    public void A_nested_multi_row_group_is_refused_by_name()
+    {
+        Assert.Contains("[]", Refuses(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "reward[].tag[]"],
+            [":type", "int", "int"],
+            ["", "1", "10"])).Message);
+
+        // A `[]` beside a numbered level is the same shape.
+        Assert.Contains("[]", Refuses(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "slot[0].tag[]"],
+            [":type", "int", "int"],
+            ["", "1", "10"])).Message);
+    }
+
+    [Fact]
+    public void A_multi_row_column_typed_as_a_cell_array_is_refused_by_name()
+    {
+        var problem = Refuses(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "cost[]"],
+            [":type", "int", "int[]"],
+            ["", "1", "10;20"]));
+
+        Assert.Contains("int[]", problem.Message);
+    }
+
+    [Fact]
+    public void An_extension_row_before_any_record_is_reported()
+    {
+        var problem = Refuses(Sheet(
+            [":table Quest", "a quest"],
+            [":field", "code", "reward[].id"],
+            [":type", "int", "int"],
+            ["", "", "10"],
+            ["", "1", "11"]));
+
+        Assert.Contains("Quest", problem.Message);
+    }
+
+    [Fact]
+    public void A_table_with_no_bracket_column_is_still_one_record_per_row()
+    {
+        var table = Assert.Single(Cook(ItemSheet()).Tables);
+
+        Assert.Equal(2, table.Data.Count);
+        Assert.False(table.TrimTrailingArrayElements);
     }
 
     #endregion
-
 
     #region The folded type expression - section 4
 

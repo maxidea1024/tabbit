@@ -89,6 +89,14 @@ public sealed class PrimaryLayoutParser : ILayoutParser
 
     #endregion
 
+    /// <summary>One row below an entity's headers, and whether `#` left it out.</summary>
+    private readonly struct DataRow(int row, bool omitted)
+    {
+        public int Row { get; } = row;
+
+        public bool Omitted { get; } = omitted;
+    }
+
     /// <summary>One `key=value` from a declaration's brackets, and where it was written.</summary>
     private readonly struct MetaEntry(string value, Location at)
     {
@@ -127,8 +135,19 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         /// <summary>Row index of each header row, by its key.</summary>
         public Dictionary<string, int> HeaderRows = new(StringComparer.Ordinal);
 
-        /// <summary>Rows the conversion reads, in sheet order, `#` rows already dropped.</summary>
-        public List<int> DataRows = [];
+        /// <summary>
+        /// The entity's rows below its headers, in sheet order, with the omitted ones marked.
+        /// </summary>
+        /// <remarks>
+        /// A `#` row is kept rather than dropped, because where it sits decides what it leaves
+        /// out. In a multi-row table a `#` on a record's first row takes the whole record and a
+        /// `#` on an extension row takes only that row's elements - section 6.1 rule 8 - and a
+        /// dropped row cannot say which it was.
+        /// </remarks>
+        public List<DataRow> Rows = [];
+
+        /// <summary>The rows the conversion reads, which is every row not marked `#`.</summary>
+        public IEnumerable<int> DataRows => Rows.Where(r => !r.Omitted).Select(r => r.Row);
 
         /// <summary>What the declaration cell said, for a report that quotes it.</summary>
         public string Written = "";
@@ -537,15 +556,18 @@ public sealed class PrimaryLayoutParser : ILayoutParser
 
             if (value.Length == 0)
             {
-                block.DataRows.Add(row);
+                block.Rows.Add(new DataRow(row, omitted: false));
                 continue;
             }
 
-            // A row left out of the conversion. Not counted as data, so it can also be the
-            // blank line somebody wanted between two groups of rows - section 3.2 sends them
-            // here for exactly that.
+            // A row left out of the conversion. Kept in the list and marked, because where it
+            // sits is what it means - and not counted as data, so it can also be the blank line
+            // somebody wanted between two groups of rows.
             if (value == OmitMark || value == OmitMarkAlternate)
+            {
+                block.Rows.Add(new DataRow(row, omitted: true));
                 continue;
+            }
 
             string key = value.ToLowerInvariant();
 
@@ -567,7 +589,7 @@ public sealed class PrimaryLayoutParser : ILayoutParser
             // **The report a sorted sheet earns.** Sorting a sheet with the header rows inside
             // the selection scatters them through the data, and this is where that shows: a
             // header row below a row of data. Reported at the row that moved.
-            if (block.DataRows.Count > 0)
+            if (block.Rows.Any(r => !r.Omitted))
             {
                 throw new TabbitException(marker!.Location,
                     Message.Of(PrimaryLayoutMessages.RowKeyBelowData,
@@ -657,6 +679,25 @@ public sealed class PrimaryLayoutParser : ILayoutParser
 
         /// <summary>Whether the `:type` cell was blank, which is a statement of its own.</summary>
         public bool TypeWasBlank;
+
+        /// <summary>
+        /// Which level of the path was written `[]`, or null when none was.
+        /// </summary>
+        /// <remarks>
+        /// That level's elements come from the rows below rather than from columns beside, so
+        /// its <see cref="FieldPathStep.Index"/> is left unset until the records are grouped
+        /// and the element columns are built - section 6.
+        /// </remarks>
+        public int? MultiRowLevel;
+
+        /// <summary>Whether this column takes its elements from the rows below.</summary>
+        public bool IsMultiRow => MultiRowLevel is not null;
+
+        /// <summary>
+        /// The path down to and including the `[]` level, which names the group.
+        /// </summary>
+        public string MultiRowGroup
+            => string.Join(".", Path!.Take(MultiRowLevel!.Value + 1).Select(step => step.Name));
     }
 
     /// <summary>
@@ -849,12 +890,19 @@ public sealed class PrimaryLayoutParser : ILayoutParser
 
                 if (digits.Length == 0)
                 {
-                    // `[]` puts the elements on the rows below - step 2 of the spec's order.
-                    // Refused by name so nothing reads it as a plain field in the meantime.
-                    throw new TabbitException(cell.Location,
-                        Message.Of(PrimaryLayoutMessages.MultiRowNotYetSupported,
-                            ("Entity", block.Name), ("Column", written),
-                            ("Example", $"{name}[0]")));
+                    // `[]` says the elements come from the rows below rather than from columns
+                    // beside. The level repeats and which element it holds is the row's answer,
+                    // so it is left unnumbered here and numbered once the records are grouped.
+                    if (header.MultiRowLevel is not null)
+                    {
+                        throw new TabbitException(cell.Location,
+                            Message.Of(PrimaryLayoutMessages.MultiRowNested,
+                                ("Entity", block.Name), ("Column", written)));
+                    }
+
+                    header.MultiRowLevel = steps.Count;
+                    steps.Add(new FieldPathStep { Name = name.ToPascalCase(), Index = null });
+                    continue;
                 }
 
                 if (!int.TryParse(
@@ -889,9 +937,19 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         foreach (var step in steps)
             _context.RequiresIdentifier(step.Name, cell.Location);
 
-        // One level, named, not numbered: a plain field, which the model spells as no path at
-        // all rather than as a path of one.
-        if (steps.Count == 1 && !steps[0].IsIndexed)
+        // A `[]` level beside a numbered one replicates the whole column set per element, which
+        // is the shape section 6.3 refuses along with nested multi-row. Refused by name rather
+        // than half-read, so the notation stays what the document says it is.
+        if (header.IsMultiRow && steps.Any(step => step.IsIndexed))
+        {
+            throw new TabbitException(cell.Location,
+                Message.Of(PrimaryLayoutMessages.MultiRowNested,
+                    ("Entity", block.Name), ("Column", written)));
+        }
+
+        // One level, named, neither numbered nor `[]`: a plain field, which the model spells as
+        // no path at all rather than as a path of one.
+        if (steps.Count == 1 && !steps[0].IsIndexed && !header.IsMultiRow)
             return null;
 
         return steps;
@@ -985,21 +1043,38 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         var headers = ReadColumns(block);
         RequireElementNumbering(block, headers);
 
-        var carried = ParseFields(table, block, headers);
+        // **One `[]` column puts the whole table in multi-row mode** - section 6.1 rule 1. What
+        // changes is where a record ends and where an array's elements come from; every other
+        // rule of the notation is the same.
+        var records = Records(block, headers);
 
-        if (carried.Count == 0)
+        if (records is not null)
+        {
+            // The array's length is the record's rather than the table's, and trimming is how
+            // the model says that: `ElementCountIn` counts back to the last element the sheet
+            // gave a value for. **Not read from the source entry** - a multi-row table trims
+            // whatever a recipe says, because its elements are the rows that exist.
+            table.TrimTrailingArrayElements = true;
+        }
+
+        var sources = ParseFields(table, block, headers, records);
+
+        if (sources.Count == 0)
         {
             throw new TabbitException(block.Location,
                 Message.Of(PrimaryLayoutMessages.NoFieldColumns, ("Entity", block.Name)));
         }
 
-        InheritTypesFromElementZero(table, carried);
+        InheritTypesFromElementZero(table, sources);
 
         // Grouped before the cells are read, because grouping is what gives every element of
         // an array the first one's answer about being optional, and reading a cell asks it.
         _ = table.SerialFields;
 
-        ParseData(table, block, carried);
+        if (records is null)
+            ParseData(table, block, sources);
+        else
+            ParseMultiRowData(table, block, sources, records);
 
         _context.CheckPrimaryIndexValidity(table.Fields[0]);
         _context.AssignTags(table);
@@ -1008,16 +1083,39 @@ public sealed class PrimaryLayoutParser : ILayoutParser
     }
 
     /// <summary>
-    /// Builds a field per column that carries one, and returns those columns in order.
+    /// The column a field came from, and which element of it - null when it is not one.
     /// </summary>
-    private List<ColumnHeader> ParseFields(
-        Models.Table table, EntityBlock block, List<ColumnHeader> headers)
+    /// <remarks>
+    /// One header becomes several fields in multi-row mode: the sheet has one column per member
+    /// and the model has one per element. This is the map back, so reading a cell knows which
+    /// row of the record to take it from.
+    /// </remarks>
+    private sealed class FieldSource
+    {
+        public ColumnHeader Header = null!;
+
+        /// <summary>Which element of the `[]` group, or null for an ordinary column.</summary>
+        public int? Element;
+    }
+
+    /// <summary>
+    /// Builds a field per column that carries one, and returns the columns in field order.
+    /// </summary>
+    /// <remarks>
+    /// A `[]` group is expanded where its first member column sits, element-major - so the
+    /// fields come out in the order the same table written with numbered columns would produce
+    /// them. That order is the wire's, which is what lets the two spellings reach one file.
+    /// </remarks>
+    private List<FieldSource> ParseFields(
+        Models.Table table, EntityBlock block, List<ColumnHeader> headers,
+        List<Record>? records)
     {
         var typeRow = block.Sheet.Rows[block.HeaderRows[RowKeyType]];
         var descRow = RowOrNull(block, RowKeyDesc);
         var targetRow = RowOrNull(block, RowKeyTarget);
 
-        var carried = new List<ColumnHeader>();
+        var sources = new List<FieldSource>();
+        var expanded = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var header in headers)
         {
@@ -1034,54 +1132,122 @@ public sealed class PrimaryLayoutParser : ILayoutParser
                 continue;
             }
 
-            var typeCell = Cell(typeRow, header.Column);
-            var descCell = descRow is null ? null : Cell(descRow, header.Column);
-            var targetCell = targetRow is null ? null : Cell(targetRow, header.Column);
-
-            string name = NameOf(header);
-
-            if (table.ContainsField(name))
+            if (!header.IsMultiRow)
             {
-                throw new TabbitException(header.NameCell.Location,
-                    Message.Of(PrimaryLayoutMessages.ColumnNameDuplicated,
-                        ("Entity", block.Name), ("Column", name)));
+                AddField(table, block, header, null, header.Path,
+                    typeRow, descRow, targetRow, sources);
+                continue;
             }
 
-            var field = new Field
+            // The group as a whole, at the position of whichever of its members comes first.
+            string group = header.MultiRowGroup;
+            if (!expanded.Add(group))
+                continue;
+
+            var members = headers
+                .Where(other => other.IsMultiRow && !other.IsMemo && !other.IsTombstone
+                                && other.MultiRowGroup == group)
+                .ToList();
+
+            int elements = ElementColumnsFor(group, records!);
+
+            for (int element = 0; element < elements; element++)
             {
-                OwnerTable = table,
-                NameLocation = header.NameCell.Location,
-                TypeLocation = typeCell?.Location ?? header.NameCell.Location,
+                foreach (var member in members)
+                {
+                    var path = member.Path!
+                        .Select(step => new FieldPathStep { Name = step.Name, Index = step.Index })
+                        .ToList();
 
-                // One cell holds the whole type in this layout, so a report about the type
-                // points at it whether it is about the name or about what follows it.
-                DetailTypeLocation = typeCell?.Location ?? header.NameCell.Location,
+                    path[member.MultiRowLevel!.Value].Index = element;
 
-                TargetSideLocation = targetCell?.Location ?? block.Location,
-                TargetSide = _context.ParseTargetSide(
-                    NormalizeTargetSide(targetCell?.Value ?? ""),
-                    targetCell?.Location ?? block.Location),
-                Index = table.Fields.Count,
-                Comment = descCell?.Value ?? "",
-                RawName = header.Written,
-                Name = name,
-                Tag = header.WireTag,
-                NamePath = header.Path,
-
-                // The first field column is the primary index until `key` moves it, which is
-                // a step of its own - the declaration refuses that key for now.
-                Indexing = table.Fields.Count == 0 || header.Indexing,
-            };
-
-            _context.RequiresIdentifier(name, header.NameCell.Location);
-
-            ReadType(field, header, typeCell, block);
-
-            table.Fields.Add(field);
-            carried.Add(header);
+                    AddField(table, block, member, element, path,
+                        typeRow, descRow, targetRow, sources);
+                }
+            }
         }
 
-        return carried;
+        return sources;
+    }
+
+    /// <summary>
+    /// How many element columns a `[]` group needs: as many as its longest record.
+    /// </summary>
+    /// <remarks>
+    /// One at least, even where no record filled the group. Zero columns would take the member
+    /// out of the model altogether, and "every row has none of these" is an empty array rather
+    /// than an absent field.
+    /// </remarks>
+    private static int ElementColumnsFor(string group, List<Record> records)
+    {
+        int longest = 0;
+
+        foreach (var record in records)
+        {
+            if (record.Elements.TryGetValue(group, out var rows) && rows.Count > longest)
+                longest = rows.Count;
+        }
+
+        return System.Math.Max(1, longest);
+    }
+
+    /// <summary>Builds one field and records where it came from.</summary>
+    private void AddField(
+        Models.Table table, EntityBlock block, ColumnHeader header, int? element,
+        List<FieldPathStep>? path,
+        List<RawCell> typeRow, List<RawCell>? descRow, List<RawCell>? targetRow,
+        List<FieldSource> sources)
+    {
+        var typeCell = Cell(typeRow, header.Column);
+        var descCell = descRow is null ? null : Cell(descRow, header.Column);
+        var targetCell = targetRow is null ? null : Cell(targetRow, header.Column);
+
+        string name = NameOf(header, path);
+
+        if (table.ContainsField(name))
+        {
+            throw new TabbitException(header.NameCell.Location,
+                Message.Of(PrimaryLayoutMessages.ColumnNameDuplicated,
+                    ("Entity", block.Name), ("Column", name)));
+        }
+
+        var field = new Field
+        {
+            OwnerTable = table,
+            NameLocation = header.NameCell.Location,
+            TypeLocation = typeCell?.Location ?? header.NameCell.Location,
+
+            // One cell holds the whole type in this layout, so a report about the type
+            // points at it whether it is about the name or about what follows it.
+            DetailTypeLocation = typeCell?.Location ?? header.NameCell.Location,
+
+            TargetSideLocation = targetCell?.Location ?? block.Location,
+            TargetSide = _context.ParseTargetSide(
+                NormalizeTargetSide(targetCell?.Value ?? ""),
+                targetCell?.Location ?? block.Location),
+            Index = table.Fields.Count,
+            Comment = descCell?.Value ?? "",
+            RawName = header.Written,
+            Name = name,
+
+            // The tag names a wire column, and a member of a multi-row group is one wire
+            // column however many elements a record holds - so it goes on element zero and
+            // the later elements are the same column seen again.
+            Tag = element is null or 0 ? header.WireTag : null,
+
+            NamePath = path,
+
+            // The first field column is the primary index until `key` moves it, which is
+            // a step of its own - the declaration refuses that key for now.
+            Indexing = table.Fields.Count == 0 || header.Indexing,
+        };
+
+        _context.RequiresIdentifier(name, header.NameCell.Location);
+
+        ReadType(field, header, typeCell, block);
+
+        table.Fields.Add(field);
+        sources.Add(new FieldSource { Header = header, Element = element });
     }
 
     /// <summary>
@@ -1099,11 +1265,11 @@ public sealed class PrimaryLayoutParser : ILayoutParser
     /// <see cref="ModelCooker"/> binds it once the declarations are in.
     /// </remarks>
     private static void InheritTypesFromElementZero(
-        Models.Table table, List<ColumnHeader> carried)
+        Models.Table table, List<FieldSource> sources)
     {
-        for (int at = 0; at < carried.Count; at++)
+        for (int at = 0; at < sources.Count; at++)
         {
-            if (!carried[at].TypeWasBlank)
+            if (!sources[at].Header.TypeWasBlank)
                 continue;
 
             var field = table.Fields[at];
@@ -1112,9 +1278,9 @@ public sealed class PrimaryLayoutParser : ILayoutParser
 
             string wanted = MemberKey(field.NamePath);
 
-            for (int other = 0; other < carried.Count; other++)
+            for (int other = 0; other < sources.Count; other++)
             {
-                if (other == at || carried[other].TypeWasBlank)
+                if (other == at || sources[other].Header.TypeWasBlank)
                     continue;
 
                 var source = table.Fields[other];
@@ -1161,12 +1327,12 @@ public sealed class PrimaryLayoutParser : ILayoutParser
     /// spelling rules keep working untouched. The path is what a consumer sees - `Slots[0].Id`
     /// - and this is what the tool calls the column while it works.
     /// </remarks>
-    private static string NameOf(ColumnHeader header)
+    private static string NameOf(ColumnHeader header, List<FieldPathStep>? path)
     {
-        if (header.Path is null)
+        if (path is null)
             return header.Written.ToPascalCase();
 
-        return string.Concat(header.Path.Select(
+        return string.Concat(path.Select(
             step => step.Name + (step.Index?.ToString(CultureInfo.InvariantCulture) ?? "")));
     }
 
@@ -1242,6 +1408,16 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         }
 
         header.HoldsArray = isArray;
+
+        // The name says the elements come from the rows below and the type says they come from
+        // inside the cell. Both at once is an array of arrays per row, which section 5.1 refuses
+        // for the first pass - and reading it as either one would be picking for the author.
+        if (isArray && header.IsMultiRow)
+        {
+            throw new TabbitException(at,
+                Message.Of(PrimaryLayoutMessages.MultiRowCellArray,
+                    ("Entity", block.Name), ("Column", field.Name), ("Written", written)));
+        }
 
         if (ReadReferenceType(field, expression, isArray, at, block))
             return;
@@ -1374,43 +1550,321 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         return true;
     }
 
-    private void ParseData(Models.Table table, EntityBlock block, List<ColumnHeader> carried)
+    private void ParseData(Models.Table table, EntityBlock block, List<FieldSource> sources)
     {
         foreach (int rowIndex in block.DataRows)
         {
-            var cells = block.Sheet.Rows[rowIndex];
+            var row = new List<Cell>();
+
+            for (int at = 0; at < table.Fields.Count; at++)
+            {
+                row.Add(ReadCellAt(
+                    table, block, table.Fields[at], rowIndex, sources[at].Header.Column));
+            }
+
+            table.Data.Add(row);
+        }
+    }
+
+    /// <summary>
+    /// Reads one cell of one row into the value its column's type says it is.
+    /// </summary>
+    /// <remarks>
+    /// Shared by the two ways this layout walks the data - a row per record, or a record per
+    /// group of rows - so what a cell says cannot come to depend on which one read it.
+    /// </remarks>
+    private Cell ReadCellAt(
+        Models.Table table, EntityBlock block, Field field, int rowIndex, int column)
+    {
+        var cells = block.Sheet.Rows[rowIndex];
+
+        var rawCell = Cell(cells, column)
+                      ?? throw new TabbitDefectException(
+                          $"Column {column} of `{table.Name}` is outside the row.");
+
+        // What the cell says, decided in one place for every layout: `-` is no value, `\-` is
+        // the one character `-`, and a blank is whatever the column's type reads a blank as.
+        var reading = _context.ReadCell(
+            field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
+            block.Sheet.Layout.ArrayDelimiter,
+            required: field.IsRequired,
+            onBlankCell: block.Sheet.Layout.OnBlankCell,
+            isReference: field.IsRef,
+            column: $"{table.Name}.{field.Name}",
+            elementsRequired: field.ElementsRequired,
+            formulaError: rawCell.FormulaError,
+            onFormulaError: block.Sheet.Layout.OnFormulaError,
+            timeZone: block.Sheet.Layout.TimeZone);
+
+        return new Cell
+        {
+            RawCell = rawCell,
+            Value = reading.Value,
+            HasValue = reading.HasValue,
+            ElementHasValue = reading.ElementHasValue,
+        };
+    }
+
+    #endregion
+
+    #region Multi-row - spec section 6
+
+    /// <summary>
+    /// One record of a multi-row table: the rows it spans, and which of them are elements.
+    /// </summary>
+    private sealed class Record
+    {
+        /// <summary>The row the primary index was written on, which the scalars come from.</summary>
+        public int FirstRow;
+
+        /// <summary>Every row of the record, the first one included, `#` rows left out.</summary>
+        public List<int> Rows = [];
+
+        /// <summary>
+        /// Per `[]` group, the rows that hold an element of it - section 6.1 rule 4.
+        /// </summary>
+        /// <remarks>
+        /// Per group and not per record, because the groups stack independently: two of them
+        /// side by side can be different lengths and a row holding one is not holding the other.
+        /// Rule 5, which is what a reader gets wrong first.
+        /// </remarks>
+        public Dictionary<string, List<int>> Elements = new(StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// Groups the entity's rows into records, or answers null when this table has no `[]`.
+    /// </summary>
+    /// <remarks>
+    /// **The signal is the primary index cell** - section 6.1 rule 2. A row that fills it starts
+    /// a record and a row that leaves it blank extends the one above, which narrows the question
+    /// to one cell: the layout this notation came from asked whether every non-element column
+    /// was blank, and under that rule a stray scalar on an extension row made it a new record
+    /// and the report said the key was missing - pointing somewhere the author had not typed.
+    ///
+    /// Here a stray scalar is rule 3's report, at the cell holding it, and a key typed onto a
+    /// row meant as an extension becomes a record whose scalars are blank - which the blank-cell
+    /// policy catches. Section 6.2.
+    /// </remarks>
+    private List<Record>? Records(EntityBlock block, List<ColumnHeader> headers)
+    {
+        var groups = headers
+            .Where(header => header.IsMultiRow && !header.IsMemo && !header.IsTombstone)
+            .Select(header => header.MultiRowGroup)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (groups.Count == 0)
+            return null;
+
+        int indexColumn = PrimaryIndexColumn(block, headers);
+        var records = new List<Record>();
+
+        foreach (var row in block.Rows)
+        {
+            var cells = block.Sheet.Rows[row.Row];
+            bool starts = (Cell(cells, indexColumn)?.Value ?? "").Trim().Length > 0;
+
+            if (starts)
+            {
+                // A `#` on a record's first row takes the record with it, extension rows and
+                // all - rule 8. It is added with no rows so that the extension rows below it
+                // attach to it rather than to the record above.
+                if (row.Omitted)
+                {
+                    records.Add(new Record { FirstRow = row.Row, Rows = [] });
+                    continue;
+                }
+
+                var started = new Record { FirstRow = row.Row };
+                started.Rows.Add(row.Row);
+                records.Add(started);
+
+                CollectElements(block, headers, groups, started, row.Row);
+                continue;
+            }
+
+            // An extension row before any record has begun. Reported rather than dropped: the
+            // author wrote values somewhere nothing can hold them.
+            if (records.Count == 0)
+            {
+                throw new TabbitException(
+                    Cell(cells, indexColumn)?.Location ?? block.Location,
+                    Message.Of(PrimaryLayoutMessages.ExtensionRowWithoutRecord,
+                        ("Entity", block.Name)));
+            }
+
+            // A `#` on an extension row takes only that row's elements - rule 8.
+            if (row.Omitted)
+                continue;
+
+            RefuseScalarsOnExtensionRow(block, headers, row.Row);
+
+            var current = records[^1];
+
+            // The record this extends was left out by a `#` of its own, so its rows are not
+            // read either. Rule 3 was still applied above, because a value written where only
+            // `[]` belongs is worth reporting whether or not the record survives.
+            if (current.Rows.Count == 0)
+                continue;
+
+            current.Rows.Add(row.Row);
+            CollectElements(block, headers, groups, current, row.Row);
+        }
+
+        return records.Where(record => record.Rows.Count > 0).ToList();
+    }
+
+    /// <summary>
+    /// The column the primary index is written in, which is the first column carrying a field.
+    /// </summary>
+    private int PrimaryIndexColumn(EntityBlock block, List<ColumnHeader> headers)
+    {
+        var first = headers.Find(header => !header.IsMemo && !header.IsTombstone);
+
+        if (first is null)
+        {
+            throw new TabbitException(block.Location,
+                Message.Of(PrimaryLayoutMessages.NoFieldColumns, ("Entity", block.Name)));
+        }
+
+        // An index addresses a row by one value, and an array is not one. Rule 9, which is the
+        // existing rule about what may index a table rather than a new one.
+        if (first.IsMultiRow)
+        {
+            throw new TabbitException(first.NameCell.Location,
+                Message.Of(PrimaryLayoutMessages.MultiRowOnIndexColumn,
+                    ("Entity", block.Name), ("Column", first.Written)));
+        }
+
+        return first.Column;
+    }
+
+    /// <summary>
+    /// Notes which `[]` groups this row holds an element of - section 6.1 rule 4.
+    /// </summary>
+    /// <remarks>
+    /// A group's range holding any value makes the row one of its elements, and holding none
+    /// makes it none - so two groups beside each other fill up independently and a row that is
+    /// the third element of one may be the first of the other.
+    /// </remarks>
+    private static void CollectElements(
+        EntityBlock block, List<ColumnHeader> headers, List<string> groups,
+        Record record, int row)
+    {
+        var cells = block.Sheet.Rows[row];
+
+        foreach (string group in groups)
+        {
+            bool any = headers.Any(
+                header => header.IsMultiRow && !header.IsMemo && !header.IsTombstone
+                          && header.MultiRowGroup == group
+                          && (Cell(cells, header.Column)?.Value ?? "").Length > 0);
+
+            if (!any)
+                continue;
+
+            if (!record.Elements.TryGetValue(group, out var rows))
+            {
+                rows = [];
+                record.Elements[group] = rows;
+            }
+
+            rows.Add(row);
+        }
+    }
+
+    /// <summary>
+    /// Reports a value on an extension row in a column that is not `[]` - rule 3.
+    /// </summary>
+    /// <remarks>
+    /// **The report points at the cell holding the value**, and says the row it belongs on.
+    /// That is the whole of section 6.2: the mistake and the message are in the same place,
+    /// where the layout this came from named a different row and a different problem.
+    /// </remarks>
+    private static void RefuseScalarsOnExtensionRow(
+        EntityBlock block, List<ColumnHeader> headers, int row)
+    {
+        var cells = block.Sheet.Rows[row];
+
+        foreach (var header in headers)
+        {
+            if (header.IsMemo || header.IsTombstone || header.IsMultiRow)
+                continue;
+
+            var cell = Cell(cells, header.Column);
+            if (cell is null || cell.Value.Length == 0)
+                continue;
+
+            throw new TabbitException(cell.Location,
+                Message.Of(PrimaryLayoutMessages.ExtensionRowHasScalarValue,
+                    ("Entity", block.Name), ("Column", header.Written),
+                    ("Value", cell.Value)));
+        }
+    }
+
+    /// <summary>
+    /// Reads a multi-row table: one model row per record, elements taken from its rows.
+    /// </summary>
+    /// <remarks>
+    /// An element the record does not reach is written as no value, which is what makes the
+    /// array end where the rows did - `Table.ElementCountIn` counts back to the last element a
+    /// sheet gave a value for, and this is the sheet saying it gave none.
+    /// </remarks>
+    private void ParseMultiRowData(
+        Models.Table table, EntityBlock block, List<FieldSource> sources, List<Record> records)
+    {
+        foreach (var record in records)
+        {
             var row = new List<Cell>();
 
             for (int at = 0; at < table.Fields.Count; at++)
             {
                 var field = table.Fields[at];
-                var rawCell = Cell(cells, carried[at].Column)
-                              ?? throw new TabbitDefectException(
-                                  $"Column {carried[at].Column} of `{table.Name}` is outside the row.");
+                var source = sources[at];
 
-                var reading = _context.ReadCell(
-                    field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
-                    block.Sheet.Layout.ArrayDelimiter,
-                    required: field.IsRequired,
-                    onBlankCell: block.Sheet.Layout.OnBlankCell,
-                    isReference: field.IsRef,
-                    column: $"{table.Name}.{field.Name}",
-                    elementsRequired: field.ElementsRequired,
-                    formulaError: rawCell.FormulaError,
-                    onFormulaError: block.Sheet.Layout.OnFormulaError,
-                    timeZone: block.Sheet.Layout.TimeZone);
+                int? from = SourceRow(record, source);
 
-                row.Add(new Cell
-                {
-                    RawCell = rawCell,
-                    Value = reading.Value,
-                    HasValue = reading.HasValue,
-                    ElementHasValue = reading.ElementHasValue,
-                });
+                row.Add(from is null
+                    ? NoValueCell(block, record.FirstRow, source, field)
+                    : ReadCellAt(table, block, field, from.Value, source.Header.Column));
             }
 
             table.Data.Add(row);
         }
+    }
+
+    /// <summary>
+    /// Which row of a record a field's value comes from, or null for an element it has not got.
+    /// </summary>
+    private static int? SourceRow(Record record, FieldSource source)
+    {
+        if (source.Element is not { } element)
+            return record.FirstRow;
+
+        return record.Elements.TryGetValue(source.Header.MultiRowGroup, out var rows)
+               && element < rows.Count
+            ? rows[element]
+            : null;
+    }
+
+    /// <summary>An element this record has no row for.</summary>
+    /// <remarks>
+    /// `HasValue` is false rather than the type's blank being written, because those are
+    /// different statements and only this one shortens the array. The cell it points at is the
+    /// record's own, so nothing downstream holds a location from another record.
+    /// </remarks>
+    private static Cell NoValueCell(
+        EntityBlock block, int anchorRow, FieldSource source, Field field)
+    {
+        var anchor = Cell(block.Sheet.Rows[anchorRow], source.Header.Column)
+                     ?? block.Sheet.Rows[anchorRow][0];
+
+        return new Cell
+        {
+            RawCell = anchor,
+            Value = CookingContext.EmptyValueOfType(field.Type),
+            HasValue = false,
+        };
     }
 
     #endregion

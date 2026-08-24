@@ -27,7 +27,11 @@
   "primary.repeated-index-mark": "{Entity}의 컬럼 {Column} 앞에 `*`가 둘 이상 있습니다. 보조 인덱스는 `*` 하나로 표시합니다.",
   "primary.index-mark-on-group-member": "{Entity}의 컬럼 {Column}에 `*`가 붙어 있고, 이 컬럼은 {Group}의 멤버입니다. 인덱스는 행을 그 행 자신의 필드로 가리킵니다.",
 
-  "primary.multi-row-not-yet-supported": "{Entity}의 컬럼 {Column:이} `[]`로 적혀 있습니다 — 레코드의 원소를 아래 행들에서 받는 표기입니다. 이 빌드는 아직 읽지 않습니다. 원소를 번호 붙은 컬럼으로 적거나(`{Example}`), 셀 하나에 구분자로 적으십시오.",
+  "primary.multi-row-nested": "{Entity}의 컬럼 {Column:이} `[]`를 또 하나의 반복 레벨 옆에 적었습니다. `[]` 그룹의 멤버가 다시 반복하면 컬럼 집합 전체가 원소마다 복제되는 형태가 되고, 이 레이아웃은 그것을 읽지 않습니다. 안쪽 배열은 셀 구분자나 번호 붙은 컬럼으로 적으십시오.",
+  "primary.multi-row-cell-array": "{Entity}의 컬럼 {Column:이} `[]`로 적혀 있고 타입은 {Written}입니다. 이름은 원소가 아래 행들에서 온다고 말하고 타입은 셀 안에서 온다고 말하므로, 행마다 배열을 담는 형태가 됩니다 — 이 레이아웃은 그것을 읽지 않습니다. 원소가 오는 자리를 하나만 고르십시오.",
+  "primary.multi-row-on-index-column": "{Entity}의 컬럼 {Column:이} `[]`로 적혀 있고, 기본 인덱스를 읽는 컬럼입니다. 인덱스는 값 하나로 행 하나를 가리키는 것이므로 배열은 인덱스가 될 수 없습니다.",
+  "primary.extension-row-has-scalar-value": "{Entity}의 컬럼 {Column}에 {Value:가} 적혀 있는데, 그 행은 위 레코드의 연장 행입니다. 연장 행에서 값을 담는 것은 `[]` 컬럼뿐이고, 이 값은 레코드의 첫 행에 적습니다. 새 레코드를 뜻한 것이라면 인덱스를 적으십시오.",
+  "primary.extension-row-without-record": "{Entity}에 인덱스 값이 없는 행이 레코드가 시작되기 전에 있습니다. 인덱스를 비운 행은 위 레코드의 연장이고, 여기에는 위 레코드가 없습니다.",
   "primary.variant-not-yet-supported": "{Entity}에 `:variant` 행이 있습니다. 이 빌드는 아직 읽지 않으므로, 그 행이 가리키는 컬럼이 모두 필드 자체로 읽힙니다.",
   "primary.column-meta-not-yet-supported": "{Entity}의 컬럼 {Column:이} {Written} 타입인데, 첫 `(`부터는 이 빌드가 아직 읽지 않는 메타입니다. 타입만 적으십시오 — `{Bare}`처럼.",
   "primary.key-meta-not-yet-supported": "{Written:이} `key`를 설정합니다 — 기본 인덱스를 첫 컬럼에서 옮기는 키입니다. 이 빌드는 아직 읽지 않으므로 첫 필드 컬럼이 기본 인덱스입니다.",

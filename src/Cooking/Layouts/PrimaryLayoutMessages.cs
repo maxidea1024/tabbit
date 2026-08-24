@@ -107,10 +107,26 @@ public static class PrimaryLayoutMessages
 
     #endregion
 
-    #region Not yet in this layout
+    #region Multi-row
 
-    /// <summary>A `[]` multi-row column, which arrives with step 2.</summary>
-    public const string MultiRowNotYetSupported = "primary.multi-row-not-yet-supported";
+    /// <summary>A `[]` level beside another `[]` or a numbered one.</summary>
+    public const string MultiRowNested = "primary.multi-row-nested";
+
+    /// <summary>A `[]` column whose type is also an array, so a row would hold an array.</summary>
+    public const string MultiRowCellArray = "primary.multi-row-cell-array";
+
+    /// <summary>A `[]` column in the place the primary index is read from.</summary>
+    public const string MultiRowOnIndexColumn = "primary.multi-row-on-index-column";
+
+    /// <summary>A value on an extension row in a column that is not `[]`.</summary>
+    public const string ExtensionRowHasScalarValue = "primary.extension-row-has-scalar-value";
+
+    /// <summary>An extension row before any record has begun.</summary>
+    public const string ExtensionRowWithoutRecord = "primary.extension-row-without-record";
+
+    #endregion
+
+    #region Not yet in this layout
 
     /// <summary>A `:variant` row, which arrives with step 3'.</summary>
     public const string VariantNotYetSupported = "primary.variant-not-yet-supported";

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using NPOI.XSSF.UserModel;
 
@@ -52,6 +53,10 @@ internal static class Program
         // One record, written into one cell and written as its own columns.
         WritePrimaryEquivalence(
             Prepare(outputDir, "primary-equiv", "primary-equiv.xlsx"), primary: true);
+        WriteMultiRowEquivalence(
+            Prepare(outputDir, "multirow-rows", "multirow-rows.xlsx"), multiRow: true);
+        WriteMultiRowEquivalence(
+            Prepare(outputDir, "multirow-columns", "multirow-columns.xlsx"), multiRow: false);
         WritePrimaryEquivalence(
             Prepare(outputDir, "primary-equiv-old", "primary-equiv-old.xlsx"), primary: false);
         WritePacked(Prepare(outputDir, "packed", "packed.xlsx"), inOneCell: true);
@@ -1047,6 +1052,106 @@ internal static class Program
     ///
     /// notes/struct-dsl-design.md section 7.3.
     /// </remarks>
+    /// <summary>
+    /// The same array data written as numbered columns and as rows.
+    /// </summary>
+    /// <remarks>
+    /// **The pair is gate 2.** Section 5.1 of the spec says the three places an array can be
+    /// written reach one wire, and this is the claim for two of them: a record whose elements
+    /// sit in columns beside it and a record whose elements sit in rows below it must produce
+    /// the same file. What fails here is an element read into the wrong slot, an array that did
+    /// not end where the rows did, and a record boundary found in the wrong place.
+    ///
+    /// The members are optional because that is how a cell says it has no value, which is what
+    /// the trim reads - the numbered side writes `-` in the elements a record does not reach.
+    /// The multi-row side has no cell to write it in and says the same thing by having no row.
+    ///
+    /// One list of records feeds both sheets, so the two cannot drift apart.
+    /// </remarks>
+    private static void WriteMultiRowEquivalence(string path, bool multiRow)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Loot"));
+
+        // code, name, then the rewards - as many as the record has.
+        var records = new (string Code, string Name, (string Id, string Count)[] Rewards)[]
+        {
+            ("1", "first", [("10", "1"), ("11", "2")]),
+            ("2", "second", [("20", "5")]),
+            ("3", "third", [("30", "1"), ("31", "2"), ("32", "3")]),
+
+            // A record with no elements at all, which is an empty array rather than an absent
+            // one - and on the multi-row side is a record of exactly one row.
+            ("4", "fourth", []),
+        };
+
+        int longest = 0;
+        foreach (var record in records)
+        {
+            if (record.Rewards.Length > longest)
+                longest = record.Rewards.Length;
+        }
+
+        var spec = new TableSpec
+        {
+            Name = "Loot",
+            Comment = "An array written two ways, which must reach one file.",
+        };
+
+        spec.Field(FieldSpec.Of("code", "int", "primary index"));
+        spec.Field(FieldSpec.Of("name", "string", "a plain column, which must not move"));
+
+        if (multiRow)
+        {
+            spec.Field(FieldSpec.Of("reward[].id", "int?", "an element"));
+            spec.Field(FieldSpec.Of("reward[].count", "int?", "an element"));
+
+            foreach (var record in records)
+            {
+                // The record's first row carries the scalars and its first element.
+                spec.Row(
+                    record.Code, record.Name,
+                    record.Rewards.Length > 0 ? record.Rewards[0].Id : "",
+                    record.Rewards.Length > 0 ? record.Rewards[0].Count : "");
+
+                // Every element after the first is a row that leaves the index blank.
+                for (int at = 1; at < record.Rewards.Length; at++)
+                    spec.Row("", "", record.Rewards[at].Id, record.Rewards[at].Count);
+            }
+        }
+        else
+        {
+            for (int element = 0; element < longest; element++)
+            {
+                spec.Field(FieldSpec.Of($"reward[{element}].id", element == 0 ? "int?" : "",
+                                        "an element"));
+                spec.Field(FieldSpec.Of($"reward[{element}].count", element == 0 ? "int?" : "",
+                                        "an element"));
+            }
+
+            foreach (var record in records)
+            {
+                var cells = new List<string> { record.Code, record.Name };
+
+                for (int element = 0; element < longest; element++)
+                {
+                    bool has = element < record.Rewards.Length;
+
+                    // `-` is a cell saying it has no value, which is what the trim counts back
+                    // over. A blank would be the type reading a blank, which is a value.
+                    cells.Add(has ? record.Rewards[element].Id : "-");
+                    cells.Add(has ? record.Rewards[element].Count : "-");
+                }
+
+                spec.Row([.. cells]);
+            }
+        }
+
+        b.PrimaryTable(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
     /// <summary>
     /// The same tables written in the old notation and in the primary layout.
     /// </summary>
