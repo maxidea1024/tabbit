@@ -716,7 +716,8 @@ struct HealEffect extends Effect
 
 **이 문법은 지금 확정하지 않습니다.** [검토 §5](struct-dsl-review.md)의 결론대로 **와이어
 설계의 성립 여부가 먼저**이고, 그전에 `abstract` · `extends`를 확정하면 성립하지 않았을 때
-지울 수 없는 문법이 남습니다. 그때까지 다형은 [다중 대상 참조](../spec/multi-target-accessors.md)로
+지울 수 없는 문법이 남습니다. **그 확인이 [다형과 참조 배열](../spec/polymorphism.md)이고, 이
+절이 남긴 3가지를 그 문서 §5.1이 정합니다.** 그때까지 다형은 [다중 대상 참조](../spec/multi-target-accessors.md)로
 표현합니다 — 판별자와 변종별 접근자가 모든 언어에 이미 있습니다.
 
 확정할 때 함께 정해야 하는 것이 3가지입니다 — **기반 struct에 필드를 둘 수 있는가**(상속이
