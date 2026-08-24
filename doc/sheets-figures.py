@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """sheets.md 의 예시를 엑셀 격자 모습의 SVG로 생성한다.
 
+실행: `python doc/sheets-figures.py`
+
 같은 폴더에 sheets-*.svg 를 다시 씁니다. 예시를 고치면 이 파일을 고치고 다시 실행한 뒤,
 PNG로 렌더해 눈으로 확인하고 커밋합니다.
 
