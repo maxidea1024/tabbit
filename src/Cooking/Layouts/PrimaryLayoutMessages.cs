@@ -83,6 +83,12 @@ public static class PrimaryLayoutMessages
     /// <summary>A type cell whose bracket meta never closes.</summary>
     public const string ColumnMetaUnclosed = "primary.column-meta-unclosed";
 
+    /// <summary>A `key` naming a column the entity does not have.</summary>
+    public const string KeyColumnNotFound = "primary.key-column-not-found";
+
+    /// <summary>A `key` naming a column that is not one value of the row itself.</summary>
+    public const string KeyColumnNotScalar = "primary.key-column-not-scalar";
+
     #endregion
 
     #region Column paths
@@ -134,10 +140,8 @@ public static class PrimaryLayoutMessages
     /// <summary>A `:field` name this layout reserves for a notation a later spec settles.</summary>
     public const string ReservedColumnNotYetSupported = "primary.reserved-column-not-yet-supported";
 
-    /// <summary>
-    /// A `key` on a declaration, which moves the primary index off the first column.
-    /// </summary>
-    public const string KeyMetaNotYetSupported = "primary.key-meta-not-yet-supported";
+    /// <summary>A `key` naming several columns, whose lookup surface is a step of its own.</summary>
+    public const string CompositeKeyNotYetSupported = "primary.composite-key-not-yet-supported";
 
     #endregion
 

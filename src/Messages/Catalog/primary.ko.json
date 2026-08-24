@@ -40,7 +40,9 @@
   "primary.variant-on-group-column": "{Entity}의 컬럼 {Column:이} 변형을 갖는데, 이 컬럼은 그룹의 일부입니다. 그룹의 변형은 컬럼 집합 전체가 변형마다 복제되는 형태라 이 빌드는 읽지 않습니다 — 변형을 별도 필드로 적으십시오.",
   "primary.reserved-column-not-yet-supported": "{Entity}의 컬럼 {Column:은} 이 레이아웃이 예약한 이름입니다. `:type`은 다형 레코드의 변종을, `:key`는 map의 키를, `:value`는 셀 하나에 압축한 변종의 값을 가리킵니다 — 각자 그 뜻을 정하는 와이어 설계를 기다리고 있고 아직 아무것도 읽지 않습니다. 예약된 이름은 {Reserved}입니다.",
   "primary.column-meta-unclosed": "{Entity}의 컬럼 {Column:이} {Written} 타입인데, 여는 괄호만 있고 닫는 괄호가 없습니다. 첫 `(`부터가 컬럼 메타입니다 — `int (min=0, max=100)`처럼.",
-  "primary.key-meta-not-yet-supported": "{Written:이} `key`를 설정합니다 — 기본 인덱스를 첫 컬럼에서 옮기는 키입니다. 이 빌드는 아직 읽지 않으므로 첫 필드 컬럼이 기본 인덱스입니다.",
+  "primary.composite-key-not-yet-supported": "{Entity}의 `key`가 {Written:인데}, 컬럼을 둘 이상 지목합니다. 복합 키는 모든 언어의 생성 코드가 내는 조회를 바꾸므로(`FindByKey(a, b)`) 별도 단계이고, 여기서는 첫 성분으로 읽지 않고 거절합니다.",
+  "primary.key-column-not-found": "{Entity}의 `key`가 {Key:를} 지목하는데 그 이름의 컬럼이 없습니다. 이 엔티티의 컬럼은 {Known}입니다.",
+  "primary.key-column-not-scalar": "{Entity}의 `key`가 {Key:를} 지목하는데, 그것은 자기 컬럼이 아니라 그룹의 일부입니다. 행은 자기 컬럼 하나의 값 하나로 가리켜집니다.",
 
   "primary.enum-column-unknown": "enum {Entity}에 {Column} 이름의 컬럼이 있는데, 이 레이아웃이 정의하지 않는 이름입니다. 받는 이름은 {Known}입니다.",
   "primary.enum-column-missing": "enum {Entity}에 {Column} 컬럼이 없습니다. 필수 컬럼입니다.",

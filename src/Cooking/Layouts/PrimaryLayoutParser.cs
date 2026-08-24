@@ -336,15 +336,6 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         string name = rest.ToPascalCase();
         _context.RequiresIdentifier(name, cell.Location);
 
-        // Recognized and refused rather than ignored. Moving the primary index off the first
-        // column is a statement about the row's identity, and a setting that is quietly
-        // dropped would leave a table indexed by a column its author did not choose.
-        if (meta.TryGetValue("key", out var key))
-        {
-            throw new TabbitException(key.At,
-                Message.Of(PrimaryLayoutMessages.KeyMetaNotYetSupported, ("Written", written)));
-        }
-
         var cells = sheet.Rows[row];
 
         return new EntityBlock
@@ -1133,6 +1124,7 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         }
 
         InheritTypesFromElementZero(table, sources);
+        ApplyKeyMeta(table, block, sources);
 
         // Grouped before the cells are read, because grouping is what gives every element of
         // an array the first one's answer about being optional, and reading a cell asks it.
@@ -1143,7 +1135,7 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         else
             ParseMultiRowData(table, block, sources, records);
 
-        _context.CheckPrimaryIndexValidity(table.Fields[0]);
+        _context.CheckPrimaryIndexValidity(table.PrimaryIndexField!);
         _context.AssignTags(table);
 
         return table;
@@ -1709,6 +1701,66 @@ public sealed class PrimaryLayoutParser : ILayoutParser
 
     #endregion
 
+    /// <summary>
+    /// Moves the primary index onto the column the declaration named - section 3.5.
+    /// </summary>
+    /// <remarks>
+    /// **The columns do not move.** What a `key` says is which column addresses a row, and that
+    /// is a different question from where the column sits - so the wire carries exactly what it
+    /// carried and only the index changes. `Table.PrimaryIndexName` is where the model holds the
+    /// answer.
+    ///
+    /// A composite key is a list, and the lookup surface it implies is a step of its own - so a
+    /// list is refused here by name rather than read as its first component.
+    /// </remarks>
+    private void ApplyKeyMeta(
+        Models.Table table, EntityBlock block, List<FieldSource> sources)
+    {
+        if (!block.Meta.TryGetValue("key", out var key))
+            return;
+
+        string written = key.Value.Trim();
+
+        if (written.Contains(',') || written.Contains(';'))
+        {
+            throw new TabbitException(key.At,
+                Message.Of(PrimaryLayoutMessages.CompositeKeyNotYetSupported,
+                    ("Entity", block.Name), ("Written", written)));
+        }
+
+        string name = written.ToPascalCase();
+
+        var field = table.Fields.Find(column => column.Name == name);
+
+        if (field is null)
+        {
+            throw new TabbitException(key.At,
+                Message.Of(PrimaryLayoutMessages.KeyColumnNotFound,
+                    ("Entity", block.Name), ("Key", written),
+                    ("Known", string.Join(", ", table.Fields
+                        .Where(column => column.NamePath is null)
+                        .Select(column => column.Name)))));
+        }
+
+        // A key is one value of one column of the row itself, which is what these three say
+        // between them: a member of a group is not a column of its own, and an array is not one
+        // value. The same rules the first column has always been held to.
+        if (field.NamePath is not null)
+        {
+            throw new TabbitException(key.At,
+                Message.Of(PrimaryLayoutMessages.KeyColumnNotScalar,
+                    ("Entity", block.Name), ("Key", field.Name)));
+        }
+
+        table.PrimaryIndexName = field.Name;
+        field.Indexing = true;
+
+        // The first column stops being the index and becomes an ordinary field - unless it also
+        // asked to be a secondary one, which is a `*` it wrote for itself.
+        if (!ReferenceEquals(table.Fields[0], field) && !sources[0].Header.Indexing)
+            table.Fields[0].Indexing = false;
+    }
+
     #region Field variants - spec section 3.6
 
     /// <summary>
@@ -1998,7 +2050,17 @@ public sealed class PrimaryLayoutParser : ILayoutParser
     /// </summary>
     private int PrimaryIndexColumn(EntityBlock block, List<ColumnHeader> headers)
     {
-        var first = headers.Find(header => !header.IsMemo && !header.IsTombstone);
+        // Whichever column the key is, which is the first one unless the declaration named
+        // another - section 3.5. The record boundary is the key's cell, so it moves with it.
+        string named = block.Meta.TryGetValue("key", out var key)
+            ? key.Value.Trim().ToPascalCase()
+            : "";
+
+        var first = named.Length > 0
+            ? headers.Find(header => !header.IsMemo && !header.IsTombstone
+                                     && NameOf(header, header.Path) == named)
+              ?? headers.Find(header => !header.IsMemo && !header.IsTombstone)
+            : headers.Find(header => !header.IsMemo && !header.IsTombstone);
 
         if (first is null)
         {

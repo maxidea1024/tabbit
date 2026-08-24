@@ -1366,6 +1366,109 @@ public class PrimaryLayoutTests
 
     #endregion
 
+    #region The key meta - section 3.5
+
+    [Fact]
+    public void The_key_meta_moves_the_primary_index_without_moving_a_column()
+    {
+        var model = Cook(Sheet(
+            [":table Item(key=sku)", "an item"],
+            [":field", "seq", "sku", "name"],
+            [":type", "int", "string", "string"],
+            ["", "1", "A-1", "sword"],
+            ["", "2", "A-2", "shield"]));
+
+        var table = Assert.Single(model.Tables);
+
+        // The columns are where the sheet put them. What moved is which one addresses a row.
+        Assert.Equal(["Seq", "Sku", "Name"], table.Fields.Select(f => f.Name));
+        Assert.Equal("Sku", table.PrimaryIndexField!.Name);
+
+        // And the first column is an ordinary field now.
+        Assert.False(table.Fields[0].Indexing);
+        Assert.True(table.Fields[1].Indexing);
+    }
+
+    [Fact]
+    public void The_first_column_keeps_its_own_star_when_the_key_moves()
+    {
+        var model = Cook(Sheet(
+            [":table Item(key=sku)", "an item"],
+            [":field", "*seq", "sku"],
+            [":type", "int", "string"],
+            ["", "1", "A-1"]));
+
+        var table = Assert.Single(model.Tables);
+
+        // It asked to be an index for itself, so losing the primary one does not take that.
+        Assert.True(table.Fields[0].Indexing);
+        Assert.Equal("Sku", table.PrimaryIndexField!.Name);
+    }
+
+    [Fact]
+    public void A_key_naming_a_column_that_is_not_there_is_reported_with_the_ones_that_are()
+    {
+        var problem = Refuses(Sheet(
+            [":table Item(key=code)", "an item"],
+            [":field", "seq", "sku"],
+            [":type", "int", "string"],
+            ["", "1", "A-1"]));
+
+        Assert.Contains("code", problem.Message);
+        Assert.Contains("Sku", problem.Message);
+    }
+
+    [Fact]
+    public void A_key_naming_a_group_member_is_reported()
+    {
+        var problem = Refuses(Sheet(
+            [":table Item(key=posX)", "an item"],
+            [":field", "seq", "pos.x"],
+            [":type", "int", "float"],
+            ["", "1", "1.5"]));
+
+        Assert.Contains("PosX", problem.Message);
+    }
+
+    [Fact]
+    public void A_composite_key_is_refused_by_name()
+    {
+        // The lookup every generated reader offers changes shape, which is a step of its own.
+        var problem = Refuses(Sheet(
+            [":table Item(key=\"stage,slot\")", "an item"],
+            [":field", "stage", "slot"],
+            [":type", "int", "int"],
+            ["", "1", "2"]));
+
+        Assert.Contains("stage,slot", problem.Message);
+    }
+
+    [Fact]
+    public void The_record_boundary_of_a_multi_row_table_moves_with_the_key()
+    {
+        // Section 6.1 rule 2 reads the key's cell, so naming another column moves the boundary
+        // with it rather than leaving it on the first.
+        var model = Cook(Sheet(
+            [":table Quest(key=sku)", "a quest"],
+            [":field", "seq", "sku", "reward[].id"],
+            [":type", "int", "string", "int"],
+            ["", "1", "A-1", "10"],
+
+            // The extension row leaves every column but the `[]` one blank - rule 3 holds
+            // whichever column the key is.
+            ["", "", "", "11"],
+            ["", "3", "A-2", "20"]));
+
+        var table = Assert.Single(model.Tables);
+        var rewards = table.SerialFields.Single(g => g.Name == "Reward");
+
+        // Two records: the middle row leaves the key blank, so it extends the first.
+        Assert.Equal(2, table.Data.Count);
+        Assert.Equal(2, table.ElementCountIn(rewards, table.Data[0]));
+    }
+
+    #endregion
+
     #region Reserved columns - section 7
 
     [Theory]
@@ -1389,18 +1492,6 @@ public class PrimaryLayoutTests
     #endregion
 
     #region What the layout leaves to the core
-
-    [Fact]
-    public void A_key_meta_is_refused_by_name_until_the_primary_index_can_move()
-    {
-        var problem = Refuses(Sheet(
-            [":table Item(key=sku)", "an item"],
-            [":field", "code", "sku"],
-            [":type", "int", "string"],
-            ["", "1", "A-1"]));
-
-        Assert.Contains("key", problem.Message);
-    }
 
     [Fact]
     public void A_formula_error_in_a_memo_column_does_not_stop_the_conversion()

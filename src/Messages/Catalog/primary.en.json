@@ -40,7 +40,9 @@
   "primary.variant-on-group-column": "Column `{Column}` of `{Entity}` carries a variant and is part of a group. A variant of a group would repeat the whole set of columns per variant, which this build does not read - write the variants as separate fields.",
   "primary.reserved-column-not-yet-supported": "Column `{Column}` of `{Entity}` is a name this layout reserves. `:type` names the variant of a polymorphic record, `:key` the key of a map and `:value` a variant packed into one cell - each waits on the wire design that settles what it means, and none of them is read yet. Reserved: {Reserved}.",
   "primary.column-meta-unclosed": "Column `{Column}` of `{Entity}` is typed `{Written}`, which opens a bracket and never closes it. Everything from the first `(` is the column meta - `int (min=0, max=100)`.",
-  "primary.key-meta-not-yet-supported": "`{Written}` sets `key`, which moves the primary index off the first column. This build does not read it yet, so the first field column is the primary index.",
+  "primary.composite-key-not-yet-supported": "`{Entity}` sets `key` to `{Written}`, which names more than one column. A composite key changes the lookup every generated reader offers - `FindByKey(a, b)` - and that is a step of its own, so it is refused here rather than read as its first component.",
+  "primary.key-column-not-found": "`{Entity}` sets `key` to `{Key}`, and no column of it is named that. Its columns are: {Known}.",
+  "primary.key-column-not-scalar": "`{Entity}` sets `key` to `{Key}`, which is part of a group rather than a column of its own. A row is addressed by one value of one of its own columns.",
 
   "primary.enum-column-unknown": "Enum `{Entity}` has a column named `{Column}`, which this layout does not define. It takes: {Known}.",
   "primary.enum-column-missing": "Enum `{Entity}` has no `{Column}` column, and needs one.",

@@ -63,13 +63,34 @@ public class Table
     /// The column rows are addressed by, or null for a table with no columns.
     /// </summary>
     /// <remarks>
-    /// The first one. Every layout marks its first column as the primary index - the name is
-    /// the author's, the position is not - and the places that need the key were each writing
-    /// `Fields[0]` with a comment saying why. Said once here instead, so that "the primary
-    /// index is column zero" is one fact rather than a repeated assumption.
+    /// The first one unless a sheet said otherwise. Every layout used to mark its first column
+    /// as the primary index and the places that need the key were each writing `Fields[0]` with
+    /// a comment saying why; said once here instead, so that where the key is came to be one
+    /// fact rather than a repeated assumption.
+    ///
+    /// **Which column it is and where it sits are different questions.** A notation that lets a
+    /// sheet name the key moves this and moves nothing else - the columns stay in the order they
+    /// were written, so the wire is untouched and only what addresses a row changes.
+    /// spec/primary-layout.md section 3.5.
     /// </remarks>
     [JsonIgnore]
-    public Field? PrimaryIndexField => Fields.Count > 0 ? Fields[0] : null;
+    public Field? PrimaryIndexField
+        => Fields.Count == 0
+            ? null
+            : PrimaryIndexName is { Length: > 0 } named
+                ? Fields.Find(column => column.Name == named) ?? Fields[0]
+                : Fields[0];
+
+    /// <summary>
+    /// The field the sheet named as the key, or empty for the first column.
+    /// </summary>
+    /// <remarks>
+    /// A name rather than a position, because that is what a sheet writes and because the
+    /// position is what this exists not to depend on. Set by the layout that reads the notation;
+    /// empty everywhere else, which is every layout whose first column is the key.
+    /// </remarks>
+    [JsonIgnore]
+    public string PrimaryIndexName { get; set; } = "";
 
     /// <summary>
     /// Wire tags reserved by `#`-excluded columns (`#OldColor@4`).

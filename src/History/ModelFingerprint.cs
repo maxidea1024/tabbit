@@ -242,7 +242,7 @@ public sealed class TableFingerprint
         // Field 0 is the primary index by construction, and the cooker has already
         // rejected duplicates in it - so a key addresses exactly one row, which is what
         // the store relies on to follow a row across snapshots.
-        var indexField = table.Fields[0];
+        var indexField = table.PrimaryIndexField!;
 
         for (int index = 0; index < table.Data.Count; index++)
         {

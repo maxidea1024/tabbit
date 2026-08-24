@@ -562,7 +562,7 @@ public partial class ModelCooker
         var keys = new HashSet<object>();
 
         foreach (var foreignRow in RowsToMatchAgainst(foreignTable, rowSet))
-            keys.Add(foreignRow[foreignTable.Fields[0].Index].Value!);
+            keys.Add(foreignRow[foreignTable.PrimaryIndexField!.Index].Value!);
 
         return _foreignKeys.GetOrAdd((foreignTable, rowSet.Name), keys);
     }
@@ -719,7 +719,7 @@ public partial class ModelCooker
             if (target.Fields.Count > 0)
             {
                 foreach (var row in target.Data)
-                    set.Add(ComparableKey(row[target.Fields[0].Index].Value)!);
+                    set.Add(ComparableKey(row[target.PrimaryIndexField!.Index].Value)!);
             }
 
             keys.Add(set);
@@ -763,7 +763,7 @@ public partial class ModelCooker
 
             // The same set-first rule the resolved reference follows, for the same reason.
             foreach (var targetRow in RowsToMatchAgainst(target, rowSet))
-                keys.Add(ComparableKey(targetRow[target.Fields[0].Index].Value)!);
+                keys.Add(ComparableKey(targetRow[target.PrimaryIndexField!.Index].Value)!);
         }
 
         string names = string.Join("`, `", targets.Select(t => t.Name));

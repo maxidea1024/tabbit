@@ -340,7 +340,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
             foreach (var row in table.Data)
             {
-                string key = row[table.Fields[0].Index].Value?.ToString() ?? "";
+                string key = row[table.PrimaryIndexField!.Index].Value?.ToString() ?? "";
 
                 if (!pair.Value.Contains(key) || rows.ContainsKey(key))
                     continue;

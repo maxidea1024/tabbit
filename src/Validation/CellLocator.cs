@@ -58,7 +58,7 @@ internal sealed class CellLocator
         // rather than one of them - so the report points at the primary index, which is where
         // a reader looking for that row starts.
         var field = string.IsNullOrEmpty(fieldName) && table.Fields.Count > 0
-            ? table.Fields[0]
+            ? table.PrimaryIndexField!
             : FieldOf(table, fieldName, element);
 
         if (cells is null || field is null)
@@ -91,7 +91,7 @@ internal sealed class CellLocator
         if (table.Fields.Count == 0)
             return null;
 
-        var key = table.Fields[0];
+        var key = table.PrimaryIndexField!;
 
         object? value = row.GetType().GetProperty(key.Name)?.GetValue(row);
         if (value is null)
