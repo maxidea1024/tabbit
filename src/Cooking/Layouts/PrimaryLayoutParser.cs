@@ -69,6 +69,17 @@ public sealed class PrimaryLayoutParser : ILayoutParser
 
     private static readonly string[] DeclarationMetaKeys = ["side", "key"];
 
+    /// <summary>
+    /// The `:field` names this layout reserves - section 7.
+    /// </summary>
+    /// <remarks>
+    /// Recognized and refused rather than left undefined. Each one is a notation a later spec
+    /// settles - a polymorphic record's discriminator, a map's key column, a variant's packed
+    /// value - and holding the name now means those specs do not have to choose a spelling
+    /// around whatever a sheet happened to use in the meantime.
+    /// </remarks>
+    private static readonly string[] ReservedColumnNames = [":type", ":key", ":value"];
+
     /// <summary>The columns of an enum, by the name written in `:field`.</summary>
     private const string EnumColumnLabel = "label";
     private const string EnumColumnValue = "value";
@@ -774,6 +785,14 @@ public sealed class PrimaryLayoutParser : ILayoutParser
                     Column = column, NameCell = cell, Written = written, IsMemo = true,
                 });
                 continue;
+            }
+
+            if (ReservedColumnNames.Contains(written, StringComparer.OrdinalIgnoreCase))
+            {
+                throw new TabbitException(cell.Location,
+                    Message.Of(PrimaryLayoutMessages.ReservedColumnNotYetSupported,
+                        ("Entity", block.Name), ("Column", written),
+                        ("Reserved", string.Join(" · ", ReservedColumnNames))));
             }
 
             var header = new ColumnHeader { Column = column, NameCell = cell };

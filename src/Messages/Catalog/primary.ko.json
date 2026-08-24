@@ -38,6 +38,7 @@
   "primary.variant-header-disagrees": "{Entity}.{Column}의 변형 {Variant:은} {Written} 타입인데, 그 필드는 {Canonical} 타입입니다. 어느 변형을 고르든 필드는 하나이므로 타입도 하나입니다 — 기본 변형 컬럼에 한 번만 적거나, 같은 것을 적으십시오.",
   "primary.variant-on-key-column": "{Entity}의 컬럼 {Column:이} 변형을 갖는데, 이 컬럼은 행을 가리키는 자리입니다. 행의 신원이 빌드마다 달라지면 참조도 히스토리도 배포 판정도 「같은 행」을 말할 수 없게 됩니다.",
   "primary.variant-on-group-column": "{Entity}의 컬럼 {Column:이} 변형을 갖는데, 이 컬럼은 그룹의 일부입니다. 그룹의 변형은 컬럼 집합 전체가 변형마다 복제되는 형태라 이 빌드는 읽지 않습니다 — 변형을 별도 필드로 적으십시오.",
+  "primary.reserved-column-not-yet-supported": "{Entity}의 컬럼 {Column:은} 이 레이아웃이 예약한 이름입니다. `:type`은 다형 레코드의 변종을, `:key`는 map의 키를, `:value`는 셀 하나에 압축한 변종의 값을 가리킵니다 — 각자 그 뜻을 정하는 와이어 설계를 기다리고 있고 아직 아무것도 읽지 않습니다. 예약된 이름은 {Reserved}입니다.",
   "primary.column-meta-unclosed": "{Entity}의 컬럼 {Column:이} {Written} 타입인데, 여는 괄호만 있고 닫는 괄호가 없습니다. 첫 `(`부터가 컬럼 메타입니다 — `int (min=0, max=100)`처럼.",
   "primary.key-meta-not-yet-supported": "{Written:이} `key`를 설정합니다 — 기본 인덱스를 첫 컬럼에서 옮기는 키입니다. 이 빌드는 아직 읽지 않으므로 첫 필드 컬럼이 기본 인덱스입니다.",
 

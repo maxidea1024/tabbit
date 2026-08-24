@@ -1351,6 +1351,28 @@ public class PrimaryLayoutTests
 
     #endregion
 
+    #region Reserved columns - section 7
+
+    [Theory]
+    [InlineData(":type")]
+    [InlineData(":key")]
+    [InlineData(":value")]
+    public void A_reserved_column_name_is_refused_by_name(string reserved)
+    {
+        // Held rather than left undefined. Each of the three is a notation a later spec settles,
+        // and reserving the spelling now means that spec does not have to work around whatever a
+        // sheet happened to use in the meantime.
+        var problem = Refuses(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", reserved],
+            [":type", "int", "string"],
+            ["", "1", "x"]));
+
+        Assert.Contains(reserved, problem.Message);
+    }
+
+    #endregion
+
     #region What the layout leaves to the core
 
     [Fact]

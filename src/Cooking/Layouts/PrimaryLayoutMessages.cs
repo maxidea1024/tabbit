@@ -131,6 +131,9 @@ public static class PrimaryLayoutMessages
 
     #region Not yet in this layout
 
+    /// <summary>A `:field` name this layout reserves for a notation a later spec settles.</summary>
+    public const string ReservedColumnNotYetSupported = "primary.reserved-column-not-yet-supported";
+
     /// <summary>
     /// A `key` on a declaration, which moves the primary index off the first column.
     /// </summary>
