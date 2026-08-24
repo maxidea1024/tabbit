@@ -32,18 +32,6 @@ tabbit --recipe my-recipe.json
 시트 한 장이 실제 코드로 어떻게 변하는지는
 [시트에 무엇을 적을 수 있나](doc/concepts.md)에서 처음부터 끝까지 따라갈 수 있습니다.
 
-## 무엇을 만들 수 있나
-
-| 종류 | 지원 대상 |
-| --- | --- |
-| **Export** | Binary, JSON, Text |
-| **Database** | MySQL, PostgreSQL, MongoDB, Redis |
-| **Code Generation** | C#, TypeScript, C++, C, Unreal, Go, Rust, Python, Java, Kotlin, Swift, Lua, Ruby, PHP, Dart |
-| **Documentation** | HTML |
-| **History** | Summary, History |
-
-바이너리를 읽는 코드도 함께 생성되므로 별도로 설치할 것이 없습니다.
-
 ## 문서
 
 [문서 목록](doc/readme.md)이 시작점입니다.
