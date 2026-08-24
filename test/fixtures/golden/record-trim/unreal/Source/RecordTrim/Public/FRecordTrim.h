@@ -79,7 +79,7 @@ struct RECORDTRIM_API FLootRow
 
     /** scalar serial array, element 1 - required, so the array is never empty */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot")
-    TArray<FString> TagArray;
+    TArray<FString> Tag;
 
 };
 

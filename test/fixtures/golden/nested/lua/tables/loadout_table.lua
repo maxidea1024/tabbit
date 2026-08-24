@@ -42,8 +42,8 @@ end
 ---@field pos LoadoutPosEntry
 ---@field slot LoadoutSlotEntry[]
 ---@field note string
----@field tagArray string[]
-local LoadoutRecordMeta = tcb.strictType("a `Loadout` row", { "index", "name", "pos", "slot", "note", "tagArray" })
+---@field tag string[]
+local LoadoutRecordMeta = tcb.strictType("a `Loadout` row", { "index", "name", "pos", "slot", "note", "tag" })
 
 ---@return LoadoutRecord
 local function newLoadoutRecord()
@@ -53,7 +53,7 @@ local function newLoadoutRecord()
     pos = newLoadoutPosEntry(),
     slot = tcb.filledArray(2, newLoadoutSlotEntry),
     note = "",
-    tagArray = {},
+    tag = {},
   }, LoadoutRecordMeta)
 end
 
@@ -209,8 +209,8 @@ function LoadoutTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 8 then
-      tcb.checkColumn(column, "Loadout.Tag_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
-      local cursor = tcb.newCursor(reader, column, count, "Loadout.Tag_array")
+      tcb.checkColumn(column, "Loadout.Tag", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
+      local cursor = tcb.newCursor(reader, column, count, "Loadout.Tag")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
@@ -220,7 +220,7 @@ function LoadoutTable:readBytes(data)
           values[element] = cursor:nextString()
         end
 
-        record.tagArray = values
+        record.tag = values
       end
     else
       -- A column added after this code was generated.

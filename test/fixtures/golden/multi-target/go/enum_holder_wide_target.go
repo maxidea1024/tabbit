@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// HolderWideTarget was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : D7.
+// HolderWideTarget was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : E4.
 // Which table `Holder.Wide` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 type HolderWideTarget int32
 

@@ -1,12 +1,12 @@
 [
   {
     "index": 1,
-    "slotArray": [
+    "slot": [
       1,
       2,
       3
     ],
-    "tierArray": [
+    "tier": [
       1,
       2,
       3
@@ -14,18 +14,18 @@
   },
   {
     "index": 2,
-    "slotArray": [
+    "slot": [
       3,
       1
     ],
-    "tierArray": [
+    "tier": [
       3,
       1
     ]
   },
   {
     "index": 3,
-    "slotArray": [],
-    "tierArray": []
+    "slot": [],
+    "tier": []
   }
 ]

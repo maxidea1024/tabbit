@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "406c2a4252236f56c492a97c3e052d9a",
+  "TotalSize": 364,
+  "Items": [
+    {
+      "Name": "Loadout.tcb",
+      "Size": 129,
+      "Hash": "816ee32986fd737ab52892a92d880a58",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Route.tcb",
+      "Size": 108,
+      "Hash": "f1e10634bd427fdd1c3d52a40ce3e5b8",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Grid.tcb",
+      "Size": 127,
+      "Hash": "3c723d45386ba9c3afb7d49fa5ab91b3",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

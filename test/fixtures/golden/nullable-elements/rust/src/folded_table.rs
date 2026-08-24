@@ -16,10 +16,10 @@ pub struct FoldedRecord {
     /// primary index
     pub index: i32,
     /// element 1 - and the group's answer
-    pub tag_array: Vec<String>,
-    /// Which of `tag_array`'s elements have a value. Empty where the file did not
+    pub tag: Vec<String>,
+    /// Which of `tag`'s elements have a value. Empty where the file did not
     /// carry the column, and then every index is out of range anyway.
-    pub has_tag_array_at: Vec<bool>,
+    pub has_tag_at: Vec<bool>,
 }
 
 impl FoldedRecord {
@@ -116,18 +116,18 @@ impl FoldedTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column_with_elements(column, "Folded.Tag_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
+                    tabbit::check_column_with_elements(column, "Folded.Tag", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
-                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Folded.Tag_array")?;
+                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Folded.Tag")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.tag_array = Vec::with_capacity(element_count.min(65536));
-                        record.has_tag_array_at =
+                        record.tag = Vec::with_capacity(element_count.min(65536));
+                        record.has_tag_at =
                             Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
-                            record.tag_array.push(cursor.next_string()?);
-                            record.has_tag_array_at
+                            record.tag.push(cursor.next_string()?);
+                            record.has_tag_at
                                 .push(tabbit::is_present(&element_presence, element_at));
                             element_at += 1;
                         }

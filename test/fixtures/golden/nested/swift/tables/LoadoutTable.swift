@@ -29,7 +29,7 @@ public final class LoadoutRecord {
     public var note: String = ""
 
     /// scalar serial field
-    public var tagArray: [String] = []
+    public var tag: [String] = []
 
     /// One element of pos.
     public struct PosEntry {
@@ -220,15 +220,15 @@ public final class LoadoutTable {
                     }
                 }
             case 8:
-                try Tcb.checkColumn(column, "Loadout.Tag_array", Tcb.kindArray, false, Tcb.elementString)
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Tag_array")
+                try Tcb.checkColumn(column, "Loadout.Tag", Tcb.kindArray, false, Tcb.elementString)
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Loadout.Tag")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.tagArray = []
-                    record.tagArray.reserveCapacity(elementCount)
+                    record.tag = []
+                    record.tag.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.tagArray.append(try cursor.nextString())
+                        record.tag.append(try cursor.nextString())
                     }
                 }
             default:

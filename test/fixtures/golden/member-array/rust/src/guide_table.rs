@@ -27,7 +27,7 @@ pub struct GuidePosEntry {
     pub y: f32,
 }
 
-// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
 /// A record whose members are arrays, and an array of arrays beside it.
 #[derive(Clone, Debug, Default)]
 pub struct GuideRecord {
@@ -40,7 +40,7 @@ pub struct GuideRecord {
     /// a record with no number at all - still one record, members not arrays
     pub pos: GuidePosEntry,
     /// scalar serial array, so both array kinds sit in one table
-    pub tag_array: Vec<String>,
+    pub tag: Vec<String>,
     /// array of arrays: outer 1, inner 1 - neither level has a name
     pub grid: Vec<Vec<i32>>,
 }
@@ -201,19 +201,19 @@ impl GuideTable {
                     }
                 }
                 7 => {
-                    tabbit::check_column(column, "Guide.Tag_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
-                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Tag_array")?;
+                    tabbit::check_column(column, "Guide.Tag", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
+                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Tag")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.tag_array = Vec::with_capacity(element_count.min(65536));
+                        record.tag = Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
-                            record.tag_array.push(cursor.next_string()?);
+                            record.tag.push(cursor.next_string()?);
                         }
                     }
                 }
                 8 => {
-                    tabbit::check_column(column, "Guide.Grid.1", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
-                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Grid.1")?;
+                    tabbit::check_column(column, "Guide.Grid.0", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Grid.0")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
                         record.grid[0] =
@@ -225,8 +225,8 @@ impl GuideTable {
                     }
                 }
                 9 => {
-                    tabbit::check_column(column, "Guide.Grid.2", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
-                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Grid.2")?;
+                    tabbit::check_column(column, "Guide.Grid.1", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32, tabbit::ELEMENT_VARINT])?;
+                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Guide.Grid.1")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
                         record.grid[1] =

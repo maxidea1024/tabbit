@@ -13,8 +13,8 @@
 #include <cstdint>
 
 namespace multi_target {
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : S7
-/// Which table `Rack.SlotsPick1` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : T4
+/// Which table `Rack.SlotsPick0` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 enum class RackSlotsPickTarget : std::int32_t {
   /// No row of any of them.
   None = 0,

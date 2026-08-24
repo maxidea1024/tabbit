@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
 /** A record whose members are arrays, and an array of arrays beside it. */
 class GuideRecord {
     /** primary index */
@@ -47,7 +47,7 @@ class GuideRecord {
     /** a record with no number at all - still one record, members not arrays */
     var pos: PosEntry = PosEntry()
     /** scalar serial array, so both array kinds sit in one table */
-    var tagArray: MutableList<String> = ArrayList()
+    var tag: MutableList<String> = ArrayList()
     /** array of arrays: outer 1, inner 1 - neither level has a name */
     var grid: MutableList<MutableList<Int>> = MutableList(2) { MutableList(3) { 0 } }
 
@@ -201,17 +201,17 @@ class GuideTable {
                     }
                 }
                 7 -> {
-                    checkColumn(column, "Guide.Tag_array", KIND_ARRAY, false, ELEMENT_STRING)
-                    val cursor = ColumnCursor(reader, column, count, "Guide.Tag_array")
+                    checkColumn(column, "Guide.Tag", KIND_ARRAY, false, ELEMENT_STRING)
+                    val cursor = ColumnCursor(reader, column, count, "Guide.Tag")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.tagArray = ArrayList(elementCount.coerceAtLeast(0))
-                        repeat(elementCount) { record.tagArray.add(cursor.nextString()) }
+                        record.tag = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.tag.add(cursor.nextString()) }
                     }
                 }
                 8 -> {
-                    checkColumn(column, "Guide.Grid.1", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
-                    val cursor = ColumnCursor(reader, column, count, "Guide.Grid.1")
+                    checkColumn(column, "Guide.Grid.0", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
+                    val cursor = ColumnCursor(reader, column, count, "Guide.Grid.0")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
                         record.grid[0] =
@@ -222,8 +222,8 @@ class GuideTable {
                     }
                 }
                 9 -> {
-                    checkColumn(column, "Guide.Grid.2", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
-                    val cursor = ColumnCursor(reader, column, count, "Guide.Grid.2")
+                    checkColumn(column, "Guide.Grid.1", KIND_ARRAY, false, ELEMENT_I32, ELEMENT_VARINT)
+                    val cursor = ColumnCursor(reader, column, count, "Guide.Grid.1")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
                         record.grid[1] =

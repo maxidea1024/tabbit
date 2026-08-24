@@ -104,12 +104,33 @@
 {{~ end ~}}
     end
 {{~ for index in table.indexes }}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+    # Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
+    def self.key_of_{{ index.suffix }}({{ index.params }})
+      parts = [
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+        {{ c.param }},
+{{~ else ~}}
+        {{ c.param }}.to_i.to_s,
+{{~ end ~}}
+{{~ end ~}}
+      ]
+
+      parts.map { |part| "#{part.length}:#{part}" }.join
+    end
+
+{{~ end ~}}
     # The row with this {{ index.field_name }}, or nil when the table has none.
     #
     # The lookup to reach for when a missing row is an ordinary answer - an optional
     # reference, a key that came from user input.
-    def find_by_{{ index.suffix }}(key)
-      {{ index.map_name }}[key]
+    def find_by_{{ index.suffix }}({{ index.params }})
+      {{ index.map_name }}[{{ index.argument }}]
     end
 
     # The row with this {{ index.field_name }}, or a raised error naming what was missing.
@@ -117,21 +138,21 @@
     # For a key that has to be there - one from another table, or a constant. The name
     # says it raises, because a caller reading `get_by_{{ index.suffix }}(key).name` at a
     # glance cannot otherwise tell whether the next line is a check or a rescue.
-    def get_by_{{ index.suffix }}_or_throw(key)
-      record = {{ index.map_name }}[key]
+    def get_by_{{ index.suffix }}_or_throw({{ index.params }})
+      record = {{ index.map_name }}[{{ index.argument }}]
 
       if record.nil?
         raise Tabbit::RecordNotFoundError,
               "there is no record in table `{{ table.raw_name }}` that corresponds to " \
-              "field `{{ index.field_name }}` value #{key.inspect}"
+              "field `{{ index.field_name }}` value {{ index.value_format }}"
       end
 
       record
     end
 
     # Whether the table holds a row with this {{ index.field_name }}.
-    def contains_{{ index.suffix }}?(key)
-      {{ index.map_name }}.key?(key)
+    def contains_{{ index.suffix }}?({{ index.params }})
+      {{ index.map_name }}.key?({{ index.argument }})
     end
 {{~ end ~}}
 
@@ -272,7 +293,13 @@
       end
 
 {{~ for index in table.indexes ~}}
+{{~ if index.is_composite ~}}
+      by_{{ index.suffix }} = records.to_h do |record|
+        [self.class.key_of_{{ index.suffix }}({{ for c in index.components }}record.{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }}), record]
+      end
+{{~ else ~}}
       by_{{ index.suffix }} = records.to_h { |record| [record.{{ index.member }}, record] }
+{{~ end ~}}
 {{~ end ~}}
 
       # Published, now that every column read.

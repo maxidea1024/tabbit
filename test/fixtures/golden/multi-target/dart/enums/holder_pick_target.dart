@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : C7
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : D4
 /// Which table `Holder.Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 enum HolderPickTarget {
   /// No row of any of them.

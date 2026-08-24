@@ -129,10 +129,10 @@ void {{ table.function_prefix }}Free({{ table.table_name }}* table);
  * reference, a key that came from user input. C has nothing to throw, so a caller
  * that needs the row to be there checks this NULL and says so itself. */
 const {{ table.record_name }}* {{ table.function_prefix }}FindBy{{ index.suffix }}(
-  const {{ table.table_name }}* table, {{ index.key_type }} key);
+  const {{ table.table_name }}* table, {{ index.params }});
 
 /* Whether the table holds a row with this {{ index.field_name }}. */
 bool {{ table.function_prefix }}Contains{{ index.suffix }}(
-  const {{ table.table_name }}* table, {{ index.key_type }} key);
+  const {{ table.table_name }}* table, {{ index.params }});
 {{~ end ~}}
 {{ include 'c-header-foot.sbn' ~}}

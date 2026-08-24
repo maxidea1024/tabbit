@@ -29,4 +29,13 @@ public static class RunMessages
 
     /// <summary>An environment name holding characters a path cannot carry.</summary>
     public const string EnvironmentNameIllegal = "run.environment-name-illegal";
+
+    /// <summary>A `--variant` that is not `Table.Field=name`.</summary>
+    public const string VariantOptionMalformed = "run.variant-option-malformed";
+
+    /// <summary>A `--variant` naming something that is not a field of a table.</summary>
+    public const string VariantOptionNotAField = "run.variant-option-not-a-field";
+
+    /// <summary>The same field given a variant twice on one command line.</summary>
+    public const string VariantOptionRepeated = "run.variant-option-repeated";
 }

@@ -138,6 +138,16 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     protected override bool SupportsOptionalFields => true;
 
     /// <summary>
+    /// `FindByStageAndSlot(stage, slot)`, keyed by the text the columns make.
+    /// </summary>
+    /// <remarks>
+    /// A Go map takes a comparable key and a struct of the components would be one, but the
+    /// text is what every language can build and the map is unexported - so the type it is
+    /// keyed by is this file's business and can change without the surface moving.
+    /// </remarks>
+    protected override bool SupportsCompositeKeys => true;
+
+    /// <summary>
     /// `HasXAt(i)` beside the value, filled from the element bitmap the file carries.
     /// spec/nullable-array-elements.md.
     /// </summary>
@@ -208,7 +218,13 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             {
                 AccessorName = AccessorType,
                 PackageName = _recipe.PackageName,
-                Imports = Imports(new[] { "fmt" }, reader: true),
+                // strconv only where a composite key is present: its text is built from
+                // the components' and an import Go does not reach for does not compile.
+                Imports = Imports(
+                    pair.rendered.Indexes.Any(index => index.IsComposite)
+                        ? new[] { "fmt", "strconv" }
+                        : new[] { "fmt" },
+                    reader: true),
                 Table = pair.rendered,
             });
         }
@@ -407,13 +423,56 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<GoIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf => new GoIndexView
+        => KeyPlans.Of(table).Select(plan =>
         {
-            Member = GoName(sf.Name),
-            Suffix = sf.Name.ToPascalCase(),
-            KeyType = ResolvedElementType(sf),
-            MapName = "by" + sf.Name.ToPascalCase(),
-            FieldName = sf.Name.ToPascalCase(),
+            string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                Type = ResolvedElementType(component),
+                Member = GoName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            return new GoIndexView
+            {
+                Member = GoName(plan.Only.Name),
+
+                Suffix = suffix,
+
+                // A composite key is held as the text its components make, so the map is
+                // keyed by a string whatever the columns are.
+                KeyType = plan.IsComposite ? "string" : ResolvedElementType(plan.Only),
+
+                MapName = "by" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+
+                Components = components,
+
+                // Spelled here rather than looped over three times in the template: the
+                // parameter list, the subscript and the miss message each need the same
+                // columns written a different way, and a single-column key has to come out
+                // exactly as it did before this notation existed.
+                Params = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Param + " " + c.Type))
+                    : "key " + ResolvedElementType(plan.Only),
+
+                // A method rather than a package function: every generated Go file shares one
+                // package, so two tables each keyed by `From,To` would declare the same name.
+                Argument = plan.IsComposite
+                    ? "t.keyOf" + suffix + "(" + string.Join(", ", components.Select(c => c.Param)) + ")"
+                    : "key",
+
+                ValueFormat = plan.IsComposite
+                    ? "(" + string.Join(", ", components.Select(_ => "%v")) + ")"
+                    : "%v",
+
+                ValueArgs = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Param))
+                    : "key",
+            };
         }).ToList();
 
     /// <summary>

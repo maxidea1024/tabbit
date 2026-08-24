@@ -133,13 +133,42 @@ class {{ table.table_name }} {
     private var {{ index.map_name }}: HashMap<{{ index.key_type }}, {{ table.record_name }}> = HashMap()
 {{~ end ~}}
 {{~ for index in table.indexes }}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+    /** Joins the columns of the {{ index.field_name }} key into the text the map is keyed by. */
+    private fun keyOf{{ index.suffix }}({{ index.params }}): String {
+        val parts = arrayOf(
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+            {{ c.param }},
+{{~ else if c.kind == "enum" ~}}
+            {{ c.param }}.value.toString(),
+{{~ else ~}}
+            {{ c.param }}.toString(),
+{{~ end ~}}
+{{~ end ~}}
+        )
+
+        val text = StringBuilder()
+
+        for (part in parts) {
+            text.append(part.length).append(':').append(part)
+        }
+
+        return text.toString()
+    }
+
+{{~ end ~}}
     /**
      * The row with this {{ index.field_name }}, or null when the table has none.
      *
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    fun findBy{{ index.suffix }}(key: {{ index.key_type }}): {{ table.record_name }}? = {{ index.map_name }}[key]
+    fun findBy{{ index.suffix }}({{ index.params }}): {{ table.record_name }}? = {{ index.map_name }}[{{ index.argument }}]
 
     /**
      * The row with this {{ index.field_name }}, or a thrown exception naming what was missing.
@@ -148,13 +177,13 @@ class {{ table.table_name }} {
      * it throws, because a caller reading getBy{{ index.suffix }}(key).name at a glance
      * cannot otherwise tell whether the next line is a null check or a catch.
      */
-    fun getBy{{ index.suffix }}OrThrow(key: {{ index.key_type }}): {{ table.record_name }} =
-        {{ index.map_name }}[key] ?: throw RecordNotFoundException(
+    fun getBy{{ index.suffix }}OrThrow({{ index.params }}): {{ table.record_name }} =
+        {{ index.map_name }}[{{ index.argument }}] ?: throw RecordNotFoundException(
             "there is no record in table `{{ table.raw_name }}` that corresponds to " +
-                "field `{{ index.field_name }}` value $key")
+                "field `{{ index.field_name }}` value {{ index.value_format }}")
 
     /** Whether the table holds a row with this {{ index.field_name }}. */
-    fun contains{{ index.suffix }}(key: {{ index.key_type }}): Boolean = {{ index.map_name }}.containsKey(key)
+    fun contains{{ index.suffix }}({{ index.params }}): Boolean = {{ index.map_name }}.containsKey({{ index.argument }})
 {{~ end ~}}
 
     /** Loads the table from a .tcb file written by Tabbit. */
@@ -331,7 +360,11 @@ class {{ table.table_name }} {
 
         for (record in loaded) {
 {{~ for index in table.indexes ~}}
+{{~ if index.is_composite ~}}
+            loadedBy{{ index.suffix }}[keyOf{{ index.suffix }}({{ for c in index.components }}record.{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }})] = record
+{{~ else ~}}
             loadedBy{{ index.suffix }}[record.{{ index.member }}] = record
+{{~ end ~}}
 {{~ end ~}}
         }
 

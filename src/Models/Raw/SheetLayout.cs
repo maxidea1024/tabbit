@@ -75,7 +75,6 @@ public sealed class SheetLayout
         string id, DuplicateIndexPolicy onDuplicateIndex, char? arrayDelimiter = null,
         FormulaErrorPolicy onFormulaError = FormulaErrorPolicy.Error,
         IReadOnlyDictionary<string, string>? options = null,
-        bool foldSerialFields = false,
         bool trimTrailingArrayElements = false,
         bool allowArrayGaps = false,
         string tableRowSets = "",
@@ -88,7 +87,6 @@ public sealed class SheetLayout
         TimeZone = timeZone;
         OnFormulaError = onFormulaError;
         OnBlankCell = onBlankCell;
-        FoldSerialFields = foldSerialFields;
         TrimTrailingArrayElements = trimTrailingArrayElements;
         AllowArrayGaps = allowArrayGaps;
         TableRowSets = tableRowSets;
@@ -127,18 +125,6 @@ public sealed class SheetLayout
     /// </remarks>
     public bool AllowArrayGaps { get; }
 
-    /// <summary>
-    /// Whether consecutively numbered columns fold into one array-valued field.
-    /// </summary>
-    /// <remarks>
-    /// Off unless a recipe entry asks, because a number in a name does not say whether it
-    /// means an array - and getting it wrong is quiet, turning three fields into one under a
-    /// name the sheet never used.
-    ///
-    /// Only a layout whose sheets have the convention reads this. A layout for sheets written
-    /// to other rules does not consult it, because there is no convention there to honour.
-    /// </remarks>
-    public bool FoldSerialFields { get; }
 
     private readonly IReadOnlyDictionary<string, string> _options;
 

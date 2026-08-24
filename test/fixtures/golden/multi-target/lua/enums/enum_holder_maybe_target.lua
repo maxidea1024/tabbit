@@ -8,7 +8,7 @@
 local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
--- Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : F7.
+-- Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : G4.
 -- Which table `Holder.Maybe` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 ---@class HolderMaybeTarget
 local HolderMaybeTarget = {

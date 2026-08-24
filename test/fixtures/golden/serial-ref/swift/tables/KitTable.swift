@@ -17,12 +17,12 @@ public final class KitRecord {
     public var index: Int32 = 0
 
     /// element 1 - the row it points at
-    public var slotArray: [PieceRecord] = []
-    public var slotArrayIndex: [Int32] = []
+    public var slot: [PieceRecord] = []
+    public var slotIndex: [Int32] = []
 
     /// element 1 - the target's own value
-    public var tierArray: [Int32] = []
-    public var tierArrayIndex: [Int32] = []
+    public var tier: [Int32] = []
+    public var tierIndex: [Int32] = []
 }
 
 /// Every row of Kit.
@@ -121,27 +121,27 @@ public final class KitTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumn(column, "Kit.Slot_array", Tcb.kindArray, false, Tcb.elementI32)
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Slot_array")
+                try Tcb.checkColumn(column, "Kit.Slot", Tcb.kindArray, false, Tcb.elementI32)
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Slot")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.slotArrayIndex = []
-                    record.slotArrayIndex.reserveCapacity(elementCount)
+                    record.slotIndex = []
+                    record.slotIndex.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.slotArrayIndex.append(try cursor.nextI32())
+                        record.slotIndex.append(try cursor.nextI32())
                     }
                 }
             case 3:
-                try Tcb.checkColumn(column, "Kit.Tier_array", Tcb.kindArray, false, Tcb.elementI32)
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Tier_array")
+                try Tcb.checkColumn(column, "Kit.Tier", Tcb.kindArray, false, Tcb.elementI32)
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Tier")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.tierArrayIndex = []
-                    record.tierArrayIndex.reserveCapacity(elementCount)
+                    record.tierIndex = []
+                    record.tierIndex.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.tierArrayIndex.append(try cursor.nextI32())
+                        record.tierIndex.append(try cursor.nextI32())
                     }
                 }
             default:

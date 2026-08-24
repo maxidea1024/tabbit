@@ -29,17 +29,17 @@ module MemberArray
     end
   end
 
-  # Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+  # Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
   # A record whose members are arrays, and an array of arrays beside it.
   class GuideRecord
-    attr_accessor :index, :name, :skill, :pos, :tag_array, :grid
+    attr_accessor :index, :name, :skill, :pos, :tag, :grid
 
     def initialize
       @index = 0
       @name = ''
       @skill = GuideSkillEntry.new
       @pos = GuidePosEntry.new
-      @tag_array = []
+      @tag = []
       @grid = Array.new(2) { Array.new(3) { 0 } }
     end
 
@@ -158,23 +158,23 @@ module MemberArray
             record.pos.y = cursor.next_f32
           end
         when 7
-          Tabbit.check_column(column, 'Guide.Tag_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Tag_array')
+          Tabbit.check_column(column, 'Guide.Tag', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Tag')
           records.each do |record|
             element_count = cursor.next_length
-            record.tag_array = Array.new(element_count) { cursor.next_string }
+            record.tag = Array.new(element_count) { cursor.next_string }
           end
         when 8
-          Tabbit.check_column(column, 'Guide.Grid.1', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Grid.1')
+          Tabbit.check_column(column, 'Guide.Grid.0', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Grid.0')
           records.each do |record|
             element_count = cursor.next_length
             record.grid[0] =
               Array.new(element_count) { cursor.next_i32 }
           end
         when 9
-          Tabbit.check_column(column, 'Guide.Grid.2', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Grid.2')
+          Tabbit.check_column(column, 'Guide.Grid.1', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Guide.Grid.1')
           records.each do |record|
             element_count = cursor.next_length
             record.grid[1] =

@@ -70,6 +70,15 @@ public sealed class CookingContext
     /// </remarks>
     public Diagnostics Diagnostics { get; }
 
+    /// <summary>
+    /// Which variant of each field this build takes - <see cref="FieldVariants"/>.
+    /// </summary>
+    /// <remarks>
+    /// Settable rather than a constructor argument, because it comes from the command line as
+    /// well as the recipe and the run resolves the two together. Empty unless something asked.
+    /// </remarks>
+    public FieldVariants Variants { get; set; } = FieldVariants.None;
+
     /// <summary>The model every parser adds to.</summary>
     public Model Model { get; }
 

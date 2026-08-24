@@ -13,6 +13,7 @@
   "cook.index-type-unusable": "Index field `{Table}.{Field}` is `{Type}`, {Why} Use a whole-number, string, uuid or enum column as an index.",
   "cook.index-optional": "Index field `{Table}.{Field}` cannot be optional: drop the `?` from its type, because every row must have a value for an index.",
   "cook.index-duplicate": "Index field `{Table}.{Field}` repeats the value `{Value}`, first used at {First}. Values in an index field must be unique.",
+  "cook.composite-key-duplicate": "Table `{Table}` is keyed by `{Key}`, and this row repeats the combination `{Value}`, first used at {First}. Each column of a composite key may repeat on its own; the combination is what has to be unique.",
   "cook.index-absent": "`{Table}.{Field}` identifies the row, and this row says it has no value there. Write one: an index cannot be absent.",
   "cook.reference-enum-key": "`{Table}.{Field}` references `{Target}`, whose index is an enum. Every other key type can be referenced; this one cannot yet, because an enum travels in an encoding of its own and the generated readers have no call for it here. Key `{Target}` by the enum's underlying `int`, or carry the value here as that enum and look the row up through `{Target}`'s own index.",
   "cook.reference-blank": "Field `{Table}.{Field}` references `{Target}` and this row leaves the cell empty. Write the key of a row to point at, or `-` to say this row points at none.",
@@ -178,6 +179,9 @@
   "run.validate-only-with-force-output": "`--validate-only` and `--force-output` ask for opposite things: one stops before any output, the other insists every output entry runs. Pass one.",
   "run.environment-named-twice": "`--env {Asked}` was given while {Variable} is already set to `{Inherited}`. They label the same run and decide the same paths, so one of them is wrong. Clear the variable, or pass the environment it names.",
   "run.environment-name-illegal": "{Described} is not an environment name. This word goes into the paths a recipe builds with `${{{Variable}}}`, so it is limited to letters, digits, `.`, `_` and `-` - anything else would write the output somewhere the recipe does not describe.",
+  "run.variant-option-malformed": "`--variant {Written}` is not a field and a variant. Write `Table.Field=name` - `--variant Item.Price=kr`.",
+  "run.variant-option-not-a-field": "`--variant {Written}` names `{Written}` before the `=`, and a variant belongs to one field of one table. Write `Table.Field=name`.",
+  "run.variant-option-repeated": "`{Field}` is given a variant twice on this command line. One of them would quietly replace the other.",
   "cook.naming-said-alone": "{Kind} {Subject}",
   "cook.naming-said-of-owner": "{Kind} {Subject} of {Owner}",
   "cook.naming-subject-entity": "One entity name",
@@ -249,5 +253,6 @@
   "cook.element-value-is-the-default": "`{Table}.{Field}` element {Element} is `{Value}`, and the column refuses the type's own empty value.",
   "cook.array-too-short": "`{Table}.{Field}` holds {Given} element(s), and the column declares at least {Wanted}.",
   "cook.array-too-long": "`{Table}.{Field}` holds {Given} element(s), and the column declares at most {Wanted}.",
-  "cook.pattern-unreadable": "`{Table}.{Field}` declares the pattern `{Pattern}`, which is not a regular expression: {Detail}"
+  "cook.pattern-unreadable": "`{Table}.{Field}` declares the pattern `{Pattern}`, which is not a regular expression: {Detail}",
+  "cook.reference-composite-key": "Column `{Field}` of `{Table}` points at `{Target}`, whose primary key `{Key}` is several columns taken together. A reference carries one key value and no cell shape holds a combination, so this is refused rather than guessed at. A secondary key is not involved: a reference points at the primary one."
 }

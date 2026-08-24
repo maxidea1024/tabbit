@@ -50,7 +50,12 @@ public partial class ModelCooker
         // hand over unresolved.
         var declarations = Schema.SchemaDeclarations.Read(rawModel.SchemaFiles, diagnostics);
 
-        var context = new CookingContext(result, recipeModel, diagnostics, declarations);
+        var context = new CookingContext(result, recipeModel, diagnostics, declarations)
+        {
+            // Resolved before a sheet is read, because which column of a variant group becomes
+            // the field is a question the layout asks while reading the header.
+            Variants = FieldVariants.Of(recipeModel.Variants, options.Variants),
+        };
 
         // The enums go in before a sheet is read, because a type cell may name one and the
         // check that a type name is recognized asks the model.

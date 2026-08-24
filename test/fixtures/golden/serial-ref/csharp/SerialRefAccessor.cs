@@ -213,40 +213,40 @@ namespace Tabbit.Fixtures.SerialRef
         {
             foreach (var record in snapshot.Kit.Records)
             {
-                for (int i = 0; i < record._slotArray_Piece_index.Length; i++)
+                for (int i = 0; i < record._slot_Piece_index.Length; i++)
                 {
-                    if (record._slotArray_Piece_index[i] > 0)
+                    if (record._slot_Piece_index[i] > 0)
                     {
-                        record.SetReference_SlotArray_INTERNAL(i, snapshot.Piece.GetByIndexOrThrow(record._slotArray_Piece_index[i]));
-                        record._slotArray_F[i] = true;
+                        record.SetReference_Slot_INTERNAL(i, snapshot.Piece.GetByIndexOrThrow(record._slot_Piece_index[i]));
+                        record._slot_F[i] = true;
                     }
                 }
-                for (int i = 0; i < record._tierArray_Piece_index.Length; i++)
+                for (int i = 0; i < record._tier_Piece_index.Length; i++)
                 {
-                    if (record._tierArray_Piece_index[i] > 0)
+                    if (record._tier_Piece_index[i] > 0)
                     {
-                        record.SetReference_TierArray_INTERNAL(i, snapshot.Piece.GetByIndexOrThrow(record._tierArray_Piece_index[i]).Tier);
-                        record._tierArray_F[i] = true;
+                        record.SetReference_Tier_INTERNAL(i, snapshot.Piece.GetByIndexOrThrow(record._tier_Piece_index[i]).Tier);
+                        record._tier_F[i] = true;
                     }
                 }
             }
 
             foreach (var record in snapshot.TrimKit.Records)
             {
-                for (int i = 0; i < record._slotArray_Bit_index.Length; i++)
+                for (int i = 0; i < record._slot_Bit_index.Length; i++)
                 {
-                    if (record._slotArray_Bit_index[i] > 0)
+                    if (record._slot_Bit_index[i] > 0)
                     {
-                        record.SetReference_SlotArray_INTERNAL(i, snapshot.Bit.GetByIndexOrThrow(record._slotArray_Bit_index[i]));
-                        record._slotArray_F[i] = true;
+                        record.SetReference_Slot_INTERNAL(i, snapshot.Bit.GetByIndexOrThrow(record._slot_Bit_index[i]));
+                        record._slot_F[i] = true;
                     }
                 }
-                for (int i = 0; i < record._tierArray_Bit_index.Length; i++)
+                for (int i = 0; i < record._tier_Bit_index.Length; i++)
                 {
-                    if (record._tierArray_Bit_index[i] > 0)
+                    if (record._tier_Bit_index[i] > 0)
                     {
-                        record.SetReference_TierArray_INTERNAL(i, snapshot.Bit.GetByIndexOrThrow(record._tierArray_Bit_index[i]).Tier);
-                        record._tierArray_F[i] = true;
+                        record.SetReference_Tier_INTERNAL(i, snapshot.Bit.GetByIndexOrThrow(record._tier_Bit_index[i]).Tier);
+                        record._tier_F[i] = true;
                     }
                 }
             }

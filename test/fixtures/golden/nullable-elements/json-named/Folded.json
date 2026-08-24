@@ -1,7 +1,7 @@
 [
   {
     "index": 1,
-    "tagArray": [
+    "tag": [
       "a",
       "b",
       "c"
@@ -9,7 +9,7 @@
   },
   {
     "index": 2,
-    "tagArray": [
+    "tag": [
       "a",
       null,
       "c"
@@ -17,7 +17,7 @@
   },
   {
     "index": 3,
-    "tagArray": [
+    "tag": [
       null,
       "b",
       "c"
@@ -25,7 +25,7 @@
   },
   {
     "index": 4,
-    "tagArray": [
+    "tag": [
       "a",
       "",
       "c"

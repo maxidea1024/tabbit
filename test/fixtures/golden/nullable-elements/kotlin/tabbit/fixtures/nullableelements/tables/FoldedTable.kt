@@ -41,12 +41,12 @@ class FoldedRecord {
     /** primary index */
     var index: Int = 0
     /** element 1 - and the group's answer */
-    var tagArray: MutableList<String> = ArrayList()
+    var tag: MutableList<String> = ArrayList()
     /**
-     * Which of tagArray's elements have a value. Empty where the file did not carry
+     * Which of tag's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      */
-    var hasTagArrayAt: MutableList<Boolean> = mutableListOf()
+    var hasTagAt: MutableList<Boolean> = mutableListOf()
 
 }
 
@@ -130,21 +130,21 @@ class FoldedTable {
                     }
                 }
                 2 -> {
-                    checkColumnWithElements(column, "Folded.Tag_array", KIND_ARRAY, false, ELEMENT_STRING)
+                    checkColumnWithElements(column, "Folded.Tag", KIND_ARRAY, false, ELEMENT_STRING)
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
                     val elementPresence = readElementPresence(reader, column)
                     var elementAt = 0
-                    val cursor = ColumnCursor(reader, column, count, "Folded.Tag_array")
+                    val cursor = ColumnCursor(reader, column, count, "Folded.Tag")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.tagArray = ArrayList(elementCount.coerceAtLeast(0))
-                        record.hasTagArrayAt =
+                        record.tag = ArrayList(elementCount.coerceAtLeast(0))
+                        record.hasTagAt =
                             ArrayList(elementCount.coerceAtLeast(0))
                         repeat(elementCount) {
-                            record.tagArray.add(cursor.nextString())
-                            record.hasTagArrayAt
+                            record.tag.add(cursor.nextString())
+                            record.hasTagAt
                                 .add(isPresent(elementPresence, elementAt))
                             elementAt++
                         }

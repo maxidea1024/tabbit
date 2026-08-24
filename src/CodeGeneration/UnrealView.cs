@@ -135,6 +135,18 @@ internal sealed class UnrealIndexView
 
     /// <summary>The field as the sheet spells it, for the doc comment.</summary>
     public required string FieldName { get; set; }
+    /// <summary>Whether the key is several columns taken together.</summary>
+    public required bool IsComposite { get; set; }
+
+    /// <summary>The columns making it up - one entry unless it is composite.</summary>
+    public required IReadOnlyList<KeyComponentView> Components { get; set; }
+
+    /// <summary>The lookup's parameter list, one entry per column of the key.</summary>
+    public required string Params { get; set; }
+
+    /// <summary>What the map is subscripted with, given those parameters.</summary>
+    public required string Argument { get; set; }
+
 }
 
 internal sealed class UnrealFieldView
@@ -247,6 +259,12 @@ internal sealed class UnrealTableSlotView
 
     /// <summary>The primary index's key parameter type.</summary>
     public required string PrimaryKeyParam { get; set; }
+
+    /// <summary>The row getter's parameter list, one entry per column of the primary key.</summary>
+    public required string PrimaryParams { get; set; }
+
+    /// <summary>What that getter passes to the lookup.</summary>
+    public required string PrimaryArgument { get; set; }
 
     /// <summary>The primary index's field name, as the sheet spells it.</summary>
     public required string PrimaryFieldName { get; set; }

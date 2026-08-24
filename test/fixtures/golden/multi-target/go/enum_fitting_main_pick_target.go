@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// FittingMainPickTarget was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : K7.
+// FittingMainPickTarget was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : L4.
 // Which table `Fitting.MainPick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 type FittingMainPickTarget int32
 

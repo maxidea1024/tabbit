@@ -21,8 +21,8 @@ import { BitRecord } from './bit'
 /** A type for handling rows when parsing .json. */
 interface IDataRow {
   index: number
-  slotArray: number[]
-  tierArray: number[]
+  slot: number[]
+  tier: number[]
 }
 
 // Generated from test/fixtures/xlsx/serial-ref-trim/serial-ref-trim.xlsx : Refs : J2
@@ -36,52 +36,52 @@ export class TrimKitRecord {
   public get index(): number { return this._index }
 
   /** element 1 - the row it points at */
-  public get slotArray(): BitRecord[] { return this._slotArray }
-  /** Whether element `index` of `slotArray` has a value. */
-  public hasSlotArrayAt(index: number): boolean {
-    return this._slotArrayHasValueAt === null
-      || index < 0 || index >= this._slotArrayHasValueAt.length
-      || this._slotArrayHasValueAt[index]
+  public get slot(): BitRecord[] { return this._slot }
+  /** Whether element `index` of `slot` has a value. */
+  public hasSlotAt(index: number): boolean {
+    return this._slotHasValueAt === null
+      || index < 0 || index >= this._slotHasValueAt.length
+      || this._slotHasValueAt[index]
   }
 
   /** element 1 - the target's own value */
-  public get tierArray(): number[] { return this._tierArray }
-  /** Whether element `index` of `tierArray` has a value. */
-  public hasTierArrayAt(index: number): boolean {
-    return this._tierArrayHasValueAt === null
-      || index < 0 || index >= this._tierArrayHasValueAt.length
-      || this._tierArrayHasValueAt[index]
+  public get tier(): number[] { return this._tier }
+  /** Whether element `index` of `tier` has a value. */
+  public hasTierAt(index: number): boolean {
+    return this._tierHasValueAt === null
+      || index < 0 || index >= this._tierHasValueAt.length
+      || this._tierHasValueAt[index]
   }
 
-  public setReference_slotArray_INTERNAL(index: number, value: BitRecord): void { this._slotArray[index] = value; }
-  public setReference_tierArray_INTERNAL(index: number, value: number): void { this._tierArray[index] = value; }
+  public setReference_slot_INTERNAL(index: number, value: BitRecord): void { this._slot[index] = value; }
+  public setReference_tier_INTERNAL(index: number, value: number): void { this._tier[index] = value; }
 
   public _index: number = 0
-  public _slotArray: BitRecord[] = []
-  public _slotArray_Bit_index: number[] = []
-  public _slotArray_F: boolean[] = []
-  public _slotArrayHasValueAt: boolean[] | null = null
-  public _tierArray: number[] = []
-  public _tierArray_Bit_index: number[] = []
-  public _tierArray_F: boolean[] = []
-  public _tierArrayHasValueAt: boolean[] | null = null
+  public _slot: BitRecord[] = []
+  public _slot_Bit_index: number[] = []
+  public _slot_F: boolean[] = []
+  public _slotHasValueAt: boolean[] | null = null
+  public _tier: number[] = []
+  public _tier_Bit_index: number[] = []
+  public _tier_F: boolean[] = []
+  public _tierHasValueAt: boolean[] | null = null
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._slotArray_Bit_index = dataRow.slotArray; this._slotArray = new Array(this._slotArray_Bit_index.length).fill(undefined); this._slotArray_F = new Array(this._slotArray_Bit_index.length).fill(false)
-    this._tierArray_Bit_index = dataRow.tierArray; this._tierArray = new Array(this._tierArray_Bit_index.length).fill(undefined); this._tierArray_F = new Array(this._tierArray_Bit_index.length).fill(false)
+    this._slot_Bit_index = dataRow.slot; this._slot = new Array(this._slot_Bit_index.length).fill(undefined); this._slot_F = new Array(this._slot_Bit_index.length).fill(false)
+    this._tier_Bit_index = dataRow.tier; this._tier = new Array(this._tier_Bit_index.length).fill(undefined); this._tier_F = new Array(this._tier_Bit_index.length).fill(false)
   }
 
   /** Populate field values. */
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
     this._index = dataRow[offset++]
-    this._slotArray_Bit_index = dataRow.slice(offset, offset + 3)
-    this._slotArray = new Array(this._slotArray_Bit_index.length).fill(undefined); this._slotArray_F = new Array(this._slotArray_Bit_index.length).fill(false)
+    this._slot_Bit_index = dataRow.slice(offset, offset + 3)
+    this._slot = new Array(this._slot_Bit_index.length).fill(undefined); this._slot_F = new Array(this._slot_Bit_index.length).fill(false)
     offset += 3
-    this._tierArray_Bit_index = dataRow.slice(offset, offset + 3)
-    this._tierArray = new Array(this._tierArray_Bit_index.length).fill(undefined); this._tierArray_F = new Array(this._tierArray_Bit_index.length).fill(false)
+    this._tier_Bit_index = dataRow.slice(offset, offset + 3)
+    this._tier = new Array(this._tier_Bit_index.length).fill(undefined); this._tier_F = new Array(this._tier_Bit_index.length).fill(false)
     offset += 3
   }
 }
@@ -212,39 +212,39 @@ export class TrimKitTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'TrimKit.Slot_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32], true)
+          tabbit.checkColumn(column, 'TrimKit.Slot', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32], true)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TrimKit.Slot_array')
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TrimKit.Slot')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._slotArray = new Array(elementCount).fill(undefined)
-            record._slotArray_F = new Array(elementCount).fill(false)
-            record._slotArray_Bit_index = []
-            record._slotArrayHasValueAt = []
+            record._slot = new Array(elementCount).fill(undefined)
+            record._slot_F = new Array(elementCount).fill(false)
+            record._slot_Bit_index = []
+            record._slotHasValueAt = []
             for (let j = 0; j < elementCount; ++j) {
-              record._slotArray_Bit_index.push(cursor.nextI32())
-              record._slotArrayHasValueAt.push(
+              record._slot_Bit_index.push(cursor.nextI32())
+              record._slotHasValueAt.push(
                 tabbit.isPresent(elementPresence, elementAt++))
             }
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'TrimKit.Tier_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32], true)
+          tabbit.checkColumn(column, 'TrimKit.Tier', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32], true)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TrimKit.Tier_array')
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TrimKit.Tier')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._tierArray = new Array(elementCount).fill(undefined)
-            record._tierArray_F = new Array(elementCount).fill(false)
-            record._tierArray_Bit_index = []
-            record._tierArrayHasValueAt = []
+            record._tier = new Array(elementCount).fill(undefined)
+            record._tier_F = new Array(elementCount).fill(false)
+            record._tier_Bit_index = []
+            record._tierHasValueAt = []
             for (let j = 0; j < elementCount; ++j) {
-              record._tierArray_Bit_index.push(cursor.nextI32())
-              record._tierArrayHasValueAt.push(
+              record._tier_Bit_index.push(cursor.nextI32())
+              record._tierHasValueAt.push(
                 tabbit.isPresent(elementPresence, elementAt++))
             }
           }

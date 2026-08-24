@@ -26,7 +26,7 @@ public final class LootRecord {
     public var pos: PosEntry = PosEntry()
 
     /// scalar serial array, element 1 - required, so the array is never empty
-    public var tagArray: [String] = []
+    public var tag: [String] = []
 
     /// One element of slot.
     public struct SlotEntry {
@@ -236,15 +236,15 @@ public final class LootTable {
                     }
                 }
             case 8:
-                try Tcb.checkColumn(column, "Loot.Tag_array", Tcb.kindArray, false, Tcb.elementString)
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Tag_array")
+                try Tcb.checkColumn(column, "Loot.Tag", Tcb.kindArray, false, Tcb.elementString)
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Loot.Tag")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.tagArray = []
-                    record.tagArray.reserveCapacity(elementCount)
+                    record.tag = []
+                    record.tag.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.tagArray.append(try cursor.nextString())
+                        record.tag.append(try cursor.nextString())
                     }
                 }
             default:

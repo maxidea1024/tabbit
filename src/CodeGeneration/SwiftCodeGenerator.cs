@@ -153,6 +153,9 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`findByStageAndSlot(stageKey, slotKey)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// An array whose elements may be absent gets a `[Bool]` beside it, one entry per element.
     /// </summary>
@@ -363,13 +366,44 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<SwiftIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf => new SwiftIndexView
+        => KeyPlans.Of(table).Select(plan =>
         {
-            Member = SwiftName(sf.Name),
-            Suffix = sf.Name.ToPascalCase(),
-            KeyType = ResolvedElementType(sf),
-            MapName = "by" + sf.Name.ToPascalCase(),
-            FieldName = sf.Name.ToPascalCase(),
+            string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                Type = ResolvedElementType(component),
+                Member = SwiftName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
+
+            return new SwiftIndexView
+            {
+                Member = SwiftName(plan.Only.Name),
+                Suffix = suffix,
+                KeyType = plan.IsComposite ? "String" : ResolvedElementType(plan.Only),
+                MapName = "by" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => "_ " + c.Param + ": " + c.Type))
+                    : "_ key: " + ResolvedElementType(plan.Only),
+
+                Argument = plan.IsComposite
+                    ? "Self.keyOf" + suffix + "(" + args + ")"
+                    : "key",
+
+                ValueFormat = plan.IsComposite
+                    ? "(" + string.Join(", ", components.Select(c => @"\(" + c.Param + ")")) + ")"
+                    : @"\(key)",
+
+                ValueArgs = plan.IsComposite ? args : "key",
+            };
         }).ToList();
 
     /// <summary>

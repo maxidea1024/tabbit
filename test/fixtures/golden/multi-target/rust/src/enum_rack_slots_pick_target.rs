@@ -5,8 +5,8 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : S7
-/// Which table `Rack.SlotsPick1` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : T4
+/// Which table `Rack.SlotsPick0` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[repr(i32)]
 pub enum RackSlotsPickTarget {

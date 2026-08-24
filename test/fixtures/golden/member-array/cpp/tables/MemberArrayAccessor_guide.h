@@ -18,7 +18,7 @@
 
 #include "tabbit/tcb_reader.h"
 #include "MemberArrayAccessor_forward.h"
-// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
 /// One element of GuideRecord::skill.
 struct GuideRecord_skill_entry {
   /// member array, element 1
@@ -46,7 +46,7 @@ struct GuideRecord {
   /// a record with no number at all - still one record, members not arrays
   GuideRecord_pos_entry pos;
   /// scalar serial array, so both array kinds sit in one table
-  std::vector<std::string> tag_array;
+  std::vector<std::string> tag;
   /// array of arrays: outer 1, inner 1 - neither level has a name
   std::vector<std::vector<std::int32_t>> grid;
 };
@@ -191,21 +191,21 @@ class GuideTable {
           break;
         }
         case 7: {
-          tabbit::check_column(column, "Guide.Tag_array", tabbit::kKindArray, false, {tabbit::kElementString});
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Guide.Tag_array");
+          tabbit::check_column(column, "Guide.Tag", tabbit::kKindArray, false, {tabbit::kElementString});
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Guide.Tag");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.tag_array.resize(static_cast<std::size_t>(element_count));
+            record.tag.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.tag_array[static_cast<std::size_t>(j)] = cursor.next_string();
+              record.tag[static_cast<std::size_t>(j)] = cursor.next_string();
             }
           }
           break;
         }
         case 8: {
-          tabbit::check_column(column, "Guide.Grid.1", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Guide.Grid.1");
+          tabbit::check_column(column, "Guide.Grid.0", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Guide.Grid.0");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
@@ -219,8 +219,8 @@ class GuideTable {
           break;
         }
         case 9: {
-          tabbit::check_column(column, "Guide.Grid.2", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Guide.Grid.2");
+          tabbit::check_column(column, "Guide.Grid.1", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Guide.Grid.1");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();

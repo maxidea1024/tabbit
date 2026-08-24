@@ -215,8 +215,8 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 7:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Tag_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
-            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Tag_array"));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Tag"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Tag"));
 
             for (FGuideRow& Record : Loaded)
             {
@@ -225,19 +225,19 @@ bool FGuideTable::Read(const FString& Filename)
 
                 // Bounded, because the count came out of the file. The array grows past
                 // this if the elements really are there.
-                Record.TagArray.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Tag.Empty(Tabbit::ReserveBound(ElementCount));
 
-                while (Record.TagArray.Num() < ElementCount && !Reader.HasFailed())
+                while (Record.Tag.Num() < ElementCount && !Reader.HasFailed())
                 {
-                    Cursor.NextAs(Column.Element, Record.TagArray.AddDefaulted_GetRef());
+                    Cursor.NextAs(Column.Element, Record.Tag.AddDefaulted_GetRef());
                 }
             }
 
             break;
 
         case 8:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Grid.1"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
-            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Grid.1"));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Grid.0"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Grid.0"));
 
             for (FGuideRow& Record : Loaded)
             {
@@ -256,8 +256,8 @@ bool FGuideTable::Read(const FString& Filename)
             break;
 
         case 9:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Grid.2"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
-            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Grid.2"));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Guide.Grid.1"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Guide.Grid.1"));
 
             for (FGuideRow& Record : Loaded)
             {

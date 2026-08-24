@@ -1,0 +1,26 @@
+[
+  {
+    "stage": 1,
+    "slot": 1,
+    "power": 10,
+    "label": "training helm"
+  },
+  {
+    "stage": 1,
+    "slot": 2,
+    "power": 20,
+    "label": "training plate"
+  },
+  {
+    "stage": 2,
+    "slot": 1,
+    "power": 30,
+    "label": "field helm"
+  },
+  {
+    "stage": 2,
+    "slot": 3,
+    "power": 40,
+    "label": "field boots"
+  }
+]

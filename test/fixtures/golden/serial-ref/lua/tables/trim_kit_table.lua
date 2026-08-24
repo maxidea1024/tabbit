@@ -12,24 +12,24 @@ local tcb = require(_root .. "tabbit.tcb_reader")
 -- Numbered reference columns folded into an array the row's length.
 ---@class TrimKitRecord
 ---@field index integer
----@field slotArray BitRecord[]
----@field slotArrayIndex integer[]
----@field hasSlotArrayAt boolean[]
----@field tierArray BitRecord[]
----@field tierArrayIndex integer[]
----@field hasTierArrayAt boolean[]
-local TrimKitRecordMeta = tcb.strictType("a `TrimKit` row", { "index", "slotArray", "slotArrayIndex", "hasSlotArrayAt", "tierArray", "tierArrayIndex", "hasTierArrayAt" })
+---@field slot BitRecord[]
+---@field slotIndex integer[]
+---@field hasSlotAt boolean[]
+---@field tier BitRecord[]
+---@field tierIndex integer[]
+---@field hasTierAt boolean[]
+local TrimKitRecordMeta = tcb.strictType("a `TrimKit` row", { "index", "slot", "slotIndex", "hasSlotAt", "tier", "tierIndex", "hasTierAt" })
 
 ---@return TrimKitRecord
 local function newTrimKitRecord()
   return setmetatable({
     index = 0,
-    slotArray = {},
-    slotArrayIndex = {},
-    hasSlotArrayAt = {},
-    tierArray = {},
-    tierArrayIndex = {},
-    hasTierArrayAt = {},
+    slot = {},
+    slotIndex = {},
+    hasSlotAt = {},
+    tier = {},
+    tierIndex = {},
+    hasTierAt = {},
   }, TrimKitRecordMeta)
 end
 
@@ -113,12 +113,12 @@ function TrimKitTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "TrimKit.Slot_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 }, true)
+      tcb.checkColumn(column, "TrimKit.Slot", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
       -- steps once per element of every row. spec/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)
       local elementAt = 0
-      local cursor = tcb.newCursor(reader, column, count, "TrimKit.Slot_array")
+      local cursor = tcb.newCursor(reader, column, count, "TrimKit.Slot")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
@@ -128,8 +128,8 @@ function TrimKitTable:readBytes(data)
           values[element] = cursor:nextI32()
         end
 
-        record.slotArrayIndex = values
-        record.slotArray = {}
+        record.slotIndex = values
+        record.slot = {}
         local answers = {}
 
         for element = 1, elementCount do
@@ -137,15 +137,15 @@ function TrimKitTable:readBytes(data)
         end
 
         elementAt = elementAt + elementCount
-        record.hasSlotArrayAt = answers
+        record.hasSlotAt = answers
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "TrimKit.Tier_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 }, true)
+      tcb.checkColumn(column, "TrimKit.Tier", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
       -- steps once per element of every row. spec/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)
       local elementAt = 0
-      local cursor = tcb.newCursor(reader, column, count, "TrimKit.Tier_array")
+      local cursor = tcb.newCursor(reader, column, count, "TrimKit.Tier")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
@@ -155,8 +155,8 @@ function TrimKitTable:readBytes(data)
           values[element] = cursor:nextI32()
         end
 
-        record.tierArrayIndex = values
-        record.tierArray = {}
+        record.tierIndex = values
+        record.tier = {}
         local answers = {}
 
         for element = 1, elementCount do
@@ -164,7 +164,7 @@ function TrimKitTable:readBytes(data)
         end
 
         elementAt = elementAt + elementCount
-        record.hasTierArrayAt = answers
+        record.hasTierAt = answers
       end
     else
       -- A column added after this code was generated.

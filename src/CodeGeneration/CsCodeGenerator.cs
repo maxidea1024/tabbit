@@ -174,6 +174,9 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`FindByStageAndSlot(stageKey, slotKey)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// `HasXAt(i)` beside the value, filled from the element bitmap the file carries.
     /// spec/nullable-array-elements.md.
@@ -592,6 +595,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                                  .Select(x => x.view)
                                  .ToList(),
 
+            CompositeKeys = CompositeKeys(table),
+
             ReferenceFields = table.SerialFields
                                    .Select((sf, i) => new { sf, view = fields[i] })
                                    .Where(x => x.sf.IsRef)
@@ -803,6 +808,44 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             PascalName = wire.Group.Name.ToPascalCase(),
         };
     }
+
+    /// <summary>
+    /// The keys made of several columns, each with the lookup it generates.
+    /// </summary>
+    /// <remarks>
+    /// Beside <c>IndexedFields</c> rather than folded into it: a single key publishes its
+    /// dictionary and a composite one does not, and a table that declares none generates what
+    /// it generated before this notation existed. See <see cref="CompositeKeyView"/>.
+    /// </remarks>
+    private IReadOnlyList<CompositeKeyView> CompositeKeys(Table table)
+        => KeyPlans.Of(table).Where(plan => plan.IsComposite).Select(plan =>
+        {
+            string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                Type = ToCSharpTypeName(component.FirstField),
+                Member = CsName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            return new CompositeKeyView
+            {
+                Suffix = suffix,
+                MapName = "_recordsBy" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                Components = components,
+
+                Params = string.Join(", ", components.Select(c => c.Type + " " + c.Param)),
+
+                Argument = "KeyOf" + suffix + "("
+                           + string.Join(", ", components.Select(c => c.Param)) + ")",
+
+                ValueFormat = "(" + string.Join(
+                    ", ", components.Select(c => "{" + c.Param + "}")) + ")",
+            };
+        }).ToList();
 
     private CsFieldView BuildField(Table table, SerialField sf)
     {

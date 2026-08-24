@@ -105,6 +105,9 @@ public static class ExportMessages
     /// <summary>A target that does not carry optional fields yet.</summary>
     public const string TargetNoOptionalFields = "export.target-no-optional-fields";
 
+    /// <summary>A target handed a table keyed by several columns taken together.</summary>
+    public const string TargetNoCompositeKeys = "export.target-no-composite-keys";
+
     /// <summary>A target that does not carry optional array elements yet.</summary>
     public const string TargetNoOptionalElements = "export.target-no-optional-elements";
 

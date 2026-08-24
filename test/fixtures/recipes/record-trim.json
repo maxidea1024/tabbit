@@ -18,10 +18,6 @@
         // API and nothing in a sheet says an empty tail was meant as elements.
         "TrimTrailingArrayElements": true,
 
-        // So `Tag1`/`Tag2`/`Tag3` fold into one array beside the record groups. Trimming
-        // answers for both array kinds and this fixture had only records in it.
-        "FoldSerialFields": true,
-
         // Row 3 leaves an element empty between two filled ones, which is refused by
         // default. It is here on purpose - it is what says the middle is kept rather than
         // closed up - so this entry says the gap was meant. `record-trim-strict` reads the

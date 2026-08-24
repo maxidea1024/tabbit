@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
 /// A record whose members are arrays, and an array of arrays beside it.
 public final class GuideRecord {
 
@@ -26,7 +26,7 @@ public final class GuideRecord {
     public var pos: PosEntry = PosEntry()
 
     /// scalar serial array, so both array kinds sit in one table
-    public var tagArray: [String] = []
+    public var tag: [String] = []
 
     /// array of arrays: outer 1, inner 1 - neither level has a name
     public var grid: [[Int32]] = [[Int32]](repeating: [Int32](repeating: 0, count: 3), count: 2)
@@ -199,20 +199,20 @@ public final class GuideTable {
                     record.pos.y = try cursor.nextF32()
                 }
             case 7:
-                try Tcb.checkColumn(column, "Guide.Tag_array", Tcb.kindArray, false, Tcb.elementString)
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Tag_array")
+                try Tcb.checkColumn(column, "Guide.Tag", Tcb.kindArray, false, Tcb.elementString)
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Tag")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.tagArray = []
-                    record.tagArray.reserveCapacity(elementCount)
+                    record.tag = []
+                    record.tag.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.tagArray.append(try cursor.nextString())
+                        record.tag.append(try cursor.nextString())
                     }
                 }
             case 8:
-                try Tcb.checkColumn(column, "Guide.Grid.1", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Grid.1")
+                try Tcb.checkColumn(column, "Guide.Grid.0", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Grid.0")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
                     record.grid[0] = []
@@ -222,8 +222,8 @@ public final class GuideTable {
                     }
                 }
             case 9:
-                try Tcb.checkColumn(column, "Guide.Grid.2", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Grid.2")
+                try Tcb.checkColumn(column, "Guide.Grid.1", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Guide.Grid.1")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
                     record.grid[1] = []

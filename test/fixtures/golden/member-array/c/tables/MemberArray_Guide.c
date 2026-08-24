@@ -155,9 +155,9 @@ static bool MemberArray_GuideParse(MemberArray_GuideTable_t* table, tb_reader* r
       break;
 
     case 7:
-      (void)tb_check_column(reader, column, "Guide.Tag_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Guide.Tag", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
-      (void)tb_cursor_init(&cursor, reader, column, table->count, "Guide.Tag_array");
+      (void)tb_cursor_init(&cursor, reader, column, table->count, "Guide.Tag");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         MemberArray_GuideRecord_t* record = &table->records[row];
@@ -166,22 +166,22 @@ static bool MemberArray_GuideParse(MemberArray_GuideTable_t* table, tb_reader* r
 
         (void)tb_cursor_next_length(&cursor, &element_count);
 
-        record->tag_array_count = element_count;
-        record->tag_array = (const char**)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->tag_array);
+        record->tag_count = element_count;
+        record->tag = (const char**)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->tag);
 
-        if (element_count > 0 && record->tag_array == NULL)
+        if (element_count > 0 && record->tag == NULL)
           return tb_fail_with(reader, "out of memory allocating an array");
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
-          (void)tb_cursor_next_string(&cursor, &record->tag_array[element]);
+          (void)tb_cursor_next_string(&cursor, &record->tag[element]);
       }
       break;
 
     case 8:
-      (void)tb_check_column(reader, column, "Guide.Grid.1", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Guide.Grid.0", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
-      (void)tb_cursor_init(&cursor, reader, column, table->count, "Guide.Grid.1");
+      (void)tb_cursor_init(&cursor, reader, column, table->count, "Guide.Grid.0");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         MemberArray_GuideRecord_t* record = &table->records[row];
@@ -203,9 +203,9 @@ static bool MemberArray_GuideParse(MemberArray_GuideTable_t* table, tb_reader* r
       break;
 
     case 9:
-      (void)tb_check_column(reader, column, "Guide.Grid.2", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+      (void)tb_check_column(reader, column, "Guide.Grid.1", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
-      (void)tb_cursor_init(&cursor, reader, column, table->count, "Guide.Grid.2");
+      (void)tb_cursor_init(&cursor, reader, column, table->count, "Guide.Grid.1");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         MemberArray_GuideRecord_t* record = &table->records[row];

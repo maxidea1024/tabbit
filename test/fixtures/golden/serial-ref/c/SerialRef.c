@@ -31,24 +31,24 @@ static void SerialRef_SolveCrossReferences(SerialRef_t* data) {
     {
       int32_t element;
 
-      for (element = 0; element < record->slot_array_count; ++element) {
+      for (element = 0; element < record->slot_count; ++element) {
         const SerialRef_PieceRecord_t* target = SerialRef_PieceFindByIndex(
-          &data->piece, record->slot_array_index[element]);
+          &data->piece, record->slot_index[element]);
 
         if (target != NULL)
-          record->slot_array[element] = target;
+          record->slot[element] = target;
       }
     }
 
     {
       int32_t element;
 
-      for (element = 0; element < record->tier_array_count; ++element) {
+      for (element = 0; element < record->tier_count; ++element) {
         const SerialRef_PieceRecord_t* target = SerialRef_PieceFindByIndex(
-          &data->piece, record->tier_array_index[element]);
+          &data->piece, record->tier_index[element]);
 
         if (target != NULL)
-          record->tier_array[element] = target->tier;
+          record->tier[element] = target->tier;
       }
     }
   }
@@ -59,24 +59,24 @@ static void SerialRef_SolveCrossReferences(SerialRef_t* data) {
     {
       int32_t element;
 
-      for (element = 0; element < record->slot_array_count; ++element) {
+      for (element = 0; element < record->slot_count; ++element) {
         const SerialRef_BitRecord_t* target = SerialRef_BitFindByIndex(
-          &data->bit, record->slot_array_index[element]);
+          &data->bit, record->slot_index[element]);
 
         if (target != NULL)
-          record->slot_array[element] = target;
+          record->slot[element] = target;
       }
     }
 
     {
       int32_t element;
 
-      for (element = 0; element < record->tier_array_count; ++element) {
+      for (element = 0; element < record->tier_count; ++element) {
         const SerialRef_BitRecord_t* target = SerialRef_BitFindByIndex(
-          &data->bit, record->tier_array_index[element]);
+          &data->bit, record->tier_index[element]);
 
         if (target != NULL)
-          record->tier_array[element] = target->tier;
+          record->tier[element] = target->tier;
       }
     }
   }

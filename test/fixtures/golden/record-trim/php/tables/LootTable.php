@@ -57,7 +57,7 @@ final class LootRecord
     public LootPosEntry $pos;
     /** scalar serial array, element 1 - required, so the array is never empty */
     /** @var list<string> */
-    public array $tagArray = [];
+    public array $tag = [];
 
 
     /**
@@ -245,13 +245,13 @@ final class LootTable
                     break;
 
                 case 8:
-                    TcbReader::checkColumn($column, 'Loot.Tag_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Tag_array');
+                    TcbReader::checkColumn($column, 'Loot.Tag', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Loot.Tag');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->tagArray = [];
+                        $record->tag = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->tagArray[] = $cursor->nextString();
+                            $record->tag[] = $cursor->nextString();
                         }
                     }
                     break;

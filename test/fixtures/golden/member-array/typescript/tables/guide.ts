@@ -49,11 +49,11 @@ interface IDataRow {
   name: string
   skill: SkillEntryJson
   pos: PosEntryJson
-  tagArray: string[]
+  tag: string[]
   grid: number[][]
 }
 
-// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
 /** A record whose members are arrays, and an array of arrays beside it. */
 export class GuideRecord {
   /** Default constructor */
@@ -73,7 +73,7 @@ export class GuideRecord {
   public get pos(): PosEntry { return this._pos }
 
   /** scalar serial array, so both array kinds sit in one table */
-  public get tagArray(): string[] { return this._tagArray }
+  public get tag(): string[] { return this._tag }
 
   /** array of arrays: outer 1, inner 1 - neither level has a name */
   public get grid(): number[][] { return this._grid }
@@ -82,7 +82,7 @@ export class GuideRecord {
   public _name: string = ''
   public _skill: SkillEntry = { step: [0, 0], order: ['', ''] }
   public _pos: PosEntry = { x: 0, y: 0 }
-  public _tagArray: string[] = []
+  public _tag: string[] = []
   public _grid: number[][] = Array.from({ length: 2 }, () => [])
 
   /** Populate field values. */
@@ -91,7 +91,7 @@ export class GuideRecord {
     this._name = dataRow.name
     this._skill = ((e: any) => ({ step: e.step.map((v: any) => v), order: e.order.map((v: any) => v) }))(dataRow.skill)
     this._pos = ((e: any) => ({ x: Math.fround(e.x), y: Math.fround(e.y) }))(dataRow.pos)
-    this._tagArray = dataRow.tagArray
+    this._tag = dataRow.tag
     this._grid = dataRow.grid.map((inner: any) => inner.map((v: any) => v))
   }
 
@@ -103,14 +103,14 @@ export class GuideRecord {
     this._skill = { step: dataRow.slice(offset + 0, offset + 2).map((v: any) => v), order: dataRow.slice(offset + 2, offset + 4).map((v: any) => v) }
     offset += 4
     this._pos = { x: Math.fround(dataRow[offset++]), y: Math.fround(dataRow[offset++]) }
-    this._tagArray = dataRow.slice(offset, offset + 2)
+    this._tag = dataRow.slice(offset, offset + 2)
     offset += 2
     this._grid = [dataRow.slice(offset + 0, offset + 3).map((v: any) => v), dataRow.slice(offset + 3, offset + 6).map((v: any) => v)]
     offset += 6
   }
 }
 
-// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
 /** A record whose members are arrays, and an array of arrays beside it. */
 export class GuideTable {
   /** Default constructor. */
@@ -281,20 +281,20 @@ export class GuideTable {
           }
           break
         case 7:
-          tabbit.checkColumn(column, 'Guide.Tag_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Tag_array')
+          tabbit.checkColumn(column, 'Guide.Tag', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Tag')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._tagArray = []
+            record._tag = []
             for (let j = 0; j < elementCount; ++j) {
-              record._tagArray.push(cursor.nextString())
+              record._tag.push(cursor.nextString())
             }
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Guide.Grid.1', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Grid.1')
+          tabbit.checkColumn(column, 'Guide.Grid.0', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Grid.0')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
@@ -304,8 +304,8 @@ export class GuideTable {
           }
           break
         case 9:
-          tabbit.checkColumn(column, 'Guide.Grid.2', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Grid.2')
+          tabbit.checkColumn(column, 'Guide.Grid.1', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Guide.Grid.1')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()

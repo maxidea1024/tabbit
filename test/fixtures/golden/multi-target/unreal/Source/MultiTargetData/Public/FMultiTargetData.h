@@ -18,7 +18,7 @@
 #include "FMultiTargetData.generated.h"
 
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : C7
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : D4
 /** Which table `Holder.Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
 UENUM(BlueprintType)
 enum class EHolderPickTarget : uint8
@@ -32,7 +32,7 @@ enum class EHolderPickTarget : uint8
 };
 
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : D7
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : E4
 /** Which table `Holder.Wide` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
 UENUM(BlueprintType)
 enum class EHolderWideTarget : uint8
@@ -52,7 +52,7 @@ enum class EHolderWideTarget : uint8
 };
 
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : F7
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : G4
 /** Which table `Holder.Maybe` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
 UENUM(BlueprintType)
 enum class EHolderMaybeTarget : uint8
@@ -66,8 +66,8 @@ enum class EHolderMaybeTarget : uint8
 };
 
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : C7
-/** Which table `Loadout.Slot1Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : D4
+/** Which table `Loadout.Slot0Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
 UENUM(BlueprintType)
 enum class ELoadoutSlotPickTarget : uint8
 {
@@ -80,7 +80,7 @@ enum class ELoadoutSlotPickTarget : uint8
 };
 
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : K7
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : L4
 /** Which table `Fitting.MainPick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
 UENUM(BlueprintType)
 enum class EFittingMainPickTarget : uint8
@@ -94,8 +94,8 @@ enum class EFittingMainPickTarget : uint8
 };
 
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : S7
-/** Which table `Rack.SlotsPick1` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : T4
+/** Which table `Rack.SlotsPick0` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
 UENUM(BlueprintType)
 enum class ERackSlotsPickTarget : uint8
 {

@@ -109,44 +109,44 @@ public final class TrimKitTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumnWithElements(column, "TrimKit.Slot_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumnWithElements(column, "TrimKit.Slot", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
                     elementPresence = TcbReader.readElementPresence(reader, column);
                     elementAt = 0;
-                    cursor = new TcbReader.ColumnCursor(reader, column, count, "TrimKit.Slot_array");
+                    cursor = new TcbReader.ColumnCursor(reader, column, count, "TrimKit.Slot");
                     for (TrimKitRecord record : loaded) {
                         int elementCount;
                         elementCount = cursor.nextLength();
-                        record.slotArray = new BitRecord[elementCount];
-                        record.slotArrayIndex = new int[elementCount];
-                        record.hasSlotArrayAt = new boolean[elementCount];
+                        record.slot = new BitRecord[elementCount];
+                        record.slotIndex = new int[elementCount];
+                        record.hasSlotAt = new boolean[elementCount];
                         for (int j = 0; j < elementCount; j++) {
-                            record.slotArrayIndex[j] = cursor.nextI32();
-                            record.hasSlotArrayAt[j] =
+                            record.slotIndex[j] = cursor.nextI32();
+                            record.hasSlotAt[j] =
                                 TcbReader.isPresent(elementPresence, elementAt++);
                         }
                     }
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumnWithElements(column, "TrimKit.Tier_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
+                    TcbReader.checkColumnWithElements(column, "TrimKit.Tier", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
                     elementPresence = TcbReader.readElementPresence(reader, column);
                     elementAt = 0;
-                    cursor = new TcbReader.ColumnCursor(reader, column, count, "TrimKit.Tier_array");
+                    cursor = new TcbReader.ColumnCursor(reader, column, count, "TrimKit.Tier");
                     for (TrimKitRecord record : loaded) {
                         int elementCount;
                         elementCount = cursor.nextLength();
-                        record.tierArray = new int[elementCount];
-                        record.tierArrayIndex = new int[elementCount];
-                        record.hasTierArrayAt = new boolean[elementCount];
+                        record.tier = new int[elementCount];
+                        record.tierIndex = new int[elementCount];
+                        record.hasTierAt = new boolean[elementCount];
                         for (int j = 0; j < elementCount; j++) {
-                            record.tierArrayIndex[j] = cursor.nextI32();
-                            record.hasTierArrayAt[j] =
+                            record.tierIndex[j] = cursor.nextI32();
+                            record.hasTierAt[j] =
                                 TcbReader.isPresent(elementPresence, elementAt++);
                         }
                     }

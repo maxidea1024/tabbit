@@ -36,6 +36,10 @@ public class RedisRecipe : DatabaseRecipe
 [TabbitTarget("redis", TargetKind.Export, Order = 60)]
 public class RedisExporter : DatabaseExporterBase<RedisRecipe>
 {
+    /// <summary>Nothing to opt into: this target generates no lookup.</summary>
+    /// <remarks>Values come out as they stand; nothing here is keyed.</remarks>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>Which step of a run this class's log lines belong to.</summary>
     private static Serilog.ILogger Log => LogCategory.Exporting;
 

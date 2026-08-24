@@ -82,7 +82,7 @@ public class DatabaseExportTests
         connection.Open();
 
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT tags, slot_array FROM `tb_ArrayTypes` WHERE `index` = 1";
+        command.CommandText = "SELECT tags, slot FROM `tb_ArrayTypes` WHERE `index` = 1";
 
         using var reader = command.ExecuteReader();
         Assert.True(reader.Read());

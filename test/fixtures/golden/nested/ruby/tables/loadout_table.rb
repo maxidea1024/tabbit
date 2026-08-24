@@ -32,7 +32,7 @@ module Nested
   # Generated from test/fixtures/xlsx/nested/nested.xlsx : Nested : B2
   # Columns folded into records by the Group.Member notation.
   class LoadoutRecord
-    attr_accessor :index, :name, :pos, :slot, :note, :tag_array
+    attr_accessor :index, :name, :pos, :slot, :note, :tag
 
     def initialize
       @index = 0
@@ -40,7 +40,7 @@ module Nested
       @pos = LoadoutPosEntry.new
       @slot = Array.new(2) { LoadoutSlotEntry.new }
       @note = ''
-      @tag_array = []
+      @tag = []
     end
 
   end
@@ -180,11 +180,11 @@ module Nested
             at += n
           end
         when 8
-          Tabbit.check_column(column, 'Loadout.Tag_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Tag_array')
+          Tabbit.check_column(column, 'Loadout.Tag', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loadout.Tag')
           records.each do |record|
             element_count = cursor.next_length
-            record.tag_array = Array.new(element_count) { cursor.next_string }
+            record.tag = Array.new(element_count) { cursor.next_string }
           end
         else
           # A column added after this code was generated.

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="842" height="126" viewBox="0 0 842 126" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>컬럼의 이름과 경로</title>
+<rect x="0" y="0" width="650.3125" height="118" fill="#FFFFFF"/>
+<rect x="0" y="0" width="649.3125" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="118" fill="#E9ECEF"/>
+<rect x="30" y="22" width="619.3125" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="619.3125" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="619.3125" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="119.75" y1="22" x2="119.75" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="171.75" y1="22" x2="171.75" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="223.75" y1="22" x2="223.75" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="275.75" y1="22" x2="275.75" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="355.0625" y1="22" x2="355.0625" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="434.375" y1="22" x2="434.375" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="490.6875" y1="22" x2="490.6875" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="570.0" y1="22" x2="570.0" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="649.3125" y1="22" x2="649.3125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="649.3125" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="649.3125" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="649.3125" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="649.3125" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="649.3125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="649.3125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="119.75" y1="0" x2="119.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="171.75" y1="0" x2="171.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="223.75" y1="0" x2="223.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="275.75" y1="0" x2="275.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="355.0625" y1="0" x2="355.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="434.375" y1="0" x2="434.375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="490.6875" y1="0" x2="490.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="570.0" y1="0" x2="570.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="649.3125" y1="0" x2="649.3125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="648.8125" height="117.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="74.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="145.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="197.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="249.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="315.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="394.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">F</text>
+<text x="462.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">G</text>
+<text x="530.3" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">H</text>
+<text x="609.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">I</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Star</text>
+<text x="126.75" y="38.5" font-size="12.5" fill="#1F2328">경로 표기의 예입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="126.75" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="178.75" y="62.5" font-size="12.5" fill="#1F2328">pos.x</text>
+<text x="230.75" y="62.5" font-size="12.5" fill="#1F2328">pos.y</text>
+<text x="282.75" y="62.5" font-size="12.5" fill="#1F2328">slot[0].id</text>
+<text x="362.0625" y="62.5" font-size="12.5" fill="#1F2328">slot[1].id</text>
+<text x="441.375" y="62.5" font-size="12.5" fill="#1F2328">tag[0]</text>
+<text x="497.6875" y="62.5" font-size="12.5" fill="#1F2328">grid[0][0]</text>
+<text x="577.0" y="62.5" font-size="12.5" fill="#1F2328">grid[0][1]</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="126.75" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="178.75" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="230.75" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="282.75" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="441.375" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="497.6875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="126.75" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="178.75" y="110.5" font-size="12.5" fill="#1F2328">1.5</text>
+<text x="230.75" y="110.5" font-size="12.5" fill="#1F2328">-2.5</text>
+<text x="282.75" y="110.5" font-size="12.5" fill="#1F2328">9001</text>
+<text x="362.0625" y="110.5" font-size="12.5" fill="#1F2328">9002</text>
+<text x="441.375" y="110.5" font-size="12.5" fill="#1F2328">밝음</text>
+<text x="497.6875" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="577.0" y="110.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="659.3125" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ 점은 멤버, 대괄호는 원소</text>
+<text x="659.3125" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 그룹의 타입은 첫 자리에만</text>
+</svg>

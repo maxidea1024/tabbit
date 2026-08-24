@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : D7
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : E4
 /** Which table `Holder.Wide` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
 enum class HolderWideTarget(val value: Int) {
     /** No row of any of them. */

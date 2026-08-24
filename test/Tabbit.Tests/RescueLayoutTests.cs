@@ -380,7 +380,6 @@ public class RescueLayoutTests
 
         var table = model.Tables[0];
 
-        Assert.False(table.FoldSerialFields);
         Assert.Equal(new[] { "Id", "Condition1", "Condition2" }, table.SerialFields.Select(s => s.Name));
         Assert.All(table.SerialFields, serial => Assert.False(serial.IsArray));
     }
@@ -464,13 +463,14 @@ public class RescueLayoutTests
             new[] { "1", "SR" });
         rescue.Layout = new SheetLayout("rescue", DuplicateIndexPolicy.Error);
 
-        // The `~~enum:Name~~` form: marker, description, captions, then label/value/note.
+        // The declaration-cell form: the declaration and its description, then the `:field`
+        // row naming the columns, then the labels. `Sheet` writes rows as given, so the
+        // marker column is the first cell of each.
         var tabbit = Sheet("Declarations",
-            new[] { "~~enum:GradeType~~", "", "" },
-            new[] { "등급", "", "" },
-            new[] { "label", "value", "note" },
-            new[] { "N", "1", "" },
-            new[] { "SR", "2", "" });
+            new[] { ":enum GradeType", "등급", "" },
+            new[] { ":field", "label", "value" },
+            new[] { "", "N", "1" },
+            new[] { "", "SR", "2" });
         tabbit.Layout = SheetLayout.Default;
 
         var raw = new RawModel();

@@ -57,19 +57,34 @@ def build(name, rows, notes=None, title=None, errors=None):
     ncols = max(len(r) for r in rows)
     rows = [r + [""] * (ncols - len(r)) for r in rows]
 
-    # column widths: skip row 0 (declaration/description spill on purpose)
+    def spill_end(ri, ci):
+        """왼쪽 정렬한 글이 넘칠 수 있는 데까지 — 오른쪽의 첫 빈칸 아닌 셀 앞까지입니다."""
+        j = ci + 1
+        while j < ncols and rows[ri][j] == "":
+            j += 1
+        return j
+
+    # 컬럼 폭. 선언 행의 설명은 재지 않습니다 — 시트에서 그렇듯 옆 빈칸으로 흘러넘치는
+    # 것이 제 모습이기 때문입니다. **선언 셀은 잽니다.** `:table Hero`처럼 오른쪽에 자기
+    # 설명이 붙어 있는 것은 넘칠 자리가 없고, 재지 않으면 그 설명 위에 겹쳐 그려집니다.
     widths = []
     for c in range(ncols):
         w = 52.0
         for ri, r in enumerate(rows):
-            if ri == 0 and c >= 1:
-                continue  # description spills
+            if ri == 0 and c >= 1 and not r[c].startswith(":"):
+                continue
             w = max(w, text_w(r[c]) + PAD * 2)
         widths.append(min(w, 280.0))
 
-    # 설명(B1)이 시트 테두리 밖으로 나가지 않게 마지막 컬럼을 넓힌다
-    if ncols > 1 and rows[0][1]:
-        need = text_w(rows[0][1]) + PAD * 2 - sum(widths[1:])
+    # 넘쳐도 되는 설명이 시트 테두리 밖까지 나가지 않게 마지막 컬럼을 넓힙니다. 오른쪽에
+    # 다른 셀이 있어 잘리는 설명은 넓힐 이유가 없으므로 세지 않습니다.
+    for ci in range(1, ncols):
+        text = rows[0][ci]
+
+        if text == "" or text.startswith(":") or spill_end(0, ci) < ncols:
+            continue
+
+        need = text_w(text) + PAD * 2 - sum(widths[ci:])
         if need > 0:
             widths[-1] += need
 
@@ -90,6 +105,9 @@ def build(name, rows, notes=None, title=None, errors=None):
     if title:
         p.append(f"<title>{html.escape(title)}</title>")
     # sheet background (white regardless of theme, like a spreadsheet)
+    defs_at = len(p)
+    defs = []
+
     p.append(f'<rect x="0" y="0" width="{xs[-1]+1}" height="{H-8}" fill="#FFFFFF"/>')
 
     # header bands
@@ -163,8 +181,25 @@ def build(name, rows, notes=None, title=None, errors=None):
             color = C_EXCL if excluded else C_TEXT
             if (ri, ci) in errors:
                 color = C_ERR_TEXT
+
+            # **넘치는 글은 옆 셀 앞에서 잘립니다** - 시트가 그렇게 보여 주기 때문입니다.
+            # 자를 자리가 없으면 옆 셀의 글 위에 두 겹으로 그려지고, 그림을 읽는 사람은
+            # 어느 쪽이 어느 셀의 값인지 알 수 없습니다.
+            end = spill_end(ri, ci)
+            room = xs[end] - xs[ci] - PAD
+
+            clip = ""
+            if text_w(val) > room:
+                cid = f"{name}-clip-{ri}-{ci}"
+                top = COLHDR_H + ri * CELL_H
+                defs.append(
+                    f'<clipPath id="{cid}"><rect x="{xs[ci]:.1f}" y="{top:.1f}" '
+                    f'width="{xs[end]-xs[ci]:.1f}" height="{CELL_H}"/></clipPath>')
+                clip = f' clip-path="url(#{cid})"'
+
             # 모든 셀 좌측 정렬
-            p.append(f'<text x="{xs[ci]+PAD}" y="{y:.1f}" font-size="{FS}" fill="{color}">{esc}</text>')
+            p.append(f'<text x="{xs[ci]+PAD}" y="{y:.1f}" font-size="{FS}" '
+                     f'fill="{color}"{clip}>{esc}</text>')
 
     # margin notes
     if notes:
@@ -173,6 +208,9 @@ def build(name, rows, notes=None, title=None, errors=None):
             color = C_ERR_TEXT if note.startswith("✗") else C_NOTE
             p.append(f'<text x="{xs[-1]+10}" y="{y:.1f}" font-size="11" fill="{color}" '
                      f'font-style="italic">◀ {html.escape(note)}</text>')
+
+    if defs:
+        p.insert(defs_at, "<defs>" + "".join(defs) + "</defs>")
 
     p.append("</svg>")
     path = os.path.join(OUT_DIR, f"{name}.svg")

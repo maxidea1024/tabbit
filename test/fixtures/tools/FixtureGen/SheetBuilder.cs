@@ -7,21 +7,23 @@ namespace Tabbit.FixtureGen;
 /// <summary>
 /// Thin authoring helper over NPOI that lays out Tabbit entities at an explicit
 /// (column, row) origin, so fixtures read the same way they look in Excel.
-///
-/// Tabbit's layout rules (see ModelCooker.ParseDefinitionRect) are:
-///
-///   marker row      ~~type:Name[:targetside]~~
-///   comment row
-///   ...entity body, whose required height is type dependent...
-///
-/// The body of a `table` is 5 header rows (name / comment / type / detail-type /
-/// target-side) followed by data rows. `enum` and `const` have a single throwaway
-/// header row followed by data rows.
-///
-/// The rect scanner grows downward while the cell in the entity's first column is
-/// non-empty, and rightward while cells are non-empty, so every fixture body must
-/// be a solid rectangle with no holes in the first column or the name row.
 /// </summary>
+/// <remarks>
+/// The notation is the one `doc/sheets-primary.md` describes:
+///
+///     :table Name(side=s) | description
+///     :field              | columns...
+///     :type               | types...
+///     :desc               | descriptions...
+///     :target             | sides...
+///                         | data...
+///
+/// **The column an entity is placed at is its marker column, and the body starts beside it.**
+/// So every entity is one cell wider than its columns, which is what a caller stacking
+/// entities side by side has to leave room for.
+///
+/// An entity ends at a blank row, so a fixture that puts something below one leaves a row.
+/// </remarks>
 public sealed class SheetBuilder
 {
     private readonly ISheet _sheet;
@@ -86,30 +88,57 @@ public sealed class SheetBuilder
     }
 
     /// <summary>
-    /// Lays out a table entity and returns the row index just past the last data row,
-    /// so callers can stack entities without hand-counting offsets.
+    /// Lays out a table in the primary layout: a declaration cell, then keyed header rows.
     /// </summary>
-    public int Table(int column, int row, TableSpec spec)
+    /// <remarks>
+    /// **The same <see cref="TableSpec"/> the old notation is written from**, so a fixture pair
+    /// for the equivalence gate has one source of truth. Where the two notations spell a column
+    /// differently the spec says so, in `PrimaryName` and `PrimaryType`.
+    ///
+    /// The marker column is the one the declaration sits in and the body starts beside it, so
+    /// every row here is one cell wider than the old notation's.
+    /// </remarks>
+    public int Table(int column, int row, TableSpec spec, params string[] memoColumns)
     {
-        string marker = string.IsNullOrEmpty(spec.TargetSide)
-            ? $"~~table:{spec.Name}~~"
-            : $"~~table:{spec.Name}:{spec.TargetSide}~~";
+        var meta = new List<string>();
 
-        Set(column, row + 0, marker);
-        Set(column, row + 1, spec.Comment);
+        if (!string.IsNullOrEmpty(spec.TargetSide))
+            meta.Add($"side={spec.TargetSide}");
+
+        if (!string.IsNullOrEmpty(spec.Meta))
+            meta.Add(spec.Meta);
+
+        string declaration = meta.Count == 0
+            ? $":table {spec.Name}"
+            : $":table {spec.Name}({string.Join(", ", meta)})";
+
+        Set(column, row + 0, declaration);
+        Set(column + 1, row + 0, spec.Comment);
 
         int width = spec.Fields.Count;
+
+        Set(column, row + 1, ":field");
+        Set(column, row + 2, ":type");
+        Set(column, row + 3, ":desc");
+        Set(column, row + 4, ":target");
+
         for (int i = 0; i < width; i++)
         {
             var f = spec.Fields[i];
-            Set(column + i, row + 2, f.Name);
-            Set(column + i, row + 3, f.Comment);
-            Set(column + i, row + 4, f.Type);
-            Set(column + i, row + 5, f.DetailType);
-            Set(column + i, row + 6, f.TargetSide);
+
+            Set(column + 1 + i, row + 1, f.NameForPrimary());
+            Set(column + 1 + i, row + 2, f.TypeForPrimary());
+            Set(column + 1 + i, row + 3, f.Comment);
+            Set(column + 1 + i, row + 4, f.TargetSide);
         }
 
-        int dataRow = row + 7;
+        // Space for the sheet's author, which leaves no trace in the model. Written to the
+        // right of the fields so the equivalence gate covers a memo column being ignored
+        // rather than merely allowed.
+        for (int m = 0; m < memoColumns.Length; m++)
+            Set(column + 1 + width + m, row + 1, "#");
+
+        int dataRow = row + 5;
         foreach (var dataLine in spec.Data)
         {
             if (dataLine.Length != width)
@@ -119,7 +148,10 @@ public sealed class SheetBuilder
             }
 
             for (int i = 0; i < width; i++)
-                Set(column + i, dataRow, dataLine[i]);
+                Set(column + 1 + i, dataRow, dataLine[i]);
+
+            for (int m = 0; m < memoColumns.Length; m++)
+                Set(column + 1 + width + m, dataRow, memoColumns[m]);
 
             dataRow++;
         }
@@ -127,45 +159,53 @@ public sealed class SheetBuilder
         return dataRow;
     }
 
-    /// <summary>Lays out an enum entity. Returns the row index just past the last label.</summary>
+    /// <summary>Lays out an enum in the primary layout, whose columns are named.</summary>
     public int Enum(int column, int row, EnumSpec spec)
     {
-        string marker = string.IsNullOrEmpty(spec.TargetSide)
-            ? $"~~enum:{spec.Name}~~"
-            : $"~~enum:{spec.Name}:{spec.TargetSide}~~";
+        string declaration = string.IsNullOrEmpty(spec.TargetSide)
+            ? $":enum {spec.Name}"
+            : $":enum {spec.Name}(side={spec.TargetSide})";
 
-        Set(column, row + 0, marker);
-        Set(column, row + 1, spec.Comment);
+        Set(column, row + 0, declaration);
+        Set(column + 1, row + 0, spec.Comment);
 
-        // Header row is a placeholder that Tabbit skips; it exists for human readers.
-        SetRow(column, row + 2, "name", "value", "description");
+        Set(column, row + 1, ":field");
+        SetRow(column + 1, row + 1, "label", "value", "desc");
 
-        int dataRow = row + 3;
+        int dataRow = row + 2;
         foreach (var label in spec.Labels)
         {
-            SetRow(column, dataRow, label.Name, label.Value, label.Comment);
+            SetRow(column + 1, dataRow, label.Name, label.Value, label.Comment);
             dataRow++;
         }
 
         return dataRow;
     }
 
-    /// <summary>Lays out a const entity. Returns the row index just past the last constant.</summary>
+    /// <summary>
+    /// Lays out a constant set, whose columns are named. Returns the row past the last one.
+    /// </summary>
     public int Const(int column, int row, ConstSpec spec)
     {
-        string marker = string.IsNullOrEmpty(spec.TargetSide)
-            ? $"~~const:{spec.Name}~~"
-            : $"~~const:{spec.Name}:{spec.TargetSide}~~";
+        string declaration = string.IsNullOrEmpty(spec.TargetSide)
+            ? $":const {spec.Name}"
+            : $":const {spec.Name}(side={spec.TargetSide})";
 
-        Set(column, row + 0, marker);
-        Set(column, row + 1, spec.Comment);
+        Set(column, row + 0, declaration);
+        Set(column + 1, row + 0, spec.Comment);
 
-        SetRow(column, row + 2, "name", "type", "detail-type", "value", "description");
+        Set(column, row + 1, ":field");
+        SetRow(column + 1, row + 1, "name", "type", "value", "desc");
 
-        int dataRow = row + 3;
+        int dataRow = row + 2;
         foreach (var c in spec.Constants)
         {
-            SetRow(column, dataRow, c.Name, c.Type, c.DetailType, c.Value, c.Comment);
+            // The folded type expression here too, which is what turns the five columns the old
+            // notation needed into four: an enum names itself instead of writing `enum` beside
+            // its name.
+            string type = string.IsNullOrEmpty(c.DetailType) ? c.Type : c.DetailType;
+
+            SetRow(column + 1, dataRow, c.Name, type, c.Value, c.Comment);
             dataRow++;
         }
 
@@ -183,6 +223,227 @@ public sealed class FieldSpec
 
     public static FieldSpec Of(string name, string type, string comment = "", string detailType = "", string targetSide = "cs")
         => new FieldSpec { Name = name, Type = type, Comment = comment, DetailType = detailType, TargetSide = targetSide };
+
+    /// <summary>
+    /// A column whose number meant an array: `Tag1` is `tag[0]`.
+    /// </summary>
+    /// <remarks>
+    /// Said here rather than worked out from the name, because a number with no dot did not say
+    /// whether it was an array - a recipe setting said, and a sheet could not
+    /// see it. The notation says it now, so which columns meant an array is what a fixture
+    /// carries over from that setting.
+    /// </remarks>
+    public static FieldSpec Numbered(
+        string name, string type, string comment = "", string detailType = "",
+        string targetSide = "cs")
+    {
+        int digits = name.Length;
+        while (digits > 0 && char.IsDigit(name[digits - 1]))
+            digits--;
+
+        if (digits == name.Length)
+        {
+            throw new InvalidOperationException(
+                $"`{name}` ends in no number, so there is nothing for the brackets to hold.");
+        }
+
+        int at = int.Parse(
+            name.Substring(digits), System.Globalization.CultureInfo.InvariantCulture) - 1;
+
+        return new FieldSpec
+        {
+            Name = name,
+            PrimaryName = $"{name.Substring(0, digits)}[{at}]",
+            Type = type,
+            Comment = comment,
+            DetailType = detailType,
+            TargetSide = targetSide,
+        };
+    }
+
+    /// <summary>
+    /// What the primary layout writes in `:field`, where that differs from the old spelling.
+    /// </summary>
+    /// <remarks>
+    /// Null where the two notations agree, which is most columns - `Pos.X` and `*Code` are
+    /// written the same either way. It is the numbered groups that differ, because the old
+    /// notation put the number in the name and counted from one (`Slot1.Id`) while this one
+    /// brackets it and counts from zero (`Slot[0].Id`).
+    ///
+    /// Spelled out rather than translated. A generator that rewrote names by rule would be a
+    /// second implementation of the notation, and the gate comparing the two sheets would then
+    /// be testing that implementation against the parser rather than the notations against
+    /// each other.
+    /// </remarks>
+    public string PrimaryName;
+
+    /// <summary>
+    /// The folded type expression, where it is not simply the type and detail joined.
+    /// </summary>
+    public string PrimaryType;
+
+    /// <summary>
+    /// A role written as keys, or null when the type is not one.
+    /// </summary>
+    /// <remarks>
+    /// A role is a key beside the type rather than a name in front of it: the old notation wrote
+    /// `text` as the type and put the group either in its own brackets or in the detail cell,
+    /// and this one writes a `string` that says what it is for. The group and its namespace were
+    /// one comma-joined value there and are two keys here.
+    /// </remarks>
+    private static string Role(string type, string detail)
+    {
+        foreach (string role in new[] { "text", "asset" })
+        {
+            foreach (string suffix in new[] { "", "[]", "?", "[]?" })
+            {
+                if (!string.Equals(type, role + suffix, StringComparison.Ordinal))
+                    continue;
+
+                if (detail.Length == 0)
+                    return $"string{suffix} ({role})";
+
+                var parts = detail.Split(',');
+                string keys = role + "=" + parts[0].Trim();
+
+                if (parts.Length > 1)
+                    keys += ", namespace=" + parts[1].Trim();
+
+                return $"string{suffix} ({keys})";
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>The `:field` cell the primary layout gets for this column.</summary>
+    /// <remarks>
+    /// The dotted numbers translate by rule - `Slot1.Id` is `Slot[0].Id`, and a level that is
+    /// nothing but digits is a level with no name, so `Grid1.2` is `Grid[0][1]`. The numbers
+    /// move from counting at one to counting at zero.
+    ///
+    /// **A number with no dot does not translate.** `Tag1` beside `Tag2` was two fields or one
+    /// array depending on a setting the sheet could not see, so which it was is the fixture's
+    /// to say - in `PrimaryName`.
+    /// </remarks>
+    public string NameForPrimary() => PrimaryName ?? Bracketed(Name);
+
+    /// <summary>Turns a dotted numbered name into the bracket form.</summary>
+    private static string Bracketed(string name)
+    {
+        if (!name.Contains('.'))
+            return name;
+
+        var built = new System.Text.StringBuilder();
+
+        foreach (string part in name.Split('.'))
+        {
+            int digits = part.Length;
+            while (digits > 0 && char.IsDigit(part[digits - 1]))
+                digits--;
+
+            string stem = part.Substring(0, digits);
+            string number = part.Substring(digits);
+
+            if (number.Length == 0)
+            {
+                built.Append(built.Length == 0 ? "" : ".").Append(part);
+                continue;
+            }
+
+            int at = int.Parse(number, System.Globalization.CultureInfo.InvariantCulture) - 1;
+
+            // A level that is nothing but digits has no name of its own, so its brackets go
+            // straight onto the level above rather than after a dot.
+            if (stem.Length == 0)
+                built.Append('[').Append(at).Append(']');
+            else
+                built.Append(built.Length == 0 ? "" : ".").Append(stem).Append('[').Append(at).Append(']');
+        }
+
+        return built.ToString();
+    }
+
+    /// <summary>
+    /// The `:type` cell the primary layout gets: one expression rather than a pair.
+    /// </summary>
+    /// <remarks>
+    /// The pair folds by rule for the two kinds that had a detail cell - an enum names itself
+    /// and a reference keeps its keyword - so a fixture only states the type when it wants
+    /// something else.
+    /// </remarks>
+    public string TypeForPrimary()
+    {
+        if (PrimaryType != null)
+            return PrimaryType;
+
+        // The old notation could put the group inside the type's own brackets - `text(Common)` -
+        // as well as in the detail cell, and the column's own marks went after them:
+        // `asset(sfx)?`. Both say the same thing and both become keys here.
+        int open = Type.IndexOf('(');
+        int close = Type.LastIndexOf(')');
+
+        if (open > 0 && close > open)
+        {
+            string bare = Type.Substring(0, open);
+            string inside = Type.Substring(open + 1, close - open - 1);
+            string marks = Type.Substring(close + 1);
+
+            return Role(bare + marks, inside)
+                   ?? throw new InvalidOperationException(
+                       $"Column `{Name}` is typed `{Type}`, and the fixture does not say how the "
+                       + "primary layout writes that. Set PrimaryType.");
+        }
+
+        if (string.IsNullOrEmpty(DetailType))
+        {
+            return Type switch
+            {
+                "text" => "string (text)",
+                "text[]" => "string[] (text)",
+                "text?" => "string? (text)",
+                "asset" => "string (asset)",
+                "asset[]" => "string[] (asset)",
+                "asset?" => "string? (asset)",
+                _ => Type,
+            };
+        }
+
+        // An enum names itself, whether one value or a delimited list of them - the brackets
+        // belong to the column and the detail cell held the enum.
+        if (string.Equals(Type, "enum", StringComparison.Ordinal))
+            return DetailType;
+
+        if (string.Equals(Type, "enum[]", StringComparison.Ordinal))
+            return DetailType + "[]";
+
+        if (string.Equals(Type, "enum?", StringComparison.Ordinal))
+            return DetailType + "?";
+
+        if (string.Equals(Type, "enum[]?", StringComparison.Ordinal))
+            return DetailType + "[]?";
+
+        if (string.Equals(Type, "enum?[]", StringComparison.Ordinal))
+            return DetailType + "?[]";
+
+        if (string.Equals(Type, "foreign", StringComparison.Ordinal))
+            return "foreign " + DetailType;
+
+        // The reference keeps its keyword and the column's own marks stay on the end, which is
+        // where the old notation had them too.
+        foreach (string suffix in new[] { "?", "[]", "[]?", "?[]" })
+        {
+            if (string.Equals(Type, "foreign" + suffix, StringComparison.Ordinal))
+                return "foreign " + DetailType + suffix;
+        }
+
+        if (Role(Type, DetailType) is { } written)
+            return written;
+
+        throw new InvalidOperationException(
+            $"Column `{Name}` is typed `{Type}` with the detail `{DetailType}`, and the fixture "
+            + "does not say how the primary layout writes that. Set PrimaryType.");
+    }
 }
 
 public sealed class TableSpec
@@ -190,6 +451,15 @@ public sealed class TableSpec
     public string Name;
     public string Comment = "";
     public string TargetSide = "";
+
+    /// <summary>Anything else the declaration cell carries, written as it stands.</summary>
+    /// <remarks>
+    /// `key="stage,slot"` is what this exists for. Held as text rather than modelled, because
+    /// the notation is the layout's and a fixture builder that models it would be a second
+    /// place the notation is defined.
+    /// </remarks>
+    public string Meta = "";
+
     public List<FieldSpec> Fields = new List<FieldSpec>();
     public List<string[]> Data = new List<string[]>();
 

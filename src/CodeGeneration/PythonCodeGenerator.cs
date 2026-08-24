@@ -146,6 +146,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`find_by_stage_and_slot(stage_key, slot_key)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
     /// carries. spec/nullable-array-elements.md.
@@ -488,12 +491,41 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<PythonIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf => new PythonIndexView
+        => KeyPlans.Of(table).Select(plan =>
         {
-            Member = PythonName(sf.Name),
-            Suffix = sf.Name.ToSnakeCase(),
-            MapName = "by_" + sf.Name.ToSnakeCase(),
-            FieldName = sf.Name.ToPascalCase(),
+            string suffix = plan.Suffix(name => name.ToSnakeCase(), "_and_");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToSnakeCase(),
+                Type = "",
+                Member = PythonName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
+
+            return new PythonIndexView
+            {
+                Member = PythonName(plan.Only.Name),
+                Suffix = suffix,
+                MapName = "by_" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite ? args : "key",
+
+                Argument = plan.IsComposite
+                    ? "self._key_of_" + suffix + "(" + args + ")"
+                    : "key",
+
+                ValueFormat = plan.IsComposite
+                    ? "(" + string.Join(", ", components.Select(_ => "%r")) + ")"
+                    : "%r",
+
+                ValueArgs = plan.IsComposite ? args : "key",
+            };
         }).ToList();
 
     /// <summary>

@@ -123,6 +123,8 @@ internal static class HelpScreen
                                     'both' (the default).
               --time-zone=ZONE    Time zone the sheets' dates were written in, forced
                                     over the recipe: 'Asia/Seoul' or '+09:00'.
+              --variant=SPEC      Variant of a field to build, as 'Table.Field=name'.
+                                    Repeatable, and it overrides the recipe.
         Cache:
               --full              Convert everything, ignoring what the cache says.
               --force-output      Run every output entry, whatever the cache says.

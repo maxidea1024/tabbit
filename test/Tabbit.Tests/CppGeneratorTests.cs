@@ -122,8 +122,8 @@ public class CppGeneratorTests
         Assert.Equal(new[] { 1, 2 }, Ints(cpp[0], "grades"));
 
         // Serial: fixed width, and unaffected by the delimited columns beside it.
-        Assert.Equal(new[] { 1, 2 }, Ints(cpp[0], "slotArray"));
-        Assert.Equal(new[] { 5, 6 }, Ints(cpp[2], "slotArray"));
+        Assert.Equal(new[] { 1, 2 }, Ints(cpp[0], "slot"));
+        Assert.Equal(new[] { 5, 6 }, Ints(cpp[2], "slot"));
     }
 
     /// <summary>

@@ -28,6 +28,7 @@
   "export.text-line-ending-unknown": "`text` ターゲットの `LineEnding` が `{LineEnding}` です。`lf` か `crlf` でなければなりません。",
   "export.constant-type-not-rendered": "定数 `{Name}` の型が `{Type}` ですが、{Generator} ジェネレーターはそれを出力できません。",
   "export.target-no-optional-fields": "ターゲット `{Target}` はまだ optional なフィールドをサポートしていません。\n  テーブル `{Table}` の列 `{Column}` が `{Type}?` 型なので、行に値がないことがあります。\n  recipe からそのターゲットを外すか、`?` を外して空欄を型の空値として読ませてください。",
+  "export.target-no-composite-keys": "Target `{Target}` does not support keys of several columns yet.\n  Table `{Table}` is keyed by `{Key}`, which a reader looks up by several values at once.\n  The lookup that implies has a different shape in every language, so each target takes it on separately - remove the target from the recipe, or key the table by one column.",
   "export.target-no-optional-elements": "ターゲット `{Target}` はまだ要素がないことのある配列をサポートしていません。\n  テーブル `{Table}` の列 `{Column}` が `{Type}?[]` 型なので、要素に値がないことがあります。\n  recipe からそのターゲットを外すか、`?` を角括弧の外に移してすべての要素が値を持つようにしてください。",
   "export.target-no-nested-fields": "ターゲット `{Target}` はまだ入れ子のフィールドをサポートしていません。\n  テーブル `{Table}` のフィールド `{Field}` がメンバー {Count} 個のレコードグループです。\n  recipe からそのターゲットを外すか、`{Separator}` を使わずに列を平らに書いてください。",
   "export.target-no-record-in-record": "ターゲット `{Target}` はまだレコードの中のレコードをサポートしていません。\n  テーブル `{Table}` のフィールド `{Field}` にメンバー `{Member}` があり、それが値ではなくメンバー {Count} 個のレコードです。\n  recipe からそのターゲットを外すか、その階層を平らにしてください — `{Field}{Separator}{Member}{Separator}{Inner}` ではなく `{Field}{Separator}{Member}{Inner}` です。",

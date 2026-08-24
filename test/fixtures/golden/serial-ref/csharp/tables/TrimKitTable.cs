@@ -37,39 +37,39 @@ namespace Tabbit.Fixtures.SerialRef
             /// <summary>
             /// element 1 - the row it points at
             /// </summary>
-            public BitTable.Record[] SlotArray => _slotArray;
-            /// <summary>Whether element <paramref name="index"/> of <see cref="SlotArray"/> has a value.</summary>
-            public bool HasSlotArrayAt(int index)
-                => _slotArrayHasValueAt == null
-                    || index < 0 || index >= _slotArrayHasValueAt.Length
-                    || _slotArrayHasValueAt[index];
+            public BitTable.Record[] Slot => _slot;
+            /// <summary>Whether element <paramref name="index"/> of <see cref="Slot"/> has a value.</summary>
+            public bool HasSlotAt(int index)
+                => _slotHasValueAt == null
+                    || index < 0 || index >= _slotHasValueAt.Length
+                    || _slotHasValueAt[index];
 
             /// <summary>
             /// element 1 - the target's own value
             /// </summary>
-            public int[] TierArray => _tierArray;
-            /// <summary>Whether element <paramref name="index"/> of <see cref="TierArray"/> has a value.</summary>
-            public bool HasTierArrayAt(int index)
-                => _tierArrayHasValueAt == null
-                    || index < 0 || index >= _tierArrayHasValueAt.Length
-                    || _tierArrayHasValueAt[index];
+            public int[] Tier => _tier;
+            /// <summary>Whether element <paramref name="index"/> of <see cref="Tier"/> has a value.</summary>
+            public bool HasTierAt(int index)
+                => _tierHasValueAt == null
+                    || index < 0 || index >= _tierHasValueAt.Length
+                    || _tierHasValueAt[index];
             #endregion
 
             #region Reference wiring
-            public void SetReference_SlotArray_INTERNAL(int index, BitTable.Record value) => _slotArray[index] = value;
-            public void SetReference_TierArray_INTERNAL(int index, int value) => _tierArray[index] = value;
+            public void SetReference_Slot_INTERNAL(int index, BitTable.Record value) => _slot[index] = value;
+            public void SetReference_Tier_INTERNAL(int index, int value) => _tier[index] = value;
             #endregion
 
             #region Storage
             internal int _index;
-            internal BitTable.Record[] _slotArray = System.Array.Empty<BitTable.Record>();
-            public int[] _slotArray_Bit_index = System.Array.Empty<int>();
-            public bool[] _slotArray_F = System.Array.Empty<bool>();
-            internal bool[] _slotArrayHasValueAt;
-            internal int[] _tierArray = System.Array.Empty<int>();
-            public int[] _tierArray_Bit_index = System.Array.Empty<int>();
-            public bool[] _tierArray_F = System.Array.Empty<bool>();
-            internal bool[] _tierArrayHasValueAt;
+            internal BitTable.Record[] _slot = System.Array.Empty<BitTable.Record>();
+            public int[] _slot_Bit_index = System.Array.Empty<int>();
+            public bool[] _slot_F = System.Array.Empty<bool>();
+            internal bool[] _slotHasValueAt;
+            internal int[] _tier = System.Array.Empty<int>();
+            public int[] _tier_Bit_index = System.Array.Empty<int>();
+            public bool[] _tier_F = System.Array.Empty<bool>();
+            internal bool[] _tierHasValueAt;
             #endregion
 
             #region ToString
@@ -77,8 +77,8 @@ namespace Tabbit.Fixtures.SerialRef
             {
                 var sb = new StringBuilder("{");
                 sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"SlotArray\":"); ToStringHelper.ToString(SlotArray, sb);
-                sb.Append(",\"TierArray\":"); ToStringHelper.ToString(TierArray, sb);
+                sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
+                sb.Append(",\"Tier\":"); ToStringHelper.ToString(Tier, sb);
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -89,7 +89,7 @@ namespace Tabbit.Fixtures.SerialRef
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "Index", "SlotArray", "TierArray" };
+        public static readonly string[] FieldNames = { "Index", "Slot", "Tier" };
 
         /// <summary>
         /// Build object value map.
@@ -98,7 +98,7 @@ namespace Tabbit.Fixtures.SerialRef
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.Index, r.SlotArray, r.TierArray });
+                result.Add(new object[] { r.Index, r.Slot, r.Tier });
 
             return result;
         }
@@ -222,51 +222,51 @@ namespace Tabbit.Fixtures.SerialRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "TrimKit.Slot_array", TcbTable.KindArray, false, TcbTable.ElementI32, elementNullable: true);
+                        TcbTable.CheckColumn(column, "TrimKit.Slot", TcbTable.KindArray, false, TcbTable.ElementI32, elementNullable: true);
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
-                        cursor = new TcbColumnCursor(reader, column, count, "TrimKit.Slot_array");
+                        cursor = new TcbColumnCursor(reader, column, count, "TrimKit.Slot");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._slotArray = new BitTable.Record[elementCount];
-                            record._slotArray_Bit_index = new int[elementCount];
-                            record._slotArray_F = new bool[elementCount];
-                            record._slotArrayHasValueAt = new bool[elementCount];
+                            record._slot = new BitTable.Record[elementCount];
+                            record._slot_Bit_index = new int[elementCount];
+                            record._slot_F = new bool[elementCount];
+                            record._slotHasValueAt = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._slotArrayHasValueAt[j] =
+                                record._slotHasValueAt[j] =
                                     TcbTable.IsPresent(elementPresence, elementAt++);
-                                record._slotArray_Bit_index[j] = cursor.NextI32();
-                                record._slotArray[j] = default(BitTable.Record); // will be assigned.
-                                record._slotArray_F[j] = false;
+                                record._slot_Bit_index[j] = cursor.NextI32();
+                                record._slot[j] = default(BitTable.Record); // will be assigned.
+                                record._slot_F[j] = false;
                             }
                         }
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "TrimKit.Tier_array", TcbTable.KindArray, false, TcbTable.ElementI32, elementNullable: true);
+                        TcbTable.CheckColumn(column, "TrimKit.Tier", TcbTable.KindArray, false, TcbTable.ElementI32, elementNullable: true);
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
-                        cursor = new TcbColumnCursor(reader, column, count, "TrimKit.Tier_array");
+                        cursor = new TcbColumnCursor(reader, column, count, "TrimKit.Tier");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._tierArray = new int[elementCount];
-                            record._tierArray_Bit_index = new int[elementCount];
-                            record._tierArray_F = new bool[elementCount];
-                            record._tierArrayHasValueAt = new bool[elementCount];
+                            record._tier = new int[elementCount];
+                            record._tier_Bit_index = new int[elementCount];
+                            record._tier_F = new bool[elementCount];
+                            record._tierHasValueAt = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._tierArrayHasValueAt[j] =
+                                record._tierHasValueAt[j] =
                                     TcbTable.IsPresent(elementPresence, elementAt++);
-                                record._tierArray_Bit_index[j] = cursor.NextI32();
-                                record._tierArray[j] = default(int); // will be assigned.
-                                record._tierArray_F[j] = false;
+                                record._tier_Bit_index[j] = cursor.NextI32();
+                                record._tier[j] = default(int); // will be assigned.
+                                record._tier_F[j] = false;
                             }
                         }
                         break;

@@ -58,7 +58,7 @@ public class AssetRoleTests
     {
         var result = TabbitRunner.Convert("asset");
 
-        Assert.Contains("asset.xlsx : Asset : D11", result.Describe());
+        Assert.Contains("asset.xlsx : Asset : F8", result.Describe());
     }
 
     /// <summary>

@@ -12,12 +12,12 @@ module NullableElements
   # Generated from test/fixtures/xlsx/nullable-elements/nullable-elements.xlsx : Arrays : J2
   # Numbered columns that fold into one array whose elements may be absent.
   class FoldedRecord
-    attr_accessor :index, :tag_array, :has_tag_array_at
+    attr_accessor :index, :tag, :has_tag_at
 
     def initialize
       @index = 0
-      @tag_array = []
-      @has_tag_array_at = []
+      @tag = []
+      @has_tag_at = []
     end
 
   end
@@ -96,16 +96,16 @@ module NullableElements
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Folded.Tag_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING], true)
+          Tabbit.check_column(column, 'Folded.Tag', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
           # steps once per element of every row. spec/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
           element_at = 0
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Folded.Tag_array')
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Folded.Tag')
           records.each do |record|
             element_count = cursor.next_length
-            record.tag_array = Array.new(element_count) { cursor.next_string }
-            record.has_tag_array_at = Array.new(element_count) do |at|
+            record.tag = Array.new(element_count) { cursor.next_string }
+            record.has_tag_at = Array.new(element_count) do |at|
               Tabbit.present?(element_presence, element_at + at)
             end
             element_at += element_count

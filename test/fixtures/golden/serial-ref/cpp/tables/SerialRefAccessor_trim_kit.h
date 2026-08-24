@@ -26,24 +26,24 @@ struct TrimKitRecord {
   /// primary index
   std::int32_t index = 0;
   /// element 1 - the row it points at
-  std::vector<const BitRecord*> slot_array;
-  std::vector<std::int32_t> slot_array_index;
-  std::vector<bool> has_slot_array_at_;
+  std::vector<const BitRecord*> slot;
+  std::vector<std::int32_t> slot_index;
+  std::vector<bool> has_slot_at_;
 
-  /// Whether element `index` of `slot_array` has a value.
-  bool has_slot_array_at(std::size_t index) const {
-    return index >= has_slot_array_at_.size()
-        || has_slot_array_at_[index];
+  /// Whether element `index` of `slot` has a value.
+  bool has_slot_at(std::size_t index) const {
+    return index >= has_slot_at_.size()
+        || has_slot_at_[index];
   }
   /// element 1 - the target's own value
-  std::vector<std::int32_t> tier_array;
-  std::vector<std::int32_t> tier_array_index;
-  std::vector<bool> has_tier_array_at_;
+  std::vector<std::int32_t> tier;
+  std::vector<std::int32_t> tier_index;
+  std::vector<bool> has_tier_at_;
 
-  /// Whether element `index` of `tier_array` has a value.
-  bool has_tier_array_at(std::size_t index) const {
-    return index >= has_tier_array_at_.size()
-        || has_tier_array_at_[index];
+  /// Whether element `index` of `tier` has a value.
+  bool has_tier_at(std::size_t index) const {
+    return index >= has_tier_at_.size()
+        || has_tier_at_[index];
   }
 };
 
@@ -130,35 +130,35 @@ class TrimKitTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "TrimKit.Slot_array", tabbit::kKindArray, false, {tabbit::kElementI32}, true);
+          tabbit::check_column(column, "TrimKit.Slot", tabbit::kKindArray, false, {tabbit::kElementI32}, true);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TrimKit.Slot_array");
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TrimKit.Slot");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.slot_array.assign(
+            record.slot.assign(
                 static_cast<std::size_t>(element_count), nullptr);
-            record.slot_array_index.resize(static_cast<std::size_t>(element_count));
+            record.slot_index.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.slot_array_index[static_cast<std::size_t>(j)] = cursor.next_i32();
+              record.slot_index[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;
         }
         case 3: {
-          tabbit::check_column(column, "TrimKit.Tier_array", tabbit::kKindArray, false, {tabbit::kElementI32}, true);
+          tabbit::check_column(column, "TrimKit.Tier", tabbit::kKindArray, false, {tabbit::kElementI32}, true);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TrimKit.Tier_array");
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TrimKit.Tier");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.tier_array.assign(
+            record.tier.assign(
                 static_cast<std::size_t>(element_count), 0);
-            record.tier_array_index.resize(static_cast<std::size_t>(element_count));
+            record.tier_index.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.tier_array_index[static_cast<std::size_t>(j)] = cursor.next_i32();
+              record.tier_index[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;

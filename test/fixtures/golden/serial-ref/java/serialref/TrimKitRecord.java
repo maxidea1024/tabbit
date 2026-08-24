@@ -15,20 +15,20 @@ public final class TrimKitRecord {
     /** primary index */
     public int index;
     /** element 1 - the row it points at */
-    public BitRecord[] slotArray = new BitRecord[0];
-    public int[] slotArrayIndex = new int[0];
+    public BitRecord[] slot = new BitRecord[0];
+    public int[] slotIndex = new int[0];
     /**
-     * Which of slotArray's elements have a value. Empty where the file did not carry
+     * Which of slot's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      */
-    public boolean[] hasSlotArrayAt = new boolean[0];
+    public boolean[] hasSlotAt = new boolean[0];
     /** element 1 - the target's own value */
-    public int[] tierArray = new int[0];
-    public int[] tierArrayIndex = new int[0];
+    public int[] tier = new int[0];
+    public int[] tierIndex = new int[0];
     /**
-     * Which of tierArray's elements have a value. Empty where the file did not carry
+     * Which of tier's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      */
-    public boolean[] hasTierArrayAt = new boolean[0];
+    public boolean[] hasTierAt = new boolean[0];
 
 }

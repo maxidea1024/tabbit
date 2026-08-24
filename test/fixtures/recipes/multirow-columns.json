@@ -1,0 +1,32 @@
+{
+  // The same data as `multirow-rows`, with the array's elements in columns beside the record -
+  // `reward[0]`, `reward[1]`, `reward[2]`.
+  //
+  // This is the control side of the multi-row gate. The elements a record does not reach are
+  // written `-`, which is a cell saying it has no value, and `TrimTrailingArrayElements` is what
+  // reads that as the end of the array. The multi-row side needs no such setting: its elements
+  // are the rows that exist.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/multirow-columns",
+        "TrimTrailingArrayElements": true
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/multirow-columns/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/multirow-columns/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}

@@ -52,7 +52,7 @@ interface IDataRow {
   name: string
   slot: SlotEntryJson[]
   pos: PosEntryJson
-  tagArray: string[]
+  tag: string[]
 }
 
 // Generated from test/fixtures/xlsx/record-trim/record-trim.xlsx : Trim : B2
@@ -75,13 +75,13 @@ export class LootRecord {
   public get pos(): PosEntry { return this._pos }
 
   /** scalar serial array, element 1 - required, so the array is never empty */
-  public get tagArray(): string[] { return this._tagArray }
+  public get tag(): string[] { return this._tag }
 
   public _index: number = 0
   public _name: string = ''
   public _slot: SlotEntry[] = []
   public _pos: PosEntry = { x: 0, y: 0 }
-  public _tagArray: string[] = []
+  public _tag: string[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -89,7 +89,7 @@ export class LootRecord {
     this._name = dataRow.name
     this._slot = dataRow.slot.map(e => ({ id: e.id, count: e.count, label: e.label }))
     this._pos = ((e: any) => ({ x: e.x, y: e.y }))(dataRow.pos)
-    this._tagArray = dataRow.tagArray
+    this._tag = dataRow.tag
   }
 
   /** Populate field values. */
@@ -102,7 +102,7 @@ export class LootRecord {
     const _slot_label = dataRow[offset++] as any[]
     this._slot = Array.from({ length: _slot_id.length }, (_, k) => ({ id: _slot_id[k], count: _slot_count[k], label: _slot_label[k] }))
     this._pos = { x: dataRow[offset++], y: dataRow[offset++] }
-    this._tagArray = dataRow.slice(offset, offset + 3)
+    this._tag = dataRow.slice(offset, offset + 3)
     offset += 3
   }
 }
@@ -293,14 +293,14 @@ export class LootTable {
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Loot.Tag_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Tag_array')
+          tabbit.checkColumn(column, 'Loot.Tag', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loot.Tag')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._tagArray = []
+            record._tag = []
             for (let j = 0; j < elementCount; ++j) {
-              record._tagArray.push(cursor.nextString())
+              record._tag.push(cursor.nextString())
             }
           }
           break

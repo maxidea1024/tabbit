@@ -31,7 +31,7 @@ public class StrictValueTests
         Assert.Contains("Y/N", result.StdOut);
 
         // And where it is.
-        Assert.Contains("strict-values.xlsx : Bad : C10", result.StdOut);
+        Assert.Contains("strict-values.xlsx : Bad : D8", result.StdOut);
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public class StrictValueTests
         var result = TabbitRunner.Convert("double-star");
 
         Assert.False(result.Succeeded, "A doubled index marker was accepted.");
-        Assert.Contains("more than one leading `*`", result.StdOut);
+        Assert.Contains("begins with more than one `*`", result.StdOut);
         Assert.Contains("secondary index", result.StdOut);
     }
 

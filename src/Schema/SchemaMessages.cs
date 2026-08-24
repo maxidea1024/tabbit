@@ -191,6 +191,12 @@ public static class SchemaMessages
     /// <summary>Both `text` and `asset` on one member.</summary>
     public const string RoleWrittenTwice = "schema.role-written-twice";
 
+    /// <summary>A `namespace` on a member that is neither `text` nor `asset`.</summary>
+    public const string RoleSpaceWithoutText = "schema.role-space-without-text";
+
+    /// <summary>A `namespace` on an `asset`, whose folders the recipe keys by kind.</summary>
+    public const string RoleSpaceNotText = "schema.role-space-not-text";
+
     /// <summary>A bound that is not a number.</summary>
     public const string BoundNotANumber = "schema.bound-not-a-number";
 

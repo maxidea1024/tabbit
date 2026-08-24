@@ -87,6 +87,21 @@ public class Options
     /// what happened. A `TABBIT_ENV` already set to something else is refused rather
     /// than overwritten.
     /// </remarks>
+    /// <summary>
+    /// Which variant of a field this build takes, written `Table.Field=name`.
+    /// </summary>
+    /// <remarks>
+    /// Repeatable, and it overrides whatever the recipe's `Variants` asked for - which is what
+    /// a one-off build of the other variant is. It changes what gets converted rather than how
+    /// the output is written, so it is part of the cache key like every other such option.
+    ///
+    /// spec/primary-layout.md section 3.6.
+    /// </remarks>
+    [Cache(CacheRelevance.Output)]
+    [Option("variant", HelpText =
+        "Variant of a field to build, as 'Table.Field=name'. Repeatable.")]
+    public IEnumerable<string>? Variants { get; set; }
+
     [Cache(CacheRelevance.Output)]
     [Option('e', "env", HelpText =
         "Environment this run is for. Recorded in the summary, and available as ${TABBIT_ENV}.")]

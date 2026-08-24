@@ -107,30 +107,30 @@ public final class Tables {
      */
     private void solveCrossReferences(PieceTable piece, KitTable kit, BitTable bit, TrimKitTable trimKit) {
         for (KitRecord record : kit.records()) {
-            for (int i = 0; i < record.slotArrayIndex.length; i++) {
-                PieceRecord target = piece.findByIndex(record.slotArrayIndex[i]);
+            for (int i = 0; i < record.slotIndex.length; i++) {
+                PieceRecord target = piece.findByIndex(record.slotIndex[i]);
                 if (target != null) {
-                    record.slotArray[i] = target;
+                    record.slot[i] = target;
                 }
             }
-            for (int i = 0; i < record.tierArrayIndex.length; i++) {
-                PieceRecord target = piece.findByIndex(record.tierArrayIndex[i]);
+            for (int i = 0; i < record.tierIndex.length; i++) {
+                PieceRecord target = piece.findByIndex(record.tierIndex[i]);
                 if (target != null) {
-                    record.tierArray[i] = target.tier;
+                    record.tier[i] = target.tier;
                 }
             }
         }
         for (TrimKitRecord record : trimKit.records()) {
-            for (int i = 0; i < record.slotArrayIndex.length; i++) {
-                BitRecord target = bit.findByIndex(record.slotArrayIndex[i]);
+            for (int i = 0; i < record.slotIndex.length; i++) {
+                BitRecord target = bit.findByIndex(record.slotIndex[i]);
                 if (target != null) {
-                    record.slotArray[i] = target;
+                    record.slot[i] = target;
                 }
             }
-            for (int i = 0; i < record.tierArrayIndex.length; i++) {
-                BitRecord target = bit.findByIndex(record.tierArrayIndex[i]);
+            for (int i = 0; i < record.tierIndex.length; i++) {
+                BitRecord target = bit.findByIndex(record.tierIndex[i]);
                 if (target != null) {
-                    record.tierArray[i] = target.tier;
+                    record.tier[i] = target.tier;
                 }
             }
         }

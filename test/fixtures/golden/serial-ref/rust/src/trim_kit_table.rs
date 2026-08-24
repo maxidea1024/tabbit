@@ -16,15 +16,15 @@ pub struct TrimKitRecord {
     /// primary index
     pub index: i32,
     /// element 1 - the row it points at
-    pub slot_array_index: Vec<i32>,
-    /// Which of `slot_array`'s elements have a value. Empty where the file did not
+    pub slot_index: Vec<i32>,
+    /// Which of `slot`'s elements have a value. Empty where the file did not
     /// carry the column, and then every index is out of range anyway.
-    pub has_slot_array_at: Vec<bool>,
+    pub has_slot_at: Vec<bool>,
     /// element 1 - the target's own value
-    pub tier_array_index: Vec<i32>,
-    /// Which of `tier_array`'s elements have a value. Empty where the file did not
+    pub tier_index: Vec<i32>,
+    /// Which of `tier`'s elements have a value. Empty where the file did not
     /// carry the column, and then every index is out of range anyway.
-    pub has_tier_array_at: Vec<bool>,
+    pub has_tier_at: Vec<bool>,
 }
 
 impl TrimKitRecord {
@@ -121,36 +121,36 @@ impl TrimKitTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column_with_elements(column, "TrimKit.Slot_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
+                    tabbit::check_column_with_elements(column, "TrimKit.Slot", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
-                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "TrimKit.Slot_array")?;
+                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "TrimKit.Slot")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.slot_array_index = Vec::with_capacity(element_count.min(65536));
-                        record.has_slot_array_at =
+                        record.slot_index = Vec::with_capacity(element_count.min(65536));
+                        record.has_slot_at =
                             Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
-                            record.slot_array_index.push(cursor.next_i32()?);
-                            record.has_slot_array_at
+                            record.slot_index.push(cursor.next_i32()?);
+                            record.has_slot_at
                                 .push(tabbit::is_present(&element_presence, element_at));
                             element_at += 1;
                         }
                     }
                 }
                 3 => {
-                    tabbit::check_column_with_elements(column, "TrimKit.Tier_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
+                    tabbit::check_column_with_elements(column, "TrimKit.Tier", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
-                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "TrimKit.Tier_array")?;
+                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "TrimKit.Tier")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.tier_array_index = Vec::with_capacity(element_count.min(65536));
-                        record.has_tier_array_at =
+                        record.tier_index = Vec::with_capacity(element_count.min(65536));
+                        record.has_tier_at =
                             Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
-                            record.tier_array_index.push(cursor.next_i32()?);
-                            record.has_tier_array_at
+                            record.tier_index.push(cursor.next_i32()?);
+                            record.has_tier_at
                                 .push(tabbit::is_present(&element_presence, element_at));
                             element_at += 1;
                         }

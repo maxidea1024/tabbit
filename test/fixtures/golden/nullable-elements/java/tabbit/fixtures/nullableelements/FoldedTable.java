@@ -109,21 +109,21 @@ public final class FoldedTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumnWithElements(column, "Folded.Tag_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
+                    TcbReader.checkColumnWithElements(column, "Folded.Tag", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
                     elementPresence = TcbReader.readElementPresence(reader, column);
                     elementAt = 0;
-                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Folded.Tag_array");
+                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Folded.Tag");
                     for (FoldedRecord record : loaded) {
                         int elementCount;
                         elementCount = cursor.nextLength();
-                        record.tagArray = new String[elementCount];
-                        record.hasTagArrayAt = new boolean[elementCount];
+                        record.tag = new String[elementCount];
+                        record.hasTagAt = new boolean[elementCount];
                         for (int j = 0; j < elementCount; j++) {
-                            record.tagArray[j] = cursor.nextString();
-                            record.hasTagArrayAt[j] =
+                            record.tag[j] = cursor.nextString();
+                            record.hasTagAt[j] =
                                 TcbReader.isPresent(elementPresence, elementAt++);
                         }
                     }

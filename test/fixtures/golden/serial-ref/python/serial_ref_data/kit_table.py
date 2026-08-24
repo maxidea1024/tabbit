@@ -17,17 +17,17 @@ class KitRecord:
     Numbered reference columns, folded into arrays.
     """
 
-    __slots__ = ("index", "slot_array", "slot_array_index", "tier_array", "tier_array_index")
+    __slots__ = ("index", "slot", "slot_index", "tier", "tier_index")
 
     def __init__(self):
         self.index = 0
-        self.slot_array = []
-        self.slot_array_index = []
-        self.tier_array = []
-        self.tier_array_index = []
+        self.slot = []
+        self.slot_index = []
+        self.tier = []
+        self.tier_index = []
 
     def __repr__(self):
-        return "KitRecord(index=%r, slot_array=%r, tier_array=%r)" % (self.index, self.slot_array, self.tier_array)
+        return "KitRecord(index=%r, slot=%r, tier=%r)" % (self.index, self.slot, self.tier)
 
 
 class KitTable:
@@ -103,19 +103,19 @@ class KitTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Kit.Slot_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
-                cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Slot_array")
+                tabbit.check_column(column, "Kit.Slot", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
+                cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Slot")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.slot_array_index = [cursor.next_i32() for _ in range(element_count)]
-                    record.slot_array = [None] * element_count
+                    record.slot_index = [cursor.next_i32() for _ in range(element_count)]
+                    record.slot = [None] * element_count
             elif column.tag == 3:
-                tabbit.check_column(column, "Kit.Tier_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
-                cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Tier_array")
+                tabbit.check_column(column, "Kit.Tier", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
+                cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Tier")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.tier_array_index = [cursor.next_i32() for _ in range(element_count)]
-                    record.tier_array = [None] * element_count
+                    record.tier_index = [cursor.next_i32() for _ in range(element_count)]
+                    record.tier = [None] * element_count
             else:
                 # A column added after this code was generated.
                 reader.skip(column.byte_length)

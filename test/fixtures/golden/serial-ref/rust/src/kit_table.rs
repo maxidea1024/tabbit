@@ -16,9 +16,9 @@ pub struct KitRecord {
     /// primary index
     pub index: i32,
     /// element 1 - the row it points at
-    pub slot_array_index: Vec<i32>,
+    pub slot_index: Vec<i32>,
     /// element 1 - the target's own value
-    pub tier_array_index: Vec<i32>,
+    pub tier_index: Vec<i32>,
 }
 
 impl KitRecord {
@@ -115,24 +115,24 @@ impl KitTable {
                     }
                 }
                 2 => {
-                    tabbit::check_column(column, "Kit.Slot_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
-                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Kit.Slot_array")?;
+                    tabbit::check_column(column, "Kit.Slot", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
+                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Kit.Slot")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.slot_array_index = Vec::with_capacity(element_count.min(65536));
+                        record.slot_index = Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
-                            record.slot_array_index.push(cursor.next_i32()?);
+                            record.slot_index.push(cursor.next_i32()?);
                         }
                     }
                 }
                 3 => {
-                    tabbit::check_column(column, "Kit.Tier_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
-                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Kit.Tier_array")?;
+                    tabbit::check_column(column, "Kit.Tier", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_I32])?;
+                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Kit.Tier")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.tier_array_index = Vec::with_capacity(element_count.min(65536));
+                        record.tier_index = Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
-                            record.tier_array_index.push(cursor.next_i32()?);
+                            record.tier_index.push(cursor.next_i32()?);
                         }
                     }
                 }

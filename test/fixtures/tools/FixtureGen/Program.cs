@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using NPOI.XSSF.UserModel;
 
@@ -43,6 +44,7 @@ internal static class Program
         WriteArrayForeign(Prepare(outputDir, "array-foreign", "array-foreign.xlsx"));
         WriteStrictValues(Prepare(outputDir, "strict-values", "strict-values.xlsx"));
         WriteDoubleStar(Prepare(outputDir, "double-star", "double-star.xlsx"));
+        WriteMemberArray(Prepare(outputDir, "member-array", "member-array.xlsx"));
         WriteNested(Prepare(outputDir, "nested", "nested.xlsx"));
         // The same table twice: once leaving its member types to a schema file and once
         // writing every one of them in its own cell.
@@ -50,6 +52,10 @@ internal static class Program
         WriteDeclared(
             Prepare(outputDir, "declared-expanded", "declared-expanded.xlsx"), fromSchema: false);
         // One record, written into one cell and written as its own columns.
+        WriteMultiRowEquivalence(
+            Prepare(outputDir, "multirow-rows", "multirow-rows.xlsx"), multiRow: true);
+        WriteMultiRowEquivalence(
+            Prepare(outputDir, "multirow-columns", "multirow-columns.xlsx"), multiRow: false);
         WritePacked(Prepare(outputDir, "packed", "packed.xlsx"), inOneCell: true);
         WritePacked(Prepare(outputDir, "packed-expanded", "packed-expanded.xlsx"), inOneCell: false);
         WriteNestedHole(Prepare(outputDir, "nested-hole", "nested-hole.xlsx"));
@@ -61,6 +67,7 @@ internal static class Program
         WriteSerialRef(Prepare(outputDir, "serial-ref", "serial-ref.xlsx"));
         WriteRecordRefTrim(Prepare(outputDir, "record-ref-trim", "record-ref-trim.xlsx"));
         WriteKeyTypes(Prepare(outputDir, "key-types", "key-types.xlsx"));
+        WriteCompositeKey(Prepare(outputDir, "composite-key", "composite-key.xlsx"));
         WriteOptional(Prepare(outputDir, "optional", "optional.xlsx"));
         WriteBlankAndNull(Prepare(outputDir, "blank-and-null", "blank-and-null.xlsx"));
         WriteBlankCell(Prepare(outputDir, "blank-cell", "blank-cell.xlsx"));
@@ -238,10 +245,10 @@ internal static class Program
         localization
             .Field(FieldSpec.Of("index", "int", "primary index"))
             .Field(FieldSpec.Of("Key", "string", "lookup key"))
-            .Field(FieldSpec.Of("TextEn1", "string", "english text 1"))
-            .Field(FieldSpec.Of("TextEn2", "string", "english text 2"))
-            .Field(FieldSpec.Of("TextKo1", "string", "korean text 1"))
-            .Field(FieldSpec.Of("TextKo2", "string", "korean text 2"));
+            .Field(FieldSpec.Numbered("TextEn1", "string", "english text 1"))
+            .Field(FieldSpec.Numbered("TextEn2", "string", "english text 2"))
+            .Field(FieldSpec.Numbered("TextKo1", "string", "korean text 1"))
+            .Field(FieldSpec.Numbered("TextKo2", "string", "korean text 2"));
         localization
             .Row("1", "greeting", "Hello", "Hi", "안녕하세요", "안녕")
             .Row("2", "farewell", "Goodbye", "Bye", "안녕히가세요", "잘가");
@@ -265,8 +272,8 @@ internal static class Program
             .Field(FieldSpec.Of("Grades", "enum[]", "allowed grades", detailType: "Grade"))
             // A serial field alongside the delimited ones: the two array kinds use
             // different wire formats and must not disturb each other.
-            .Field(FieldSpec.Of("Slot1", "int", "fixed slot 1"))
-            .Field(FieldSpec.Of("Slot2", "int", "fixed slot 2"));
+            .Field(FieldSpec.Numbered("Slot1", "int", "fixed slot 1"))
+            .Field(FieldSpec.Numbered("Slot2", "int", "fixed slot 2"));
         arrayTable
             .Row("1", "red;green;blue", "10;20;30", "0.5;0.25", "Common;Rare", "1", "2")
             // A different length in every row, which is the point of the feature.
@@ -360,23 +367,24 @@ internal static class Program
 
         b.Table(1, 1, spec);
 
-        // Header block occupies rows 1..7 (marker, comment, 5 header rows), so the
-        // first data row is row 8. Written cell by cell because these must carry
-        // real Excel types, which the string-based TableSpec.Row cannot express.
-        int row = 8;
+        // The declaration and four header rows occupy rows 1..5, so the first data row is
+        // row 6 - and the body starts one column right of the marker column. Written cell by
+        // cell because these must carry real Excel types, which the string-based
+        // TableSpec.Row cannot express.
+        int row = 6;
 
-        b.SetNumeric(1, row, 1);
-        b.SetNumeric(2, row, 42);
-        b.SetNumeric(3, row, 1.5);
-        b.SetDate(4, row, new DateTime(2022, 1, 24, 10, 30, 0));
-        b.SetNumeric(5, row, 9007199254740993d);
+        b.SetNumeric(2, row, 1);
+        b.SetNumeric(3, row, 42);
+        b.SetNumeric(4, row, 1.5);
+        b.SetDate(5, row, new DateTime(2022, 1, 24, 10, 30, 0));
+        b.SetNumeric(6, row, 9007199254740993d);
         row++;
 
-        b.SetNumeric(1, row, 2);
-        b.SetNumeric(2, row, -7);
-        b.SetNumeric(3, row, 0.1);
-        b.SetDate(4, row, new DateTime(1999, 12, 31, 23, 59, 59));
-        b.SetNumeric(5, row, 1e16);
+        b.SetNumeric(2, row, 2);
+        b.SetNumeric(3, row, -7);
+        b.SetNumeric(4, row, 0.1);
+        b.SetDate(5, row, new DateTime(1999, 12, 31, 23, 59, 59));
+        b.SetNumeric(6, row, 1e16);
 
         Save(workbook, path);
     }
@@ -1043,6 +1051,173 @@ internal static class Program
     ///
     /// notes/struct-dsl-design.md section 7.3.
     /// </remarks>
+    /// <summary>
+    /// A record whose members are arrays, and an array of arrays beside it.
+    /// </summary>
+    /// <remarks>
+    /// **Written here rather than committed as a workbook.** It was a hand-made .xlsx from the
+    /// first commit, which is a fixture nobody can review in a diff and nobody can migrate
+    /// without Excel - and migrating the notation is exactly what it needed.
+    ///
+    /// The shapes it holds, which is what the goldens pin: a record whose members are arrays
+    /// (`skill.step[0]` - one `skill`, not two), a record that does not repeat (`pos.x`), a
+    /// scalar array (`tag[0]`), and an array of arrays where neither level has a name
+    /// (`grid[0][1]`). spec/nested-multi-level.md.
+    /// </remarks>
+    private static void WriteMemberArray(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("MemberArray"));
+
+        var spec = new TableSpec
+        {
+            Name = "Guide",
+            Comment = "A record whose members are arrays, and an array of arrays beside it.",
+        };
+
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "plain column, between the groups"))
+
+            // One record whose member is an array, which is what the numbers on the member say.
+            .Field(FieldSpec.Of("Skill.Step1", "int", "member array, element 1"))
+            .Field(FieldSpec.Of("Skill.Step2", "int", "element 2 of the same member"))
+            .Field(FieldSpec.Of("Skill.Order1", "string", "second member, element 1"))
+            .Field(FieldSpec.Of("Skill.Order2", "string", "element 2 of it"))
+
+            .Field(FieldSpec.Of(
+                "Pos.X", "float",
+                "a record with no number at all - still one record, members not arrays"))
+            .Field(FieldSpec.Of("Pos.Y", "float", "second member of it"))
+
+            .Field(FieldSpec.Numbered(
+                "Tag1", "string", "scalar serial array, so both array kinds sit in one table"))
+            .Field(FieldSpec.Numbered("Tag2", "string", "element 2 of it"))
+
+            .Field(FieldSpec.Of(
+                "Grid1.1", "int", "array of arrays: outer 1, inner 1 - neither level has a name"))
+            .Field(FieldSpec.Of("Grid1.2", "int", "outer 1, inner 2"))
+            .Field(FieldSpec.Of("Grid1.3", "int", "outer 1, inner 3"))
+            .Field(FieldSpec.Of("Grid2.1", "int", "outer 2, inner 1"))
+            .Field(FieldSpec.Of("Grid2.2", "int", "outer 2, inner 2"))
+            .Field(FieldSpec.Of("Grid2.3", "int", "outer 2, inner 3"));
+
+        spec
+            .Row("1", "first", "10", "11", "a", "b", "1.5", "-2.5", "t1", "t2",
+                 "1", "2", "3", "4", "5", "6")
+            .Row("2", "second", "20", "21", "c", "d", "0", "0", "t3", "t4",
+                 "7", "8", "9", "10", "11", "12")
+
+            // A row that fills nothing but its index and name, which is what an empty element
+            // of each shape reads as.
+            .Row("3", "third", "0", "0", "", "", "0", "0", "", "",
+                 "0", "0", "0", "0", "0", "0");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// The same array data written as numbered columns and as rows.
+    /// </summary>
+    /// <remarks>
+    /// **The pair is gate 2.** Section 5.1 of the spec says the three places an array can be
+    /// written reach one wire, and this is the claim for two of them: a record whose elements
+    /// sit in columns beside it and a record whose elements sit in rows below it must produce
+    /// the same file. What fails here is an element read into the wrong slot, an array that did
+    /// not end where the rows did, and a record boundary found in the wrong place.
+    ///
+    /// The members are optional because that is how a cell says it has no value, which is what
+    /// the trim reads - the numbered side writes `-` in the elements a record does not reach.
+    /// The multi-row side has no cell to write it in and says the same thing by having no row.
+    ///
+    /// One list of records feeds both sheets, so the two cannot drift apart.
+    /// </remarks>
+    private static void WriteMultiRowEquivalence(string path, bool multiRow)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Loot"));
+
+        // code, name, then the rewards - as many as the record has.
+        var records = new (string Code, string Name, (string Id, string Count)[] Rewards)[]
+        {
+            ("1", "first", [("10", "1"), ("11", "2")]),
+            ("2", "second", [("20", "5")]),
+            ("3", "third", [("30", "1"), ("31", "2"), ("32", "3")]),
+
+            // A record with no elements at all, which is an empty array rather than an absent
+            // one - and on the multi-row side is a record of exactly one row.
+            ("4", "fourth", []),
+        };
+
+        int longest = 0;
+        foreach (var record in records)
+        {
+            if (record.Rewards.Length > longest)
+                longest = record.Rewards.Length;
+        }
+
+        var spec = new TableSpec
+        {
+            Name = "Loot",
+            Comment = "An array written two ways, which must reach one file.",
+        };
+
+        spec.Field(FieldSpec.Of("code", "int", "primary index"));
+        spec.Field(FieldSpec.Of("name", "string", "a plain column, which must not move"));
+
+        if (multiRow)
+        {
+            spec.Field(FieldSpec.Of("reward[].id", "int?", "an element"));
+            spec.Field(FieldSpec.Of("reward[].count", "int?", "an element"));
+
+            foreach (var record in records)
+            {
+                // The record's first row carries the scalars and its first element.
+                spec.Row(
+                    record.Code, record.Name,
+                    record.Rewards.Length > 0 ? record.Rewards[0].Id : "",
+                    record.Rewards.Length > 0 ? record.Rewards[0].Count : "");
+
+                // Every element after the first is a row that leaves the index blank.
+                for (int at = 1; at < record.Rewards.Length; at++)
+                    spec.Row("", "", record.Rewards[at].Id, record.Rewards[at].Count);
+            }
+        }
+        else
+        {
+            for (int element = 0; element < longest; element++)
+            {
+                spec.Field(FieldSpec.Of($"reward[{element}].id", element == 0 ? "int?" : "",
+                                        "an element"));
+                spec.Field(FieldSpec.Of($"reward[{element}].count", element == 0 ? "int?" : "",
+                                        "an element"));
+            }
+
+            foreach (var record in records)
+            {
+                var cells = new List<string> { record.Code, record.Name };
+
+                for (int element = 0; element < longest; element++)
+                {
+                    bool has = element < record.Rewards.Length;
+
+                    // `-` is a cell saying it has no value, which is what the trim counts back
+                    // over. A blank would be the type reading a blank, which is a value.
+                    cells.Add(has ? record.Rewards[element].Id : "-");
+                    cells.Add(has ? record.Rewards[element].Count : "-");
+                }
+
+                spec.Row([.. cells]);
+            }
+        }
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
     private static void WritePacked(string path, bool inOneCell)
     {
         var workbook = new XSSFWorkbook();
@@ -1126,8 +1301,8 @@ internal static class Program
             .Field(FieldSpec.Of("Slot2.Label", "string", "element 2, second member"))
 
             // A scalar serial field, which the notation must not have changed.
-            .Field(FieldSpec.Of("Tag1", "string", "scalar serial field"))
-            .Field(FieldSpec.Of("Tag2", "string", "second element of it"));
+            .Field(FieldSpec.Numbered("Tag1", "string", "scalar serial field"))
+            .Field(FieldSpec.Numbered("Tag2", "string", "second element of it"));
 
         spec
             .Row("1", "first",  "1.5", "-2.5", "10", "sword",  "n1", "11", "shield", "a", "b")
@@ -1295,6 +1470,110 @@ internal static class Program
     /// Being pointed at is `reference-keys`, where a `string`, a `bigint` and a `uuid` key
     /// are each the target of a reference.
     /// </remarks>
+    /// <summary>
+    /// Keys made of several columns: what a multi-argument lookup is generated from.
+    /// </summary>
+    /// <remarks>
+    /// Three tables for three separate questions. `Loadout` is the ordinary shape - two
+    /// columns, one of them an enum, and the same value repeating down each column while the
+    /// pair never repeats. `Route` puts two strings in a key and holds the pair
+    /// `("a b", "c")` beside `("a", "b c")`, which is the case that tells a key built by
+    /// joining with a separator from one built with each part's length in front of it: under
+    /// the first they are one key and one of the two rows is lost. `Grid` is three columns,
+    /// so nothing here can be right by only ever having been asked for two.
+    ///
+    /// `Route` also declares a single-column secondary key beside its composite primary,
+    /// which is the mixed case - a table generating both shapes of lookup at once.
+    ///
+    /// Every language, for the reason `key-types` gives: nothing here is new below the
+    /// generators and everything here is new inside them.
+    /// </remarks>
+    private static void WriteCompositeKey(string path)
+    {
+        var workbook = new XSSFWorkbook();
+
+        var enums = new SheetBuilder(workbook.CreateSheet("Enums"));
+
+        enums.Enum(1, 1, new EnumSpec { Name = "Slot", Comment = "Where a piece of equipment goes." }
+            .Label("None", "0", "no slot")
+            .Label("Head", "1", "worn on the head")
+            .Label("Body", "2", "worn on the body")
+            .Label("Feet", "3", "worn on the feet"));
+
+        // --- int and enum, the ordinary composite ------------------------
+
+        var loadouts = new SheetBuilder(workbook.CreateSheet("Loadout"));
+
+        var loadout = new TableSpec
+        {
+            Name = "Loadout",
+            Comment = "One row per stage and slot; neither column is unique on its own.",
+            Meta = "key=\"stage,slot\"",
+        };
+        loadout
+            .Field(FieldSpec.Of("stage", "int", "which stage"))
+            .Field(FieldSpec.Of("slot", "enum", "which slot", detailType: "Slot"))
+            .Field(FieldSpec.Of("Power", "int", "anything"))
+            .Field(FieldSpec.Of("Label", "string", "anything"));
+
+        loadout
+            .Row("1", "Head", "10", "training helm")
+            .Row("1", "Body", "20", "training plate")
+            .Row("2", "Head", "30", "field helm")
+            .Row("2", "Feet", "40", "field boots");
+
+        loadouts.Table(1, 1, loadout);
+
+        // --- two strings, and the pair a separator would lose -------------
+
+        var routes = new SheetBuilder(workbook.CreateSheet("Route"));
+
+        var route = new TableSpec
+        {
+            Name = "Route",
+            Comment = "A composite primary key of strings, beside a single-column secondary one.",
+            Meta = "key=\"From,To; Code\"",
+        };
+        route
+            .Field(FieldSpec.Of("From", "string", "where it starts"))
+            .Field(FieldSpec.Of("To", "string", "where it ends"))
+            .Field(FieldSpec.Of("Code", "string", "unique on its own"))
+            .Field(FieldSpec.Of("Distance", "int", "anything"));
+
+        route
+            .Row("a b", "c", "R1", "10")
+            .Row("a", "b c", "R2", "20")
+            .Row("north", "south", "R3", "30");
+
+        routes.Table(1, 1, route);
+
+        // --- three columns ------------------------------------------------
+
+        var grids = new SheetBuilder(workbook.CreateSheet("Grid"));
+
+        var grid = new TableSpec
+        {
+            Name = "Grid",
+            Comment = "Three columns taken together, so two is not the only width that works.",
+            Meta = "key=\"X,Y,Z\"",
+        };
+        grid
+            .Field(FieldSpec.Of("X", "int", "column"))
+            .Field(FieldSpec.Of("Y", "int", "row"))
+            .Field(FieldSpec.Of("Z", "string", "layer"))
+            .Field(FieldSpec.Of("Name", "string", "anything"));
+
+        grid
+            .Row("0", "0", "floor", "origin")
+            .Row("0", "0", "roof", "above origin")
+            .Row("1", "0", "floor", "east")
+            .Row("0", "1", "floor", "north");
+
+        grids.Table(1, 1, grid);
+
+        Save(workbook, path);
+    }
+
     private static void WriteKeyTypes(string path)
     {
         var workbook = new XSSFWorkbook();
@@ -1435,15 +1714,15 @@ internal static class Program
 
             // A whole row per element. The resolved member is a pointer to the other table's
             // row, and the key that came off the wire sits in an array beside it.
-            .Field(FieldSpec.Of("Slot1", "foreign", "element 1 - the row it points at",
+            .Field(FieldSpec.Numbered("Slot1", "foreign", "element 1 - the row it points at",
                                 detailType: "Piece"))
-            .Field(FieldSpec.Of("Slot2", "foreign", "element 2", detailType: "Piece"))
+            .Field(FieldSpec.Numbered("Slot2", "foreign", "element 2", detailType: "Piece"))
 
             // One of that row's values per element, which resolves to the value's own type
             // rather than to a row - the other half of what a reference can be.
-            .Field(FieldSpec.Of("Tier1", "foreign", "element 1 - the target's own value",
+            .Field(FieldSpec.Numbered("Tier1", "foreign", "element 1 - the target's own value",
                                 detailType: "Piece.Tier"))
-            .Field(FieldSpec.Of("Tier2", "foreign", "element 2", detailType: "Piece.Tier"));
+            .Field(FieldSpec.Numbered("Tier2", "foreign", "element 2", detailType: "Piece.Tier"));
         kit
             // The two elements pointing at different rows, so an element index read from the
             // wrong place shows in the values.
@@ -1824,10 +2103,10 @@ internal static class Program
             // The other array kind. The recipe folds these three into one `Tag` array, so the
             // trim has to answer for a scalar array as well as for a record group - and the
             // first element is required, which is what keeps the array from ever being empty.
-            .Field(FieldSpec.Of("Tag1", "string",
+            .Field(FieldSpec.Numbered("Tag1", "string",
                                 "scalar serial array, element 1 - required, so the array is never empty"))
-            .Field(FieldSpec.Of("Tag2", "string?", "element 2"))
-            .Field(FieldSpec.Of("Tag3", "string?", "element 3"));
+            .Field(FieldSpec.Numbered("Tag2", "string?", "element 2"))
+            .Field(FieldSpec.Numbered("Tag3", "string?", "element 3"));
 
         spec
             // All three filled.
@@ -2149,9 +2428,9 @@ internal static class Program
             // The `?` is on the element, because that is what the cell declares: a folded
             // group has one type cell per element and none for the array.
             // spec/nullable-array-elements.md.
-            .Field(FieldSpec.Of("Tag1", "string?", "element 1 - and the group's answer"))
-            .Field(FieldSpec.Of("Tag2", "string?", "element 2"))
-            .Field(FieldSpec.Of("Tag3", "string?", "element 3"));
+            .Field(FieldSpec.Numbered("Tag1", "string?", "element 1 - and the group's answer"))
+            .Field(FieldSpec.Numbered("Tag2", "string?", "element 2"))
+            .Field(FieldSpec.Numbered("Tag3", "string?", "element 3"));
         folded
             .Row("1", "a", "b", "c")
             // The middle element has no value, and the ones around it are untouched - the
@@ -2317,10 +2596,11 @@ internal static class Program
 
         b.Table(1, 1, spec);
 
-        // Header occupies rows 1..7, so the single data row is row 8. The formula is
-        // written with its cached result already set to the error, because Tabbit
-        // reads cached results rather than evaluating anything itself.
-        b.SetFormulaError(2, 8, "1/0", NPOI.SS.UserModel.FormulaError.DIV0);
+        // The declaration and four header rows occupy rows 1..5, so the single data row is
+        // row 6, and `Ratio` is the third column of the body. The formula is written with its
+        // cached result already set to the error, because Tabbit reads cached results rather
+        // than evaluating anything itself.
+        b.SetFormulaError(3, 6, "1/0", NPOI.SS.UserModel.FormulaError.DIV0);
 
         Save(workbook, path);
     }
@@ -3259,17 +3539,17 @@ internal static class Program
             // Optional, because that is how a cell says it has no value - which is what the
             // trim reads. A required element would refuse the `-` before the trim saw it.
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Slot1", "foreign?", "element 1 - the row it points at",
+            .Field(FieldSpec.Numbered("Slot1", "foreign?", "element 1 - the row it points at",
                                 detailType: "Bit"))
-            .Field(FieldSpec.Of("Slot2", "foreign?", "element 2", detailType: "Bit"))
-            .Field(FieldSpec.Of("Slot3", "foreign?", "element 3", detailType: "Bit"))
+            .Field(FieldSpec.Numbered("Slot2", "foreign?", "element 2", detailType: "Bit"))
+            .Field(FieldSpec.Numbered("Slot3", "foreign?", "element 3", detailType: "Bit"))
 
             // One of that row's values per element, so the other form of a reference is
             // trimmed here too - it resolves to a value rather than to a row.
-            .Field(FieldSpec.Of("Tier1", "foreign?", "element 1 - the target's own value",
+            .Field(FieldSpec.Numbered("Tier1", "foreign?", "element 1 - the target's own value",
                                 detailType: "Bit.Tier"))
-            .Field(FieldSpec.Of("Tier2", "foreign?", "element 2", detailType: "Bit.Tier"))
-            .Field(FieldSpec.Of("Tier3", "foreign?", "element 3", detailType: "Bit.Tier"));
+            .Field(FieldSpec.Numbered("Tier2", "foreign?", "element 2", detailType: "Bit.Tier"))
+            .Field(FieldSpec.Numbered("Tier3", "foreign?", "element 3", detailType: "Bit.Tier"));
         kit
             // Three, two and none. A read that sized the key array from the sheet's column
             // count would pass the first row and nothing else; one that sized it from nothing

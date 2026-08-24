@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "4f5eb7ffbb69a73f7656518907f993fa",
+  "TotalSize": 885,
+  "Items": [
+    {
+      "Name": "Loadout.json",
+      "Size": 343,
+      "Hash": "896efafd7b6f87bf5d54e3f2e50bcf87",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Route.json",
+      "Size": 249,
+      "Hash": "3bf5eef2bc678fb6fca07969222a6a1c",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Grid.json",
+      "Size": 293,
+      "Hash": "367ac18b7d3a180f11c5b1816d9bbc7b",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

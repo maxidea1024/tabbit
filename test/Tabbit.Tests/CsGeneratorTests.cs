@@ -297,7 +297,7 @@ public class CsGeneratorTests
         Assert.Empty(Texts(records[2], "tags"));
 
         // Serial: fixed width, unaffected by the delimited columns beside it.
-        Assert.Equal(new[] { "5", "6" }, Texts(records[2], "slotArray"));
+        Assert.Equal(new[] { "5", "6" }, Texts(records[2], "slot"));
     }
 
     [Fact]

@@ -19,11 +19,11 @@ type KitRecord struct {
 	// primary index
 	Index int32
 	// element 1 - the row it points at
-	SlotArray []*PieceRecord
-	SlotArrayIndex []int32
+	Slot []*PieceRecord
+	SlotIndex []int32
 	// element 1 - the target's own value
-	TierArray []int32
-	TierArrayIndex []int32
+	Tier []int32
+	TierIndex []int32
 }
 
 // KitTable holds every row of Kit.
@@ -117,28 +117,28 @@ func (t *KitTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumn(reader, column, "Kit.Slot_array", tabbit.KindArray, false, tabbit.ElementI32) {
-				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Slot_array")
+			if tabbit.CheckColumn(reader, column, "Kit.Slot", tabbit.KindArray, false, tabbit.ElementI32) {
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Slot")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.SlotArray = make([]*PieceRecord, elementCount)
-					r.SlotArrayIndex = make([]int32, elementCount)
+					r.Slot = make([]*PieceRecord, elementCount)
+					r.SlotIndex = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.SlotArrayIndex[j] = cursor.NextI32()
+						r.SlotIndex[j] = cursor.NextI32()
 					}
 				}
 			}
 		case 3:
-			if tabbit.CheckColumn(reader, column, "Kit.Tier_array", tabbit.KindArray, false, tabbit.ElementI32) {
-				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Tier_array")
+			if tabbit.CheckColumn(reader, column, "Kit.Tier", tabbit.KindArray, false, tabbit.ElementI32) {
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Kit.Tier")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.TierArray = make([]int32, elementCount)
-					r.TierArrayIndex = make([]int32, elementCount)
+					r.Tier = make([]int32, elementCount)
+					r.TierIndex = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.TierArrayIndex[j] = cursor.NextI32()
+						r.TierIndex[j] = cursor.NextI32()
 					}
 				}
 			}

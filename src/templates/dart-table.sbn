@@ -104,31 +104,60 @@ class {{ table.table_name }} {
   Map<{{ index.key_type }}, {{ table.record_name }}> {{ index.map_name }} = {};
 {{~ end ~}}
 {{~ for index in table.indexes }}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+  /// Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
+  static String _keyOf{{ index.suffix }}({{ index.params }}) {
+    final parts = <String>[
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+      {{ c.param }},
+{{~ else if c.kind == "enum" ~}}
+      {{ c.param }}.value.toString(),
+{{~ else ~}}
+      {{ c.param }}.toString(),
+{{~ end ~}}
+{{~ end ~}}
+    ];
+
+    final text = StringBuffer();
+
+    for (final part in parts) {
+      text.write('${part.length}:$part');
+    }
+
+    return text.toString();
+  }
+
+{{~ end ~}}
   /// The row with this {{ index.field_name }}, or null when the table has none.
   ///
   /// The lookup to reach for when a missing row is an ordinary answer - an optional
   /// reference, a key that came from user input.
-  {{ table.record_name }}? findBy{{ index.suffix }}({{ index.key_type }} key) => {{ index.map_name }}[key];
+  {{ table.record_name }}? findBy{{ index.suffix }}({{ index.params }}) => {{ index.map_name }}[{{ index.argument }}];
 
   /// The row with this {{ index.field_name }}, or a thrown exception naming what was missing.
   ///
   /// For a key that has to be there - one from another table, or a constant. The name says
   /// it throws, because a caller reading getBy{{ index.suffix }}(key).name at a glance
   /// cannot otherwise tell whether the next line is a null check or a catch.
-  {{ table.record_name }} getBy{{ index.suffix }}OrThrow({{ index.key_type }} key) {
-    final record = {{ index.map_name }}[key];
+  {{ table.record_name }} getBy{{ index.suffix }}OrThrow({{ index.params }}) {
+    final record = {{ index.map_name }}[{{ index.argument }}];
 
     if (record == null) {
       throw RecordNotFoundException(
           'there is no record in table `{{ table.raw_name }}` that corresponds to '
-          'field `{{ index.field_name }}` value $key');
+          'field `{{ index.field_name }}` value {{ index.value_format }}');
     }
 
     return record;
   }
 
   /// Whether the table holds a row with this {{ index.field_name }}.
-  bool contains{{ index.suffix }}({{ index.key_type }} key) => {{ index.map_name }}.containsKey(key);
+  bool contains{{ index.suffix }}({{ index.params }}) => {{ index.map_name }}.containsKey({{ index.argument }});
 {{~ end ~}}
 
   /// Loads the table from a .tcb file written by Tabbit.
@@ -288,7 +317,11 @@ class {{ table.table_name }} {
 
     for (final record in loaded) {
 {{~ for index in table.indexes ~}}
+{{~ if index.is_composite ~}}
+      loadedBy{{ index.suffix }}[_keyOf{{ index.suffix }}({{ for c in index.components }}record.{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }})] = record;
+{{~ else ~}}
       loadedBy{{ index.suffix }}[record.{{ index.member }}] = record;
+{{~ end ~}}
 {{~ end ~}}
     }
 

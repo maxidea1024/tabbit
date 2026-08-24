@@ -41,23 +41,23 @@ internal static class Program
 
                     // The length the file gave, so a read that sized the array from the page
                     // rather than the descriptor shows here first.
-                    ["length"] = r.SlotArray.Length,
+                    ["length"] = r.Slot.Length,
 
                     // Each element's key and what it resolved to, per element - resolving the
                     // first and leaving the rest is what a loop bounded by the wrong number
                     // produces.
-                    ["slots"] = r.SlotArray.Select((piece, at) => new Dictionary<string, object>
+                    ["slots"] = r.Slot.Select((piece, at) => new Dictionary<string, object>
                     {
-                        ["key"] = r._slotArray_Piece_index[at],
-                        ["resolved"] = r._slotArray_F[at] ? piece.Name : "<unresolved>",
+                        ["key"] = r._slot_Piece_index[at],
+                        ["resolved"] = r._slot_F[at] ? piece.Name : "<unresolved>",
                     }).ToList(),
 
                     // A field reference: the target's own value rather than its row, so the
                     // resolved member is an `int` and there is no name to print.
-                    ["tiers"] = r.TierArray.Select((tier, at) => new Dictionary<string, object>
+                    ["tiers"] = r.Tier.Select((tier, at) => new Dictionary<string, object>
                     {
-                        ["key"] = r._tierArray_Piece_index[at],
-                        ["resolved"] = r._tierArray_F[at] ? tier.ToString() : "<unresolved>",
+                        ["key"] = r._tier_Piece_index[at],
+                        ["resolved"] = r._tier_F[at] ? tier.ToString() : "<unresolved>",
                     }).ToList(),
                 }).ToList(),
 
@@ -68,19 +68,19 @@ internal static class Program
                 ["TrimKit"] = SerialRefAccessor.TrimKit.Records.Select(r => new Dictionary<string, object>
                 {
                     ["index"] = r.Index,
-                    ["length"] = r.SlotArray.Length,
-                    ["keyLength"] = r._slotArray_Bit_index.Length,
+                    ["length"] = r.Slot.Length,
+                    ["keyLength"] = r._slot_Bit_index.Length,
 
-                    ["slots"] = r.SlotArray.Select((bit, at) => new Dictionary<string, object>
+                    ["slots"] = r.Slot.Select((bit, at) => new Dictionary<string, object>
                     {
-                        ["key"] = r._slotArray_Bit_index[at],
-                        ["resolved"] = r._slotArray_F[at] ? bit.Name : "<unresolved>",
+                        ["key"] = r._slot_Bit_index[at],
+                        ["resolved"] = r._slot_F[at] ? bit.Name : "<unresolved>",
                     }).ToList(),
 
-                    ["tiers"] = r.TierArray.Select((tier, at) => new Dictionary<string, object>
+                    ["tiers"] = r.Tier.Select((tier, at) => new Dictionary<string, object>
                     {
-                        ["key"] = r._tierArray_Bit_index[at],
-                        ["resolved"] = r._tierArray_F[at] ? tier.ToString() : "<unresolved>",
+                        ["key"] = r._tier_Bit_index[at],
+                        ["resolved"] = r._tier_F[at] ? tier.ToString() : "<unresolved>",
                     }).ToList(),
                 }).ToList(),
             };

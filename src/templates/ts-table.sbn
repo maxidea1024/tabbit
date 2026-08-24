@@ -305,6 +305,60 @@ export class {{ name }}Table {
     return this._recordsBy{{ field.pascal_name }}.has(key)
   }
 {{~ end ~}}
+{{~ for key in composite_keys }}
+  // Indexing by '{{ key.field_name }}'
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   The map is private, so what it is keyed by can change without the lookups moving.
+   spec/primary-layout.md section 3.5. ##~}}
+  private {{ key.map_name }}: Map<string, {{ name }}Record> = new Map<string, {{ name }}Record>()
+
+  /** Joins the columns of the {{ key.field_name }} key into the text the map is keyed by. */
+  private static keyOf{{ key.suffix }}({{ key.params }}): string {
+    const parts: string[] = [
+{{~ for c in key.components ~}}
+{{~ if c.kind == "string" ~}}
+      {{ c.param }},
+{{~ else ~}}
+      String({{ c.param }}),
+{{~ end ~}}
+{{~ end ~}}
+    ]
+
+    let text = ""
+
+    for (const part of parts)
+      text += `${part.length}:${part}`
+
+    return text
+  }
+
+  /**
+   * The row with this {{ key.field_name }}, or undefined when the table has none.
+   *
+   * The lookup to reach for when a missing row is an ordinary answer.
+   */
+  public findBy{{ key.suffix }}({{ key.params }}): {{ name }}Record | undefined {
+    return this.{{ key.map_name }}.get({{ name }}Table.{{ key.argument }})
+  }
+
+  /**
+   * The row with this {{ key.field_name }}, or a thrown Error naming what was missing.
+   */
+  public getBy{{ key.suffix }}OrThrow({{ key.params }}): {{ name }}Record {
+    const found = this.{{ key.map_name }}.get({{ name }}Table.{{ key.argument }})
+    if (!found)
+      throw new Error(`There is no record in table "{{ name }}" that corresponds to field "{{ key.field_name }}" value {{ key.value_format }}`)
+
+    return found
+  }
+
+  /** Whether the table holds a row with this {{ key.field_name }}. */
+  public contains{{ key.suffix }}({{ key.params }}): boolean {
+    return this.{{ key.map_name }}.has({{ name }}Table.{{ key.argument }})
+  }
+{{~ end ~}}
 
   /** Read a table from specified file. */
   public async read(filename: string): Promise<void> {
@@ -533,11 +587,17 @@ export class {{ name }}Table {
 {{~ for field in indexed_fields ~}}
     const recordsBy{{ field.pascal_name }} = new Map<{{ field.field_type }}, {{ name }}Record>()
 {{~ end ~}}
-{{~ if indexed_fields | array.size > 0 ~}}
+{{~ for key in composite_keys ~}}
+    const recordsBy{{ key.suffix }} = new Map<string, {{ name }}Record>()
+{{~ end ~}}
+{{~ if (indexed_fields | array.size) + (composite_keys | array.size) > 0 ~}}
 
     for (const record of records) {
 {{~ for field in indexed_fields ~}}
       recordsBy{{ field.pascal_name }}.set(record.{{ field.prop_name }}, record)
+{{~ end ~}}
+{{~ for key in composite_keys ~}}
+      recordsBy{{ key.suffix }}.set({{ name }}Table.keyOf{{ key.suffix }}({{ for c in key.components }}record.{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }}), record)
 {{~ end ~}}
     }
 
@@ -545,6 +605,9 @@ export class {{ name }}Table {
     this._records = records
 {{~ for field in indexed_fields ~}}
     this._recordsBy{{ field.pascal_name }} = recordsBy{{ field.pascal_name }}
+{{~ end ~}}
+{{~ for key in composite_keys ~}}
+    this.{{ key.map_name }} = recordsBy{{ key.suffix }}
 {{~ end ~}}
   }
 }

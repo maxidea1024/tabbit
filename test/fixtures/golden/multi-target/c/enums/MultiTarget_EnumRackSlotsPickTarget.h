@@ -9,9 +9,9 @@
 #ifndef MULTI_TARGET_ENUM_RACK_SLOTS_PICK_TARGET_H
 #define MULTI_TARGET_ENUM_RACK_SLOTS_PICK_TARGET_H
 
-/* Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : S7
+/* Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : T4
  *
- * Which table `Rack.SlotsPick1` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
+ * Which table `Rack.SlotsPick0` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
  */
 typedef enum MultiTarget_RackSlotsPickTarget_t {
   /* No row of any of them. */

@@ -34,16 +34,16 @@ local function newGuidePosEntry()
   }, GuidePosEntryMeta)
 end
 
--- Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3.
+-- Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2.
 -- A record whose members are arrays, and an array of arrays beside it.
 ---@class GuideRecord
 ---@field index integer
 ---@field name string
 ---@field skill GuideSkillEntry
 ---@field pos GuidePosEntry
----@field tagArray string[]
+---@field tag string[]
 ---@field grid integer[][]
-local GuideRecordMeta = tcb.strictType("a `Guide` row", { "index", "name", "skill", "pos", "tagArray", "grid" })
+local GuideRecordMeta = tcb.strictType("a `Guide` row", { "index", "name", "skill", "pos", "tag", "grid" })
 
 ---@return GuideRecord
 local function newGuideRecord()
@@ -52,7 +52,7 @@ local function newGuideRecord()
     name = "",
     skill = newGuideSkillEntry(),
     pos = newGuidePosEntry(),
-    tagArray = {},
+    tag = {},
     grid = { tcb.repeated(3, 0), tcb.repeated(3, 0) },
   }, GuideRecordMeta)
 end
@@ -187,8 +187,8 @@ function GuideTable:readBytes(data)
         record.pos.y = cursor:nextF32()
       end
     elseif column.tag == 7 then
-      tcb.checkColumn(column, "Guide.Tag_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
-      local cursor = tcb.newCursor(reader, column, count, "Guide.Tag_array")
+      tcb.checkColumn(column, "Guide.Tag", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
+      local cursor = tcb.newCursor(reader, column, count, "Guide.Tag")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
@@ -198,11 +198,11 @@ function GuideTable:readBytes(data)
           values[element] = cursor:nextString()
         end
 
-        record.tagArray = values
+        record.tag = values
       end
     elseif column.tag == 8 then
-      tcb.checkColumn(column, "Guide.Grid.1", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
-      local cursor = tcb.newCursor(reader, column, count, "Guide.Grid.1")
+      tcb.checkColumn(column, "Guide.Grid.0", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      local cursor = tcb.newCursor(reader, column, count, "Guide.Grid.0")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
@@ -212,8 +212,8 @@ function GuideTable:readBytes(data)
         end
       end
     elseif column.tag == 9 then
-      tcb.checkColumn(column, "Guide.Grid.2", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
-      local cursor = tcb.newCursor(reader, column, count, "Guide.Grid.2")
+      tcb.checkColumn(column, "Guide.Grid.1", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
+      local cursor = tcb.newCursor(reader, column, count, "Guide.Grid.1")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()

@@ -51,6 +51,8 @@
   "schema.meta-refs-is-foreign": "`{Where}`의 `{Key}`는 여기서 `foreign`이 이미 하는 말입니다. 이 도구는 지정된 테이블을 대조만 하지 않고 해석하므로, 둘을 두면 한 가지를 두 방법으로 적는 것이 됩니다. `foreign`과 테이블을 적으십시오.",
   "schema.role-not-a-string": "`{Member}`의 `{Key}`는 문자열이 무엇에 쓰이는지를 말하는 것인데, 이 멤버의 선언은 `{Type}`입니다.",
   "schema.role-written-twice": "`{Member}`에 `text`와 `asset`이 둘 다 표시되어 있습니다. 문자열의 쓰임은 하나입니다.",
+  "schema.role-space-without-text": "{Member:이} `namespace`를 적었는데 `text`도 `asset`도 아닙니다. 네임스페이스는 `text` 컬럼이 모이는 그룹을 한정하는 것이므로, 여기에는 한정할 것이 없습니다.",
+  "schema.role-space-not-text": "{Member:이} `namespace`를 적었는데 `asset`입니다. 네임스페이스는 `text`의 것입니다 — 자산을 찾는 폴더는 recipe가 종류를 키로 정합니다.",
   "schema.bound-not-a-number": "`{Member}`의 `{Key}`가 `{Written}`인데, 경계는 수입니다.",
   "schema.allowed-empty": "`{Member}`의 `allowed`에 값이 하나도 없습니다. `;`로 나누어 적거나, 키를 지우십시오.",
   "schema.allowed-intersection-empty": "`{Table}.{Column}`은(는) `{Sheet}`을(를) 허용하고 `{Member}`의 선언은 `{Declared}`을(를) 허용하는데, 둘의 교집합이 없습니다. 값은 둘 다 만족해야 하므로 이 컬럼은 아무것도 담을 수 없습니다.",

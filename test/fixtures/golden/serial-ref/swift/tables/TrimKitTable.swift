@@ -17,18 +17,18 @@ public final class TrimKitRecord {
     public var index: Int32 = 0
 
     /// element 1 - the row it points at
-    public var slotArray: [BitRecord] = []
-    public var slotArrayIndex: [Int32] = []
-    /// Which of slotArray's elements have a value. Empty where the file did not carry
+    public var slot: [BitRecord] = []
+    public var slotIndex: [Int32] = []
+    /// Which of slot's elements have a value. Empty where the file did not carry
     /// the column, and then every index is out of range anyway.
-    public var hasSlotArrayAt: [Bool] = []
+    public var hasSlotAt: [Bool] = []
 
     /// element 1 - the target's own value
-    public var tierArray: [Int32] = []
-    public var tierArrayIndex: [Int32] = []
-    /// Which of tierArray's elements have a value. Empty where the file did not carry
+    public var tier: [Int32] = []
+    public var tierIndex: [Int32] = []
+    /// Which of tier's elements have a value. Empty where the file did not carry
     /// the column, and then every index is out of range anyway.
-    public var hasTierArrayAt: [Bool] = []
+    public var hasTierAt: [Bool] = []
 }
 
 /// Every row of TrimKit.
@@ -127,45 +127,45 @@ public final class TrimKitTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumnWithElements(column, "TrimKit.Slot_array", Tcb.kindArray, false, Tcb.elementI32)
+                try Tcb.checkColumnWithElements(column, "TrimKit.Slot", Tcb.kindArray, false, Tcb.elementI32)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
                 // spec/nullable-array-elements.md.
                 let elementPresence = try Tcb.readElementPresence(reader, column)
                 var elementAt = 0
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "TrimKit.Slot_array")
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "TrimKit.Slot")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.slotArrayIndex = []
-                    record.slotArrayIndex.reserveCapacity(elementCount)
-                    record.hasSlotArrayAt = []
-                    record.hasSlotArrayAt.reserveCapacity(elementCount)
+                    record.slotIndex = []
+                    record.slotIndex.reserveCapacity(elementCount)
+                    record.hasSlotAt = []
+                    record.hasSlotAt.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.slotArrayIndex.append(try cursor.nextI32())
-                        record.hasSlotArrayAt.append(
+                        record.slotIndex.append(try cursor.nextI32())
+                        record.hasSlotAt.append(
                             Tcb.isPresent(elementPresence, elementAt))
                         elementAt += 1
                     }
                 }
             case 3:
-                try Tcb.checkColumnWithElements(column, "TrimKit.Tier_array", Tcb.kindArray, false, Tcb.elementI32)
+                try Tcb.checkColumnWithElements(column, "TrimKit.Tier", Tcb.kindArray, false, Tcb.elementI32)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
                 // spec/nullable-array-elements.md.
                 let elementPresence = try Tcb.readElementPresence(reader, column)
                 var elementAt = 0
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "TrimKit.Tier_array")
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "TrimKit.Tier")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.tierArrayIndex = []
-                    record.tierArrayIndex.reserveCapacity(elementCount)
-                    record.hasTierArrayAt = []
-                    record.hasTierArrayAt.reserveCapacity(elementCount)
+                    record.tierIndex = []
+                    record.tierIndex.reserveCapacity(elementCount)
+                    record.hasTierAt = []
+                    record.hasTierAt.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.tierArrayIndex.append(try cursor.nextI32())
-                        record.hasTierArrayAt.append(
+                        record.tierIndex.append(try cursor.nextI32())
+                        record.hasTierAt.append(
                             Tcb.isPresent(elementPresence, elementAt))
                         elementAt += 1
                     }

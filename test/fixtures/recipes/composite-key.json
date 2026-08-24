@@ -1,0 +1,113 @@
+{
+  // Keys made of several columns, and the multi-argument lookups they generate.
+  //
+  // The wire does not move: a key's columns are ordinary columns and the file carries them
+  // as it always did. What moves is the surface every generated reader offers -
+  // `FindByStageAndSlot(stage, slot)` beside the one-argument lookups - and each language
+  // answers that its own way, which is why this is every language rather than two.
+  //
+  // The three tables ask three things: an int-and-enum pair, two strings holding
+  // `("a b", "c")` beside `("a", "b c")` so the key's encoding is pinned rather than
+  // assumed, and a key of three columns. `Route` also carries a single-column secondary key,
+  // so one table generates both shapes at once.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/composite-key"
+      }
+    ],
+    "GoogleSheets": []
+  },
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/composite-key/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/composite-key/json",
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/composite-key/csharp",
+      "Namespace": "Tabbit.Fixtures.CompositeKey",
+      "AccessorName": "CompositeKeyAccessor"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/composite-key/cpp",
+      "AccessorName": "CompositeKeyAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/composite-key/typescript"
+    },
+    {
+      "Type": "go",
+      "Path": "test/fixtures/output/composite-key/go",
+      "PackageName": "compositekey",
+      "ModulePath": "compositekey"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/composite-key/ruby",
+      "ModuleName": "CompositeKey"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/composite-key/php",
+      "Namespace": "Tabbit\\Fixtures\\CompositeKey",
+      "AccessorName": "CompositeKeyAccessor"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/composite-key/dart"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/composite-key/python",
+      "PackageName": "composite_key_data"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/composite-key/kotlin",
+      "PackageName": "tabbit.fixtures.compositekey",
+      "AccessorName": "CompositeKeyAccessor"
+    },
+    {
+      "Type": "swift",
+      "Path": "test/fixtures/output/composite-key/swift",
+      "AccessorName": "CompositeKeyAccessor"
+    },
+    {
+      "Type": "lua",
+      "Path": "test/fixtures/output/composite-key/lua"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/composite-key/java",
+      "PackageName": "tabbit.fixtures.compositekey",
+      "AccessorName": "CompositeKeyAccessor"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/composite-key/rust",
+      "CrateName": "composite_key"
+    },
+    {
+      "Type": "c",
+      "Path": "test/fixtures/output/composite-key/c",
+      "AccessorName": "CompositeKey"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/composite-key/unreal/Source",
+      "ModuleName": "CompositeKey",
+      "AccessorName": "FCompositeKey",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ]
+}

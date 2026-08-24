@@ -131,15 +131,6 @@ public sealed class UwoLayoutParser : ILayoutParser
             Name = rawName.ToPascalCase(),
             Comment = "",
 
-            // Serial fields do not apply to this layout at all, whatever a recipe says.
-            // There is no numbering convention here: a number in a name is part of the name -
-            // `OceanNpcLocal01` is one table, not element 1 of something - so folding on it
-            // would invent arrays out of nothing. Arrays are written `name[0]`, which says so
-            // outright, and records `name[0]["Member"]`.
-            //
-            // Spelled out rather than left to the default, because it is a property of the
-            // layout and not a setting anybody should be able to switch on for it.
-            FoldSerialFields = false,
 
             // Always, and not because a recipe asked: these sheets' own exporter ends an array
             // at the last element that has a value, so a row with two of three slots filled
@@ -1214,7 +1205,6 @@ public sealed class UwoLayoutParser : ILayoutParser
             TargetSide = table.TargetSide,
             RawName = table.RawName + MatrixColumnTableSuffix,
             Name = table.Name + MatrixColumnTableSuffix,
-            FoldSerialFields = false,
             Comment = $"Which element of `{table.Name}.{MatrixValueField}` each column id is at.",
         };
 

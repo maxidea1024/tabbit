@@ -113,7 +113,7 @@ public sealed class SheetSchema
             lastRow = headerRow;
         }
 
-        var keyField = table.Fields.Count > 0 ? table.Fields[0] : null;
+        var keyField = table.PrimaryIndexField;
 
         return new SheetSchemaTable
         {

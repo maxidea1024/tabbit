@@ -36,6 +36,24 @@ public class Enum
         public required string Comment { get; set; }
 
         /// <summary>
+        /// A second name a data cell may write this label by, or empty.
+        /// </summary>
+        /// <remarks>
+        /// **A spelling, not a name.** <see cref="Name"/> is what generated code says and
+        /// <see cref="RawName"/> is what the declaration said; this is a third thing a cell is
+        /// allowed to say and resolves to the same label. Nothing downstream sees it - only the
+        /// integer is stored - so an alias can be added or dropped without touching exported
+        /// data. What it does change is which text resolves, so the cells written with it have
+        /// to be found and changed when it goes.
+        ///
+        /// It is its own field rather than a second value in `RawName`, which would be the
+        /// obvious shortcut and is wrong twice: `RawName` is the spelling the naming-convention
+        /// report holds a sheet to, and a label's own spelling would stop resolving the moment
+        /// an alias replaced it.
+        /// </remarks>
+        public string Alias { get; set; } = "";
+
+        /// <summary>
         /// Whether the tool wrote this label rather than a sheet - the zero label inserted
         /// into an enum that declared nothing at zero.
         /// </summary>
@@ -159,8 +177,9 @@ public class Enum
     /// differently from its own definition.
     ///
     /// Matching therefore proceeds from most to least specific: the stored name,
-    /// then the original text as written in the declaration, and finally the
-    /// caller's text normalized the same way the declaration was.
+    /// then the original text as written in the declaration, then an alias the
+    /// declaration gave it, and finally the caller's text normalized the same way
+    /// the declaration was.
     /// </summary>
     public Label? FindLabelByName(string name)
     {
@@ -174,6 +193,12 @@ public class Enum
         var byRawName = Labels.Find(x => x.RawName == name);
         if (byRawName is not null)
             return byRawName;
+
+        // Ahead of the normalizing pass below and behind both real names, so an alias can
+        // never take a cell that one of the labels' own spellings would have answered.
+        var byAlias = Labels.Find(x => x.Alias.Length > 0 && x.Alias == name);
+        if (byAlias is not null)
+            return byAlias;
 
         string normalized = name.ToPascalCase();
         return Labels.Find(x => x.Name == normalized);

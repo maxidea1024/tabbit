@@ -12,11 +12,11 @@ class KitRecord {
   /// primary index
   int index = 0;
   /// element 1 - the row it points at
-  List<PieceRecord?> slotArray = [];
-  List<int> slotArrayIndex = [];
+  List<PieceRecord?> slot = [];
+  List<int> slotIndex = [];
   /// element 1 - the target's own value
-  List<int?> tierArray = [];
-  List<int> tierArrayIndex = [];
+  List<int?> tier = [];
+  List<int> tierIndex = [];
 
 }
 
@@ -96,19 +96,19 @@ class KitTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Kit.Slot_array', kindArray, false, [elementI32]);
-          cursor = TcbColumnCursor(reader, column, count, 'Kit.Slot_array');
+          checkColumn(column, 'Kit.Slot', kindArray, false, [elementI32]);
+          cursor = TcbColumnCursor(reader, column, count, 'Kit.Slot');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.slotArrayIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.slotIndex = List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         case 3:
-          checkColumn(column, 'Kit.Tier_array', kindArray, false, [elementI32]);
-          cursor = TcbColumnCursor(reader, column, count, 'Kit.Tier_array');
+          checkColumn(column, 'Kit.Tier', kindArray, false, [elementI32]);
+          cursor = TcbColumnCursor(reader, column, count, 'Kit.Tier');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.tierArrayIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.tierIndex = List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;
         default:

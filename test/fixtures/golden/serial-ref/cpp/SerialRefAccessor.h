@@ -61,27 +61,27 @@ class SerialRefAccessor {
   /// unused parameters.
   void solve_cross_references([[maybe_unused]] PieceTable& loaded_piece, [[maybe_unused]] KitTable& loaded_kit, [[maybe_unused]] BitTable& loaded_bit, [[maybe_unused]] TrimKitTable& loaded_trim_kit) {
     for (auto& record : loaded_kit.records_) {
-      record.slot_array.resize(record.slot_array_index.size(), nullptr);
-      for (std::size_t i = 0; i < record.slot_array_index.size(); ++i) {
-        const auto* target = loaded_piece.find_by_index(record.slot_array_index[i]);
-        if (target != nullptr) record.slot_array[i] = target;
+      record.slot.resize(record.slot_index.size(), nullptr);
+      for (std::size_t i = 0; i < record.slot_index.size(); ++i) {
+        const auto* target = loaded_piece.find_by_index(record.slot_index[i]);
+        if (target != nullptr) record.slot[i] = target;
       }
-      record.tier_array.resize(record.tier_array_index.size(), 0);
-      for (std::size_t i = 0; i < record.tier_array_index.size(); ++i) {
-        const auto* target = loaded_piece.find_by_index(record.tier_array_index[i]);
-        if (target != nullptr) record.tier_array[i] = target->tier;
+      record.tier.resize(record.tier_index.size(), 0);
+      for (std::size_t i = 0; i < record.tier_index.size(); ++i) {
+        const auto* target = loaded_piece.find_by_index(record.tier_index[i]);
+        if (target != nullptr) record.tier[i] = target->tier;
       }
     }
     for (auto& record : loaded_trim_kit.records_) {
-      record.slot_array.resize(record.slot_array_index.size(), nullptr);
-      for (std::size_t i = 0; i < record.slot_array_index.size(); ++i) {
-        const auto* target = loaded_bit.find_by_index(record.slot_array_index[i]);
-        if (target != nullptr) record.slot_array[i] = target;
+      record.slot.resize(record.slot_index.size(), nullptr);
+      for (std::size_t i = 0; i < record.slot_index.size(); ++i) {
+        const auto* target = loaded_bit.find_by_index(record.slot_index[i]);
+        if (target != nullptr) record.slot[i] = target;
       }
-      record.tier_array.resize(record.tier_array_index.size(), 0);
-      for (std::size_t i = 0; i < record.tier_array_index.size(); ++i) {
-        const auto* target = loaded_bit.find_by_index(record.tier_array_index[i]);
-        if (target != nullptr) record.tier_array[i] = target->tier;
+      record.tier.resize(record.tier_index.size(), 0);
+      for (std::size_t i = 0; i < record.tier_index.size(); ++i) {
+        const auto* target = loaded_bit.find_by_index(record.tier_index[i]);
+        if (target != nullptr) record.tier[i] = target->tier;
       }
     }
   }

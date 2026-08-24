@@ -194,6 +194,16 @@ public abstract class Target<TEntry> : ITarget
     /// </remarks>
     protected virtual bool SupportsOptionalElements => false;
 
+    /// <summary>
+    /// Whether this target can offer a lookup taking several arguments.
+    /// </summary>
+    /// <remarks>
+    /// A key of several columns is looked up by several values, and the map that answers it
+    /// has a different shape in every language - a tuple here, a struct there, a hand-rolled
+    /// hash where neither exists. Opted into as each learns it, like the two flags above.
+    /// </remarks>
+    protected virtual bool SupportsCompositeKeys => false;
+
     Type ITarget.EntryType => typeof(TEntry);
 
     void ITarget.Run(TargetContext context)
@@ -202,6 +212,7 @@ public abstract class Target<TEntry> : ITarget
         RefuseDeepNestedFieldsIfUnsupported(context);
         RefuseOptionalFieldsIfUnsupported(context);
         RefuseOptionalElementsIfUnsupported(context);
+        RefuseCompositeKeysIfUnsupported(context);
 
         Run(context, (TEntry)context.Entry);
     }
@@ -227,6 +238,37 @@ public abstract class Target<TEntry> : ITarget
                     Messages.Message.Of(Exporters.ExportMessages.TargetNoOptionalFields,
                         ("Target", id), ("Table", table.Name), ("Column", wire.Name),
                         ("Type", wire.TagCarrier.TypeName)));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stops before a target that offers one-argument lookups is handed a key of several.
+    /// </summary>
+    /// <remarks>
+    /// **The wire is fine; the surface is not.** A composite key changes nothing about what
+    /// the file carries - its columns are ordinary columns - and everything about what a
+    /// generated reader offers: `FindByKey(stage, slot)` rather than `FindByStage(stage)`.
+    /// Every language needs its own answer for the map that lookup reads, so each opts in
+    /// when it has one. spec/primary-layout.md section 3.5 and section 16 step 8.
+    /// </remarks>
+    private void RefuseCompositeKeysIfUnsupported(TargetContext context)
+    {
+        if (SupportsCompositeKeys)
+            return;
+
+        foreach (var table in context.Model.Tables)
+        {
+            foreach (var key in table.Keys)
+            {
+                if (!key.IsComposite)
+                    continue;
+
+                string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
+
+                throw new TabbitException(table.Location,
+                    Messages.Message.Of(Exporters.ExportMessages.TargetNoCompositeKeys,
+                        ("Target", id), ("Table", table.Name), ("Key", key.ToString())));
             }
         }
     }

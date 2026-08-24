@@ -58,7 +58,7 @@ internal static class Program
                     ["tags"] = r.Tags,
                     ["costs"] = r.Costs,
                     ["grades"] = r.Grades.Select(g => (int)g).ToArray(),
-                    ["slotArray"] = r.SlotArray,
+                    ["slot"] = r.Slot,
                 }).ToList(),
 
                 // References, resolved to records once every table is loaded.

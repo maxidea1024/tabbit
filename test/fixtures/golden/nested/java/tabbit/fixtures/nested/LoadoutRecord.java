@@ -23,7 +23,7 @@ public final class LoadoutRecord {
     /** plain column inside the group's span */
     public String note = "";
     /** scalar serial field */
-    public String[] tagArray = new String[0];
+    public String[] tag = new String[0];
 
     /** One element of pos. */
     public static final class PosEntry {

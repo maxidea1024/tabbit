@@ -166,6 +166,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`find_by_stage_and_slot(stage_key, slot_key)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// `has_x_at(i)` beside the value, filled from the element bitmap the file carries.
     /// spec/nullable-array-elements.md.
@@ -480,24 +483,61 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<CppIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf =>
+        => KeyPlans.Of(table).Select(plan =>
         {
-            string keyType = ToCppTypeName(sf.FirstField);
+            string keyType = ToCppTypeName(plan.Only.FirstField);
             bool copyCosts = keyType == "std::string";
+            string suffix = plan.Suffix(name => name.ToSnakeCase(), "_and_");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToSnakeCase(),
+                Type = CppKeyParam(component),
+                Member = CppName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
 
             return new CppIndexView
             {
-                Member = CppName(sf.Name),
-                Suffix = sf.Name.ToSnakeCase(),
-                KeyType = keyType,
-                KeyParam = copyCosts ? "const " + keyType + "&" : keyType,
+                Member = CppName(plan.Only.Name),
+                Suffix = suffix,
+                KeyType = plan.IsComposite ? "std::string" : keyType,
 
-                KeyText = KeyText(sf, copyCosts),
+                KeyParam = plan.IsComposite
+                    ? "const std::string&"
+                    : copyCosts ? "const " + keyType + "&" : keyType,
 
-                MapName = "by_" + sf.Name.ToSnakeCase() + "_",
-                FieldName = sf.Name.ToPascalCase(),
+                // The text a miss is reported with. A composite key already is text, and it
+                // is the built key rather than the columns - a reader who sees it can find
+                // the row it did not match against.
+                KeyText = plan.IsComposite
+                    ? "key_of_" + suffix + "(" + args + ")"
+                    : KeyText(plan.Only, copyCosts),
+
+                MapName = "by_" + suffix + "_",
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Type + " " + c.Param))
+                    : (copyCosts ? "const " + keyType + "&" : keyType) + " key",
+
+                Argument = plan.IsComposite ? "key_of_" + suffix + "(" + args + ")" : "key",
+                ValueFormat = "",
+                ValueArgs = "",
             };
         }).ToList();
+
+    /// <summary>How a key column arrives at a lookup: by reference where a copy would cost.</summary>
+    private string CppKeyParam(SerialField component)
+    {
+        string type = ToCppTypeName(component.FirstField);
+
+        return type == "std::string" ? "const " + type + "&" : type;
+    }
 
     /// <summary>
     /// The key as text, for the message a missing row throws.

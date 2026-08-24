@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
                   << quote("tags") << ":" << join(r.tags, render_string) << ","
                   << quote("costs") << ":" << join(r.costs, render_int) << ","
                   << quote("grades") << ":" << join(grades, render_int) << ","
-                  << quote("slotArray") << ":" << join(r.slot_array, render_int)
+                  << quote("slot") << ":" << join(r.slot, render_int)
                   << "}";
       }
       std::cout << "],";

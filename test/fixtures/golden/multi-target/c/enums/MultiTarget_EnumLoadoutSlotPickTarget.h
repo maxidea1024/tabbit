@@ -9,9 +9,9 @@
 #ifndef MULTI_TARGET_ENUM_LOADOUT_SLOT_PICK_TARGET_H
 #define MULTI_TARGET_ENUM_LOADOUT_SLOT_PICK_TARGET_H
 
-/* Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : C7
+/* Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : D4
  *
- * Which table `Loadout.Slot1Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
+ * Which table `Loadout.Slot0Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
  */
 typedef enum MultiTarget_LoadoutSlotPickTarget_t {
   /* No row of any of them. */

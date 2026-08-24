@@ -91,7 +91,7 @@ function main(): number {
         }
 
         // The scalar serial field beside them, which the notation must not have changed.
-        compare('Loadout', i, 'tagArray', j.tagArray, b.tagArray)
+        compare('Loadout', i, 'tag', j.tag, b.tag)
     }
 
     // What the records actually hold, so the harness can assert on values rather than

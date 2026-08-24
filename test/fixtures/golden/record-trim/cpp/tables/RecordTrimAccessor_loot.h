@@ -48,7 +48,7 @@ struct LootRecord {
   /// single record, not an array
   LootRecord_pos_entry pos;
   /// scalar serial array, element 1 - required, so the array is never empty
-  std::vector<std::string> tag_array;
+  std::vector<std::string> tag;
 };
 
 /// A record array trimmed at the last element the row filled in.
@@ -220,14 +220,14 @@ class LootTable {
           break;
         }
         case 8: {
-          tabbit::check_column(column, "Loot.Tag_array", tabbit::kKindArray, false, {tabbit::kElementString});
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Tag_array");
+          tabbit::check_column(column, "Loot.Tag", tabbit::kKindArray, false, {tabbit::kElementString});
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Loot.Tag");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.tag_array.resize(static_cast<std::size_t>(element_count));
+            record.tag.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.tag_array[static_cast<std::size_t>(j)] = cursor.next_string();
+              record.tag[static_cast<std::size_t>(j)] = cursor.next_string();
             }
           }
           break;

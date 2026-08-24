@@ -4,12 +4,7 @@
   "Sources": {
     "Xlsx": [
       {
-        "Path": "test/fixtures/xlsx/core",
-
-        // Text1/Text2 fold into one array here, which is what this fixture
-        // covers. Off unless asked for, because a number in a name does not say
-        // whether it means an array.
-        "FoldSerialFields": true
+        "Path": "test/fixtures/xlsx/core"
       }
     ]
   },

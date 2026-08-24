@@ -1,33 +1,33 @@
 [
   {
     "index": 1,
-    "slotArray": [
+    "slot": [
       1,
       2
     ],
-    "tierArray": [
+    "tier": [
       1,
       2
     ]
   },
   {
     "index": 2,
-    "slotArray": [
+    "slot": [
       3,
       1
     ],
-    "tierArray": [
+    "tier": [
       3,
       1
     ]
   },
   {
     "index": 3,
-    "slotArray": [
+    "slot": [
       2,
       0
     ],
-    "tierArray": [
+    "tier": [
       2,
       0
     ]

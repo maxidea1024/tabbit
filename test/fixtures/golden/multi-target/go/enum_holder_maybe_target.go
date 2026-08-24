@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// HolderMaybeTarget was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : F7.
+// HolderMaybeTarget was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : G4.
 // Which table `Holder.Maybe` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 type HolderMaybeTarget int32
 

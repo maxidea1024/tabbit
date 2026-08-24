@@ -50,7 +50,7 @@ interface IDataRow {
   pos: PosEntryJson
   slot: SlotEntryJson[]
   note: string
-  tagArray: string[]
+  tag: string[]
 }
 
 // Generated from test/fixtures/xlsx/nested/nested.xlsx : Nested : B2
@@ -76,14 +76,14 @@ export class LoadoutRecord {
   public get note(): string { return this._note }
 
   /** scalar serial field */
-  public get tagArray(): string[] { return this._tagArray }
+  public get tag(): string[] { return this._tag }
 
   public _index: number = 0
   public _name: string = ''
   public _pos: PosEntry = { x: 0, y: 0 }
   public _slot: SlotEntry[] = []
   public _note: string = ''
-  public _tagArray: string[] = []
+  public _tag: string[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -92,7 +92,7 @@ export class LoadoutRecord {
     this._pos = ((e: any) => ({ x: Math.fround(e.x), y: Math.fround(e.y) }))(dataRow.pos)
     this._slot = dataRow.slot.map(e => ({ id: e.id, label: e.label }))
     this._note = dataRow.note
-    this._tagArray = dataRow.tagArray
+    this._tag = dataRow.tag
   }
 
   /** Populate field values. */
@@ -107,7 +107,7 @@ export class LoadoutRecord {
     offset += 2
     this._slot = Array.from({ length: 2 }, (_, k) => ({ id: _slot_id[k], label: _slot_label[k] }))
     this._note = dataRow[offset++]
-    this._tagArray = dataRow.slice(offset, offset + 2)
+    this._tag = dataRow.slice(offset, offset + 2)
     offset += 2
   }
 }
@@ -293,14 +293,14 @@ export class LoadoutTable {
           }
           break
         case 8:
-          tabbit.checkColumn(column, 'Loadout.Tag_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Tag_array')
+          tabbit.checkColumn(column, 'Loadout.Tag', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Loadout.Tag')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._tagArray = []
+            record._tag = []
             for (let j = 0; j < elementCount; ++j) {
-              record._tagArray.push(cursor.nextString())
+              record._tag.push(cursor.nextString())
             }
           }
           break

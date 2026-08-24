@@ -116,33 +116,54 @@ class {{ table.table_name }}:
         self.{{ index.map_name }} = {}
 {{~ end ~}}
 {{~ for index in table.indexes }}
-    def find_by_{{ index.suffix }}(self, key):
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+    @staticmethod
+    def _key_of_{{ index.suffix }}({{ index.params }}):
+        """Joins the columns of the {{ index.field_name }} key into the text the map is keyed by."""
+        parts = [
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+            {{ c.param }},
+{{~ else ~}}
+            str(int({{ c.param }})),
+{{~ end ~}}
+{{~ end ~}}
+        ]
+
+        return "".join("%d:%s" % (len(part), part) for part in parts)
+
+{{~ end ~}}
+    def find_by_{{ index.suffix }}(self, {{ index.params }}):
         """The row with this {{ index.field_name }}, or None when the table has none.
 
         The lookup to reach for when a missing row is an ordinary answer - an optional
         reference, a key that came from user input.
         """
-        return self.{{ index.map_name }}.get(key)
+        return self.{{ index.map_name }}.get({{ index.argument }})
 
-    def get_by_{{ index.suffix }}_or_throw(self, key):
+    def get_by_{{ index.suffix }}_or_throw(self, {{ index.params }}):
         """The row with this {{ index.field_name }}, or a raised error naming what was missing.
 
         For a key that has to be there - one from another table, or a constant. The name
         says it raises, because a caller reading `get_by_{{ index.suffix }}(key).name` at a
         glance cannot otherwise tell whether the next line is a check or a try.
         """
-        record = self.{{ index.map_name }}.get(key)
+        record = self.{{ index.map_name }}.get({{ index.argument }})
 
         if record is None:
             raise tabbit.RecordNotFoundError(
                 "there is no record in table `{{ table.raw_name }}` that corresponds to "
-                "field `{{ index.field_name }}` value %r" % (key,))
+                "field `{{ index.field_name }}` value {{ index.value_format }}" % ({{ index.value_args }},))
 
         return record
 
-    def contains_{{ index.suffix }}(self, key):
+    def contains_{{ index.suffix }}(self, {{ index.params }}):
         """Whether the table holds a row with this {{ index.field_name }}."""
-        return key in self.{{ index.map_name }}
+        return {{ index.argument }} in self.{{ index.map_name }}
 {{~ end ~}}
 
     def read(self, filename):
@@ -283,7 +304,14 @@ class {{ table.table_name }}:
             tabbit.check_block_end(reader, column, block_end)
 
 {{~ for index in table.indexes ~}}
+{{~ if index.is_composite ~}}
+        {{ index.map_name }} = {
+            self._key_of_{{ index.suffix }}({{ for c in index.components }}record.{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }}): record
+            for record in records
+        }
+{{~ else ~}}
         {{ index.map_name }} = {record.{{ index.member }}: record for record in records}
+{{~ end ~}}
 {{~ end ~}}
 
         # Published, now that every column read.

@@ -218,6 +218,31 @@ public class RecipeModel
     /// spec/composite-value-types.md section 4.4.
     /// </summary>
     public Dictionary<string, string> Palettes { get; set; } = new Dictionary<string, string>();
+
+    /// <summary>
+    /// Which variant of a field this build takes, by `Table.Field`.
+    /// </summary>
+    /// <remarks>
+    /// <code>
+    /// "Variants": { "Item.Price": "kr" }
+    /// </code>
+    ///
+    /// A sheet may write one field's value column several times over and name each one, and
+    /// this is where a build says which of them it wants - a field with no entry here takes
+    /// the column that named no variant. The produced files know nothing about any of it: one
+    /// column becomes the field and the rest are not in the build, so the model, the wire and
+    /// every generated reader are the same as if the sheet had one column.
+    ///
+    /// Recipe-wide rather than per source entry, because a table is one table however many
+    /// sheets it was read from - and a build that took `kr` prices from one workbook and the
+    /// default from another would be a build nobody asked for.
+    ///
+    /// The command line writes the same thing as `--variant Item.Price=kr`, which is what makes
+    /// a one-off build of the other variant possible without editing the recipe.
+    ///
+    /// spec/primary-layout.md section 3.6.
+    /// </remarks>
+    public Dictionary<string, string> Variants { get; set; } = new Dictionary<string, string>();
     #endregion
 
 

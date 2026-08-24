@@ -43,7 +43,7 @@ type LootRecord struct {
 	// single record, not an array
 	Pos LootPosEntry
 	// scalar serial array, element 1 - required, so the array is never empty
-	TagArray []string
+	Tag []string
 }
 
 // LootTable holds every row of Loot.
@@ -215,14 +215,14 @@ func (t *LootTable) Read(filename string) error {
 				}
 			}
 		case 8:
-			if tabbit.CheckColumn(reader, column, "Loot.Tag_array", tabbit.KindArray, false, tabbit.ElementString) {
-				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Tag_array")
+			if tabbit.CheckColumn(reader, column, "Loot.Tag", tabbit.KindArray, false, tabbit.ElementString) {
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Loot.Tag")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.TagArray = make([]string, elementCount)
+					r.Tag = make([]string, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.TagArray[j] = cursor.NextString()
+						r.Tag[j] = cursor.NextString()
 					}
 				}
 			}

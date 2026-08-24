@@ -116,12 +116,30 @@ type {{ table.table_name }} struct {
 // Records returns every row, in the order the sheet declared them.
 func (t *{{ table.table_name }}) Records() []{{ table.record_name }} { return t.records }
 {{~ for index in table.indexes }}
+{{~## A composite key is held as the text its columns make. Each part carries its own length,
+   so no two combinations can make the same text - "a b" with "c" and "a" with "b c" joined by
+   a separator alone would be one key, and a lookup that answers with the wrong row is worse
+   than one that fails to compile. spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+// keyOf{{ index.suffix }} joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
+func (t *{{ table.table_name }}) keyOf{{ index.suffix }}({{ index.params }}) string {
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+	part{{ for.index }} := {{ c.param }}
+{{~ else ~}}
+	part{{ for.index }} := strconv.FormatInt(int64({{ c.param }}), 10)
+{{~ end ~}}
+{{~ end ~}}
+	return {{ for c in index.components }}strconv.Itoa(len(part{{ for.index }})) + ":" + part{{ for.index }}{{ if !for.last }} + {{ end }}{{ end }}
+}
+
+{{~ end ~}}
 // FindBy{{ index.suffix }} returns the row with this {{ index.field_name }}, or nil when the table has none.
 //
 // The lookup to reach for when a missing row is an ordinary answer - an optional
 // reference, a key that came from user input.
-func (t *{{ table.table_name }}) FindBy{{ index.suffix }}(key {{ index.key_type }}) *{{ table.record_name }} {
-	position, found := t.{{ index.map_name }}[key]
+func (t *{{ table.table_name }}) FindBy{{ index.suffix }}({{ index.params }}) *{{ table.record_name }} {
+	position, found := t.{{ index.map_name }}[{{ index.argument }}]
 	if !found {
 		return nil
 	}
@@ -135,19 +153,19 @@ func (t *{{ table.table_name }}) FindBy{{ index.suffix }}(key {{ index.key_type 
 // For a key that has to be there - one from another table, or a constant. Go has no
 // exception to throw, so where the other languages name a throw this one names the error
 // it returns; either way the call site can tell without going to the definition.
-func (t *{{ table.table_name }}) GetBy{{ index.suffix }}OrError(key {{ index.key_type }}) (*{{ table.record_name }}, error) {
-	position, found := t.{{ index.map_name }}[key]
+func (t *{{ table.table_name }}) GetBy{{ index.suffix }}OrError({{ index.params }}) (*{{ table.record_name }}, error) {
+	position, found := t.{{ index.map_name }}[{{ index.argument }}]
 	if !found {
 		return nil, fmt.Errorf(
-			"there is no record in table `{{ table.raw_name }}` that corresponds to field `{{ index.field_name }}` value %v", key)
+			"there is no record in table `{{ table.raw_name }}` that corresponds to field `{{ index.field_name }}` value {{ index.value_format }}", {{ index.value_args }})
 	}
 
 	return &t.records[position], nil
 }
 
 // Contains{{ index.suffix }} reports whether the table holds a row with this {{ index.field_name }}.
-func (t *{{ table.table_name }}) Contains{{ index.suffix }}(key {{ index.key_type }}) bool {
-	_, found := t.{{ index.map_name }}[key]
+func (t *{{ table.table_name }}) Contains{{ index.suffix }}({{ index.params }}) bool {
+	_, found := t.{{ index.map_name }}[{{ index.argument }}]
 	return found
 }
 {{~ end ~}}
@@ -369,7 +387,11 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~ for index in table.indexes ~}}
 	{{ index.map_name }} := make(map[{{ index.key_type }}]int, len(records))
 	for i := range records {
+{{~ if index.is_composite ~}}
+		{{ index.map_name }}[t.keyOf{{ index.suffix }}({{ for c in index.components }}records[i].{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }})] = i
+{{~ else ~}}
 		{{ index.map_name }}[records[i].{{ index.member }}] = i
+{{~ end ~}}
 	}
 
 {{~ end ~}}

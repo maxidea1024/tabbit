@@ -52,7 +52,7 @@ namespace Tabbit.Fixtures.MemberArray
             /// <summary>
             /// scalar serial array, so both array kinds sit in one table
             /// </summary>
-            public string[] TagArray => _tagArray;
+            public string[] Tag => _tag;
 
             /// <summary>
             /// array of arrays: outer 1, inner 1 - neither level has a name
@@ -122,7 +122,7 @@ namespace Tabbit.Fixtures.MemberArray
             internal string _name = "";
             internal SkillEntry _skill = NewSkillEntry();
             internal PosEntry _pos;
-            internal string[] _tagArray = System.Array.Empty<string>();
+            internal string[] _tag = System.Array.Empty<string>();
             internal int[][] _grid = NewGrid();
             #endregion
 
@@ -134,7 +134,7 @@ namespace Tabbit.Fixtures.MemberArray
                 sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
                 sb.Append(",\"Skill\":"); ToStringHelper.ToString(Skill, sb);
                 sb.Append(",\"Pos\":"); ToStringHelper.ToString(Pos, sb);
-                sb.Append(",\"TagArray\":"); ToStringHelper.ToString(TagArray, sb);
+                sb.Append(",\"Tag\":"); ToStringHelper.ToString(Tag, sb);
                 sb.Append(",\"Grid\":"); ToStringHelper.ToString(Grid, sb);
                 sb.Append("}");
                 return sb.ToString();
@@ -146,7 +146,7 @@ namespace Tabbit.Fixtures.MemberArray
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "Index", "Name", "Skill", "Pos", "TagArray", "Grid" };
+        public static readonly string[] FieldNames = { "Index", "Name", "Skill", "Pos", "Tag", "Grid" };
 
         /// <summary>
         /// Build object value map.
@@ -155,7 +155,7 @@ namespace Tabbit.Fixtures.MemberArray
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.Index, r.Name, r.Skill, r.Pos, r.TagArray, r.Grid });
+                result.Add(new object[] { r.Index, r.Name, r.Skill, r.Pos, r.Tag, r.Grid });
 
             return result;
         }
@@ -347,24 +347,24 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 7:
-                        TcbTable.CheckColumn(column, "Guide.Tag_array", TcbTable.KindArray, false, TcbTable.ElementString);
-                        cursor = new TcbColumnCursor(reader, column, count, "Guide.Tag_array");
+                        TcbTable.CheckColumn(column, "Guide.Tag", TcbTable.KindArray, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "Guide.Tag");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._tagArray = new string[elementCount];
+                            record._tag = new string[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._tagArray[j] = cursor.NextString();
+                                record._tag[j] = cursor.NextString();
                             }
                         }
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "Guide.Grid.1", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
-                        cursor = new TcbColumnCursor(reader, column, count, "Guide.Grid.1");
+                        TcbTable.CheckColumn(column, "Guide.Grid.0", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        cursor = new TcbColumnCursor(reader, column, count, "Guide.Grid.0");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
@@ -380,8 +380,8 @@ namespace Tabbit.Fixtures.MemberArray
                         break;
 
                     case 9:
-                        TcbTable.CheckColumn(column, "Guide.Grid.2", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
-                        cursor = new TcbColumnCursor(reader, column, count, "Guide.Grid.2");
+                        TcbTable.CheckColumn(column, "Guide.Grid.1", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        cursor = new TcbColumnCursor(reader, column, count, "Guide.Grid.1");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];

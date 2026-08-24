@@ -95,6 +95,7 @@ public partial class ModelCooker
             foreach (var rowSet in table.RowSets)
             {
                 ValidateIndexUniqueness(table, rowSet, found);
+                ValidateCompositeKeyUniqueness(table, rowSet, found);
                 ValidateReferences(model, table, rowSet, found);
                 ValidateReferencedTables(model, table, rowSet, found);
                 ValidateColumnConstraints(table, rowSet, found);
@@ -383,6 +384,91 @@ public partial class ModelCooker
     }
 
     /// <summary>
+    /// Every declared key holds distinct values, taking its columns together.
+    /// </summary>
+    /// <remarks>
+    /// **The combination, not the columns.** `stage,slot` allows the same stage on many rows
+    /// and the same slot on many rows; what it does not allow is the pair repeating. A check
+    /// per column would refuse data the key permits, and no check at all would let a lookup
+    /// find whichever of two rows it happened to reach first.
+    ///
+    /// Single-column keys are left to `ValidateIndexUniqueness`, which already holds every
+    /// `Indexing` column to this and reports at the cell. spec/primary-layout.md section 3.5.
+    /// </remarks>
+    private void ValidateCompositeKeyUniqueness(Table table, RowSet rowSet, Diagnostics diagnostics)
+    {
+        foreach (var key in table.Keys)
+        {
+            if (!key.IsComposite)
+                continue;
+
+            var columns = new List<Field>();
+
+            foreach (string name in key.FieldNames)
+            {
+                var field = table.Fields.Find(column => column.Name == name);
+
+                if (field is null)
+                    continue;
+
+                // Each component is held to what a key column has always had to be. A
+                // composite key narrows what has to be unique; it does not widen what may
+                // sit in the columns.
+                if (!Models.ValueTypes.CanBeIndexKey(field.Type, out string? why))
+                {
+                    diagnostics.Error(field.TypeLocation,
+                        Message.Of(CookingMessages.IndexTypeUnusable,
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Type", field.TypeName), ("Why", why)));
+                    continue;
+                }
+
+                if (!field.IsRequired)
+                {
+                    diagnostics.Error(field.TypeLocation,
+                        Message.Of(CookingMessages.IndexOptional,
+                            ("Table", table.Name), ("Field", field.Name)));
+                    continue;
+                }
+
+                columns.Add(field);
+            }
+
+            if (columns.Count != key.FieldNames.Count)
+                continue;
+
+            var seen = new Dictionary<string, Location>(System.StringComparer.Ordinal);
+
+            foreach (var row in rowSet.Rows)
+            {
+                var values = columns
+                    .Select(column => row[column.Index].Value?.ToString() ?? "")
+                    .ToList();
+
+                // **Each part carries its own length.** A plain separator would let two
+                // different combinations collide into one string - `("a b", "c")` and
+                // `("a", "b c")` joined by a space are the same text - and a key check that
+                // reports a duplicate nobody wrote is worse than one that misses.
+                string combination = string.Concat(
+                    values.Select(value => value.Length.ToString() + ":" + value));
+
+                var at = row[columns[0].Index].RawCell.Location;
+
+                if (seen.TryGetValue(combination, out var first))
+                {
+                    diagnostics.Error(at,
+                        Message.Of(CookingMessages.CompositeKeyDuplicate,
+                            ("Table", table.Name), ("Key", key.ToString()),
+                            ("Value", string.Join(", ", values)), ("First", first)));
+                    continue;
+                }
+
+                seen.Add(combination, at);
+            }
+        }
+    }
+
+    /// <summary>
     /// Checks that every foreign reference points at something that exists: the
     /// table, the field within it, and a row carrying the referenced key.
     /// </summary>
@@ -426,6 +512,20 @@ public partial class ModelCooker
             // one call the shared table has no entry for - by design, since each language
             // spells its own enum. Said here rather than left to the generators, where
             // it would surface as whichever of them a project reached first.
+            // **A reference carries one key value, and a composite primary key is not one.**
+            // The target's identity is a combination spread over several columns, and there
+            // is no cell shape that holds it - so this is refused rather than guessed at, and
+            // the form is decided when a need for it is measured. Secondary keys are not
+            // involved: a reference points at the primary one. spec/primary-layout.md 3.5.
+            if (field.ResolvedRefTable.Keys.Find(key => key.IsPrimary) is { IsComposite: true } composite)
+            {
+                diagnostics.Error(field.DetailTypeLocation,
+                    Message.Of(CookingMessages.ReferenceCompositeKey,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Target", field.ResolvedRefTable.Name), ("Key", composite.ToString())));
+                continue;
+            }
+
             if (field.RefKeyType == Models.ValueType.Enum)
             {
                 diagnostics.Error(field.DetailTypeLocation,
@@ -562,7 +662,7 @@ public partial class ModelCooker
         var keys = new HashSet<object>();
 
         foreach (var foreignRow in RowsToMatchAgainst(foreignTable, rowSet))
-            keys.Add(foreignRow[foreignTable.Fields[0].Index].Value!);
+            keys.Add(foreignRow[foreignTable.PrimaryIndexField!.Index].Value!);
 
         return _foreignKeys.GetOrAdd((foreignTable, rowSet.Name), keys);
     }
@@ -719,7 +819,7 @@ public partial class ModelCooker
             if (target.Fields.Count > 0)
             {
                 foreach (var row in target.Data)
-                    set.Add(ComparableKey(row[target.Fields[0].Index].Value)!);
+                    set.Add(ComparableKey(row[target.PrimaryIndexField!.Index].Value)!);
             }
 
             keys.Add(set);
@@ -763,7 +863,7 @@ public partial class ModelCooker
 
             // The same set-first rule the resolved reference follows, for the same reason.
             foreach (var targetRow in RowsToMatchAgainst(target, rowSet))
-                keys.Add(ComparableKey(targetRow[target.Fields[0].Index].Value)!);
+                keys.Add(ComparableKey(targetRow[target.PrimaryIndexField!.Index].Value)!);
         }
 
         string names = string.Join("`, `", targets.Select(t => t.Name));

@@ -90,12 +90,12 @@ struct NULLABLEELEMENTS_API FFoldedRow
 
     /** element 1 - and the group's answer */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Folded")
-    TArray<FString> TagArray;
+    TArray<FString> Tag;
 
-    /** Which of TagArray's elements have a value. Empty where the file did not carry
+    /** Which of Tag's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      * spec/nullable-array-elements.md. */
-    TArray<bool> bHasTagArrayAt;
+    TArray<bool> bHasTagAt;
 
 };
 

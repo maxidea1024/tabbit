@@ -44,17 +44,17 @@ class LootRecord:
     A record array trimmed at the last element the row filled in.
     """
 
-    __slots__ = ("index", "name", "slot", "pos", "tag_array")
+    __slots__ = ("index", "name", "slot", "pos", "tag")
 
     def __init__(self):
         self.index = 0
         self.name = ""
         self.slot = []
         self.pos = LootPosEntry()
-        self.tag_array = []
+        self.tag = []
 
     def __repr__(self):
-        return "LootRecord(index=%r, name=%r, slot=%r, pos=%r, tag_array=%r)" % (self.index, self.name, self.slot, self.pos, self.tag_array)
+        return "LootRecord(index=%r, name=%r, slot=%r, pos=%r, tag=%r)" % (self.index, self.name, self.slot, self.pos, self.tag)
 
 
 class LootTable:
@@ -191,11 +191,11 @@ class LootTable:
                         records[i].pos.y = value
                     at += n
             elif column.tag == 8:
-                tabbit.check_column(column, "Loot.Tag_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
-                cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Tag_array")
+                tabbit.check_column(column, "Loot.Tag", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
+                cursor = tabbit.ColumnCursor(reader, column, count, "Loot.Tag")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.tag_array = [cursor.next_string() for _ in range(element_count)]
+                    record.tag = [cursor.next_string() for _ in range(element_count)]
             else:
                 # A column added after this code was generated.
                 reader.skip(column.byte_length)

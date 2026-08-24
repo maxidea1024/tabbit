@@ -36,7 +36,7 @@ class LoadoutRecord {
   /// plain column inside the group's span
   String note = '';
   /// scalar serial field
-  List<String> tagArray = [];
+  List<String> tag = [];
 
 }
 
@@ -180,11 +180,11 @@ class LoadoutTable {
           }
           break;
         case 8:
-          checkColumn(column, 'Loadout.Tag_array', kindArray, false, [elementString]);
-          cursor = TcbColumnCursor(reader, column, count, 'Loadout.Tag_array');
+          checkColumn(column, 'Loadout.Tag', kindArray, false, [elementString]);
+          cursor = TcbColumnCursor(reader, column, count, 'Loadout.Tag');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.tagArray = List.generate(elementCount, (_) => cursor.nextString());
+            record.tag = List.generate(elementCount, (_) => cursor.nextString());
           }
           break;
         default:

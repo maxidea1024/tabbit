@@ -74,7 +74,7 @@ public class ValidationTests
         Assert.Equal(problems, locations);
 
         // Locations are real cell references, not just a file name.
-        Assert.Contains(reported, l => l.Contains("invalid.xlsx : Bad : B10"));
+        Assert.Contains(reported, l => l.Contains("invalid.xlsx : Bad : C8"));
     }
 
     /// <summary>

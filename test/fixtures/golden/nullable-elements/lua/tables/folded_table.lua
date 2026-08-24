@@ -12,16 +12,16 @@ local tcb = require(_root .. "tabbit.tcb_reader")
 -- Numbered columns that fold into one array whose elements may be absent.
 ---@class FoldedRecord
 ---@field index integer
----@field tagArray string[]
----@field hasTagArrayAt boolean[]
-local FoldedRecordMeta = tcb.strictType("a `Folded` row", { "index", "tagArray", "hasTagArrayAt" })
+---@field tag string[]
+---@field hasTagAt boolean[]
+local FoldedRecordMeta = tcb.strictType("a `Folded` row", { "index", "tag", "hasTagAt" })
 
 ---@return FoldedRecord
 local function newFoldedRecord()
   return setmetatable({
     index = 0,
-    tagArray = {},
-    hasTagArrayAt = {},
+    tag = {},
+    hasTagAt = {},
   }, FoldedRecordMeta)
 end
 
@@ -105,12 +105,12 @@ function FoldedTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Folded.Tag_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING }, true)
+      tcb.checkColumn(column, "Folded.Tag", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
       -- steps once per element of every row. spec/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)
       local elementAt = 0
-      local cursor = tcb.newCursor(reader, column, count, "Folded.Tag_array")
+      local cursor = tcb.newCursor(reader, column, count, "Folded.Tag")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
@@ -120,7 +120,7 @@ function FoldedTable:readBytes(data)
           values[element] = cursor:nextString()
         end
 
-        record.tagArray = values
+        record.tag = values
         local answers = {}
 
         for element = 1, elementCount do
@@ -128,7 +128,7 @@ function FoldedTable:readBytes(data)
         end
 
         elementAt = elementAt + elementCount
-        record.hasTagArrayAt = answers
+        record.hasTagAt = answers
       end
     else
       -- A column added after this code was generated.

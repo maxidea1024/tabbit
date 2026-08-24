@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "69233b09fb8db83017e315220c0b3f3c",
-  "TotalSize": 1743,
+  "MasterHash": "00c35e6573fc1f7cf330fe13d3ee1c02",
+  "TotalSize": 1723,
   "Items": [
     {
       "Name": "Listing.json",
@@ -11,8 +11,8 @@
     },
     {
       "Name": "Folded.json",
-      "Size": 328,
-      "Hash": "30c11aca30a00a59d5a7ca5714f417e4",
+      "Size": 308,
+      "Hash": "ff8bb63dbc658e46730ba87c7eaf3f8b",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

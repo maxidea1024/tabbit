@@ -21,7 +21,7 @@ public final class LootRecord {
     /** single record, not an array */
     public PosEntry pos = new PosEntry();
     /** scalar serial array, element 1 - required, so the array is never empty */
-    public String[] tagArray = new String[0];
+    public String[] tag = new String[0];
 
     /** One element of slot. */
     public static final class SlotEntry {

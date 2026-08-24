@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "run": "<RUN>",
   "data": {
-    "hash": "9cf0827f9c3af2947aa6d480285ceb9144d500d0633b21b2f25051c34fb9013b",
+    "hash": "0803edd4f02159ff257318fdd719ba2604786559ac50f19455ea14cc41145cce",
     "totals": {
       "tables": 7,
       "rows": 19,
@@ -75,7 +75,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "B4",
+              "cell": "C3",
               "url": null
             },
             "isIndex": true,
@@ -98,7 +98,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "C4",
+              "cell": "D3",
               "url": null
             },
             "isIndex": false,
@@ -121,7 +121,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "D4",
+              "cell": "E3",
               "url": null
             },
             "isIndex": false,
@@ -144,7 +144,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "E4",
+              "cell": "F3",
               "url": null
             },
             "isIndex": false,
@@ -167,7 +167,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "F4",
+              "cell": "G3",
               "url": null
             },
             "isIndex": false,
@@ -190,7 +190,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "G4",
+              "cell": "H3",
               "url": null
             },
             "isIndex": false,
@@ -213,7 +213,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "H4",
+              "cell": "I3",
               "url": null
             },
             "isIndex": false,
@@ -236,7 +236,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "I4",
+              "cell": "J3",
               "url": null
             },
             "isIndex": false,
@@ -259,7 +259,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "J4",
+              "cell": "K3",
               "url": null
             },
             "isIndex": false,
@@ -282,7 +282,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "K4",
+              "cell": "L3",
               "url": null
             },
             "isIndex": false,
@@ -305,7 +305,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Types",
-              "cell": "L4",
+              "cell": "M3",
               "url": null
             },
             "isIndex": false,
@@ -351,7 +351,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "B4",
+              "cell": "C3",
               "url": null
             },
             "isIndex": true,
@@ -374,7 +374,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "C4",
+              "cell": "D3",
               "url": null
             },
             "isIndex": false,
@@ -397,7 +397,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "D4",
+              "cell": "E3",
               "url": null
             },
             "isIndex": false,
@@ -445,7 +445,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "I4",
+              "cell": "J3",
               "url": null
             },
             "isIndex": true,
@@ -468,7 +468,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "J4",
+              "cell": "K3",
               "url": null
             },
             "isIndex": false,
@@ -491,7 +491,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "K4",
+              "cell": "L3",
               "url": null
             },
             "isIndex": false,
@@ -514,7 +514,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "L4",
+              "cell": "M3",
               "url": null
             },
             "isIndex": false,
@@ -537,7 +537,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "M4",
+              "cell": "N3",
               "url": null
             },
             "isIndex": false,
@@ -560,7 +560,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "N4",
+              "cell": "O3",
               "url": null
             },
             "isIndex": false,
@@ -583,7 +583,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Refs",
-              "cell": "O4",
+              "cell": "P3",
               "url": null
             },
             "isIndex": false,
@@ -605,8 +605,8 @@
       {
         "name": "Localization",
         "rawName": "Localization",
-        "hash": "969f67ff662b6452435637da469d31b655980dbd5b420da922926d04e4aaf0b5",
-        "schemaHash": "6ce265c6c16bc83ba51797fede20a163d1f09d95f17f75b64971af69755c367f",
+        "hash": "0892f1146e8944338e4601d1f9a267424887b515f8a13f39a0e5c7aeae475831",
+        "schemaHash": "9f8078014ca951ed0e2c4e084fb1f300cee12a4f8a54ce9f1e2df02a1b7007c8",
         "targetSide": "cs",
         "comment": "Trailing-number columns collapse into arrays.",
         "location": {
@@ -631,7 +631,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Serial",
-              "cell": "B4",
+              "cell": "C3",
               "url": null
             },
             "isIndex": true,
@@ -654,7 +654,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Serial",
-              "cell": "C4",
+              "cell": "D3",
               "url": null
             },
             "isIndex": false,
@@ -668,8 +668,8 @@
             "maxLength": 8
           },
           {
-            "name": "TextEn1",
-            "rawName": "TextEn1",
+            "name": "TextEn0",
+            "rawName": "TextEn[0]",
             "typeName": "string",
             "type": "String",
             "targetSide": "cs",
@@ -677,7 +677,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Serial",
-              "cell": "D4",
+              "cell": "E3",
               "url": null
             },
             "isIndex": false,
@@ -691,8 +691,8 @@
             "maxLength": 7
           },
           {
-            "name": "TextEn2",
-            "rawName": "TextEn2",
+            "name": "TextEn1",
+            "rawName": "TextEn[1]",
             "typeName": "string",
             "type": "String",
             "targetSide": "cs",
@@ -700,7 +700,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Serial",
-              "cell": "E4",
+              "cell": "F3",
               "url": null
             },
             "isIndex": false,
@@ -714,8 +714,8 @@
             "maxLength": 3
           },
           {
-            "name": "TextKo1",
-            "rawName": "TextKo1",
+            "name": "TextKo0",
+            "rawName": "TextKo[0]",
             "typeName": "string",
             "type": "String",
             "targetSide": "cs",
@@ -723,7 +723,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Serial",
-              "cell": "F4",
+              "cell": "G3",
               "url": null
             },
             "isIndex": false,
@@ -737,8 +737,8 @@
             "maxLength": 6
           },
           {
-            "name": "TextKo2",
-            "rawName": "TextKo2",
+            "name": "TextKo1",
+            "rawName": "TextKo[1]",
             "typeName": "string",
             "type": "String",
             "targetSide": "cs",
@@ -746,7 +746,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Serial",
-              "cell": "G4",
+              "cell": "H3",
               "url": null
             },
             "isIndex": false,
@@ -766,8 +766,8 @@
       {
         "name": "ArrayTypes",
         "rawName": "ArrayTypes",
-        "hash": "8094a54095f34faa32bad6761625632edfbca2915b085204ac4906d8691b975a",
-        "schemaHash": "26ccdba5717e3289a335cbd3aebe82d702b489e75c57f670d66d9f54eb966b1c",
+        "hash": "1c2f8bbe9103ca9fd209fddfc745633bdc81e6ce4a44512088d9c6077eab1160",
+        "schemaHash": "089b7a4bd5671383120ca2d4ad820e2d6e8f9b9886dda0b50b3e7ed926e8aae2",
         "targetSide": "cs",
         "comment": "One cell holding several delimited values, length varying per row.",
         "location": {
@@ -792,7 +792,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Arrays",
-              "cell": "B4",
+              "cell": "C3",
               "url": null
             },
             "isIndex": true,
@@ -815,7 +815,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Arrays",
-              "cell": "C4",
+              "cell": "D3",
               "url": null
             },
             "isIndex": false,
@@ -838,7 +838,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Arrays",
-              "cell": "D4",
+              "cell": "E3",
               "url": null
             },
             "isIndex": false,
@@ -861,7 +861,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Arrays",
-              "cell": "E4",
+              "cell": "F3",
               "url": null
             },
             "isIndex": false,
@@ -884,7 +884,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Arrays",
-              "cell": "F4",
+              "cell": "G3",
               "url": null
             },
             "isIndex": false,
@@ -898,8 +898,8 @@
             "maxLength": null
           },
           {
-            "name": "Slot1",
-            "rawName": "Slot1",
+            "name": "Slot0",
+            "rawName": "Slot[0]",
             "typeName": "int",
             "type": "Int32",
             "targetSide": "cs",
@@ -907,7 +907,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Arrays",
-              "cell": "G4",
+              "cell": "H3",
               "url": null
             },
             "isIndex": false,
@@ -921,8 +921,8 @@
             "maxLength": null
           },
           {
-            "name": "Slot2",
-            "rawName": "Slot2",
+            "name": "Slot1",
+            "rawName": "Slot[1]",
             "typeName": "int",
             "type": "Int32",
             "targetSide": "cs",
@@ -930,7 +930,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Arrays",
-              "cell": "H4",
+              "cell": "I3",
               "url": null
             },
             "isIndex": false,
@@ -976,7 +976,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Sides",
-              "cell": "B4",
+              "cell": "C3",
               "url": null
             },
             "isIndex": true,
@@ -999,7 +999,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Sides",
-              "cell": "C4",
+              "cell": "D3",
               "url": null
             },
             "isIndex": false,
@@ -1022,7 +1022,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Sides",
-              "cell": "D4",
+              "cell": "E3",
               "url": null
             },
             "isIndex": false,
@@ -1068,7 +1068,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Sides",
-              "cell": "G4",
+              "cell": "H3",
               "url": null
             },
             "isIndex": true,
@@ -1091,7 +1091,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Sides",
-              "cell": "H4",
+              "cell": "I3",
               "url": null
             },
             "isIndex": false,
@@ -1114,7 +1114,7 @@
             "location": {
               "file": "test/fixtures/xlsx/core/core.xlsx",
               "sheet": "Sides",
-              "cell": "I4",
+              "cell": "J3",
               "url": null
             },
             "isIndex": false,

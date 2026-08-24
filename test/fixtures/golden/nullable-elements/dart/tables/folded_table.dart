@@ -12,8 +12,8 @@ class FoldedRecord {
   /// primary index
   int index = 0;
   /// element 1 - and the group's answer
-  List<String> tagArray = [];
-  List<bool> hasTagArrayAt = const <bool>[];
+  List<String> tag = [];
+  List<bool> hasTagAt = const <bool>[];
 
 }
 
@@ -95,16 +95,16 @@ class FoldedTable {
           }
           break;
         case 2:
-          checkColumn(column, 'Folded.Tag_array', kindArray, false, [elementString], true);
+          checkColumn(column, 'Folded.Tag', kindArray, false, [elementString], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
           // steps once per element of every row. spec/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
-          cursor = TcbColumnCursor(reader, column, count, 'Folded.Tag_array');
+          cursor = TcbColumnCursor(reader, column, count, 'Folded.Tag');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.tagArray = List.generate(elementCount, (_) => cursor.nextString());
-            record.hasTagArrayAt =
+            record.tag = List.generate(elementCount, (_) => cursor.nextString());
+            record.hasTagAt =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
             elementAt += elementCount;
           }

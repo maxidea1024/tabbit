@@ -22,7 +22,7 @@ interface IDataRow {
   amount: number
 }
 
-// Generated from test/fixtures/xlsx/layout-edge/layout-edge.xlsx : Offset : F21
+// Generated from test/fixtures/xlsx/layout-edge/layout-edge.xlsx : Offset : F19
 /** Keeps the ragged row from being trimmed as a trailing blank. */
 export class SecondTableRecord {
   /** Default constructor */
@@ -58,7 +58,7 @@ export class SecondTableRecord {
   }
 }
 
-// Generated from test/fixtures/xlsx/layout-edge/layout-edge.xlsx : Offset : F21
+// Generated from test/fixtures/xlsx/layout-edge/layout-edge.xlsx : Offset : F19
 /** Keeps the ragged row from being trimmed as a trailing blank. */
 export class SecondTableTable {
   /** Default constructor. */

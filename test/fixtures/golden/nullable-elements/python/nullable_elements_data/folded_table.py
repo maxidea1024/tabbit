@@ -17,15 +17,15 @@ class FoldedRecord:
     Numbered columns that fold into one array whose elements may be absent.
     """
 
-    __slots__ = ("index", "tag_array", "has_tag_array_at")
+    __slots__ = ("index", "tag", "has_tag_at")
 
     def __init__(self):
         self.index = 0
-        self.tag_array = []
-        self.has_tag_array_at = []
+        self.tag = []
+        self.has_tag_at = []
 
     def __repr__(self):
-        return "FoldedRecord(index=%r, tag_array=%r)" % (self.index, self.tag_array)
+        return "FoldedRecord(index=%r, tag=%r)" % (self.index, self.tag)
 
 
 class FoldedTable:
@@ -101,17 +101,17 @@ class FoldedTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "Folded.Tag_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,), True)
+                tabbit.check_column(column, "Folded.Tag", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
                 # spec/nullable-array-elements.md.
                 element_presence = tabbit.read_element_presence(reader, column)
                 element_at = 0
-                cursor = tabbit.ColumnCursor(reader, column, count, "Folded.Tag_array")
+                cursor = tabbit.ColumnCursor(reader, column, count, "Folded.Tag")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.tag_array = [cursor.next_string() for _ in range(element_count)]
-                    record.has_tag_array_at = [
+                    record.tag = [cursor.next_string() for _ in range(element_count)]
+                    record.has_tag_at = [
                         tabbit.is_present(element_presence, element_at + at)
                         for at in range(element_count)]
                     element_at += element_count

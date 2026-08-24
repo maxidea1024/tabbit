@@ -47,7 +47,7 @@ class LootRecord {
     /** single record, not an array */
     var pos: PosEntry = PosEntry()
     /** scalar serial array, element 1 - required, so the array is never empty */
-    var tagArray: MutableList<String> = ArrayList()
+    var tag: MutableList<String> = ArrayList()
 
     /** One element of slot. */
     class SlotEntry {
@@ -236,12 +236,12 @@ class LootTable {
                     }
                 }
                 8 -> {
-                    checkColumn(column, "Loot.Tag_array", KIND_ARRAY, false, ELEMENT_STRING)
-                    val cursor = ColumnCursor(reader, column, count, "Loot.Tag_array")
+                    checkColumn(column, "Loot.Tag", KIND_ARRAY, false, ELEMENT_STRING)
+                    val cursor = ColumnCursor(reader, column, count, "Loot.Tag")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.tagArray = ArrayList(elementCount.coerceAtLeast(0))
-                        repeat(elementCount) { record.tagArray.add(cursor.nextString()) }
+                        record.tag = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.tag.add(cursor.nextString()) }
                     }
                 }
                 else ->

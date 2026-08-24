@@ -87,7 +87,13 @@ public sealed class TableSchema : ITableSchema
     public IReadOnlyList<FieldSchema> Fields { get; }
 
     /// <summary>The primary index column, or null for a table with no columns at all.</summary>
-    public FieldSchema? Index => Fields.Count > 0 ? Fields[0] : null;
+    /// <remarks>
+    /// Asked of the table rather than taken as this projection's first column. The two agree
+    /// today and the projection is a filtered list, so reading position here would be a second
+    /// answer to a question the model already answers - and the one that stops agreeing first.
+    /// </remarks>
+    public FieldSchema? Index
+        => _table.PrimaryIndexField is { } key ? Field(key.Name) : null;
 
     /// <summary>One column by name, or null.</summary>
     public FieldSchema? Field(string name)

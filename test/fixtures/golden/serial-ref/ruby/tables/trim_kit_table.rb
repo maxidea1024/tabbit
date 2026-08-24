@@ -12,16 +12,16 @@ module SerialRef
   # Generated from test/fixtures/xlsx/serial-ref-trim/serial-ref-trim.xlsx : Refs : J2
   # Numbered reference columns folded into an array the row's length.
   class TrimKitRecord
-    attr_accessor :index, :slot_array, :slot_array_index, :has_slot_array_at, :tier_array, :tier_array_index, :has_tier_array_at
+    attr_accessor :index, :slot, :slot_index, :has_slot_at, :tier, :tier_index, :has_tier_at
 
     def initialize
       @index = 0
-      @slot_array = []
-      @slot_array_index = []
-      @has_slot_array_at = []
-      @tier_array = []
-      @tier_array_index = []
-      @has_tier_array_at = []
+      @slot = []
+      @slot_index = []
+      @has_slot_at = []
+      @tier = []
+      @tier_index = []
+      @has_tier_at = []
     end
 
   end
@@ -100,33 +100,33 @@ module SerialRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'TrimKit.Slot_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32], true)
+          Tabbit.check_column(column, 'TrimKit.Slot', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
           # steps once per element of every row. spec/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
           element_at = 0
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'TrimKit.Slot_array')
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'TrimKit.Slot')
           records.each do |record|
             element_count = cursor.next_length
-            record.slot_array_index = Array.new(element_count) { cursor.next_i32 }
-            record.slot_array = Array.new(element_count)
-            record.has_slot_array_at = Array.new(element_count) do |at|
+            record.slot_index = Array.new(element_count) { cursor.next_i32 }
+            record.slot = Array.new(element_count)
+            record.has_slot_at = Array.new(element_count) do |at|
               Tabbit.present?(element_presence, element_at + at)
             end
             element_at += element_count
           end
         when 3
-          Tabbit.check_column(column, 'TrimKit.Tier_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32], true)
+          Tabbit.check_column(column, 'TrimKit.Tier', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
           # steps once per element of every row. spec/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
           element_at = 0
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'TrimKit.Tier_array')
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'TrimKit.Tier')
           records.each do |record|
             element_count = cursor.next_length
-            record.tier_array_index = Array.new(element_count) { cursor.next_i32 }
-            record.tier_array = Array.new(element_count)
-            record.has_tier_array_at = Array.new(element_count) do |at|
+            record.tier_index = Array.new(element_count) { cursor.next_i32 }
+            record.tier = Array.new(element_count)
+            record.has_tier_at = Array.new(element_count) do |at|
               Tabbit.present?(element_presence, element_at + at)
             end
             element_at += element_count

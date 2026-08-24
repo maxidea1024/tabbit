@@ -132,6 +132,9 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`findByStageAndSlot(stageKey, slotKey)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
     /// carries. spec/nullable-array-elements.md.
@@ -322,13 +325,42 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<DartIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf => new DartIndexView
+        => KeyPlans.Of(table).Select(plan =>
         {
-            Member = DartName(sf.Name),
-            Suffix = sf.Name.ToPascalCase(),
-            KeyType = ResolvedElementType(sf),
-            MapName = "_by" + sf.Name.ToPascalCase(),
-            FieldName = sf.Name.ToPascalCase(),
+            string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                Type = ResolvedElementType(component),
+                Member = DartName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
+
+            return new DartIndexView
+            {
+                Member = DartName(plan.Only.Name),
+                Suffix = suffix,
+                KeyType = plan.IsComposite ? "String" : ResolvedElementType(plan.Only),
+                MapName = "_by" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Type + " " + c.Param))
+                    : ResolvedElementType(plan.Only) + " key",
+
+                Argument = plan.IsComposite ? "_keyOf" + suffix + "(" + args + ")" : "key",
+
+                ValueFormat = plan.IsComposite
+                    ? "(" + string.Join(", ", components.Select(c => "$" + c.Param)) + ")"
+                    : "$key",
+
+                ValueArgs = plan.IsComposite ? args : "key",
+            };
         }).ToList();
 
     /// <summary>

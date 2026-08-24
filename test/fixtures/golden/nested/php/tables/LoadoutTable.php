@@ -57,7 +57,7 @@ final class LoadoutRecord
     public string $note = '';
     /** scalar serial field */
     /** @var list<string> */
-    public array $tagArray = [];
+    public array $tag = [];
 
 
     /**
@@ -237,13 +237,13 @@ final class LoadoutTable
                     break;
 
                 case 8:
-                    TcbReader::checkColumn($column, 'Loadout.Tag_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Tag_array');
+                    TcbReader::checkColumn($column, 'Loadout.Tag', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Loadout.Tag');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->tagArray = [];
+                        $record->tag = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->tagArray[] = $cursor->nextString();
+                            $record->tag[] = $cursor->nextString();
                         }
                     }
                     break;

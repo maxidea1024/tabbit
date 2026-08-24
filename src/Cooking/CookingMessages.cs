@@ -83,6 +83,12 @@ public static class CookingMessages
     /// <summary>Two rows with the same value in an index column.</summary>
     public const string IndexDuplicate = "cook.index-duplicate";
 
+    /// <summary>Two rows sharing one composite key's combination of values.</summary>
+    /// <summary>A reference pointing at a table whose primary key is several columns.</summary>
+    public const string ReferenceCompositeKey = "cook.reference-composite-key";
+
+    public const string CompositeKeyDuplicate = "cook.composite-key-duplicate";
+
     /// <summary>A row with no value in the column that identifies it.</summary>
     public const string IndexAbsent = "cook.index-absent";
 

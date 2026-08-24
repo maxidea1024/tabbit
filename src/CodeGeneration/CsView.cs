@@ -139,6 +139,9 @@ internal sealed class CsTableView
     /// <summary>The fields a lookup dictionary is built for.</summary>
     public required IReadOnlyList<CsFieldView> IndexedFields { get; set; }
 
+    /// <summary>The keys made of several columns, which publish no dictionary of their own.</summary>
+    public required IReadOnlyList<CompositeKeyView> CompositeKeys { get; set; }
+
     /// <summary>The fields that point at another table.</summary>
     public required IReadOnlyList<CsFieldView> ReferenceFields { get; set; }
 

@@ -16,8 +16,7 @@
     "Xlsx": [
       {
         "Path": "test/fixtures/xlsx/record-trim",
-        "TrimTrailingArrayElements": true,
-        "FoldSerialFields": true
+        "TrimTrailingArrayElements": true
       }
     ],
     "GoogleSheets": []

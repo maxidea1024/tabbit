@@ -19,10 +19,10 @@ type FoldedRecord struct {
 	// primary index
 	Index int32
 	// element 1 - and the group's answer
-	TagArray []string
-	// Which of TagArray's elements have a value. Empty where the file did not carry
+	Tag []string
+	// Which of Tag's elements have a value. Empty where the file did not carry
 	// the column, and then every index is out of range anyway.
-	HasTagArrayAt []bool
+	HasTagAt []bool
 }
 
 // FoldedTable holds every row of Folded.
@@ -116,21 +116,21 @@ func (t *FoldedTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumnWithElements(reader, column, "Folded.Tag_array", tabbit.KindArray, false, tabbit.ElementString) {
+			if tabbit.CheckColumnWithElements(reader, column, "Folded.Tag", tabbit.KindArray, false, tabbit.ElementString) {
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
 				// spec/nullable-array-elements.md.
 				elementPresence := tabbit.ReadElementPresence(reader, column)
 				elementAt := int32(0)
-				cursor := tabbit.NewColumnCursor(reader, column, count, "Folded.Tag_array")
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Folded.Tag")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.TagArray = make([]string, elementCount)
-					r.HasTagArrayAt = make([]bool, elementCount)
+					r.Tag = make([]string, elementCount)
+					r.HasTagAt = make([]bool, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.TagArray[j] = cursor.NextString()
-						r.HasTagArrayAt[j] =
+						r.Tag[j] = cursor.NextString()
+						r.HasTagAt[j] =
 							tabbit.IsPresent(elementPresence, elementAt)
 						elementAt++
 					}

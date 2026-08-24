@@ -36,7 +36,7 @@ struct ArrayTypesRecord {
   /// allowed grades
   std::vector<Grade> grades;
   /// fixed slot 1
-  std::vector<std::int32_t> slot_array;
+  std::vector<std::int32_t> slot;
 };
 
 /// One cell holding several delimited values, length varying per row.
@@ -172,14 +172,14 @@ class ArrayTypesTable {
           break;
         }
         case 6: {
-          tabbit::check_column(column, "ArrayTypes.Slot_array", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ArrayTypes.Slot_array");
+          tabbit::check_column(column, "ArrayTypes.Slot", tabbit::kKindArray, false, {tabbit::kElementI32, tabbit::kElementVarint});
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "ArrayTypes.Slot");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.slot_array.resize(static_cast<std::size_t>(element_count));
+            record.slot.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.slot_array[static_cast<std::size_t>(j)] = cursor.next_i32();
+              record.slot[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;

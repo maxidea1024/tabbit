@@ -17,14 +17,43 @@ public final class {{ table.table_name }} {
         return records;
     }
 {{~ for index in table.indexes }}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+    /** Joins the columns of the {{ index.field_name }} key into the text the map is keyed by. */
+    private static String keyOf{{ index.suffix }}({{ index.params }}) {
+        String[] parts = {
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+            {{ c.param }},
+{{~ else if c.kind == "enum" ~}}
+            Long.toString({{ c.param }}.value()),
+{{~ else ~}}
+            Long.toString({{ c.param }}),
+{{~ end ~}}
+{{~ end ~}}
+        };
+
+        StringBuilder text = new StringBuilder();
+
+        for (String part : parts) {
+            text.append(part.length()).append(':').append(part);
+        }
+
+        return text.toString();
+    }
+
+{{~ end ~}}
     /**
      * The row with this {{ index.field_name }}, or null when the table has none.
      *
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    public {{ table.record_name }} findBy{{ index.suffix }}({{ index.key_param }} key) {
-        return {{ index.map_name }}.get(key);
+    public {{ table.record_name }} findBy{{ index.suffix }}({{ index.params }}) {
+        return {{ index.map_name }}.get({{ index.argument }});
     }
 
     /**
@@ -34,21 +63,27 @@ public final class {{ table.table_name }} {
      * it throws, because a caller reading getBy{{ index.suffix }}(key).name() at a glance
      * cannot otherwise tell whether the next line is a null check or a catch.
      */
-    public {{ table.record_name }} getBy{{ index.suffix }}OrThrow({{ index.key_param }} key) {
-        {{ table.record_name }} record = {{ index.map_name }}.get(key);
+    public {{ table.record_name }} getBy{{ index.suffix }}OrThrow({{ index.params }}) {
+        {{ table.record_name }} record = {{ index.map_name }}.get({{ index.argument }});
 
         if (record == null) {
+{{~ if index.is_composite ~}}
+            throw new TcbReader.RecordNotFoundException(
+                "there is no record in table `{{ table.raw_name }}` that corresponds to field "
+                + String.format("`{{ index.field_name }}` value {{ index.value_format }}", {{ index.value_args }}));
+{{~ else ~}}
             throw new TcbReader.RecordNotFoundException(
                 "there is no record in table `{{ table.raw_name }}` that corresponds to field "
                 + "`{{ index.field_name }}` value " + key);
+{{~ end ~}}
         }
 
         return record;
     }
 
     /** Whether the table holds a row with this {{ index.field_name }}. */
-    public boolean contains{{ index.suffix }}({{ index.key_param }} key) {
-        return {{ index.map_name }}.containsKey(key);
+    public boolean contains{{ index.suffix }}({{ index.params }}) {
+        return {{ index.map_name }}.containsKey({{ index.argument }});
     }
 {{~ end ~}}
 
@@ -247,7 +282,12 @@ public final class {{ table.table_name }} {
 
         for ({{ table.record_name }} record : loaded) {
 {{~ for index in table.indexes ~}}
+{{~ if index.is_composite ~}}
+            loadedBy{{ index.suffix }}.put(
+                keyOf{{ index.suffix }}({{ for c in index.components }}record.{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }}), record);
+{{~ else ~}}
             loadedBy{{ index.suffix }}.put(record.{{ index.member }}, record);
+{{~ end ~}}
 {{~ end ~}}
         }
 

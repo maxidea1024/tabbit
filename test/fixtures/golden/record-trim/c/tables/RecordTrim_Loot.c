@@ -172,9 +172,9 @@ static bool RecordTrim_LootParse(RecordTrim_LootTable_t* table, tb_reader* reade
       break;
 
     case 8:
-      (void)tb_check_column(reader, column, "Loot.Tag_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
+      (void)tb_check_column(reader, column, "Loot.Tag", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING));
 
-      (void)tb_cursor_init(&cursor, reader, column, table->count, "Loot.Tag_array");
+      (void)tb_cursor_init(&cursor, reader, column, table->count, "Loot.Tag");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         RecordTrim_LootRecord_t* record = &table->records[row];
@@ -183,15 +183,15 @@ static bool RecordTrim_LootParse(RecordTrim_LootTable_t* table, tb_reader* reade
 
         (void)tb_cursor_next_length(&cursor, &element_count);
 
-        record->tag_array_count = element_count;
-        record->tag_array = (const char**)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->tag_array);
+        record->tag_count = element_count;
+        record->tag = (const char**)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->tag);
 
-        if (element_count > 0 && record->tag_array == NULL)
+        if (element_count > 0 && record->tag == NULL)
           return tb_fail_with(reader, "out of memory allocating an array");
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
-          (void)tb_cursor_next_string(&cursor, &record->tag_array[element]);
+          (void)tb_cursor_next_string(&cursor, &record->tag[element]);
       }
       break;
 

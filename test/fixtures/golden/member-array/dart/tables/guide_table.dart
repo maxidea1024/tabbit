@@ -22,7 +22,7 @@ class GuidePosEntry {
   double y = 0.0;
 }
 
-// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
 /// A record whose members are arrays, and an array of arrays beside it.
 class GuideRecord {
   /// primary index
@@ -34,7 +34,7 @@ class GuideRecord {
   /// a record with no number at all - still one record, members not arrays
   GuidePosEntry pos = GuidePosEntry();
   /// scalar serial array, so both array kinds sit in one table
-  List<String> tagArray = [];
+  List<String> tag = [];
   /// array of arrays: outer 1, inner 1 - neither level has a name
   List<List<int>> grid = List.generate(2, (_) => List.filled(3, 0));
 
@@ -158,16 +158,16 @@ class GuideTable {
           }
           break;
         case 7:
-          checkColumn(column, 'Guide.Tag_array', kindArray, false, [elementString]);
-          cursor = TcbColumnCursor(reader, column, count, 'Guide.Tag_array');
+          checkColumn(column, 'Guide.Tag', kindArray, false, [elementString]);
+          cursor = TcbColumnCursor(reader, column, count, 'Guide.Tag');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.tagArray = List.generate(elementCount, (_) => cursor.nextString());
+            record.tag = List.generate(elementCount, (_) => cursor.nextString());
           }
           break;
         case 8:
-          checkColumn(column, 'Guide.Grid.1', kindArray, false, [elementI32, elementVarint]);
-          cursor = TcbColumnCursor(reader, column, count, 'Guide.Grid.1');
+          checkColumn(column, 'Guide.Grid.0', kindArray, false, [elementI32, elementVarint]);
+          cursor = TcbColumnCursor(reader, column, count, 'Guide.Grid.0');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
             record.grid[0] =
@@ -175,8 +175,8 @@ class GuideTable {
           }
           break;
         case 9:
-          checkColumn(column, 'Guide.Grid.2', kindArray, false, [elementI32, elementVarint]);
-          cursor = TcbColumnCursor(reader, column, count, 'Guide.Grid.2');
+          checkColumn(column, 'Guide.Grid.1', kindArray, false, [elementI32, elementVarint]);
+          cursor = TcbColumnCursor(reader, column, count, 'Guide.Grid.1');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
             record.grid[1] =

@@ -29,7 +29,7 @@ type GuidePosEntry struct {
 	Y float32
 }
 
-// GuideRecord was generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3.
+// GuideRecord was generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2.
 // A record whose members are arrays, and an array of arrays beside it.
 type GuideRecord struct {
 	// primary index
@@ -41,7 +41,7 @@ type GuideRecord struct {
 	// a record with no number at all - still one record, members not arrays
 	Pos GuidePosEntry
 	// scalar serial array, so both array kinds sit in one table
-	TagArray []string
+	Tag []string
 	// array of arrays: outer 1, inner 1 - neither level has a name
 	Grid [][]int32
 }
@@ -202,20 +202,20 @@ func (t *GuideTable) Read(filename string) error {
 				}
 			}
 		case 7:
-			if tabbit.CheckColumn(reader, column, "Guide.Tag_array", tabbit.KindArray, false, tabbit.ElementString) {
-				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Tag_array")
+			if tabbit.CheckColumn(reader, column, "Guide.Tag", tabbit.KindArray, false, tabbit.ElementString) {
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Tag")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.TagArray = make([]string, elementCount)
+					r.Tag = make([]string, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.TagArray[j] = cursor.NextString()
+						r.Tag[j] = cursor.NextString()
 					}
 				}
 			}
 		case 8:
-			if tabbit.CheckColumn(reader, column, "Guide.Grid.1", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
-				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Grid.1")
+			if tabbit.CheckColumn(reader, column, "Guide.Grid.0", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Grid.0")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
@@ -226,8 +226,8 @@ func (t *GuideTable) Read(filename string) error {
 				}
 			}
 		case 9:
-			if tabbit.CheckColumn(reader, column, "Guide.Grid.2", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
-				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Grid.2")
+			if tabbit.CheckColumn(reader, column, "Guide.Grid.1", tabbit.KindArray, false, tabbit.ElementI32, tabbit.ElementVarint) {
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Guide.Grid.1")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())

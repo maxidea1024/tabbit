@@ -309,14 +309,6 @@ public sealed class RescueLayoutParser : ILayoutParser
             // column, which is where that text belongs and where it goes.
             Comment = "",
 
-            // Serial fields do not apply to this layout at all, whatever a recipe says.
-            // Nothing here means what a trailing number means in the layout that has the
-            // convention - `Condition_1`, `Condition_2` and `Condition_3` of one of these
-            // workbooks are three different enums.
-            //
-            // Spelled out rather than left to the default, because it is a property of the
-            // layout and not a setting anybody should be able to switch on for it.
-            FoldSerialFields = false,
 
             // Not a property of this layout: whether a gap in an array is a mistake is the
             // same question in every sheet, so it is the recipe entry's to answer.
