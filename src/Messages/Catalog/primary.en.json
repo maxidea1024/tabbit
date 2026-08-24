@@ -38,6 +38,7 @@
   "primary.enum-label-value-not-integer": "Label `{Label}` of enum `{Entity}` has the value `{Value}`, which is not a whole number.",
   "primary.enum-cell-required": "A label of enum `{Entity}` leaves its `{Column}` cell blank. Both the name and the value of a label are required.",
   "primary.enum-alias-duplicated": "Enum `{Entity}` has two labels aliased `{Alias}`. An alias is a fourth way to write a label in a data cell, so two labels sharing one would make that cell mean either.",
+  "primary.enum-alias-shadows-label": "Label `{Label}` of enum `{Entity}` is aliased `{Alias}`, which is already the name of the label `{Shadowed}`. A real name always answers a cell first, so this alias resolves nothing - and a cell written with it reaches `{Shadowed}` rather than `{Label}`.",
 
   "primary.constant-column-unknown": "Constant set `{Entity}` has a column named `{Column}`, which this layout does not define. It takes: {Known}.",
   "primary.constant-column-missing": "Constant set `{Entity}` has no `{Column}` column, and needs one.",

@@ -747,6 +747,62 @@ public class PrimaryLayoutTests
     }
 
     [Fact]
+    public void An_alias_is_a_fourth_way_to_write_a_label_in_a_data_cell()
+    {
+        var model = Cook(Sheet(
+            [":enum Grade", "a tier"],
+            [":field", "label", "value", "alias"],
+            ["", "low_grade", "1", "LO"],
+            ["", "HighGrade", "2", ""],
+            ["", "", "", ""],
+            [":table Item", "an item"],
+            [":field", "code", "grade"],
+            [":type", "int", "Grade"],
+            // The four spellings, one per row: the alias, the declaration's own text, the
+            // Pascal name, and the number.
+            ["", "1", "LO"],
+            ["", "2", "low_grade"],
+            ["", "3", "LowGrade"],
+            ["", "4", "1"]));
+
+        var declared = Assert.Single(model.Enums);
+        Assert.Equal("LO", declared.Labels.Single(l => l.Name == "LowGrade").Alias);
+
+        // The alias is a spelling, so the label's own name is untouched by it - which is what
+        // the naming-convention report holds a sheet to.
+        Assert.Equal("low_grade", declared.Labels.Single(l => l.Name == "LowGrade").RawName);
+
+        var table = Assert.Single(model.Tables);
+        Assert.Equal([1, 1, 1, 1], table.Data.Select(row => row[1].Value).Cast<int>());
+    }
+
+    [Fact]
+    public void Two_labels_cannot_share_one_alias()
+    {
+        var problem = Refuses(Sheet(
+            [":enum Grade", "a tier"],
+            [":field", "label", "value", "alias"],
+            ["", "Low", "1", "X"],
+            ["", "High", "2", "X"]));
+
+        Assert.Contains("X", problem.Message);
+    }
+
+    [Fact]
+    public void An_alias_that_is_already_a_label_name_is_refused()
+    {
+        // A real name answers a cell first, so this alias would resolve nothing while looking
+        // as though it did.
+        var problem = Refuses(Sheet(
+            [":enum Grade", "a tier"],
+            [":field", "label", "value", "alias"],
+            ["", "Low", "1", "High"],
+            ["", "High", "2", ""]));
+
+        Assert.Contains("High", problem.Message);
+    }
+
+    [Fact]
     public void A_constant_set_folds_the_type_and_its_detail_into_one_column()
     {
         var model = Cook(Sheet(

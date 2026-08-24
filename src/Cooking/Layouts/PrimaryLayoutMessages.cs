@@ -145,6 +145,9 @@ public static class PrimaryLayoutMessages
     /// <summary>Two labels of one enum claiming the same alias.</summary>
     public const string EnumAliasDuplicated = "primary.enum-alias-duplicated";
 
+    /// <summary>An alias that is already the name of another label of the same enum.</summary>
+    public const string EnumAliasShadowsLabel = "primary.enum-alias-shadows-label";
+
     #endregion
 
     #region Constant sets

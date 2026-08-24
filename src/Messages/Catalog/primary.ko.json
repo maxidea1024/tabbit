@@ -38,6 +38,7 @@
   "primary.enum-label-value-not-integer": "enum {Entity}의 라벨 {Label}의 값 {Value:는} 정수가 아닙니다.",
   "primary.enum-cell-required": "enum {Entity}의 라벨 하나가 {Column} 칸을 비웠습니다. 라벨의 이름과 값은 둘 다 필수입니다.",
   "primary.enum-alias-duplicated": "enum {Entity}에 {Alias} 별칭을 쓰는 라벨이 둘 있습니다. 별칭은 데이터 셀에 라벨을 적는 네 번째 표기이므로, 둘이 하나를 함께 쓰면 그 셀이 어느 쪽이든 될 수 있게 됩니다.",
+  "primary.enum-alias-shadows-label": "enum {Entity}의 라벨 {Label}에 붙은 별칭 {Alias:는} 이미 라벨 {Shadowed}의 이름입니다. 셀은 실제 이름이 먼저 답하므로 이 별칭은 아무것도 가리키지 못하고, 그 별칭으로 적은 셀은 {Label:이} 아니라 {Shadowed}에 닿습니다.",
 
   "primary.constant-column-unknown": "상수셋 {Entity}에 {Column} 이름의 컬럼이 있는데, 이 레이아웃이 정의하지 않는 이름입니다. 받는 이름은 {Known}입니다.",
   "primary.constant-column-missing": "상수셋 {Entity}에 {Column} 컬럼이 없습니다. 필수 컬럼입니다.",

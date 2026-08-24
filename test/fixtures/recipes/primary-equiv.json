@@ -1,0 +1,39 @@
+{
+  // The primary layout reading the notation it defines: `:table` declaration cells, keyed
+  // header rows, bracketed element numbers.
+  //
+  // What this tree pins is a sameness. `primary-equiv-old` holds the same tables written in
+  // the notation this layout replaces, and the gate requires the produced files to be
+  // identical byte for byte - so a path read wrong, an element numbered from the wrong base or
+  // a memo column that left a trace fails here without an assertion written for it.
+  //
+  // Two targets rather than a language sweep: nothing here touches a generator, and a
+  // difference in the model shows in the binary file, with the JSON beside it so the diff is
+  // readable when it does.
+  //
+  // `Layout` is named because this is the only tree that asks for it. The default is the
+  // layout being replaced, which is what every other fixture reads.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/primary-equiv",
+        "Layout": "primary"
+      }
+    ]
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/primary-equiv/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/primary-equiv/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}

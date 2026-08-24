@@ -1554,18 +1554,58 @@ public sealed class PrimaryLayoutParser : ILayoutParser
             result.Labels.Add(new Models.Enum.Label
             {
                 Location = labelCell.Location,
-                RawName = alias.Length > 0 ? alias : rawName,
+                RawName = rawName,
                 Name = name,
                 Value = value,
+                Alias = alias,
                 Comment = ValueOfOptional(cells, columns, EnumColumnDesc),
             });
         }
+
+        RefuseAliasesThatShadowLabels(block, result, columns);
 
         // An enum with no zero entry gives every unassigned field of that type a value with no
         // name, so one is supplied unless the recipe says otherwise.
         _context.ApplyAutoNoneLabel(result, block.Location);
 
         return result;
+    }
+
+    /// <summary>
+    /// Refuses an alias that is already some label's own name.
+    /// </summary>
+    /// <remarks>
+    /// A real name always wins the lookup, so such an alias would never resolve anything -
+    /// which makes it worse than useless: the author believes those cells reach one label and
+    /// they reach another. Checked once every label is in hand, because an alias may shadow a
+    /// name declared below it.
+    /// </remarks>
+    private void RefuseAliasesThatShadowLabels(
+        EntityBlock block, Models.Enum declared, Dictionary<string, int> columns)
+    {
+        if (!columns.TryGetValue(EnumColumnAlias, out int aliasColumn))
+            return;
+
+        foreach (var label in declared.Labels)
+        {
+            if (label.Alias.Length == 0)
+                continue;
+
+            var shadowed = declared.Labels.Find(
+                other => other != label
+                         && (other.Name == label.Alias || other.RawName == label.Alias));
+
+            if (shadowed is null)
+                continue;
+
+            var cells = block.Sheet.Rows[label.Location.Row];
+
+            throw new TabbitException(
+                Cell(cells, aliasColumn)?.Location ?? label.Location,
+                Message.Of(PrimaryLayoutMessages.EnumAliasShadowsLabel,
+                    ("Entity", block.Name), ("Alias", label.Alias),
+                    ("Label", label.Name), ("Shadowed", shadowed.Name)));
+        }
     }
 
     private Models.ConstantSet ParseConstantSet(EntityBlock block)

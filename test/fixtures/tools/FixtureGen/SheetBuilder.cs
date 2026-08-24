@@ -150,6 +150,93 @@ public sealed class SheetBuilder
         return dataRow;
     }
 
+    /// <summary>
+    /// Lays out a table in the primary layout: a declaration cell, then keyed header rows.
+    /// </summary>
+    /// <remarks>
+    /// **The same <see cref="TableSpec"/> the old notation is written from**, so a fixture pair
+    /// for the equivalence gate has one source of truth. Where the two notations spell a column
+    /// differently the spec says so, in `PrimaryName` and `PrimaryType`.
+    ///
+    /// The marker column is the one the declaration sits in and the body starts beside it, so
+    /// every row here is one cell wider than the old notation's.
+    /// </remarks>
+    public int PrimaryTable(int column, int row, TableSpec spec, params string[] memoColumns)
+    {
+        string declaration = string.IsNullOrEmpty(spec.TargetSide)
+            ? $":table {spec.Name}"
+            : $":table {spec.Name}(side={spec.TargetSide})";
+
+        Set(column, row + 0, declaration);
+        Set(column + 1, row + 0, spec.Comment);
+
+        int width = spec.Fields.Count;
+
+        Set(column, row + 1, ":field");
+        Set(column, row + 2, ":type");
+        Set(column, row + 3, ":desc");
+        Set(column, row + 4, ":target");
+
+        for (int i = 0; i < width; i++)
+        {
+            var f = spec.Fields[i];
+
+            Set(column + 1 + i, row + 1, f.NameForPrimary());
+            Set(column + 1 + i, row + 2, f.TypeForPrimary());
+            Set(column + 1 + i, row + 3, f.Comment);
+            Set(column + 1 + i, row + 4, f.TargetSide);
+        }
+
+        // Space for the sheet's author, which leaves no trace in the model. Written to the
+        // right of the fields so the equivalence gate covers a memo column being ignored
+        // rather than merely allowed.
+        for (int m = 0; m < memoColumns.Length; m++)
+            Set(column + 1 + width + m, row + 1, "#");
+
+        int dataRow = row + 5;
+        foreach (var dataLine in spec.Data)
+        {
+            if (dataLine.Length != width)
+            {
+                throw new InvalidOperationException(
+                    $"Table `{spec.Name}` declares {width} fields but a data row supplies {dataLine.Length} values.");
+            }
+
+            for (int i = 0; i < width; i++)
+                Set(column + 1 + i, dataRow, dataLine[i]);
+
+            for (int m = 0; m < memoColumns.Length; m++)
+                Set(column + 1 + width + m, dataRow, memoColumns[m]);
+
+            dataRow++;
+        }
+
+        return dataRow;
+    }
+
+    /// <summary>Lays out an enum in the primary layout, whose columns are named.</summary>
+    public int PrimaryEnum(int column, int row, EnumSpec spec)
+    {
+        string declaration = string.IsNullOrEmpty(spec.TargetSide)
+            ? $":enum {spec.Name}"
+            : $":enum {spec.Name}(side={spec.TargetSide})";
+
+        Set(column, row + 0, declaration);
+        Set(column + 1, row + 0, spec.Comment);
+
+        Set(column, row + 1, ":field");
+        SetRow(column + 1, row + 1, "label", "value", "desc");
+
+        int dataRow = row + 2;
+        foreach (var label in spec.Labels)
+        {
+            SetRow(column + 1, dataRow, label.Name, label.Value, label.Comment);
+            dataRow++;
+        }
+
+        return dataRow;
+    }
+
     /// <summary>Lays out a const entity. Returns the row index just past the last constant.</summary>
     public int Const(int column, int row, ConstSpec spec)
     {
@@ -183,6 +270,57 @@ public sealed class FieldSpec
 
     public static FieldSpec Of(string name, string type, string comment = "", string detailType = "", string targetSide = "cs")
         => new FieldSpec { Name = name, Type = type, Comment = comment, DetailType = detailType, TargetSide = targetSide };
+
+    /// <summary>
+    /// What the primary layout writes in `:field`, where that differs from the old spelling.
+    /// </summary>
+    /// <remarks>
+    /// Null where the two notations agree, which is most columns - `Pos.X` and `*Code` are
+    /// written the same either way. It is the numbered groups that differ, because the old
+    /// notation put the number in the name and counted from one (`Slot1.Id`) while this one
+    /// brackets it and counts from zero (`Slot[0].Id`).
+    ///
+    /// Spelled out rather than translated. A generator that rewrote names by rule would be a
+    /// second implementation of the notation, and the gate comparing the two sheets would then
+    /// be testing that implementation against the parser rather than the notations against
+    /// each other.
+    /// </remarks>
+    public string PrimaryName;
+
+    /// <summary>
+    /// The folded type expression, where it is not simply the type and detail joined.
+    /// </summary>
+    public string PrimaryType;
+
+    /// <summary>The `:field` cell the primary layout gets for this column.</summary>
+    public string NameForPrimary() => PrimaryName ?? Name;
+
+    /// <summary>
+    /// The `:type` cell the primary layout gets: one expression rather than a pair.
+    /// </summary>
+    /// <remarks>
+    /// The pair folds by rule for the two kinds that had a detail cell - an enum names itself
+    /// and a reference keeps its keyword - so a fixture only states the type when it wants
+    /// something else.
+    /// </remarks>
+    public string TypeForPrimary()
+    {
+        if (PrimaryType != null)
+            return PrimaryType;
+
+        if (string.IsNullOrEmpty(DetailType))
+            return Type;
+
+        if (string.Equals(Type, "enum", StringComparison.Ordinal))
+            return DetailType;
+
+        if (string.Equals(Type, "foreign", StringComparison.Ordinal))
+            return "foreign " + DetailType;
+
+        throw new InvalidOperationException(
+            $"Column `{Name}` is typed `{Type}` with the detail `{DetailType}`, and the fixture "
+            + "does not say how the primary layout writes that. Set PrimaryType.");
+    }
 }
 
 public sealed class TableSpec

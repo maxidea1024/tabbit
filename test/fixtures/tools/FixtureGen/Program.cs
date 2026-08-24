@@ -50,6 +50,10 @@ internal static class Program
         WriteDeclared(
             Prepare(outputDir, "declared-expanded", "declared-expanded.xlsx"), fromSchema: false);
         // One record, written into one cell and written as its own columns.
+        WritePrimaryEquivalence(
+            Prepare(outputDir, "primary-equiv", "primary-equiv.xlsx"), primary: true);
+        WritePrimaryEquivalence(
+            Prepare(outputDir, "primary-equiv-old", "primary-equiv-old.xlsx"), primary: false);
         WritePacked(Prepare(outputDir, "packed", "packed.xlsx"), inOneCell: true);
         WritePacked(Prepare(outputDir, "packed-expanded", "packed-expanded.xlsx"), inOneCell: false);
         WriteNestedHole(Prepare(outputDir, "nested-hole", "nested-hole.xlsx"));
@@ -1043,6 +1047,111 @@ internal static class Program
     ///
     /// notes/struct-dsl-design.md section 7.3.
     /// </remarks>
+    /// <summary>
+    /// The same tables written in the old notation and in the primary layout.
+    /// </summary>
+    /// <remarks>
+    /// **The pair is the gate.** Everything the primary layout does rests on one claim - that
+    /// it reads a sheet into the same model the notation it replaces did - and the way to check
+    /// a claim like that is to write the same data both ways and require the produced files to
+    /// be identical byte for byte. A path read wrong, an element numbered from the wrong base,
+    /// a memo column that left a trace: none of those needs an assertion written for it.
+    ///
+    /// One <see cref="TableSpec"/> feeds both sheets, so the two cannot drift apart. What the
+    /// two notations spell differently is in `PrimaryName` and `PrimaryType`, beside the column
+    /// it belongs to.
+    ///
+    /// spec/primary-layout.md section 15, gate 1.
+    /// </remarks>
+    private static void WritePrimaryEquivalence(string path, bool primary)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Loot"));
+
+        var grade = new EnumSpec
+        {
+            Name = "Grade",
+            Comment = "How good a thing is.",
+        };
+        grade.Labels.Add(new EnumLabelSpec { Name = "Common", Value = "1", Comment = "the usual" });
+        grade.Labels.Add(new EnumLabelSpec { Name = "Rare", Value = "2" });
+
+        var item = new TableSpec
+        {
+            Name = "Item",
+            Comment = "What a drop can point at.",
+        };
+
+        item.Field(FieldSpec.Of("Code", "int", "primary index"));
+        item.Field(FieldSpec.Of("Name", "string", "shown to a player"));
+
+        // A third column because the old notation requires one: a table's rectangle has a
+        // minimum width of three there, so a two-column table reads a blank name cell. The
+        // primary layout has no minimum - an entity is as wide as its marker column says.
+        item.Field(FieldSpec.Of("Stack", "int", "how many fit in a slot"));
+
+        item
+            .Row("1", "sword", "1")
+            .Row("2", "shield", "1");
+
+        var drop = new TableSpec
+        {
+            Name = "Drop",
+            Comment = "One drop, covering what the parser skeleton reads.",
+        };
+
+        drop.Field(FieldSpec.Of("Code", "int", "primary index"));
+        drop.Field(FieldSpec.Of("*Sku", "string", "a secondary index"));
+        drop.Field(FieldSpec.Of("Live", "bool", "a flag"));
+        drop.Field(FieldSpec.Of("Weight", "float", "a number"));
+        drop.Field(FieldSpec.Of("Tags", "string[]", "one cell holding a list"));
+        drop.Field(FieldSpec.Of("Bonus", "int?", "a column a row may leave out"));
+        drop.Field(FieldSpec.Of("Grade", "enum", "an enum, named in one cell now", "Grade"));
+        drop.Field(FieldSpec.Of("Item", "foreign", "a reference, keyword kept", "Item"));
+
+        // An inline record group, spelled the same in both notations.
+        drop.Field(FieldSpec.Of("Pos.X", "float", "a member"));
+        drop.Field(FieldSpec.Of("Pos.Y", "float", "the other member"));
+
+        // A numbered group, where the two notations differ twice over. The old one puts the
+        // number in the name and counts from one; this one brackets it and counts from zero.
+        // And the old one repeats the type in every element's column while this one states it
+        // at element zero and leaves the rest blank - section 4.3. Both differences are on
+        // this pair of columns, which is what makes it the part of the fixture worth having.
+        drop.Field(new FieldSpec
+        {
+            Name = "Slot1.Id", PrimaryName = "Slot[0].Id",
+            Type = "int", Comment = "an element", TargetSide = "cs",
+        });
+        drop.Field(new FieldSpec
+        {
+            Name = "Slot2.Id", PrimaryName = "Slot[1].Id",
+            Type = "int", PrimaryType = "", Comment = "an element", TargetSide = "cs",
+        });
+
+        drop
+            .Row("1", "A-1", "true", "1.5", "sharp;long", "3", "Rare", "1", "1.0", "2.0", "10", "11")
+            .Row("2", "A-2", "false", "2.5", "blunt", "-", "Common", "2", "3.0", "4.0", "20", "21");
+
+        if (primary)
+        {
+            int next = b.PrimaryEnum(1, 1, grade);
+            next = b.PrimaryTable(1, next + 1, item);
+
+            // A memo column on the primary sheet and nothing answering it on the old one:
+            // what it holds must make no difference to a single produced byte.
+            b.PrimaryTable(1, next + 1, drop, "손잡이", "=1+1");
+        }
+        else
+        {
+            int next = b.Enum(1, 1, grade);
+            next = b.Table(1, next + 1, item);
+            b.Table(1, next + 1, drop);
+        }
+
+        Save(workbook, path);
+    }
+
     private static void WritePacked(string path, bool inOneCell)
     {
         var workbook = new XSSFWorkbook();
