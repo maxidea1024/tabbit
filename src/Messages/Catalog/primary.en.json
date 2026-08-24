@@ -1,0 +1,47 @@
+{
+  "primary.declaration-needs-name": "`{Written}` declares a {Kind} and names none. Write the name after the keyword - `:{Kind} Item`.",
+  "primary.declaration-meta-unclosed": "`{Written}` opens a bracket and never closes it. The brackets on a declaration hold its settings - `:table Item(side=s)`.",
+  "primary.declaration-meta-key-unknown": "`{Written}` sets `{Key}`, which a {Kind} declaration does not take. It takes: {Known}.",
+  "primary.declaration-meta-key-repeated": "`{Written}` sets `{Key}` twice. One value, or the second quietly replaces the first.",
+  "primary.declaration-meta-value-missing": "`{Written}` names `{Key}` with no value. Write one - `{Example}`.",
+  "primary.entity-name-duplicated": "`{Name}` is declared twice - as {Kind} here, and already above. A name identifies one entity whatever its kind, because the generated code has one name for it.",
+
+  "primary.marker-column-unknown": "The marker column of `{Entity}` holds `{Written}`, which this layout does not define. It takes a declaration (`:table`, `:enum`, `:const`), a header row key ({Keys}), `#` to leave the row out, or nothing at all for a data row.",
+  "primary.row-key-repeated": "`{Entity}` has two `{Key}` rows. Which one is read would then depend on the order they happen to be in.",
+  "primary.row-key-below-data": "`{Entity}` has a `{Key}` row below a data row. Header rows come before the data - a sheet sorted with its header rows in the selection lands here.",
+  "primary.field-row-missing": "`{Entity}` has no `:field` row. It is the one header row that cannot be left out, because nothing else says what the columns are.",
+  "primary.type-row-missing": "Table `{Entity}` has no `:type` row. Every field column states its type.",
+  "primary.type-row-not-on-entity": "`{Entity}` is {Kind} and has a `:type` row. The columns of {Kind} are fixed and named in `:field`, so there is no type for a row to state.",
+  "primary.row-key-not-on-entity": "`{Entity}` is {Kind} and has a `{Key}` row, which {Kind} has no use for. It takes: {Keys}.",
+
+  "primary.column-unnamed-with-data": "Column {Column} of `{Entity}` has no name in `:field`, and `{Value}` is written below it. Name it if it is a field; write `#` in its `:field` cell if it is space for the sheet's author, which nothing reads.",
+  "primary.column-name-duplicated": "`{Entity}` has two columns named `{Column}`.",
+  "primary.column-type-missing": "Column `{Column}` of `{Entity}` has no type. Write one in its `:type` cell. A blank type cell is how a group's later members and an array's later elements say the first one already stated it - which this column is not.",
+  "primary.no-field-columns": "`{Entity}` has no column carrying a field. Every column is either unnamed or marked `#`.",
+
+  "primary.path-problem": "Column `{Column}` of `{Entity}` {Detail}",
+  "primary.element-number-not-integer": "Column `{Column}` of `{Entity}` is numbered `{Written}`, which is not a whole number.",
+  "primary.element-numbers-not-from-zero": "`{Entity}.{Group}` starts at element {First}. Element numbers count from zero and run without a gap, so the first column of a group is `[0]`.",
+  "primary.element-numbers-not-consecutive": "`{Entity}.{Group}` has element {Present} and not element {Missing}. Element numbers run without a gap - an array cannot be missing its middle.",
+  "primary.index-mark-on-array-column": "Column `{Column}` of `{Entity}` is marked `*`, and it holds an array. An index addresses one row by one value, which an array is not. If `*` was meant as a multi-row mark, this layout writes that with `[]` on the name and `*` is the secondary index.",
+  "primary.repeated-index-mark": "Column `{Column}` of `{Entity}` begins with more than one `*`. One marks a secondary index.",
+  "primary.index-mark-on-group-member": "Column `{Column}` of `{Entity}` is marked `*` and is a member of `{Group}`. An index addresses a row by a field of its own.",
+
+  "primary.multi-row-not-yet-supported": "Column `{Column}` of `{Entity}` is written `[]`, which puts a record's elements on the rows below it. This build does not read it yet. Write the elements as numbered columns - `{Example}` - or as a delimited cell.",
+  "primary.variant-not-yet-supported": "`{Entity}` has a `:variant` row. This build does not read it yet, so every column it names would be read as the field itself.",
+  "primary.column-meta-not-yet-supported": "Column `{Column}` of `{Entity}` is typed `{Written}`, and everything from the first `(` is meta this build does not read yet. Write the type on its own - `{Bare}`.",
+  "primary.key-meta-not-yet-supported": "`{Written}` sets `key`, which moves the primary index off the first column. This build does not read it yet, so the first field column is the primary index.",
+
+  "primary.enum-column-unknown": "Enum `{Entity}` has a column named `{Column}`, which this layout does not define. It takes: {Known}.",
+  "primary.enum-column-missing": "Enum `{Entity}` has no `{Column}` column, and needs one.",
+  "primary.enum-label-redefined": "Enum `{Entity}` has two labels named `{Label}`.",
+  "primary.enum-label-value-not-integer": "Label `{Label}` of enum `{Entity}` has the value `{Value}`, which is not a whole number.",
+  "primary.enum-cell-required": "A label of enum `{Entity}` leaves its `{Column}` cell blank. Both the name and the value of a label are required.",
+  "primary.enum-alias-duplicated": "Enum `{Entity}` has two labels aliased `{Alias}`. An alias is a fourth way to write a label in a data cell, so two labels sharing one would make that cell mean either.",
+
+  "primary.constant-column-unknown": "Constant set `{Entity}` has a column named `{Column}`, which this layout does not define. It takes: {Known}.",
+  "primary.constant-column-missing": "Constant set `{Entity}` has no `{Column}` column, and needs one.",
+  "primary.constant-redefined": "Constant set `{Entity}` has two constants named `{Name}`.",
+  "primary.constant-cannot-be-optional": "Constant `{Name}` of `{Entity}` is typed `{Type}`. A constant is one value written in one cell - there is no row for it to be absent from, so `?` has nothing to mean here.",
+  "primary.constant-cell-required": "Constant `{Name}` of `{Entity}` leaves its `{Column}` cell blank. The name, the type and the value of a constant are all required."
+}

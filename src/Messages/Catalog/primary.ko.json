@@ -1,0 +1,47 @@
+{
+  "primary.declaration-needs-name": "{Written:은} {Kind:를} 선언하면서 이름을 적지 않았습니다. 키워드 뒤에 이름을 적으십시오 — `:{Kind} Item`처럼.",
+  "primary.declaration-meta-unclosed": "{Written}에 여는 괄호만 있고 닫는 괄호가 없습니다. 선언의 괄호는 그 엔티티의 설정을 담습니다 — `:table Item(side=s)`처럼.",
+  "primary.declaration-meta-key-unknown": "{Written:이} 설정하는 {Key:는} {Kind} 선언이 받지 않는 키입니다. 받는 키는 {Known}입니다.",
+  "primary.declaration-meta-key-repeated": "{Written:이} {Key:를} 두 번 설정합니다. 하나만 적으십시오 — 그대로 두면 뒤의 값이 앞의 값을 조용히 대체합니다.",
+  "primary.declaration-meta-value-missing": "{Written:이} {Key:를} 값 없이 적었습니다. 값을 적으십시오 — `{Example}`처럼.",
+  "primary.entity-name-duplicated": "이름 {Name:이} 두 번 선언되었습니다 — 여기서는 {Kind}이고, 위에 이미 있습니다. 이름은 종류와 무관하게 엔티티 하나를 가리킵니다. 생성 코드에서 그 이름이 하나이기 때문입니다.",
+
+  "primary.marker-column-unknown": "{Entity}의 마커 열에 {Written:이} 적혀 있는데, 이 레이아웃이 정의하지 않는 값입니다. 마커 열이 담는 것은 선언(`:table` · `:enum` · `:const`), 헤더 행 키({Keys}), 그 행을 제외하는 `#`, 그리고 데이터 행의 빈 칸입니다.",
+  "primary.row-key-repeated": "{Entity}에 {Key} 행이 둘 있습니다. 그대로 두면 어느 쪽이 읽히는지가 두 행의 순서에 달리게 됩니다.",
+  "primary.row-key-below-data": "{Entity}의 {Key} 행이 데이터 행 아래에 있습니다. 헤더 행은 데이터보다 위에 있어야 합니다 — 헤더 행까지 선택 범위에 넣고 시트를 정렬하면 이렇게 됩니다.",
+  "primary.field-row-missing": "{Entity}에 `:field` 행이 없습니다. 컬럼이 무엇인지 말하는 것이 그 행뿐이므로, 생략할 수 없는 유일한 헤더 행입니다.",
+  "primary.type-row-missing": "테이블 {Entity}에 `:type` 행이 없습니다. 필드 컬럼은 모두 타입을 적습니다.",
+  "primary.type-row-not-on-entity": "{Entity:는} {Kind}인데 `:type` 행이 있습니다. {Kind}의 컬럼은 정해져 있고 `:field`에 이름으로 적히므로, 행이 적을 타입이 없습니다.",
+  "primary.row-key-not-on-entity": "{Entity:는} {Kind}인데 {Key} 행이 있고, {Kind:는} 그 행을 쓰지 않습니다. 받는 행 키는 {Keys}입니다.",
+
+  "primary.column-unnamed-with-data": "{Entity}의 {Column}열은 `:field`에 이름이 없는데, 그 아래에 {Value:가} 적혀 있습니다. 필드라면 이름을 적고, 시트 작성자의 공간이라면 `:field` 셀에 `#`을 적으십시오 — 그렇게 표시한 컬럼은 아무것도 읽지 않습니다.",
+  "primary.column-name-duplicated": "{Entity}에 {Column} 이름의 컬럼이 둘 있습니다.",
+  "primary.column-type-missing": "{Entity}의 컬럼 {Column}에 타입이 없습니다. `:type` 셀에 적으십시오. 타입 칸을 비우는 것은 그룹의 뒤 멤버와 배열의 뒤 원소가 「첫 자리에 이미 적혀 있다」고 말하는 방법이고, 이 컬럼은 그 자리가 아닙니다.",
+  "primary.no-field-columns": "{Entity}에 필드를 담는 컬럼이 없습니다. 모든 컬럼이 이름이 없거나 `#`으로 표시되어 있습니다.",
+
+  "primary.path-problem": "{Entity}의 컬럼 {Column} {Detail}",
+  "primary.element-number-not-integer": "{Entity}의 컬럼 {Column}의 원소 번호 {Written:은} 정수가 아닙니다.",
+  "primary.element-numbers-not-from-zero": "{Entity}.{Group:이} 원소 {First}번부터 시작합니다. 원소 번호는 0부터 시작해 빠짐없이 이어지므로, 그룹의 첫 컬럼은 `[0]`입니다.",
+  "primary.element-numbers-not-consecutive": "{Entity}.{Group}에 원소 {Present}번은 있고 {Missing}번은 없습니다. 원소 번호는 빠짐없이 이어집니다 — 배열의 가운데가 없을 수는 없습니다.",
+  "primary.index-mark-on-array-column": "{Entity}의 컬럼 {Column}에 `*`가 붙어 있고, 이 컬럼은 배열을 담습니다. 인덱스는 값 하나로 행 하나를 가리키는 것이므로 배열은 인덱스가 될 수 없습니다. `*`를 멀티 로우 표시로 적으셨다면, 이 레이아웃의 멀티 로우는 이름에 붙는 `[]`이고 `*`는 보조 인덱스입니다.",
+  "primary.repeated-index-mark": "{Entity}의 컬럼 {Column} 앞에 `*`가 둘 이상 있습니다. 보조 인덱스는 `*` 하나로 표시합니다.",
+  "primary.index-mark-on-group-member": "{Entity}의 컬럼 {Column}에 `*`가 붙어 있고, 이 컬럼은 {Group}의 멤버입니다. 인덱스는 행을 그 행 자신의 필드로 가리킵니다.",
+
+  "primary.multi-row-not-yet-supported": "{Entity}의 컬럼 {Column:이} `[]`로 적혀 있습니다 — 레코드의 원소를 아래 행들에서 받는 표기입니다. 이 빌드는 아직 읽지 않습니다. 원소를 번호 붙은 컬럼으로 적거나(`{Example}`), 셀 하나에 구분자로 적으십시오.",
+  "primary.variant-not-yet-supported": "{Entity}에 `:variant` 행이 있습니다. 이 빌드는 아직 읽지 않으므로, 그 행이 가리키는 컬럼이 모두 필드 자체로 읽힙니다.",
+  "primary.column-meta-not-yet-supported": "{Entity}의 컬럼 {Column:이} {Written} 타입인데, 첫 `(`부터는 이 빌드가 아직 읽지 않는 메타입니다. 타입만 적으십시오 — `{Bare}`처럼.",
+  "primary.key-meta-not-yet-supported": "{Written:이} `key`를 설정합니다 — 기본 인덱스를 첫 컬럼에서 옮기는 키입니다. 이 빌드는 아직 읽지 않으므로 첫 필드 컬럼이 기본 인덱스입니다.",
+
+  "primary.enum-column-unknown": "enum {Entity}에 {Column} 이름의 컬럼이 있는데, 이 레이아웃이 정의하지 않는 이름입니다. 받는 이름은 {Known}입니다.",
+  "primary.enum-column-missing": "enum {Entity}에 {Column} 컬럼이 없습니다. 필수 컬럼입니다.",
+  "primary.enum-label-redefined": "enum {Entity}에 {Label} 이름의 라벨이 둘 있습니다.",
+  "primary.enum-label-value-not-integer": "enum {Entity}의 라벨 {Label}의 값 {Value:는} 정수가 아닙니다.",
+  "primary.enum-cell-required": "enum {Entity}의 라벨 하나가 {Column} 칸을 비웠습니다. 라벨의 이름과 값은 둘 다 필수입니다.",
+  "primary.enum-alias-duplicated": "enum {Entity}에 {Alias} 별칭을 쓰는 라벨이 둘 있습니다. 별칭은 데이터 셀에 라벨을 적는 네 번째 표기이므로, 둘이 하나를 함께 쓰면 그 셀이 어느 쪽이든 될 수 있게 됩니다.",
+
+  "primary.constant-column-unknown": "상수셋 {Entity}에 {Column} 이름의 컬럼이 있는데, 이 레이아웃이 정의하지 않는 이름입니다. 받는 이름은 {Known}입니다.",
+  "primary.constant-column-missing": "상수셋 {Entity}에 {Column} 컬럼이 없습니다. 필수 컬럼입니다.",
+  "primary.constant-redefined": "상수셋 {Entity}에 {Name} 이름의 상수가 둘 있습니다.",
+  "primary.constant-cannot-be-optional": "{Entity}의 상수 {Name:이} {Type} 타입입니다. 상수는 셀 하나에 적는 값 하나이고 없을 수 있는 행이 없으므로, 여기서 `?`는 뜻할 것이 없습니다.",
+  "primary.constant-cell-required": "{Entity}의 상수 {Name:이} {Column} 칸을 비웠습니다. 상수의 이름과 타입과 값은 모두 필수입니다."
+}
