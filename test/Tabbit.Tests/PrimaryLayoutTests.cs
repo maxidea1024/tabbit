@@ -81,6 +81,23 @@ public class PrimaryLayoutTests
     private static TabbitException Refuses(params RawSheet[] sheets)
         => Assert.Throws<TabbitException>(() => Cook(sheets));
 
+    /// <summary>
+    /// Everything a refused conversion said, the collected reports included.
+    /// </summary>
+    /// <remarks>
+    /// The checks a layout runs while reading a cell throw where they stand, and the ones that
+    /// run over a finished column collect - so a whole sheet is reported rather than its first
+    /// mistake. The exception carries both, and a test asserting on wording has to read both.
+    /// </remarks>
+    private static string Reported(params RawSheet[] sheets)
+    {
+        var problem = Refuses(sheets);
+
+        return string.Join(
+            System.Environment.NewLine,
+            new[] { problem.Message }.Concat(problem.Details.Select(d => d.Message)));
+    }
+
     /// <summary>A three-column table, as the smallest thing worth reading.</summary>
     private static RawSheet ItemSheet() => Sheet(
         [":table Item", "an item"],
@@ -824,34 +841,155 @@ public class PrimaryLayoutTests
         Assert.Contains("Name", problem.Message);
     }
 
-    [Fact]
-    public void Bracket_meta_on_a_type_is_refused_by_name_until_it_is_read()
-    {
-        var problem = Refuses(Sheet(
-            [":table Item", "an item"],
-            [":field", "code", "name"],
-            [":type", "int", "string (text=Common)"],
-            ["", "1", "sword"]));
+    #endregion
 
-        Assert.Contains("string", problem.Message);
+
+    #region Bracket meta - section 4.2
+
+    [Fact]
+    public void Everything_from_the_first_bracket_is_meta()
+    {
+        var model = Cook(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "power", "name"],
+            [":type", "int", "int (min=0, max=100)", "string[] (size=1..8)"],
+            ["", "1", "50", "sword;bow"]));
+
+        var table = Assert.Single(model.Tables);
+
+        Assert.Equal(0, table.Fields[1].Constraints.Minimum);
+        Assert.Equal(100, table.Fields[1].Constraints.Maximum);
+        Assert.Equal(1, table.Fields[2].Constraints.MinimumLength);
+        Assert.Equal(8, table.Fields[2].Constraints.MaximumLength);
     }
 
     [Fact]
-    public void The_old_bracket_on_a_type_lands_on_the_meta_rule_rather_than_on_an_unknown_type()
+    public void A_flag_key_is_written_with_no_value()
     {
-        // `text(Common)` was the old spelling. The first `(` starts meta in this layout, so the
-        // report is about the meta rather than about a type nobody can find.
-        var problem = Refuses(Sheet(
+        var model = Cook(Sheet(
             [":table Item", "an item"],
             [":field", "code", "name"],
-            [":type", "int", "text(Common)"],
+            [":type", "int", "string (notDefault)"],
             ["", "1", "sword"]));
 
-        Assert.Contains("text", problem.Message);
+        Assert.True(Assert.Single(model.Tables).Fields[1].Constraints.NotDefault);
+    }
+
+    [Fact]
+    public void The_allowed_key_takes_a_semicolon_list()
+    {
+        var model = Cook(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "kind"],
+            [":type", "int", "string (allowed=weapon;armour)"],
+            ["", "1", "weapon"]));
+
+        var field = Assert.Single(model.Tables).Fields[1];
+
+        Assert.Equal(["weapon", "armour"], field.Constraints.AllowedValues!);
+    }
+
+    [Fact]
+    public void A_role_is_a_key_rather_than_a_type()
+    {
+        // The old notation put the role in the type name - `text(Common)`. Here the type is
+        // `string` and what is done with the value is a key beside it, which is the same
+        // spelling a declaration uses.
+        var model = Cook(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "label", "icon"],
+            [":type", "int", "string (text=Common, namespace=Shared)", "string (asset=icon)"],
+            ["", "1", "Sword", "icon_sword"]));
+
+        var table = Assert.Single(model.Tables);
+
+        Assert.Equal(StringRole.Text, table.Fields[1].Role);
+        Assert.Equal("Common", table.Fields[1].RoleGroup);
+        Assert.Equal("Shared", table.Fields[1].RoleNamespace);
+
+        Assert.Equal(StringRole.Asset, table.Fields[2].Role);
+        Assert.Equal("icon", table.Fields[2].RoleGroup);
+    }
+
+    [Fact]
+    public void The_text_key_is_also_a_flag()
+    {
+        var model = Cook(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "label"],
+            [":type", "int", "string (text)"],
+            ["", "1", "Sword"]));
+
+        var field = Assert.Single(model.Tables).Fields[1];
+
+        Assert.Equal(StringRole.Text, field.Role);
+        Assert.Null(field.RoleGroup);
+    }
+
+    [Fact]
+    public void An_unknown_meta_key_is_reported()
+    {
+        string reported = Reported(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "power"],
+            [":type", "int", "int (mim=0)"],
+            ["", "1", "50"]));
+
+        Assert.Contains("mim", reported);
+    }
+
+    [Fact]
+    public void The_old_bracket_on_a_type_lands_on_the_key_dictionary()
+    {
+        // `text(Common)` was the old spelling, and the first `(` starts meta here - so `Common`
+        // reads as a key nobody defined. Section 4.2 asks the report to name it, which is what
+        // sends the author to `(text=Common)`.
+        string reported = Reported(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "label"],
+            [":type", "int", "text(Common)"],
+            ["", "1", "Sword"]));
+
+        Assert.Contains("Common", reported);
+    }
+
+    [Fact]
+    public void A_bracket_that_never_closes_is_reported()
+    {
+        var problem = Refuses(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "power"],
+            [":type", "int", "int (min=0"],
+            ["", "1", "50"]));
+
+        Assert.Contains("min", problem.Message);
+    }
+
+    [Fact]
+    public void A_namespace_on_an_asset_is_reported()
+    {
+        string reported = Reported(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "icon"],
+            [":type", "int", "string (asset=icon, namespace=Shared)"],
+            ["", "1", "icon_sword"]));
+
+        Assert.Contains("namespace", reported);
+    }
+
+    [Fact]
+    public void A_role_on_a_column_that_is_not_a_string_is_reported()
+    {
+        string reported = Reported(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "power"],
+            [":type", "int", "int (text)"],
+            ["", "1", "50"]));
+
+        Assert.Contains("text", reported);
     }
 
     #endregion
-
 
     #region The declaration's brackets - section 3.4
 

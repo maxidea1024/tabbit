@@ -80,6 +80,9 @@ public static class PrimaryLayoutMessages
     /// <summary>An entity with no column that carries a field.</summary>
     public const string NoFieldColumns = "primary.no-field-columns";
 
+    /// <summary>A type cell whose bracket meta never closes.</summary>
+    public const string ColumnMetaUnclosed = "primary.column-meta-unclosed";
+
     #endregion
 
     #region Column paths
@@ -130,9 +133,6 @@ public static class PrimaryLayoutMessages
 
     /// <summary>A `:variant` row, which arrives with step 3'.</summary>
     public const string VariantNotYetSupported = "primary.variant-not-yet-supported";
-
-    /// <summary>Bracket meta on a type cell, which arrives with step 3.</summary>
-    public const string ColumnMetaNotYetSupported = "primary.column-meta-not-yet-supported";
 
     /// <summary>
     /// A `key` on a declaration, which moves the primary index off the first column.

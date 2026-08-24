@@ -394,6 +394,41 @@ public sealed class PrimaryLayoutParser : ILayoutParser
     }
 
     /// <summary>
+    /// Reads a type cell's brackets into the pairs the shared applier takes.
+    /// </summary>
+    /// <remarks>
+    /// **This layout defines no keys of its own.** The dictionary is the declaration notation's
+    /// - `SchemaMetadata` - so a key means the same thing wherever it is written, a typo is a
+    /// typo in both, and a key this build does not carry yet says so rather than being ignored.
+    /// Section 4.2 of the spec makes that the rule and this is the whole of keeping it.
+    ///
+    /// The splitting is the declaration's too: a comma separates entries, so a value holding one
+    /// is quoted.
+    /// </remarks>
+    private static Schema.SchemaMeta ReadColumnMeta(string inside, Location at)
+    {
+        var entries = new List<Schema.SchemaMetaEntry>();
+
+        foreach (string part in SplitMeta(inside))
+        {
+            int equals = part.IndexOf('=');
+            string key = (equals < 0 ? part : part.Substring(0, equals)).Trim();
+
+            if (key.Length == 0)
+                continue;
+
+            // A flag is a key with no value, which is how `(text)` and `(notDefault)` are
+            // written. Null rather than empty, because `(text=)` is a name somebody meant to
+            // write and left out - a different mistake, and the applier reports it as one.
+            string? value = equals < 0 ? null : Unquote(part.Substring(equals + 1).Trim());
+
+            entries.Add(new Schema.SchemaMetaEntry(key, value, at));
+        }
+
+        return new Schema.SchemaMeta(entries);
+    }
+
+    /// <summary>
     /// Splits `a=1, b="x,y"` on the commas that separate entries rather than on every comma.
     /// </summary>
     /// <remarks>
@@ -679,6 +714,9 @@ public sealed class PrimaryLayoutParser : ILayoutParser
 
         /// <summary>Whether the `:type` cell was blank, which is a statement of its own.</summary>
         public bool TypeWasBlank;
+
+        /// <summary>What the type cell wrote after the first `(`, or nothing.</summary>
+        public Schema.SchemaMeta Meta = Schema.SchemaMeta.Empty;
 
         /// <summary>
         /// Which level of the path was written `[]`, or null when none was.
@@ -1245,9 +1283,39 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         _context.RequiresIdentifier(name, header.NameCell.Location);
 
         ReadType(field, header, typeCell, block);
+        ApplyColumnMeta(table, block, field, header);
 
         table.Fields.Add(field);
         sources.Add(new FieldSource { Header = header, Element = element });
+    }
+
+    /// <summary>
+    /// Hands a column's brackets to the applier the declaration notation uses.
+    /// </summary>
+    /// <remarks>
+    /// **Both, where both said something.** A struct declaration says what is true of the type
+    /// wherever it is used and a column says what is true of that one column, so a value has to
+    /// satisfy each - and the applier narrows rather than replaces, which is why the sheet is
+    /// applied after the declaration has bound and can only tighten what it promised. DSL
+    /// section 6.3.
+    ///
+    /// The keys a group's later members leave out are the first member's, like the type - so a
+    /// column whose type cell was blank carries no brackets of its own and is left alone here.
+    /// </remarks>
+    private void ApplyColumnMeta(
+        Models.Table table, EntityBlock block, Field field, ColumnHeader header)
+    {
+        if (header.Meta.Entries.Count == 0)
+            return;
+
+        string where = $"{block.Name}.{field.Name}";
+
+        Schema.SchemaMetadata.CheckFieldKeys(header.Meta, where, block.Name, _context.Diagnostics);
+
+        Schema.SchemaMetadata.Apply(
+            table, field, header.Meta, where, field.TypeName,
+            typeIsArray: Models.ValueTypes.IsArray(field.Type),
+            _context.Diagnostics);
     }
 
     /// <summary>
@@ -1354,18 +1422,23 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         string written = (typeCell?.Value ?? "").Trim();
         var at = typeCell?.Location ?? header.NameCell.Location;
 
-        // Everything from the first `(` is meta - the one rule, section 4.2. The keys arrive
-        // with step 3; until then a cell that has any is refused rather than read as the type
-        // with its constraints quietly dropped.
+        // **Everything from the first `(` is meta** - the one rule, section 4.2. Split off here
+        // and applied once the type is resolved, because what a key may say depends on what the
+        // column turned out to hold.
         int open = written.IndexOf('(');
         if (open >= 0)
         {
-            string bare = written.Substring(0, open).Trim();
+            if (!written.EndsWith(")", StringComparison.Ordinal))
+            {
+                throw new TabbitException(at,
+                    Message.Of(PrimaryLayoutMessages.ColumnMetaUnclosed,
+                        ("Entity", block.Name), ("Column", field.Name), ("Written", written)));
+            }
 
-            throw new TabbitException(at,
-                Message.Of(PrimaryLayoutMessages.ColumnMetaNotYetSupported,
-                    ("Entity", block.Name), ("Column", field.Name),
-                    ("Written", written), ("Bare", bare)));
+            header.Meta = ReadColumnMeta(
+                written.Substring(open + 1, written.Length - open - 2), at);
+
+            written = written.Substring(0, open).Trim();
         }
 
         if (written.Length == 0)

@@ -40,6 +40,12 @@ internal static class SchemaMetadata
     private static readonly Dictionary<string, MetaKey> OnField = new(StringComparer.Ordinal)
     {
         ["text"] = MetaKey.Carried,
+
+        // The set a `text` column is gathered into is written here rather than as a second
+        // value on `text`, because the sheet's brackets write it as its own key and the two
+        // notations state one dictionary - spec/primary-layout.md section 4.2.
+        ["namespace"] = MetaKey.Carried,
+
         ["asset"] = MetaKey.Carried,
         ["min"] = MetaKey.Carried,
         ["max"] = MetaKey.Carried,
@@ -114,6 +120,18 @@ internal static class SchemaMetadata
         }
     }
 
+    /// <summary>
+    /// Reports the keys nothing reads on one column's brackets, wherever they were written.
+    /// </summary>
+    /// <remarks>
+    /// For a layout whose type cells carry the same brackets a declaration does. It checks
+    /// against the same dictionary, so a key this build carries in one notation is carried in
+    /// the other and a typo is a typo in both - `spec/primary-layout.md` section 4.2.
+    /// </remarks>
+    public static void CheckFieldKeys(
+        SchemaMeta meta, string where, string owner, Diagnostics diagnostics)
+        => Check(meta, OnField, where, owner, diagnostics);
+
     private static void Check(
         SchemaMeta meta,
         Dictionary<string, MetaKey> known,
@@ -148,47 +166,85 @@ internal static class SchemaMetadata
     /// </remarks>
     public static void Apply(
         Table table, Field field, SchemaField member, Diagnostics diagnostics)
+        => Apply(
+            table, field, member.Meta, member.Name, member.Type.ToString(),
+            member.Type.IsArray, diagnostics);
+
+    /// <summary>
+    /// The same, for a notation that wrote the brackets somewhere other than a declaration.
+    /// </summary>
+    /// <remarks>
+    /// **The keys are the notation's, not the declaration's.** A layout whose type cells carry
+    /// the same brackets reads them by handing the pairs here, so there is one dictionary of
+    /// keys, one meaning for each and one set of checks - rather than a second implementation
+    /// that agrees until it does not. `spec/primary-layout.md` section 4.2 makes that the rule.
+    /// </remarks>
+    public static void Apply(
+        Table table, Field field, SchemaMeta meta, string memberName, string typeName,
+        bool typeIsArray, Diagnostics diagnostics)
     {
-        ApplyRole(field, member, diagnostics);
-        ApplyBounds(field, member, diagnostics);
-        ApplyAllowedValues(table, field, member, diagnostics);
-        ApplyPattern(table, field, member, diagnostics);
-        ApplyLength(field, member, diagnostics);
+        ApplyRole(field, meta, memberName, typeName, diagnostics);
+        ApplyBounds(field, meta, memberName, diagnostics);
+        ApplyAllowedValues(table, field, meta, memberName, diagnostics);
+        ApplyPattern(table, field, meta, memberName, typeName, diagnostics);
+        ApplyLength(field, meta, memberName, typeName, typeIsArray, diagnostics);
 
         // A flag, so there is nothing to narrow: either side saying it makes it true.
-        if (member.Meta.Has("notDefault"))
+        if (meta.Has("notDefault"))
         {
             field.Constraints.NotDefault = true;
-            field.Constraints.NotDefaultLocation = member.Meta.LocationOf("notDefault");
+            field.Constraints.NotDefaultLocation = meta.LocationOf("notDefault");
         }
     }
 
     /// <summary>
     /// `text` and `asset`, which are what a string is for rather than what it is.
     /// </summary>
-    private static void ApplyRole(Field field, SchemaField member, Diagnostics diagnostics)
+    private static void ApplyRole(
+        Field field, SchemaMeta meta, string memberName, string typeName,
+        Diagnostics diagnostics)
     {
-        bool text = member.Meta.Has("text");
-        string? asset = member.Meta.Value("asset");
+        bool text = meta.Has("text");
+        string? asset = meta.Value("asset");
+        string? space = meta.Value("namespace");
 
         if (!text && asset is null)
+        {
+            // A namespace with nothing to qualify. Reported rather than dropped - a key that
+            // was written and is not read is what this class exists to catch.
+            if (space is not null)
+            {
+                diagnostics.Error(meta.LocationOf("namespace"), Message.Of(
+                    SchemaMessages.RoleSpaceWithoutText, ("Member", memberName)));
+            }
+
             return;
+        }
 
         if (field.Type is not (Models.ValueType.String or Models.ValueType.StringArray))
         {
-            diagnostics.Error(member.Meta.LocationOf(text ? "text" : "asset"), Message.Of(
+            diagnostics.Error(meta.LocationOf(text ? "text" : "asset"), Message.Of(
                 SchemaMessages.RoleNotAString,
                 ("Key", text ? "text" : "asset"),
-                ("Member", member.Name),
-                ("Type", member.Type.ToString())));
+                ("Member", memberName),
+                ("Type", typeName)));
 
             return;
         }
 
         if (text && asset is not null)
         {
-            diagnostics.Error(member.Meta.LocationOf("asset"), Message.Of(
-                SchemaMessages.RoleWrittenTwice, ("Member", member.Name)));
+            diagnostics.Error(meta.LocationOf("asset"), Message.Of(
+                SchemaMessages.RoleWrittenTwice, ("Member", memberName)));
+            return;
+        }
+
+        // The folders an asset is looked for in come from the recipe, keyed by the kind, so
+        // there is nothing for a namespace to qualify on that side.
+        if (space is not null && !text)
+        {
+            diagnostics.Error(meta.LocationOf("namespace"), Message.Of(
+                SchemaMessages.RoleSpaceNotText, ("Member", memberName)));
             return;
         }
 
@@ -200,6 +256,20 @@ internal static class SchemaMetadata
         if (text)
         {
             field.Role = StringRole.Text;
+
+            // **`text` carries a value as well as being a flag.** `(text)` gathers into the
+            // default set and `(text=Common)` names one, which is the same pair of readings the
+            // sheet's brackets have - spec/primary-layout.md section 4.2. Reading only the flag
+            // accepted `(text=Common)` and dropped the name, which is the shape of quiet loss
+            // this tool exists to prevent.
+            string? group = meta.Value("text");
+
+            if (group is { Length: > 0 })
+                field.RoleGroup = group;
+
+            if (space is { Length: > 0 })
+                field.RoleNamespace = space;
+
             return;
         }
 
@@ -214,26 +284,28 @@ internal static class SchemaMetadata
     /// <summary>
     /// `min` and `max`, kept as the tighter of the two wherever both were written.
     /// </summary>
-    private static void ApplyBounds(Field field, SchemaField member, Diagnostics diagnostics)
+    private static void ApplyBounds(
+        Field field, SchemaMeta meta, string memberName, Diagnostics diagnostics)
     {
-        if (Bound(member, "min", diagnostics) is { } minimum
+        if (Bound(meta, memberName, "min", diagnostics) is { } minimum
             && (field.Constraints.Minimum is null || minimum > field.Constraints.Minimum))
         {
             field.Constraints.Minimum = minimum;
-            field.Constraints.MinimumLocation = member.Meta.LocationOf("min");
+            field.Constraints.MinimumLocation = meta.LocationOf("min");
         }
 
-        if (Bound(member, "max", diagnostics) is { } maximum
+        if (Bound(meta, memberName, "max", diagnostics) is { } maximum
             && (field.Constraints.Maximum is null || maximum < field.Constraints.Maximum))
         {
             field.Constraints.Maximum = maximum;
-            field.Constraints.MaximumLocation = member.Meta.LocationOf("max");
+            field.Constraints.MaximumLocation = meta.LocationOf("max");
         }
     }
 
-    private static double? Bound(SchemaField member, string key, Diagnostics diagnostics)
+    private static double? Bound(
+        SchemaMeta meta, string memberName, string key, Diagnostics diagnostics)
     {
-        string? written = member.Meta.Value(key);
+        string? written = meta.Value(key);
 
         if (written is null)
             return null;
@@ -242,9 +314,9 @@ internal static class SchemaMetadata
                 written, NumberStyles.Float, CultureInfo.InvariantCulture, out double bound))
             return bound;
 
-        diagnostics.Error(member.Meta.LocationOf(key), Message.Of(
+        diagnostics.Error(meta.LocationOf(key), Message.Of(
             SchemaMessages.BoundNotANumber,
-            ("Key", key), ("Member", member.Name), ("Written", written)));
+            ("Key", key), ("Member", memberName), ("Written", written)));
 
         return null;
     }
@@ -260,9 +332,10 @@ internal static class SchemaMetadata
     /// than resolved - which of them applies is not something this can decide.
     /// </remarks>
     private static void ApplyPattern(
-        Table table, Field field, SchemaField member, Diagnostics diagnostics)
+        Table table, Field field, SchemaMeta meta, string memberName, string typeName,
+        Diagnostics diagnostics)
     {
-        string? pattern = member.Meta.Value("regex");
+        string? pattern = meta.Value("regex");
 
         if (pattern is null)
             return;
@@ -272,9 +345,9 @@ internal static class SchemaMetadata
         // rather than skipped: a check that silently does nothing is worse than none.
         if (field.Type is not (Models.ValueType.String or Models.ValueType.StringArray))
         {
-            diagnostics.Error(member.Meta.LocationOf("regex"), Message.Of(
+            diagnostics.Error(meta.LocationOf("regex"), Message.Of(
                 SchemaMessages.PatternNotAString,
-                ("Member", member.Name), ("Type", member.Type.ToString())));
+                ("Member", memberName), ("Type", typeName)));
 
             return;
         }
@@ -285,7 +358,7 @@ internal static class SchemaMetadata
                 SchemaMessages.PatternWrittenTwice,
                 ("Table", table.Name),
                 ("Column", field.RawName),
-                ("Member", member.Name),
+                ("Member", memberName),
                 ("Sheet", already),
                 ("Declared", pattern)));
 
@@ -293,7 +366,7 @@ internal static class SchemaMetadata
         }
 
         field.Constraints.Pattern = pattern;
-        field.Constraints.PatternLocation = member.Meta.LocationOf("regex");
+        field.Constraints.PatternLocation = meta.LocationOf("regex");
     }
 
     /// <summary>
@@ -306,20 +379,22 @@ internal static class SchemaMetadata
     /// format entirely, so no notation declares a length any more and this is the only thing
     /// the word can mean.
     /// </remarks>
-    private static void ApplyLength(Field field, SchemaField member, Diagnostics diagnostics)
+    private static void ApplyLength(
+        Field field, SchemaMeta meta, string memberName, string typeName, bool typeIsArray,
+        Diagnostics diagnostics)
     {
-        string? written = member.Meta.Value("size");
+        string? written = meta.Value("size");
 
         if (written is null)
             return;
 
         // A length is how many elements a cell holds, and a scalar holds one by being
         // one. Refused for the reason a pattern on a number is.
-        if (!member.Type.IsArray)
+        if (!typeIsArray)
         {
-            diagnostics.Error(member.Meta.LocationOf("size"), Message.Of(
+            diagnostics.Error(meta.LocationOf("size"), Message.Of(
                 SchemaMessages.SizeNotAnArray,
-                ("Member", member.Name), ("Type", member.Type.ToString())));
+                ("Member", memberName), ("Type", typeName)));
 
             return;
         }
@@ -331,7 +406,7 @@ internal static class SchemaMetadata
 
         if (dots < 0)
         {
-            least = Count(member, written, diagnostics);
+            least = Count(meta, memberName, written, diagnostics);
             most = least;
         }
         else
@@ -339,8 +414,8 @@ internal static class SchemaMetadata
             string low = written[..dots];
             string high = written[(dots + 2)..];
 
-            least = low.Length > 0 ? Count(member, low, diagnostics) : null;
-            most = high.Length > 0 ? Count(member, high, diagnostics) : null;
+            least = low.Length > 0 ? Count(meta, memberName, low, diagnostics) : null;
+            most = high.Length > 0 ? Count(meta, memberName, high, diagnostics) : null;
         }
 
         if (least is int floor
@@ -355,17 +430,18 @@ internal static class SchemaMetadata
             field.Constraints.MaximumLength = ceiling;
         }
 
-        field.Constraints.LengthLocation = member.Meta.LocationOf("size");
+        field.Constraints.LengthLocation = meta.LocationOf("size");
     }
 
-    private static int? Count(SchemaField member, string written, Diagnostics diagnostics)
+    private static int? Count(
+        SchemaMeta meta, string memberName, string written, Diagnostics diagnostics)
     {
         if (int.TryParse(
                 written, NumberStyles.None, CultureInfo.InvariantCulture, out int count))
             return count;
 
-        diagnostics.Error(member.Meta.LocationOf("size"), Message.Of(
-            SchemaMessages.SizeNotACount, ("Member", member.Name), ("Written", written)));
+        diagnostics.Error(meta.LocationOf("size"), Message.Of(
+            SchemaMessages.SizeNotACount, ("Member", memberName), ("Written", written)));
 
         return null;
     }
@@ -379,9 +455,10 @@ internal static class SchemaMetadata
     /// two lists that cannot both be met.
     /// </remarks>
     private static void ApplyAllowedValues(
-        Table table, Field field, SchemaField member, Diagnostics diagnostics)
+        Table table, Field field, SchemaMeta meta, string memberName,
+        Diagnostics diagnostics)
     {
-        string? written = member.Meta.Value("allowed");
+        string? written = meta.Value("allowed");
 
         if (written is null)
             return;
@@ -394,15 +471,15 @@ internal static class SchemaMetadata
 
         if (declared.Count == 0)
         {
-            diagnostics.Error(member.Meta.LocationOf("allowed"), Message.Of(
-                SchemaMessages.AllowedEmpty, ("Member", member.Name)));
+            diagnostics.Error(meta.LocationOf("allowed"), Message.Of(
+                SchemaMessages.AllowedEmpty, ("Member", memberName)));
             return;
         }
 
         if (field.Constraints.AllowedValues is not { Count: > 0 } already)
         {
             field.Constraints.AllowedValues = declared;
-            field.Constraints.AllowedValuesLocation = member.Meta.LocationOf("allowed");
+            field.Constraints.AllowedValuesLocation = meta.LocationOf("allowed");
             return;
         }
 
@@ -414,7 +491,7 @@ internal static class SchemaMetadata
                 SchemaMessages.AllowedIntersectionEmpty,
                 ("Table", table.Name),
                 ("Column", field.RawName),
-                ("Member", member.Name),
+                ("Member", memberName),
                 ("Sheet", string.Join(";", already)),
                 ("Declared", written)));
 

@@ -51,6 +51,8 @@
   "schema.meta-refs-is-foreign": "`{Key}` on `{Where}` says what `foreign` already says here. This tool resolves a named table rather than only checking against it, so the two would be one thing with two spellings - write `foreign` and the tables.",
   "schema.role-not-a-string": "`{Key}` on `{Member}` says what a string is for, and the member is declared `{Type}`.",
   "schema.role-written-twice": "`{Member}` is marked both `text` and `asset`. A string has one thing it is for.",
+  "schema.role-space-without-text": "`{Member}` names a `namespace` and is neither `text` nor `asset`. A namespace qualifies the set a `text` column is gathered into, so there is nothing here for it to qualify.",
+  "schema.role-space-not-text": "`{Member}` names a `namespace` and is an `asset`. A namespace is a `text` thing - the folders an asset is looked for in come from the recipe, keyed by the kind.",
   "schema.bound-not-a-number": "`{Key}` on `{Member}` is `{Written}`, and a bound is a number.",
   "schema.allowed-empty": "`allowed` on `{Member}` lists no values. Write them separated by `;`, or drop the key.",
   "schema.allowed-intersection-empty": "`{Table}.{Column}` allows `{Sheet}` and `{Member}` is declared to allow `{Declared}`, and the two have nothing in common. A value must satisfy both, so this column can hold nothing at all.",
