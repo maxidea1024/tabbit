@@ -99,23 +99,23 @@ class Tables {
   /// this resolves the load being read rather than the one already published.
   void _solveCrossReferences(PieceTable piece, KitTable kit, BitTable bit, TrimKitTable trimKit) {
     for (final record in kit.records) {
-      for (var i = 0; i < record.slotArrayIndex.length; i++) {
-        final target = piece.findByIndex(record.slotArrayIndex[i]);
-        if (target != null) record.slotArray[i] = target;
+      for (var i = 0; i < record.slotIndex.length; i++) {
+        final target = piece.findByIndex(record.slotIndex[i]);
+        if (target != null) record.slot[i] = target;
       }
-      for (var i = 0; i < record.tierArrayIndex.length; i++) {
-        final target = piece.findByIndex(record.tierArrayIndex[i]);
-        if (target != null) record.tierArray[i] = target.tier;
+      for (var i = 0; i < record.tierIndex.length; i++) {
+        final target = piece.findByIndex(record.tierIndex[i]);
+        if (target != null) record.tier[i] = target.tier;
       }
     }
     for (final record in trimKit.records) {
-      for (var i = 0; i < record.slotArrayIndex.length; i++) {
-        final target = bit.findByIndex(record.slotArrayIndex[i]);
-        if (target != null) record.slotArray[i] = target;
+      for (var i = 0; i < record.slotIndex.length; i++) {
+        final target = bit.findByIndex(record.slotIndex[i]);
+        if (target != null) record.slot[i] = target;
       }
-      for (var i = 0; i < record.tierArrayIndex.length; i++) {
-        final target = bit.findByIndex(record.tierArrayIndex[i]);
-        if (target != null) record.tierArray[i] = target.tier;
+      for (var i = 0; i < record.tierIndex.length; i++) {
+        final target = bit.findByIndex(record.tierIndex[i]);
+        if (target != null) record.tier[i] = target.tier;
       }
     }
   }

@@ -41,11 +41,11 @@ class KitRecord {
     /** primary index */
     var index: Int = 0
     /** element 1 - the row it points at */
-    var slotArray: MutableList<PieceRecord> = ArrayList()
-    var slotArrayIndex: MutableList<Int> = ArrayList()
+    var slot: MutableList<PieceRecord> = ArrayList()
+    var slotIndex: MutableList<Int> = ArrayList()
     /** element 1 - the target's own value */
-    var tierArray: MutableList<Int> = ArrayList()
-    var tierArrayIndex: MutableList<Int> = ArrayList()
+    var tier: MutableList<Int> = ArrayList()
+    var tierIndex: MutableList<Int> = ArrayList()
 
 }
 
@@ -129,21 +129,21 @@ class KitTable {
                     }
                 }
                 2 -> {
-                    checkColumn(column, "Kit.Slot_array", KIND_ARRAY, false, ELEMENT_I32)
-                    val cursor = ColumnCursor(reader, column, count, "Kit.Slot_array")
+                    checkColumn(column, "Kit.Slot", KIND_ARRAY, false, ELEMENT_I32)
+                    val cursor = ColumnCursor(reader, column, count, "Kit.Slot")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.slotArrayIndex = ArrayList(elementCount.coerceAtLeast(0))
-                        repeat(elementCount) { record.slotArrayIndex.add(cursor.nextI32()) }
+                        record.slotIndex = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.slotIndex.add(cursor.nextI32()) }
                     }
                 }
                 3 -> {
-                    checkColumn(column, "Kit.Tier_array", KIND_ARRAY, false, ELEMENT_I32)
-                    val cursor = ColumnCursor(reader, column, count, "Kit.Tier_array")
+                    checkColumn(column, "Kit.Tier", KIND_ARRAY, false, ELEMENT_I32)
+                    val cursor = ColumnCursor(reader, column, count, "Kit.Tier")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.tierArrayIndex = ArrayList(elementCount.coerceAtLeast(0))
-                        repeat(elementCount) { record.tierArrayIndex.add(cursor.nextI32()) }
+                        record.tierIndex = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.tierIndex.add(cursor.nextI32()) }
                     }
                 }
                 else ->

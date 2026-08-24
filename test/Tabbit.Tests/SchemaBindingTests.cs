@@ -149,7 +149,7 @@ public class SchemaBindingTests
 
         // Every element of the member, not the first: they are separate cells and each is
         // somebody's to fix.
-        Assert.Contains("`Loadout.Slot[2].Count` is typed `int`", result.StdOut);
+        Assert.Contains("`Loadout.Slot[1].Count` is typed `int`", result.StdOut);
 
         // A column the struct has no member for.
         Assert.Contains(

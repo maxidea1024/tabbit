@@ -12,20 +12,20 @@ local tcb = require(_root .. "tabbit.tcb_reader")
 -- Numbered reference columns, folded into arrays.
 ---@class KitRecord
 ---@field index integer
----@field slotArray PieceRecord[]
----@field slotArrayIndex integer[]
----@field tierArray PieceRecord[]
----@field tierArrayIndex integer[]
-local KitRecordMeta = tcb.strictType("a `Kit` row", { "index", "slotArray", "slotArrayIndex", "tierArray", "tierArrayIndex" })
+---@field slot PieceRecord[]
+---@field slotIndex integer[]
+---@field tier PieceRecord[]
+---@field tierIndex integer[]
+local KitRecordMeta = tcb.strictType("a `Kit` row", { "index", "slot", "slotIndex", "tier", "tierIndex" })
 
 ---@return KitRecord
 local function newKitRecord()
   return setmetatable({
     index = 0,
-    slotArray = {},
-    slotArrayIndex = {},
-    tierArray = {},
-    tierArrayIndex = {},
+    slot = {},
+    slotIndex = {},
+    tier = {},
+    tierIndex = {},
   }, KitRecordMeta)
 end
 
@@ -109,8 +109,8 @@ function KitTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 2 then
-      tcb.checkColumn(column, "Kit.Slot_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 })
-      local cursor = tcb.newCursor(reader, column, count, "Kit.Slot_array")
+      tcb.checkColumn(column, "Kit.Slot", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 })
+      local cursor = tcb.newCursor(reader, column, count, "Kit.Slot")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
@@ -120,12 +120,12 @@ function KitTable:readBytes(data)
           values[element] = cursor:nextI32()
         end
 
-        record.slotArrayIndex = values
-        record.slotArray = {}
+        record.slotIndex = values
+        record.slot = {}
       end
     elseif column.tag == 3 then
-      tcb.checkColumn(column, "Kit.Tier_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 })
-      local cursor = tcb.newCursor(reader, column, count, "Kit.Tier_array")
+      tcb.checkColumn(column, "Kit.Tier", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 })
+      local cursor = tcb.newCursor(reader, column, count, "Kit.Tier")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
@@ -135,8 +135,8 @@ function KitTable:readBytes(data)
           values[element] = cursor:nextI32()
         end
 
-        record.tierArrayIndex = values
-        record.tierArray = {}
+        record.tierIndex = values
+        record.tier = {}
       end
     else
       -- A column added after this code was generated.

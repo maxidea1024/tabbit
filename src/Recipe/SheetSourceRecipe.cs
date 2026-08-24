@@ -196,25 +196,6 @@ public abstract class SheetSourceRecipe
     public string TableRowSets { get; set; } = "";
 
     /// <summary>
-    /// Whether consecutively numbered columns fold into one array-valued field.
-    /// </summary>
-    /// <remarks>
-    /// Off unless asked for, because whether a number in a column name means an array is a
-    /// question about intent that a name cannot answer. `Text1` and `Text2` usually do mean
-    /// one array of two. `Condition_1`, `Condition_2` and `Condition_3` of one real workbook
-    /// are three different enums, and folding them is not a nicer API but a wrong one.
-    ///
-    /// Being wrong here is quiet, which is the reason for the default. A folded group takes a
-    /// name the sheet never used - `Text_array` - and three fields become one, so a consumer
-    /// reads an array where the author wrote three separate things.
-    ///
-    /// Only a layout that has the convention reads this. A layout for sheets written to
-    /// somebody else's rules has no numbering convention to honour, so the setting does not
-    /// apply to it at all rather than defaulting to false there.
-    /// </remarks>
-    public bool FoldSerialFields { get; set; }
-
-    /// <summary>
     /// Whether an array drops the elements at its end that a row left empty, so its length is
     /// what that row filled in rather than the number of columns.
     /// </summary>

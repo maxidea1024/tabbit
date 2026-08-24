@@ -49,7 +49,7 @@ assert(rows[1].pos.x == 1.5 and rows[1].pos.y == -2.5)
 assert(rows[1].slot[1].id == 10 and rows[1].slot[1].label == 'sword')
 assert(rows[1].slot[2].id == 11 and rows[1].slot[2].label == 'shield')
 assert(rows[3].slot[1].label == '')
-assert(eq(rows[1].tagArray, {'a', 'b'}))
+assert(eq(rows[1].tag, {'a', 'b'}))
 ");
 
     /// <summary>
@@ -85,7 +85,7 @@ assert(eq(rows[1].skill.step, {10, 11}))
 assert(eq(rows[1].skill.order, {'a', 'b'}))
 assert(eq(rows[2].skill.step, {20, 21}))
 assert(rows[1].pos.x == 1.5)
-assert(eq(rows[1].tagArray, {'t1', 't2'}))
+assert(eq(rows[1].tag, {'t1', 't2'}))
 assert(eq(rows[1].grid[1], {1, 2, 3}) and eq(rows[1].grid[2], {4, 5, 6}))
 assert(eq(rows[2].grid[1], {7, 8, 9}) and eq(rows[2].grid[2], {10, 11, 12}))
 ");
@@ -176,13 +176,13 @@ assert(t.kit.records[2].part[1].itemId.name == 'shield')
 local t = require('tables').new()
 t:readAll(arg[1])
 local rows = t.kit.records
-for i = 1, 3 do assert(#rows[i].slotArrayIndex == 2) end
-assert(rows[1].slotArray[1].name == 'sword')
-assert(rows[1].slotArray[2].name == 'shield')
-assert(rows[2].slotArray[1].name == 'ring')
-assert(rows[3].slotArray[2] == nil)
-assert(rows[1].tierArray[1] == 3 and rows[1].tierArray[2] == 5)
-assert(rows[3].tierArray[2] == nil)
+for i = 1, 3 do assert(#rows[i].slotIndex == 2) end
+assert(rows[1].slot[1].name == 'sword')
+assert(rows[1].slot[2].name == 'shield')
+assert(rows[2].slot[1].name == 'ring')
+assert(rows[3].slot[2] == nil)
+assert(rows[1].tier[1] == 3 and rows[1].tier[2] == 5)
+assert(rows[3].tier[2] == nil)
 ");
 
     /// <summary>

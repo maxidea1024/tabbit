@@ -165,7 +165,7 @@ public class KnownBugTests
 
         string json = OutputFile("core", "json-named", "Localization.json");
 
-        Assert.Contains("\"textEnArray\"", json);
+        Assert.Contains("\"textEn\"", json);
         Assert.Contains("\"Hello\"", json);
         Assert.Contains("\"Hi\"", json);
         // The Korean columns used to vanish entirely.
@@ -188,8 +188,8 @@ public class KnownBugTests
 
         string ts = OutputFile("core", "typescript", "tables", "localization.ts");
 
-        Assert.Contains("this._textEnArray = dataRow.slice(offset, offset + 2)", ts);
-        Assert.Contains("this._textKoArray = dataRow.slice(offset, offset + 2)", ts);
+        Assert.Contains("this._textEn = dataRow.slice(offset, offset + 2)", ts);
+        Assert.Contains("this._textKo = dataRow.slice(offset, offset + 2)", ts);
     }
 
     /// <summary>

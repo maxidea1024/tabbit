@@ -17,19 +17,19 @@ class TrimKitRecord:
     Numbered reference columns folded into an array the row's length.
     """
 
-    __slots__ = ("index", "slot_array", "slot_array_index", "has_slot_array_at", "tier_array", "tier_array_index", "has_tier_array_at")
+    __slots__ = ("index", "slot", "slot_index", "has_slot_at", "tier", "tier_index", "has_tier_at")
 
     def __init__(self):
         self.index = 0
-        self.slot_array = []
-        self.slot_array_index = []
-        self.has_slot_array_at = []
-        self.tier_array = []
-        self.tier_array_index = []
-        self.has_tier_array_at = []
+        self.slot = []
+        self.slot_index = []
+        self.has_slot_at = []
+        self.tier = []
+        self.tier_index = []
+        self.has_tier_at = []
 
     def __repr__(self):
-        return "TrimKitRecord(index=%r, slot_array=%r, tier_array=%r)" % (self.index, self.slot_array, self.tier_array)
+        return "TrimKitRecord(index=%r, slot=%r, tier=%r)" % (self.index, self.slot, self.tier)
 
 
 class TrimKitTable:
@@ -105,34 +105,34 @@ class TrimKitTable:
                         records[i].index = value
                     at += n
             elif column.tag == 2:
-                tabbit.check_column(column, "TrimKit.Slot_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,), True)
+                tabbit.check_column(column, "TrimKit.Slot", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
                 # spec/nullable-array-elements.md.
                 element_presence = tabbit.read_element_presence(reader, column)
                 element_at = 0
-                cursor = tabbit.ColumnCursor(reader, column, count, "TrimKit.Slot_array")
+                cursor = tabbit.ColumnCursor(reader, column, count, "TrimKit.Slot")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.slot_array_index = [cursor.next_i32() for _ in range(element_count)]
-                    record.slot_array = [None] * element_count
-                    record.has_slot_array_at = [
+                    record.slot_index = [cursor.next_i32() for _ in range(element_count)]
+                    record.slot = [None] * element_count
+                    record.has_slot_at = [
                         tabbit.is_present(element_presence, element_at + at)
                         for at in range(element_count)]
                     element_at += element_count
             elif column.tag == 3:
-                tabbit.check_column(column, "TrimKit.Tier_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,), True)
+                tabbit.check_column(column, "TrimKit.Tier", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
                 # spec/nullable-array-elements.md.
                 element_presence = tabbit.read_element_presence(reader, column)
                 element_at = 0
-                cursor = tabbit.ColumnCursor(reader, column, count, "TrimKit.Tier_array")
+                cursor = tabbit.ColumnCursor(reader, column, count, "TrimKit.Tier")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.tier_array_index = [cursor.next_i32() for _ in range(element_count)]
-                    record.tier_array = [None] * element_count
-                    record.has_tier_array_at = [
+                    record.tier_index = [cursor.next_i32() for _ in range(element_count)]
+                    record.tier = [None] * element_count
+                    record.has_tier_at = [
                         tabbit.is_present(element_presence, element_at + at)
                         for at in range(element_count)]
                     element_at += element_count

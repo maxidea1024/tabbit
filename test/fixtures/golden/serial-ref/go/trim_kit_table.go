@@ -19,17 +19,17 @@ type TrimKitRecord struct {
 	// primary index
 	Index int32
 	// element 1 - the row it points at
-	SlotArray []*BitRecord
-	SlotArrayIndex []int32
-	// Which of SlotArray's elements have a value. Empty where the file did not carry
+	Slot []*BitRecord
+	SlotIndex []int32
+	// Which of Slot's elements have a value. Empty where the file did not carry
 	// the column, and then every index is out of range anyway.
-	HasSlotArrayAt []bool
+	HasSlotAt []bool
 	// element 1 - the target's own value
-	TierArray []int32
-	TierArrayIndex []int32
-	// Which of TierArray's elements have a value. Empty where the file did not carry
+	Tier []int32
+	TierIndex []int32
+	// Which of Tier's elements have a value. Empty where the file did not carry
 	// the column, and then every index is out of range anyway.
-	HasTierArrayAt []bool
+	HasTierAt []bool
 }
 
 // TrimKitTable holds every row of TrimKit.
@@ -123,44 +123,44 @@ func (t *TrimKitTable) Read(filename string) error {
 				}
 			}
 		case 2:
-			if tabbit.CheckColumnWithElements(reader, column, "TrimKit.Slot_array", tabbit.KindArray, false, tabbit.ElementI32) {
+			if tabbit.CheckColumnWithElements(reader, column, "TrimKit.Slot", tabbit.KindArray, false, tabbit.ElementI32) {
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
 				// spec/nullable-array-elements.md.
 				elementPresence := tabbit.ReadElementPresence(reader, column)
 				elementAt := int32(0)
-				cursor := tabbit.NewColumnCursor(reader, column, count, "TrimKit.Slot_array")
+				cursor := tabbit.NewColumnCursor(reader, column, count, "TrimKit.Slot")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.SlotArray = make([]*BitRecord, elementCount)
-					r.SlotArrayIndex = make([]int32, elementCount)
-					r.HasSlotArrayAt = make([]bool, elementCount)
+					r.Slot = make([]*BitRecord, elementCount)
+					r.SlotIndex = make([]int32, elementCount)
+					r.HasSlotAt = make([]bool, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.SlotArrayIndex[j] = cursor.NextI32()
-						r.HasSlotArrayAt[j] =
+						r.SlotIndex[j] = cursor.NextI32()
+						r.HasSlotAt[j] =
 							tabbit.IsPresent(elementPresence, elementAt)
 						elementAt++
 					}
 				}
 			}
 		case 3:
-			if tabbit.CheckColumnWithElements(reader, column, "TrimKit.Tier_array", tabbit.KindArray, false, tabbit.ElementI32) {
+			if tabbit.CheckColumnWithElements(reader, column, "TrimKit.Tier", tabbit.KindArray, false, tabbit.ElementI32) {
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
 				// spec/nullable-array-elements.md.
 				elementPresence := tabbit.ReadElementPresence(reader, column)
 				elementAt := int32(0)
-				cursor := tabbit.NewColumnCursor(reader, column, count, "TrimKit.Tier_array")
+				cursor := tabbit.NewColumnCursor(reader, column, count, "TrimKit.Tier")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.TierArray = make([]int32, elementCount)
-					r.TierArrayIndex = make([]int32, elementCount)
-					r.HasTierArrayAt = make([]bool, elementCount)
+					r.Tier = make([]int32, elementCount)
+					r.TierIndex = make([]int32, elementCount)
+					r.HasTierAt = make([]bool, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.TierArrayIndex[j] = cursor.NextI32()
-						r.HasTierArrayAt[j] =
+						r.TierIndex[j] = cursor.NextI32()
+						r.HasTierAt[j] =
 							tabbit.IsPresent(elementPresence, elementAt)
 						elementAt++
 					}

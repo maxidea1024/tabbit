@@ -17,10 +17,10 @@ public final class FoldedRecord {
     public var index: Int32 = 0
 
     /// element 1 - and the group's answer
-    public var tagArray: [String] = []
-    /// Which of tagArray's elements have a value. Empty where the file did not carry
+    public var tag: [String] = []
+    /// Which of tag's elements have a value. Empty where the file did not carry
     /// the column, and then every index is out of range anyway.
-    public var hasTagArrayAt: [Bool] = []
+    public var hasTagAt: [Bool] = []
 }
 
 /// Every row of Folded.
@@ -119,23 +119,23 @@ public final class FoldedTable {
                     }
                 }
             case 2:
-                try Tcb.checkColumnWithElements(column, "Folded.Tag_array", Tcb.kindArray, false, Tcb.elementString)
+                try Tcb.checkColumnWithElements(column, "Folded.Tag", Tcb.kindArray, false, Tcb.elementString)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
                 // spec/nullable-array-elements.md.
                 let elementPresence = try Tcb.readElementPresence(reader, column)
                 var elementAt = 0
-                let cursor = try Tcb.ColumnCursor(reader, column, count, "Folded.Tag_array")
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Folded.Tag")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.tagArray = []
-                    record.tagArray.reserveCapacity(elementCount)
-                    record.hasTagArrayAt = []
-                    record.hasTagArrayAt.reserveCapacity(elementCount)
+                    record.tag = []
+                    record.tag.reserveCapacity(elementCount)
+                    record.hasTagAt = []
+                    record.hasTagAt.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.tagArray.append(try cursor.nextString())
-                        record.hasTagArrayAt.append(
+                        record.tag.append(try cursor.nextString())
+                        record.hasTagAt.append(
                             Tcb.isPresent(elementPresence, elementAt))
                         elementAt += 1
                     }

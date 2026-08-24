@@ -14,11 +14,7 @@
   "Sources": {
     "Xlsx": [
       {
-        "Path": "test/fixtures/xlsx/serial-ref",
-
-        // The whole point: without this the columns are five separate fields and there is no
-        // array to get wrong.
-        "FoldSerialFields": true
+        "Path": "test/fixtures/xlsx/serial-ref"
       },
 
       // The same shape with the length trimmed to each row's. A second entry rather than a
@@ -29,7 +25,6 @@
       // how this combination arrived and where it crashed.
       {
         "Path": "test/fixtures/xlsx/serial-ref-trim",
-        "FoldSerialFields": true,
         "TrimTrailingArrayElements": true
       }
     ],

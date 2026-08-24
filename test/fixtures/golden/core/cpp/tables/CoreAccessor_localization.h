@@ -29,9 +29,9 @@ struct LocalizationRecord {
   /// lookup key
   std::string key;
   /// english text 1
-  std::vector<std::string> text_en_array;
+  std::vector<std::string> text_en;
   /// korean text 1
-  std::vector<std::string> text_ko_array;
+  std::vector<std::string> text_ko;
 };
 
 /// Trailing-number columns collapse into arrays.
@@ -128,27 +128,27 @@ class LocalizationTable {
           break;
         }
         case 3: {
-          tabbit::check_column(column, "Localization.TextEn_array", tabbit::kKindArray, false, {tabbit::kElementString});
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Localization.TextEn_array");
+          tabbit::check_column(column, "Localization.TextEn", tabbit::kKindArray, false, {tabbit::kElementString});
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Localization.TextEn");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.text_en_array.resize(static_cast<std::size_t>(element_count));
+            record.text_en.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.text_en_array[static_cast<std::size_t>(j)] = cursor.next_string();
+              record.text_en[static_cast<std::size_t>(j)] = cursor.next_string();
             }
           }
           break;
         }
         case 4: {
-          tabbit::check_column(column, "Localization.TextKo_array", tabbit::kKindArray, false, {tabbit::kElementString});
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Localization.TextKo_array");
+          tabbit::check_column(column, "Localization.TextKo", tabbit::kKindArray, false, {tabbit::kElementString});
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Localization.TextKo");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.text_ko_array.resize(static_cast<std::size_t>(element_count));
+            record.text_ko.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.text_ko_array[static_cast<std::size_t>(j)] = cursor.next_string();
+              record.text_ko[static_cast<std::size_t>(j)] = cursor.next_string();
             }
           }
           break;

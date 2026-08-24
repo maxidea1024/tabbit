@@ -2,11 +2,11 @@
   {
     "index": 1,
     "key": "greeting",
-    "textEnArray": [
+    "textEn": [
       "Hello",
       "Hi"
     ],
-    "textKoArray": [
+    "textKo": [
       "안녕하세요",
       "안녕"
     ]
@@ -14,11 +14,11 @@
   {
     "index": 2,
     "key": "farewell",
-    "textEnArray": [
+    "textEn": [
       "Goodbye",
       "Bye"
     ],
-    "textKoArray": [
+    "textKo": [
       "안녕히가세요",
       "잘가"
     ]

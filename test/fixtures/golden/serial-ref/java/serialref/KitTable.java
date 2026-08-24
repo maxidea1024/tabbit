@@ -107,29 +107,29 @@ public final class KitTable {
                     break;
                 }
                 case 2: {
-                    TcbReader.checkColumn(column, "Kit.Slot_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
-                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Slot_array");
+                    TcbReader.checkColumn(column, "Kit.Slot", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
+                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Slot");
                     for (KitRecord record : loaded) {
                         int elementCount;
                         elementCount = cursor.nextLength();
-                        record.slotArray = new PieceRecord[elementCount];
-                        record.slotArrayIndex = new int[elementCount];
+                        record.slot = new PieceRecord[elementCount];
+                        record.slotIndex = new int[elementCount];
                         for (int j = 0; j < elementCount; j++) {
-                            record.slotArrayIndex[j] = cursor.nextI32();
+                            record.slotIndex[j] = cursor.nextI32();
                         }
                     }
                     break;
                 }
                 case 3: {
-                    TcbReader.checkColumn(column, "Kit.Tier_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
-                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Tier_array");
+                    TcbReader.checkColumn(column, "Kit.Tier", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
+                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Kit.Tier");
                     for (KitRecord record : loaded) {
                         int elementCount;
                         elementCount = cursor.nextLength();
-                        record.tierArray = new int[elementCount];
-                        record.tierArrayIndex = new int[elementCount];
+                        record.tier = new int[elementCount];
+                        record.tierIndex = new int[elementCount];
                         for (int j = 0; j < elementCount; j++) {
-                            record.tierArrayIndex[j] = cursor.nextI32();
+                            record.tierIndex[j] = cursor.nextI32();
                         }
                     }
                     break;

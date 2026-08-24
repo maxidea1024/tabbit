@@ -52,7 +52,7 @@ namespace Tabbit.Fixtures.RecordTrim
             /// <summary>
             /// scalar serial array, element 1 - required, so the array is never empty
             /// </summary>
-            public string[] TagArray => _tagArray;
+            public string[] Tag => _tag;
             #endregion
 
             /// <summary>One element of <see cref="Slot"/>.</summary>
@@ -111,7 +111,7 @@ namespace Tabbit.Fixtures.RecordTrim
             internal string _name = "";
             internal SlotEntry[] _slot = System.Array.Empty<SlotEntry>();
             internal PosEntry _pos;
-            internal string[] _tagArray = System.Array.Empty<string>();
+            internal string[] _tag = System.Array.Empty<string>();
             #endregion
 
             #region ToString
@@ -122,7 +122,7 @@ namespace Tabbit.Fixtures.RecordTrim
                 sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
                 sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
                 sb.Append(",\"Pos\":"); ToStringHelper.ToString(Pos, sb);
-                sb.Append(",\"TagArray\":"); ToStringHelper.ToString(TagArray, sb);
+                sb.Append(",\"Tag\":"); ToStringHelper.ToString(Tag, sb);
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -133,7 +133,7 @@ namespace Tabbit.Fixtures.RecordTrim
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "Index", "Name", "Slot", "Pos", "TagArray" };
+        public static readonly string[] FieldNames = { "Index", "Name", "Slot", "Pos", "Tag" };
 
         /// <summary>
         /// Build object value map.
@@ -142,7 +142,7 @@ namespace Tabbit.Fixtures.RecordTrim
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.Index, r.Name, r.Slot, r.Pos, r.TagArray });
+                result.Add(new object[] { r.Index, r.Name, r.Slot, r.Pos, r.Tag });
 
             return result;
         }
@@ -374,17 +374,17 @@ namespace Tabbit.Fixtures.RecordTrim
                         break;
 
                     case 8:
-                        TcbTable.CheckColumn(column, "Loot.Tag_array", TcbTable.KindArray, false, TcbTable.ElementString);
-                        cursor = new TcbColumnCursor(reader, column, count, "Loot.Tag_array");
+                        TcbTable.CheckColumn(column, "Loot.Tag", TcbTable.KindArray, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "Loot.Tag");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._tagArray = new string[elementCount];
+                            record._tag = new string[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._tagArray[j] = cursor.NextString();
+                                record._tag[j] = cursor.NextString();
                             }
                         }
                         break;

@@ -52,7 +52,6 @@ public sealed class SheetImportSettings
                 // settings from becoming part of the core recipe.
                 recipe.LayoutOptions,
 
-                recipe.FoldSerialFields,
                 recipe.TrimTrailingArrayElements,
                 recipe.AllowArrayGaps,
                 (recipe.TableRowSets ?? "").Trim(),

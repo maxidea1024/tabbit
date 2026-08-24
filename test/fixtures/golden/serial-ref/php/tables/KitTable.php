@@ -30,16 +30,16 @@ final class KitRecord
     public int $index = 0;
     /** element 1 - the row it points at */
     /** @var list<?PieceRecord> */
-    public array $slotArray = [];
+    public array $slot = [];
 
     /** @var list<int> */
-    public array $slotArrayIndex = [];
+    public array $slotIndex = [];
     /** element 1 - the target's own value */
     /** @var list<?int> */
-    public array $tierArray = [];
+    public array $tier = [];
 
     /** @var list<int> */
-    public array $tierArrayIndex = [];
+    public array $tierIndex = [];
 }
 
 /** Every row of Kit. */
@@ -132,30 +132,30 @@ final class KitTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Kit.Slot_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32]);
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Slot_array');
+                    TcbReader::checkColumn($column, 'Kit.Slot', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32]);
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Slot');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->slotArrayIndex = [];
+                        $record->slotIndex = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->slotArrayIndex[] = $cursor->nextI32();
+                            $record->slotIndex[] = $cursor->nextI32();
                         }
-                        $record->slotArray = $elementCount > 0
+                        $record->slot = $elementCount > 0
                             ? \array_fill(0, $elementCount, null)
                             : [];
                     }
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'Kit.Tier_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32]);
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Tier_array');
+                    TcbReader::checkColumn($column, 'Kit.Tier', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32]);
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Tier');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->tierArrayIndex = [];
+                        $record->tierIndex = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->tierArrayIndex[] = $cursor->nextI32();
+                            $record->tierIndex[] = $cursor->nextI32();
                         }
-                        $record->tierArray = $elementCount > 0
+                        $record->tier = $elementCount > 0
                             ? \array_fill(0, $elementCount, null)
                             : [];
                     }

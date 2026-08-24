@@ -25,7 +25,7 @@ interface IDataRow {
   costs: number[]
   weights: number[]
   grades: Grade[]
-  slotArray: number[]
+  slot: number[]
 }
 
 // Generated from test/fixtures/xlsx/core/core.xlsx : Arrays : B2
@@ -51,14 +51,14 @@ export class ArrayTypesRecord {
   public get grades(): Grade[] { return this._grades }
 
   /** fixed slot 1 */
-  public get slotArray(): number[] { return this._slotArray }
+  public get slot(): number[] { return this._slot }
 
   public _index: number = 0
   public _tags: string[] = []
   public _costs: number[] = []
   public _weights: number[] = []
   public _grades: Grade[] = []
-  public _slotArray: number[] = []
+  public _slot: number[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -67,7 +67,7 @@ export class ArrayTypesRecord {
     this._costs = dataRow.costs
     this._weights = dataRow.weights.map(v => Math.fround(v))
     this._grades = dataRow.grades
-    this._slotArray = dataRow.slotArray
+    this._slot = dataRow.slot
   }
 
   /** Populate field values. */
@@ -78,7 +78,7 @@ export class ArrayTypesRecord {
     this._costs = dataRow[offset++]
     this._weights = dataRow[offset++].map(v => Math.fround(v))
     this._grades = dataRow[offset++]
-    this._slotArray = dataRow.slice(offset, offset + 2)
+    this._slot = dataRow.slice(offset, offset + 2)
     offset += 2
   }
 }
@@ -255,14 +255,14 @@ export class ArrayTypesTable {
           }
           break
         case 6:
-          tabbit.checkColumn(column, 'ArrayTypes.Slot_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'ArrayTypes.Slot_array')
+          tabbit.checkColumn(column, 'ArrayTypes.Slot', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'ArrayTypes.Slot')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._slotArray = []
+            record._slot = []
             for (let j = 0; j < elementCount; ++j) {
-              record._slotArray.push(cursor.nextI32())
+              record._slot.push(cursor.nextI32())
             }
           }
           break

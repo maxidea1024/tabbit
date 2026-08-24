@@ -19,8 +19,8 @@ import { Tables } from '../tables'
 interface IDataRow {
   index: number
   key: string
-  textEnArray: string[]
-  textKoArray: string[]
+  textEn: string[]
+  textKo: string[]
 }
 
 // Generated from test/fixtures/xlsx/core/core.xlsx : Serial : B2
@@ -37,22 +37,22 @@ export class LocalizationRecord {
   public get key(): string { return this._key }
 
   /** english text 1 */
-  public get textEnArray(): string[] { return this._textEnArray }
+  public get textEn(): string[] { return this._textEn }
 
   /** korean text 1 */
-  public get textKoArray(): string[] { return this._textKoArray }
+  public get textKo(): string[] { return this._textKo }
 
   public _index: number = 0
   public _key: string = ''
-  public _textEnArray: string[] = []
-  public _textKoArray: string[] = []
+  public _textEn: string[] = []
+  public _textKo: string[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
     this._key = dataRow.key
-    this._textEnArray = dataRow.textEnArray
-    this._textKoArray = dataRow.textKoArray
+    this._textEn = dataRow.textEn
+    this._textKo = dataRow.textKo
   }
 
   /** Populate field values. */
@@ -60,9 +60,9 @@ export class LocalizationRecord {
     let offset = 0
     this._index = dataRow[offset++]
     this._key = dataRow[offset++]
-    this._textEnArray = dataRow.slice(offset, offset + 2)
+    this._textEn = dataRow.slice(offset, offset + 2)
     offset += 2
-    this._textKoArray = dataRow.slice(offset, offset + 2)
+    this._textKo = dataRow.slice(offset, offset + 2)
     offset += 2
   }
 }
@@ -200,26 +200,26 @@ export class LocalizationTable {
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Localization.TextEn_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Localization.TextEn_array')
+          tabbit.checkColumn(column, 'Localization.TextEn', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Localization.TextEn')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._textEnArray = []
+            record._textEn = []
             for (let j = 0; j < elementCount; ++j) {
-              record._textEnArray.push(cursor.nextString())
+              record._textEn.push(cursor.nextString())
             }
           }
           break
         case 4:
-          tabbit.checkColumn(column, 'Localization.TextKo_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Localization.TextKo_array')
+          tabbit.checkColumn(column, 'Localization.TextKo', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Localization.TextKo')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._textKoArray = []
+            record._textKo = []
             for (let j = 0; j < elementCount; ++j) {
-              record._textKoArray.push(cursor.nextString())
+              record._textKo.push(cursor.nextString())
             }
           }
           break

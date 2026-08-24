@@ -16,12 +16,7 @@
   "Sources": {
     "Xlsx": [
       {
-        "Path": "test/fixtures/xlsx/nested",
-
-        // On, because this fixture carries `Tag1`/`Tag2` beside its record groups to show
-        // that the older rule still folds the way it always did. Off is the default: a
-        // number in a column name does not say whether it means an array.
-        "FoldSerialFields": true
+        "Path": "test/fixtures/xlsx/nested"
       }
     ],
     "GoogleSheets": []

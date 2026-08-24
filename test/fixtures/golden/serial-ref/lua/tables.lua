@@ -81,18 +81,18 @@ function tables:readAll(source, fileExtension)
   -- Turns loadedKit's stored keys into rows, now that every table is in
   -- memory.
   for _, record in ipairs(loadedKit.records) do
-    for position = 1, #record.slotArrayIndex do
-      local target = loadedPiece:findByIndex(record.slotArrayIndex[position])
+    for position = 1, #record.slotIndex do
+      local target = loadedPiece:findByIndex(record.slotIndex[position])
 
       if target ~= nil then
-        record.slotArray[position] = target
+        record.slot[position] = target
       end
     end
-    for position = 1, #record.tierArrayIndex do
-      local target = loadedPiece:findByIndex(record.tierArrayIndex[position])
+    for position = 1, #record.tierIndex do
+      local target = loadedPiece:findByIndex(record.tierIndex[position])
 
       if target ~= nil then
-        record.tierArray[position] = target.tier
+        record.tier[position] = target.tier
       end
     end
   end
@@ -100,18 +100,18 @@ function tables:readAll(source, fileExtension)
   -- Turns loadedTrimKit's stored keys into rows, now that every table is in
   -- memory.
   for _, record in ipairs(loadedTrimKit.records) do
-    for position = 1, #record.slotArrayIndex do
-      local target = loadedBit:findByIndex(record.slotArrayIndex[position])
+    for position = 1, #record.slotIndex do
+      local target = loadedBit:findByIndex(record.slotIndex[position])
 
       if target ~= nil then
-        record.slotArray[position] = target
+        record.slot[position] = target
       end
     end
-    for position = 1, #record.tierArrayIndex do
-      local target = loadedBit:findByIndex(record.tierArrayIndex[position])
+    for position = 1, #record.tierIndex do
+      local target = loadedBit:findByIndex(record.tierIndex[position])
 
       if target ~= nil then
-        record.tierArray[position] = target.tier
+        record.tier[position] = target.tier
       end
     end
   end

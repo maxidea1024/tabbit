@@ -43,7 +43,7 @@ class LoadoutRecord:
     Columns folded into records by the Group.Member notation.
     """
 
-    __slots__ = ("index", "name", "pos", "slot", "note", "tag_array")
+    __slots__ = ("index", "name", "pos", "slot", "note", "tag")
 
     def __init__(self):
         self.index = 0
@@ -51,10 +51,10 @@ class LoadoutRecord:
         self.pos = LoadoutPosEntry()
         self.slot = [LoadoutSlotEntry() for _ in range(2)]
         self.note = ""
-        self.tag_array = []
+        self.tag = []
 
     def __repr__(self):
-        return "LoadoutRecord(index=%r, name=%r, pos=%r, slot=%r, note=%r, tag_array=%r)" % (self.index, self.name, self.pos, self.slot, self.note, self.tag_array)
+        return "LoadoutRecord(index=%r, name=%r, pos=%r, slot=%r, note=%r, tag=%r)" % (self.index, self.name, self.pos, self.slot, self.note, self.tag)
 
 
 class LoadoutTable:
@@ -181,11 +181,11 @@ class LoadoutTable:
                         records[i].note = value
                     at += n
             elif column.tag == 8:
-                tabbit.check_column(column, "Loadout.Tag_array", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
-                cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Tag_array")
+                tabbit.check_column(column, "Loadout.Tag", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,))
+                cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Tag")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.tag_array = [cursor.next_string() for _ in range(element_count)]
+                    record.tag = [cursor.next_string() for _ in range(element_count)]
             else:
                 # A column added after this code was generated.
                 reader.skip(column.byte_length)

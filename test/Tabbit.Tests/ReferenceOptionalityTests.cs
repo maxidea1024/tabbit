@@ -56,7 +56,7 @@ public class ReferenceOptionalityTests
         Assert.Contains("`-` to say this row points at none", result.StdOut);
 
         // And the cell, because a blank is not something an author finds by re-reading.
-        Assert.Contains("reference-required-blank.xlsx : Refs : J10", result.StdOut);
+        Assert.Contains("reference-required-blank.xlsx : Refs : K8", result.StdOut);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public class ReferenceOptionalityTests
         Assert.Contains("declare the column optional", result.StdOut);
 
         // The `-` row, which is the one after the blank.
-        Assert.Contains("reference-required-blank.xlsx : Refs : J11", result.StdOut);
+        Assert.Contains("reference-required-blank.xlsx : Refs : K9", result.StdOut);
     }
 
     /// <summary>

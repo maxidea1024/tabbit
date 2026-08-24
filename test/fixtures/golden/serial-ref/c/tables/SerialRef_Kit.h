@@ -25,13 +25,13 @@ struct SerialRef_KitRecord_t {
   /* primary index */
   int32_t index;
   /* element 1 - the row it points at */
-  const SerialRef_PieceRecord_t** slot_array;
-  int32_t* slot_array_index;
-  int32_t slot_array_count;
+  const SerialRef_PieceRecord_t** slot;
+  int32_t* slot_index;
+  int32_t slot_count;
   /* element 1 - the target's own value */
-  int32_t* tier_array;
-  int32_t* tier_array_index;
-  int32_t tier_array_count;
+  int32_t* tier;
+  int32_t* tier_index;
+  int32_t tier_count;
 };
 
 /* Every row of Kit.

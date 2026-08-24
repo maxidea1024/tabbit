@@ -34,7 +34,7 @@ public class ArrayGapTests
 
         // And where, because a row of empty-looking cells is not something an author finds
         // by re-reading the sheet.
-        Assert.Contains("record-trim.xlsx : Trim : G11", result.StdOut);
+        Assert.Contains("record-trim.xlsx : Trim : H9", result.StdOut);
 
         // The message says how to accept it, since the strict reading is a default rather
         // than a judgement about this sheet.

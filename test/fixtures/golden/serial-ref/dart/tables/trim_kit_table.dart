@@ -12,13 +12,13 @@ class TrimKitRecord {
   /// primary index
   int index = 0;
   /// element 1 - the row it points at
-  List<BitRecord?> slotArray = [];
-  List<int> slotArrayIndex = [];
-  List<bool> hasSlotArrayAt = const <bool>[];
+  List<BitRecord?> slot = [];
+  List<int> slotIndex = [];
+  List<bool> hasSlotAt = const <bool>[];
   /// element 1 - the target's own value
-  List<int?> tierArray = [];
-  List<int> tierArrayIndex = [];
-  List<bool> hasTierArrayAt = const <bool>[];
+  List<int?> tier = [];
+  List<int> tierIndex = [];
+  List<bool> hasTierAt = const <bool>[];
 
 }
 
@@ -100,31 +100,31 @@ class TrimKitTable {
           }
           break;
         case 2:
-          checkColumn(column, 'TrimKit.Slot_array', kindArray, false, [elementI32], true);
+          checkColumn(column, 'TrimKit.Slot', kindArray, false, [elementI32], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
           // steps once per element of every row. spec/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
-          cursor = TcbColumnCursor(reader, column, count, 'TrimKit.Slot_array');
+          cursor = TcbColumnCursor(reader, column, count, 'TrimKit.Slot');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.slotArrayIndex = List.generate(elementCount, (_) => cursor.nextI32());
-            record.hasSlotArrayAt =
+            record.slotIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.hasSlotAt =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
             elementAt += elementCount;
           }
           break;
         case 3:
-          checkColumn(column, 'TrimKit.Tier_array', kindArray, false, [elementI32], true);
+          checkColumn(column, 'TrimKit.Tier', kindArray, false, [elementI32], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
           // steps once per element of every row. spec/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
-          cursor = TcbColumnCursor(reader, column, count, 'TrimKit.Tier_array');
+          cursor = TcbColumnCursor(reader, column, count, 'TrimKit.Tier');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.tierArrayIndex = List.generate(elementCount, (_) => cursor.nextI32());
-            record.hasTierArrayAt =
+            record.tierIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.hasTierAt =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
             elementAt += elementCount;
           }

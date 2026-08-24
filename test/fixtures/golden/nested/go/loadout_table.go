@@ -43,7 +43,7 @@ type LoadoutRecord struct {
 	// plain column inside the group's span
 	Note string
 	// scalar serial field
-	TagArray []string
+	Tag []string
 }
 
 // LoadoutTable holds every row of Loadout.
@@ -214,14 +214,14 @@ func (t *LoadoutTable) Read(filename string) error {
 				}
 			}
 		case 8:
-			if tabbit.CheckColumn(reader, column, "Loadout.Tag_array", tabbit.KindArray, false, tabbit.ElementString) {
-				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Tag_array")
+			if tabbit.CheckColumn(reader, column, "Loadout.Tag", tabbit.KindArray, false, tabbit.ElementString) {
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Loadout.Tag")
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.TagArray = make([]string, elementCount)
+					r.Tag = make([]string, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.TagArray[j] = cursor.NextString()
+						r.Tag[j] = cursor.NextString()
 					}
 				}
 			}

@@ -11,7 +11,6 @@
     "Xlsx": [
       {
         "Path": "test/fixtures/xlsx/multirow-columns",
-        "Layout": "primary",
         "TrimTrailingArrayElements": true
       }
     ]

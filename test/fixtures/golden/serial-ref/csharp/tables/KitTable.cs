@@ -37,27 +37,27 @@ namespace Tabbit.Fixtures.SerialRef
             /// <summary>
             /// element 1 - the row it points at
             /// </summary>
-            public PieceTable.Record[] SlotArray => _slotArray;
+            public PieceTable.Record[] Slot => _slot;
 
             /// <summary>
             /// element 1 - the target's own value
             /// </summary>
-            public int[] TierArray => _tierArray;
+            public int[] Tier => _tier;
             #endregion
 
             #region Reference wiring
-            public void SetReference_SlotArray_INTERNAL(int index, PieceTable.Record value) => _slotArray[index] = value;
-            public void SetReference_TierArray_INTERNAL(int index, int value) => _tierArray[index] = value;
+            public void SetReference_Slot_INTERNAL(int index, PieceTable.Record value) => _slot[index] = value;
+            public void SetReference_Tier_INTERNAL(int index, int value) => _tier[index] = value;
             #endregion
 
             #region Storage
             internal int _index;
-            internal PieceTable.Record[] _slotArray = System.Array.Empty<PieceTable.Record>();
-            public int[] _slotArray_Piece_index = System.Array.Empty<int>();
-            public bool[] _slotArray_F = System.Array.Empty<bool>();
-            internal int[] _tierArray = System.Array.Empty<int>();
-            public int[] _tierArray_Piece_index = System.Array.Empty<int>();
-            public bool[] _tierArray_F = System.Array.Empty<bool>();
+            internal PieceTable.Record[] _slot = System.Array.Empty<PieceTable.Record>();
+            public int[] _slot_Piece_index = System.Array.Empty<int>();
+            public bool[] _slot_F = System.Array.Empty<bool>();
+            internal int[] _tier = System.Array.Empty<int>();
+            public int[] _tier_Piece_index = System.Array.Empty<int>();
+            public bool[] _tier_F = System.Array.Empty<bool>();
             #endregion
 
             #region ToString
@@ -65,8 +65,8 @@ namespace Tabbit.Fixtures.SerialRef
             {
                 var sb = new StringBuilder("{");
                 sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"SlotArray\":"); ToStringHelper.ToString(SlotArray, sb);
-                sb.Append(",\"TierArray\":"); ToStringHelper.ToString(TierArray, sb);
+                sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
+                sb.Append(",\"Tier\":"); ToStringHelper.ToString(Tier, sb);
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -77,7 +77,7 @@ namespace Tabbit.Fixtures.SerialRef
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "Index", "SlotArray", "TierArray" };
+        public static readonly string[] FieldNames = { "Index", "Slot", "Tier" };
 
         /// <summary>
         /// Build object value map.
@@ -86,7 +86,7 @@ namespace Tabbit.Fixtures.SerialRef
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.Index, r.SlotArray, r.TierArray });
+                result.Add(new object[] { r.Index, r.Slot, r.Tier });
 
             return result;
         }
@@ -208,41 +208,41 @@ namespace Tabbit.Fixtures.SerialRef
                         break;
 
                     case 2:
-                        TcbTable.CheckColumn(column, "Kit.Slot_array", TcbTable.KindArray, false, TcbTable.ElementI32);
-                        cursor = new TcbColumnCursor(reader, column, count, "Kit.Slot_array");
+                        TcbTable.CheckColumn(column, "Kit.Slot", TcbTable.KindArray, false, TcbTable.ElementI32);
+                        cursor = new TcbColumnCursor(reader, column, count, "Kit.Slot");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._slotArray = new PieceTable.Record[elementCount];
-                            record._slotArray_Piece_index = new int[elementCount];
-                            record._slotArray_F = new bool[elementCount];
+                            record._slot = new PieceTable.Record[elementCount];
+                            record._slot_Piece_index = new int[elementCount];
+                            record._slot_F = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._slotArray_Piece_index[j] = cursor.NextI32();
-                                record._slotArray[j] = default(PieceTable.Record); // will be assigned.
-                                record._slotArray_F[j] = false;
+                                record._slot_Piece_index[j] = cursor.NextI32();
+                                record._slot[j] = default(PieceTable.Record); // will be assigned.
+                                record._slot_F[j] = false;
                             }
                         }
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Kit.Tier_array", TcbTable.KindArray, false, TcbTable.ElementI32);
-                        cursor = new TcbColumnCursor(reader, column, count, "Kit.Tier_array");
+                        TcbTable.CheckColumn(column, "Kit.Tier", TcbTable.KindArray, false, TcbTable.ElementI32);
+                        cursor = new TcbColumnCursor(reader, column, count, "Kit.Tier");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._tierArray = new int[elementCount];
-                            record._tierArray_Piece_index = new int[elementCount];
-                            record._tierArray_F = new bool[elementCount];
+                            record._tier = new int[elementCount];
+                            record._tier_Piece_index = new int[elementCount];
+                            record._tier_F = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._tierArray_Piece_index[j] = cursor.NextI32();
-                                record._tierArray[j] = default(int); // will be assigned.
-                                record._tierArray_F[j] = false;
+                                record._tier_Piece_index[j] = cursor.NextI32();
+                                record._tier[j] = default(int); // will be assigned.
+                                record._tier_F[j] = false;
                             }
                         }
                         break;

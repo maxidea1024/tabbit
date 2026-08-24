@@ -33,14 +33,14 @@ module RecordTrim
   # Generated from test/fixtures/xlsx/record-trim/record-trim.xlsx : Trim : B2
   # A record array trimmed at the last element the row filled in.
   class LootRecord
-    attr_accessor :index, :name, :slot, :pos, :tag_array
+    attr_accessor :index, :name, :slot, :pos, :tag
 
     def initialize
       @index = 0
       @name = ''
       @slot = []
       @pos = LootPosEntry.new
-      @tag_array = []
+      @tag = []
     end
 
   end
@@ -193,11 +193,11 @@ module RecordTrim
             at += n
           end
         when 8
-          Tabbit.check_column(column, 'Loot.Tag_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Tag_array')
+          Tabbit.check_column(column, 'Loot.Tag', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING])
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Loot.Tag')
           records.each do |record|
             element_count = cursor.next_length
-            record.tag_array = Array.new(element_count) { cursor.next_string }
+            record.tag = Array.new(element_count) { cursor.next_string }
           end
         else
           # A column added after this code was generated.

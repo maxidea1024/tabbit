@@ -103,27 +103,27 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 func (t *Tables) solveCrossReferences() {
 	for i := range t.Kit.records {
 		record := &t.Kit.records[i]
-		for k := range record.SlotArrayIndex {
-			if target := t.Piece.FindByIndex(record.SlotArrayIndex[k]); target != nil {
-				record.SlotArray[k] = target
+		for k := range record.SlotIndex {
+			if target := t.Piece.FindByIndex(record.SlotIndex[k]); target != nil {
+				record.Slot[k] = target
 			}
 		}
-		for k := range record.TierArrayIndex {
-			if target := t.Piece.FindByIndex(record.TierArrayIndex[k]); target != nil {
-				record.TierArray[k] = target.Tier
+		for k := range record.TierIndex {
+			if target := t.Piece.FindByIndex(record.TierIndex[k]); target != nil {
+				record.Tier[k] = target.Tier
 			}
 		}
 	}
 	for i := range t.TrimKit.records {
 		record := &t.TrimKit.records[i]
-		for k := range record.SlotArrayIndex {
-			if target := t.Bit.FindByIndex(record.SlotArrayIndex[k]); target != nil {
-				record.SlotArray[k] = target
+		for k := range record.SlotIndex {
+			if target := t.Bit.FindByIndex(record.SlotIndex[k]); target != nil {
+				record.Slot[k] = target
 			}
 		}
-		for k := range record.TierArrayIndex {
-			if target := t.Bit.FindByIndex(record.TierArrayIndex[k]); target != nil {
-				record.TierArray[k] = target.Tier
+		for k := range record.TierIndex {
+			if target := t.Bit.FindByIndex(record.TierIndex[k]); target != nil {
+				record.Tier[k] = target.Tier
 			}
 		}
 	}

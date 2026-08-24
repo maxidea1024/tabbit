@@ -18,7 +18,7 @@ import { Tables } from '../tables'
 /** A type for handling rows when parsing .json. */
 interface IDataRow {
   index: number
-  tagArray: string[]
+  tag: string[]
 }
 
 // Generated from test/fixtures/xlsx/nullable-elements/nullable-elements.xlsx : Arrays : J2
@@ -32,29 +32,29 @@ export class FoldedRecord {
   public get index(): number { return this._index }
 
   /** element 1 - and the group's answer */
-  public get tagArray(): string[] { return this._tagArray }
-  /** Whether element `index` of `tagArray` has a value. */
-  public hasTagArrayAt(index: number): boolean {
-    return this._tagArrayHasValueAt === null
-      || index < 0 || index >= this._tagArrayHasValueAt.length
-      || this._tagArrayHasValueAt[index]
+  public get tag(): string[] { return this._tag }
+  /** Whether element `index` of `tag` has a value. */
+  public hasTagAt(index: number): boolean {
+    return this._tagHasValueAt === null
+      || index < 0 || index >= this._tagHasValueAt.length
+      || this._tagHasValueAt[index]
   }
 
   public _index: number = 0
-  public _tagArray: string[] = []
-  public _tagArrayHasValueAt: boolean[] | null = null
+  public _tag: string[] = []
+  public _tagHasValueAt: boolean[] | null = null
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._tagArray = dataRow.tagArray
+    this._tag = dataRow.tag
   }
 
   /** Populate field values. */
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
     this._index = dataRow[offset++]
-    this._tagArray = dataRow.slice(offset, offset + 3)
+    this._tag = dataRow.slice(offset, offset + 3)
     offset += 3
   }
 }
@@ -185,18 +185,18 @@ export class FoldedTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Folded.Tag_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING], true)
+          tabbit.checkColumn(column, 'Folded.Tag', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_STRING], true)
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Folded.Tag_array')
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Folded.Tag')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._tagArray = []
-            record._tagArrayHasValueAt = []
+            record._tag = []
+            record._tagHasValueAt = []
             for (let j = 0; j < elementCount; ++j) {
-              record._tagArray.push(cursor.nextString())
-              record._tagArrayHasValueAt.push(
+              record._tag.push(cursor.nextString())
+              record._tagHasValueAt.push(
                 tabbit.isPresent(elementPresence, elementAt++))
             }
           }

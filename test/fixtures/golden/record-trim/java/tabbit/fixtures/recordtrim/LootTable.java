@@ -194,14 +194,14 @@ public final class LootTable {
                     break;
                 }
                 case 8: {
-                    TcbReader.checkColumn(column, "Loot.Tag_array", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
-                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Tag_array");
+                    TcbReader.checkColumn(column, "Loot.Tag", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_STRING);
+                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Loot.Tag");
                     for (LootRecord record : loaded) {
                         int elementCount;
                         elementCount = cursor.nextLength();
-                        record.tagArray = new String[elementCount];
+                        record.tag = new String[elementCount];
                         for (int j = 0; j < elementCount; j++) {
-                            record.tagArray[j] = cursor.nextString();
+                            record.tag[j] = cursor.nextString();
                         }
                     }
                     break;

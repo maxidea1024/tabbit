@@ -13,7 +13,6 @@
     "Xlsx": [
       {
         "Path": "test/fixtures/xlsx/core",
-        "FoldSerialFields": true,
 
         // The bare name rather than `core.xlsx`, so the scenario also covers a workbook named
         // without its extension.

@@ -50,8 +50,8 @@ struct Nested_LoadoutRecord_t {
   /* plain column inside the group's span */
   const char* note;
   /* scalar serial field */
-  const char** tag_array;
-  int32_t tag_array_count;
+  const char** tag;
+  int32_t tag_count;
 };
 
 /* Every row of Loadout.

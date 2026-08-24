@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "5e9f44e550f9f49b58d2f57ff9f7a24d",
-  "TotalSize": 3311,
+  "MasterHash": "c420804f9a25c66c7ad290b46f889395",
+  "TotalSize": 3271,
   "Items": [
     {
       "Name": "TestFieldTypes.json",
@@ -23,14 +23,14 @@
     },
     {
       "Name": "Localization.json",
-      "Size": 347,
-      "Hash": "e69880a7b3c05f3bac681ab632f9b490",
+      "Size": 327,
+      "Hash": "cd2692428abb28d9c61a92273fb0d6bc",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
       "Name": "ArrayTypes.json",
-      "Size": 860,
-      "Hash": "4d42eecd5c456da204545743c1551bd8",
+      "Size": 840,
+      "Hash": "222b929c7b852e8b6ea460eaaff870ef",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {

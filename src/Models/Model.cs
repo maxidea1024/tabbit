@@ -108,10 +108,6 @@ public class Model
                 // agree on. Left to default it is empty, and the export writes `.tcb`.
                 DataFileName = table.DataFileName,
 
-                // Carried, not defaulted: the projection recomputes SerialFields from its
-                // narrowed field list, and a table that must not fold must not start
-                // folding because a target side was asked for.
-                FoldSerialFields = table.FoldSerialFields,
             };
 
             foreach (var field in table.Fields)

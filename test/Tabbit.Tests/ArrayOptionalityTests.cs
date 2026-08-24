@@ -36,9 +36,14 @@ public class ArrayOptionalityTests
         var table = ModelFactory.Table("T", columns);
         table.TrimTrailingArrayElements = trims;
 
-        // Folded by the model rather than by hand, so the grouping under test is the one the
-        // converter does: `Name0`/`Name1`/`Name2` become one array by their numbering.
-        table.FoldSerialFields = true;
+        // Grouped by the model rather than by hand, so the grouping under test is the one the
+        // converter does. The path is what says an array: each column is element `at` of one
+        // level called `Name`, which is what a sheet writes as `name[0]`.
+        for (int at = 0; at < required.Length; at++)
+        {
+            table.Fields[at + 1].NamePath =
+                [new FieldPathStep { Name = "Name", Index = at }];
+        }
 
         for (int at = 0; at < required.Length; at++)
             table.Fields[at + 1].IsRequired = required[at];

@@ -42,7 +42,7 @@ pub struct LootRecord {
     /// single record, not an array
     pub pos: LootPosEntry,
     /// scalar serial array, element 1 - required, so the array is never empty
-    pub tag_array: Vec<String>,
+    pub tag: Vec<String>,
 }
 
 impl LootRecord {
@@ -233,13 +233,13 @@ impl LootTable {
                     }
                 }
                 8 => {
-                    tabbit::check_column(column, "Loot.Tag_array", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
-                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Tag_array")?;
+                    tabbit::check_column(column, "Loot.Tag", tabbit::KIND_ARRAY, false, &[tabbit::ELEMENT_STRING])?;
+                    let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Loot.Tag")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.tag_array = Vec::with_capacity(element_count.min(65536));
+                        record.tag = Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
-                            record.tag_array.push(cursor.next_string()?);
+                            record.tag.push(cursor.next_string()?);
                         }
                     }
                 }

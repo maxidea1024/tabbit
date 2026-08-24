@@ -84,7 +84,7 @@ function main(): number {
         compare('Guide', i, 'pos', j.pos, b.pos)
 
         // And the scalar serial field, which the notation must not have changed.
-        compare('Guide', i, 'tagArray', j.tagArray, b.tagArray)
+        compare('Guide', i, 'tag', j.tag, b.tag)
 
         // The array of arrays: same columns and same wire as the record above, assembled
         // with the outer level indexed rather than named. spec/nested-multi-level.md.

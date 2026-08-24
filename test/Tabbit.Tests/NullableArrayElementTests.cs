@@ -300,13 +300,13 @@ public class NullableArrayElementTests
             RepoLayout.OutputDir("nullable-elements"), "json-named", "Folded.json"))).RootElement;
 
         // The middle element absent, and the ones around it untouched.
-        Assert.Equal("[\"a\",null,\"c\"]", JsonSerializer.Serialize(rows[1].GetProperty("tagArray")));
+        Assert.Equal("[\"a\",null,\"c\"]", JsonSerializer.Serialize(rows[1].GetProperty("tag")));
 
         // Element 0 absent - and `b` survives it, which is the whole of what changed.
-        Assert.Equal("[null,\"b\",\"c\"]", JsonSerializer.Serialize(rows[2].GetProperty("tagArray")));
+        Assert.Equal("[null,\"b\",\"c\"]", JsonSerializer.Serialize(rows[2].GetProperty("tag")));
 
         // And a blank element is the empty string here as it is in a delimited cell.
-        Assert.Equal("[\"a\",\"\",\"c\"]", JsonSerializer.Serialize(rows[3].GetProperty("tagArray")));
+        Assert.Equal("[\"a\",\"\",\"c\"]", JsonSerializer.Serialize(rows[3].GetProperty("tag")));
     }
 
     /// <summary>

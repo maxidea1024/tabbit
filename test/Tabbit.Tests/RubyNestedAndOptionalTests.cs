@@ -34,7 +34,7 @@ raise 'pos' unless rows[0].pos.x == 1.5 && rows[0].pos.y == -2.5
 raise 'slot 0' unless rows[0].slot[0].id == 10 && rows[0].slot[0].label == 'sword'
 raise 'slot 1' unless rows[0].slot[1].id == 11 && rows[0].slot[1].label == 'shield'
 raise 'blank label' unless rows[2].slot[0].label == ''
-raise 'tags' unless rows[0].tag_array == %w[a b]
+raise 'tags' unless rows[0].tag == %w[a b]
 ");
 
     /// <summary>
@@ -82,7 +82,7 @@ raise 'step' unless rows[0].skill.step == [10, 11]
 raise 'order' unless rows[0].skill.order == ['a', 'b']
 raise 'second row' unless rows[1].skill.step == [20, 21]
 raise 'pos is one record still' unless rows[0].pos.x == 1.5
-raise 'tag' unless rows[0].tag_array == ['t1', 't2']
+raise 'tag' unless rows[0].tag == ['t1', 't2']
 raise 'grid' unless rows[0].grid == [[1, 2, 3], [4, 5, 6]]
 raise 'grid 2' unless rows[1].grid == [[7, 8, 9], [10, 11, 12]]
 ");
@@ -175,18 +175,18 @@ raise unless accessor.kit.records[1].part[0].item_id.name == 'shield'
     public void An_array_of_references_reads()
         => AssertReads("serial-ref", "SerialRef", @"
 rows = accessor.kit.records
-raise unless rows.map { |r| r.slot_array.length } == [2, 2, 2]
-raise unless rows[0].slot_array[0].name == 'sword'
-raise unless rows[0].slot_array[1].name == 'shield'
-raise unless rows[1].slot_array[0].name == 'ring'
-raise unless rows[2].slot_array[1].nil?
-raise unless rows[0].tier_array == [3, 5]
-raise unless rows[2].tier_array[1].nil?
+raise unless rows.map { |r| r.slot.length } == [2, 2, 2]
+raise unless rows[0].slot[0].name == 'sword'
+raise unless rows[0].slot[1].name == 'shield'
+raise unless rows[1].slot[0].name == 'ring'
+raise unless rows[2].slot[1].nil?
+raise unless rows[0].tier == [3, 5]
+raise unless rows[2].tier[1].nil?
 trimmed = accessor.trim_kit.records
-raise unless trimmed.map { |r| r.slot_array.length } == [3, 2, 0]
-raise unless trimmed[0].slot_array[2].name == 'ring'
-raise unless trimmed[1].slot_array[0].name == 'ring'
-raise unless trimmed[0].tier_array[2] == 8
+raise unless trimmed.map { |r| r.slot.length } == [3, 2, 0]
+raise unless trimmed[0].slot[2].name == 'ring'
+raise unless trimmed[1].slot[0].name == 'ring'
+raise unless trimmed[0].tier[2] == 8
 ");
 
     /// <summary>

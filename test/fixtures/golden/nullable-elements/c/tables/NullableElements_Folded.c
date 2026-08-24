@@ -59,13 +59,13 @@ static bool NullableElements_FoldedParse(NullableElements_FoldedTable_t* table, 
       break;
 
     case 2:
-      (void)tb_check_column_elements(reader, column, "Folded.Tag_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING), true);
+      (void)tb_check_column_elements(reader, column, "Folded.Tag", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING), true);
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
        * once per element of every row. spec/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);
       element_at = 0;
 
-      (void)tb_cursor_init(&cursor, reader, column, table->count, "Folded.Tag_array");
+      (void)tb_cursor_init(&cursor, reader, column, table->count, "Folded.Tag");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         NullableElements_FoldedRecord_t* record = &table->records[row];
@@ -74,11 +74,11 @@ static bool NullableElements_FoldedParse(NullableElements_FoldedTable_t* table, 
 
         (void)tb_cursor_next_length(&cursor, &element_count);
 
-        record->tag_array_count = element_count;
-        record->tag_array = (const char**)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->tag_array);
+        record->tag_count = element_count;
+        record->tag = (const char**)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->tag);
 
-        if (element_count > 0 && record->tag_array == NULL)
+        if (element_count > 0 && record->tag == NULL)
           return tb_fail_with(reader, "out of memory allocating an array");
 
         {
@@ -88,7 +88,7 @@ static bool NullableElements_FoldedParse(NullableElements_FoldedTable_t* table, 
           if (element_count > 0 && element_presence_out == NULL)
             return tb_fail_with(reader, "out of memory allocating an element presence array");
 
-          record->has_tag_array_at = element_presence_out;
+          record->has_tag_at = element_presence_out;
 
           for (element = 0; element < element_count; ++element)
             element_presence_out[element] = tb_is_present(element_presence, element_at + element);
@@ -97,7 +97,7 @@ static bool NullableElements_FoldedParse(NullableElements_FoldedTable_t* table, 
         element_at += element_count;
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
-          (void)tb_cursor_next_string(&cursor, &record->tag_array[element]);
+          (void)tb_cursor_next_string(&cursor, &record->tag[element]);
       }
       break;
 

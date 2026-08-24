@@ -15,11 +15,11 @@ public final class FoldedRecord {
     /** primary index */
     public int index;
     /** element 1 - and the group's answer */
-    public String[] tagArray = new String[0];
+    public String[] tag = new String[0];
     /**
-     * Which of tagArray's elements have a value. Empty where the file did not carry
+     * Which of tag's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      */
-    public boolean[] hasTagArrayAt = new boolean[0];
+    public boolean[] hasTagAt = new boolean[0];
 
 }

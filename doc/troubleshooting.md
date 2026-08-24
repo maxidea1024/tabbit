@@ -42,27 +42,44 @@ Details:
 
 ## 시트를 읽는 중
 
-### `Unexpected entity-marker`
+### `The marker column of ... holds ..., which this layout does not define`
 
-마커 문법이 어긋났습니다. `~~table:Item~~`, `~~enum:Grade~~`, `~~const:GameConfig~~` 형식이어야 하고, 서버/클라를 나눌 때는 `~~table:Item:c~~`처럼 뒤에 붙입니다.
+마커 열에 이 레이아웃이 모르는 값이 있습니다. 마커 열이 담는 것은 선언(`:table` · `:enum` ·
+`:const`), 헤더 행 키(`:field` · `:type` · `:desc` · `:target` · `:variant`), 그 행을
+제외하는 `#`, 그리고 데이터 행의 빈 칸뿐입니다. 대개 행 키의 오타입니다.
 
-임시로 빼려면 이름 앞에 `#`을 붙이세요 — [시트 작성](sheets.md)의 「작성중인 데이터 임시로 제외하기」.
+### `... and names none. Write the name after the keyword`
 
-### `Entity 'Table:Item' starts outside the sheet: its marker points at ...`
+`:table` 다음에 이름이 없습니다. 키워드 뒤에 적습니다 — `:table Item`.
 
-마커가 가리키는 지점이 시트 범위 밖입니다. 마커만 남기고 내용을 지웠거나, 시트를 잘라낸 뒤 마커가 남았을 때 나옵니다.
+### `... has no ':field' row. It is the one header row that cannot be left out`
 
-### `Entity 'Table:Item' must have cells of at least ... size`
+생략할 수 없는 유일한 헤더 행입니다. 컬럼이 무엇인지 말하는 것이 그 행뿐입니다.
 
-엔티티가 최소 크기를 못 채웁니다. 테이블은 마커·주석·이름·타입·세부타입·설명 줄과 데이터 한 줄이 필요합니다.
+### `... has no ':type' row. Every field column states its type`
 
-### `Entity 'Table's name 'Item' is a duplicated`
+테이블의 필드 컬럼은 모두 타입을 적습니다. enum과 상수셋은 컬럼이 이름으로 정해져 있어 이
+행이 아예 없습니다.
 
-같은 이름의 엔티티가 둘입니다. 시트가 달라도 이름은 전역입니다.
+### `... has a ':type' row below a data row`
 
-### `Field name 'Name' is a duplicated`
+**헤더 행까지 선택 범위에 넣고 시트를 정렬하면 이렇게 됩니다.** 헤더 행은 데이터보다 위에
+있어야 하고, 보고는 옮겨진 그 행을 가리킵니다.
 
-한 테이블 안에 같은 이름의 필드가 둘입니다.
+### `... is declared twice - as ... here, and already above`
+
+같은 이름의 엔티티가 둘입니다. 종류가 달라도, 시트가 달라도 이름은 전역입니다 — 생성 코드에서
+그 이름이 하나이기 때문입니다.
+
+### `... has two columns named ...`
+
+한 테이블 안에 같은 이름의 컬럼이 둘입니다. 이름은 Pascal 표기로 정규화되므로 `item_id`와
+`ItemId`도 같은 이름입니다.
+
+### `Column ... has no name in ':field', and ... is written below it`
+
+이름 없는 컬럼에 데이터가 있습니다. 필드라면 이름을 적고, 시트 작성자의 자유 공간이라면
+`:field` 셀에 `#`를 적으세요 — 그렇게 표시한 컬럼은 아무것도 읽지 않습니다.
 
 ### `'2nd Field' is not a valid identifier, so it cannot name a field or an entity`
 
@@ -72,13 +89,23 @@ Details:
 > **컬럼 이름이 id인 표에서 이 메시지가 나옵니다.** 행과 열이 모두 id인 매트릭스 형태는
 > 컬럼 이름이 식별자가 될 수 없어서 지금은 읽지 못합니다 — [앞으로 할 것](roadmap.md)의 5b.
 
-### `Field name '**Foo**' has more than one leading '*'`
+### `Column ... begins with more than one '*'`
 
-secondary index는 `*` **하나**입니다.
+보조 인덱스는 `*` **하나**입니다.
 
-### `The primary index field cannot be omitted`
+### `Column ... is marked '*', and it holds an array`
 
-테이블의 첫 필드가 primary index여야 합니다. [시트 작성](sheets.md)의 「인덱스 필드」를 보세요.
+배열은 인덱스가 될 수 없습니다. `*`를 **멀티 로우** 표시로 적으셨다면, 이 레이아웃의 멀티
+로우는 이름에 붙는 `[]`이고 `*`는 보조 인덱스입니다.
+
+### `... Element numbers count from zero and run without a gap`
+
+원소 번호는 0부터 시작해 빠짐없이 이어집니다. 엑셀의 행 번호가 1부터라 걸리기 쉬운 자리입니다.
+
+### `... is written in column ... on a row that extends the record above it`
+
+멀티 로우 표에서 **연장 행에 값을 담는 것은 `[]` 컬럼뿐**입니다. 이 값은 레코드의 첫 행에
+적거나, 새 레코드를 뜻한 것이라면 그 행의 인덱스를 적으세요.
 
 ### `The index field 'Index' is 'bool', 'and a table keyed by a bool can only hold two rows.' Use a whole-number, string, uuid or enum column as the index`
 
@@ -145,19 +172,20 @@ index 필드를 서버나 클라 한쪽으로 보낼 수 없습니다. 양쪽 �
 
 지원하지 않는 타입 이름입니다. 목록은 [시트 작성](sheets.md)의 「Supported Data Types」에 있습니다.
 
-### `In case of enum type, enum name must be specified in detail-type`
+### `... is typed 'foreign' and names no table`
 
-`enum` 타입은 세부타입 칸에 enum 이름이 있어야 합니다.
+`foreign` 뒤에 가리킬 테이블을 적습니다 — `foreign Item`, 또는 그 테이블의 값 하나를
+가리키려면 `foreign Owners.rank`, 여럿 중 하나면 `foreign Item|CEquip`입니다.
 
-### `In case of foreign type, 'RefTable[.RefFieldName]' must be specified in detail-type`
+**세부타입 칸은 없습니다.** 타입 하나가 셀 하나에 들어가므로 enum도 이름을 바로 적습니다 —
+`Grade`.
 
-`foreign` 타입은 세부타입 칸에 가리킬 테이블(과 선택적으로 필드)이 있어야 합니다 — `Owners` 또는 `Owners.rank`.
+### `... is typed as an array of references, which the generated readers have no shape for`
 
-### `type 'foreign' cannot be used as an array element`
+`foreign[]`은 지원하지 않습니다. 개수가 정해져 있으면 원소를 컬럼으로 적으세요 —
+`ref[0]` · `ref[1]`.
 
-`foreign[]`은 지원하지 않습니다. 개수가 고정이면 serial field(`Ref1`, `Ref2`, …)를, 하나면 `foreign`을 쓰세요.
-
-### `Label 'X' is already defined in enum 'Y'` / `Constant 'X' is already defined in constant-set 'Y'`
+### `Enum ... has two labels named ...` / `Constant set ... has two constants named ...`
 
 같은 이름이 두 번 나왔습니다.
 
@@ -183,9 +211,9 @@ primary index가 중복입니다. 행을 복사하고 인덱스를 안 고쳤을
 
 여기 모인 메시지는 대부분 **차단이 목적**입니다. 이미 배포된 클라이언트가 못 읽을 데이터를 쓰기 전에 멈추는 것이고, 규칙과 근거는 [바이너리 형식](binary-format.md)에 있습니다.
 
-### `Field name 'Price@x' has an '@' where a wire tag goes`
+### `... has '@...' where a wire tag belongs, and a tag is a whole number from 1`
 
-`@` 뒤가 1 이상의 정수가 아닙니다. `Price@3`처럼 씁니다.
+`@` 뒤가 1 이상의 정수가 아닙니다. `price@3`처럼 씁니다.
 
 ### `Table 'Item' tags some fields and not others: ...`
 

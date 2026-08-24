@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/* Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+/* Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
  *
  * A record whose members are arrays, and an array of arrays beside it.
  */
@@ -47,8 +47,8 @@ struct MemberArray_GuideRecord_t {
   /* a record with no number at all - still one record, members not arrays */
   struct MemberArray_GuideRecord_t_pos_entry pos;
   /* scalar serial array, so both array kinds sit in one table */
-  const char** tag_array;
-  int32_t tag_array_count;
+  const char** tag;
+  int32_t tag_count;
   /* array of arrays: outer 1, inner 1 - neither level has a name */
   int32_t* grid[2];
   int32_t grid_count[2];

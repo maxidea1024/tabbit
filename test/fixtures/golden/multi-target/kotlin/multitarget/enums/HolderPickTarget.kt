@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : C7
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : D4
 /** Which table `Holder.Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers. */
 enum class HolderPickTarget(val value: Int) {
     /** No row of any of them. */

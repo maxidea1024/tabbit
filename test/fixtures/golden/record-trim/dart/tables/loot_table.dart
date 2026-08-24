@@ -36,7 +36,7 @@ class LootRecord {
   /// single record, not an array
   LootPosEntry pos = LootPosEntry();
   /// scalar serial array, element 1 - required, so the array is never empty
-  List<String> tagArray = [];
+  List<String> tag = [];
 
 }
 
@@ -191,11 +191,11 @@ class LootTable {
           }
           break;
         case 8:
-          checkColumn(column, 'Loot.Tag_array', kindArray, false, [elementString]);
-          cursor = TcbColumnCursor(reader, column, count, 'Loot.Tag_array');
+          checkColumn(column, 'Loot.Tag', kindArray, false, [elementString]);
+          cursor = TcbColumnCursor(reader, column, count, 'Loot.Tag');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.tagArray = List.generate(elementCount, (_) => cursor.nextString());
+            record.tag = List.generate(elementCount, (_) => cursor.nextString());
           }
           break;
         default:

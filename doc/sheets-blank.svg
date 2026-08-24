@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="521" height="174" viewBox="0 0 521 174" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>빈 칸과 값 없음</title>
+<rect x="0" y="0" width="335.8125" height="166" fill="#FFFFFF"/>
+<rect x="0" y="0" width="334.8125" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="166" fill="#E9ECEF"/>
+<rect x="30" y="22" width="304.8125" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="304.8125" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="304.8125" height="24" fill="#F1F6FB"/>
+<rect x="226.5" y="142" width="52.0" height="24" fill="#FBEAE8"/>
+<line x1="30" y1="22" x2="30" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="118.1875" y1="22" x2="118.1875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="170.1875" y1="22" x2="170.1875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="226.5" y1="22" x2="226.5" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="278.5" y1="22" x2="278.5" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="334.8125" y1="22" x2="334.8125" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="334.8125" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="334.8125" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="334.8125" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="334.8125" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="334.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="334.8125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="334.8125" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="334.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="118.1875" y1="0" x2="118.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="170.1875" y1="0" x2="170.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="226.5" y1="0" x2="226.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="278.5" y1="0" x2="278.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="334.8125" y1="0" x2="334.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="334.3125" height="165.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="227.25" y="142.75" width="50.5" height="22.5" fill="none" stroke="#D64541" stroke-width="1.5"/>
+<text x="74.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="144.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="198.3" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="252.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="306.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Item</text>
+<text x="125.1875" y="38.5" font-size="12.5" fill="#1F2328">빈 칸과 값 없음은 다릅니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="125.1875" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="177.1875" y="62.5" font-size="12.5" fill="#1F2328">name</text>
+<text x="233.5" y="62.5" font-size="12.5" fill="#1F2328">bonus</text>
+<text x="285.5" y="62.5" font-size="12.5" fill="#1F2328">note</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="125.1875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="177.1875" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="233.5" y="86.5" font-size="12.5" fill="#1F2328">int?</text>
+<text x="285.5" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="125.1875" y="110.5" font-size="12.5" fill="#1F2328">1001</text>
+<text x="177.1875" y="110.5" font-size="12.5" fill="#1F2328">금화</text>
+<text x="233.5" y="110.5" font-size="12.5" fill="#1F2328">5</text>
+<text x="285.5" y="110.5" font-size="12.5" fill="#1F2328">판매용</text>
+<text x="125.1875" y="134.5" font-size="12.5" fill="#1F2328">1002</text>
+<text x="233.5" y="134.5" font-size="12.5" fill="#1F2328">-</text>
+<text x="125.1875" y="158.5" font-size="12.5" fill="#1F2328">1003</text>
+<text x="177.1875" y="158.5" font-size="12.5" fill="#1F2328">물약</text>
+<text x="285.5" y="158.5" font-size="12.5" fill="#1F2328">회복</text>
+<text x="344.8125" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ 빈 문자열 · 값 없음</text>
+<text x="344.8125" y="158.0" font-size="11" fill="#B03A2E" font-style="italic">◀ ✗ 숫자 칸의 빈 칸은 오류</text>
+</svg>

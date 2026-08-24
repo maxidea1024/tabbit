@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="521" height="150" viewBox="0 0 521 150" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>enum</title>
+<rect x="0" y="0" width="353.9375" height="142" fill="#FFFFFF"/>
+<rect x="0" y="0" width="352.9375" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="142" fill="#E9ECEF"/>
+<rect x="30" y="22" width="322.9375" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="322.9375" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="121.3125" y1="22" x2="121.3125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="179.1875" y1="22" x2="179.1875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="231.1875" y1="22" x2="231.1875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="283.1875" y1="22" x2="283.1875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="352.9375" y1="22" x2="352.9375" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="352.9375" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="352.9375" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="352.9375" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="352.9375" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="352.9375" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="352.9375" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="352.9375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="121.3125" y1="0" x2="121.3125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="179.1875" y1="0" x2="179.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="231.1875" y1="0" x2="231.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="283.1875" y1="0" x2="283.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="352.9375" y1="0" x2="352.9375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="352.4375" height="141.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="75.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="150.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="205.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="257.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="318.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:enum Grade</text>
+<text x="128.3125" y="38.5" font-size="12.5" fill="#1F2328">아이템 등급입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="128.3125" y="62.5" font-size="12.5" fill="#1F2328">label</text>
+<text x="186.1875" y="62.5" font-size="12.5" fill="#1F2328">value</text>
+<text x="238.1875" y="62.5" font-size="12.5" fill="#1F2328">alias</text>
+<text x="290.1875" y="62.5" font-size="12.5" fill="#1F2328">desc</text>
+<text x="128.3125" y="86.5" font-size="12.5" fill="#1F2328">common</text>
+<text x="186.1875" y="86.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="238.1875" y="86.5" font-size="12.5" fill="#1F2328">일반</text>
+<text x="290.1875" y="86.5" font-size="12.5" fill="#1F2328">기본 등급</text>
+<text x="128.3125" y="110.5" font-size="12.5" fill="#1F2328">rare</text>
+<text x="186.1875" y="110.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="238.1875" y="110.5" font-size="12.5" fill="#1F2328">희귀</text>
+<text x="128.3125" y="134.5" font-size="12.5" fill="#1F2328">epic</text>
+<text x="186.1875" y="134.5" font-size="12.5" fill="#1F2328">3</text>
+<text x="238.1875" y="134.5" font-size="12.5" fill="#1F2328">영웅</text>
+<text x="290.1875" y="134.5" font-size="12.5" fill="#1F2328">시즌 한정</text>
+<text x="362.9375" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ 헤더 행은 이것 하나뿐</text>
+</svg>

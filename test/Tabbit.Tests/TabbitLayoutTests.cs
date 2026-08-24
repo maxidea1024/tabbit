@@ -20,7 +20,7 @@ namespace Tabbit.Tests;
 /// The equivalence gate that needs a real workbook is a separate fixture - section 15 gate 1 of
 /// the spec.
 /// </remarks>
-public class PrimaryLayoutTests
+public class TabbitLayoutTests
 {
     #region Building sheets
 
@@ -35,7 +35,7 @@ public class PrimaryLayoutTests
     {
         var sheet = new RawSheet
         {
-            Layout = new SheetLayout("primary", DuplicateIndexPolicy.Error),
+            Layout = new SheetLayout("tabbit", DuplicateIndexPolicy.Error),
             Location = new Location { Filename = "memory.xlsx", Sheet = "Data", Column = 0, Row = 0 },
         };
 

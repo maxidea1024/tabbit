@@ -57,7 +57,7 @@ namespace Tabbit.Fixtures.Core.Server
             /// <summary>
             /// fixed slot 1
             /// </summary>
-            public int[] SlotArray => _slotArray;
+            public int[] Slot => _slot;
             #endregion
 
             #region Storage
@@ -66,7 +66,7 @@ namespace Tabbit.Fixtures.Core.Server
             internal int[] _costs = System.Array.Empty<int>();
             internal float[] _weights = System.Array.Empty<float>();
             internal global::Tabbit.Fixtures.Core.Server.Grade[] _grades = System.Array.Empty<global::Tabbit.Fixtures.Core.Server.Grade>();
-            internal int[] _slotArray = System.Array.Empty<int>();
+            internal int[] _slot = System.Array.Empty<int>();
             #endregion
 
             #region ToString
@@ -78,7 +78,7 @@ namespace Tabbit.Fixtures.Core.Server
                 sb.Append(",\"Costs\":"); ToStringHelper.ToString(Costs, sb);
                 sb.Append(",\"Weights\":"); ToStringHelper.ToString(Weights, sb);
                 sb.Append(",\"Grades\":"); ToStringHelper.ToString(Grades, sb);
-                sb.Append(",\"SlotArray\":"); ToStringHelper.ToString(SlotArray, sb);
+                sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -89,7 +89,7 @@ namespace Tabbit.Fixtures.Core.Server
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "Index", "Tags", "Costs", "Weights", "Grades", "SlotArray" };
+        public static readonly string[] FieldNames = { "Index", "Tags", "Costs", "Weights", "Grades", "Slot" };
 
         /// <summary>
         /// Build object value map.
@@ -98,7 +98,7 @@ namespace Tabbit.Fixtures.Core.Server
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.Index, r.Tags, r.Costs, r.Weights, r.Grades, r.SlotArray });
+                result.Add(new object[] { r.Index, r.Tags, r.Costs, r.Weights, r.Grades, r.Slot });
 
             return result;
         }
@@ -285,17 +285,17 @@ namespace Tabbit.Fixtures.Core.Server
                         break;
 
                     case 6:
-                        TcbTable.CheckColumn(column, "ArrayTypes.Slot_array", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
-                        cursor = new TcbColumnCursor(reader, column, count, "ArrayTypes.Slot_array");
+                        TcbTable.CheckColumn(column, "ArrayTypes.Slot", TcbTable.KindArray, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        cursor = new TcbColumnCursor(reader, column, count, "ArrayTypes.Slot");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._slotArray = new int[elementCount];
+                            record._slot = new int[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._slotArray[j] = cursor.NextI32();
+                                record._slot[j] = cursor.NextI32();
                             }
                         }
                         break;

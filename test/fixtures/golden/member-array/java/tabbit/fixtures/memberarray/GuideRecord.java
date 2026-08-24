@@ -9,7 +9,7 @@ package tabbit.fixtures.memberarray;
 
 import tabbit.TcbReader;
 
-// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
 /** A record whose members are arrays, and an array of arrays beside it. */
 public final class GuideRecord {
     /** primary index */
@@ -21,7 +21,7 @@ public final class GuideRecord {
     /** a record with no number at all - still one record, members not arrays */
     public PosEntry pos = new PosEntry();
     /** scalar serial array, so both array kinds sit in one table */
-    public String[] tagArray = new String[0];
+    public String[] tag = new String[0];
     /** array of arrays: outer 1, inner 1 - neither level has a name */
     public int[][] grid = new int[2][3];
 

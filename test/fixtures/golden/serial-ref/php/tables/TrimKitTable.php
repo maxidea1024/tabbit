@@ -30,20 +30,20 @@ final class TrimKitRecord
     public int $index = 0;
     /** element 1 - the row it points at */
     /** @var list<?BitRecord> */
-    public array $slotArray = [];
+    public array $slot = [];
 
     /** @var list<int> */
-    public array $slotArrayIndex = [];
+    public array $slotIndex = [];
 
-    public array $hasSlotArrayAt = [];
+    public array $hasSlotAt = [];
     /** element 1 - the target's own value */
     /** @var list<?int> */
-    public array $tierArray = [];
+    public array $tier = [];
 
     /** @var list<int> */
-    public array $tierArrayIndex = [];
+    public array $tierIndex = [];
 
-    public array $hasTierArrayAt = [];
+    public array $hasTierAt = [];
 }
 
 /** Every row of TrimKit. */
@@ -136,46 +136,46 @@ final class TrimKitTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'TrimKit.Slot_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32], true);
+                    TcbReader::checkColumn($column, 'TrimKit.Slot', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32], true);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
                     $elementPresence = $reader->readElementPresence($column);
                     $elementAt = 0;
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'TrimKit.Slot_array');
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'TrimKit.Slot');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->slotArrayIndex = [];
-                        $record->hasSlotArrayAt = [];
+                        $record->slotIndex = [];
+                        $record->hasSlotAt = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->slotArrayIndex[] = $cursor->nextI32();
-                            $record->hasSlotArrayAt[] =
+                            $record->slotIndex[] = $cursor->nextI32();
+                            $record->hasSlotAt[] =
                                 TcbReader::isPresent($elementPresence, $elementAt++);
                         }
-                        $record->slotArray = $elementCount > 0
+                        $record->slot = $elementCount > 0
                             ? \array_fill(0, $elementCount, null)
                             : [];
                     }
                     break;
 
                 case 3:
-                    TcbReader::checkColumn($column, 'TrimKit.Tier_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32], true);
+                    TcbReader::checkColumn($column, 'TrimKit.Tier', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32], true);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
                     $elementPresence = $reader->readElementPresence($column);
                     $elementAt = 0;
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'TrimKit.Tier_array');
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'TrimKit.Tier');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->tierArrayIndex = [];
-                        $record->hasTierArrayAt = [];
+                        $record->tierIndex = [];
+                        $record->hasTierAt = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->tierArrayIndex[] = $cursor->nextI32();
-                            $record->hasTierArrayAt[] =
+                            $record->tierIndex[] = $cursor->nextI32();
+                            $record->hasTierAt[] =
                                 TcbReader::isPresent($elementPresence, $elementAt++);
                         }
-                        $record->tierArray = $elementCount > 0
+                        $record->tier = $elementCount > 0
                             ? \array_fill(0, $elementCount, null)
                             : [];
                     }

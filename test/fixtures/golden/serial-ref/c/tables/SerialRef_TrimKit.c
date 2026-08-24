@@ -59,13 +59,13 @@ static bool SerialRef_TrimKitParse(SerialRef_TrimKitTable_t* table, tb_reader* r
       break;
 
     case 2:
-      (void)tb_check_column_elements(reader, column, "TrimKit.Slot_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32), true);
+      (void)tb_check_column_elements(reader, column, "TrimKit.Slot", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32), true);
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
        * once per element of every row. spec/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);
       element_at = 0;
 
-      (void)tb_cursor_init(&cursor, reader, column, table->count, "TrimKit.Slot_array");
+      (void)tb_cursor_init(&cursor, reader, column, table->count, "TrimKit.Slot");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         SerialRef_TrimKitRecord_t* record = &table->records[row];
@@ -74,14 +74,14 @@ static bool SerialRef_TrimKitParse(SerialRef_TrimKitTable_t* table, tb_reader* r
 
         (void)tb_cursor_next_length(&cursor, &element_count);
 
-        record->slot_array_count = element_count;
-        record->slot_array = (const SerialRef_BitRecord_t**)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->slot_array);
-        record->slot_array_index = (int32_t*)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->slot_array_index);
+        record->slot_count = element_count;
+        record->slot = (const SerialRef_BitRecord_t**)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slot);
+        record->slot_index = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slot_index);
 
         if (element_count > 0
-            && (record->slot_array == NULL || record->slot_array_index == NULL))
+            && (record->slot == NULL || record->slot_index == NULL))
           return tb_fail_with(reader, "out of memory allocating an array");
 
         {
@@ -91,7 +91,7 @@ static bool SerialRef_TrimKitParse(SerialRef_TrimKitTable_t* table, tb_reader* r
           if (element_count > 0 && element_presence_out == NULL)
             return tb_fail_with(reader, "out of memory allocating an element presence array");
 
-          record->has_slot_array_at = element_presence_out;
+          record->has_slot_at = element_presence_out;
 
           for (element = 0; element < element_count; ++element)
             element_presence_out[element] = tb_is_present(element_presence, element_at + element);
@@ -100,18 +100,18 @@ static bool SerialRef_TrimKitParse(SerialRef_TrimKitTable_t* table, tb_reader* r
         element_at += element_count;
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
-          (void)tb_cursor_next_i32(&cursor, &record->slot_array_index[element]);
+          (void)tb_cursor_next_i32(&cursor, &record->slot_index[element]);
       }
       break;
 
     case 3:
-      (void)tb_check_column_elements(reader, column, "TrimKit.Tier_array", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32), true);
+      (void)tb_check_column_elements(reader, column, "TrimKit.Tier", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_I32), true);
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
        * once per element of every row. spec/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);
       element_at = 0;
 
-      (void)tb_cursor_init(&cursor, reader, column, table->count, "TrimKit.Tier_array");
+      (void)tb_cursor_init(&cursor, reader, column, table->count, "TrimKit.Tier");
 
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         SerialRef_TrimKitRecord_t* record = &table->records[row];
@@ -120,14 +120,14 @@ static bool SerialRef_TrimKitParse(SerialRef_TrimKitTable_t* table, tb_reader* r
 
         (void)tb_cursor_next_length(&cursor, &element_count);
 
-        record->tier_array_count = element_count;
-        record->tier_array = (int32_t*)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->tier_array);
-        record->tier_array_index = (int32_t*)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->tier_array_index);
+        record->tier_count = element_count;
+        record->tier = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->tier);
+        record->tier_index = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->tier_index);
 
         if (element_count > 0
-            && (record->tier_array == NULL || record->tier_array_index == NULL))
+            && (record->tier == NULL || record->tier_index == NULL))
           return tb_fail_with(reader, "out of memory allocating an array");
 
         {
@@ -137,7 +137,7 @@ static bool SerialRef_TrimKitParse(SerialRef_TrimKitTable_t* table, tb_reader* r
           if (element_count > 0 && element_presence_out == NULL)
             return tb_fail_with(reader, "out of memory allocating an element presence array");
 
-          record->has_tier_array_at = element_presence_out;
+          record->has_tier_at = element_presence_out;
 
           for (element = 0; element < element_count; ++element)
             element_presence_out[element] = tb_is_present(element_presence, element_at + element);
@@ -146,7 +146,7 @@ static bool SerialRef_TrimKitParse(SerialRef_TrimKitTable_t* table, tb_reader* r
         element_at += element_count;
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
-          (void)tb_cursor_next_i32(&cursor, &record->tier_array_index[element]);
+          (void)tb_cursor_next_i32(&cursor, &record->tier_index[element]);
       }
       break;
 

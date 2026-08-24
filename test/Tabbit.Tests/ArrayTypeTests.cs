@@ -112,8 +112,8 @@ public class ArrayTypeTests
 
         // Slot1 and Slot2 fold into one serial field, independent of the
         // delimited columns beside them.
-        Assert.Equal(new[] { 1, 2 }, Ints(rows[0], "slotArray"));
-        Assert.Equal(new[] { 5, 6 }, Ints(rows[2], "slotArray"));
+        Assert.Equal(new[] { 1, 2 }, Ints(rows[0], "slot"));
+        Assert.Equal(new[] { 5, 6 }, Ints(rows[2], "slot"));
     }
 
     /// <summary>
@@ -147,10 +147,10 @@ public class ArrayTypeTests
         // Serial, and the same three lines: one kind, one read, one allocation. No constant
         // in the page and no count in the check - the file states the length row by row, so
         // a sheet that grew a column is read by code generated before it.
-        Assert.DoesNotContain("SlotArray_N", cs);
+        Assert.DoesNotContain("Slot_N", cs);
         Assert.DoesNotContain("column.Count", cs);
-        Assert.Contains("record._slotArray = new int[elementCount];", cs);
-        Assert.Contains("\"ArrayTypes.Slot_array\", TcbTable.KindArray", cs);
+        Assert.Contains("record._slot = new int[elementCount];", cs);
+        Assert.Contains("\"ArrayTypes.Slot\", TcbTable.KindArray", cs);
 
         string ts = File.ReadAllText(
             Path.Combine(RepoLayout.OutputDir("core"), "typescript", "tables", "array-types.ts"));
@@ -159,7 +159,7 @@ public class ArrayTypeTests
         Assert.Contains("grades: Grade[]", ts);
         // Compact rows keep a delimited array as one entry and flatten a serial one.
         Assert.Contains("this._tags = dataRow[offset++]", ts);
-        Assert.Contains("this._slotArray = dataRow.slice(offset, offset + 2)", ts);
+        Assert.Contains("this._slot = dataRow.slice(offset, offset + 2)", ts);
     }
 
     /// <summary>
@@ -173,7 +173,7 @@ public class ArrayTypeTests
         var result = TabbitRunner.Convert("array-foreign");
 
         Assert.False(result.Succeeded, "`foreign[]` was accepted.");
-        Assert.Contains("`foreign[]` is not supported", result.StdOut);
-        Assert.Contains("serial field", result.StdOut);
+        Assert.Contains("is typed as an array of references", result.StdOut);
+        Assert.Contains("numbered columns", result.StdOut);
     }
 }

@@ -56,7 +56,7 @@ assert rows[0].pos.x == 1.5 and rows[0].pos.y == -2.5, rows[0].pos
 assert rows[0].slot[0].id == 10 and rows[0].slot[0].label == 'sword', rows[0].slot[0]
 assert rows[0].slot[1].id == 11 and rows[0].slot[1].label == 'shield', rows[0].slot[1]
 assert rows[2].slot[0].label == '', rows[2].slot[0]
-assert rows[0].tag_array == ['a', 'b'], rows[0].tag_array
+assert rows[0].tag == ['a', 'b'], rows[0].tag
 ");
 
     /// <summary>
@@ -90,7 +90,7 @@ assert rows[0].skill.step == [10, 11], rows[0].skill.step
 assert rows[0].skill.order == ['a', 'b'], rows[0].skill.order
 assert rows[1].skill.step == [20, 21], rows[1].skill.step
 assert rows[0].pos.x == 1.5, rows[0].pos
-assert rows[0].tag_array == ['t1', 't2'], rows[0].tag_array
+assert rows[0].tag == ['t1', 't2'], rows[0].tag
 assert rows[0].grid == [[1, 2, 3], [4, 5, 6]], rows[0].grid
 assert rows[1].grid == [[7, 8, 9], [10, 11, 12]], rows[1].grid
 ");
@@ -190,18 +190,18 @@ assert t.kit.records[1].part[0].item_id.name == 'shield', t.kit.records[1].part[
 t = Tables()
 t.read_all(sys.argv[1])
 rows = t.kit.records
-assert [len(r.slot_array) for r in rows] == [2, 2, 2]
-assert rows[0].slot_array[0].name == 'sword'
-assert rows[0].slot_array[1].name == 'shield'
-assert rows[1].slot_array[0].name == 'ring'
-assert rows[2].slot_array[1] is None
-assert rows[0].tier_array == [3, 5]
-assert rows[2].tier_array[1] is None
+assert [len(r.slot) for r in rows] == [2, 2, 2]
+assert rows[0].slot[0].name == 'sword'
+assert rows[0].slot[1].name == 'shield'
+assert rows[1].slot[0].name == 'ring'
+assert rows[2].slot[1] is None
+assert rows[0].tier == [3, 5]
+assert rows[2].tier[1] is None
 trimmed = t.trim_kit.records
-assert [len(r.slot_array) for r in trimmed] == [3, 2, 0]
-assert trimmed[0].slot_array[2].name == 'ring'
-assert trimmed[1].slot_array[0].name == 'ring'
-assert trimmed[0].tier_array[2] == 8
+assert [len(r.slot) for r in trimmed] == [3, 2, 0]
+assert trimmed[0].slot[2].name == 'ring'
+assert trimmed[1].slot[0].name == 'ring'
+assert trimmed[0].tier[2] == 8
 ");
 
     /// <summary>

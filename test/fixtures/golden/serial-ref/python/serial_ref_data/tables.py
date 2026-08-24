@@ -103,20 +103,20 @@ class Tables:
         load being read rather than the one already published.
         """
         for record in kit.records:
-            for position, index in enumerate(record.slot_array_index):
+            for position, index in enumerate(record.slot_index):
                 target = piece.find_by_index(index)
                 if target is not None:
-                    record.slot_array[position] = target
-            for position, index in enumerate(record.tier_array_index):
+                    record.slot[position] = target
+            for position, index in enumerate(record.tier_index):
                 target = piece.find_by_index(index)
                 if target is not None:
-                    record.tier_array[position] = target.tier
+                    record.tier[position] = target.tier
         for record in trim_kit.records:
-            for position, index in enumerate(record.slot_array_index):
+            for position, index in enumerate(record.slot_index):
                 target = bit.find_by_index(index)
                 if target is not None:
-                    record.slot_array[position] = target
-            for position, index in enumerate(record.tier_array_index):
+                    record.slot[position] = target
+            for position, index in enumerate(record.tier_index):
                 target = bit.find_by_index(index)
                 if target is not None:
-                    record.tier_array[position] = target.tier
+                    record.tier[position] = target.tier

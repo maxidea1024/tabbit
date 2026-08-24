@@ -335,23 +335,23 @@ bool FKitTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Slot_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
-            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Slot_array"));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Slot"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Slot"));
 
             for (FKitRow& Record : Loaded)
             {
-                Cursor.NextAs(Column.Element, Record.SlotArray);
+                Cursor.NextAs(Column.Element, Record.Slot);
             }
 
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Tier_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
-            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Tier_array"));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Kit.Tier"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Kit.Tier"));
 
             for (FKitRow& Record : Loaded)
             {
-                Cursor.NextAs(Column.Element, Record.TierArray);
+                Cursor.NextAs(Column.Element, Record.Tier);
             }
 
             break;
@@ -719,31 +719,31 @@ bool FTrimKitTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Slot_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Slot"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
             ElementAt = 0;
-            Cursor.Open(Reader, Column, Header.RowCount, TEXT("TrimKit.Slot_array"));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("TrimKit.Slot"));
 
             for (FTrimKitRow& Record : Loaded)
             {
-                Cursor.NextAs(Column.Element, Record.SlotArray);
+                Cursor.NextAs(Column.Element, Record.Slot);
             }
 
             break;
 
         case 3:
-            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Tier_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Tier"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
             ElementAt = 0;
-            Cursor.Open(Reader, Column, Header.RowCount, TEXT("TrimKit.Tier_array"));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("TrimKit.Tier"));
 
             for (FTrimKitRow& Record : Loaded)
             {
-                Cursor.NextAs(Column.Element, Record.TierArray);
+                Cursor.NextAs(Column.Element, Record.Tier);
             }
 
             break;

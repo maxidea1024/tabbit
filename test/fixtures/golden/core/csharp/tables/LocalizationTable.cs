@@ -42,19 +42,19 @@ namespace Tabbit.Fixtures.Core
             /// <summary>
             /// english text 1
             /// </summary>
-            public string[] TextEnArray => _textEnArray;
+            public string[] TextEn => _textEn;
 
             /// <summary>
             /// korean text 1
             /// </summary>
-            public string[] TextKoArray => _textKoArray;
+            public string[] TextKo => _textKo;
             #endregion
 
             #region Storage
             internal int _index;
             internal string _key = "";
-            internal string[] _textEnArray = System.Array.Empty<string>();
-            internal string[] _textKoArray = System.Array.Empty<string>();
+            internal string[] _textEn = System.Array.Empty<string>();
+            internal string[] _textKo = System.Array.Empty<string>();
             #endregion
 
             #region ToString
@@ -63,8 +63,8 @@ namespace Tabbit.Fixtures.Core
                 var sb = new StringBuilder("{");
                 sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
                 sb.Append(",\"Key\":"); ToStringHelper.ToString(Key, sb);
-                sb.Append(",\"TextEnArray\":"); ToStringHelper.ToString(TextEnArray, sb);
-                sb.Append(",\"TextKoArray\":"); ToStringHelper.ToString(TextKoArray, sb);
+                sb.Append(",\"TextEn\":"); ToStringHelper.ToString(TextEn, sb);
+                sb.Append(",\"TextKo\":"); ToStringHelper.ToString(TextKo, sb);
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -75,7 +75,7 @@ namespace Tabbit.Fixtures.Core
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "Index", "Key", "TextEnArray", "TextKoArray" };
+        public static readonly string[] FieldNames = { "Index", "Key", "TextEn", "TextKo" };
 
         /// <summary>
         /// Build object value map.
@@ -84,7 +84,7 @@ namespace Tabbit.Fixtures.Core
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.Index, r.Key, r.TextEnArray, r.TextKoArray });
+                result.Add(new object[] { r.Index, r.Key, r.TextEn, r.TextKo });
 
             return result;
         }
@@ -222,33 +222,33 @@ namespace Tabbit.Fixtures.Core
                         break;
 
                     case 3:
-                        TcbTable.CheckColumn(column, "Localization.TextEn_array", TcbTable.KindArray, false, TcbTable.ElementString);
-                        cursor = new TcbColumnCursor(reader, column, count, "Localization.TextEn_array");
+                        TcbTable.CheckColumn(column, "Localization.TextEn", TcbTable.KindArray, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "Localization.TextEn");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._textEnArray = new string[elementCount];
+                            record._textEn = new string[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._textEnArray[j] = cursor.NextString();
+                                record._textEn[j] = cursor.NextString();
                             }
                         }
                         break;
 
                     case 4:
-                        TcbTable.CheckColumn(column, "Localization.TextKo_array", TcbTable.KindArray, false, TcbTable.ElementString);
-                        cursor = new TcbColumnCursor(reader, column, count, "Localization.TextKo_array");
+                        TcbTable.CheckColumn(column, "Localization.TextKo", TcbTable.KindArray, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "Localization.TextKo");
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._textKoArray = new string[elementCount];
+                            record._textKo = new string[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._textKoArray[j] = cursor.NextString();
+                                record._textKo[j] = cursor.NextString();
                             }
                         }
                         break;

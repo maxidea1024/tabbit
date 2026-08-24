@@ -9,8 +9,7 @@
   "Sources": {
     "Xlsx": [
       {
-        "Path": "test/fixtures/xlsx/core",
-        "FoldSerialFields": true
+        "Path": "test/fixtures/xlsx/core"
       }
     ]
   },

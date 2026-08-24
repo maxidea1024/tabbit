@@ -18,8 +18,8 @@ namespace Tabbit.Tests;
 ///
 /// Both forms of a reference are in the fixture, because they resolve to different types:
 ///
-///   slotArray  `foreign` at `Piece`       resolves to the row
-///   tierArray  `foreign` at `Piece.Tier`  resolves to one of that row's values
+///   slot  `foreign` at `Piece`       resolves to the row
+///   tier  `foreign` at `Piece.Tier`  resolves to one of that row's values
 ///
 /// spec/nullable-array-elements.md · spec/references-in-records.md.
 /// </remarks>
@@ -49,12 +49,12 @@ public class SerialReferenceTests
         var rows = JsonDocument.Parse(File.ReadAllText(Path.Combine(
             RepoLayout.OutputDir(Scenario), "json-named", "Kit.json"))).RootElement;
 
-        Assert.Equal(new[] { 1, 2 }, rows[0].GetProperty("slotArray")
+        Assert.Equal(new[] { 1, 2 }, rows[0].GetProperty("slot")
             .EnumerateArray().Select(x => x.GetInt32()).ToArray());
 
         // A written zero stays one. It is the convention for "points at nothing", so the
         // export may not turn it into an absence.
-        Assert.Equal(new[] { 2, 0 }, rows[2].GetProperty("slotArray")
+        Assert.Equal(new[] { 2, 0 }, rows[2].GetProperty("slot")
             .EnumerateArray().Select(x => x.GetInt32()).ToArray());
     }
 
@@ -80,9 +80,9 @@ public class SerialReferenceTests
         string cs = File.ReadAllText(Path.Combine(
             RepoLayout.OutputDir(Scenario), "csharp", "tables", "KitTable.cs"));
 
-        Assert.Contains("record._slotArray = new PieceTable.Record[elementCount];", cs);
-        Assert.Contains("record._slotArray_Piece_index = new int[elementCount];", cs);
-        Assert.Contains("record._slotArray_F = new bool[elementCount];", cs);
+        Assert.Contains("record._slot = new PieceTable.Record[elementCount];", cs);
+        Assert.Contains("record._slot_Piece_index = new int[elementCount];", cs);
+        Assert.Contains("record._slot_F = new bool[elementCount];", cs);
 
         // And no length in the check: the shape is the kind, and the length is the row's.
         // spec/tcb-v107-dynamic-arrays.md.
@@ -93,13 +93,13 @@ public class SerialReferenceTests
             RepoLayout.OutputDir(Scenario), "csharp", "SerialRefAccessor.cs"));
 
         Assert.Contains(
-            "for (int i = 0; i < record._slotArray_Piece_index.Length; i++)", accessor);
+            "for (int i = 0; i < record._slot_Piece_index.Length; i++)", accessor);
 
         string ts = File.ReadAllText(Path.Combine(
             RepoLayout.OutputDir(Scenario), "typescript", "tables.ts"));
 
         Assert.Contains(
-            "for (let i = 0; i < record._slotArray_Piece_index.length; i++)", ts);
+            "for (let i = 0; i < record._slot_Piece_index.length; i++)", ts);
     }
 
     /// <summary>

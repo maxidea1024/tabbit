@@ -7,8 +7,8 @@
 
 
 module MultiTarget
-  # Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : C7
-  # Which table `Loadout.Slot1Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
+  # Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : D4
+  # Which table `Loadout.Slot0Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
   module LoadoutSlotPickTarget
     # No row of any of them.
     NONE = 0

@@ -12,9 +12,9 @@ from . import tabbit
 
 
 class RackSlotsPickTarget(enum.IntEnum):
-    """Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : S7.
+    """Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : T4.
 
-    Which table `Rack.SlotsPick1` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
+    Which table `Rack.SlotsPick0` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
     """
     # No row of any of them.
     none = 0

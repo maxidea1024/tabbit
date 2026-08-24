@@ -10,7 +10,6 @@
     "Xlsx": [
       {
         "Path": "test/fixtures/xlsx/core",
-        "FoldSerialFields": true,
         "ExcludeSheets": ["[somewhere-else.xlsx]Serial"]
       }
     ]

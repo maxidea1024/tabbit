@@ -119,35 +119,35 @@ public final class Tables {
     /// this resolves the load being read rather than the one already published.
     private static func solveCrossReferences(piece: PieceTable, kit: KitTable, bit: BitTable, trimKit: TrimKitTable) {
         for record in kit.records {
-            record.slotArray = []
-            record.slotArray.reserveCapacity(record.slotArrayIndex.count)
+            record.slot = []
+            record.slot.reserveCapacity(record.slotIndex.count)
 
-            for index in record.slotArrayIndex {
+            for index in record.slotIndex {
                 guard let target = piece.findByIndex(index) else { continue }
-                record.slotArray.append(target)
+                record.slot.append(target)
             }
-            record.tierArray = []
-            record.tierArray.reserveCapacity(record.tierArrayIndex.count)
+            record.tier = []
+            record.tier.reserveCapacity(record.tierIndex.count)
 
-            for index in record.tierArrayIndex {
+            for index in record.tierIndex {
                 guard let target = piece.findByIndex(index) else { continue }
-                record.tierArray.append(target.tier)
+                record.tier.append(target.tier)
             }
         }
         for record in trimKit.records {
-            record.slotArray = []
-            record.slotArray.reserveCapacity(record.slotArrayIndex.count)
+            record.slot = []
+            record.slot.reserveCapacity(record.slotIndex.count)
 
-            for index in record.slotArrayIndex {
+            for index in record.slotIndex {
                 guard let target = bit.findByIndex(index) else { continue }
-                record.slotArray.append(target)
+                record.slot.append(target)
             }
-            record.tierArray = []
-            record.tierArray.reserveCapacity(record.tierArrayIndex.count)
+            record.tier = []
+            record.tier.reserveCapacity(record.tierIndex.count)
 
-            for index in record.tierArrayIndex {
+            for index in record.tierIndex {
                 guard let target = bit.findByIndex(index) else { continue }
-                record.tierArray.append(target.tier)
+                record.tier.append(target.tier)
             }
         }
     }

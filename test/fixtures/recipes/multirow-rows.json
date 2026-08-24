@@ -14,8 +14,7 @@
   "Sources": {
     "Xlsx": [
       {
-        "Path": "test/fixtures/xlsx/multirow-rows",
-        "Layout": "primary"
+        "Path": "test/fixtures/xlsx/multirow-rows"
       }
     ]
   },

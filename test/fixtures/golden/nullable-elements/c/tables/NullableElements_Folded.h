@@ -25,11 +25,11 @@ struct NullableElements_FoldedRecord_t {
   /* primary index */
   int32_t index;
   /* element 1 - and the group's answer */
-  const char** tag_array;
-  int32_t tag_array_count;
-  /* Which of tag_array's elements have a value, one bool per element, or NULL where
+  const char** tag;
+  int32_t tag_count;
+  /* Which of tag's elements have a value, one bool per element, or NULL where
    * the file did not carry the column. spec/nullable-array-elements.md. */
-  const bool* has_tag_array_at;
+  const bool* has_tag_at;
 };
 
 /* Every row of Folded.

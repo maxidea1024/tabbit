@@ -18,7 +18,7 @@
 #include "FMemberArray.generated.h"
 
 
-// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+// Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
 /** One element of FGuideRow::Skill. */
 USTRUCT(BlueprintType)
 struct MEMBERARRAY_API FGuideSkillEntry
@@ -75,7 +75,7 @@ struct MEMBERARRAY_API FGuideRow
 
     /** scalar serial array, so both array kinds sit in one table */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Guide")
-    TArray<FString> TagArray;
+    TArray<FString> Tag;
 
     /** array of arrays: outer 1, inner 1 - neither level has a name */
     // No UPROPERTY: Unreal's header tool has no nested container property, so an array of arrays cannot be one. It is still read and still holds its values.

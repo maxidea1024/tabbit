@@ -487,12 +487,12 @@ bool FFoldedTable::Read(const FString& Filename)
             break;
 
         case 2:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Folded.Tag_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Folded.Tag"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
             // Behind the row bitmap and in front of the values, walked with a counter that
             // steps once per element of every row. spec/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
             ElementAt = 0;
-            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Folded.Tag_array"));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Folded.Tag"));
 
             for (FFoldedRow& Record : Loaded)
             {
@@ -501,18 +501,18 @@ bool FFoldedTable::Read(const FString& Filename)
 
                 // Bounded, because the count came out of the file. The array grows past
                 // this if the elements really are there.
-                Record.TagArray.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Tag.Empty(Tabbit::ReserveBound(ElementCount));
 
-                while (Record.TagArray.Num() < ElementCount && !Reader.HasFailed())
+                while (Record.Tag.Num() < ElementCount && !Reader.HasFailed())
                 {
-                    Cursor.NextAs(Column.Element, Record.TagArray.AddDefaulted_GetRef());
+                    Cursor.NextAs(Column.Element, Record.Tag.AddDefaulted_GetRef());
                 }
-                Record.bHasTagArrayAt.Empty(
+                Record.bHasTagAt.Empty(
                     Tabbit::ReserveBound(ElementCount));
 
                 for (int32 ElementIndex = 0; ElementIndex < ElementCount; ++ElementIndex)
                 {
-                    Record.bHasTagArrayAt.Add(
+                    Record.bHasTagAt.Add(
                         Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
                 }
 

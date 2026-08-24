@@ -165,25 +165,6 @@ public class Table
     public required string Comment { get; set; }
 
     /// <summary>
-    /// Whether consecutively numbered columns fold into one array-valued entry.
-    /// </summary>
-    /// <remarks>
-    /// Off unless a recipe entry asked for it, and off is the default because a number in a
-    /// column name does not say whether it means an array. `Text1`/`Text2` usually do mean one
-    /// array of two; `Condition_1`, `Condition_2` and `Condition_3` of one real workbook are
-    /// three different enums, and folding them is not a nicer API but a wrong one.
-    ///
-    /// Being wrong is quiet, which is why the author has to say. A folded group takes a name
-    /// the sheet never used - `Text_array` - and several fields become one, so a consumer
-    /// reads an array where the author wrote separate things.
-    ///
-    /// A layout whose sheets have no such convention never turns it on, whatever the recipe
-    /// says: there is nothing there for the rule to be right about.
-    /// </remarks>
-    [JsonIgnore]
-    public bool FoldSerialFields { get; set; }
-
-    /// <summary>
     /// The fields as the exporters and generators see them, with consecutively
     /// numbered columns folded into single array-valued entries.
     ///
@@ -210,9 +191,7 @@ public class Table
                 // read this while running beside each other - so what would have been an
                 // odd ordering becomes a column that is optional in one target's output and
                 // required in another's. spec/conversion-time.md section 5.
-                var groups = FoldSerialFields
-                    ? BuildSerialFieldsFromPlainFields(Fields)
-                    : BuildRecordGroupsOnly(Fields);
+                var groups = BuildRecordGroupsOnly(Fields);
 
                 foreach (var group in groups)
                     TakeRequirednessFromFirstElement(group);
@@ -230,7 +209,7 @@ public class Table
     /// </summary>
     /// <remarks>
     /// Off unless a recipe entry asked for it, for the same reason as
-    /// <see cref="FoldSerialFields"/>: turning it on makes arrays shorter, and shorter is
+    /// Turning it on makes arrays shorter, and shorter is
     /// quiet. A consumer indexing `Slot[2]` finds it missing on some rows and present on
     /// others, which is exactly what the feature is for and not something to be given by
     /// surprise.
@@ -576,52 +555,6 @@ public class Table
 
 
     #region Serial Fields
-
-    /// <summary>
-    /// Folds consecutively numbered columns into array-valued groups.
-    ///
-    /// Each unclaimed field opens a group, and every later field that shares its stem
-    /// and numbering pattern joins it - so the columns of a group need not be adjacent
-    /// in the sheet.
-    /// </summary>
-    private List<SerialField> BuildSerialFieldsFromPlainFields(List<Field> fields)
-    {
-        var result = new List<SerialField>();
-
-        var visits = new bool[fields.Count];
-        for (int i = 0; i < visits.Length; i++)
-            visits[i] = false;
-
-        for (int i = 0; i < fields.Count; i++)
-        {
-            if (visits[i])
-                continue;
-
-            // A record group claims its columns by name rather than by the serial-number
-            // rules, so it is decided first and separately. The two cannot be confused:
-            // only the `Group.Member` notation produces a record member, and a name with
-            // a `.` in it was an error before that notation existed.
-            if (fields[i].IsRecordMember)
-            {
-                result.Add(BuildRecordField(fields, i, visits));
-                continue;
-            }
-
-            var serialField = BeginSerialField(fields, i);
-            if (serialField is null)
-                continue;
-
-            for (int j = i + 1; j < fields.Count; j++)
-            {
-                if (NextSerialField(serialField, fields, j))
-                    visits[j] = true;
-            }
-
-            result.Add(serialField);
-        }
-
-        return result;
-    }
 
     /// <summary>
     /// Collects every column of one record group into a single entry.

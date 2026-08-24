@@ -43,8 +43,8 @@ end
 ---@field name string
 ---@field slot LootSlotEntry[]
 ---@field pos LootPosEntry
----@field tagArray string[]
-local LootRecordMeta = tcb.strictType("a `Loot` row", { "index", "name", "slot", "pos", "tagArray" })
+---@field tag string[]
+local LootRecordMeta = tcb.strictType("a `Loot` row", { "index", "name", "slot", "pos", "tag" })
 
 ---@return LootRecord
 local function newLootRecord()
@@ -53,7 +53,7 @@ local function newLootRecord()
     name = "",
     slot = {},
     pos = newLootPosEntry(),
-    tagArray = {},
+    tag = {},
   }, LootRecordMeta)
 end
 
@@ -224,8 +224,8 @@ function LootTable:readBytes(data)
         at = at + n
       end
     elseif column.tag == 8 then
-      tcb.checkColumn(column, "Loot.Tag_array", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
-      local cursor = tcb.newCursor(reader, column, count, "Loot.Tag_array")
+      tcb.checkColumn(column, "Loot.Tag", tcb.KIND_ARRAY, false, { tcb.ELEMENT_STRING })
+      local cursor = tcb.newCursor(reader, column, count, "Loot.Tag")
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
@@ -235,7 +235,7 @@ function LootTable:readBytes(data)
           values[element] = cursor:nextString()
         end
 
-        record.tagArray = values
+        record.tag = values
       end
     else
       -- A column added after this code was generated.

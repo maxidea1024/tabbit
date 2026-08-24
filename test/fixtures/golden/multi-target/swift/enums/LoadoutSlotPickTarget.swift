@@ -7,8 +7,8 @@
 
 import Foundation
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : C7
-/// Which table `Loadout.Slot1Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : D4
+/// Which table `Loadout.Slot0Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 public enum LoadoutSlotPickTarget: Int32, CaseIterable, Sendable {
     /// No row of any of them.
     case none = 0

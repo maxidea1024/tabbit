@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// HolderPickTarget was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : C7.
+// HolderPickTarget was generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Holders : D4.
 // Which table `Holder.Pick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 type HolderPickTarget int32
 

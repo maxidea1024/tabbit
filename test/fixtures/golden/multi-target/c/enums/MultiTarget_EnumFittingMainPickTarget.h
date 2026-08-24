@@ -9,7 +9,7 @@
 #ifndef MULTI_TARGET_ENUM_FITTING_MAIN_PICK_TARGET_H
 #define MULTI_TARGET_ENUM_FITTING_MAIN_PICK_TARGET_H
 
-/* Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : K7
+/* Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : L4
  *
  * Which table `Fitting.MainPick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
  */

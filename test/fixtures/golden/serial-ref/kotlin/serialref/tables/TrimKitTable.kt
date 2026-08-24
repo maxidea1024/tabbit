@@ -41,21 +41,21 @@ class TrimKitRecord {
     /** primary index */
     var index: Int = 0
     /** element 1 - the row it points at */
-    var slotArray: MutableList<BitRecord> = ArrayList()
-    var slotArrayIndex: MutableList<Int> = ArrayList()
+    var slot: MutableList<BitRecord> = ArrayList()
+    var slotIndex: MutableList<Int> = ArrayList()
     /**
-     * Which of slotArray's elements have a value. Empty where the file did not carry
+     * Which of slot's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      */
-    var hasSlotArrayAt: MutableList<Boolean> = mutableListOf()
+    var hasSlotAt: MutableList<Boolean> = mutableListOf()
     /** element 1 - the target's own value */
-    var tierArray: MutableList<Int> = ArrayList()
-    var tierArrayIndex: MutableList<Int> = ArrayList()
+    var tier: MutableList<Int> = ArrayList()
+    var tierIndex: MutableList<Int> = ArrayList()
     /**
-     * Which of tierArray's elements have a value. Empty where the file did not carry
+     * Which of tier's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      */
-    var hasTierArrayAt: MutableList<Boolean> = mutableListOf()
+    var hasTierAt: MutableList<Boolean> = mutableListOf()
 
 }
 
@@ -139,42 +139,42 @@ class TrimKitTable {
                     }
                 }
                 2 -> {
-                    checkColumnWithElements(column, "TrimKit.Slot_array", KIND_ARRAY, false, ELEMENT_I32)
+                    checkColumnWithElements(column, "TrimKit.Slot", KIND_ARRAY, false, ELEMENT_I32)
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
                     val elementPresence = readElementPresence(reader, column)
                     var elementAt = 0
-                    val cursor = ColumnCursor(reader, column, count, "TrimKit.Slot_array")
+                    val cursor = ColumnCursor(reader, column, count, "TrimKit.Slot")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.slotArrayIndex = ArrayList(elementCount.coerceAtLeast(0))
-                        record.hasSlotArrayAt =
+                        record.slotIndex = ArrayList(elementCount.coerceAtLeast(0))
+                        record.hasSlotAt =
                             ArrayList(elementCount.coerceAtLeast(0))
                         repeat(elementCount) {
-                            record.slotArrayIndex.add(cursor.nextI32())
-                            record.hasSlotArrayAt
+                            record.slotIndex.add(cursor.nextI32())
+                            record.hasSlotAt
                                 .add(isPresent(elementPresence, elementAt))
                             elementAt++
                         }
                     }
                 }
                 3 -> {
-                    checkColumnWithElements(column, "TrimKit.Tier_array", KIND_ARRAY, false, ELEMENT_I32)
+                    checkColumnWithElements(column, "TrimKit.Tier", KIND_ARRAY, false, ELEMENT_I32)
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
                     val elementPresence = readElementPresence(reader, column)
                     var elementAt = 0
-                    val cursor = ColumnCursor(reader, column, count, "TrimKit.Tier_array")
+                    val cursor = ColumnCursor(reader, column, count, "TrimKit.Tier")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.tierArrayIndex = ArrayList(elementCount.coerceAtLeast(0))
-                        record.hasTierArrayAt =
+                        record.tierIndex = ArrayList(elementCount.coerceAtLeast(0))
+                        record.hasTierAt =
                             ArrayList(elementCount.coerceAtLeast(0))
                         repeat(elementCount) {
-                            record.tierArrayIndex.add(cursor.nextI32())
-                            record.hasTierArrayAt
+                            record.tierIndex.add(cursor.nextI32())
+                            record.hasTierAt
                                 .add(isPresent(elementPresence, elementAt))
                             elementAt++
                         }

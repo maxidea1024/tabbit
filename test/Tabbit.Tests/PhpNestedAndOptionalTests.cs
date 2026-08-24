@@ -34,7 +34,7 @@ assert($rows[0]->pos->x === 1.5 && $rows[0]->pos->y === -2.5);
 assert($rows[0]->slot[0]->id === 10 && $rows[0]->slot[0]->label === 'sword');
 assert($rows[0]->slot[1]->id === 11 && $rows[0]->slot[1]->label === 'shield');
 assert($rows[2]->slot[0]->label === '');
-assert($rows[0]->tagArray === ['a', 'b']);
+assert($rows[0]->tag === ['a', 'b']);
 ");
 
     /// <summary>
@@ -82,7 +82,7 @@ assert($rows[0]->skill->step === [10, 11]);
 assert($rows[0]->skill->order === ['a', 'b']);
 assert($rows[1]->skill->step === [20, 21]);
 assert($rows[0]->pos->x === 1.5);
-assert($rows[0]->tagArray === ['t1', 't2']);
+assert($rows[0]->tag === ['t1', 't2']);
 assert($rows[0]->grid === [[1, 2, 3], [4, 5, 6]]);
 assert($rows[1]->grid === [[7, 8, 9], [10, 11, 12]]);
 ");
@@ -178,13 +178,13 @@ assert($accessor->kit->records[1]->part[0]->itemId->name === 'shield');
     public void An_array_of_references_reads()
         => AssertReads("serial-ref", "SerialRefAccessor", @"
 $rows = $accessor->kit->records;
-assert(array_map(fn($r) => count($r->slotArray), $rows) === [2, 2, 2]);
-assert($rows[0]->slotArray[0]->name === 'sword');
-assert($rows[0]->slotArray[1]->name === 'shield');
-assert($rows[1]->slotArray[0]->name === 'ring');
-assert($rows[2]->slotArray[1] === null);
-assert($rows[0]->tierArray === [3, 5]);
-assert($rows[2]->tierArray[1] === null);
+assert(array_map(fn($r) => count($r->slot), $rows) === [2, 2, 2]);
+assert($rows[0]->slot[0]->name === 'sword');
+assert($rows[0]->slot[1]->name === 'shield');
+assert($rows[1]->slot[0]->name === 'ring');
+assert($rows[2]->slot[1] === null);
+assert($rows[0]->tier === [3, 5]);
+assert($rows[2]->tier[1] === null);
 ");
 
     /// <summary>

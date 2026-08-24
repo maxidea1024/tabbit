@@ -12,14 +12,14 @@ module SerialRef
   # Generated from test/fixtures/xlsx/serial-ref/serial-ref.xlsx : Refs : J2
   # Numbered reference columns, folded into arrays.
   class KitRecord
-    attr_accessor :index, :slot_array, :slot_array_index, :tier_array, :tier_array_index
+    attr_accessor :index, :slot, :slot_index, :tier, :tier_index
 
     def initialize
       @index = 0
-      @slot_array = []
-      @slot_array_index = []
-      @tier_array = []
-      @tier_array_index = []
+      @slot = []
+      @slot_index = []
+      @tier = []
+      @tier_index = []
     end
 
   end
@@ -98,20 +98,20 @@ module SerialRef
             at += n
           end
         when 2
-          Tabbit.check_column(column, 'Kit.Slot_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Slot_array')
+          Tabbit.check_column(column, 'Kit.Slot', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Slot')
           records.each do |record|
             element_count = cursor.next_length
-            record.slot_array_index = Array.new(element_count) { cursor.next_i32 }
-            record.slot_array = Array.new(element_count)
+            record.slot_index = Array.new(element_count) { cursor.next_i32 }
+            record.slot = Array.new(element_count)
           end
         when 3
-          Tabbit.check_column(column, 'Kit.Tier_array', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])
-          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Tier_array')
+          Tabbit.check_column(column, 'Kit.Tier', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Tier')
           records.each do |record|
             element_count = cursor.next_length
-            record.tier_array_index = Array.new(element_count) { cursor.next_i32 }
-            record.tier_array = Array.new(element_count)
+            record.tier_index = Array.new(element_count) { cursor.next_i32 }
+            record.tier = Array.new(element_count)
           end
         else
           # A column added after this code was generated.

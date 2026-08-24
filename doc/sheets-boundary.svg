@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="803" height="174" viewBox="0 0 803 174" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>엔티티의 경계</title>
+<rect x="0" y="0" width="574.0" height="166" fill="#FFFFFF"/>
+<rect x="0" y="0" width="573.0" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="166" fill="#E9ECEF"/>
+<rect x="30" y="22" width="543.0" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="543.0" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="543.0" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="118.1875" y1="22" x2="118.1875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="355.1875" y1="22" x2="355.1875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="411.5" y1="22" x2="411.5" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="464.6875" y1="22" x2="464.6875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="516.6875" y1="22" x2="516.6875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="573.0" y1="22" x2="573.0" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="573.0" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="573.0" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="573.0" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="573.0" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="573.0" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="573.0" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="573.0" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="573.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="118.1875" y1="0" x2="118.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="355.1875" y1="0" x2="355.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="411.5" y1="0" x2="411.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="464.6875" y1="0" x2="464.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="516.6875" y1="0" x2="516.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="573.0" y1="0" x2="573.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="572.5" height="165.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="74.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="236.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="383.3" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="438.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="490.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="544.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">F</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Item</text>
+<text x="125.1875" y="38.5" font-size="12.5" fill="#1F2328">왼쪽 테이블입니다.</text>
+<text x="418.5" y="38.5" font-size="12.5" fill="#1F2328">:table Hero</text>
+<text x="471.6875" y="38.5" font-size="12.5" fill="#1F2328">오른쪽 테이블입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="125.1875" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="362.1875" y="62.5" font-size="12.5" fill="#1F2328">name</text>
+<text x="418.5" y="62.5" font-size="12.5" fill="#1F2328">:field</text>
+<text x="471.6875" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="523.6875" y="62.5" font-size="12.5" fill="#1F2328">name</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="125.1875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="362.1875" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="418.5" y="86.5" font-size="12.5" fill="#1F2328">:type</text>
+<text x="471.6875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="523.6875" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="125.1875" y="110.5" font-size="12.5" fill="#1F2328">1001</text>
+<text x="362.1875" y="110.5" font-size="12.5" fill="#1F2328">금화</text>
+<text x="471.6875" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="523.6875" y="110.5" font-size="12.5" fill="#1F2328">전사</text>
+<text x="125.1875" y="158.5" font-size="12.5" fill="#1F2328">여기서부터는 아무것도 읽지 않습니다.</text>
+<text x="583.0" y="38.0" font-size="11" fill="#8A929B" font-style="italic">◀ 각자 자기 마커 열에서 시작</text>
+<text x="583.0" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ 완전히 빈 행 — 두 엔티티가 끝남</text>
+</svg>

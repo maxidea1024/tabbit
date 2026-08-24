@@ -40,7 +40,7 @@ final class GuidePosEntry
 }
 
 /**
- * Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B3
+ * Generated from test/fixtures/xlsx/member-array/member-array.xlsx : MemberArray : B2
  *
  * A record whose members are arrays, and an array of arrays beside it.
  */
@@ -56,7 +56,7 @@ final class GuideRecord
     public GuidePosEntry $pos;
     /** scalar serial array, so both array kinds sit in one table */
     /** @var list<string> */
-    public array $tagArray = [];
+    public array $tag = [];
     /** array of arrays: outer 1, inner 1 - neither level has a name */
     /** @var list<list<int>> */
     public array $grid = [];
@@ -219,20 +219,20 @@ final class GuideTable
                     break;
 
                 case 7:
-                    TcbReader::checkColumn($column, 'Guide.Tag_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Tag_array');
+                    TcbReader::checkColumn($column, 'Guide.Tag', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING]);
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Tag');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->tagArray = [];
+                        $record->tag = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->tagArray[] = $cursor->nextString();
+                            $record->tag[] = $cursor->nextString();
                         }
                     }
                     break;
 
                 case 8:
-                    TcbReader::checkColumn($column, 'Guide.Grid.1', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Grid.1');
+                    TcbReader::checkColumn($column, 'Guide.Grid.0', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Grid.0');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
                         $record->grid[0] = [];
@@ -243,8 +243,8 @@ final class GuideTable
                     break;
 
                 case 9:
-                    TcbReader::checkColumn($column, 'Guide.Grid.2', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Grid.2');
+                    TcbReader::checkColumn($column, 'Guide.Grid.1', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Guide.Grid.1');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
                         $record->grid[1] = [];

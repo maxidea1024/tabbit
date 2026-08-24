@@ -53,11 +53,11 @@ struct SERIALREFDATA_API FKitRow
 
     /** element 1 - the row it points at */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Kit")
-    TArray<int32> SlotArrayIndex;
+    TArray<int32> SlotIndex;
 
     /** element 1 - the target's own value */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Kit")
-    TArray<int32> TierArrayIndex;
+    TArray<int32> TierIndex;
 
 };
 
@@ -97,21 +97,21 @@ struct SERIALREFDATA_API FTrimKitRow
 
     /** element 1 - the row it points at */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TrimKit")
-    TArray<int32> SlotArrayIndex;
+    TArray<int32> SlotIndex;
 
-    /** Which of SlotArray's elements have a value. Empty where the file did not carry
+    /** Which of Slot's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      * spec/nullable-array-elements.md. */
-    TArray<bool> bHasSlotArrayAt;
+    TArray<bool> bHasSlotAt;
 
     /** element 1 - the target's own value */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TrimKit")
-    TArray<int32> TierArrayIndex;
+    TArray<int32> TierIndex;
 
-    /** Which of TierArray's elements have a value. Empty where the file did not carry
+    /** Which of Tier's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      * spec/nullable-array-elements.md. */
-    TArray<bool> bHasTierArrayAt;
+    TArray<bool> bHasTierAt;
 
 };
 

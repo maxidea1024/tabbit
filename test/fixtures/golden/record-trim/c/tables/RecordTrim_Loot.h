@@ -50,8 +50,8 @@ struct RecordTrim_LootRecord_t {
   /* single record, not an array */
   struct RecordTrim_LootRecord_t_pos_entry pos;
   /* scalar serial array, element 1 - required, so the array is never empty */
-  const char** tag_array;
-  int32_t tag_array_count;
+  const char** tag;
+  int32_t tag_count;
 };
 
 /* Every row of Loot.

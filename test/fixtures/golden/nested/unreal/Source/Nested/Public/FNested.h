@@ -79,7 +79,7 @@ struct NESTED_API FLoadoutRow
 
     /** scalar serial field */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
-    TArray<FString> TagArray;
+    TArray<FString> Tag;
 
 };
 

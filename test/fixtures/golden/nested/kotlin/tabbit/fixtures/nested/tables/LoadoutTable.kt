@@ -49,7 +49,7 @@ class LoadoutRecord {
     /** plain column inside the group's span */
     var note: String = ""
     /** scalar serial field */
-    var tagArray: MutableList<String> = ArrayList()
+    var tag: MutableList<String> = ArrayList()
 
     /** One element of pos. */
     class PosEntry {
@@ -221,12 +221,12 @@ class LoadoutTable {
                     }
                 }
                 8 -> {
-                    checkColumn(column, "Loadout.Tag_array", KIND_ARRAY, false, ELEMENT_STRING)
-                    val cursor = ColumnCursor(reader, column, count, "Loadout.Tag_array")
+                    checkColumn(column, "Loadout.Tag", KIND_ARRAY, false, ELEMENT_STRING)
+                    val cursor = ColumnCursor(reader, column, count, "Loadout.Tag")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.tagArray = ArrayList(elementCount.coerceAtLeast(0))
-                        repeat(elementCount) { record.tagArray.add(cursor.nextString()) }
+                        record.tag = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.tag.add(cursor.nextString()) }
                     }
                 }
                 else ->

@@ -102,7 +102,7 @@ function main(): number {
             compare('ArrayTypes', i, 'costs', j.costs, b.costs)
             compare('ArrayTypes', i, 'weights', j.weights, b.weights)
             compare('ArrayTypes', i, 'grades', j.grades, b.grades)
-            compare('ArrayTypes', i, 'slotArray', j.slotArray, b.slotArray)
+            compare('ArrayTypes', i, 'slot', j.slot, b.slot)
         }
     }
 
@@ -115,10 +115,10 @@ function main(): number {
         fromBinary.readBinarySync(`${binaryDir}/Localization.tcb`)
 
         for (let i = 0; i < fromJson.records.length; i++) {
-            compare('Localization', i, 'textEnArray',
-                fromJson.records[i].textEnArray, fromBinary.records[i].textEnArray)
-            compare('Localization', i, 'textKoArray',
-                fromJson.records[i].textKoArray, fromBinary.records[i].textKoArray)
+            compare('Localization', i, 'textEn',
+                fromJson.records[i].textEn, fromBinary.records[i].textEn)
+            compare('Localization', i, 'textKo',
+                fromJson.records[i].textKo, fromBinary.records[i].textKo)
         }
     }
 

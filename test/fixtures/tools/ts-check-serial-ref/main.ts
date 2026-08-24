@@ -5,7 +5,7 @@
 // what makes this worth running - the linking pass walks the keys per element, and one bounded
 // by the number the sheet happened to have resolves every element but the last.
 //
-// Both forms of a reference: `slotArray` is a whole row and `tierArray` is one of that row's
+// Both forms of a reference: `slot` is a whole row and `tier` is one of that row's
 // values. What is printed is the resolved value, so an element that resolved to the wrong row
 // shows as a different word rather than as an equal key.
 //
@@ -66,20 +66,20 @@ function main(): number {
 
         // The length the file gave. A read that took it from the generated page instead would
         // agree with itself and disagree with nothing, so it is compared as a value.
-        compare('Kit', i, 'slotArray.length', j.slotArray.length, b.slotArray.length)
-        compare('Kit', i, 'tierArray.length', j.tierArray.length, b.tierArray.length)
+        compare('Kit', i, 'slot.length', j.slot.length, b.slot.length)
+        compare('Kit', i, 'tier.length', j.tier.length, b.tier.length)
 
-        for (let k = 0; k < b.slotArray.length; k++) {
-            compare('Kit', i, `slotArray[${k}].key`,
-                    j._slotArray_Piece_index[k], b._slotArray_Piece_index[k])
-            compare('Kit', i, `slotArray[${k}]`,
-                    resolved(j.slotArray[k], j._slotArray_F[k]),
-                    resolved(b.slotArray[k], b._slotArray_F[k]))
+        for (let k = 0; k < b.slot.length; k++) {
+            compare('Kit', i, `slot[${k}].key`,
+                    j._slot_Piece_index[k], b._slot_Piece_index[k])
+            compare('Kit', i, `slot[${k}]`,
+                    resolved(j.slot[k], j._slot_F[k]),
+                    resolved(b.slot[k], b._slot_F[k]))
 
             // A field reference resolves to the value itself, so there is no row to name.
-            compare('Kit', i, `tierArray[${k}]`,
-                    j._tierArray_F[k] ? j.tierArray[k] : '<unresolved>',
-                    b._tierArray_F[k] ? b.tierArray[k] : '<unresolved>')
+            compare('Kit', i, `tier[${k}]`,
+                    j._tier_F[k] ? j.tier[k] : '<unresolved>',
+                    b._tier_F[k] ? b.tier[k] : '<unresolved>')
         }
     }
 
@@ -87,9 +87,9 @@ function main(): number {
     // of one mistake.
     const values = {
         slots: fromBinary.kit.records.map(
-            r => r.slotArray.map((piece, at) => resolved(piece, r._slotArray_F[at])).join('/')),
+            r => r.slot.map((piece, at) => resolved(piece, r._slot_F[at])).join('/')),
         tiers: fromBinary.kit.records.map(
-            r => r.tierArray.map((tier, at) => r._tierArray_F[at] ? String(tier) : '<unresolved>').join('/')),
+            r => r.tier.map((tier, at) => r._tier_F[at] ? String(tier) : '<unresolved>').join('/')),
     }
 
     console.log(JSON.stringify(values))

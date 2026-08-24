@@ -24,13 +24,13 @@ struct FoldedRecord {
   /// primary index
   std::int32_t index = 0;
   /// element 1 - and the group's answer
-  std::vector<std::string> tag_array;
-  std::vector<bool> has_tag_array_at_;
+  std::vector<std::string> tag;
+  std::vector<bool> has_tag_at_;
 
-  /// Whether element `index` of `tag_array` has a value.
-  bool has_tag_array_at(std::size_t index) const {
-    return index >= has_tag_array_at_.size()
-        || has_tag_array_at_[index];
+  /// Whether element `index` of `tag` has a value.
+  bool has_tag_at(std::size_t index) const {
+    return index >= has_tag_at_.size()
+        || has_tag_at_[index];
   }
 };
 
@@ -117,19 +117,19 @@ class FoldedTable {
           break;
         }
         case 2: {
-          tabbit::check_column(column, "Folded.Tag_array", tabbit::kKindArray, false, {tabbit::kElementString}, true);
+          tabbit::check_column(column, "Folded.Tag", tabbit::kKindArray, false, {tabbit::kElementString}, true);
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
-          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Folded.Tag_array");
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Folded.Tag");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.tag_array.resize(static_cast<std::size_t>(element_count));
-            record.has_tag_array_at_.assign(
+            record.tag.resize(static_cast<std::size_t>(element_count));
+            record.has_tag_at_.assign(
                 static_cast<std::size_t>(element_count), true);
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.tag_array[static_cast<std::size_t>(j)] = cursor.next_string();
-              record.has_tag_array_at_[static_cast<std::size_t>(j)] =
+              record.tag[static_cast<std::size_t>(j)] = cursor.next_string();
+              record.has_tag_at_[static_cast<std::size_t>(j)] =
                   tabbit::is_present(element_presence, element_at++);
             }
           }

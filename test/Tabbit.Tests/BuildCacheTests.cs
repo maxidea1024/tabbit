@@ -85,8 +85,7 @@ public class BuildCacheTests
                 "Xlsx": [
                   {
                     "Path": "{{Escape(Workbooks)}}",
-                    "ExcludeWorkbooks": [ "added" ],
-                    "FoldSerialFields": true
+                    "ExcludeWorkbooks": [ "added" ]
                   }
                 ],
                 "GoogleSheets": []

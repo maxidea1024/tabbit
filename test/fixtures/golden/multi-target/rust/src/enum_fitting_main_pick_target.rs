@@ -5,7 +5,7 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : K7
+// Generated from test/fixtures/xlsx/multi-target/multi-target.xlsx : Groups : L4
 /// Which table `Fitting.MainPick` points at. The column carries one id and the tables it may be a row of take separate id bands, so exactly one of them answers.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[repr(i32)]

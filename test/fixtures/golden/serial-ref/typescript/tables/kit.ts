@@ -21,8 +21,8 @@ import { PieceRecord } from './piece'
 /** A type for handling rows when parsing .json. */
 interface IDataRow {
   index: number
-  slotArray: number[]
-  tierArray: number[]
+  slot: number[]
+  tier: number[]
 }
 
 // Generated from test/fixtures/xlsx/serial-ref/serial-ref.xlsx : Refs : J2
@@ -36,38 +36,38 @@ export class KitRecord {
   public get index(): number { return this._index }
 
   /** element 1 - the row it points at */
-  public get slotArray(): PieceRecord[] { return this._slotArray }
+  public get slot(): PieceRecord[] { return this._slot }
 
   /** element 1 - the target's own value */
-  public get tierArray(): number[] { return this._tierArray }
+  public get tier(): number[] { return this._tier }
 
-  public setReference_slotArray_INTERNAL(index: number, value: PieceRecord): void { this._slotArray[index] = value; }
-  public setReference_tierArray_INTERNAL(index: number, value: number): void { this._tierArray[index] = value; }
+  public setReference_slot_INTERNAL(index: number, value: PieceRecord): void { this._slot[index] = value; }
+  public setReference_tier_INTERNAL(index: number, value: number): void { this._tier[index] = value; }
 
   public _index: number = 0
-  public _slotArray: PieceRecord[] = []
-  public _slotArray_Piece_index: number[] = []
-  public _slotArray_F: boolean[] = []
-  public _tierArray: number[] = []
-  public _tierArray_Piece_index: number[] = []
-  public _tierArray_F: boolean[] = []
+  public _slot: PieceRecord[] = []
+  public _slot_Piece_index: number[] = []
+  public _slot_F: boolean[] = []
+  public _tier: number[] = []
+  public _tier_Piece_index: number[] = []
+  public _tier_F: boolean[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._slotArray_Piece_index = dataRow.slotArray; this._slotArray = new Array(this._slotArray_Piece_index.length).fill(undefined); this._slotArray_F = new Array(this._slotArray_Piece_index.length).fill(false)
-    this._tierArray_Piece_index = dataRow.tierArray; this._tierArray = new Array(this._tierArray_Piece_index.length).fill(undefined); this._tierArray_F = new Array(this._tierArray_Piece_index.length).fill(false)
+    this._slot_Piece_index = dataRow.slot; this._slot = new Array(this._slot_Piece_index.length).fill(undefined); this._slot_F = new Array(this._slot_Piece_index.length).fill(false)
+    this._tier_Piece_index = dataRow.tier; this._tier = new Array(this._tier_Piece_index.length).fill(undefined); this._tier_F = new Array(this._tier_Piece_index.length).fill(false)
   }
 
   /** Populate field values. */
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
     this._index = dataRow[offset++]
-    this._slotArray_Piece_index = dataRow.slice(offset, offset + 2)
-    this._slotArray = new Array(this._slotArray_Piece_index.length).fill(undefined); this._slotArray_F = new Array(this._slotArray_Piece_index.length).fill(false)
+    this._slot_Piece_index = dataRow.slice(offset, offset + 2)
+    this._slot = new Array(this._slot_Piece_index.length).fill(undefined); this._slot_F = new Array(this._slot_Piece_index.length).fill(false)
     offset += 2
-    this._tierArray_Piece_index = dataRow.slice(offset, offset + 2)
-    this._tierArray = new Array(this._tierArray_Piece_index.length).fill(undefined); this._tierArray_F = new Array(this._tierArray_Piece_index.length).fill(false)
+    this._tier_Piece_index = dataRow.slice(offset, offset + 2)
+    this._tier = new Array(this._tier_Piece_index.length).fill(undefined); this._tier_F = new Array(this._tier_Piece_index.length).fill(false)
     offset += 2
   }
 }
@@ -196,30 +196,30 @@ export class KitTable {
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'Kit.Slot_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Slot_array')
+          tabbit.checkColumn(column, 'Kit.Slot', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Slot')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._slotArray = new Array(elementCount).fill(undefined)
-            record._slotArray_F = new Array(elementCount).fill(false)
-            record._slotArray_Piece_index = []
+            record._slot = new Array(elementCount).fill(undefined)
+            record._slot_F = new Array(elementCount).fill(false)
+            record._slot_Piece_index = []
             for (let j = 0; j < elementCount; ++j) {
-              record._slotArray_Piece_index.push(cursor.nextI32())
+              record._slot_Piece_index.push(cursor.nextI32())
             }
           }
           break
         case 3:
-          tabbit.checkColumn(column, 'Kit.Tier_array', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Tier_array')
+          tabbit.checkColumn(column, 'Kit.Tier', tabbit.KIND_ARRAY, false, [tabbit.ELEMENT_I32])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Kit.Tier')
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._tierArray = new Array(elementCount).fill(undefined)
-            record._tierArray_F = new Array(elementCount).fill(false)
-            record._tierArray_Piece_index = []
+            record._tier = new Array(elementCount).fill(undefined)
+            record._tier_F = new Array(elementCount).fill(false)
+            record._tier_Piece_index = []
             for (let j = 0; j < elementCount; ++j) {
-              record._tierArray_Piece_index.push(cursor.nextI32())
+              record._tier_Piece_index.push(cursor.nextI32())
             }
           }
           break

@@ -13,11 +13,7 @@
   "Sources": {
     "Xlsx": [
       {
-        "Path": "test/fixtures/xlsx/member-array",
-
-        // So `Tag1`/`Tag2` fold into one array beside the record groups, putting both array
-        // kinds in one table.
-        "FoldSerialFields": true
+        "Path": "test/fixtures/xlsx/member-array"
       }
     ],
     "GoogleSheets": []

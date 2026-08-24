@@ -15,10 +15,10 @@ public final class KitRecord {
     /** primary index */
     public int index;
     /** element 1 - the row it points at */
-    public PieceRecord[] slotArray = new PieceRecord[0];
-    public int[] slotArrayIndex = new int[0];
+    public PieceRecord[] slot = new PieceRecord[0];
+    public int[] slotIndex = new int[0];
     /** element 1 - the target's own value */
-    public int[] tierArray = new int[0];
-    public int[] tierArrayIndex = new int[0];
+    public int[] tier = new int[0];
+    public int[] tierIndex = new int[0];
 
 }

@@ -30,9 +30,9 @@ final class FoldedRecord
     public int $index = 0;
     /** element 1 - and the group's answer */
     /** @var list<string> */
-    public array $tagArray = [];
+    public array $tag = [];
 
-    public array $hasTagArrayAt = [];
+    public array $hasTagAt = [];
 }
 
 /** Every row of Folded. */
@@ -125,20 +125,20 @@ final class FoldedTable
                     break;
 
                 case 2:
-                    TcbReader::checkColumn($column, 'Folded.Tag_array', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING], true);
+                    TcbReader::checkColumn($column, 'Folded.Tag', TcbReader::KIND_ARRAY, false, [TcbReader::ELEMENT_STRING], true);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
                     // spec/nullable-array-elements.md.
                     $elementPresence = $reader->readElementPresence($column);
                     $elementAt = 0;
-                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Folded.Tag_array');
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Folded.Tag');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->tagArray = [];
-                        $record->hasTagArrayAt = [];
+                        $record->tag = [];
+                        $record->hasTagAt = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->tagArray[] = $cursor->nextString();
-                            $record->hasTagArrayAt[] =
+                            $record->tag[] = $cursor->nextString();
+                            $record->hasTagAt[] =
                                 TcbReader::isPresent($elementPresence, $elementAt++);
                         }
                     }

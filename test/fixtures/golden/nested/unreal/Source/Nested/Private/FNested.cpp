@@ -246,8 +246,8 @@ bool FLoadoutTable::Read(const FString& Filename)
             break;
 
         case 8:
-            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Tag_array"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
-            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Tag_array"));
+            Tabbit::CheckColumn(Reader, Column, TEXT("Loadout.Tag"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Loadout.Tag"));
 
             for (FLoadoutRow& Record : Loaded)
             {
@@ -256,11 +256,11 @@ bool FLoadoutTable::Read(const FString& Filename)
 
                 // Bounded, because the count came out of the file. The array grows past
                 // this if the elements really are there.
-                Record.TagArray.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Tag.Empty(Tabbit::ReserveBound(ElementCount));
 
-                while (Record.TagArray.Num() < ElementCount && !Reader.HasFailed())
+                while (Record.Tag.Num() < ElementCount && !Reader.HasFailed())
                 {
-                    Cursor.NextAs(Column.Element, Record.TagArray.AddDefaulted_GetRef());
+                    Cursor.NextAs(Column.Element, Record.Tag.AddDefaulted_GetRef());
                 }
             }
 

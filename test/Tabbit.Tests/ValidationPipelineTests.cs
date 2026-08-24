@@ -122,12 +122,12 @@ public class ValidationPipelineTests
         // lives inside the converter: the record the rule held carries no location, so this is
         // the reverse lookup - record type to table, primary index to row, field name to
         // column - having landed on the right cell.
-        Assert.Contains("core.xlsx : Refs : O9", result.StdOut);
+        Assert.Contains("core.xlsx : Refs : P7", result.StdOut);
 
         // A report about the schema points at the header cell instead, which is the column's
         // own place in the workbook.
         Assert.Contains("`Item.Price` is a int", result.StdOut);
-        Assert.Contains("core.xlsx : Refs : O4", result.StdOut);
+        Assert.Contains("core.xlsx : Refs : P3", result.StdOut);
 
         Assert.False(
             Directory.Exists(Path.Combine(RepoLayout.OutputDir("validation-fail"), "json")),
