@@ -131,13 +131,32 @@ public static class PrimaryLayoutMessages
 
     #region Not yet in this layout
 
-    /// <summary>A `:variant` row, which arrives with step 3'.</summary>
-    public const string VariantNotYetSupported = "primary.variant-not-yet-supported";
-
     /// <summary>
     /// A `key` on a declaration, which moves the primary index off the first column.
     /// </summary>
     public const string KeyMetaNotYetSupported = "primary.key-meta-not-yet-supported";
+
+    #endregion
+
+    #region Field variants
+
+    /// <summary>Two columns of one field claiming the same variant.</summary>
+    public const string VariantDuplicated = "primary.variant-duplicated";
+
+    /// <summary>A variant asked for that no column of the field names.</summary>
+    public const string VariantNotFound = "primary.variant-not-found";
+
+    /// <summary>A field whose every column names a variant, with none asked for.</summary>
+    public const string VariantNotChosen = "primary.variant-not-chosen";
+
+    /// <summary>A variant column whose header disagrees with the group's.</summary>
+    public const string VariantHeaderDisagrees = "primary.variant-header-disagrees";
+
+    /// <summary>A variant on a column the row is addressed by.</summary>
+    public const string VariantOnKeyColumn = "primary.variant-on-key-column";
+
+    /// <summary>A variant on a member of a group or an element of an array.</summary>
+    public const string VariantOnGroupColumn = "primary.variant-on-group-column";
 
     #endregion
 

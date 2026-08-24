@@ -645,16 +645,6 @@ public sealed class PrimaryLayoutParser : ILayoutParser
                 Message.Of(PrimaryLayoutMessages.FieldRowMissing, ("Entity", block.Name)));
         }
 
-        // Not read yet, and refused rather than ignored: every column a `:variant` row names
-        // would otherwise be read as the field itself, so a build would silently hold three
-        // copies of one price.
-        if (block.HeaderRows.TryGetValue(RowKeyVariant, out int variantRow))
-        {
-            throw new TabbitException(
-                block.Sheet.Rows[variantRow][block.MarkerColumn].Location,
-                Message.Of(PrimaryLayoutMessages.VariantNotYetSupported, ("Entity", block.Name)));
-        }
-
         if (block.Kind == KindTable)
         {
             if (!block.HeaderRows.ContainsKey(RowKeyType))
@@ -717,6 +707,18 @@ public sealed class PrimaryLayoutParser : ILayoutParser
 
         /// <summary>What the type cell wrote after the first `(`, or nothing.</summary>
         public Schema.SchemaMeta Meta = Schema.SchemaMeta.Empty;
+
+        /// <summary>The `:variant` cell, blank for the default column - section 3.6.</summary>
+        public string Variant = "";
+
+        /// <summary>
+        /// The column the header rows are read from, which is this one unless a variant group
+        /// wrote its header once on the default column.
+        /// </summary>
+        public int? HeaderColumn;
+
+        /// <summary>Where `:type`, `:desc` and `:target` are read for this column.</summary>
+        public int HeaderAt => HeaderColumn ?? Column;
 
         /// <summary>
         /// Which level of the path was written `[]`, or null when none was.
@@ -1078,7 +1080,7 @@ public sealed class PrimaryLayoutParser : ILayoutParser
             AllowArrayGaps = block.Sheet.Layout.AllowArrayGaps,
         };
 
-        var headers = ReadColumns(block);
+        var headers = SelectVariants(block, ReadColumns(block));
         RequireElementNumbering(block, headers);
 
         // **One `[]` column puts the whole table in multi-row mode** - section 6.1 rule 1. What
@@ -1236,9 +1238,9 @@ public sealed class PrimaryLayoutParser : ILayoutParser
         List<RawCell> typeRow, List<RawCell>? descRow, List<RawCell>? targetRow,
         List<FieldSource> sources)
     {
-        var typeCell = Cell(typeRow, header.Column);
-        var descCell = descRow is null ? null : Cell(descRow, header.Column);
-        var targetCell = targetRow is null ? null : Cell(targetRow, header.Column);
+        var typeCell = Cell(typeRow, header.HeaderAt);
+        var descCell = descRow is null ? null : Cell(descRow, header.HeaderAt);
+        var targetCell = targetRow is null ? null : Cell(targetRow, header.HeaderAt);
 
         string name = NameOf(header, path);
 
@@ -1676,6 +1678,183 @@ public sealed class PrimaryLayoutParser : ILayoutParser
             HasValue = reading.HasValue,
             ElementHasValue = reading.ElementHasValue,
         };
+    }
+
+    #endregion
+
+    #region Field variants - spec section 3.6
+
+    /// <summary>
+    /// Drops every column of a variant group but the one this build asked for.
+    /// </summary>
+    /// <remarks>
+    /// **The produced files know nothing about variants.** One column becomes the field and the
+    /// rest are not in the build, so the model, the wire and every generated reader are the same
+    /// as if the sheet had written one column - which is why this happens here, before a field
+    /// is built, rather than anywhere downstream.
+    ///
+    /// A field with one column is not a variant group even if that column names a variant: there
+    /// is nothing to choose between, and refusing it would make `:variant` a thing a sheet has to
+    /// finish before it converts.
+    /// </remarks>
+    private List<ColumnHeader> SelectVariants(EntityBlock block, List<ColumnHeader> headers)
+    {
+        if (!block.HeaderRows.TryGetValue(RowKeyVariant, out int variantRow))
+            return headers;
+
+        var row = block.Sheet.Rows[variantRow];
+
+        foreach (var header in headers)
+        {
+            if (header.IsMemo || header.IsTombstone)
+                continue;
+
+            header.Variant = (Cell(row, header.Column)?.Value ?? "").Trim();
+        }
+
+        var groups = headers
+            .Where(header => !header.IsMemo && !header.IsTombstone)
+            .GroupBy(header => NameOf(header, header.Path), StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .ToList();
+
+        var dropped = new HashSet<ColumnHeader>();
+
+        foreach (var group in groups)
+        {
+            var columns = group.ToList();
+
+            RefuseVariantsWhereTheyCannotGo(block, columns);
+
+            foreach (var chosen in ChooseVariant(block, group.Key, columns))
+                dropped.Add(chosen);
+        }
+
+        return headers.Where(header => !dropped.Contains(header)).ToList();
+    }
+
+    /// <summary>
+    /// The columns of a variant group that this build does not take.
+    /// </summary>
+    /// <remarks>
+    /// The default column is the one whose `:variant` cell is blank. A field whose every column
+    /// names a variant has no default, so the build has to say which one it wants - and a name
+    /// nothing answers is reported with the ones that exist rather than falling back, because a
+    /// misspelled variant that quietly built the default is a build that lies about itself.
+    /// </remarks>
+    private IEnumerable<ColumnHeader> ChooseVariant(
+        EntityBlock block, string field, List<ColumnHeader> columns)
+    {
+        var byVariant = new Dictionary<string, ColumnHeader>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var column in columns)
+        {
+            if (byVariant.TryGetValue(column.Variant, out var earlier))
+            {
+                throw new TabbitException(column.NameCell.Location,
+                    Message.Of(PrimaryLayoutMessages.VariantDuplicated,
+                        ("Entity", block.Name), ("Column", field),
+                        ("Variant", column.Variant.Length == 0 ? "-" : column.Variant)));
+            }
+
+            byVariant[column.Variant] = column;
+            _ = earlier;
+        }
+
+        string? asked = _context.Variants.Of(block.Name, field);
+
+        ColumnHeader? taken;
+
+        if (asked is { Length: > 0 })
+        {
+            if (!byVariant.TryGetValue(asked, out taken))
+            {
+                throw new TabbitException(columns[0].NameCell.Location,
+                    Message.Of(PrimaryLayoutMessages.VariantNotFound,
+                        ("Entity", block.Name), ("Column", field), ("Variant", asked),
+                        ("Known", Named(byVariant.Keys))));
+            }
+        }
+        else if (!byVariant.TryGetValue("", out taken))
+        {
+            throw new TabbitException(columns[0].NameCell.Location,
+                Message.Of(PrimaryLayoutMessages.VariantNotChosen,
+                    ("Entity", block.Name), ("Column", field), ("Known", Named(byVariant.Keys))));
+        }
+
+        // The header of a variant group is written on the default column, so a column that left
+        // its type cell blank takes the canon's - and one that wrote a different type is a
+        // disagreement rather than a second opinion. Section 3.6.
+        var canon = byVariant.TryGetValue("", out var byDefault) ? byDefault : columns[0];
+
+        if (!ReferenceEquals(taken, canon))
+            TakeHeaderFromCanon(block, field, taken!, canon);
+
+        return columns.Where(column => !ReferenceEquals(column, taken));
+    }
+
+    /// <summary>
+    /// Gives the chosen column the header the group wrote once, and refuses a disagreement.
+    /// </summary>
+    private void TakeHeaderFromCanon(
+        EntityBlock block, string field, ColumnHeader taken, ColumnHeader canon)
+    {
+        var typeRow = block.Sheet.Rows[block.HeaderRows[RowKeyType]];
+
+        string written = (Cell(typeRow, taken.Column)?.Value ?? "").Trim();
+        string canonical = (Cell(typeRow, canon.Column)?.Value ?? "").Trim();
+
+        if (written.Length > 0 && !string.Equals(written, canonical, StringComparison.Ordinal))
+        {
+            throw new TabbitException(
+                Cell(typeRow, taken.Column)?.Location ?? taken.NameCell.Location,
+                Message.Of(PrimaryLayoutMessages.VariantHeaderDisagrees,
+                    ("Entity", block.Name), ("Column", field),
+                    ("Variant", taken.Variant), ("Written", written), ("Canonical", canonical)));
+        }
+
+        // What the chosen column reads its header from. Everything a variant column may leave
+        // blank is read from here instead, so a group states its type, its description and its
+        // side once.
+        taken.HeaderColumn = canon.Column;
+        taken.WireTag ??= canon.WireTag;
+    }
+
+    /// <summary>
+    /// Refuses a variant group where a column set cannot be replicated - section 3.6.
+    /// </summary>
+    /// <remarks>
+    /// A key column, because the row's identity would then differ per build and nothing could
+    /// say two builds hold the same row. A group member or an array element, because the whole
+    /// set of columns would have to be repeated per variant - refused for the first pass rather
+    /// than half-read.
+    /// </remarks>
+    private static void RefuseVariantsWhereTheyCannotGo(
+        EntityBlock block, List<ColumnHeader> columns)
+    {
+        foreach (var column in columns)
+        {
+            if (column.Indexing || column.Column == block.FirstColumn)
+            {
+                throw new TabbitException(column.NameCell.Location,
+                    Message.Of(PrimaryLayoutMessages.VariantOnKeyColumn,
+                        ("Entity", block.Name), ("Column", column.Written)));
+            }
+
+            if (column.Path is not null)
+            {
+                throw new TabbitException(column.NameCell.Location,
+                    Message.Of(PrimaryLayoutMessages.VariantOnGroupColumn,
+                        ("Entity", block.Name), ("Column", column.Written)));
+            }
+        }
+    }
+
+    private static string Named(IEnumerable<string> variants)
+    {
+        var named = variants.Where(variant => variant.Length > 0).OrderBy(v => v, StringComparer.Ordinal);
+
+        return named.Any() ? string.Join(", ", named) : "none";
     }
 
     #endregion

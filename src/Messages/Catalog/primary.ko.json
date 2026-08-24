@@ -32,7 +32,12 @@
   "primary.multi-row-on-index-column": "{Entity}의 컬럼 {Column:이} `[]`로 적혀 있고, 기본 인덱스를 읽는 컬럼입니다. 인덱스는 값 하나로 행 하나를 가리키는 것이므로 배열은 인덱스가 될 수 없습니다.",
   "primary.extension-row-has-scalar-value": "{Entity}의 컬럼 {Column}에 {Value:가} 적혀 있는데, 그 행은 위 레코드의 연장 행입니다. 연장 행에서 값을 담는 것은 `[]` 컬럼뿐이고, 이 값은 레코드의 첫 행에 적습니다. 새 레코드를 뜻한 것이라면 인덱스를 적으십시오.",
   "primary.extension-row-without-record": "{Entity}에 인덱스 값이 없는 행이 레코드가 시작되기 전에 있습니다. 인덱스를 비운 행은 위 레코드의 연장이고, 여기에는 위 레코드가 없습니다.",
-  "primary.variant-not-yet-supported": "{Entity}에 `:variant` 행이 있습니다. 이 빌드는 아직 읽지 않으므로, 그 행이 가리키는 컬럼이 모두 필드 자체로 읽힙니다.",
+  "primary.variant-duplicated": "{Entity}의 필드 {Column}에 변형 {Variant}의 컬럼이 둘 있습니다. 그대로 두면 어느 쪽이 필드가 되는지가 두 컬럼의 순서에 달리게 됩니다.",
+  "primary.variant-not-found": "이 빌드가 {Entity}.{Column}의 변형 {Variant:를} 요청했는데, 그 이름의 컬럼이 없습니다. 있는 변형은 {Known}입니다.",
+  "primary.variant-not-chosen": "{Entity}.{Column}의 모든 컬럼이 변형 이름을 갖고 있어, 빌드가 돌아갈 기본 변형이 없습니다. 하나를 지정하십시오 — `--variant {Entity}.{Column}=…` 또는 recipe의 `Variants`이고, 있는 것은 {Known}입니다.",
+  "primary.variant-header-disagrees": "{Entity}.{Column}의 변형 {Variant:은} {Written} 타입인데, 그 필드는 {Canonical} 타입입니다. 어느 변형을 고르든 필드는 하나이므로 타입도 하나입니다 — 기본 변형 컬럼에 한 번만 적거나, 같은 것을 적으십시오.",
+  "primary.variant-on-key-column": "{Entity}의 컬럼 {Column:이} 변형을 갖는데, 이 컬럼은 행을 가리키는 자리입니다. 행의 신원이 빌드마다 달라지면 참조도 히스토리도 배포 판정도 「같은 행」을 말할 수 없게 됩니다.",
+  "primary.variant-on-group-column": "{Entity}의 컬럼 {Column:이} 변형을 갖는데, 이 컬럼은 그룹의 일부입니다. 그룹의 변형은 컬럼 집합 전체가 변형마다 복제되는 형태라 이 빌드는 읽지 않습니다 — 변형을 별도 필드로 적으십시오.",
   "primary.column-meta-unclosed": "{Entity}의 컬럼 {Column:이} {Written} 타입인데, 여는 괄호만 있고 닫는 괄호가 없습니다. 첫 `(`부터가 컬럼 메타입니다 — `int (min=0, max=100)`처럼.",
   "primary.key-meta-not-yet-supported": "{Written:이} `key`를 설정합니다 — 기본 인덱스를 첫 컬럼에서 옮기는 키입니다. 이 빌드는 아직 읽지 않으므로 첫 필드 컬럼이 기본 인덱스입니다.",
 

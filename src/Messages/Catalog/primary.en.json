@@ -32,7 +32,12 @@
   "primary.multi-row-on-index-column": "Column `{Column}` of `{Entity}` is written `[]` and is the column the primary index is read from. An index addresses one row by one value, which an array is not.",
   "primary.extension-row-has-scalar-value": "`{Value}` is written in column `{Column}` of `{Entity}` on a row that extends the record above it. Only `[]` columns carry values on an extension row - this one belongs on the record's first row. If a new record was meant, write its index.",
   "primary.extension-row-without-record": "`{Entity}` has a row with no index value before any record has begun. A row that leaves the index blank extends the record above it, and here there is none.",
-  "primary.variant-not-yet-supported": "`{Entity}` has a `:variant` row. This build does not read it yet, so every column it names would be read as the field itself.",
+  "primary.variant-duplicated": "Field `{Column}` of `{Entity}` has two columns for the variant `{Variant}`. Which one became the field would then depend on the order they happen to be in.",
+  "primary.variant-not-found": "This build asks for the variant `{Variant}` of `{Entity}.{Column}`, and no column of it names one. It has: {Known}.",
+  "primary.variant-not-chosen": "Every column of `{Entity}.{Column}` names a variant, so there is no default for a build to fall back to. Ask for one - `--variant {Entity}.{Column}=…` or the recipe’s `Variants` - from: {Known}.",
+  "primary.variant-header-disagrees": "The variant `{Variant}` of `{Entity}.{Column}` is typed `{Written}`, and the field is typed `{Canonical}`. A field is one field whichever variant a build takes, so its columns state one type - write it once on the default column, or write the same thing.",
+  "primary.variant-on-key-column": "Column `{Column}` of `{Entity}` carries a variant and is a column the row is addressed by. The identity of a row cannot differ between builds - a reference, a history entry and a deployment comparison would all be about a row nothing else can name.",
+  "primary.variant-on-group-column": "Column `{Column}` of `{Entity}` carries a variant and is part of a group. A variant of a group would repeat the whole set of columns per variant, which this build does not read - write the variants as separate fields.",
   "primary.column-meta-unclosed": "Column `{Column}` of `{Entity}` is typed `{Written}`, which opens a bracket and never closes it. Everything from the first `(` is the column meta - `int (min=0, max=100)`.",
   "primary.key-meta-not-yet-supported": "`{Written}` sets `key`, which moves the primary index off the first column. This build does not read it yet, so the first field column is the primary index.",
 

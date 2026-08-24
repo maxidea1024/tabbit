@@ -1202,20 +1202,156 @@ public class PrimaryLayoutTests
     #endregion
 
 
-    #region What the layout leaves to the core
+    #region Field variants - section 3.6
+
+    private static Model CookWith(FieldVariants variants, params RawSheet[] sheets)
+    {
+        var raw = new RawModel();
+
+        foreach (var sheet in sheets)
+            raw.Sheets.Add(sheet);
+
+        var recipe = new RecipeModel();
+
+        foreach (string field in variants.Fields)
+            recipe.Variants[field] = variants.Of(field.Split('.')[0], field.Split('.')[1])!;
+
+        return new ModelCooker().Cook(new Options(), recipe, raw);
+    }
+
+    private static RawSheet PriceSheet() => Sheet(
+        [":table Item", "an item"],
+        [":field", "code", "price", "price", "price"],
+        [":type", "int", "int", "", ""],
+        [":variant", "", "", "kr", "jp"],
+        ["", "1", "10", "12", "14"],
+        ["", "2", "20", "22", "24"]);
 
     [Fact]
-    public void A_variant_row_is_refused_by_name_until_it_is_read()
+    public void A_field_with_no_variant_asked_for_takes_the_default_column()
+    {
+        var table = Assert.Single(Cook(PriceSheet()).Tables);
+
+        // One field, whatever the sheet wrote. The others are not in the build at all.
+        Assert.Equal(2, table.Fields.Count);
+        Assert.Equal("Price", table.Fields[1].Name);
+        Assert.Equal([10, 20], table.Data.Select(row => row[1].Value).Cast<int>());
+    }
+
+    [Fact]
+    public void A_variant_asked_for_becomes_the_field()
+    {
+        var model = CookWith(
+            FieldVariants.Of(null, ["Item.Price=kr"]), PriceSheet());
+
+        var table = Assert.Single(model.Tables);
+
+        // The same field, the same type, the same name - the other column's values.
+        Assert.Equal(2, table.Fields.Count);
+        Assert.Equal("Price", table.Fields[1].Name);
+        Assert.Equal(ValueType.Int32, table.Fields[1].Type);
+        Assert.Equal([12, 22], table.Data.Select(row => row[1].Value).Cast<int>());
+    }
+
+    [Fact]
+    public void A_variant_column_reads_its_header_from_the_default_column()
+    {
+        // The `:type` cells of the `kr` and `jp` columns are blank, and the field is still an
+        // `int` - the group states its header once. Section 3.6.
+        var model = CookWith(FieldVariants.Of(null, ["Item.Price=jp"]), PriceSheet());
+
+        Assert.Equal(ValueType.Int32, Assert.Single(model.Tables).Fields[1].Type);
+    }
+
+    [Fact]
+    public void A_variant_nothing_answers_is_reported_with_the_ones_that_exist()
+    {
+        var problem = Assert.Throws<TabbitException>(() => CookWith(
+            FieldVariants.Of(null, ["Item.Price=us"]), PriceSheet()));
+
+        Assert.Contains("us", problem.Message);
+        Assert.Contains("kr", problem.Message);
+    }
+
+    [Fact]
+    public void A_field_whose_every_column_names_a_variant_has_to_be_chosen()
     {
         var problem = Refuses(Sheet(
             [":table Item", "an item"],
             [":field", "code", "price", "price"],
             [":type", "int", "int", ""],
-            [":variant", "", "", "kr"],
+            [":variant", "", "kr", "jp"],
             ["", "1", "10", "12"]));
 
-        Assert.Contains(":variant", problem.Message);
+        Assert.Contains("kr", problem.Message);
     }
+
+    [Fact]
+    public void Two_columns_of_one_field_cannot_claim_one_variant()
+    {
+        var problem = Refuses(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "price", "price"],
+            [":type", "int", "int", ""],
+            [":variant", "", "kr", "kr"],
+            ["", "1", "10", "12"]));
+
+        Assert.Contains("kr", problem.Message);
+    }
+
+    [Fact]
+    public void A_variant_column_that_states_a_different_type_is_reported()
+    {
+        var problem = Assert.Throws<TabbitException>(() => CookWith(
+            FieldVariants.Of(null, ["Item.Price=kr"]),
+            Sheet(
+                [":table Item", "an item"],
+                [":field", "code", "price", "price"],
+                [":type", "int", "int", "string"],
+                [":variant", "", "", "kr"],
+                ["", "1", "10", "12"])));
+
+        Assert.Contains("string", problem.Message);
+    }
+
+    [Fact]
+    public void A_variant_cannot_sit_on_a_column_the_row_is_addressed_by()
+    {
+        var problem = Refuses(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "code"],
+            [":type", "int", ""],
+            [":variant", "", "kr"],
+            ["", "1", "2"]));
+
+        Assert.Contains("code", problem.Message);
+    }
+
+    [Fact]
+    public void A_variant_cannot_sit_on_a_member_of_a_group()
+    {
+        var problem = Refuses(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "pos.x", "pos.x"],
+            [":type", "int", "float", ""],
+            [":variant", "", "", "kr"],
+            ["", "1", "1.5", "2.5"]));
+
+        Assert.Contains("pos.x", problem.Message);
+    }
+
+    [Fact]
+    public void A_variant_option_that_is_not_a_field_and_a_name_is_reported()
+    {
+        Assert.Throws<TabbitException>(() => FieldVariants.Of(null, ["Item.Price"]));
+        Assert.Throws<TabbitException>(() => FieldVariants.Of(null, ["Price=kr"]));
+        Assert.Throws<TabbitException>(
+            () => FieldVariants.Of(null, ["Item.Price=kr", "Item.Price=jp"]));
+    }
+
+    #endregion
+
+    #region What the layout leaves to the core
 
     [Fact]
     public void A_key_meta_is_refused_by_name_until_the_primary_index_can_move()
