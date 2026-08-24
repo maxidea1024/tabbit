@@ -145,13 +145,45 @@ final class {{ table.table_name }}
 
 {{~ end ~}}
 {{~ for index in table.indexes ~}}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+    /** Joins the columns of the {{ index.field_name }} key into the text the map is keyed by. */
+    private static function keyOf{{ index.suffix }}({{ index.params }}): string
+    {
+        $parts = [
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+            {{ c.param }},
+{{~ else if c.kind == "enum" ~}}
+{{~## A PHP enum is an object, not an int - it is the declared value that has to be written,
+   the same as everywhere else, and casting the case would be a warning and a zero. ##~}}
+            (string){{ c.param }}->value,
+{{~ else ~}}
+            (string)(int){{ c.param }},
+{{~ end ~}}
+{{~ end ~}}
+        ];
+
+        $text = "";
+
+        foreach ($parts as $part) {
+            $text .= strlen($part) . ":" . $part;
+        }
+
+        return $text;
+    }
+
+{{~ end ~}}
     /**
      * The row with this {{ index.field_name }}, or null when the table has none.
      *
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    public function findBy{{ index.suffix }}({{ index.key_type }} $key): ?{{ table.record_name }}
+    public function findBy{{ index.suffix }}({{ index.params }}): ?{{ table.record_name }}
     {
         return $this->{{ index.map_name }}[{{ index.key_offset }}] ?? null;
     }
@@ -163,21 +195,27 @@ final class {{ table.table_name }}
      * it throws, because a caller reading getBy{{ index.suffix }}($key)->name at a glance
      * cannot otherwise tell whether the next line is a null check or a catch.
      */
-    public function getBy{{ index.suffix }}OrThrow({{ index.key_type }} $key): {{ table.record_name }}
+    public function getBy{{ index.suffix }}OrThrow({{ index.params }}): {{ table.record_name }}
     {
         $record = $this->{{ index.map_name }}[{{ index.key_offset }}] ?? null;
 
         if ($record === null) {
+{{~ if index.is_composite ~}}
+            throw new RecordNotFoundException(
+                "There is no record in table `{{ table.raw_name }}` that corresponds to " .
+                sprintf("field `{{ index.field_name }}` value {{ index.value_format }}.", {{ index.value_args }}));
+{{~ else ~}}
             throw new RecordNotFoundException(
                 "There is no record in table `{{ table.raw_name }}` that corresponds to " .
                 "field `{{ index.field_name }}` value " . {{ index.key_offset }} . ".");
+{{~ end ~}}
         }
 
         return $record;
     }
 
     /** Whether the table holds a row with this {{ index.field_name }}. */
-    public function contains{{ index.suffix }}({{ index.key_type }} $key): bool
+    public function contains{{ index.suffix }}({{ index.params }}): bool
     {
         return isset($this->{{ index.map_name }}[{{ index.key_offset }}]);
     }

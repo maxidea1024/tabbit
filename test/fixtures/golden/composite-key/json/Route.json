@@ -1,0 +1,20 @@
+[
+  {
+    "from": "a b",
+    "to": "c",
+    "code": "R1",
+    "distance": 10
+  },
+  {
+    "from": "a",
+    "to": "b c",
+    "code": "R2",
+    "distance": 20
+  },
+  {
+    "from": "north",
+    "to": "south",
+    "code": "R3",
+    "distance": 30
+  }
+]

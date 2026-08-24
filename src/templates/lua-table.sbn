@@ -136,32 +136,63 @@ function {{ table.table_name }}.new()
   }, {{ table.table_name }}Meta)
 end
 {{~ for index in table.indexes }}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+-- Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
+local function keyOf{{ index.suffix }}({{ index.params }})
+  local parts = {
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+    {{ c.param }},
+{{~ else if c.kind == "int64" ~}}
+{{~## Under LuaJIT a 64-bit value is FFI cdata, whose tostring is not the decimal a caller
+   passing a plain number would give - the same normalization a 64-bit single key uses. ##~}}
+    tcb.int64String({{ c.param }}),
+{{~ else ~}}
+    tostring({{ c.param }}),
+{{~ end ~}}
+{{~ end ~}}
+  }
+
+  local text = {}
+
+  for i = 1, #parts do
+    text[i] = #parts[i] .. ":" .. parts[i]
+  end
+
+  return table.concat(text)
+end
+
+{{~ end ~}}
 -- The row with this {{ index.field_name }}, or nil when the table has none: the lookup to
 -- reach for when a missing row is an ordinary answer.
-function {{ table.table_name }}:findBy{{ index.suffix }}(key)
+function {{ table.table_name }}:findBy{{ index.suffix }}({{ index.params }})
 {{~ if index.normalizes_int64 ~}}
   return self.{{ index.map_name }}[tcb.int64String(key)]
 {{~ else ~}}
-  return self.{{ index.map_name }}[key]
+  return self.{{ index.map_name }}[{{ index.argument }}]
 {{~ end ~}}
 end
 
 -- The row with this {{ index.field_name }}, or a raised error naming what was missing -
 -- for a key that has to be there.
-function {{ table.table_name }}:getBy{{ index.suffix }}OrThrow(key)
-  local record = self:findBy{{ index.suffix }}(key)
+function {{ table.table_name }}:getBy{{ index.suffix }}OrThrow({{ index.params }})
+  local record = self:findBy{{ index.suffix }}({{ index.params }})
 
   if record == nil then
     tcb.fail("there is no record in table `{{ table.raw_name }}` that corresponds to " ..
-      "field `{{ index.field_name }}` value %s", tostring(key))
+      "field `{{ index.field_name }}` value {{ index.value_format }}", {{ index.value_args }})
   end
 
   return record
 end
 
 -- Whether the table holds a row with this {{ index.field_name }}.
-function {{ table.table_name }}:contains{{ index.suffix }}(key)
-  return self:findBy{{ index.suffix }}(key) ~= nil
+function {{ table.table_name }}:contains{{ index.suffix }}({{ index.params }})
+  return self:findBy{{ index.suffix }}({{ index.params }}) ~= nil
 end
 {{~ end }}
 -- Loads the table from the bytes of a .tcb file written by Tabbit. Column by column,
@@ -320,6 +351,8 @@ function {{ table.table_name }}:readBytes(data)
   for i = 1, #records do
 {{~ if index.normalizes_int64 ~}}
     {{ index.map_name }}[tcb.int64String(records[i]{{ index.access }})] = records[i]
+{{~ else if index.is_composite ~}}
+    {{ index.map_name }}[keyOf{{ index.suffix }}({{ for c in index.components }}records[i]{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }})] = records[i]
 {{~ else ~}}
     {{ index.map_name }}[records[i]{{ index.access }}] = records[i]
 {{~ end ~}}

@@ -5,7 +5,6 @@
   "tabbit.declaration-meta-key-repeated": "`{Written}` sets `{Key}` twice. One value, or the second quietly replaces the first.",
   "tabbit.declaration-meta-value-missing": "`{Written}` names `{Key}` with no value. Write one - `{Example}`.",
   "tabbit.entity-name-duplicated": "`{Name}` is declared twice - as {Kind} here, and already above. A name identifies one entity whatever its kind, because the generated code has one name for it.",
-
   "tabbit.marker-column-unknown": "The marker column of `{Entity}` holds `{Written}`, which this layout does not define. It takes a declaration (`:table`, `:enum`, `:const`), a header row key ({Keys}), `#` to leave the row out, or nothing at all for a data row.",
   "tabbit.row-key-repeated": "`{Entity}` has two `{Key}` rows. Which one is read would then depend on the order they happen to be in.",
   "tabbit.row-key-below-data": "`{Entity}` has a `{Key}` row below a data row. Header rows come before the data - a sheet sorted with its header rows in the selection lands here.",
@@ -13,12 +12,10 @@
   "tabbit.type-row-missing": "Table `{Entity}` has no `:type` row. Every field column states its type.",
   "tabbit.type-row-not-on-entity": "`{Entity}` is {Kind} and has a `:type` row. The columns of {Kind} are fixed and named in `:field`, so there is no type for a row to state.",
   "tabbit.row-key-not-on-entity": "`{Entity}` is {Kind} and has a `{Key}` row, which {Kind} has no use for. It takes: {Keys}.",
-
   "tabbit.column-unnamed-with-data": "Column {Column} of `{Entity}` has no name in `:field`, and `{Value}` is written below it. Name it if it is a field; write `#` in its `:field` cell if it is space for the sheet's author, which nothing reads.",
   "tabbit.column-name-duplicated": "`{Entity}` has two columns named `{Column}`.",
   "tabbit.column-type-missing": "Column `{Column}` of `{Entity}` has no type. Write one in its `:type` cell. A blank type cell is how a group's later members and an array's later elements say the first one already stated it - which this column is not.",
   "tabbit.no-field-columns": "`{Entity}` has no column carrying a field. Every column is either unnamed or marked `#`.",
-
   "tabbit.path-problem": "Column `{Column}` of `{Entity}` {Detail}",
   "tabbit.element-number-not-integer": "Column `{Column}` of `{Entity}` is numbered `{Written}`, which is not a whole number.",
   "tabbit.element-numbers-not-from-zero": "`{Entity}.{Group}` starts at element {First}. Element numbers count from zero and run without a gap, so the first column of a group is `[0]`.",
@@ -26,7 +23,6 @@
   "tabbit.index-mark-on-array-column": "Column `{Column}` of `{Entity}` is marked `*`, and it holds an array. An index addresses one row by one value, which an array is not. If `*` was meant as a multi-row mark, this layout writes that with `[]` on the name and `*` is the secondary index.",
   "tabbit.repeated-index-mark": "Column `{Column}` of `{Entity}` begins with more than one `*`. One marks a secondary index.",
   "tabbit.index-mark-on-group-member": "Column `{Column}` of `{Entity}` is marked `*` and is a member of `{Group}`. An index addresses a row by a field of its own.",
-
   "tabbit.multi-row-nested": "Column `{Column}` of `{Entity}` writes `[]` beside another repeating level. A `[]` group whose member repeats again would replicate the whole set of columns per element, which this layout does not read. Write the inner array as a delimited cell or as numbered columns.",
   "tabbit.multi-row-cell-array": "Column `{Column}` of `{Entity}` is written `[]` and typed `{Written}`. The name says the elements come from the rows below and the type says they come from inside the cell, so each row would hold an array of them - which this layout does not read. Pick one place for the elements.",
   "tabbit.multi-row-on-index-column": "Column `{Column}` of `{Entity}` is written `[]` and is the column the primary index is read from. An index addresses one row by one value, which an array is not.",
@@ -46,8 +42,6 @@
   "tabbit.key-meta-empty": "`{Entity}` sets `key` to `{Written}`, which names no column. A key is one column or several - `key=code`, or `key=\"stage,slot\"`.",
   "tabbit.key-component-repeated": "The key `{Key}` of `{Entity}` names `{Column}` twice. A column takes part in a key once; naming it again narrows nothing.",
   "tabbit.key-declared-twice": "`{Entity}` declares the key `{Key}` twice. A `*` beside a column and a one-column `key` are the same declaration written two ways, and two keys over the same columns hold the same rows unique.",
-  "tabbit.composite-key-lookup-not-yet-supported": "`{Entity}` is keyed by `{Key}`, which is several columns taken together. The lookup that implies - `FindByKey(a, b)` - changes the surface every generated reader offers and is a step of its own, so this build reads the sheet and checks the key but does not generate for it yet.",
-
   "tabbit.enum-column-unknown": "Enum `{Entity}` has a column named `{Column}`, which this layout does not define. It takes: {Known}.",
   "tabbit.enum-column-missing": "Enum `{Entity}` has no `{Column}` column, and needs one.",
   "tabbit.enum-label-redefined": "Enum `{Entity}` has two labels named `{Label}`.",
@@ -55,10 +49,10 @@
   "tabbit.enum-cell-required": "A label of enum `{Entity}` leaves its `{Column}` cell blank. Both the name and the value of a label are required.",
   "tabbit.enum-alias-duplicated": "Enum `{Entity}` has two labels aliased `{Alias}`. An alias is a fourth way to write a label in a data cell, so two labels sharing one would make that cell mean either.",
   "tabbit.enum-alias-shadows-label": "Label `{Label}` of enum `{Entity}` is aliased `{Alias}`, which is already the name of the label `{Shadowed}`. A real name always answers a cell first, so this alias resolves nothing - and a cell written with it reaches `{Shadowed}` rather than `{Label}`.",
-
   "tabbit.constant-column-unknown": "Constant set `{Entity}` has a column named `{Column}`, which this layout does not define. It takes: {Known}.",
   "tabbit.constant-column-missing": "Constant set `{Entity}` has no `{Column}` column, and needs one.",
   "tabbit.constant-redefined": "Constant set `{Entity}` has two constants named `{Name}`.",
   "tabbit.constant-cannot-be-optional": "Constant `{Name}` of `{Entity}` is typed `{Type}`. A constant is one value written in one cell - there is no row for it to be absent from, so `?` has nothing to mean here.",
-  "tabbit.constant-cell-required": "Constant `{Name}` of `{Entity}` leaves its `{Column}` cell blank. The name, the type and the value of a constant are all required."
+  "tabbit.constant-cell-required": "Constant `{Name}` of `{Entity}` leaves its `{Column}` cell blank. The name, the type and the value of a constant are all required.",
+  "tabbit.composite-key-multi-row": "`{Entity}` is a multi-row table whose primary key `{Key}` is several columns taken together. A multi-row record begins where the primary key's cell has a value, and a combination spread over several columns has no such cell - so where one record ends and the next begins cannot be read. Give the table a single-column primary key, or write one row per record."
 }

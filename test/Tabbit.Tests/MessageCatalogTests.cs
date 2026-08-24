@@ -277,6 +277,49 @@ public class MessageCatalogTests
     }
 
     /// <summary>
+    /// Every `{Name:...}` in every catalog asks for a particle that exists.
+    /// </summary>
+    /// <remarks>
+    /// The pair notation is silent about a suffix it does not know: `{Key:인데}` renders as
+    /// `stage, slot:인데`, colon and all, which is deliberate - a typo should be visible rather
+    /// than swallowed - but the place to see it is here, not in somebody's error report.
+    ///
+    /// The sibling test above catches the opposite mistake, a particle written by hand where
+    /// the pair was needed. Between the two, a Korean entry either asks for a pair that
+    /// <see cref="KoreanParticle"/> knows or writes no particle at all.
+    /// </remarks>
+    [Fact]
+    public void A_placeholder_suffix_is_always_a_particle_the_catalog_knows()
+    {
+        var asked = new Regex(@"(?<!\{)\{[A-Za-z0-9_]+:([^}]*)\}");
+
+        var sites = new List<string>();
+
+        foreach (string language in TranslatedLanguages())
+        {
+            var catalog = MessageCatalog.ForLanguage(language);
+
+            foreach (string id in MessageRegistry.Ids.Where(catalog.Has))
+            {
+                foreach (Match found in asked.Matches(catalog.TextOf(id)))
+                {
+                    string suffix = found.Groups[1].Value;
+
+                    if (!KoreanParticle.IsParticle(suffix, out _, out _))
+                        sites.Add($"{language}/{id}: `{found.Value}`");
+                }
+            }
+        }
+
+        Assert.True(
+            sites.Count == 0,
+            "A catalog entry asks for a suffix that is not one of the pairs KoreanParticle "
+            + "knows, so it renders with the colon still in it. Use one of the pairs, or "
+            + "write the word without the colon: "
+            + string.Join(", ", sites));
+    }
+
+    /// <summary>
     /// Anything after the colon that is not a particle is written as it stands.
     /// </summary>
     /// <remarks>

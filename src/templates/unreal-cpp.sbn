@@ -29,15 +29,42 @@
 {{~ for table in tables }}
 
 {{~ for index in table.indexes ~}}
-const {{ table.record_name }}* {{ table.table_name }}::FindBy{{ index.suffix }}({{ index.key_param }} Key) const
+{{~ if index.is_composite }}
+FString {{ table.table_name }}::KeyOf{{ index.suffix }}({{ index.params }})
 {
-    const int32* Position = {{ index.map_name }}.Find(Key);
+    const FString Parts[] =
+    {
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+        {{ c.param }},
+{{~ else if c.kind == "enum" ~}}
+        FString::Printf(TEXT("%lld"), static_cast<int64>({{ c.param }})),
+{{~ else ~}}
+        FString::Printf(TEXT("%lld"), static_cast<int64>({{ c.param }})),
+{{~ end ~}}
+{{~ end ~}}
+    };
+
+    FString Text;
+
+    for (const FString& Part : Parts)
+    {
+        Text.Appendf(TEXT("%d:%s"), Part.Len(), *Part);
+    }
+
+    return Text;
+}
+
+{{~ end ~}}
+const {{ table.record_name }}* {{ table.table_name }}::FindBy{{ index.suffix }}({{ index.params }}) const
+{
+    const int32* Position = {{ index.map_name }}.Find({{ index.argument }});
     return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
 }
 
-bool {{ table.table_name }}::Contains{{ index.suffix }}({{ index.key_param }} Key) const
+bool {{ table.table_name }}::Contains{{ index.suffix }}({{ index.params }}) const
 {
-    return {{ index.map_name }}.Contains(Key);
+    return {{ index.map_name }}.Contains({{ index.argument }});
 }
 
 {{~ end ~}}
@@ -318,7 +345,12 @@ bool {{ table.table_name }}::Read(const FString& Filename)
     for (int32 Position = 0; Position < Loaded.Num(); ++Position)
     {
 {{~ for index in table.indexes ~}}
+{{~ if index.is_composite ~}}
+        {{ index.local_name }}.Add(
+            KeyOf{{ index.suffix }}({{ for c in index.components }}Loaded[Position].{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }}), Position);
+{{~ else ~}}
         {{ index.local_name }}.Add(Loaded[Position].{{ index.member }}, Position);
+{{~ end ~}}
 {{~ end ~}}
     }
 
@@ -341,9 +373,9 @@ bool {{ accessor_name }}::bVerifyMac = true;
 
 {{~ for slot in accessor.tables }}
 
-{{ slot.record_name }} {{ accessor.library_name }}::Get{{ slot.name }}Row({{ slot.primary_key_param }} Key, bool& bFound)
+{{ slot.record_name }} {{ accessor.library_name }}::Get{{ slot.name }}Row({{ slot.primary_params }}, bool& bFound)
 {
-    const {{ slot.record_name }}* Found = {{ accessor_name }}::{{ slot.name }}().{{ slot.primary_lookup }}(Key);
+    const {{ slot.record_name }}* Found = {{ accessor_name }}::{{ slot.name }}().{{ slot.primary_lookup }}({{ slot.primary_argument }});
 
     bFound = Found != nullptr;
 

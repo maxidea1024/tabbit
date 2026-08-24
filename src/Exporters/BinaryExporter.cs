@@ -172,6 +172,10 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// encodings keep applying per member, which storing a record as one blob would have
     /// defeated. spec/nested-fields.md has the layout.
     /// </remarks>
+    /// <summary>Nothing to opt into: this target generates no lookup.</summary>
+    /// <remarks>A key is a column like any other in the file, and the file carries no lookup.</remarks>
+    protected override bool SupportsCompositeKeys => true;
+
     protected override bool SupportsNestedFields => true;
 
     /// <summary>

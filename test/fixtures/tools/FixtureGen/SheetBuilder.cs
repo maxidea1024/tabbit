@@ -100,9 +100,17 @@ public sealed class SheetBuilder
     /// </remarks>
     public int Table(int column, int row, TableSpec spec, params string[] memoColumns)
     {
-        string declaration = string.IsNullOrEmpty(spec.TargetSide)
+        var meta = new List<string>();
+
+        if (!string.IsNullOrEmpty(spec.TargetSide))
+            meta.Add($"side={spec.TargetSide}");
+
+        if (!string.IsNullOrEmpty(spec.Meta))
+            meta.Add(spec.Meta);
+
+        string declaration = meta.Count == 0
             ? $":table {spec.Name}"
-            : $":table {spec.Name}(side={spec.TargetSide})";
+            : $":table {spec.Name}({string.Join(", ", meta)})";
 
         Set(column, row + 0, declaration);
         Set(column + 1, row + 0, spec.Comment);
@@ -443,6 +451,15 @@ public sealed class TableSpec
     public string Name;
     public string Comment = "";
     public string TargetSide = "";
+
+    /// <summary>Anything else the declaration cell carries, written as it stands.</summary>
+    /// <remarks>
+    /// `key="stage,slot"` is what this exists for. Held as text rather than modelled, because
+    /// the notation is the layout's and a fixture builder that models it would be a second
+    /// place the notation is defined.
+    /// </remarks>
+    public string Meta = "";
+
     public List<FieldSpec> Fields = new List<FieldSpec>();
     public List<string[]> Data = new List<string[]>();
 

@@ -1208,6 +1208,18 @@ public sealed class TabbitLayoutParser : ILayoutParser
         InheritTypesFromElementZero(table, sources);
         ApplyKeyMeta(table, block, sources);
 
+        // **A multi-row record begins where the primary key's cell has a value**, and a
+        // combination spread over several columns has no such cell - the first component
+        // repeats across records by design, so its blankness says nothing about where one
+        // record ends. Refused rather than read under a guess. Section 6.1.
+        if (records is not null
+            && table.Keys.Find(key => key.IsPrimary) is { IsComposite: true } spread)
+        {
+            throw new TabbitException(block.Location,
+                Message.Of(TabbitLayoutMessages.CompositeKeyMultiRow,
+                    ("Entity", block.Name), ("Key", spread.ToString())));
+        }
+
         // Grouped before the cells are read, because grouping is what gives every element of
         // an array the first one's answer about being optional, and reading a cell asks it.
         _ = table.SerialFields;

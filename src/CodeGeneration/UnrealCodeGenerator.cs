@@ -148,6 +148,9 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`FindByStageAndSlot(StageKey, SlotKey)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
     /// carries. spec/nullable-array-elements.md.
@@ -309,10 +312,14 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                 TableName = TableName(table),
                 RecordName = RecordName(table),
                 RawName = table.Name,
-                PrimaryLookup = "FindBy" + PrimaryIndex(table).Name.ToPascalCase(),
-                PrimaryKeyType = Indexes(table)[0].KeyType,
-                PrimaryKeyParam = Indexes(table)[0].KeyParam,
-                PrimaryFieldName = PrimaryIndex(table).Name.ToPascalCase(),
+                // The primary key asked for by name rather than taken off the front of
+                // the list, which puts single keys first. See KeyPlans.PrimaryOf.
+                PrimaryLookup = "FindBy" + PrimaryOf(table).Suffix,
+                PrimaryKeyType = PrimaryOf(table).KeyType,
+                PrimaryKeyParam = PrimaryOf(table).KeyParam,
+                PrimaryFieldName = PrimaryOf(table).FieldName,
+                PrimaryParams = PrimaryOf(table).Params,
+                PrimaryArgument = PrimaryOf(table).Argument,
 
                 // Unescaped: this one names the file the exporter wrote.
                 DataFileName = table.DataFileName,
@@ -1162,26 +1169,76 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<UnrealIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf =>
+        => KeyPlans.Of(table).Select(plan =>
         {
-            string keyType = ToUnrealTypeName(sf.FirstField);
+            string keyType = ToUnrealTypeName(plan.Only.FirstField);
             bool copyCosts = keyType == "FString";
+            string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToPascalCase(),
+
+                Type = ToUnrealTypeName(component.FirstField) == "FString"
+                    ? "const FString&"
+                    : ToUnrealTypeName(component.FirstField),
+
+                Member = MemberName(component.FirstField, component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
 
             return new UnrealIndexView
             {
-                Member = MemberName(sf.FirstField, sf.Name),
-                Suffix = sf.Name.ToPascalCase(),
-                KeyType = keyType,
-                KeyParam = copyCosts ? "const " + keyType + "&" : keyType,
-                MapName = "By" + sf.Name.ToPascalCase(),
-                LocalName = "LoadedBy" + sf.Name.ToPascalCase(),
-                FieldName = sf.Name.ToPascalCase(),
+                Member = MemberName(plan.Only.FirstField, plan.Only.Name),
+                Suffix = suffix,
+
+                // A TMap key needs GetTypeHash, and FString has one. Building the text is
+                // what every language does here; what Unreal saves by it is a USTRUCT key
+                // with a hand-written hash for every shape of composite a project declares.
+                KeyType = plan.IsComposite ? "FString" : keyType,
+
+                KeyParam = plan.IsComposite
+                    ? "const FString&"
+                    : copyCosts ? "const " + keyType + "&" : keyType,
+
+                MapName = "By" + suffix,
+                LocalName = "LoadedBy" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Type + " " + c.Param))
+                    : (copyCosts ? "const " + keyType + "&" : keyType) + " Key",
+
+                Argument = plan.IsComposite ? "KeyOf" + suffix + "(" + args + ")" : "Key",
             };
         }).ToList();
 
     /// <summary>The field a `foreign` column's key is looked up in: the first index.</summary>
+    /// <remarks>
+    /// A reference points at a single-column primary key - one whose is composite is refused
+    /// while the model is cooked - so this is only asked where such a field exists.
+    /// </remarks>
     private static SerialField PrimaryIndex(Table table)
         => table.SerialFields.First(sf => sf.IsIndexer);
+
+    /// <summary>
+    /// The key the Blueprint row getter takes, which is the table's primary one.
+    /// </summary>
+    /// <remarks>
+    /// Built rather than cached because it is asked for a handful of times per table and the
+    /// alternative is a field on the generator whose lifetime is one loop iteration.
+    /// </remarks>
+    private UnrealIndexView PrimaryOf(Table table)
+    {
+        var primary = KeyPlans.PrimaryOf(table);
+
+        return Indexes(table).First(
+            index => index.Suffix == primary.Suffix(name => name.ToPascalCase(), "And"));
+    }
 
     private static string MemberName(Field? field) => MemberName(field, field!.Name);
 

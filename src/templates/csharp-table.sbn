@@ -455,6 +455,66 @@
         public bool Contains{{ field.pascal_name }}({{ field.field_type }} key) => _recordsBy{{ field.pascal_name }}.ContainsKey(key);
         #endregion // Indexing by `{{ field.prop_name }}`
 {{~ end ~}}
+{{~ for key in table.composite_keys }}
+        #region Indexing by '{{ key.field_name }}'
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   The map is private, so what it is keyed by can change without the lookups moving.
+   spec/primary-layout.md section 3.5. ##~}}
+        private Dictionary<string, Record> {{ key.map_name }} = new Dictionary<string, Record>();
+
+        /// <summary>Joins the columns of the `{{ key.field_name }}` key into the text the map is keyed by.</summary>
+        private static string KeyOf{{ key.suffix }}({{ key.params }})
+        {
+            var parts = new string[]
+            {
+{{~ for c in key.components ~}}
+{{~ if c.kind == "string" ~}}
+                {{ c.param }},
+{{~ else if c.kind == "enum" ~}}
+                ((long){{ c.param }}).ToString(System.Globalization.CultureInfo.InvariantCulture),
+{{~ else ~}}
+                {{ c.param }}.ToString(System.Globalization.CultureInfo.InvariantCulture),
+{{~ end ~}}
+{{~ end ~}}
+            };
+
+            var text = new StringBuilder();
+
+            foreach (var part in parts)
+                text.Append(part.Length).Append(':').Append(part);
+
+            return text.ToString();
+        }
+
+        /// <summary>
+        /// The row with this `{{ key.field_name }}`, or null when the table has none.
+        /// </summary>
+        /// <remarks>
+        /// The lookup to reach for when a missing row is an ordinary answer - an optional
+        /// reference, a key that came from user input. Every language Tabbit generates has
+        /// this one under the same name.
+        /// </remarks>
+        public Record FindBy{{ key.suffix }}({{ key.params }})
+            => {{ key.map_name }}.TryGetValue({{ key.argument }}, out Record record) ? record : null;
+
+        /// <summary>
+        /// The row with this `{{ key.field_name }}`, or a thrown exception naming what was
+        /// missing.
+        /// </summary>
+        public Record GetBy{{ key.suffix }}OrThrow({{ key.params }})
+        {
+            if (!{{ key.map_name }}.TryGetValue({{ key.argument }}, out Record record))
+                throw new TabbitException($"There is no record in table `{{ table.raw_name }}` that corresponds to field `{{ key.field_name }}` value {{ key.value_format }}");
+
+            return record;
+        }
+
+        /// <summary>Whether the table holds a row with this `{{ key.field_name }}`.</summary>
+        public bool Contains{{ key.suffix }}({{ key.params }}) => {{ key.map_name }}.ContainsKey({{ key.argument }});
+        #endregion // Indexing by `{{ key.field_name }}`
+{{~ end ~}}
 
         /// <summary>
         /// Read a table from specified file.
@@ -704,6 +764,11 @@
             foreach (var record in records)
                 recordsBy{{ field.pascal_name }}.Add(record.{{ field.prop_name }}, record);
 {{~ end ~}}
+{{~ end ~}}
+{{~ for key in table.composite_keys ~}}
+            var recordsBy{{ key.suffix }} = new Dictionary<string, Record>(count);
+            foreach (var record in records)
+                recordsBy{{ key.suffix }}.Add(KeyOf{{ key.suffix }}({{ for c in key.components }}record.{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }}), record);
 {{~ end }}
             // Published. Everything above succeeded, and the barrier is what keeps the writes
             // that built these from being seen after the references to them - a reader on
@@ -713,6 +778,9 @@
             _records = records;
 {{~ for field in table.indexed_fields ~}}
             _recordsBy{{ field.pascal_name }} = recordsBy{{ field.pascal_name }};
+{{~ end ~}}
+{{~ for key in table.composite_keys ~}}
+            {{ key.map_name }} = recordsBy{{ key.suffix }};
 {{~ end ~}}
 
             return Task.CompletedTask;

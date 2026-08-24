@@ -131,6 +131,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`find_by_stage_and_slot(stage_key, slot_key)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
     /// carries. spec/nullable-array-elements.md.
@@ -361,12 +364,41 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<RubyIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf => new RubyIndexView
+        => KeyPlans.Of(table).Select(plan =>
         {
-            Member = RubyName(sf.Name),
-            Suffix = sf.Name.ToSnakeCase(),
-            MapName = "@by_" + sf.Name.ToSnakeCase(),
-            FieldName = sf.Name.ToPascalCase(),
+            string suffix = plan.Suffix(name => name.ToSnakeCase(), "_and_");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToSnakeCase(),
+                Type = "",
+                Member = RubyName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
+
+            return new RubyIndexView
+            {
+                Member = RubyName(plan.Only.Name),
+                Suffix = suffix,
+                MapName = "@by_" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite ? args : "key",
+
+                Argument = plan.IsComposite
+                    ? "self.class.key_of_" + suffix + "(" + args + ")"
+                    : "key",
+
+                ValueFormat = plan.IsComposite
+                    ? "(" + string.Join(", ", components.Select(c => "#{" + c.Param + ".inspect}")) + ")"
+                    : "#{key.inspect}",
+
+                ValueArgs = plan.IsComposite ? args : "key",
+            };
         }).ToList();
 
     /// <summary>

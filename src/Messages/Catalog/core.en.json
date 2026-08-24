@@ -253,5 +253,6 @@
   "cook.element-value-is-the-default": "`{Table}.{Field}` element {Element} is `{Value}`, and the column refuses the type's own empty value.",
   "cook.array-too-short": "`{Table}.{Field}` holds {Given} element(s), and the column declares at least {Wanted}.",
   "cook.array-too-long": "`{Table}.{Field}` holds {Given} element(s), and the column declares at most {Wanted}.",
-  "cook.pattern-unreadable": "`{Table}.{Field}` declares the pattern `{Pattern}`, which is not a regular expression: {Detail}"
+  "cook.pattern-unreadable": "`{Table}.{Field}` declares the pattern `{Pattern}`, which is not a regular expression: {Detail}",
+  "cook.reference-composite-key": "Column `{Field}` of `{Table}` points at `{Target}`, whose primary key `{Key}` is several columns taken together. A reference carries one key value and no cell shape holds a combination, so this is refused rather than guessed at. A secondary key is not involved: a reference points at the primary one."
 }

@@ -67,6 +67,7 @@ internal static class Program
         WriteSerialRef(Prepare(outputDir, "serial-ref", "serial-ref.xlsx"));
         WriteRecordRefTrim(Prepare(outputDir, "record-ref-trim", "record-ref-trim.xlsx"));
         WriteKeyTypes(Prepare(outputDir, "key-types", "key-types.xlsx"));
+        WriteCompositeKey(Prepare(outputDir, "composite-key", "composite-key.xlsx"));
         WriteOptional(Prepare(outputDir, "optional", "optional.xlsx"));
         WriteBlankAndNull(Prepare(outputDir, "blank-and-null", "blank-and-null.xlsx"));
         WriteBlankCell(Prepare(outputDir, "blank-cell", "blank-cell.xlsx"));
@@ -1469,6 +1470,110 @@ internal static class Program
     /// Being pointed at is `reference-keys`, where a `string`, a `bigint` and a `uuid` key
     /// are each the target of a reference.
     /// </remarks>
+    /// <summary>
+    /// Keys made of several columns: what a multi-argument lookup is generated from.
+    /// </summary>
+    /// <remarks>
+    /// Three tables for three separate questions. `Loadout` is the ordinary shape - two
+    /// columns, one of them an enum, and the same value repeating down each column while the
+    /// pair never repeats. `Route` puts two strings in a key and holds the pair
+    /// `("a b", "c")` beside `("a", "b c")`, which is the case that tells a key built by
+    /// joining with a separator from one built with each part's length in front of it: under
+    /// the first they are one key and one of the two rows is lost. `Grid` is three columns,
+    /// so nothing here can be right by only ever having been asked for two.
+    ///
+    /// `Route` also declares a single-column secondary key beside its composite primary,
+    /// which is the mixed case - a table generating both shapes of lookup at once.
+    ///
+    /// Every language, for the reason `key-types` gives: nothing here is new below the
+    /// generators and everything here is new inside them.
+    /// </remarks>
+    private static void WriteCompositeKey(string path)
+    {
+        var workbook = new XSSFWorkbook();
+
+        var enums = new SheetBuilder(workbook.CreateSheet("Enums"));
+
+        enums.Enum(1, 1, new EnumSpec { Name = "Slot", Comment = "Where a piece of equipment goes." }
+            .Label("None", "0", "no slot")
+            .Label("Head", "1", "worn on the head")
+            .Label("Body", "2", "worn on the body")
+            .Label("Feet", "3", "worn on the feet"));
+
+        // --- int and enum, the ordinary composite ------------------------
+
+        var loadouts = new SheetBuilder(workbook.CreateSheet("Loadout"));
+
+        var loadout = new TableSpec
+        {
+            Name = "Loadout",
+            Comment = "One row per stage and slot; neither column is unique on its own.",
+            Meta = "key=\"stage,slot\"",
+        };
+        loadout
+            .Field(FieldSpec.Of("stage", "int", "which stage"))
+            .Field(FieldSpec.Of("slot", "enum", "which slot", detailType: "Slot"))
+            .Field(FieldSpec.Of("Power", "int", "anything"))
+            .Field(FieldSpec.Of("Label", "string", "anything"));
+
+        loadout
+            .Row("1", "Head", "10", "training helm")
+            .Row("1", "Body", "20", "training plate")
+            .Row("2", "Head", "30", "field helm")
+            .Row("2", "Feet", "40", "field boots");
+
+        loadouts.Table(1, 1, loadout);
+
+        // --- two strings, and the pair a separator would lose -------------
+
+        var routes = new SheetBuilder(workbook.CreateSheet("Route"));
+
+        var route = new TableSpec
+        {
+            Name = "Route",
+            Comment = "A composite primary key of strings, beside a single-column secondary one.",
+            Meta = "key=\"From,To; Code\"",
+        };
+        route
+            .Field(FieldSpec.Of("From", "string", "where it starts"))
+            .Field(FieldSpec.Of("To", "string", "where it ends"))
+            .Field(FieldSpec.Of("Code", "string", "unique on its own"))
+            .Field(FieldSpec.Of("Distance", "int", "anything"));
+
+        route
+            .Row("a b", "c", "R1", "10")
+            .Row("a", "b c", "R2", "20")
+            .Row("north", "south", "R3", "30");
+
+        routes.Table(1, 1, route);
+
+        // --- three columns ------------------------------------------------
+
+        var grids = new SheetBuilder(workbook.CreateSheet("Grid"));
+
+        var grid = new TableSpec
+        {
+            Name = "Grid",
+            Comment = "Three columns taken together, so two is not the only width that works.",
+            Meta = "key=\"X,Y,Z\"",
+        };
+        grid
+            .Field(FieldSpec.Of("X", "int", "column"))
+            .Field(FieldSpec.Of("Y", "int", "row"))
+            .Field(FieldSpec.Of("Z", "string", "layer"))
+            .Field(FieldSpec.Of("Name", "string", "anything"));
+
+        grid
+            .Row("0", "0", "floor", "origin")
+            .Row("0", "0", "roof", "above origin")
+            .Row("1", "0", "floor", "east")
+            .Row("0", "1", "floor", "north");
+
+        grids.Table(1, 1, grid);
+
+        Save(workbook, path);
+    }
+
     private static void WriteKeyTypes(string path)
     {
         var workbook = new XSSFWorkbook();

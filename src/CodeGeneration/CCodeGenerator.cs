@@ -144,6 +144,16 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// <summary>An optional column becomes a `has_{name}` member beside the value.</summary>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`FindByStageAndSlot(table, stage_key, slot_key)`. See <see cref="KeyPlans"/>.</summary>
+    /// <remarks>
+    /// The one language with nowhere free to put the key's text. Every other target hands a
+    /// map a string it can own; C's index is a sorted array searched by `strcmp`, so the text
+    /// has to outlive the call that built it - the build path takes it from the table's arena
+    /// and the lookup path builds into a stack buffer, falling back to the heap and freeing
+    /// before it returns.
+    /// </remarks>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
     /// carries. spec/nullable-array-elements.md.
@@ -269,8 +279,16 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // accessor's own.
             Write(TableSource(pair.rendered), "c-table-source.sbn", new CPartView
             {
+                // stdio.h and stdlib.h only where a composite key is present: it writes a
+                // number with snprintf and takes the heap for a key too long for the stack
+                // buffer, and an include nothing reaches for is noise in every other file.
                 Includes = Includes(reader: false, headers: new[] { TableHeader(pair.rendered) })
-                    .Append("").Append("#include <string.h>").ToList(),
+                    .Append("")
+                    .Append("#include <string.h>")
+                    .Concat(pair.rendered.Indexes.Any(index => index.IsComposite)
+                        ? new[] { "#include <stdio.h>", "#include <stdlib.h>" }
+                        : Array.Empty<string>())
+                    .ToList(),
                 Table = pair.rendered,
                 Accessor = view.Accessor,
             });
@@ -513,20 +531,54 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<CIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf =>
+        => KeyPlans.Of(table).Select(plan =>
         {
-            string family = IndexFamily(sf);
+            // A composite key is text, so it goes in the family that orders text - the same
+            // one a `string` column has always used. What the family decides is how the
+            // entries sort and search, and nothing else.
+            string family = plan.IsComposite ? "tb_string_index" : IndexFamily(plan.Only);
+            string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToSnakeCase(),
+
+                Type = ScalarTypeName(
+                    component.FirstField!.ElementType, component.FirstField!.EnumOrNull),
+
+                Member = CName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
 
             return new CIndexView
             {
-                Member = CName(sf.Name),
-                Suffix = sf.Name.ToPascalCase(),
-                KeyType = ScalarTypeName(sf.FirstField!.ElementType, sf.FirstField!.EnumOrNull),
+                Member = CName(plan.Only.Name),
+                Suffix = suffix,
+
+                KeyType = plan.IsComposite
+                    ? "const char*"
+                    : ScalarTypeName(plan.Only.FirstField!.ElementType, plan.Only.FirstField!.EnumOrNull),
+
                 EntryType = family + "_entry",
                 SortCall = family + "_sort",
                 FindCall = family + "_find",
-                ArrayName = "by_" + sf.Name.ToSnakeCase(),
-                FieldName = sf.Name.ToPascalCase(),
+                ArrayName = "by_" + plan.Suffix(name => name.ToSnakeCase(), "_and_"),
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Type + " " + c.Param))
+                    : (plan.Only.FirstField!.ElementType == Models.ValueType.String
+                        ? "const char*"
+                        : ScalarTypeName(plan.Only.FirstField!.ElementType, plan.Only.FirstField!.EnumOrNull))
+                      + " key",
+
+                Argument = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Param))
+                    : "key",
+
+                KeyBuilder = table.Name.ToPascalCase() + "_KeyOf" + suffix,
             };
         }).ToList();
 

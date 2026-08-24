@@ -512,6 +512,20 @@ public partial class ModelCooker
             // one call the shared table has no entry for - by design, since each language
             // spells its own enum. Said here rather than left to the generators, where
             // it would surface as whichever of them a project reached first.
+            // **A reference carries one key value, and a composite primary key is not one.**
+            // The target's identity is a combination spread over several columns, and there
+            // is no cell shape that holds it - so this is refused rather than guessed at, and
+            // the form is decided when a need for it is measured. Secondary keys are not
+            // involved: a reference points at the primary one. spec/primary-layout.md 3.5.
+            if (field.ResolvedRefTable.Keys.Find(key => key.IsPrimary) is { IsComposite: true } composite)
+            {
+                diagnostics.Error(field.DetailTypeLocation,
+                    Message.Of(CookingMessages.ReferenceCompositeKey,
+                        ("Table", table.Name), ("Field", field.Name),
+                        ("Target", field.ResolvedRefTable.Name), ("Key", composite.ToString())));
+                continue;
+            }
+
             if (field.RefKeyType == Models.ValueType.Enum)
             {
                 diagnostics.Error(field.DetailTypeLocation,

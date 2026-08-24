@@ -135,6 +135,9 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`findByStageAndSlot($stageKey, $slotKey)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
     /// carries. spec/nullable-array-elements.md.
@@ -355,28 +358,60 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<PhpIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf =>
+        => KeyPlans.Of(table).Select(plan =>
         {
-            string keyType = ResolvedElementType(sf);
+            string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = "$" + KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                Type = ResolvedElementType(component),
+                Member = "$record->" + PhpName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
 
             return new PhpIndexView
             {
-                Member = PhpName(sf.Name),
-                Suffix = sf.Name.ToPascalCase(),
-                KeyType = keyType,
+                Member = PhpName(plan.Only.Name),
+                Suffix = suffix,
+                KeyType = plan.IsComposite ? "string" : ResolvedElementType(plan.Only),
 
                 // A PHP array is keyed by int or string and nothing else, so that is what the
                 // docblock can honestly claim whatever the column holds - and which of the two
                 // is decided by the same conversion the subscript uses, not by the declared
                 // parameter type. A uuid is a `Uuid` at the boundary and a string as an offset.
-                KeyDocType = OffsetDocType(sf.ElementType),
+                KeyDocType = plan.IsComposite ? "string" : OffsetDocType(plan.Only.ElementType),
 
-                KeyOffset = Offset("$key", sf.ElementType),
-                MemberOffset = Offset("$record->" + PhpName(sf.Name), sf.ElementType),
+                KeyOffset = plan.IsComposite
+                    ? "self::keyOf" + suffix + "(" + args + ")"
+                    : Offset("$key", plan.Only.ElementType),
 
-                MapName = "by" + sf.Name.ToPascalCase(),
-                LocalName = "$by" + sf.Name.ToPascalCase(),
-                FieldName = sf.Name.ToPascalCase(),
+                MemberOffset = plan.IsComposite
+                    ? "self::keyOf" + suffix + "("
+                      + string.Join(", ", components.Select(c => c.Member)) + ")"
+                    : Offset("$record->" + PhpName(plan.Only.Name), plan.Only.ElementType),
+
+                MapName = "by" + suffix,
+                LocalName = "$by" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Type + " " + c.Param))
+                    : ResolvedElementType(plan.Only) + " $key",
+
+                Argument = plan.IsComposite
+                    ? "self::keyOf" + suffix + "(" + args + ")"
+                    : Offset("$key", plan.Only.ElementType),
+
+                ValueFormat = plan.IsComposite
+                    ? "(" + string.Join(", ", components.Select(_ => "%s")) + ")"
+                    : "%s",
+
+                ValueArgs = plan.IsComposite ? args : "$key",
             };
         }).ToList();
 

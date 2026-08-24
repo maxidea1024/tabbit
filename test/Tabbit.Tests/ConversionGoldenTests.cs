@@ -69,6 +69,14 @@ public class ConversionGoldenTests
     // found two languages that did not: PHP subscripted an array with an object, and C++
     // named a key type `std::hash` had no specialization for.
     [InlineData("key-types")]
+    // Keys made of several columns, and the multi-argument lookups they generate. Every
+    // language, for the same reason `key-types` is: the wire does not move - a key's columns
+    // are ordinary columns - and every generated reader grows a surface it did not have.
+    // The three tables ask three things: an int-and-enum pair, two strings holding
+    // `("a b", "c")` beside `("a", "b c")` so the key's encoding is pinned rather than
+    // assumed, and a key of three columns. Recording it found PHP casting an enum object to
+    // an int. spec/primary-layout.md section 3.5.
+    [InlineData("composite-key")]
     // The other half of that: a table pointing *at* those keys. One table holds a `string`, a
     // `bigint` and a `uuid` reference at once, so a mixture is pinned as well as each on its
     // own. What travels is the key, and `int32` used to be written in for it - in the

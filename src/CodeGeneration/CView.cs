@@ -227,6 +227,21 @@ internal sealed class CIndexView
 
     /// <summary>The field as the sheet spells it, for the doc comment.</summary>
     public required string FieldName { get; set; }
+
+    /// <summary>Whether the key is several columns taken together.</summary>
+    public required bool IsComposite { get; set; }
+
+    /// <summary>The columns making it up - one entry unless it is composite.</summary>
+    public required IReadOnlyList<KeyComponentView> Components { get; set; }
+
+    /// <summary>The lookup's parameter list, one entry per column of the key.</summary>
+    public required string Params { get; set; }
+
+    /// <summary>What the lookup passes on, given those parameters.</summary>
+    public required string Argument { get; set; }
+
+    /// <summary>The function that joins a composite key's columns into its text.</summary>
+    public required string KeyBuilder { get; set; }
 }
 
 internal sealed class CFieldView

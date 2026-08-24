@@ -99,6 +99,9 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     protected override bool SupportsNestedFields => true;
     protected override bool SupportsDeepNestedFields => true;
     protected override bool SupportsOptionalFields => true;
+
+    /// <summary>`findByStageAndSlot(stageKey, slotKey)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
     protected override bool SupportsOptionalElements => true;
 
     /// <summary>The prefix pattern of a file at the output root: strip one component.</summary>
@@ -346,13 +349,48 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     }
 
     private IReadOnlyList<LuaIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf => new LuaIndexView
+        => KeyPlans.Of(table).Select(plan =>
         {
-            Access = Access(LuaName(sf.Name)),
-            Suffix = sf.Name.ToPascalCase(),
-            MapName = "by" + sf.Name.ToPascalCase(),
-            FieldName = sf.Name.ToPascalCase(),
-            NormalizesInt64 = KeyIsInt64(sf.ElementType),
+            string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                Type = "",
+                Member = Access(LuaName(component.Name)),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
+
+            return new LuaIndexView
+            {
+                Access = Access(LuaName(plan.Only.Name)),
+                Suffix = suffix,
+                MapName = "by" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+
+                // A composite key is already the text the map is keyed by, so there is no
+                // int64 arriving at the subscript for the int64 normalization to catch.
+                NormalizesInt64 = !plan.IsComposite && KeyIsInt64(plan.Only.ElementType),
+
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite ? args : "key",
+
+                Argument = plan.IsComposite
+                    ? "keyOf" + suffix + "(" + args + ")"
+                    : "key",
+
+                ValueFormat = plan.IsComposite
+                    ? "(" + string.Join(", ", components.Select(_ => "%s")) + ")"
+                    : "%s",
+
+                ValueArgs = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => "tostring(" + c.Param + ")"))
+                    : "tostring(key)",
+            };
         }).ToList();
 
     /// <summary>

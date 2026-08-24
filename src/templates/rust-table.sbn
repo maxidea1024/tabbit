@@ -71,12 +71,43 @@ impl {{ table.table_name }} {
         &self.records
     }
 {{~ for index in table.indexes }}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+    /// Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
+    fn key_of_{{ index.suffix }}({{ index.params }}) -> String {
+        let parts: [String; {{ index.components | array.size }}] = [
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+            {{ c.param }}.to_string(),
+{{~ else if c.kind == "enum" ~}}
+            {{ c.param }}.value().to_string(),
+{{~ else ~}}
+            {{ c.param }}.to_string(),
+{{~ end ~}}
+{{~ end ~}}
+        ];
+
+        let mut text = String::new();
+
+        for part in parts.iter() {
+            text.push_str(&part.len().to_string());
+            text.push(':');
+            text.push_str(part);
+        }
+
+        text
+    }
+
+{{~ end ~}}
     /// The row with this {{ index.field_name }}, or None when the table has none.
     ///
     /// The lookup to reach for when a missing row is an ordinary answer - an optional
     /// reference, a key that came from user input.
-    pub fn find_by_{{ index.suffix }}(&self, key: {{ index.key_param }}) -> Option<&{{ table.record_name }}> {
-        self.{{ index.map_name }}.get({{ index.key_borrow }}).map(|position| &self.records[*position])
+    pub fn find_by_{{ index.suffix }}(&self, {{ index.params }}) -> Option<&{{ table.record_name }}> {
+        self.{{ index.map_name }}.get({{ index.argument }}).map(|position| &self.records[*position])
     }
 
     /// The row with this {{ index.field_name }}, or an error naming what was missing.
@@ -84,20 +115,20 @@ impl {{ table.table_name }} {
     /// For a key that has to be there - one from another table, or a constant. Rust has no
     /// exception to throw, so where the other languages name a throw this one names the
     /// error it returns.
-    pub fn get_by_{{ index.suffix }}_or_error(&self, key: {{ index.key_param }}) -> tabbit::Result<&{{ table.record_name }}> {
+    pub fn get_by_{{ index.suffix }}_or_error(&self, {{ index.params }}) -> tabbit::Result<&{{ table.record_name }}> {
         self.{{ index.map_name }}
-            .get({{ index.key_borrow }})
+            .get({{ index.argument }})
             .map(|position| &self.records[*position])
             .ok_or_else(|| tabbit::Error::RecordNotFound {
                 table: "{{ table.raw_name }}",
                 field: "{{ index.field_name }}",
-                key: format!("{:?}", key),
+                key: format!("{{ index.value_format }}", {{ index.value_args }}),
             })
     }
 
     /// Whether the table holds a row with this {{ index.field_name }}.
-    pub fn contains_{{ index.suffix }}(&self, key: {{ index.key_param }}) -> bool {
-        self.{{ index.map_name }}.contains_key({{ index.key_borrow }})
+    pub fn contains_{{ index.suffix }}(&self, {{ index.params }}) -> bool {
+        self.{{ index.map_name }}.contains_key({{ index.argument }})
     }
 {{~ end ~}}
 
@@ -312,11 +343,21 @@ impl {{ table.table_name }} {
         }
 
 {{~ for index in table.indexes ~}}
+{{~ if index.is_composite ~}}
+        let {{ index.map_name }} = records
+            .iter()
+            .enumerate()
+            .map(|(position, record)| (
+                Self::key_of_{{ index.suffix }}({{ for c in index.components }}{{ if c.kind == "string" }}&record.{{ c.member }}{{ else }}record.{{ c.member }}{{ end }}{{ if !for.last }}, {{ end }}{{ end }}),
+                position))
+            .collect();
+{{~ else ~}}
         let {{ index.map_name }} = records
             .iter()
             .enumerate()
             .map(|(position, record)| (record.{{ index.member }}.clone(), position))
             .collect();
+{{~ end ~}}
 
 {{~ end ~}}
         // Published, now that every column read.

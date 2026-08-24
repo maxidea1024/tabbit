@@ -13,7 +13,7 @@
   "cook.index-type-unusable": "인덱스 필드 `{Table}.{Field}`이 `{Type}`입니다. {Why} 인덱스로는 정수·문자열·uuid·enum 컬럼을 쓰십시오.",
   "cook.index-optional": "인덱스 필드 `{Table}.{Field}`은 옵셔널일 수 없습니다. 타입에서 `?`를 지우십시오 — 모든 행이 인덱스 값을 가져야 합니다.",
   "cook.index-duplicate": "인덱스 필드 `{Table}.{Field}`에 `{Value}`가 다시 나옵니다. 처음 쓰인 곳은 {First}입니다. 인덱스 필드의 값은 서로 달라야 합니다.",
-  "cook.composite-key-duplicate": "테이블 {Table}의 키가 {Key:인데}, 이 행이 조합 {Value:를} 반복합니다 — 먼저 쓰인 자리는 {First}입니다. 복합 키는 성분마다는 반복해도 되고, 유일해야 하는 것은 그 조합입니다.",
+  "cook.composite-key-duplicate": "테이블 {Table}의 키 {Key:는} 이 행에서 조합 {Value:를} 반복합니다 — 먼저 쓰인 자리는 {First}입니다. 복합 키는 성분마다는 반복해도 되고, 유일해야 하는 것은 그 조합입니다.",
   "cook.index-absent": "`{Table}.{Field}`이 행을 지목하는데, 이 행은 그 자리에 값이 없다고 말합니다. 값을 적으십시오 — 인덱스는 없을 수 없습니다.",
   "cook.reference-enum-key": "`{Table}.{Field}`이 `{Target}`을 가리키는데, 그 테이블의 인덱스가 enum입니다. 다른 모든 키 타입은 참조할 수 있지만 이것만 아직 안 됩니다 — enum은 자기만의 인코딩으로 실리고, 생성된 리더가 여기서 그것을 다룰 일이 없습니다. `{Target}`을 enum의 기반 `int`로 키를 잡거나, 값을 여기서 그 enum으로 들고 `{Target}`의 인덱스로 행을 찾으십시오.",
   "cook.reference-blank": "필드 `{Table}.{Field}`이 `{Target}`을 가리키는데 이 행은 셀을 비워 두었습니다. 가리킬 행의 키를 적거나, 이 행은 아무것도 가리키지 않는다는 뜻으로 `-`를 적으십시오.",
@@ -253,5 +253,6 @@
   "cook.element-value-is-the-default": "`{Table}.{Field}`의 원소 {Element}의 값이 `{Value}`인데, 이 컬럼은 타입의 빈 값을 거절합니다.",
   "cook.array-too-short": "`{Table}.{Field}`이(가) 원소 {Given}개를 담는데, 컬럼이 선언한 최소는 {Wanted}개입니다.",
   "cook.array-too-long": "`{Table}.{Field}`이(가) 원소 {Given}개를 담는데, 컬럼이 선언한 최대는 {Wanted}개입니다.",
-  "cook.pattern-unreadable": "`{Table}.{Field}`이(가) 패턴 `{Pattern}`을(를) 선언하는데 정규식이 아닙니다: {Detail}"
+  "cook.pattern-unreadable": "`{Table}.{Field}`이(가) 패턴 `{Pattern}`을(를) 선언하는데 정규식이 아닙니다: {Detail}",
+  "cook.reference-composite-key": "{Table}의 컬럼 {Field:이} {Target:을} 가리키는데, 그 테이블의 기본 키 {Key:는} 컬럼 여럿을 함께 묶은 것입니다. 참조는 키 값 하나를 담는 구조이고 조합을 담는 셀 형태가 없으므로, 추측하는 대신 거절합니다. 보조 키는 상관이 없습니다 — 참조가 가리키는 것은 기본 키입니다."
 }

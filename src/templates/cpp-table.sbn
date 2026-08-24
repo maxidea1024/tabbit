@@ -122,12 +122,43 @@ class {{ table.table_name }} {
   const std::vector<{{ table.record_name }}>& records() const { return records_; }
 
 {{~ for index in table.indexes ~}}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+  /// Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
+  static std::string key_of_{{ index.suffix }}({{ index.params }}) {
+    const std::string parts[] = {
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+      {{ c.param }},
+{{~ else if c.kind == "enum" ~}}
+      std::to_string(static_cast<std::int64_t>({{ c.param }})),
+{{~ else ~}}
+      std::to_string({{ c.param }}),
+{{~ end ~}}
+{{~ end ~}}
+    };
+
+    std::string text;
+
+    for (const std::string& part : parts) {
+      text += std::to_string(part.size());
+      text += ':';
+      text += part;
+    }
+
+    return text;
+  }
+
+{{~ end ~}}
   /// The row with this {{ index.field_name }}, or nullptr when the table has none.
   ///
   /// The lookup to reach for when a missing row is an ordinary answer - an optional
   /// reference, a key that came from user input.
-  const {{ table.record_name }}* find_by_{{ index.suffix }}({{ index.key_param }} key) const {
-    const auto it = {{ index.map_name }}.find(key);
+  const {{ table.record_name }}* find_by_{{ index.suffix }}({{ index.params }}) const {
+    const auto it = {{ index.map_name }}.find({{ index.argument }});
     return it == {{ index.map_name }}.end() ? nullptr : &records_[it->second];
   }
 
@@ -136,8 +167,8 @@ class {{ table.table_name }} {
   /// For a key that has to be there - one from another table, or a constant. The name says
   /// it throws, because a caller reading `get_by_{{ index.suffix }}(key)->name` at a glance
   /// cannot otherwise tell whether the next line is a null check or a catch.
-  const {{ table.record_name }}& get_by_{{ index.suffix }}_or_throw({{ index.key_param }} key) const {
-    const {{ table.record_name }}* found = find_by_{{ index.suffix }}(key);
+  const {{ table.record_name }}& get_by_{{ index.suffix }}_or_throw({{ index.params }}) const {
+    const {{ table.record_name }}* found = find_by_{{ index.suffix }}({{ if index.is_composite }}{{ for c in index.components }}{{ c.param }}{{ if !for.last }}, {{ end }}{{ end }}{{ else }}key{{ end }});
 
     if (found == nullptr) {
       throw tabbit::RecordNotFound(
@@ -149,8 +180,8 @@ class {{ table.table_name }} {
   }
 
   /// Whether the table holds a row with this {{ index.field_name }}.
-  bool contains_{{ index.suffix }}({{ index.key_param }} key) const {
-    return {{ index.map_name }}.find(key) != {{ index.map_name }}.end();
+  bool contains_{{ index.suffix }}({{ index.params }}) const {
+    return {{ index.map_name }}.find({{ index.argument }}) != {{ index.map_name }}.end();
   }
 
 {{~ end ~}}
@@ -358,7 +389,12 @@ class {{ table.table_name }} {
     std::unordered_map<{{ index.key_type }}, std::size_t> {{ index.suffix }}_map;
     {{ index.suffix }}_map.reserve(records.size());
     for (std::size_t i = 0; i < records.size(); ++i) {
+{{~ if index.is_composite ~}}
+      {{ index.suffix }}_map.emplace(
+        key_of_{{ index.suffix }}({{ for c in index.components }}records[i].{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }}), i);
+{{~ else ~}}
       {{ index.suffix }}_map.emplace(records[i].{{ index.member }}, i);
+{{~ end ~}}
     }
 
 {{~ end ~}}

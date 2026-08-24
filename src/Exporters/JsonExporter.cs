@@ -79,6 +79,10 @@ public class JsonExporter : Target<JsonRecipe>
     /// record's members are ordinary columns, so it stays flat - which is what compact
     /// means, and what a reader indexing by column position needs.
     /// </remarks>
+    /// <summary>Nothing to opt into: this target generates no lookup.</summary>
+    /// <remarks>Rows come out as they stand; nothing here is keyed.</remarks>
+    protected override bool SupportsCompositeKeys => true;
+
     protected override bool SupportsNestedFields => true;
 
     /// <summary>

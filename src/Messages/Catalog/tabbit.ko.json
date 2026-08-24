@@ -5,7 +5,6 @@
   "tabbit.declaration-meta-key-repeated": "{Written:이} {Key:를} 두 번 설정합니다. 하나만 적으십시오 — 그대로 두면 뒤의 값이 앞의 값을 조용히 대체합니다.",
   "tabbit.declaration-meta-value-missing": "{Written:이} {Key:를} 값 없이 적었습니다. 값을 적으십시오 — `{Example}`처럼.",
   "tabbit.entity-name-duplicated": "이름 {Name:이} 두 번 선언되었습니다 — 여기서는 {Kind}이고, 위에 이미 있습니다. 이름은 종류와 무관하게 엔티티 하나를 가리킵니다. 생성 코드에서 그 이름이 하나이기 때문입니다.",
-
   "tabbit.marker-column-unknown": "{Entity}의 마커 열에 {Written:이} 적혀 있는데, 이 레이아웃이 정의하지 않는 값입니다. 마커 열이 담는 것은 선언(`:table` · `:enum` · `:const`), 헤더 행 키({Keys}), 그 행을 제외하는 `#`, 그리고 데이터 행의 빈 칸입니다.",
   "tabbit.row-key-repeated": "{Entity}에 {Key} 행이 둘 있습니다. 그대로 두면 어느 쪽이 읽히는지가 두 행의 순서에 달리게 됩니다.",
   "tabbit.row-key-below-data": "{Entity}의 {Key} 행이 데이터 행 아래에 있습니다. 헤더 행은 데이터보다 위에 있어야 합니다 — 헤더 행까지 선택 범위에 넣고 시트를 정렬하면 이렇게 됩니다.",
@@ -13,12 +12,10 @@
   "tabbit.type-row-missing": "테이블 {Entity}에 `:type` 행이 없습니다. 필드 컬럼은 모두 타입을 적습니다.",
   "tabbit.type-row-not-on-entity": "{Entity:는} {Kind}인데 `:type` 행이 있습니다. {Kind}의 컬럼은 정해져 있고 `:field`에 이름으로 적히므로, 행이 적을 타입이 없습니다.",
   "tabbit.row-key-not-on-entity": "{Entity:는} {Kind}인데 {Key} 행이 있고, {Kind:는} 그 행을 쓰지 않습니다. 받는 행 키는 {Keys}입니다.",
-
   "tabbit.column-unnamed-with-data": "{Entity}의 {Column}열은 `:field`에 이름이 없는데, 그 아래에 {Value:가} 적혀 있습니다. 필드라면 이름을 적고, 시트 작성자의 공간이라면 `:field` 셀에 `#`을 적으십시오 — 그렇게 표시한 컬럼은 아무것도 읽지 않습니다.",
   "tabbit.column-name-duplicated": "{Entity}에 {Column} 이름의 컬럼이 둘 있습니다.",
   "tabbit.column-type-missing": "{Entity}의 컬럼 {Column}에 타입이 없습니다. `:type` 셀에 적으십시오. 타입 칸을 비우는 것은 그룹의 뒤 멤버와 배열의 뒤 원소가 「첫 자리에 이미 적혀 있다」고 말하는 방법이고, 이 컬럼은 그 자리가 아닙니다.",
   "tabbit.no-field-columns": "{Entity}에 필드를 담는 컬럼이 없습니다. 모든 컬럼이 이름이 없거나 `#`으로 표시되어 있습니다.",
-
   "tabbit.path-problem": "{Entity}의 컬럼 {Column} {Detail}",
   "tabbit.element-number-not-integer": "{Entity}의 컬럼 {Column}의 원소 번호 {Written:은} 정수가 아닙니다.",
   "tabbit.element-numbers-not-from-zero": "{Entity}.{Group:이} 원소 {First}번부터 시작합니다. 원소 번호는 0부터 시작해 빠짐없이 이어지므로, 그룹의 첫 컬럼은 `[0]`입니다.",
@@ -26,7 +23,6 @@
   "tabbit.index-mark-on-array-column": "{Entity}의 컬럼 {Column}에 `*`가 붙어 있고, 이 컬럼은 배열을 담습니다. 인덱스는 값 하나로 행 하나를 가리키는 것이므로 배열은 인덱스가 될 수 없습니다. `*`를 멀티 로우 표시로 적으셨다면, 이 레이아웃의 멀티 로우는 이름에 붙는 `[]`이고 `*`는 보조 인덱스입니다.",
   "tabbit.repeated-index-mark": "{Entity}의 컬럼 {Column} 앞에 `*`가 둘 이상 있습니다. 보조 인덱스는 `*` 하나로 표시합니다.",
   "tabbit.index-mark-on-group-member": "{Entity}의 컬럼 {Column}에 `*`가 붙어 있고, 이 컬럼은 {Group}의 멤버입니다. 인덱스는 행을 그 행 자신의 필드로 가리킵니다.",
-
   "tabbit.multi-row-nested": "{Entity}의 컬럼 {Column:이} `[]`를 또 하나의 반복 레벨 옆에 적었습니다. `[]` 그룹의 멤버가 다시 반복하면 컬럼 집합 전체가 원소마다 복제되는 형태가 되고, 이 레이아웃은 그것을 읽지 않습니다. 안쪽 배열은 셀 구분자나 번호 붙은 컬럼으로 적으십시오.",
   "tabbit.multi-row-cell-array": "{Entity}의 컬럼 {Column:이} `[]`로 적혀 있고 타입은 {Written}입니다. 이름은 원소가 아래 행들에서 온다고 말하고 타입은 셀 안에서 온다고 말하므로, 행마다 배열을 담는 형태가 됩니다 — 이 레이아웃은 그것을 읽지 않습니다. 원소가 오는 자리를 하나만 고르십시오.",
   "tabbit.multi-row-on-index-column": "{Entity}의 컬럼 {Column:이} `[]`로 적혀 있고, 기본 인덱스를 읽는 컬럼입니다. 인덱스는 값 하나로 행 하나를 가리키는 것이므로 배열은 인덱스가 될 수 없습니다.",
@@ -43,11 +39,9 @@
   "tabbit.multi-target-names-a-field": "{Entity}의 컬럼 {Column:이} `foreign {Written}` 타입인데, 테이블 여러 개와 그중 하나의 필드({Dotted})를 함께 지목합니다. 여러 테이블 중 하나를 가리키는 참조는 키를 들고 어느 테이블인지는 값이 정하므로, 그중 하나의 필드를 지목하는 것은 두 번째 형태입니다. 필드 이름을 지우거나, 별도 컬럼에서 가리키십시오.",
   "tabbit.key-column-not-found": "{Entity}의 `key`가 {Key:를} 지목하는데 그 이름의 컬럼이 없습니다. 이 엔티티의 컬럼은 {Known}입니다.",
   "tabbit.key-column-not-scalar": "{Entity}의 `key`가 {Key:를} 지목하는데, 그것은 자기 컬럼이 아니라 그룹의 일부입니다. 행은 자기 컬럼 하나의 값 하나로 가리켜집니다.",
-  "tabbit.key-meta-empty": "{Entity}의 `key`가 {Written:인데}, 지목하는 컬럼이 없습니다. 키는 컬럼 하나이거나 여럿입니다 — `key=code`, 또는 `key=\"stage,slot\"`.",
+  "tabbit.key-meta-empty": "{Entity}의 `key` {Written:은} 지목하는 컬럼이 없습니다. 키는 컬럼 하나이거나 여럿입니다 — `key=code`, 또는 `key=\"stage,slot\"`.",
   "tabbit.key-component-repeated": "{Entity}의 키 {Key:가} {Column:을} 두 번 지목합니다. 컬럼은 한 키에 한 번 들어가고, 다시 적는다고 좁아지지 않습니다.",
   "tabbit.key-declared-twice": "{Entity:가} 키 {Key:를} 두 번 선언합니다. 컬럼 옆의 `*`와 컬럼 하나짜리 `key`는 같은 선언의 두 표기이고, 같은 컬럼들로 된 키 둘은 같은 행을 유일하게 만듭니다.",
-  "tabbit.composite-key-lookup-not-yet-supported": "{Entity}의 키가 {Key:인데}, 컬럼 여럿을 함께 묶은 것입니다. 그것이 뜻하는 조회 — `FindByKey(a, b)` — 는 모든 언어의 생성 코드가 내는 표면을 바꾸므로 별도 단계입니다. 이 빌드는 시트를 읽고 키를 검사하지만 아직 생성하지는 않습니다.",
-
   "tabbit.enum-column-unknown": "enum {Entity}에 {Column} 이름의 컬럼이 있는데, 이 레이아웃이 정의하지 않는 이름입니다. 받는 이름은 {Known}입니다.",
   "tabbit.enum-column-missing": "enum {Entity}에 {Column} 컬럼이 없습니다. 필수 컬럼입니다.",
   "tabbit.enum-label-redefined": "enum {Entity}에 {Label} 이름의 라벨이 둘 있습니다.",
@@ -55,10 +49,10 @@
   "tabbit.enum-cell-required": "enum {Entity}의 라벨 하나가 {Column} 칸을 비웠습니다. 라벨의 이름과 값은 둘 다 필수입니다.",
   "tabbit.enum-alias-duplicated": "enum {Entity}에 {Alias} 별칭을 쓰는 라벨이 둘 있습니다. 별칭은 데이터 셀에 라벨을 적는 네 번째 표기이므로, 둘이 하나를 함께 쓰면 그 셀이 어느 쪽이든 될 수 있게 됩니다.",
   "tabbit.enum-alias-shadows-label": "enum {Entity}의 라벨 {Label}에 붙은 별칭 {Alias:는} 이미 라벨 {Shadowed}의 이름입니다. 셀은 실제 이름이 먼저 답하므로 이 별칭은 아무것도 가리키지 못하고, 그 별칭으로 적은 셀은 {Label:이} 아니라 {Shadowed}에 닿습니다.",
-
   "tabbit.constant-column-unknown": "상수셋 {Entity}에 {Column} 이름의 컬럼이 있는데, 이 레이아웃이 정의하지 않는 이름입니다. 받는 이름은 {Known}입니다.",
   "tabbit.constant-column-missing": "상수셋 {Entity}에 {Column} 컬럼이 없습니다. 필수 컬럼입니다.",
   "tabbit.constant-redefined": "상수셋 {Entity}에 {Name} 이름의 상수가 둘 있습니다.",
   "tabbit.constant-cannot-be-optional": "{Entity}의 상수 {Name:이} {Type} 타입입니다. 상수는 셀 하나에 적는 값 하나이고 없을 수 있는 행이 없으므로, 여기서 `?`는 뜻할 것이 없습니다.",
-  "tabbit.constant-cell-required": "{Entity}의 상수 {Name:이} {Column} 칸을 비웠습니다. 상수의 이름과 타입과 값은 모두 필수입니다."
+  "tabbit.constant-cell-required": "{Entity}의 상수 {Name:이} {Column} 칸을 비웠습니다. 상수의 이름과 타입과 값은 모두 필수입니다.",
+  "tabbit.composite-key-multi-row": "{Entity:은} 멀티 로우 테이블인데 기본 키 {Key:는} 컬럼 여럿을 함께 묶은 것입니다. 멀티 로우의 레코드는 기본 키 칸에 값이 있는 곳에서 시작하는데, 컬럼 여럿에 흩어진 조합에는 그런 칸이 없습니다 — 레코드가 어디서 끝나고 어디서 시작하는지 읽을 수 없습니다. 기본 키를 컬럼 하나로 하거나, 레코드마다 한 행으로 적으십시오."
 }

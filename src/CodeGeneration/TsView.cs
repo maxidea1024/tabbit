@@ -341,6 +341,9 @@ internal sealed class TsTableView
             /// <summary>The fields a lookup map is built for.</summary>
     public required IReadOnlyList<TsFieldView> IndexedFields { get; set; }
 
+    /// <summary>The keys made of several columns, which publish no map of their own.</summary>
+    public required IReadOnlyList<CompositeKeyView> CompositeKeys { get; set; }
+
     /// <summary>
     /// Whether the read declares the column cursor: true when any scalar column can
     /// arrive encoded, which is what the cursor exists to decode.

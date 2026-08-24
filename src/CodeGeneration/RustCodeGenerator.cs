@@ -173,6 +173,9 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`find_by_stage_and_slot(stage_key, slot_key)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// `has_x_at(i)` beside the value, filled from the element bitmap the file carries.
     /// spec/nullable-array-elements.md.
@@ -574,22 +577,60 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<RustIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf =>
+        => KeyPlans.Of(table).Select(plan =>
         {
-            string keyType = ToRustTypeName(sf.FirstField!.ElementType, sf.FirstField!.EnumOrNull);
+            string keyType = ToRustTypeName(
+                plan.Only.FirstField!.ElementType, plan.Only.FirstField!.EnumOrNull);
+
             bool owned = keyType == "String";
+            string suffix = plan.Suffix(name => name.ToSnakeCase(), "_and_");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToSnakeCase(),
+                Type = RustKeyParam(component),
+                Member = RustName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
 
             return new RustIndexView
             {
-                Member = RustName(sf.Name),
-                Suffix = sf.Name.ToSnakeCase(),
-                KeyType = keyType,
-                KeyParam = owned ? "&str" : keyType,
-                KeyBorrow = owned ? "key" : "&key",
-                MapName = "by_" + sf.Name.ToSnakeCase(),
-                FieldName = sf.Name.ToPascalCase(),
+                Member = RustName(plan.Only.Name),
+                Suffix = suffix,
+                KeyType = plan.IsComposite ? "String" : keyType,
+                KeyParam = plan.IsComposite ? "&str" : owned ? "&str" : keyType,
+                KeyBorrow = plan.IsComposite ? "key" : owned ? "key" : "&key",
+                MapName = "by_" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Param + ": " + c.Type))
+                    : "key: " + (owned ? "&str" : keyType),
+
+                Argument = plan.IsComposite
+                    ? "&Self::key_of_" + suffix + "(" + args + ")"
+                    : owned ? "key" : "&key",
+
+                ValueFormat = plan.IsComposite
+                    ? "(" + string.Join(", ", components.Select(_ => "{:?}")) + ")"
+                    : "{:?}",
+
+                ValueArgs = plan.IsComposite ? args : "key",
             };
         }).ToList();
+
+    /// <summary>How a key column arrives at a lookup: borrowed where owning it would copy.</summary>
+    private string RustKeyParam(SerialField component)
+    {
+        string type = ToRustTypeName(
+            component.FirstField!.ElementType, component.FirstField!.EnumOrNull);
+
+        return type == "String" ? "&str" : type;
+    }
 
     private RustFieldView BuildField(Table table, SerialField sf)
     {

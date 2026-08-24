@@ -139,6 +139,9 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
+    /// <summary>`findByStageAndSlot(stageKey, slotKey)`. See <see cref="KeyPlans"/>.</summary>
+    protected override bool SupportsCompositeKeys => true;
+
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
     /// carries. spec/nullable-array-elements.md.
@@ -381,14 +384,43 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// with a `*`.
     /// </summary>
     private IReadOnlyList<JavaIndexView> Indexes(Table table)
-        => table.SerialFields.Where(sf => sf.IsIndexer).Select(sf => new JavaIndexView
+        => KeyPlans.Of(table).Select(plan =>
         {
-            Member = JavaName(sf.Name),
-            Suffix = sf.Name.ToPascalCase(),
-            KeyType = Boxed(ResolvedElementType(sf)),
-            KeyParam = ResolvedElementType(sf),
-            MapName = "by" + sf.Name.ToPascalCase(),
-            FieldName = sf.Name.ToPascalCase(),
+            string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
+
+            var components = plan.Components.Select(component => new KeyComponentView
+            {
+                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                Type = ResolvedElementType(component),
+                Member = JavaName(component.Name),
+                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+            }).ToList();
+
+            string args = string.Join(", ", components.Select(component => component.Param));
+
+            return new JavaIndexView
+            {
+                Member = JavaName(plan.Only.Name),
+                Suffix = suffix,
+                KeyType = plan.IsComposite ? "String" : Boxed(ResolvedElementType(plan.Only)),
+                KeyParam = plan.IsComposite ? "String" : ResolvedElementType(plan.Only),
+                MapName = "by" + suffix,
+                FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsComposite = plan.IsComposite,
+                Components = components,
+
+                Params = plan.IsComposite
+                    ? string.Join(", ", components.Select(c => c.Type + " " + c.Param))
+                    : ResolvedElementType(plan.Only) + " key",
+
+                Argument = plan.IsComposite ? "keyOf" + suffix + "(" + args + ")" : "key",
+
+                ValueFormat = plan.IsComposite
+                    ? "(" + string.Join(", ", components.Select(_ => "%s")) + ")"
+                    : "%s",
+
+                ValueArgs = plan.IsComposite ? args : "key",
+            };
         }).ToList();
 
     /// <summary>

@@ -148,10 +148,18 @@ public:
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    const {{ table.record_name }}* FindBy{{ index.suffix }}({{ index.key_param }} Key) const;
+    const {{ table.record_name }}* FindBy{{ index.suffix }}({{ index.params }}) const;
 
     /** Whether the table holds a row with this {{ index.field_name }}. */
-    bool Contains{{ index.suffix }}({{ index.key_param }} Key) const;
+    bool Contains{{ index.suffix }}({{ index.params }}) const;
+{{~ if index.is_composite }}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+    /** Joins the columns of the {{ index.field_name }} key into the text the map is keyed by. */
+    static FString KeyOf{{ index.suffix }}({{ index.params }});
+{{~ end ~}}
 {{~ end }}
     /** Loads the table from a .tcb file written by Tabbit. */
     bool Read(const FString& Filename);
@@ -272,7 +280,7 @@ public:
      */
     UFUNCTION(BlueprintPure, Category = "Tabbit|{{ slot.raw_name }}",
               meta = (DisplayName = "Get {{ slot.raw_name }} Row"))
-    static {{ slot.record_name }} Get{{ slot.name }}Row({{ slot.primary_key_param }} Key, bool& bFound);
+    static {{ slot.record_name }} Get{{ slot.name }}Row({{ slot.primary_params }}, bool& bFound);
 
     /** How many {{ slot.raw_name }} rows were loaded. */
     UFUNCTION(BlueprintPure, Category = "Tabbit|{{ slot.raw_name }}",

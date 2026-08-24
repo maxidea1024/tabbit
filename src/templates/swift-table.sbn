@@ -125,6 +125,42 @@ public final class {{ table.table_name }} {
     private var {{ index.map_name }}: [{{ index.key_type }}: {{ table.record_name }}] = [:]
 {{~ end ~}}
 {{~ for index in table.indexes }}
+{{~## A key of several columns is held as the text they make. Each part carries its own
+   length, so no two combinations can make the same text - joined by a separator alone,
+   ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
+   spec/primary-layout.md section 3.5. ##~}}
+{{~ if index.is_composite ~}}
+    /// Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
+    private static func keyOf{{ index.suffix }}({{ index.params }}) -> String {
+        let parts: [String] = [
+{{~ for c in index.components ~}}
+{{~ if c.kind == "string" ~}}
+            {{ c.param }},
+{{~ else if c.kind == "enum" ~}}
+            String({{ c.param }}.rawValue),
+{{~ else ~}}
+            String({{ c.param }}),
+{{~ end ~}}
+{{~ end ~}}
+        ]
+
+        var text = ""
+
+        for part in parts {
+            text += "\(part.count):\(part)"
+        }
+
+        return text
+    }
+
+    /// The row with this {{ index.field_name }}, or nil when the table has none.
+    ///
+    /// The lookup to reach for when a missing row is an ordinary answer - an optional
+    /// reference, a key that came from user input.
+    public func findBy{{ index.suffix }}({{ index.params }}) -> {{ table.record_name }}? {
+        {{ index.map_name }}[{{ index.argument }}]
+    }
+{{~ else ~}}
     /// The row with this {{ index.field_name }}, or nil when the table has none.
     ///
     /// The lookup to reach for when a missing row is an ordinary answer - an optional
@@ -132,25 +168,26 @@ public final class {{ table.table_name }} {
     public func findBy{{ index.suffix }}(_ key: {{ index.key_type }}) -> {{ table.record_name }}? {
         {{ index.map_name }}[key]
     }
+{{~ end ~}}
 
     /// The row with this {{ index.field_name }}, or a thrown error naming what was missing.
     ///
     /// For a key that has to be there - one from another table, or a constant. The name says
     /// it throws, because a caller reading getBy{{ index.suffix }}OrThrow(key).name at a
     /// glance cannot otherwise tell whether the next line is a nil check or a catch.
-    public func getBy{{ index.suffix }}OrThrow(_ key: {{ index.key_type }}) throws -> {{ table.record_name }} {
-        guard let record = {{ index.map_name }}[key] else {
+    public func getBy{{ index.suffix }}OrThrow({{ index.params }}) throws -> {{ table.record_name }} {
+        guard let record = {{ index.map_name }}[{{ index.argument }}] else {
             throw RecordNotFoundError(
                 "there is no record in table `{{ table.raw_name }}` that corresponds to "
-                + "field `{{ index.field_name }}` value \(key)")
+                + "field `{{ index.field_name }}` value {{ index.value_format }}")
         }
 
         return record
     }
 
     /// Whether the table holds a row with this {{ index.field_name }}.
-    public func contains{{ index.suffix }}(_ key: {{ index.key_type }}) -> Bool {
-        {{ index.map_name }}[key] != nil
+    public func contains{{ index.suffix }}({{ index.params }}) -> Bool {
+        {{ index.map_name }}[{{ index.argument }}] != nil
     }
 {{~ end ~}}
 
@@ -347,7 +384,11 @@ public final class {{ table.table_name }} {
 {{~ if table.indexes | array.size > 0 }}
         for record in loaded {
 {{~ for index in table.indexes ~}}
+{{~ if index.is_composite ~}}
+            loadedBy{{ index.suffix }}[Self.keyOf{{ index.suffix }}({{ for c in index.components }}record.{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }})] = record
+{{~ else ~}}
             loadedBy{{ index.suffix }}[record.{{ index.member }}] = record
+{{~ end ~}}
 {{~ end ~}}
         }
 {{~ end ~}}

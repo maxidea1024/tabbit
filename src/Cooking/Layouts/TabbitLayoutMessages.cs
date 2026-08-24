@@ -139,9 +139,8 @@ public static class TabbitLayoutMessages
     /// <summary>A `:field` name this layout reserves for a notation a later spec settles.</summary>
     public const string ReservedColumnNotYetSupported = "tabbit.reserved-column-not-yet-supported";
 
-    /// <summary>A composite key, whose multi-argument lookup is a step of its own.</summary>
-    public const string CompositeKeyLookupNotYetSupported =
-        "tabbit.composite-key-lookup-not-yet-supported";
+    /// <summary>A composite primary key on a table whose records span several rows.</summary>
+    public const string CompositeKeyMultiRow = "tabbit.composite-key-multi-row";
 
     /// <summary>A `key` that names no column at all.</summary>
     public const string KeyMetaEmpty = "tabbit.key-meta-empty";
