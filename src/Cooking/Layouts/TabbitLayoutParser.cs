@@ -1721,17 +1721,6 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     ("Detail", "is typed `foreign` and names no table. Write the table after it - `foreign Item`, or `foreign Item|CEquip` for a key that is a row of either.")));
         }
 
-        if (isArray)
-        {
-            // Deliberately unsupported rather than half-supported: a variable number of
-            // targets per row is a shape the generated readers have none for, so letting it
-            // parse would produce code that silently never resolves.
-            throw new TabbitException(at,
-                Message.Of(TabbitLayoutMessages.PathProblem,
-                    ("Entity", block.Name), ("Column", field.Name),
-                    ("Detail", "is typed as an array of references, which the generated readers have no shape for. Write the references as numbered columns, one reference each.")));
-        }
-
         // Split before casing: a bar is not a word separator, so casing the whole cell would
         // leave the second name as written. Each half is cased on its own for the same reason -
         // a dot is not one either, and `ItemCategory.Name` has to stay two names.
@@ -1783,13 +1772,36 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     ("Detail", "is typed `foreign` and names no table between its bars.")));
         }
 
+        // **An array of a set is refused, and an array of one table is not.** What separates
+        // them is what the generated code can say: one table per element resolves to a row,
+        // which is the shape a folded group of numbered reference columns already produces in
+        // every language. Several tables per element needs a discriminator and a narrowing
+        // accessor per element, and no generator has that for a column - it has it for a
+        // scalar column and for a record member.
+        //
+        // Refused rather than half generated. Letting it through emits a column of keys with
+        // no way to reach the rows, which is the same silence the whole-array refusal existed
+        // to prevent. spec/polymorphism.md section 4.
+        if (isArray && names.Count > 1)
+        {
+            throw new TabbitException(at,
+                Message.Of(TabbitLayoutMessages.MultiTargetArrayUnsupported,
+                    ("Entity", block.Name), ("Column", field.Name), ("Written", rest)));
+        }
+
         field.TypeName = "$Unresolved$";
 
         // Whatever the reference's shape, the cell holds the target's index - and what type
         // that is cannot be known here, because the target may not have been read yet and its
         // key may be a string as readily as an int. So the cell is kept as written and
         // `ModelCooker.ConvertReferenceCells` converts it once resolution has an answer.
-        field.Type = Models.ValueType.String;
+        //
+        // An array of them is one cell holding a delimited list of keys, which the same pass
+        // converts element by element. What made this refused until now was the belief that no
+        // generated reader had a shape for it - and every one of them does, because a folded
+        // group of numbered reference columns arrives at the generators as exactly this:
+        // `SerialField.IsRef` and `IsArray` together. spec/polymorphism.md section 4.
+        field.Type = isArray ? Models.ValueType.StringArray : Models.ValueType.String;
 
         field.RefTableNames = names;
         field.RefFieldName = member;

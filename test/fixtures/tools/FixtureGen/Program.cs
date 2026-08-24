@@ -42,6 +42,7 @@ internal static class Program
         WriteInvalid(Prepare(outputDir, "invalid", "invalid.xlsx"));
         WriteSideDangling(Prepare(outputDir, "side-dangling", "side-dangling.xlsx"));
         WriteArrayForeign(Prepare(outputDir, "array-foreign", "array-foreign.xlsx"));
+        WriteArrayForeignMulti(Prepare(outputDir, "array-foreign-multi", "array-foreign-multi.xlsx"));
         WriteStrictValues(Prepare(outputDir, "strict-values", "strict-values.xlsx"));
         WriteDoubleStar(Prepare(outputDir, "double-star", "double-star.xlsx"));
         WriteMemberArray(Prepare(outputDir, "member-array", "member-array.xlsx"));
@@ -614,9 +615,72 @@ internal static class Program
     }
 
     /// <summary>
-    /// `foreign[]`, which is deliberately unsupported.
+    /// `foreign Target[]` - a cell holding a delimited list of keys.
     /// </summary>
+    /// <remarks>
+    /// The third way an array of references reaches the model, beside numbered columns
+    /// (`serial-ref`) and rows (multi-row). What it has to show is that the three arrive as
+    /// one thing: the generated surface here is `serial-ref`'s, because the fold has already
+    /// made a column's delimited list and a group of numbered columns the same group.
+    ///
+    /// Rows of three, one and none, so the per-row length is what the file carries rather
+    /// than a count the sheet happened to have. Both forms a reference takes are arrayed -
+    /// the whole row and one of that row's values - because the element type differs between
+    /// them and each has its own path through resolution.
+    ///
+    /// `foreign A|B[]` is not here: it is refused, and `TabbitLayoutTests` holds that.
+    /// spec/polymorphism.md section 4.
+    /// </remarks>
     private static void WriteArrayForeign(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Refs"));
+
+        var target = new TableSpec { Name = "Target", Comment = "Reference target." };
+        target
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "name"))
+            .Field(FieldSpec.Of("Note", "string", "note"));
+        target
+            .Row("1", "one", "first")
+            .Row("2", "two", "second")
+            .Row("3", "three", "third");
+
+        b.Table(1, 1, target);
+
+        var holders = new SheetBuilder(workbook.CreateSheet("Holder"));
+
+        var holder = new TableSpec { Name = "Holder", Comment = "Arrays of references, written in one cell each." };
+        holder
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Targets", "foreign[]", "a list of rows", detailType: "Target"))
+            // The other form a reference takes, arrayed: each element resolves to one of the
+            // target's values rather than to the row.
+            .Field(FieldSpec.Of("Notes", "foreign[]", "a list of one of that row's values", detailType: "Target.Note"))
+            .Field(FieldSpec.Of("Label", "string", "label"));
+        holder
+            .Row("1", "1;2;3", "1;2", "three and two")
+            // One element, which is where an array of one and a scalar have to stay apart.
+            .Row("2", "2", "3", "one and one")
+            // Empty cells are empty arrays, as they are for every other array type.
+            .Row("3", "", "", "none and none");
+
+        holders.Table(1, 1, holder);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// `foreign A|B[]`, which stays refused.
+    /// </summary>
+    /// <remarks>
+    /// The half of an array of references the generators have no shape for: an element that
+    /// may be a row of either table needs a discriminator and a narrowing accessor of its
+    /// own, and those exist for a column and for a record member rather than for an array.
+    /// Refused rather than emitted as a column of keys nothing can resolve.
+    /// spec/polymorphism.md section 4.
+    /// </remarks>
+    private static void WriteArrayForeignMulti(string path)
     {
         var workbook = new XSSFWorkbook();
         var b = new SheetBuilder(workbook.CreateSheet("Bad"));
@@ -624,20 +688,26 @@ internal static class Program
         var target = new TableSpec { Name = "Target", Comment = "Reference target." };
         target
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Name", "string", "name"))
-            .Field(FieldSpec.Of("Note", "string", "note"));
-        target.Row("1", "one", "first");
+            .Field(FieldSpec.Of("Name", "string", "name"));
+        target.Row("1", "one");
 
         b.Table(1, 1, target);
 
-        var holder = new TableSpec { Name = "Holder", Comment = "Declares an array of references." };
+        var other = new TableSpec { Name = "Other", Comment = "A second target." };
+        other
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "name"));
+        other.Row("101", "alpha");
+
+        b.Table(6, 1, other);
+
+        var holder = new TableSpec { Name = "Holder", Comment = "Declares a list reaching either." };
         holder
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Targets", "foreign[]", "unsupported", detailType: "Target"))
-            .Field(FieldSpec.Of("Label", "string", "label"));
-        holder.Row("1", "1", "a");
+            .Field(FieldSpec.Of("Mixed", "foreign[]", "unsupported", detailType: "Target|Other"));
+        holder.Row("1", "1;101");
 
-        b.Table(9, 1, holder);
+        b.Table(11, 1, holder);
 
         Save(workbook, path);
     }

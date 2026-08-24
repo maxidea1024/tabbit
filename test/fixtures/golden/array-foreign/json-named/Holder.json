@@ -1,0 +1,31 @@
+[
+  {
+    "index": 1,
+    "targets": [
+      1,
+      2,
+      3
+    ],
+    "notes": [
+      1,
+      2
+    ],
+    "label": "three and two"
+  },
+  {
+    "index": 2,
+    "targets": [
+      2
+    ],
+    "notes": [
+      3
+    ],
+    "label": "one and one"
+  },
+  {
+    "index": 3,
+    "targets": [],
+    "notes": [],
+    "label": "none and none"
+  }
+]

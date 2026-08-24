@@ -85,6 +85,9 @@ public static class TabbitLayoutMessages
     /// <summary>A reference naming several tables and a field of one of them.</summary>
     public const string MultiTargetNamesAField = "tabbit.multi-target-names-a-field";
 
+    /// <summary>`foreign A|B[]` - an array whose elements reach several tables.</summary>
+    public const string MultiTargetArrayUnsupported = "tabbit.multi-target-array-unsupported";
+
     /// <summary>A type cell whose bracket meta never closes.</summary>
     public const string ColumnMetaUnclosed = "tabbit.column-meta-unclosed";
 

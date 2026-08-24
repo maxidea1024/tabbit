@@ -1,0 +1,51 @@
+{
+  // `foreign A|B[]`, which stays refused - the half of an array of references that would
+  // need a discriminator and a narrowing accessor per element. spec/polymorphism.md
+  // section 4.
+  //
+  // Nothing is compared: the run does not get as far as writing anything. What the fixture
+  // is for is the report, and `ArrayTypeTests` reads it.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/array-foreign-multi"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/array-foreign-multi/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/array-foreign-multi/json-compact",
+      "UseCompactRowFormat": true,
+      "Indented": true
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/array-foreign-multi/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/array-foreign-multi/csharp",
+      "Namespace": "Tabbit.Fixtures.X",
+      "AccessorName": "XAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/array-foreign-multi/typescript"
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/array-foreign-multi/html"
+    }
+  ]
+}

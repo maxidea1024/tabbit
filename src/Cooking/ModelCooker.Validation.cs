@@ -553,6 +553,12 @@ public partial class ModelCooker
         // with no columns takes the empty cells out with it through the return below -
         // and those used to be stopped by the value parser, so letting them past here
         // would be a refusal quietly lost. spec/reference-optionality.md.
+        // An empty cell in a column typed `foreign Item[]` is an empty array, which is what
+        // an empty cell means for every other array type - so the question this asks does not
+        // arise. What a row with no targets writes is nothing, not `-`: the mark says one
+        // element has no value, and there is no element here to say it of.
+        // spec/polymorphism.md section 4.
+        if (!field.IsArray)
         {
             bool isArrayElement = arrayElements.TryGetValue(field, out var place);
 
@@ -615,21 +621,44 @@ public partial class ModelCooker
             if (!cell.HasValue)
                 continue;
 
-            // Zero is the conventional "points at nothing". Index values start at
-            // one, so it can never collide with a real row. Left alone deliberately: what
-            // is being caught above is a cell that was never filled in acquiring a meaning,
-            // not the meaning of a value somebody typed.
-            if (cell.Value is int key && key == 0)
-                continue;
+            // An array of references is a key per element, and each is looked up the way a
+            // scalar one is. Reported per element, so a cell holding three keys of which one
+            // is wrong names the one rather than the cell.
+            if (cell.Value is System.Array keys && field.IsArray)
+            {
+                foreach (object? element in keys)
+                    CheckKeyExists(table, field, foreignTable, foreignKeys, cell, element, diagnostics);
 
-            if (foreignKeys.Contains(cell.Value!))
                 continue;
+            }
 
-            diagnostics.Error(cell.RawCell.Location,
-                Message.Of(CookingMessages.ReferenceMissingRow,
-                    ("Table", table.Name), ("Field", field.Name),
-                    ("Target", foreignTable.Name), ("Value", cell.Value)));
+            CheckKeyExists(table, field, foreignTable, foreignKeys, cell, cell.Value, diagnostics);
         }
+    }
+
+    /// <summary>
+    /// Says so when one key a reference cell holds is not a row of its target.
+    /// </summary>
+    /// <remarks>
+    /// Zero is the conventional "points at nothing". Index values start at one, so it can
+    /// never collide with a real row. Left alone deliberately: what the checks above catch is
+    /// a cell that was never filled in acquiring a meaning, not the meaning of a value
+    /// somebody typed.
+    /// </remarks>
+    private static void CheckKeyExists(
+        Table table, Field field, Table foreignTable,
+        HashSet<object> foreignKeys, Cell cell, object? value, Diagnostics diagnostics)
+    {
+        if (value is int key && key == 0)
+            return;
+
+        if (value is not null && foreignKeys.Contains(value))
+            return;
+
+        diagnostics.Error(cell.RawCell.Location,
+            Message.Of(CookingMessages.ReferenceMissingRow,
+                ("Table", table.Name), ("Field", field.Name),
+                ("Target", foreignTable.Name), ("Value", value)));
     }
 
     /// <summary>
@@ -877,6 +906,24 @@ public partial class ModelCooker
             // says so as being required, which is a different declaration.
             if (!cell.HasValue)
                 continue;
+
+            // A key per element, each looked up the way a scalar one is - so a cell holding
+            // three keys of which one is wrong names the one rather than the cell.
+            if (cell.Value is System.Array elements && field.IsArray)
+            {
+                foreach (object? element in elements)
+                {
+                    if (keys.Contains(ComparableKey(element)!))
+                        continue;
+
+                    diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
+                        Message.Of(CookingMessages.MultiTargetMissingRow,
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Value", element), ("Targets", names)));
+                }
+
+                continue;
+            }
 
             if (keys.Contains(ComparableKey(cell.Value)!))
                 continue;

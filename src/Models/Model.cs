@@ -268,7 +268,19 @@ public class Model
 
                 if (field.ResolvedRefField is null)
                 {
-                    field.Type = Models.ValueType.ForeignRecord; // the value is a row of the referenced table, not its key
+                    // The value is a row of the referenced table, not its key - and a cell
+                    // holding a delimited list of keys is a row each. The array kind is the
+                    // one the folded numbered columns already produce, so nothing downstream
+                    // meets a shape it has not seen. spec/polymorphism.md section 4.
+                    //
+                    // Told apart by the deferred marker rather than by `IsArray`: a column a
+                    // layout promoted from a constraint row was read as an ordinary number
+                    // and may be an array of them, and that one has never been a record per
+                    // element. Only `foreign T[]` in a type cell leaves `StringArray` here.
+                    field.Type = field.Type == Models.ValueType.StringArray
+                        ? Models.ValueType.ForeignRecordArray
+                        : Models.ValueType.ForeignRecord;
+
                     field.TypeName = $"{field.ResolvedRefTable!.Name}.Record";
                 }
                 else
@@ -289,7 +301,12 @@ public class Model
                         continue;
                     }
 
-                    field.Type = field.ResolvedRefField.Type;
+                    // The same discriminator as above: the deferred marker says the type
+                    // cell wrote `foreign Target.Field[]`, and the element is that field.
+                    field.Type = field.Type == Models.ValueType.StringArray
+                        ? Models.ValueTypes.ArrayOf(field.ResolvedRefField.Type)
+                        : field.ResolvedRefField.Type;
+
                     field.TypeName = field.ResolvedRefField.TypeName;
                 }
 
@@ -357,9 +374,18 @@ public class Model
         // are addressed by. Saying so is what makes the value travel at the key's width
         // instead of a wider one that happens to fit it.
         //
-        // Arrays are left alone: the element type is the key already, and rewriting the
+        // A column promoted from a constraint row is left alone when it is an array: it was
+        // read as an ordinary number, the element type is the key already, and rewriting the
         // declared type would say the column holds one value where it holds several.
-        if (!ValueTypes.IsArray(field.Type))
+        //
+        // `foreign A|B[]` in a type cell is the other case, and it does need saying: the
+        // deferred marker is `StringArray` and what the elements actually are is the key.
+        if (field.Type == ValueType.StringArray)
+        {
+            field.Type = ValueTypes.ArrayOf(field.RefKeyType);
+            field.TypeName = field.RefKeyType.ToString().ToLowerInvariant();
+        }
+        else if (!ValueTypes.IsArray(field.Type))
         {
             field.Type = field.RefKeyType;
             field.TypeName = field.RefKeyType.ToString().ToLowerInvariant();

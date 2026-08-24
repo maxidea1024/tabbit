@@ -180,10 +180,11 @@ index 필드를 서버나 클라 한쪽으로 보낼 수 없습니다. 양쪽 �
 **세부타입 칸은 없습니다.** 타입 하나가 셀 하나에 들어가므로 enum도 이름을 바로 적습니다 —
 `Grade`.
 
-### `... is typed as an array of references, which the generated readers have no shape for`
+### `... One table per element is supported and this is not`
 
-`foreign[]`은 지원하지 않습니다. 개수가 정해져 있으면 원소를 컬럼으로 적으세요 —
-`ref[0]` · `ref[1]`.
+`foreign A|B[]` — 원소마다 다른 테이블일 수 있는 배열입니다. 대상이 하나인 배열은
+됩니다(`foreign Item[]`). 여럿이 필요하면 원소를 컬럼으로 적고 그 목록을 컬럼마다
+적으세요 — `ref[0]` · `ref[1]`.
 
 ### `Enum ... has two labels named ...` / `Constant set ... has two constants named ...`
 

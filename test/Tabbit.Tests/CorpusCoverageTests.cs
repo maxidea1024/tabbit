@@ -37,10 +37,15 @@ public class CorpusCoverageTests
     /// </summary>
     /// <remarks>
     /// `None` is the absence of a type. `Unresolved` is what a reference holds between parsing
-    /// and resolution, and never survives into a model. `ForeignRecordArray` is the reserved
-    /// spelling of `foreign[]`, which the cooker refuses - an array of references is written as
-    /// a folded serial group instead, and that keeps `ForeignRecord` as its element type. The
-    /// `serial-ref` fixture holds one.
+    /// and resolution, and never survives into a model.
+    ///
+    /// **`ForeignRecordArray` is here on a weaker claim than the other two, and the claim is
+    /// about this corpus rather than about the type.** A sheet can declare one - `foreign
+    /// Item[]` in a type cell, since spec/polymorphism.md section 4 - and the `array-foreign`
+    /// golden holds it in every target that fixture builds. What it is not in is this corpus,
+    /// which is the one the fifteen readers are run against, so the column that would exercise
+    /// their per-element allocation is still owed. Until then the element read is covered by
+    /// `serial-ref`, whose folded group reaches the generators as the same group.
     ///
     /// Named individually rather than by a rule, because the next type added should have to
     /// be thought about rather than swept in by a predicate somebody wrote for these.

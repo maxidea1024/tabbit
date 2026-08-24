@@ -1,0 +1,19 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "b8200be7eaf521fec43260ca90c51819",
+  "TotalSize": 548,
+  "Items": [
+    {
+      "Name": "Target.json",
+      "Size": 198,
+      "Hash": "d0cc71d271b2600c766e54c9690dcf31",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Holder.json",
+      "Size": 350,
+      "Hash": "bc404bdd63edc33b9ac449b84de4aaae",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

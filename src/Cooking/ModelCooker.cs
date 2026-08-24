@@ -659,6 +659,25 @@ public partial class ModelCooker
 
                     var cell = row[field.Index];
 
+                    // An array of references arrives already split: the column was read as a
+                    // delimited array of text while the sheet was open, because the key type
+                    // was not known then. Each element is converted the way a scalar cell is.
+                    if (cell.Value is string?[] parts)
+                    {
+                        try
+                        {
+                            cell.Value = context.ParseReferenceKeys(
+                                field.RefKeyType, parts, cell.RawCell?.Location);
+                        }
+                        catch (TabbitException problem)
+                        {
+                            ReportUnparsableKey(
+                                table, field, cell, string.Join(", ", parts), problem, diagnostics);
+                        }
+
+                        continue;
+                    }
+
                     // A layout that parsed the cell itself hands over a value rather than
                     // the text of one - a column promoted from "these are the tables its
                     // value belongs to" was read as an ordinary number. Narrowed to the key
@@ -682,30 +701,40 @@ public partial class ModelCooker
                     }
                     catch (TabbitException problem)
                     {
-                        // Said against the reference rather than against the type, because
-                        // the author wrote a key and the type is the target's answer. The
-                        // parser's own message names `Int32` and nothing else, which sends
-                        // them looking at the wrong column.
-                        //
-                        // Every target, not the resolved one: a column naming several has no
-                        // single resolved table, and reading the singular here dereferenced
-                        // null the moment such a column held a key it could not parse.
-                        string targets = field.ResolvedRefTables is not null
-                            ? string.Join("`, `", field.ResolvedRefTables.Select(t => t.Name))
-                            : field.ResolvedRefTable!.Name;
-
-                        // `Detail` is the caught parser's own message. The frame around it is
-                        // translatable; what it quotes stays as it arrived.
-                        diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
-                            Messages.Message.Of(CookingMessages.ReferenceKeyUnparsable,
-                                ("Table", table.Name), ("Field", field.Name),
-                                ("Targets", targets),
-                                ("KeyType", field.RefKeyType.ToString().ToLowerInvariant()),
-                                ("Written", written), ("Detail", problem.Message)));
+                        ReportUnparsableKey(table, field, cell, written, problem, diagnostics);
                     }
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Says a reference cell held something its target's key cannot be.
+    /// </summary>
+    /// <remarks>
+    /// Said against the reference rather than against the type, because the author wrote a key
+    /// and the type is the target's answer. The parser's own message names `Int32` and nothing
+    /// else, which sends them looking at the wrong column.
+    /// </remarks>
+    private static void ReportUnparsableKey(
+        Table table, Field field, Cell cell, string written,
+        TabbitException problem, Diagnostics diagnostics)
+    {
+        // Every target, not the resolved one: a column naming several has no single resolved
+        // table, and reading the singular here dereferenced null the moment such a column held
+        // a key it could not parse.
+        string targets = field.ResolvedRefTables is not null
+            ? string.Join("`, `", field.ResolvedRefTables.Select(t => t.Name))
+            : field.ResolvedRefTable!.Name;
+
+        // `Detail` is the caught parser's own message. The frame around it is translatable;
+        // what it quotes stays as it arrived.
+        diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
+            Messages.Message.Of(CookingMessages.ReferenceKeyUnparsable,
+                ("Table", table.Name), ("Field", field.Name),
+                ("Targets", targets),
+                ("KeyType", field.RefKeyType.ToString().ToLowerInvariant()),
+                ("Written", written), ("Detail", problem.Message)));
     }
 
     /// <summary>

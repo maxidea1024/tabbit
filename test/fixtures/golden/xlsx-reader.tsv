@@ -1,4 +1,5 @@
-array-foreign/array-foreign.xlsx	sheets=1 rows=7 cells=42 chars=265 names=0 skipped-names=0 hash=a35d319a7d3b0c53
+array-foreign-multi/array-foreign-multi.xlsx	sheets=1 rows=7 cells=48 chars=331 names=0 skipped-names=0 hash=7ae6e462212fffd0
+array-foreign/array-foreign.xlsx	sheets=2 rows=18 cells=59 chars=413 names=0 skipped-names=0 hash=148312ae004af795
 asset/asset.xlsx	sheets=1 rows=9 cells=47 chars=529 names=0 skipped-names=0 hash=b9dffd379d18c874
 binary-names/binary-names.xlsx	sheets=2 rows=14 cells=39 chars=117 names=3 skipped-names=3 hash=5fc6a5d31f61c070
 bitset/bitset.xlsx	sheets=1 rows=10 cells=45 chars=381 names=0 skipped-names=0 hash=0037830c61367c59
@@ -51,3 +52,4 @@ side-dangling/side-dangling.xlsx	sheets=1 rows=8 cells=48 chars=362 names=0 skip
 strict-values/strict-values.xlsx	sheets=1 rows=8 cells=24 chars=183 names=0 skipped-names=0 hash=d39ae4a6822149fd
 string-index/string-index.xlsx	sheets=1 rows=9 cells=27 chars=217 names=0 skipped-names=0 hash=af79d2a7b9073710
 text/text.xlsx	sheets=1 rows=19 cells=83 chars=916 names=0 skipped-names=0 hash=261bc44eab9dae0c
+variant-set/variant-set.xlsx	sheets=3 rows=33 cells=105 chars=860 names=0 skipped-names=0 hash=97252c558331a6e7

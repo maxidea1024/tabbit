@@ -137,6 +137,13 @@ public class ConversionGoldenTests
     // sits beside them, so the tree also says what naming it excludes.
     // spec/polymorphism.md sections 3 and 4.
     [InlineData("variant-set")]
+    // An array of references written as one cell, in both forms a reference takes. What the
+    // tree pins is that this is `serial-ref`'s surface: the fold makes a delimited cell and a
+    // group of numbered columns the same group, so the generated page holds one array of rows
+    // and one array of a target's values, each allocated from the row's own element count.
+    // The refusal this replaced said the readers had no shape for it; the tree is what says
+    // they did. spec/polymorphism.md section 4.
+    [InlineData("array-foreign")]
     public void Fixture_matches_golden(string scenario)
     {
         var result = TabbitRunner.Convert(scenario);
