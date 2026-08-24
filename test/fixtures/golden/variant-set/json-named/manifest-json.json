@@ -1,0 +1,31 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "445d735a90f3b2f2c3a76c572a56c72c",
+  "TotalSize": 641,
+  "Items": [
+    {
+      "Name": "Item.json",
+      "Size": 182,
+      "Hash": "cbfe7051c9cfa44b933cf71cbb8b81d4",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Mount.json",
+      "Size": 182,
+      "Hash": "2485bcc65e6b8b0f1061f2110ae08424",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Currency.json",
+      "Size": 89,
+      "Hash": "1748cb0ed12266262523567f9b1df2e4",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Shop.json",
+      "Size": 188,
+      "Hash": "51ebc3c8d9f0bf684cc9d45fb6c0d4f4",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

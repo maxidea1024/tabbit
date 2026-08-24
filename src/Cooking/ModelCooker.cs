@@ -104,6 +104,11 @@ public partial class ModelCooker
         // another table's extra rows is not given a file name of its own.
         NameDataFiles(result, recipeModel);
 
+        // A column that named a variant set names the tables in it from here on. Before
+        // promotion, because everything below this line is meant to meet the expanded list
+        // and never the name it was written as. spec/polymorphism.md section 4.
+        ExpandVariantSetReferences(result, declarations, diagnostics);
+
         // A column whose sheet named the tables its value belongs to is a reference, and
         // this is where it becomes one. Before resolution, because resolution is what it is
         // being handed to.
@@ -236,6 +241,160 @@ public partial class ModelCooker
     /// would emit code that cannot compile. Those columns stay what they were: an id, and
     /// the check in ValidateReferencedTables. spec/multi-target-references.md.
     /// </remarks>
+    /// <summary>
+    /// Replaces a reference that named a variant set with the tables in that set.
+    /// </summary>
+    /// <remarks>
+    /// **`foreign Reward` and `foreign Item|CEquip` are one thing from here down.** The set is
+    /// a name for the list, so expanding it early means the multi-target machinery - the
+    /// existence check, the key-type agreement, the disjoint key bands, the per-target
+    /// accessors - is reached without any of it learning a second spelling.
+    ///
+    /// What the name buys is where the list is written. A catalogue joins the set by declaring
+    /// `extends=` on its own sheet, and every column pointing at the set follows without being
+    /// edited. spec/polymorphism.md sections 3 and 4.
+    ///
+    /// The contract the set promises - that every variant carries the abstract struct's fields -
+    /// is checked here too, because this is the first pass holding every table with its types
+    /// settled.
+    /// </remarks>
+    private static void ExpandVariantSetReferences(
+        Model model, Schema.SchemaDeclarations declarations, Diagnostics diagnostics)
+    {
+        if (declarations.IsEmpty)
+            return;
+
+        var sets = new Dictionary<string, List<Table>>(System.StringComparer.OrdinalIgnoreCase);
+
+        foreach (var table in model.Tables)
+        {
+            if (table.VariantOf is not { Length: > 0 } set)
+                continue;
+
+            if (!sets.TryGetValue(set, out var members))
+                sets[set] = members = [];
+
+            members.Add(table);
+        }
+
+        foreach (var (set, members) in sets)
+            CheckVariantSurface(declarations, set, members, diagnostics);
+
+        foreach (var table in model.Tables)
+        {
+            foreach (var field in table.Fields)
+            {
+                // Exactly one name, because a set is named on its own: mixing it with other
+                // targets would be a list holding a list, and what that means for the
+                // discriminator is not something the notation says.
+                if (field.RefTableNames is not { Count: 1 } named)
+                    continue;
+
+                var declared = declarations.FindAbstract(named[0]);
+                if (declared is null)
+                    continue;
+
+                if (!sets.TryGetValue(declared.Name.ToPascalCase(), out var members))
+                {
+                    diagnostics.Error(field.DetailTypeLocation, Messages.Message.Of(
+                        CookingMessages.VariantSetHasNoTables,
+                        ("Table", table.Name), ("Field", field.Name), ("Set", declared.Name)));
+                    continue;
+                }
+
+                field.RefTableNames = members.Select(member => member.Name).ToList();
+                field.RefTableName = members.Count == 1 ? members[0].Name : null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Checks that every table in a set carries the columns the set's abstract struct declares.
+    /// </summary>
+    /// <remarks>
+    /// This is the whole of what an abstract struct's members mean on the reference path: they
+    /// are the surface a consumer may read without knowing which variant it holds, so a table
+    /// missing one is a table that would break that promise for every column naming the set.
+    ///
+    /// A set whose struct declares no members promises nothing and is checked for nothing.
+    /// That is a real case - section 3 keeps it, because a set is worth naming for the list
+    /// alone.
+    /// </remarks>
+    private static void CheckVariantSurface(
+        Schema.SchemaDeclarations declarations,
+        string set,
+        List<Table> members,
+        Diagnostics diagnostics)
+    {
+        var declared = declarations.FindAbstract(set);
+        if (declared is null)
+            return;
+
+        foreach (var promised in declared.LiveFields)
+        {
+            foreach (var table in members)
+            {
+                var carried = table.Fields
+                    .FirstOrDefault(field => string.Equals(
+                        field.Name, promised.Name.ToPascalCase(),
+                        System.StringComparison.OrdinalIgnoreCase));
+
+                if (carried is null)
+                {
+                    diagnostics.Error(table.VariantOfLocation ?? table.Location,
+                        Messages.Message.Of(CookingMessages.VariantMissingSurface,
+                            ("Table", table.Name), ("Set", declared.Name),
+                            ("Member", promised.Name), ("Type", promised.Type.ToString())));
+
+                    continue;
+                }
+
+                if (SurfaceTypeOf(carried) is { Length: > 0 } written
+                    && !string.Equals(written, Promised(promised.Type),
+                        System.StringComparison.OrdinalIgnoreCase))
+                {
+                    diagnostics.Error(carried.TypeLocation,
+                        Messages.Message.Of(CookingMessages.VariantSurfaceTypeDiffers,
+                            ("Table", table.Name), ("Set", declared.Name),
+                            ("Member", promised.Name),
+                            ("Type", Promised(promised.Type)), ("Written", written)));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// What a set promises for one member, as a sheet would write it in a `:type` cell.
+    /// </summary>
+    /// <remarks>
+    /// Optionality is deliberately not part of it. Whether a blank cell is allowed is a fact
+    /// about that table's data rather than about the surface a consumer reads, and a variant
+    /// tightening or loosening it breaks no promise.
+    /// </remarks>
+    private static string Promised(Schema.SchemaTypeRef type)
+        => type.Form == Schema.SchemaTypeForm.Foreign
+            ? "foreign " + string.Join("|", type.ForeignTables.Select(name => name.ToPascalCase()))
+            : type.Name + (type.IsArray ? "[]" : "");
+
+    /// <summary>
+    /// The same spelling for a column, or empty when this pass cannot tell what it holds.
+    /// </summary>
+    /// <remarks>
+    /// Empty rather than a guess. A column whose type nothing here recognizes is one this
+    /// check has no opinion about, and reporting an opinion it does not have would be a
+    /// report the author cannot act on.
+    /// </remarks>
+    private static string SurfaceTypeOf(Field field)
+    {
+        if (field.RefTableNames is { Count: > 0 } targets)
+            return "foreign " + string.Join("|", targets.Select(name => name.ToPascalCase()));
+
+        if (field.TypeName is not { Length: > 0 } written || written == "$Unresolved$")
+            return "";
+
+        return written + (field.IsArray ? "[]" : "");
+    }
+
     private static void PromoteReferencedTablesToReferences(Model model)
     {
         foreach (var table in model.Tables)

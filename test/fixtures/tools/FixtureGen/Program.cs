@@ -68,6 +68,7 @@ internal static class Program
         WriteRecordRefTrim(Prepare(outputDir, "record-ref-trim", "record-ref-trim.xlsx"));
         WriteKeyTypes(Prepare(outputDir, "key-types", "key-types.xlsx"));
         WriteCompositeKey(Prepare(outputDir, "composite-key", "composite-key.xlsx"));
+        WriteVariantSet(Prepare(outputDir, "variant-set", "variant-set.xlsx"));
         WriteOptional(Prepare(outputDir, "optional", "optional.xlsx"));
         WriteBlankAndNull(Prepare(outputDir, "blank-and-null", "blank-and-null.xlsx"));
         WriteBlankCell(Prepare(outputDir, "blank-cell", "blank-cell.xlsx"));
@@ -1570,6 +1571,104 @@ internal static class Program
             .Row("0", "1", "floor", "north");
 
         grids.Table(1, 1, grid);
+
+        Save(workbook, path);
+    }
+
+    // ---------------------------------------------------------------- variant set
+
+    /// <summary>
+    /// A named set of catalogues, and a column that reaches all of them by naming the set.
+    /// </summary>
+    /// <remarks>
+    /// The declaration is `extends=Reward` on each catalogue's own cell, and
+    /// test/fixtures/schemas/variant-set declares what `Reward` is. What the tree pins is that
+    /// `foreign Reward` produces exactly what `foreign Item|Mount|Title` produces - the set is
+    /// a name for the list and nothing else travels.
+    ///
+    /// The key bands do not overlap, which is not decoration: a multi-target column resolves
+    /// by finding the id, so two catalogues holding one id is refused. Written far apart on
+    /// purpose so the fixture says which rule it is keeping.
+    ///
+    /// spec/polymorphism.md sections 3 and 4.
+    /// </remarks>
+    private static void WriteVariantSet(string path)
+    {
+        var workbook = new XSSFWorkbook();
+
+        var catalogues = new SheetBuilder(workbook.CreateSheet("Catalogues"));
+
+        // `name` and `icon` are the surface `Reward` declares. Every catalogue carries both,
+        // under those names and those types, or the set's promise does not hold.
+        var item = new TableSpec
+        {
+            Name = "Item",
+            Comment = "A catalogue in the Reward set.",
+            Meta = "extends=Reward",
+        };
+        item
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("name", "string", "shown to the player"))
+            .Field(FieldSpec.Of("icon", "string", "art beside the name"))
+            .Field(FieldSpec.Of("Stack", "int", "how many fit in one slot"));
+        item
+            .Row("1", "Short Sword", "sword", "1")
+            .Row("2", "Small Potion", "potion", "99");
+
+        int next = catalogues.Table(1, 1, item);
+
+        var mount = new TableSpec
+        {
+            Name = "Mount",
+            Comment = "Another catalogue in the same set, keyed well clear of the first.",
+            Meta = "extends=Reward",
+        };
+        mount
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("name", "string", "shown to the player"))
+            .Field(FieldSpec.Of("icon", "string", "art beside the name"))
+            .Field(FieldSpec.Of("Speed", "int", "how fast it goes"));
+        mount
+            .Row("101", "Brown Horse", "horse", "12")
+            .Row("102", "Grey Wolf", "wolf", "15");
+
+        catalogues.Table(1, next + 1, mount);
+
+        // A catalogue that is not in the set, so the fixture also says what the set excludes.
+        var currency = new TableSpec
+        {
+            Name = "Currency",
+            Comment = "Not in the set: no `extends`, and no surface to keep.",
+        };
+        currency
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Symbol", "string", "anything"));
+        currency
+            .Row("1", "G")
+            .Row("2", "S");
+
+        var others = new SheetBuilder(workbook.CreateSheet("Other"));
+        others.Table(1, 1, currency);
+
+        // --- the column that names the set --------------------------------
+
+        var shops = new SheetBuilder(workbook.CreateSheet("Shop"));
+
+        var shop = new TableSpec
+        {
+            Name = "Shop",
+            Comment = "What is for sale. The reward may be a row of any catalogue in the set.",
+        };
+        shop
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("RewardId", "foreign", "any row in the Reward set", detailType: "Reward"))
+            .Field(FieldSpec.Of("Price", "int", "what it costs"));
+        shop
+            .Row("1", "1", "100")
+            .Row("2", "102", "5000")
+            .Row("3", "2", "50");
+
+        shops.Table(1, 1, shop);
 
         Save(workbook, path);
     }

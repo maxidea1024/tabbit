@@ -4,6 +4,8 @@
   "tabbit.declaration-meta-key-unknown": "`{Written}` sets `{Key}`, which a {Kind} declaration does not take. It takes: {Known}.",
   "tabbit.declaration-meta-key-repeated": "`{Written}` sets `{Key}` twice. One value, or the second quietly replaces the first.",
   "tabbit.declaration-meta-value-missing": "`{Written}` names `{Key}` with no value. Write one - `{Example}`.",
+  "tabbit.declaration-meta-key-not-on-kind": "`{Written}` sets `{Key}`, and a `:{Kind}` does not take it - {Because}.",
+  "tabbit.extends-not-abstract": "`{Table}` declares `extends={Written}` and `{Written}` is not an `abstract struct`. A table joins a variant set by naming the set, and only an `abstract struct` in a schema file declares one.",
   "tabbit.entity-name-duplicated": "`{Name}` is declared twice - as {Kind} here, and already above. A name identifies one entity whatever its kind, because the generated code has one name for it.",
   "tabbit.marker-column-unknown": "The marker column of `{Entity}` holds `{Written}`, which this layout does not define. It takes a declaration (`:table`, `:enum`, `:const`), a header row key ({Keys}), `#` to leave the row out, or nothing at all for a data row.",
   "tabbit.row-key-repeated": "`{Entity}` has two `{Key}` rows. Which one is read would then depend on the order they happen to be in.",

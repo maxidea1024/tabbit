@@ -334,7 +334,7 @@ public sealed class SchemaDeclarations
             return;
 
         RefuseNamesTheSheetsAlreadyGave(model, diagnostics);
-        RefuseEmptyVariantSets(diagnostics);
+        RefuseEmptyVariantSets(model, diagnostics);
 
         foreach (var declared in _structs.Values)
         {
@@ -378,12 +378,21 @@ public sealed class SchemaDeclarations
     /// open - so this is the earliest point that can tell an empty set from a set whose
     /// members are all tables. spec/polymorphism.md section 3.
     /// </remarks>
-    private void RefuseEmptyVariantSets(Diagnostics diagnostics)
+    private void RefuseEmptyVariantSets(Model model, Diagnostics diagnostics)
     {
         foreach (var declared in _structs.Values)
         {
-            if (!declared.IsAbstract || VariantsOf(declared.Name.ToPascalCase()).Count > 0)
+            if (!declared.IsAbstract)
                 continue;
+
+            string name = declared.Name.ToPascalCase();
+
+            if (VariantsOf(name).Count > 0
+                || model.Tables.Any(table => string.Equals(
+                    table.VariantOf, name, System.StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
 
             diagnostics.Error(declared.Location, Message.Of(
                 SchemaMessages.AbstractWithoutVariants, ("Struct", declared.Name)));

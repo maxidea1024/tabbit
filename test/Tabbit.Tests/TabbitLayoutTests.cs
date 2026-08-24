@@ -1669,4 +1669,196 @@ public class TabbitLayoutTests
     }
 
     #endregion
+
+    #region Variant sets
+
+    /// <summary>Cooks sheets against one schema file, which is where an abstract struct lives.</summary>
+    private static Model CookWith(string schema, params RawSheet[] sheets)
+    {
+        var raw = new RawModel();
+        raw.SchemaFiles.Add(new RawSchemaFile { Name = "set.tbs", Text = schema });
+
+        foreach (var sheet in sheets)
+            raw.Sheets.Add(sheet);
+
+        return new ModelCooker().Cook(new Options(), new RecipeModel(), raw);
+    }
+
+    private static string ReportedWith(string schema, params RawSheet[] sheets)
+    {
+        var problem = Assert.Throws<TabbitException>(() => CookWith(schema, sheets));
+
+        return string.Join(
+            System.Environment.NewLine,
+            new[] { problem.Message }.Concat(problem.Details.Select(d => d.Message)));
+    }
+
+    /// <summary>The surface two catalogues below both promise to carry.</summary>
+    private const string RewardSet = """
+        abstract struct Reward
+            field name string
+        """;
+
+    private static RawSheet CatalogueSheet(string extends = "(extends=Reward)") => Sheet(
+        [$":table Item{extends}", "one catalogue"],
+        [":field", "code", "name"],
+        [":type", "int", "string"],
+        ["", "1", "sword"]);
+
+    private static RawSheet MountSheet() => Sheet(
+        [":table Mount(extends=Reward)", "another catalogue"],
+        [":field", "code", "name"],
+        [":type", "int", "string"],
+        ["", "101", "horse"]);
+
+    private static RawSheet ShopSheet(string type = "foreign Reward") => Sheet(
+        [":table Shop", "what is for sale"],
+        [":field", "code", "RewardId"],
+        [":type", "int", type],
+        ["", "1", "1"],
+        ["", "2", "101"]);
+
+    /// <summary>
+    /// The set is a name for a list of targets - what the column ends up holding is exactly
+    /// what naming the two tables would have produced. spec/polymorphism.md section 4.
+    /// </summary>
+    [Fact]
+    public void A_reference_naming_a_variant_set_reaches_every_table_in_it()
+    {
+        var model = CookWith(RewardSet, CatalogueSheet(), MountSheet(), ShopSheet());
+
+        var shop = model.Tables.Single(table => table.Name == "Shop");
+        var reward = shop.Fields.Single(field => field.Name == "RewardId");
+
+        Assert.True(reward.IsMultiRef);
+        Assert.Equal(["Item", "Mount"], reward.RefTableNames);
+        Assert.Equal(["Item", "Mount"], reward.ResolvedRefTables!.Select(table => table.Name));
+    }
+
+    [Fact]
+    public void A_table_records_the_set_it_joined()
+    {
+        var model = CookWith(RewardSet, CatalogueSheet(), MountSheet(), ShopSheet());
+
+        Assert.Equal("Reward", model.Tables.Single(table => table.Name == "Item").VariantOf);
+        Assert.Null(model.Tables.Single(table => table.Name == "Shop").VariantOf);
+    }
+
+    /// <summary>
+    /// One table in the set is still a list of one, and a list of one is an ordinary
+    /// reference - so nothing about the set survives into what the column becomes.
+    /// </summary>
+    [Fact]
+    public void A_set_of_one_table_is_an_ordinary_reference()
+    {
+        var onlyItem = Sheet(
+            [":table Shop", "what is for sale"],
+            [":field", "code", "RewardId"],
+            [":type", "int", "foreign Reward"],
+            ["", "1", "1"]);
+
+        var model = CookWith(RewardSet, CatalogueSheet(), onlyItem);
+
+        var reward = model.Tables
+            .Single(table => table.Name == "Shop")
+            .Fields.Single(field => field.Name == "RewardId");
+
+        Assert.False(reward.IsMultiRef);
+        Assert.True(reward.IsRef);
+        Assert.Equal("Item", reward.ResolvedRefTable!.Name);
+    }
+
+    [Fact]
+    public void Extending_a_name_that_is_not_an_abstract_struct_is_refused()
+    {
+        string reported = ReportedWith(
+            "struct Reward\n    field name string\n", CatalogueSheet());
+
+        Assert.Contains("is not an `abstract struct`", reported);
+    }
+
+    [Fact]
+    public void Extending_with_no_schema_files_at_all_is_refused()
+        => Assert.Contains("is not an `abstract struct`", Reported(CatalogueSheet()));
+
+    /// <summary>
+    /// A set is a set of tables. An index and a variant set are both facts about rows, and an
+    /// enum has none.
+    /// </summary>
+    [Fact]
+    public void A_table_only_declaration_key_on_an_enum_is_refused()
+    {
+        string reported = ReportedWith(RewardSet, Sheet(
+            [":enum Grade(extends=Reward)", "a grade"],
+            [":field", "label", "value"],
+            ["", "Common", "1"]));
+
+        Assert.Contains("a `:enum` does not take it", reported);
+    }
+
+    /// <summary>
+    /// The members of an abstract struct are the surface every variant promises, so a table
+    /// missing one breaks that promise for every column naming the set.
+    /// </summary>
+    [Fact]
+    public void A_variant_missing_a_column_the_set_declares_is_refused()
+    {
+        string reported = ReportedWith(RewardSet, Sheet(
+            [":table Item(extends=Reward)", "one catalogue"],
+            [":field", "code", "title"],
+            [":type", "int", "string"],
+            ["", "1", "sword"]));
+
+        Assert.Contains("has no `name` column", reported);
+    }
+
+    [Fact]
+    public void A_variant_spelling_a_promised_column_differently_is_refused()
+    {
+        string reported = ReportedWith(RewardSet, Sheet(
+            [":table Item(extends=Reward)", "one catalogue"],
+            [":field", "code", "name"],
+            [":type", "int", "int"],
+            ["", "1", "7"]));
+
+        Assert.Contains("declares `name` as `string`", reported);
+    }
+
+    /// <summary>
+    /// A set whose struct declares no members promises nothing, and naming the list is reason
+    /// enough to declare one - section 3.
+    /// </summary>
+    [Fact]
+    public void A_set_that_promises_nothing_checks_nothing()
+    {
+        var model = CookWith("abstract struct Reward", Sheet(
+            [":table Item(extends=Reward)", "one catalogue"],
+            [":field", "code", "title"],
+            [":type", "int", "string"],
+            ["", "1", "sword"]));
+
+        Assert.Equal("Reward", Assert.Single(model.Tables).VariantOf);
+    }
+
+    [Fact]
+    public void A_set_no_table_joined_is_refused_where_it_is_declared()
+        => Assert.Contains("nothing extends it", ReportedWith("abstract struct Reward", ItemSheet()));
+
+    /// <summary>
+    /// A set filled only by structs has no rows to point at, and saying "no such table
+    /// `Reward`" would send somebody looking for a sheet that was never meant to exist.
+    /// </summary>
+    [Fact]
+    public void A_reference_to_a_set_only_structs_joined_is_refused_by_name()
+    {
+        string reported = ReportedWith("""
+            abstract struct Reward
+            struct ItemReward extends Reward
+                field itemId int
+            """, ShopSheet());
+
+        Assert.Contains("no table in this build has joined", reported);
+    }
+
+    #endregion
 }

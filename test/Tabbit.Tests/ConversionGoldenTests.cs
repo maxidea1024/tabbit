@@ -129,6 +129,14 @@ public class ConversionGoldenTests
     // binary or the JSON here is a defect rather than a feature.
     // spec/multi-target-accessors.md.
     [InlineData("multi-target")]
+    // The same shape with the list given a name: `abstract struct Reward` in a schema file,
+    // `extends=Reward` on each catalogue's declaration cell, and a column typed
+    // `foreign Reward`. What the tree pins is that the name reaches nothing below the
+    // expansion - the file and the generated surface are `multi-target`'s, because a set is a
+    // name for a list of targets and the list is all that travels. A catalogue outside the set
+    // sits beside them, so the tree also says what naming it excludes.
+    // spec/polymorphism.md sections 3 and 4.
+    [InlineData("variant-set")]
     public void Fixture_matches_golden(string scenario)
     {
         var result = TabbitRunner.Convert(scenario);

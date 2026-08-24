@@ -1,0 +1,17 @@
+[
+  {
+    "index": 1,
+    "rewardId": 1,
+    "price": 100
+  },
+  {
+    "index": 2,
+    "rewardId": 102,
+    "price": 5000
+  },
+  {
+    "index": 3,
+    "rewardId": 2,
+    "price": 50
+  }
+]

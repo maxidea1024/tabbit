@@ -137,6 +137,15 @@ public static class CookingMessages
     /// <summary>The enum a multi-target column needs is a name already taken.</summary>
     public const string MultiTargetEnumNameTaken = "cook.multi-target-enum-name-taken";
 
+    /// <summary>`foreign` naming a variant set that no table in this build has joined.</summary>
+    public const string VariantSetHasNoTables = "cook.variant-set-has-no-tables";
+
+    /// <summary>A table in a variant set missing a column the set's abstract struct declares.</summary>
+    public const string VariantMissingSurface = "cook.variant-missing-surface";
+
+    /// <summary>A variant's column carrying the promised name under a different type.</summary>
+    public const string VariantSurfaceTypeDiffers = "cook.variant-surface-type-differs";
+
     /// <summary>A value the column's list of allowed values does not name.</summary>
     public const string ValueNotAllowed = "cook.value-not-allowed";
 

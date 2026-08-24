@@ -1,0 +1,14 @@
+[
+  {
+    "index": 1,
+    "name": "Short Sword",
+    "icon": "sword",
+    "stack": 1
+  },
+  {
+    "index": 2,
+    "name": "Small Potion",
+    "icon": "potion",
+    "stack": 99
+  }
+]

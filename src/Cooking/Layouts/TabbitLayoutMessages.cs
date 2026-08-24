@@ -32,6 +32,12 @@ public static class TabbitLayoutMessages
     /// <summary>A declaration meta key written with no value where it takes one.</summary>
     public const string DeclarationMetaValueMissing = "tabbit.declaration-meta-value-missing";
 
+    /// <summary>A table-only declaration key written on an `:enum` or a `:const`.</summary>
+    public const string DeclarationMetaKeyNotOnKind = "tabbit.declaration-meta-key-not-on-kind";
+
+    /// <summary>`extends=` naming something that is not an `abstract struct`.</summary>
+    public const string ExtendsNotAbstract = "tabbit.extends-not-abstract";
+
     /// <summary>Two entities of one run with the same name, whatever their kind.</summary>
     public const string EntityNameDuplicated = "tabbit.entity-name-duplicated";
 

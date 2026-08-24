@@ -1,0 +1,43 @@
+{
+  // A named set of catalogues - `abstract struct Reward` in the schema file, `extends=Reward`
+  // on each catalogue's declaration cell, and a column typed `foreign Reward` that reaches
+  // all of them. spec/polymorphism.md sections 3 and 4.
+  //
+  // What the tree pins is that the set is a name for a list and nothing else: the generated
+  // code and the file are what `foreign Item|Mount` already produced, so a difference here is
+  // the set having leaked into something it should not reach.
+  //
+  // C# because that is where the surface is - the discriminator and the per-target accessors -
+  // and binary and named JSON because that is where a leak would show as bytes.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/variant-set" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/variant-set" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/variant-set/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/variant-set/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/variant-set/csharp",
+      "Namespace": "Tabbit.Fixtures.VariantSet",
+      "AccessorName": "VariantSetAccessor"
+    }
+  ]
+}

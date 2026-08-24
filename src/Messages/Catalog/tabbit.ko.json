@@ -4,6 +4,8 @@
   "tabbit.declaration-meta-key-unknown": "{Written:이} 설정하는 {Key:는} {Kind} 선언이 받지 않는 키입니다. 받는 키는 {Known}입니다.",
   "tabbit.declaration-meta-key-repeated": "{Written:이} {Key:를} 두 번 설정합니다. 하나만 적으십시오 — 그대로 두면 뒤의 값이 앞의 값을 조용히 대체합니다.",
   "tabbit.declaration-meta-value-missing": "{Written:이} {Key:를} 값 없이 적었습니다. 값을 적으십시오 — `{Example}`처럼.",
+  "tabbit.declaration-meta-key-not-on-kind": "{Written:이} {Key:를} 설정하는데 `:{Kind}`은(는) 그 키를 받지 않습니다 — {Because}.",
+  "tabbit.extends-not-abstract": "{Table:이} `extends={Written}`(으)로 선언되어 있는데 {Written:은} `abstract struct`가 아닙니다. 테이블은 집합의 이름을 적어서 변종 집합에 속하고, 그 집합을 선언하는 것은 스키마 파일의 `abstract struct`뿐입니다.",
   "tabbit.entity-name-duplicated": "이름 {Name:이} 두 번 선언되었습니다 — 여기서는 {Kind}이고, 위에 이미 있습니다. 이름은 종류와 무관하게 엔티티 하나를 가리킵니다. 생성 코드에서 그 이름이 하나이기 때문입니다.",
   "tabbit.marker-column-unknown": "{Entity}의 마커 열에 {Written:이} 적혀 있는데, 이 레이아웃이 정의하지 않는 값입니다. 마커 열이 담는 것은 선언(`:table` · `:enum` · `:const`), 헤더 행 키({Keys}), 그 행을 제외하는 `#`, 그리고 데이터 행의 빈 칸입니다.",
   "tabbit.row-key-repeated": "{Entity}에 {Key} 행이 둘 있습니다. 그대로 두면 어느 쪽이 읽히는지가 두 행의 순서에 달리게 됩니다.",

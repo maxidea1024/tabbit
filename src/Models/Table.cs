@@ -30,6 +30,26 @@ public class Table
     public required string Name { get; set; }
 
     /// <summary>
+    /// The abstract struct this table declares itself a variant of, or null when it declares
+    /// none.
+    /// </summary>
+    /// <remarks>
+    /// **The table says so, not the abstract struct.** A set named by listing its members has
+    /// to be edited every time one is added, and the sheets that would be edited are not the
+    /// one being added - so the declaration sits where the new sheet already is.
+    ///
+    /// What it buys is a name for a list of targets: `foreign Reward` reaches every table
+    /// carrying this, and a catalogue joins that list by writing it rather than by being
+    /// added to every column that names the list. spec/polymorphism.md section 3.
+    /// </remarks>
+    [JsonIgnore]
+    public string? VariantOf { get; set; }
+
+    /// <summary>Where the variant declaration was written. Null when there is none.</summary>
+    [JsonIgnore]
+    public Location? VariantOfLocation { get; set; }
+
+    /// <summary>
     /// Base name of the file this table's rows are exported to, without a row-set suffix and
     /// without an extension.
     /// </summary>

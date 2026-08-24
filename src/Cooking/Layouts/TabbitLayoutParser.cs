@@ -71,7 +71,20 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// </remarks>
     private static readonly string[] EntityRowKeys = [RowKeyField];
 
-    private static readonly string[] DeclarationMetaKeys = ["side", "key"];
+    private static readonly string[] DeclarationMetaKeys = ["side", "key", "extends"];
+
+    /// <summary>The declaration keys only a `:table` takes, and what each is for in a report.</summary>
+    /// <remarks>
+    /// An index and a variant set are both facts about rows, and an enum and a set of
+    /// constants have none - so writing either on one is a mistake worth a name rather than a
+    /// key that quietly does nothing. spec/polymorphism.md section 3.
+    /// </remarks>
+    private static readonly Dictionary<string, string> TableOnlyMetaKeys =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["key"] = "an index is a column of a table's rows",
+            ["extends"] = "a variant set is a set of tables",
+        };
 
     /// <summary>
     /// The `:field` names this layout reserves - section 7.
@@ -383,6 +396,14 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 throw new TabbitException(cell.Location,
                     Message.Of(TabbitLayoutMessages.DeclarationMetaKeyRepeated,
                         ("Written", written), ("Key", key)));
+            }
+
+            if (kind != KindTable && TableOnlyMetaKeys.TryGetValue(key, out string? because))
+            {
+                throw new TabbitException(cell.Location,
+                    Message.Of(TabbitLayoutMessages.DeclarationMetaKeyNotOnKind,
+                        ("Written", written), ("Key", key), ("Kind", kind),
+                        ("Because", because)));
             }
 
             // Both keys this layout defines take a value, so a bare one is a mistake rather
@@ -1163,6 +1184,35 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
     #region Tables
 
+    /// <summary>
+    /// Reads `extends=Reward` and checks that the name is an abstract struct.
+    /// </summary>
+    /// <remarks>
+    /// Checked here rather than left to the pass that expands `foreign Reward`, because the
+    /// mistake is in this cell: a table naming a set that is not one has written something
+    /// wrong whether or not any column ever points at it.
+    ///
+    /// **What fills the set is not checked here.** Whether the struct's fields are all present
+    /// as columns is a question about a table that may not have been read yet, so the model
+    /// pass that has every table asks it. spec/polymorphism.md section 3.
+    /// </remarks>
+    private string? ReadVariantSet(EntityBlock block)
+    {
+        if (!block.Meta.TryGetValue("extends", out var extends))
+            return null;
+
+        string name = extends.Value.ToPascalCase();
+
+        if (_context.Declarations?.FindAbstract(name) is null)
+        {
+            throw new TabbitException(extends.At,
+                Message.Of(TabbitLayoutMessages.ExtendsNotAbstract,
+                    ("Table", block.Name), ("Written", extends.Value)));
+        }
+
+        return name;
+    }
+
     private Models.Table ParseTable(EntityBlock block)
     {
         Log.Information($"Parsing table `{block.Name}`. ({block.Location})");
@@ -1174,6 +1224,9 @@ public sealed class TabbitLayoutParser : ILayoutParser
             RawName = block.RawName,
             Name = block.Name,
             Comment = block.Comment,
+
+            VariantOf = ReadVariantSet(block),
+            VariantOfLocation = block.Meta.TryGetValue("extends", out var extends) ? extends.At : null,
 
 
             TrimTrailingArrayElements = block.Sheet.Layout.TrimTrailingArrayElements,
