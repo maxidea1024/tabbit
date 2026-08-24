@@ -365,7 +365,7 @@ context.Error(row, nameof(row.Price), "...");      // 그 로우 그 컬럼의 �
 context.Error(row, nameof(row.Reward), "...", 2);  // 배열·레코드 그룹의 원소 2
 context.ErrorAtRow(row, "...");                    // 로우의 기본 인덱스 셀 (여러 컬럼이 함께 잘못일 때)
 context.Error(field, "...");                       // 컬럼 헤더 셀 (Schema 뷰)
-context.Error(table, "...");                       // 테이블 마커 셀 (Schema 뷰)
+context.Error(table, "...");                       // 테이블 선언 셀 (Schema 뷰)
 context.Error("...");                              // 규칙 파일 자신
 ```
 

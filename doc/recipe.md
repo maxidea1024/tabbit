@@ -114,7 +114,7 @@ recipe의 산출물은 이 설정이 없던 때와 같습니다.
 레시피 하나가 정하면 그 어긋남이 불가능해집니다.
 
 > 실제로 어긋나 있었습니다. 17곳이 각자 계산하고 있었고 C# 액세서만 시트의 원문 표기를
-> 근거로 삼아서, `~~table:item_drop~~`으로 적은 테이블은 `ItemDrop.tcb`로 내보내지고
+> 근거로 삼아서, `:table item_drop`으로 적은 테이블은 `ItemDrop.tcb`로 내보내지고
 > `item_drop.tcb`를 찾았습니다. 모든 픽스처의 테이블 이름이 이미 Pascal이라 어느 게이트도
 > 짚을 수 없었고, 이 옵션을 넣는 과정에서 드러났습니다.
 
@@ -271,8 +271,8 @@ has to know which one it is reading. Settle on `Id` and rewrite the other 1 plac
 
 |값|무엇인가|
 |--|--|
-|`tabbit`|**기본값.** `~~table:Item~~` 같은 마커로 엔티티를 선언합니다. 한 시트에 여러 개를 아무 데나 놓을 수 있습니다.|
-|`rescue`|마커 없이 **시트 탭 하나가 곧 테이블 하나**이고 머리 3줄이 헤더인 형태. 다른 규칙으로 작성된 시트를 그대로 읽기 위한 것입니다.|
+|`tabbit`|**기본값.** `:table Item` 같은 선언 셀로 엔티티를 선언하고, 그 아래 행 키가 헤더를 정합니다. 한 시트에 여러 개를 아무 데나 놓을 수 있습니다.|
+|`rescue`|선언 셀 없이 **시트 탭 하나가 곧 테이블 하나**이고 머리 3줄이 헤더인 형태. 다른 규칙으로 작성된 시트를 그대로 읽기 위한 것입니다.|
 
 **소스 항목마다 따로 지정하므로 한 번에 섞어 읽을 수 있습니다.** 한쪽 워크북의 테이블이 다른 쪽에서 선언한 enum을 타입으로 써도 됩니다.
 
@@ -965,7 +965,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe side-by-side/side-by-side.jso
         "Path": "./sheets",
         "FileExtensionPatterns": ".xls;.xlsx",
 
-        // 시트를 읽는 방식. 기본은 `tabbit` — 마커로 엔티티를 선언하는 방식입니다.
+        // 시트를 읽는 방식. 기본은 `tabbit` — `:table` 선언 셀로 엔티티를 선언하는 방식입니다.
         // 다른 규칙으로 작성된 시트를 그대로 읽으려면 `rescue`. 자세한 건 sheets.md 참고.
         "Layout": "tabbit",
 

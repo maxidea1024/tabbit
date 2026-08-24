@@ -1217,20 +1217,20 @@ r.Slot.Length;         // 2 — 길이 상수는 공개하지 않습니다
 
 같은 시트로 서버용과 클라이언트용 산출물을 따로 뽑을 수 있습니다. 지정하는 곳이 세 군데입니다 — 시트의 엔티티, 시트의 필드, 그리고 recipe의 출력 항목. 여기에 실행 시점의 `--target-side`가 더해집니다.
 
-**엔티티 단위** — 마커의 세 번째 항목:
+**엔티티 단위** — 선언 셀의 `side` 메타:
 
-|마커|의미|
+|선언 셀|의미|
 |--|--|
 |`:table ServerTuning(side=s)`|서버 빌드에만 포함|
 |`:table ClientStrings(side=c)`|클라이언트 빌드에만 포함|
 |`:table Item` 또는 `:table Item(side="c,s")`|양쪽 모두|
 
-**필드 단위** — 테이블 정의의 `target-side` 행:
+**필드 단위** — `:target` 행:
 
-|index|Name|Price|
-|--|--|--|
-|`int`|`string`|`int`|
-|`cs`|`cs`|`s`|
+|행 키|index|Name|Price|
+|--|--|--|--|
+|`:type`|`int`|`string`|`int`|
+|`:target`|`cs`|`cs`|`s`|
 
 위 예에서 `Price`는 서버 빌드에만 들어갑니다. 기본 인덱스 필드는 모든 행을 식별하는 키이므로 항상 포함되며, `cs`가 아니면 오류입니다.
 

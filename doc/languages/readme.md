@@ -256,7 +256,7 @@ recipe에 `SchemaBaseline`을 켜 두면 이미 배포된 빌드가 읽지 못�
 
 ### 3. 상수만 고쳤는데 아무것도 안 바뀝니다
 
-`~~const:Limits~~`의 `MaxPartySize`를 4에서 5로 고치고 빌드를 다시 돌려 데이터를 올렸는데
+`:const Limits`의 `MaxPartySize`를 4에서 5로 고치고 빌드를 다시 돌려 데이터를 올렸는데
 라이브는 그대로입니다.
 
 당연합니다. 상수 세트는 `.tcb`에 없습니다.
