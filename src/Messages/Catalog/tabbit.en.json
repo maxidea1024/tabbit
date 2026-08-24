@@ -41,9 +41,12 @@
   "tabbit.reserved-column-not-yet-supported": "Column `{Column}` of `{Entity}` is a name this layout reserves. `:type` names the variant of a polymorphic record, `:key` the key of a map and `:value` a variant packed into one cell - each waits on the wire design that settles what it means, and none of them is read yet. Reserved: {Reserved}.",
   "tabbit.column-meta-unclosed": "Column `{Column}` of `{Entity}` is typed `{Written}`, which opens a bracket and never closes it. Everything from the first `(` is the column meta - `int (min=0, max=100)`.",
   "tabbit.multi-target-names-a-field": "Column `{Column}` of `{Entity}` is typed `foreign {Written}`, which names several tables and also a field of one of them (`{Dotted}`). A reference to one of several tables holds a key and the tables answer which - naming a field of one of them is a second shape. Drop the field name, or point at it from a column of its own.",
-  "tabbit.composite-key-not-yet-supported": "`{Entity}` sets `key` to `{Written}`, which names more than one column. A composite key changes the lookup every generated reader offers - `FindByKey(a, b)` - and that is a step of its own, so it is refused here rather than read as its first component.",
   "tabbit.key-column-not-found": "`{Entity}` sets `key` to `{Key}`, and no column of it is named that. Its columns are: {Known}.",
   "tabbit.key-column-not-scalar": "`{Entity}` sets `key` to `{Key}`, which is part of a group rather than a column of its own. A row is addressed by one value of one of its own columns.",
+  "tabbit.key-meta-empty": "`{Entity}` sets `key` to `{Written}`, which names no column. A key is one column or several - `key=code`, or `key=\"stage,slot\"`.",
+  "tabbit.key-component-repeated": "The key `{Key}` of `{Entity}` names `{Column}` twice. A column takes part in a key once; naming it again narrows nothing.",
+  "tabbit.key-declared-twice": "`{Entity}` declares the key `{Key}` twice. A `*` beside a column and a one-column `key` are the same declaration written two ways, and two keys over the same columns hold the same rows unique.",
+  "tabbit.composite-key-lookup-not-yet-supported": "`{Entity}` is keyed by `{Key}`, which is several columns taken together. The lookup that implies - `FindByKey(a, b)` - changes the surface every generated reader offers and is a step of its own, so this build reads the sheet and checks the key but does not generate for it yet.",
 
   "tabbit.enum-column-unknown": "Enum `{Entity}` has a column named `{Column}`, which this layout does not define. It takes: {Known}.",
   "tabbit.enum-column-missing": "Enum `{Entity}` has no `{Column}` column, and needs one.",

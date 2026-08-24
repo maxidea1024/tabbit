@@ -82,6 +82,17 @@ public class Table
                 : Fields[0];
 
     /// <summary>
+    /// The keys the sheet declared, or empty where it declared none.
+    /// </summary>
+    /// <remarks>
+    /// Empty means the default rather than "no keys": the first column is the primary key and
+    /// a `*` column is a single-column secondary one, which is what every sheet written before
+    /// this notation relies on. See <see cref="TableKey"/>.
+    /// </remarks>
+    [JsonIgnore]
+    public List<TableKey> Keys { get; set; } = [];
+
+    /// <summary>
     /// The field the sheet named as the key, or empty for the first column.
     /// </summary>
     /// <remarks>

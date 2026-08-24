@@ -139,8 +139,18 @@ public static class TabbitLayoutMessages
     /// <summary>A `:field` name this layout reserves for a notation a later spec settles.</summary>
     public const string ReservedColumnNotYetSupported = "tabbit.reserved-column-not-yet-supported";
 
-    /// <summary>A `key` naming several columns, whose lookup surface is a step of its own.</summary>
-    public const string CompositeKeyNotYetSupported = "tabbit.composite-key-not-yet-supported";
+    /// <summary>A composite key, whose multi-argument lookup is a step of its own.</summary>
+    public const string CompositeKeyLookupNotYetSupported =
+        "tabbit.composite-key-lookup-not-yet-supported";
+
+    /// <summary>A `key` that names no column at all.</summary>
+    public const string KeyMetaEmpty = "tabbit.key-meta-empty";
+
+    /// <summary>One key naming the same column twice.</summary>
+    public const string KeyComponentRepeated = "tabbit.key-component-repeated";
+
+    /// <summary>The same key declared twice, whether by `key` or by a `*` beside it.</summary>
+    public const string KeyDeclaredTwice = "tabbit.key-declared-twice";
 
     #endregion
 

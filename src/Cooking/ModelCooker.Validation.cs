@@ -95,6 +95,7 @@ public partial class ModelCooker
             foreach (var rowSet in table.RowSets)
             {
                 ValidateIndexUniqueness(table, rowSet, found);
+                ValidateCompositeKeyUniqueness(table, rowSet, found);
                 ValidateReferences(model, table, rowSet, found);
                 ValidateReferencedTables(model, table, rowSet, found);
                 ValidateColumnConstraints(table, rowSet, found);
@@ -378,6 +379,91 @@ public partial class ModelCooker
                 }
 
                 seen.Add(cell.Value!, cell.RawCell!.Location);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Every declared key holds distinct values, taking its columns together.
+    /// </summary>
+    /// <remarks>
+    /// **The combination, not the columns.** `stage,slot` allows the same stage on many rows
+    /// and the same slot on many rows; what it does not allow is the pair repeating. A check
+    /// per column would refuse data the key permits, and no check at all would let a lookup
+    /// find whichever of two rows it happened to reach first.
+    ///
+    /// Single-column keys are left to `ValidateIndexUniqueness`, which already holds every
+    /// `Indexing` column to this and reports at the cell. spec/primary-layout.md section 3.5.
+    /// </remarks>
+    private void ValidateCompositeKeyUniqueness(Table table, RowSet rowSet, Diagnostics diagnostics)
+    {
+        foreach (var key in table.Keys)
+        {
+            if (!key.IsComposite)
+                continue;
+
+            var columns = new List<Field>();
+
+            foreach (string name in key.FieldNames)
+            {
+                var field = table.Fields.Find(column => column.Name == name);
+
+                if (field is null)
+                    continue;
+
+                // Each component is held to what a key column has always had to be. A
+                // composite key narrows what has to be unique; it does not widen what may
+                // sit in the columns.
+                if (!Models.ValueTypes.CanBeIndexKey(field.Type, out string? why))
+                {
+                    diagnostics.Error(field.TypeLocation,
+                        Message.Of(CookingMessages.IndexTypeUnusable,
+                            ("Table", table.Name), ("Field", field.Name),
+                            ("Type", field.TypeName), ("Why", why)));
+                    continue;
+                }
+
+                if (!field.IsRequired)
+                {
+                    diagnostics.Error(field.TypeLocation,
+                        Message.Of(CookingMessages.IndexOptional,
+                            ("Table", table.Name), ("Field", field.Name)));
+                    continue;
+                }
+
+                columns.Add(field);
+            }
+
+            if (columns.Count != key.FieldNames.Count)
+                continue;
+
+            var seen = new Dictionary<string, Location>(System.StringComparer.Ordinal);
+
+            foreach (var row in rowSet.Rows)
+            {
+                var values = columns
+                    .Select(column => row[column.Index].Value?.ToString() ?? "")
+                    .ToList();
+
+                // **Each part carries its own length.** A plain separator would let two
+                // different combinations collide into one string - `("a b", "c")` and
+                // `("a", "b c")` joined by a space are the same text - and a key check that
+                // reports a duplicate nobody wrote is worse than one that misses.
+                string combination = string.Concat(
+                    values.Select(value => value.Length.ToString() + ":" + value));
+
+                var at = row[columns[0].Index].RawCell.Location;
+
+                if (seen.TryGetValue(combination, out var first))
+                {
+                    diagnostics.Error(at,
+                        Message.Of(CookingMessages.CompositeKeyDuplicate,
+                            ("Table", table.Name), ("Key", key.ToString()),
+                            ("Value", string.Join(", ", values)), ("First", first)));
+                    continue;
+                }
+
+                seen.Add(combination, at);
             }
         }
     }

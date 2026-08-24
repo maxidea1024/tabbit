@@ -1494,16 +1494,109 @@ public class TabbitLayoutTests
     }
 
     [Fact]
-    public void A_composite_key_is_refused_by_name()
+    public void A_composite_key_is_read_and_its_combination_has_to_be_unique()
     {
-        // The lookup every generated reader offers changes shape, which is a step of its own.
+        var model = Cook(Sheet(
+            [":table Slot(key=\"stage,slot\")", "a slot"],
+            [":field", "stage", "slot", "name"],
+            [":type", "int", "int", "string"],
+            ["", "1", "1", "first"],
+            ["", "1", "2", "second"],
+            ["", "2", "1", "third"]));
+
+        var table = Assert.Single(model.Tables);
+        var key = Assert.Single(table.Keys);
+
+        Assert.True(key.IsPrimary);
+        Assert.True(key.IsComposite);
+        Assert.Equal(["Stage", "Slot"], key.FieldNames);
+
+        // Each column repeats on its own - `stage` twice, `slot` twice - and the table is
+        // still valid, which is the whole content of a composite key.
+        Assert.Equal(3, table.Data.Count);
+    }
+
+    [Fact]
+    public void A_repeated_combination_is_reported_with_both_values()
+    {
+        string reported = Reported(Sheet(
+            [":table Slot(key=\"stage,slot\")", "a slot"],
+            [":field", "stage", "slot", "name"],
+            [":type", "int", "int", "string"],
+            ["", "1", "1", "first"],
+            ["", "1", "1", "again"]));
+
+        Assert.Contains("1, 1", reported);
+    }
+
+    [Fact]
+    public void Several_keys_are_parted_by_a_semicolon_and_the_first_is_the_primary_one()
+    {
+        var model = Cook(Sheet(
+            [":table Slot(key=\"stage,slot; slot,code\")", "a slot"],
+            [":field", "stage", "slot", "code"],
+            [":type", "int", "int", "string"],
+            ["", "1", "1", "a"],
+            ["", "1", "2", "b"],
+            ["", "2", "1", "c"]));
+
+        var table = Assert.Single(model.Tables);
+
+        Assert.Equal(2, table.Keys.Count);
+        Assert.True(table.Keys[0].IsPrimary);
+        Assert.False(table.Keys[1].IsPrimary);
+
+        // A column may take part in more than one key, which is what a secondary key usually
+        // is - `slot` is in both.
+        Assert.Equal(["Slot", "Code"], table.Keys[1].FieldNames);
+    }
+
+    [Fact]
+    public void One_key_cannot_name_a_column_twice()
+    {
         var problem = Refuses(Sheet(
-            [":table Item(key=\"stage,slot\")", "an item"],
+            [":table Slot(key=\"stage,stage\")", "a slot"],
+            [":field", "stage", "name"],
+            [":type", "int", "string"],
+            ["", "1", "first"]));
+
+        Assert.Contains("Stage", problem.Message);
+    }
+
+    [Fact]
+    public void Two_keys_over_the_same_columns_are_refused_whatever_their_order()
+    {
+        var problem = Refuses(Sheet(
+            [":table Slot(key=\"stage,slot; slot,stage\")", "a slot"],
             [":field", "stage", "slot"],
             [":type", "int", "int"],
-            ["", "1", "2"]));
+            ["", "1", "1"]));
 
-        Assert.Contains("stage,slot", problem.Message);
+        Assert.Contains("Slot", problem.Message);
+    }
+
+    [Fact]
+    public void A_star_and_a_one_column_key_on_the_same_column_are_one_declaration_twice()
+    {
+        var problem = Refuses(Sheet(
+            [":table Item(key=\"code; sku\")", "an item"],
+            [":field", "code", "*sku"],
+            [":type", "int", "string"],
+            ["", "1", "A-1"]));
+
+        Assert.Contains("Sku", problem.Message);
+    }
+
+    [Fact]
+    public void A_composite_key_component_cannot_be_optional()
+    {
+        string reported = Reported(Sheet(
+            [":table Slot(key=\"stage,slot\")", "a slot"],
+            [":field", "stage", "slot"],
+            [":type", "int", "int?"],
+            ["", "1", "1"]));
+
+        Assert.Contains("Slot", reported);
     }
 
     [Fact]

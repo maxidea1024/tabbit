@@ -13,6 +13,7 @@
   "cook.index-type-unusable": "Index field `{Table}.{Field}` is `{Type}`, {Why} Use a whole-number, string, uuid or enum column as an index.",
   "cook.index-optional": "Index field `{Table}.{Field}` cannot be optional: drop the `?` from its type, because every row must have a value for an index.",
   "cook.index-duplicate": "Index field `{Table}.{Field}` repeats the value `{Value}`, first used at {First}. Values in an index field must be unique.",
+  "cook.composite-key-duplicate": "Table `{Table}` is keyed by `{Key}`, and this row repeats the combination `{Value}`, first used at {First}. Each column of a composite key may repeat on its own; the combination is what has to be unique.",
   "cook.index-absent": "`{Table}.{Field}` identifies the row, and this row says it has no value there. Write one: an index cannot be absent.",
   "cook.reference-enum-key": "`{Table}.{Field}` references `{Target}`, whose index is an enum. Every other key type can be referenced; this one cannot yet, because an enum travels in an encoding of its own and the generated readers have no call for it here. Key `{Target}` by the enum's underlying `int`, or carry the value here as that enum and look the row up through `{Target}`'s own index.",
   "cook.reference-blank": "Field `{Table}.{Field}` references `{Target}` and this row leaves the cell empty. Write the key of a row to point at, or `-` to say this row points at none.",

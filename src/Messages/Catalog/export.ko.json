@@ -28,6 +28,7 @@
   "export.text-line-ending-unknown": "`text` 타깃의 `LineEnding`이 `{LineEnding}`입니다. `lf` 또는 `crlf`여야 합니다.",
   "export.constant-type-not-rendered": "상수 `{Name}`의 타입이 `{Type}`인데, {Generator} 생성기가 그것을 낼 수 없습니다.",
   "export.target-no-optional-fields": "타깃 `{Target}`은 아직 옵셔널 필드를 지원하지 않습니다.\n  테이블 `{Table}`의 컬럼 `{Column}`이 `{Type}?` 타입이라, 행에 값이 없을 수 있습니다.\n  recipe에서 그 타깃을 빼거나, `?`를 지워 빈 칸을 타입의 빈 값으로 읽게 하십시오.",
+  "export.target-no-composite-keys": "타깃 `{Target}`은 컬럼 여럿으로 된 키를 아직 지원하지 않습니다.\n  테이블 `{Table}`의 키가 `{Key}`인데, 리더는 그것을 값 여럿으로 한 번에 찾습니다.\n  그 조회는 언어마다 형태가 다르므로 타깃마다 따로 담습니다 — recipe에서 그 타깃을 빼거나, 테이블을 컬럼 하나로 키 잡으십시오.",
   "export.target-no-optional-elements": "타깃 `{Target}`은 아직 원소가 없을 수 있는 배열을 지원하지 않습니다.\n  테이블 `{Table}`의 컬럼 `{Column}`이 `{Type}?[]` 타입이라, 원소에 값이 없을 수 있습니다.\n  recipe에서 그 타깃을 빼거나, `?`를 대괄호 밖으로 옮겨 모든 원소가 값을 갖게 하십시오.",
   "export.target-no-nested-fields": "타깃 `{Target}`은 아직 중첩 필드를 지원하지 않습니다.\n  테이블 `{Table}`의 필드 `{Field}`이 멤버 {Count}개인 레코드 그룹입니다.\n  recipe에서 그 타깃을 빼거나, `{Separator}` 없이 컬럼을 평평하게 적으십시오.",
   "export.target-no-record-in-record": "타깃 `{Target}`은 아직 레코드 안의 레코드를 지원하지 않습니다.\n  테이블 `{Table}`의 필드 `{Field}`에 멤버 `{Member}`가 있고, 그것이 값이 아니라 멤버 {Count}개인 레코드입니다.\n  recipe에서 그 타깃을 빼거나, 그 레벨을 펴십시오 — `{Field}{Separator}{Member}{Separator}{Inner}` 대신 `{Field}{Separator}{Member}{Inner}`입니다.",

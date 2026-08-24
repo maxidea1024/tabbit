@@ -28,6 +28,7 @@
   "export.text-line-ending-unknown": "`text` 目標的 `LineEnding` 是 `{LineEnding}`。它必須是 `lf` 或 `crlf`。",
   "export.constant-type-not-rendered": "常數 `{Name}` 的類型是 `{Type}`，而 {Generator} 生成器無法輸出它。",
   "export.target-no-optional-fields": "目標 `{Target}` 還不支援 optional 欄位。\n  表 `{Table}` 的列 `{Column}` 是 `{Type}?` 類型，因此行可以沒有值。\n  請從 recipe 中移除該目標，或去掉 `?` 讓該列把空白讀作類型的空值。",
+  "export.target-no-composite-keys": "Target `{Target}` does not support keys of several columns yet.\n  Table `{Table}` is keyed by `{Key}`, which a reader looks up by several values at once.\n  The lookup that implies has a different shape in every language, so each target takes it on separately - remove the target from the recipe, or key the table by one column.",
   "export.target-no-optional-elements": "目標 `{Target}` 還不支援元素可以缺失的陣列。\n  表 `{Table}` 的列 `{Column}` 是 `{Type}?[]` 類型，因此元素可以沒有值。\n  請從 recipe 中移除該目標，或把 `?` 移到方括號之外，讓每個元素都持有值。",
   "export.target-no-nested-fields": "目標 `{Target}` 還不支援巢狀欄位。\n  表 `{Table}` 的欄位 `{Field}` 是一個有 {Count} 個成員的記錄組。\n  請從 recipe 中移除該目標，或不用 `{Separator}` 把這些列平鋪寫出。",
   "export.target-no-record-in-record": "目標 `{Target}` 還不支援記錄中的記錄。\n  表 `{Table}` 的欄位 `{Field}` 有成員 `{Member}`，而它不是值，是一個有 {Count} 個成員的記錄。\n  請從 recipe 中移除該目標，或把那一層壓平——用 `{Field}{Separator}{Member}{Inner}` 而不是 `{Field}{Separator}{Member}{Separator}{Inner}`。",

@@ -1828,44 +1828,154 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
         string written = key.Value.Trim();
 
-        if (written.Contains(',') || written.Contains(';'))
+        // **A semicolon parts the keys and a comma parts one key's columns.** The same pair
+        // `allowed=a;b;c` already uses, so nothing new is introduced to say "several of
+        // several" - section 3.5.
+        var declared = new List<Models.TableKey>();
+
+        foreach (string one in written.Split(';'))
+        {
+            if (one.Trim().Length == 0)
+                continue;
+
+            declared.Add(ReadKey(table, block, key.At, written, one));
+        }
+
+        if (declared.Count == 0)
         {
             throw new TabbitException(key.At,
-                Message.Of(TabbitLayoutMessages.CompositeKeyNotYetSupported,
+                Message.Of(TabbitLayoutMessages.KeyMetaEmpty,
                     ("Entity", block.Name), ("Written", written)));
         }
 
-        string name = written.ToPascalCase();
+        declared[0].IsPrimary = true;
 
-        var field = table.Fields.Find(column => column.Name == name);
+        RefuseRepeatedKeys(table, block, key.At, declared);
 
-        if (field is null)
+        table.Keys = declared;
+
+        // The first key is the primary one - the row's identity, what a reference points at,
+        // and where a multi-row record begins. A single column takes the index the first
+        // column had; a composite one has no single column to give it to, and the places that
+        // need "the key" read `Table.Keys` instead.
+        if (!declared[0].IsComposite)
         {
-            throw new TabbitException(key.At,
-                Message.Of(TabbitLayoutMessages.KeyColumnNotFound,
-                    ("Entity", block.Name), ("Key", written),
-                    ("Known", string.Join(", ", table.Fields
-                        .Where(column => column.NamePath is null)
-                        .Select(column => column.Name)))));
+            var field = table.Fields.Find(column => column.Name == declared[0].FieldNames[0])!;
+
+            table.PrimaryIndexName = field.Name;
+            field.Indexing = true;
         }
 
-        // A key is one value of one column of the row itself, which is what these three say
-        // between them: a member of a group is not a column of its own, and an array is not one
-        // value. The same rules the first column has always been held to.
-        if (field.NamePath is not null)
-        {
-            throw new TabbitException(key.At,
-                Message.Of(TabbitLayoutMessages.KeyColumnNotScalar,
-                    ("Entity", block.Name), ("Key", field.Name)));
-        }
-
-        table.PrimaryIndexName = field.Name;
-        field.Indexing = true;
-
-        // The first column stops being the index and becomes an ordinary field - unless it also
-        // asked to be a secondary one, which is a `*` it wrote for itself.
-        if (!ReferenceEquals(table.Fields[0], field) && !sources[0].Header.Indexing)
+        // The first column stops being the index and becomes an ordinary field - unless it
+        // also asked to be a secondary one, which is a `*` it wrote for itself.
+        if (table.Fields[0].Name != table.PrimaryIndexName && !sources[0].Header.Indexing)
             table.Fields[0].Indexing = false;
+
+        // A single-column key and a `*` on that same column are one declaration written twice,
+        // and there is no reading under which they mean different things.
+        foreach (var one in declared.Where(k => !k.IsComposite))
+        {
+            var field = table.Fields.Find(column => column.Name == one.FieldNames[0])!;
+
+            if (!one.IsPrimary && sources.Any(
+                    s => s.Header.Indexing && NameOf(s.Header, s.Header.Path) == field.Name))
+            {
+                throw new TabbitException(key.At,
+                    Message.Of(TabbitLayoutMessages.KeyDeclaredTwice,
+                        ("Entity", block.Name), ("Key", field.Name)));
+            }
+
+            field.Indexing = true;
+        }
+    }
+
+    /// <summary>
+    /// Reads one key's columns and holds each to the rules an index has always had.
+    /// </summary>
+    private Models.TableKey ReadKey(
+        Models.Table table, EntityBlock block, Location at, string written, string one)
+    {
+        var names = new List<string>();
+
+        foreach (string part in one.Split(','))
+        {
+            string text = part.Trim();
+
+            if (text.Length == 0)
+                continue;
+
+            string name = text.ToPascalCase();
+            var field = table.Fields.Find(column => column.Name == name);
+
+            if (field is null)
+            {
+                throw new TabbitException(at,
+                    Message.Of(TabbitLayoutMessages.KeyColumnNotFound,
+                        ("Entity", block.Name), ("Key", text),
+                        ("Known", string.Join(", ", table.Fields
+                            .Where(column => column.NamePath is null)
+                            .Select(column => column.Name)))));
+            }
+
+            // A key is one value of one column of the row itself: a member of a group is not a
+            // column of its own, and an array is not one value. The rules the first column has
+            // always been held to, applied to every component.
+            if (field.NamePath is not null)
+            {
+                throw new TabbitException(at,
+                    Message.Of(TabbitLayoutMessages.KeyColumnNotScalar,
+                        ("Entity", block.Name), ("Key", field.Name)));
+            }
+
+            if (names.Contains(field.Name))
+            {
+                throw new TabbitException(at,
+                    Message.Of(TabbitLayoutMessages.KeyComponentRepeated,
+                        ("Entity", block.Name), ("Key", one.Trim()), ("Column", field.Name)));
+            }
+
+            names.Add(field.Name);
+        }
+
+        if (names.Count == 0)
+        {
+            throw new TabbitException(at,
+                Message.Of(TabbitLayoutMessages.KeyMetaEmpty,
+                    ("Entity", block.Name), ("Written", written)));
+        }
+
+        return new Models.TableKey { FieldNames = names };
+    }
+
+    /// <summary>
+    /// Refuses two keys made of the same columns.
+    /// </summary>
+    /// <remarks>
+    /// The same set rather than the same order: `stage,slot` and `slot,stage` hold the same
+    /// rows unique and would generate two lookups over one index. **A column appearing in
+    /// several keys is fine** - that is what a secondary key usually is.
+    /// </remarks>
+    private static void RefuseRepeatedKeys(
+        Models.Table table, EntityBlock block, Location at, List<Models.TableKey> declared)
+    {
+        _ = table;
+
+        for (int i = 0; i < declared.Count; i++)
+        {
+            for (int j = i + 1; j < declared.Count; j++)
+            {
+                if (!declared[i].FieldNames.OrderBy(n => n, StringComparer.Ordinal)
+                        .SequenceEqual(
+                            declared[j].FieldNames.OrderBy(n => n, StringComparer.Ordinal)))
+                {
+                    continue;
+                }
+
+                throw new TabbitException(at,
+                    Message.Of(TabbitLayoutMessages.KeyDeclaredTwice,
+                        ("Entity", block.Name), ("Key", declared[j].ToString())));
+            }
+        }
     }
 
     #region Field variants - spec section 3.6
