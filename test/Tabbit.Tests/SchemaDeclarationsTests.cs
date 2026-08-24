@@ -301,6 +301,142 @@ public class SchemaDeclarationsTests
             string.Join("\n", diagnostics.Entries.Select(entry => entry.Detail.Message)));
     }
 
+    // ------------------------------------------------------------------ variant sets
+
+    /// <summary>
+    /// Across files and in either order, the same way every other name resolves here -
+    /// spec/polymorphism.md section 3.
+    /// </summary>
+    [Fact]
+    public void Variants_join_their_base_whichever_file_declared_it()
+    {
+        var read = Gather(
+            "struct HealEffect extends Effect @2\n    field amount int\n",
+            "abstract struct Effect\n    field chance int\n",
+            "struct DamageEffect extends Effect @1\n    field damage int\n");
+
+        Assert.Equal(0, read.Diagnostics.Count);
+
+        var variants = read.Declarations.VariantsOf("Effect");
+        Assert.Equal(["HealEffect", "DamageEffect"], variants.Select(v => v.Name));
+        Assert.Equal([2, 1], variants.Select(read.Declarations.TagOfVariant));
+    }
+
+    /// <summary>
+    /// A set that numbers nothing is numbered by declaration order, which is the rule members
+    /// already follow.
+    /// </summary>
+    [Fact]
+    public void An_unnumbered_set_takes_its_numbers_from_the_order_declared()
+    {
+        var read = Gather("""
+            abstract struct Effect
+            struct DamageEffect extends Effect
+            struct HealEffect extends Effect
+            """);
+
+        Assert.Equal(0, read.Diagnostics.Count);
+        Assert.Equal(
+            [1, 2],
+            read.Declarations.VariantsOf("Effect").Select(read.Declarations.TagOfVariant));
+    }
+
+    [Fact]
+    public void An_abstract_struct_with_no_members_is_a_set_and_nothing_else()
+        => Accepted("abstract struct Reward\nstruct ItemReward extends Reward\n    field id int\n");
+
+    [Fact]
+    public void Extending_a_name_nothing_declares_is_refused()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            struct DamageEffect extends Effect
+            struct HealEffect extends Efect
+            """);
+
+        Assert.Contains("nothing here declares `Efect`", reported);
+        Assert.Contains("Effect", reported);
+    }
+
+    [Fact]
+    public void Extending_a_plain_struct_is_refused()
+    {
+        string reported = Refusal("""
+            struct Effect
+                field chance int
+            struct DamageEffect extends Effect
+                field damage int
+            """);
+
+        Assert.Contains("a plain `struct`", reported);
+    }
+
+    [Fact]
+    public void Extending_an_enum_is_refused()
+    {
+        string reported = Refusal("""
+            enum Effect
+                value Fire = 1
+            struct DamageEffect extends Effect
+                field damage int
+            """);
+
+        Assert.Contains("an enum", reported);
+    }
+
+    /// <summary>
+    /// A set is the name of what fills it, and nothing fills this one. Reported here rather
+    /// than in the parser because a variant may be a table, and the tables are not in yet
+    /// when one file is read.
+    /// </summary>
+    [Fact]
+    public void An_abstract_struct_nothing_extends_is_refused()
+        => Assert.Contains("nothing extends it", Refusal("abstract struct Reward"));
+
+    [Fact]
+    public void Two_variants_claiming_one_discriminator_are_refused()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            struct DamageEffect extends Effect @1
+            struct HealEffect extends Effect @1
+            """);
+
+        Assert.Contains("both extend `Effect` under `@1`", reported);
+    }
+
+    [Fact]
+    public void A_set_numbering_some_variants_and_not_others_is_refused()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            struct DamageEffect extends Effect @1
+            struct HealEffect extends Effect
+            """);
+
+        Assert.Contains("Number all of them or none", reported);
+    }
+
+    /// <summary>
+    /// Value embedding is stage 4 of the spec. The notation for the declaration is settled, so
+    /// the refusal names what is missing and where the reference path reaches the same
+    /// variants.
+    /// </summary>
+    [Fact]
+    public void An_abstract_struct_written_as_a_member_type_is_refused()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            struct DamageEffect extends Effect
+                field damage int
+            struct Skill
+                field effect Effect
+            """);
+
+        Assert.Contains("not supported yet", reported);
+        Assert.Contains("foreign Effect", reported);
+    }
+
     // ------------------------------------------------------------------ doing nothing
 
     /// <summary>

@@ -35,6 +35,12 @@ public sealed class SchemaDeclarations
     private readonly Dictionary<string, SchemaEnum> _enums =
         new(System.StringComparer.OrdinalIgnoreCase);
 
+    // Keyed by the abstract struct's name, holding what extends it in the order the files
+    // declared them. Built once every file is in, because the base of a variant in the first
+    // file may be declared in the last one.
+    private readonly Dictionary<string, List<SchemaStruct>> _variants =
+        new(System.StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Every struct, by the name generated code will spell it with.</summary>
     public IReadOnlyDictionary<string, SchemaStruct> Structs => _structs;
 
@@ -51,6 +57,47 @@ public sealed class SchemaDeclarations
     /// <summary>The enum a type cell names, or null when it names something else.</summary>
     public SchemaEnum? FindEnum(string? written)
         => written is { Length: > 0 } && _enums.TryGetValue(written, out var found) ? found : null;
+
+    /// <summary>The abstract struct a name refers to, or null when it is not one.</summary>
+    public SchemaStruct? FindAbstract(string? written)
+        => FindStruct(written) is { IsAbstract: true } found ? found : null;
+
+    /// <summary>
+    /// The structs that extend an abstract one, in the order they were declared.
+    /// </summary>
+    /// <remarks>
+    /// Empty for a name nothing extends and for a name that is not abstract, which are the
+    /// same answer to a caller: there is no set here.
+    /// </remarks>
+    public IReadOnlyList<SchemaStruct> VariantsOf(string? abstractName)
+        => abstractName is { Length: > 0 } && _variants.TryGetValue(abstractName, out var found)
+            ? found
+            : [];
+
+    /// <summary>
+    /// The discriminator value a variant travels under.
+    /// </summary>
+    /// <remarks>
+    /// The one written, or its position among its siblings when the set writes none - the same
+    /// rule <see cref="SchemaStruct.TagOf"/> uses for members, and for the same reason. A set
+    /// either numbers every variant or numbers none, which <see cref="LinkVariants"/> enforces,
+    /// so the two halves of this expression never disagree within one set.
+    /// </remarks>
+    public int TagOfVariant(SchemaStruct variant)
+    {
+        if (variant.VariantTag > 0)
+            return variant.VariantTag;
+
+        var siblings = VariantsOf(variant.BaseName);
+
+        for (int at = 0; at < siblings.Count; at++)
+        {
+            if (ReferenceEquals(siblings[at], variant))
+                return at + 1;
+        }
+
+        return 0;
+    }
 
 
     /// <summary>
@@ -84,7 +131,113 @@ public sealed class SchemaDeclarations
             }
         }
 
+        gathered.LinkVariants(diagnostics);
         return gathered;
+    }
+
+    /// <summary>
+    /// Puts every `extends` against the declaration it names, and checks the sets that result.
+    /// </summary>
+    /// <remarks>
+    /// **Here rather than in <see cref="Resolve"/>, because none of it needs a workbook.** What
+    /// a name extends, whether that name is abstract, and whether two variants claim one
+    /// discriminator are all questions the schema files answer on their own - which is what
+    /// lets an editor holding a set of `.tbs` files report them without a conversion running.
+    ///
+    /// A variant whose base does not resolve is left out of every set. It has already been
+    /// reported, and putting it somewhere would make the numbering below depend on a mistake.
+    /// </remarks>
+    private void LinkVariants(Diagnostics diagnostics)
+    {
+        foreach (var declared in _structs.Values)
+        {
+            if (declared.BaseName is not { Length: > 0 } written)
+                continue;
+
+            string name = written.ToPascalCase();
+
+            if (!_structs.TryGetValue(name, out var found))
+            {
+                diagnostics.Error(declared.BaseLocation ?? declared.Location, Message.Of(
+                    _enums.ContainsKey(name)
+                        ? SchemaMessages.BaseNotAbstract
+                        : SchemaMessages.BaseUnknown,
+                    ("Struct", declared.Name),
+                    ("Base", written),
+                    ("What", "an enum"),
+                    ("Known", KnownAbstracts())));
+                continue;
+            }
+
+            if (!found.IsAbstract)
+            {
+                diagnostics.Error(declared.BaseLocation ?? declared.Location, Message.Of(
+                    SchemaMessages.BaseNotAbstract,
+                    ("Struct", declared.Name),
+                    ("Base", written),
+                    ("What", "a plain `struct`")));
+                continue;
+            }
+
+            if (!_variants.TryGetValue(found.Name.ToPascalCase(), out var set))
+                _variants[found.Name.ToPascalCase()] = set = [];
+
+            set.Add(declared);
+        }
+
+        foreach (var (name, set) in _variants)
+            CheckVariantTags(name, set, diagnostics);
+    }
+
+    /// <summary>The abstract structs a mistyped `extends` could have meant.</summary>
+    private string KnownAbstracts()
+    {
+        var named = _structs.Values
+            .Where(declared => declared.IsAbstract)
+            .Select(declared => declared.Name)
+            .OrderBy(spelled => spelled, System.StringComparer.Ordinal)
+            .ToList();
+
+        return named.Count == 0 ? "(none declared)" : string.Join(" · ", named);
+    }
+
+    /// <summary>
+    /// Checks that one set numbers every variant or numbers none, and that no number is used
+    /// twice.
+    /// </summary>
+    private static void CheckVariantTags(
+        string baseName, List<SchemaStruct> set, Diagnostics diagnostics)
+    {
+        bool numbered = set.Count > 0 && set[0].VariantTag > 0;
+
+        if (numbered)
+        {
+            foreach (var variant in set.Where(variant => variant.VariantTag <= 0))
+            {
+                diagnostics.Error(variant.Location, Message.Of(
+                    SchemaMessages.VariantTagsPartial,
+                    ("Struct", variant.Name), ("Base", baseName)));
+            }
+        }
+
+        var byTag = new Dictionary<int, SchemaStruct>();
+
+        foreach (var variant in set.Where(variant => variant.VariantTag > 0))
+        {
+            if (byTag.TryGetValue(variant.VariantTag, out var first))
+            {
+                diagnostics.Error(variant.Location, Message.Of(
+                    SchemaMessages.VariantTagsCollide,
+                    ("Struct", variant.Name),
+                    ("Other", first.Name),
+                    ("Base", baseName),
+                    ("Tag", variant.VariantTag)));
+
+                continue;
+            }
+
+            byTag[variant.VariantTag] = variant;
+        }
     }
 
     private bool Claim(
@@ -181,6 +334,7 @@ public sealed class SchemaDeclarations
             return;
 
         RefuseNamesTheSheetsAlreadyGave(model, diagnostics);
+        RefuseEmptyVariantSets(diagnostics);
 
         foreach (var declared in _structs.Values)
         {
@@ -213,6 +367,27 @@ public sealed class SchemaDeclarations
 
         foreach (var constants in model.ConstantSets)
             Collide(constants.Name, "a set of constants", constants.Location, diagnostics);
+    }
+
+    /// <summary>
+    /// Refuses an abstract struct nothing extends.
+    /// </summary>
+    /// <remarks>
+    /// **Here rather than in <see cref="LinkVariants"/>, because a variant need not be a
+    /// struct.** A table declares itself one, and the tables are not read until a workbook is
+    /// open - so this is the earliest point that can tell an empty set from a set whose
+    /// members are all tables. spec/polymorphism.md section 3.
+    /// </remarks>
+    private void RefuseEmptyVariantSets(Diagnostics diagnostics)
+    {
+        foreach (var declared in _structs.Values)
+        {
+            if (!declared.IsAbstract || VariantsOf(declared.Name.ToPascalCase()).Count > 0)
+                continue;
+
+            diagnostics.Error(declared.Location, Message.Of(
+                SchemaMessages.AbstractWithoutVariants, ("Struct", declared.Name)));
+        }
     }
 
     private void Collide(string name, string what, Location? where, Diagnostics diagnostics)
@@ -263,6 +438,18 @@ public sealed class SchemaDeclarations
             return;
 
         string spelled = type.Name.ToPascalCase();
+
+        // Refused where it is written rather than left to a later pass, because the notation
+        // for it is settled and only what fills a row with it is missing. Value embedding is
+        // stage 4 of spec/polymorphism.md; the reference path in stage 3 reaches the same
+        // variants through the tables that extend this name.
+        if (_structs.TryGetValue(spelled, out var named) && named.IsAbstract)
+        {
+            diagnostics.Error(type.Location, Message.Of(
+                SchemaMessages.AbstractTypeNotEmbeddable,
+                ("Struct", declared.Name), ("Member", member.Name), ("Type", named.Name)));
+            return;
+        }
 
         if (_structs.ContainsKey(spelled) || _enums.ContainsKey(spelled))
             return;
