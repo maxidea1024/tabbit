@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="714" height="150" viewBox="0 0 714 150" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>다중 대상 참조</title>
+<rect x="0" y="0" width="369.875" height="142" fill="#FFFFFF"/>
+<rect x="0" y="0" width="368.875" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="142" fill="#E9ECEF"/>
+<rect x="30" y="22" width="338.875" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="338.875" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="338.875" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="119.75" y1="22" x2="119.75" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="171.75" y1="22" x2="171.75" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="316.875" y1="22" x2="316.875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="368.875" y1="22" x2="368.875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="368.875" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="368.875" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="368.875" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="368.875" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="368.875" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="368.875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="368.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="119.75" y1="0" x2="119.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="171.75" y1="0" x2="171.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="316.875" y1="0" x2="316.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="368.875" y1="0" x2="368.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="368.375" height="141.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="74.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="145.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="244.3" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="342.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Shop</text>
+<text x="126.75" y="38.5" font-size="12.5" fill="#1F2328">보상 상점입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="126.75" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="178.75" y="62.5" font-size="12.5" fill="#1F2328">itemId</text>
+<text x="323.875" y="62.5" font-size="12.5" fill="#1F2328">count</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="126.75" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="178.75" y="86.5" font-size="12.5" fill="#1F2328">foreign Item|CEquip</text>
+<text x="323.875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="126.75" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="178.75" y="110.5" font-size="12.5" fill="#1F2328">1001</text>
+<text x="323.875" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="126.75" y="134.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="178.75" y="134.5" font-size="12.5" fill="#1F2328">9001</text>
+<text x="323.875" y="134.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="378.875" y="110.0" font-size="11" fill="#8A929B" font-style="italic">◀ 1001은 Item의 행</text>
+<text x="378.875" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ 9001은 CEquip의 행 — 어느 쪽인지는 값이 정합니다</text>
+</svg>

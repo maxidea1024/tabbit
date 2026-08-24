@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="866" height="174" viewBox="0 0 866 174" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>옵셔널과 값 없음, 메타 컬럼</title>
+<rect x="0" y="0" width="487.0" height="166" fill="#FFFFFF"/>
+<rect x="0" y="0" width="486.0" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="166" fill="#E9ECEF"/>
+<rect x="30" y="22" width="456.0" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="456.0" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="456.0" height="24" fill="#F1F6FB"/>
+<rect x="326.6875" y="142" width="82.25" height="24" fill="#FBEAE8"/>
+<line x1="30" y1="22" x2="30" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="112.4375" y1="22" x2="112.4375" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="164.4375" y1="22" x2="164.4375" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="220.75" y1="22" x2="220.75" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="326.6875" y1="22" x2="326.6875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="408.9375" y1="22" x2="408.9375" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="486.0" y1="22" x2="486.0" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="486.0" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="486.0" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="486.0" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="486.0" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="486.0" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="486.0" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="486.0" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="486.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="112.4375" y1="0" x2="112.4375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="164.4375" y1="0" x2="164.4375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="220.75" y1="0" x2="220.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="326.6875" y1="0" x2="326.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="408.9375" y1="0" x2="408.9375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="486.0" y1="0" x2="486.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="485.5" height="165.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="327.4375" y="142.75" width="80.75" height="22.5" fill="none" stroke="#D64541" stroke-width="1.5"/>
+<text x="71.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="138.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="192.6" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="273.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="367.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="447.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">F</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Npc</text>
+<text x="119.4375" y="38.5" font-size="12.5" fill="#1F2328">마을 주민입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="119.4375" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="171.4375" y="62.5" font-size="12.5" fill="#1F2328">name</text>
+<text x="227.75" y="62.5" font-size="12.5" fill="#1F2328">shopId</text>
+<text x="333.6875" y="62.5" font-size="12.5" fill="#1F2328">greeting</text>
+<text x="415.9375" y="62.5" font-size="12.5" fill="#C0392B" font-weight="bold">#</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="119.4375" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="171.4375" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="227.75" y="86.5" font-size="12.5" fill="#1F2328">foreign Shop?</text>
+<text x="333.6875" y="86.5" font-size="12.5" fill="#1F2328">string?</text>
+<text x="119.4375" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="171.4375" y="110.5" font-size="12.5" fill="#1F2328">상인</text>
+<text x="227.75" y="110.5" font-size="12.5" fill="#1F2328">2001</text>
+<text x="333.6875" y="110.5" font-size="12.5" fill="#1F2328">어서 오세요</text>
+<text x="415.9375" y="110.5" font-size="12.5" fill="#1F2328">할인 담당</text>
+<text x="119.4375" y="134.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="171.4375" y="134.5" font-size="12.5" fill="#1F2328">경비</text>
+<text x="227.75" y="134.5" font-size="12.5" fill="#1F2328">-</text>
+<text x="333.6875" y="134.5" font-size="12.5" fill="#1F2328">-</text>
+<text x="119.4375" y="158.5" font-size="12.5" fill="#1F2328">3</text>
+<text x="171.4375" y="158.5" font-size="12.5" fill="#1F2328">아이</text>
+<text x="227.75" y="158.5" font-size="12.5" fill="#1F2328">2002</text>
+<text x="415.9375" y="158.5" font-size="12.5" fill="#1F2328">순찰 5구역</text>
+<text x="496.0" y="110.0" font-size="11" fill="#8A929B" font-style="italic">◀ 맨 오른쪽은 메모 컬럼 — :field의 # 가 그 표시</text>
+<text x="496.0" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ - 는 값 없음(null)</text>
+<text x="496.0" y="158.0" font-size="11" fill="#B03A2E" font-style="italic">◀ ✗ 빈 칸 — 기본 정책(OnBlankCell)은 오류. - 로 적습니다</text>
+</svg>

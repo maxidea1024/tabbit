@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1027" height="150" viewBox="0 0 1027 150" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>인라인 그룹과 합성 값 타입, 중첩</title>
+<rect x="0" y="0" width="612.125" height="142" fill="#FFFFFF"/>
+<rect x="0" y="0" width="611.125" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="142" fill="#E9ECEF"/>
+<rect x="30" y="22" width="581.125" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="581.125" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="581.125" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="127.0625" y1="22" x2="127.0625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="179.0625" y1="22" x2="179.0625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="231.0625" y1="22" x2="231.0625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="283.0625" y1="22" x2="283.0625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="335.0625" y1="22" x2="335.0625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="405.5" y1="22" x2="405.5" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="508.3125" y1="22" x2="508.3125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="611.125" y1="22" x2="611.125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="611.125" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="611.125" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="611.125" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="611.125" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="611.125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="611.125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="611.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="127.0625" y1="0" x2="127.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="179.0625" y1="0" x2="179.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="231.0625" y1="0" x2="231.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="283.0625" y1="0" x2="283.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="335.0625" y1="0" x2="335.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="405.5" y1="0" x2="405.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="508.3125" y1="0" x2="508.3125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="611.125" y1="0" x2="611.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="610.625" height="141.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="78.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="153.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="205.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="257.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="309.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="370.3" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">F</text>
+<text x="456.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">G</text>
+<text x="559.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">H</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Spawn</text>
+<text x="134.0625" y="38.5" font-size="12.5" fill="#1F2328">몬스터 배치입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="134.0625" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="186.0625" y="62.5" font-size="12.5" fill="#1F2328">pos.x</text>
+<text x="238.0625" y="62.5" font-size="12.5" fill="#1F2328">pos.y</text>
+<text x="290.0625" y="62.5" font-size="12.5" fill="#1F2328">pos.z</text>
+<text x="342.0625" y="62.5" font-size="12.5" fill="#1F2328">home</text>
+<text x="412.5" y="62.5" font-size="12.5" fill="#1F2328">waypoints[].x</text>
+<text x="515.3125" y="62.5" font-size="12.5" fill="#1F2328">waypoints[].y</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="134.0625" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="186.0625" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="238.0625" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="290.0625" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="342.0625" y="86.5" font-size="12.5" fill="#1F2328">vec3f</text>
+<text x="412.5" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="515.3125" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="134.0625" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="186.0625" y="110.5" font-size="12.5" fill="#1F2328">1.5</text>
+<text x="238.0625" y="110.5" font-size="12.5" fill="#1F2328">0</text>
+<text x="290.0625" y="110.5" font-size="12.5" fill="#1F2328">-2.5</text>
+<text x="342.0625" y="110.5" font-size="12.5" fill="#1F2328">(0, 1, 0)</text>
+<text x="412.5" y="110.5" font-size="12.5" fill="#1F2328">10</text>
+<text x="515.3125" y="110.5" font-size="12.5" fill="#1F2328">20</text>
+<text x="412.5" y="134.5" font-size="12.5" fill="#1F2328">11</text>
+<text x="515.3125" y="134.5" font-size="12.5" fill="#1F2328">21</text>
+<text x="621.125" y="110.0" font-size="11" fill="#8A929B" font-style="italic">◀ pos.* 컬럼 셋 = 레코드 하나. home 한 칸 = 같은 형태(합성 값)</text>
+<text x="621.125" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ 연장 행 — 인라인 그룹의 멀티 로우</text>
+</svg>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="734" height="150" viewBox="0 0 734 150" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>나란한 멀티 로우 그룹의 독립 축적</title>
+<rect x="0" y="0" width="428.9375" height="142" fill="#FFFFFF"/>
+<rect x="0" y="0" width="427.9375" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="142" fill="#E9ECEF"/>
+<rect x="30" y="22" width="397.9375" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="397.9375" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="397.9375" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="127.0625" y1="22" x2="127.0625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="179.0625" y1="22" x2="179.0625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="276.125" y1="22" x2="276.125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="365.875" y1="22" x2="365.875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="427.9375" y1="22" x2="427.9375" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="427.9375" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="427.9375" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="427.9375" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="427.9375" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="427.9375" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="427.9375" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="427.9375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="127.0625" y1="0" x2="127.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="179.0625" y1="0" x2="179.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="276.125" y1="0" x2="276.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="365.875" y1="0" x2="365.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="427.9375" y1="0" x2="427.9375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="427.4375" height="141.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="78.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="153.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="227.6" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="321.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="396.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Stage</text>
+<text x="134.0625" y="38.5" font-size="12.5" fill="#1F2328">보상과 비용입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="134.0625" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="186.0625" y="62.5" font-size="12.5" fill="#1F2328">rewards[].id</text>
+<text x="283.125" y="62.5" font-size="12.5" fill="#1F2328">rewards[].n</text>
+<text x="372.875" y="62.5" font-size="12.5" fill="#1F2328">costs[]</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="134.0625" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="186.0625" y="86.5" font-size="12.5" fill="#1F2328">foreign Item</text>
+<text x="283.125" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="372.875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="134.0625" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="186.0625" y="110.5" font-size="12.5" fill="#1F2328">1001</text>
+<text x="283.125" y="110.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="372.875" y="110.5" font-size="12.5" fill="#1F2328">10</text>
+<text x="186.0625" y="134.5" font-size="12.5" fill="#1F2328">1002</text>
+<text x="283.125" y="134.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="437.9375" y="110.0" font-size="11" fill="#8A929B" font-style="italic">◀ rewards 1번째 · costs 1번째</text>
+<text x="437.9375" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ rewards 2번째 — costs는 이 행에 원소 없음</text>
+</svg>

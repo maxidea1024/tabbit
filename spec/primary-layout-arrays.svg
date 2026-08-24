@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="839" height="174" viewBox="0 0 839 174" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>배열의 세 자리</title>
+<rect x="0" y="0" width="439.8125" height="166" fill="#FFFFFF"/>
+<rect x="0" y="0" width="438.8125" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="166" fill="#E9ECEF"/>
+<rect x="30" y="22" width="408.8125" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="408.8125" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="408.8125" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="119.75" y1="22" x2="119.75" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="171.75" y1="22" x2="171.75" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="241.125" y1="22" x2="241.125" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="308.9375" y1="22" x2="308.9375" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="376.75" y1="22" x2="376.75" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="438.8125" y1="22" x2="438.8125" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="438.8125" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="438.8125" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="438.8125" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="438.8125" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="438.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="438.8125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="438.8125" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="438.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="119.75" y1="0" x2="119.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="171.75" y1="0" x2="171.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="241.125" y1="0" x2="241.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="308.9375" y1="0" x2="308.9375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="376.75" y1="0" x2="376.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="438.8125" y1="0" x2="438.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="438.3125" height="165.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="74.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="145.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="206.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="275.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="342.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="407.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">F</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Wave</text>
+<text x="126.75" y="38.5" font-size="12.5" fill="#1F2328">웨이브 보상입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="126.75" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="178.75" y="62.5" font-size="12.5" fill="#1F2328">costs</text>
+<text x="248.125" y="62.5" font-size="12.5" fill="#1F2328">slots[0]</text>
+<text x="315.9375" y="62.5" font-size="12.5" fill="#1F2328">slots[1]</text>
+<text x="383.75" y="62.5" font-size="12.5" fill="#1F2328">drops[]</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="126.75" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="178.75" y="86.5" font-size="12.5" fill="#1F2328">int[]</text>
+<text x="248.125" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="383.75" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="126.75" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="178.75" y="110.5" font-size="12.5" fill="#1F2328">10;20;30</text>
+<text x="248.125" y="110.5" font-size="12.5" fill="#1F2328">5</text>
+<text x="315.9375" y="110.5" font-size="12.5" fill="#1F2328">7</text>
+<text x="383.75" y="110.5" font-size="12.5" fill="#1F2328">100</text>
+<text x="383.75" y="134.5" font-size="12.5" fill="#1F2328">101</text>
+<text x="126.75" y="158.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="178.75" y="158.5" font-size="12.5" fill="#1F2328">5</text>
+<text x="248.125" y="158.5" font-size="12.5" fill="#1F2328">9</text>
+<text x="315.9375" y="158.5" font-size="12.5" fill="#1F2328">4</text>
+<text x="383.75" y="158.5" font-size="12.5" fill="#1F2328">200</text>
+<text x="448.8125" y="110.0" font-size="11" fill="#8A929B" font-style="italic">◀ 레코드 1 — costs는 셀 안 3개, slots는 칸 2개, drops는 행</text>
+<text x="448.8125" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ 연장 행 — drops의 2번째 원소</text>
+<text x="448.8125" y="158.0" font-size="11" fill="#8A929B" font-style="italic">◀ 레코드 2</text>
+</svg>

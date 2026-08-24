@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="897" height="174" viewBox="0 0 897 174" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>멀티 로우에서 잘못 적기 쉬운 2가지</title>
+<rect x="0" y="0" width="504.5" height="166" fill="#FFFFFF"/>
+<rect x="0" y="0" width="503.5" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="166" fill="#E9ECEF"/>
+<rect x="30" y="22" width="473.5" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="473.5" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="473.5" height="24" fill="#F1F6FB"/>
+<rect x="179.0625" y="118" width="82.25" height="24" fill="#FBEAE8"/>
+<rect x="179.0625" y="142" width="82.25" height="24" fill="#FBEAE8"/>
+<line x1="30" y1="22" x2="30" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="127.0625" y1="22" x2="127.0625" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="179.0625" y1="22" x2="179.0625" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="261.3125" y1="22" x2="261.3125" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="384.5" y1="22" x2="384.5" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="503.5" y1="22" x2="503.5" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="503.5" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="503.5" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="503.5" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="503.5" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="503.5" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="503.5" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="503.5" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="503.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="127.0625" y1="0" x2="127.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="179.0625" y1="0" x2="179.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="261.3125" y1="0" x2="261.3125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="384.5" y1="0" x2="384.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="503.5" y1="0" x2="503.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="503.0" height="165.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="179.8125" y="118.75" width="80.75" height="22.5" fill="none" stroke="#D64541" stroke-width="1.5"/>
+<rect x="179.8125" y="142.75" width="80.75" height="22.5" fill="none" stroke="#D64541" stroke-width="1.5"/>
+<text x="78.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="153.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="220.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="322.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="444.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Quest</text>
+<text x="134.0625" y="38.5" font-size="12.5" fill="#1F2328">잘못 적은 예입니다 — 그대로 쓰지 마십시오.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="134.0625" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="186.0625" y="62.5" font-size="12.5" fill="#1F2328">title</text>
+<text x="268.3125" y="62.5" font-size="12.5" fill="#1F2328">rewards[].itemId</text>
+<text x="391.5" y="62.5" font-size="12.5" fill="#1F2328">rewards[].count</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="134.0625" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="186.0625" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="268.3125" y="86.5" font-size="12.5" fill="#1F2328">foreign Item</text>
+<text x="391.5" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="134.0625" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="186.0625" y="110.5" font-size="12.5" fill="#1F2328">길잃은 화물</text>
+<text x="268.3125" y="110.5" font-size="12.5" fill="#1F2328">1001</text>
+<text x="391.5" y="110.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="186.0625" y="134.5" font-size="12.5" fill="#B03A2E">보너스</text>
+<text x="268.3125" y="134.5" font-size="12.5" fill="#1F2328">1002</text>
+<text x="391.5" y="134.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="134.0625" y="158.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="268.3125" y="158.5" font-size="12.5" fill="#1F2328">2001</text>
+<text x="391.5" y="158.5" font-size="12.5" fill="#1F2328">5</text>
+<text x="513.5" y="134.0" font-size="11" fill="#B03A2E" font-style="italic">◀ ✗ 연장 행의 스칼라 칸 — 이 값은 레코드의 첫 행에</text>
+<text x="513.5" y="158.0" font-size="11" fill="#B03A2E" font-style="italic">◀ ✗ 인덱스를 적으면 새 레코드 — 빈 title은 기본 정책이 검출</text>
+</svg>
