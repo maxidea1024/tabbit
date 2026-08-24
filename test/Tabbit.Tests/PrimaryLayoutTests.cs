@@ -1098,6 +1098,21 @@ public class PrimaryLayoutTests
     }
 
     [Fact]
+    public void A_header_row_an_enum_has_no_use_for_is_reported()
+    {
+        // Accepted for a while and read by nothing, which is the quiet no-op this layout is
+        // meant not to have. An enum's description belongs to a label, and the `desc` column
+        // is where it goes.
+        var problem = Refuses(Sheet(
+            [":enum Grade", "a tier"],
+            [":field", "label", "value"],
+            [":desc", "the name", "the number"],
+            ["", "Low", "1"]));
+
+        Assert.Contains(":desc", problem.Message);
+    }
+
+    [Fact]
     public void A_type_row_on_an_enum_is_reported()
     {
         var problem = Refuses(Sheet(

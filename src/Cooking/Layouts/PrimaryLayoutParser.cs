@@ -64,8 +64,16 @@ public sealed class PrimaryLayoutParser : ILayoutParser
     private static readonly string[] AllRowKeys =
         [RowKeyField, RowKeyType, RowKeyDesc, RowKeyTarget, RowKeyVariant];
 
-    /// <summary>The header rows an enum or a constant set may carry: their columns are named.</summary>
-    private static readonly string[] EntityRowKeys = [RowKeyField, RowKeyDesc];
+    /// <summary>
+    /// The header rows an enum or a constant set may carry, which is `:field` alone.
+    /// </summary>
+    /// <remarks>
+    /// Their columns are fixed and named, so every other row key has nothing to say - and a
+    /// description belongs to a label rather than to a column here, which is what the `desc`
+    /// **column** is for. A `:desc` row was accepted for a while and read by nothing, which is
+    /// the quiet no-op this layout is meant not to have.
+    /// </remarks>
+    private static readonly string[] EntityRowKeys = [RowKeyField];
 
     private static readonly string[] DeclarationMetaKeys = ["side", "key"];
 
