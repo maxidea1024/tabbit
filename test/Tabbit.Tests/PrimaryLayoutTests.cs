@@ -455,6 +455,69 @@ public class PrimaryLayoutTests
     }
 
     [Fact]
+    public void Brackets_that_run_together_make_an_array_of_arrays()
+    {
+        var model = Cook(Sheet(
+            [":table Guide", "a guide"],
+            [":field", "code", "grid[0][0]", "grid[0][1]", "grid[1][0]", "grid[1][1]"],
+            [":type", "int", "int", "", "", ""],
+            ["", "1", "1", "2", "3", "4"]));
+
+        var table = Assert.Single(model.Tables);
+
+        // Two levels from one segment, and the inner one has no name of its own - there is no
+        // word a consumer could write for it, so it indexes.
+        var path = table.Fields[1].NamePath!;
+        Assert.Equal(2, path.Count);
+        Assert.Equal("Grid", path[0].Name);
+        Assert.Equal(0, path[0].Index);
+        Assert.True(path[1].IsAnonymous);
+        Assert.Equal(0, path[1].Index);
+
+        Assert.Equal("Grid", table.Fields[1].GroupName);
+    }
+
+    [Fact]
+    public void Each_inner_array_counts_from_zero_on_its_own()
+    {
+        // The outer element is part of the group's identity, so `grid[1]` starting at `[1]` is
+        // a gap in that row rather than something the run of `grid[0]` covers.
+        var problem = Refuses(Sheet(
+            [":table Guide", "a guide"],
+            [":field", "code", "grid[0][0]", "grid[1][1]"],
+            [":type", "int", "int", ""],
+            ["", "1", "1", "2"]));
+
+        Assert.Contains("0", problem.Message);
+    }
+
+    [Fact]
+    public void A_nameless_level_is_written_with_brackets_rather_than_after_a_dot()
+    {
+        // One shape, one spelling. `grid.[1]` would be a second way to write what `grid[0][1]`
+        // already says.
+        var problem = Refuses(Sheet(
+            [":table Guide", "a guide"],
+            [":field", "code", "grid[0].[1]"],
+            [":type", "int", "int"],
+            ["", "1", "1"]));
+
+        Assert.Contains("grid", problem.Message);
+    }
+
+    [Fact]
+    public void Something_written_between_two_bracket_groups_is_reported()
+    {
+        var problem = Refuses(Sheet(
+            [":table Guide", "a guide"],
+            [":field", "code", "grid[0]x[1]"],
+            [":type", "int", "int"],
+            ["", "1", "1"]));
+
+        Assert.Contains("grid", problem.Message);
+    }
+
+    [Fact]
     public void Element_numbers_count_from_zero()
     {
         var problem = Refuses(Sheet(

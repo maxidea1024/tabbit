@@ -920,32 +920,34 @@ public sealed class PrimaryLayoutParser : ILayoutParser
                         ("Detail", "has an empty level. A `.` separates one level of the path from the next, so there is a name missing on one side of it.")));
             }
 
-            string name = text;
-            int? index = null;
-
             int open = text.IndexOf('[');
-            if (open >= 0)
+
+            if (open < 0)
             {
-                if (!text.EndsWith("]", StringComparison.Ordinal))
-                {
-                    throw new TabbitException(cell.Location,
-                        Message.Of(PrimaryLayoutMessages.PathProblem,
-                            ("Entity", block.Name), ("Column", written),
-                            ("Detail", "opens a bracket and does not close it. An element number is written `slots[0]`, and `[]` on its own puts the elements on the rows below.")));
-                }
+                steps.Add(new FieldPathStep { Name = text.ToPascalCase(), Index = null });
+                continue;
+            }
 
-                anyBrackets = true;
-                name = text.Substring(0, open).Trim();
-                string digits = text.Substring(open + 1, text.Length - open - 2).Trim();
+            anyBrackets = true;
 
-                if (name.Length == 0)
-                {
-                    throw new TabbitException(cell.Location,
-                        Message.Of(PrimaryLayoutMessages.PathProblem,
-                            ("Entity", block.Name), ("Column", written),
-                            ("Detail", "has brackets with no name in front of them. Every level of a path in this layout is named.")));
-                }
+            string name = text.Substring(0, open).Trim();
 
+            if (name.Length == 0)
+            {
+                throw new TabbitException(cell.Location,
+                    Message.Of(PrimaryLayoutMessages.PathProblem,
+                        ("Entity", block.Name), ("Column", written),
+                        ("Detail", "has brackets with no name in front of them. A level with no name of its own is written by putting its brackets straight after the level above - `grid[0][1]` - so that one shape has one spelling.")));
+            }
+
+            // **A run of brackets is a run of levels.** `grid[0][1]` is element 1 of element 0
+            // of `grid`, and the inner level has no name - which is the whole content of an
+            // array of arrays: there is no word a consumer could write, so it indexes instead.
+            // Section 5, and spec/nested-multi-level.md for what the shape reaches.
+            string levelName = name.ToPascalCase();
+
+            foreach (string digits in BracketGroups(text.Substring(open), block, written, cell))
+            {
                 if (digits.Length == 0)
                 {
                     // `[]` says the elements come from the rows below rather than from columns
@@ -959,24 +961,28 @@ public sealed class PrimaryLayoutParser : ILayoutParser
                     }
 
                     header.MultiRowLevel = steps.Count;
-                    steps.Add(new FieldPathStep { Name = name.ToPascalCase(), Index = null });
-                    continue;
+                    steps.Add(new FieldPathStep { Name = levelName, Index = null });
                 }
-
-                if (!int.TryParse(
-                        digits, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)
-                    || number < 0)
+                else
                 {
-                    throw new TabbitException(cell.Location,
-                        Message.Of(PrimaryLayoutMessages.ElementNumberNotInteger,
-                            ("Entity", block.Name), ("Column", written), ("Written", digits)));
+                    if (!int.TryParse(
+                            digits, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                            out int number)
+                        || number < 0)
+                    {
+                        throw new TabbitException(cell.Location,
+                            Message.Of(PrimaryLayoutMessages.ElementNumberNotInteger,
+                                ("Entity", block.Name), ("Column", written), ("Written", digits)));
+                    }
+
+                    steps.Add(new FieldPathStep { Name = levelName, Index = number });
                 }
 
-                index = number;
+                // Every bracket after the first belongs to a level the sheet did not name.
+                levelName = "";
             }
-
-            steps.Add(new FieldPathStep { Name = name.ToPascalCase(), Index = index });
         }
+
 
         if (header.Indexing && anyBrackets)
         {
@@ -992,7 +998,9 @@ public sealed class PrimaryLayoutParser : ILayoutParser
                     ("Entity", block.Name), ("Column", written), ("Group", steps[0].Name)));
         }
 
-        foreach (var step in steps)
+        // A nameless level has no identifier to hold to one: it is reached by number, which is
+        // what having no name means here.
+        foreach (var step in steps.Where(step => !step.IsAnonymous))
             _context.RequiresIdentifier(step.Name, cell.Location);
 
         // A `[]` level beside a numbered one replicates the whole column set per element, which
@@ -1011,6 +1019,46 @@ public sealed class PrimaryLayoutParser : ILayoutParser
             return null;
 
         return steps;
+    }
+
+    /// <summary>
+    /// Splits a run of brackets into what each one held: `[0][1]` gives `0` then `1`.
+    /// </summary>
+    /// <remarks>
+    /// Empty for `[]`, which is a level whose elements come from the rows rather than a level
+    /// with no number. The caller tells the two apart because they mean different things.
+    /// </remarks>
+    private static List<string> BracketGroups(
+        string text, EntityBlock block, string written, RawCell cell)
+    {
+        var groups = new List<string>();
+        int at = 0;
+
+        while (at < text.Length)
+        {
+            if (text[at] != '[')
+            {
+                throw new TabbitException(cell.Location,
+                    Message.Of(PrimaryLayoutMessages.PathProblem,
+                        ("Entity", block.Name), ("Column", written),
+                        ("Detail", $"has `{text.Substring(at)}` after a closing bracket. Brackets run one after another - `grid[0][1]` - and a name goes before them, not between them.")));
+            }
+
+            int close = text.IndexOf(']', at + 1);
+
+            if (close < 0)
+            {
+                throw new TabbitException(cell.Location,
+                    Message.Of(PrimaryLayoutMessages.PathProblem,
+                        ("Entity", block.Name), ("Column", written),
+                        ("Detail", "opens a bracket and does not close it. An element number is written `slots[0]`, and `[]` on its own puts the elements on the rows below.")));
+            }
+
+            groups.Add(text.Substring(at + 1, close - at - 1).Trim());
+            at = close + 1;
+        }
+
+        return groups;
     }
 
     /// <summary>
@@ -1037,11 +1085,14 @@ public sealed class PrimaryLayoutParser : ILayoutParser
                 if (header.Path[level].Index is not { } number)
                     continue;
 
-                // Keyed by the path down to the numbered level, so `stars[0].pos` and
-                // `stars[1].pos` are one group and two different groups are never merged by
-                // sharing a name one level up.
+                // Keyed by the path down to the numbered level **with the outer numbers kept**,
+                // so `grid[0][…]` and `grid[1][…]` are two runs rather than one - each inner
+                // array counts from zero on its own. The level itself contributes its name only,
+                // which is what makes `stars[0].pos` and `stars[1].pos` one group.
                 string key = string.Join(
-                    ".", header.Path.Take(level + 1).Select(step => step.Name));
+                    ".",
+                    header.Path.Take(level).Select(step => step.ToString())
+                        .Append(header.Path[level].Name));
 
                 if (!byGroup.TryGetValue(key, out var group))
                     group = (new SortedSet<int>(), header.NameCell);
