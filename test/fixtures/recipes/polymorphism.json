@@ -61,6 +61,12 @@
       "Path": "test/fixtures/output/polymorphism/rust"
     },
     {
+      "Type": "php",
+      "Path": "test/fixtures/output/polymorphism/php",
+      "Namespace": "Tabbit\\Fixtures\\Polymorphism",
+      "AccessorName": "PolymorphismAccessor"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

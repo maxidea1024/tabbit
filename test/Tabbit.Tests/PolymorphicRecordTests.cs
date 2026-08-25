@@ -252,6 +252,71 @@ public class PolymorphicRecordTests
             + $"{System.Environment.NewLine}{result.Output}");
     }
 
+    /// <summary>
+    /// The generated PHP reads each row back as the variant it is.
+    /// </summary>
+    /// <remarks>
+    /// **A dynamic language, so parsing settles almost nothing here** - `instanceof` against a
+    /// class that was never declared is `false` rather than an error. That is why this one reads
+    /// the file and names the class per row: a build that emitted the union flat would report
+    /// every row as the base type and nothing else would say so.
+    /// spec/polymorphism.md section 7.
+    /// </remarks>
+    [Fact]
+    public void The_generated_php_reads_each_rows_variant()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        // A hard failure rather than a skip, as with the other toolchain gates: a gate that
+        // quietly turns itself off is worse than no gate.
+        Assert.True(ConformanceHarness.PhpIsAvailable(out string why),
+            $"A PHP interpreter is required to check the generated code. {why}");
+
+        var linted = ConformanceHarness.CompilePhp(Scenario, "PolymorphismAccessor");
+
+        Assert.True(linted.Succeeded,
+            $"The generated PHP does not parse.{System.Environment.NewLine}{linted.Output}");
+
+        string binaryDir = System.IO.Path.Combine(RepoLayout.OutputDir(Scenario), "binary");
+
+        // zend.assertions=1 makes `assert` evaluate; the default for a non-development ini is
+        // to compile it away, which would make this pass by not running.
+        var result = ConformanceHarness.RunPhpSnippet(
+            Scenario,
+            "require_once __DIR__ . '/PolymorphismAccessor.php'; "
+            + "$accessor = new \\Tabbit\\Fixtures\\Polymorphism\\PolymorphismAccessor(); "
+            + "$accessor->readAll($argv[1]); "
+            + "$rows = $accessor->skill->records; "
+            + "$named = []; foreach ($rows as $r) { $named[$r->name] = $r; } "
+
+            // The class per row, which is what the discriminator picked. A build that emitted
+            // the union flat would report every row as the base type.
+            + "$of = static function ($row) { "
+            + "    return (new \\ReflectionClass($row->effectOf()))->getShortName(); "
+            + "}; "
+            + "assert($of($named['Slash']) === 'DamageEffect'); "
+            + "assert($of($named['Mend']) === 'HealEffect'); "
+            + "assert($of($named['Feint']) === 'NoEffect'); "
+
+            // The base field, read through the abstract type.
+            + "assert($named['Slash']->effectOf()->chance === 30); "
+            + "assert($named['Feint']->effectOf()->chance === 10); "
+
+            // A member only one variant has, and the other variant not having it.
+            + "assert($named['Slash']->effectOf()->damage === 50); "
+            + "assert($named['Slash']->effectOf()->pierces === true); "
+            + "assert($named['Mend']->effectOf()->amount === 20); "
+            + "assert(!property_exists($named['Mend']->effectOf(), 'damage'));",
+            binaryDir);
+
+        Assert.True(result.Succeeded,
+            $"Reading `{Scenario}` back through the generated PHP failed."
+            + $"{System.Environment.NewLine}{result.Output}");
+    }
+
     /// <summary>Whether a toolchain is on this machine, and why not when it is missing.</summary>
     private delegate bool Availability(out string reason);
 

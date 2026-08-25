@@ -1,0 +1,43 @@
+{{~##
+   One abstract type and its variants. `structure` is the single declaration this file is for.
+
+   **An abstract class and one final class per variant**, which is this language's way of
+   narrowing - a consumer writes `instanceof`. The base fields are on the abstract class, so a
+   consumer holding it reads them without narrowing.
+
+   The read path is untouched: the file is still read into the table's flat entry and the value
+   is built from it. spec/polymorphism.md section 7.
+##~}}
+{{ include 'php-file-head.sbn' ~}}
+/**
+ * One value of `{{ structure.name }}`, whichever shape it took.
+ *
+ * Narrow it with `instanceof`.
+ */
+abstract class {{ structure.name }}
+{
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    public {{ member.type_name }} ${{ member.name }};
+{{~ end ~}}
+}
+{{~ for variant in structure.variants ~}}
+
+/**
+ * One shape of `{{ structure.name }}`.
+ *
+ * The file carries `{{ variant.discriminator }}` for it. That number rather than the name is
+ * what lets this variant be renamed without a deployed reader reading a different one.
+ */
+final class {{ variant.type_name }} extends {{ structure.name }}
+{
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    public {{ member.type_name }} ${{ member.name }};
+{{~ end ~}}
+}
+{{~ end ~}}

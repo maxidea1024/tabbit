@@ -187,6 +187,8 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         var accessorRequires = new List<string> { Require(0, "tabbit/TcbReader.php") };
 
         accessorRequires.AddRange(view.Enums.Select(e => Require(0, $"enums/{e.Name}.php")));
+        accessorRequires.AddRange(
+            _model.PolymorphicTypes.Select(s => Require(0, $"structs/{s.Name}.php")));
         accessorRequires.AddRange(view.ConstantSets.Select(s => Require(0, $"constants/{s.Name}.php")));
         accessorRequires.AddRange(view.Tables.Select(t => Require(0, $"tables/{t.TableName}.php")));
 
@@ -209,6 +211,14 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             // The accessor, for the encryption key it holds. It requires this file back, and
             // `require_once` marks a file included before it runs it - so the cycle resolves
             // rather than recursing, and a table file stays usable on its own.
+            // And the abstract types its groups are. Declared in files of their own - one per
+            // declaration however many tables named it. spec/polymorphism.md section 7.1.
+            requires.AddRange(pair.model.Fields
+                .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
+                .Select(field => field.AbstractTypeName!.ToPascalCase())
+                .Distinct()
+                .Select(name => Require(1, $"structs/{name}.php")));
+
             requires.Add(Require(1, _recipe.AccessorName + ".php"));
 
             Write(System.IO.Path.Combine("tables", pair.rendered.TableName + ".php"), "php-table.sbn",
@@ -231,6 +241,19 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                       Namespace = _recipe.Namespace,
                       Requires = Array.Empty<string>(),
                       Enumm = enumm,
+                  });
+        }
+
+        // A struct is an entity beside a table and an enum, so it gets a file of its own.
+        // spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            Write(System.IO.Path.Combine("structs", declared.Name + ".php"), "php-struct.sbn",
+                  new PhpPartView
+                  {
+                      Namespace = _recipe.Namespace,
+                      Requires = Array.Empty<string>(),
+                      Structure = BuildStruct(declared),
                   });
         }
 
@@ -606,8 +629,52 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         return result;
     }
 
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// Classes and `instanceof`, which is this language's way of narrowing. spec/polymorphism.md
+    /// section 7.
+    /// </remarks>
+    private PhpPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new PhpPolymorphicTypeView
+        {
+            Name = declared.Name,
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new PhpVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private PhpStructMemberView StructMember(Models.Field field)
+        => new PhpStructMemberView
+        {
+            Name = PhpName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = field.ElementType == ValueType.Enum
+                ? EnumName(field.Enum)
+                : LanguageProfile.Php.ScalarTypeName(field.ElementType),
+            Comment = CommentLines(field.Comment),
+        };
+
     private PhpFieldView BuildRecordField(Table table, SerialField sf)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string name = PhpName(sf.Name);
         string entry = RecordTypeName(table, sf);
 
@@ -665,6 +732,17 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         return new PhpFieldView
         {
+            AbstractTypeName = declaredType?.Name ?? "",
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new PhpVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+
             // A record has no header cell of its own, so the first member's column comment is
             // the nearest thing the sheet said about the group.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),
