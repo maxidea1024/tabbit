@@ -1,0 +1,26 @@
+/// Something a skill does to whoever it lands on.
+///
+/// Abstract: a row says which kind it is in its `$type` cell, and the columns of the group are
+/// every variant's members side by side. spec/polymorphism.md section 5.
+abstract struct Effect
+    /// How likely it is to land, in percent. Every variant carries it, so it is one column and
+    /// every row fills it.
+    field chance int (min=0, max=100)
+
+/// Takes health away.
+struct DamageEffect extends Effect @1
+    /// How much it takes.
+    field damage int
+    /// Whether it ignores armour.
+    field pierces bool
+
+/// Gives health back.
+struct HealEffect extends Effect @2
+    /// How much it gives.
+    field amount int
+
+/// Does nothing on its own and carries no members of its own.
+///
+/// Here because a variant with no fields has to work: what is left is the name, and the
+/// discriminator is the whole of what the row carries. spec/polymorphism.md section 3.
+struct NoEffect extends Effect @3

@@ -1,0 +1,37 @@
+{
+  // A polymorphic record group: one `$type` column and the union of every variant's members.
+  //
+  // Binary and named JSON, and nothing else yet. The claim this recipe holds is that the
+  // format does not move - the discriminator is an integer column, the base field is an
+  // ordinary one, and a variant member is an optional column, all of which the encoder
+  // already writes. spec/polymorphism.md section 6.
+  //
+  // No code targets: the generated surface is the stage after this one, and a generator that
+  // has not learned variants would emit the union flat and call it a record. That refusal is
+  // its own gate rather than a golden tree here.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/polymorphism" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/polymorphism" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/polymorphism/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/polymorphism/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}

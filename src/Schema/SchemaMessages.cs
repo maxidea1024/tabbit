@@ -245,6 +245,15 @@ public static class SchemaMessages
     /// <summary>One member name declared with two types by two variants.</summary>
     public const string MemberTypeVariesByVariant = "schema.member-type-varies-by-variant";
 
+    /// <summary>A `$type` cell nobody filled in.</summary>
+    public const string DiscriminatorCellBlank = "schema.discriminator-cell-blank";
+
+    /// <summary>A `$type` cell naming something that is not a variant of that type.</summary>
+    public const string DiscriminatorCellUnknown = "schema.discriminator-cell-unknown";
+
+    /// <summary>A value in a member column the row's own variant does not declare.</summary>
+    public const string ValueOutsideTheRowsVariant = "schema.value-outside-the-rows-variant";
+
     public const string RefsEmpty = "schema.refs-empty";
 
     /// <summary>A sheet's table list and a declaration's with nothing in common.</summary>

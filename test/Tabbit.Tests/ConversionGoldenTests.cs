@@ -128,6 +128,13 @@ public class ConversionGoldenTests
     // The refusal this replaced said the readers had no shape for it; the tree is what says
     // they did. spec/polymorphism.md section 4.
     [InlineData("array-foreign")]
+    // A polymorphic record group: the discriminator, the abstract type's own field, and the
+    // union of the variants' members. What the tree pins is the claim of section 6 - that the
+    // format did not move - because every column here is a shape the encoder already wrote,
+    // and the one thing that would show a new one is the bytes. It also pins the row order:
+    // the fixture is written with the variants interleaved and the file has them gathered.
+    // spec/polymorphism.md sections 5.2 and 6.3.
+    [InlineData("polymorphism")]
     public void Fixture_matches_golden(string scenario)
     {
         var result = TabbitRunner.Convert(scenario);

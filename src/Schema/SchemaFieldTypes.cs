@@ -39,7 +39,8 @@ internal static class SchemaFieldTypes
         SchemaDeclarations declarations,
         bool waiting,
         Diagnostics diagnostics,
-        out string wanted)
+        out string wanted,
+        bool columnIsOptional = false)
     {
         wanted = member.Type.ToString();
 
@@ -51,7 +52,12 @@ internal static class SchemaFieldTypes
 
         field.Type = resolved.Type;
         field.TypeName = resolved.TypeName;
-        field.IsRequired = !member.Type.IsOptional;
+        // **The member and the column are different questions for a polymorphic group.** A
+        // variant's member is required within that variant - a `DamageEffect` has a `damage` -
+        // and the column is optional all the same, because the rows of the other variants
+        // leave it blank. Set before the cells are read, since reading is what needs the
+        // answer. spec/polymorphism.md section 5.2.
+        field.IsRequired = !columnIsOptional && !member.Type.IsOptional;
         field.ElementsRequired = !member.Type.ElementsAreOptional;
 
         if (resolved.RefTables is not null)
@@ -67,7 +73,8 @@ internal static class SchemaFieldTypes
         {
             Convert(
                 context, table, field,
-                SchemaDefaults.Read(context, member, resolved, diagnostics));
+                SchemaDefaults.Read(context, member, resolved, diagnostics),
+                columnIsOptional);
         }
 
         return true;
@@ -181,7 +188,8 @@ internal static class SchemaFieldTypes
     /// blank becomes what the declaration says it means.
     /// </remarks>
     private static void Convert(
-        CookingContext context, Table table, Field field, object? fallback)
+        CookingContext context, Table table, Field field, object? fallback,
+        bool columnIsOptional = false)
     {
         foreach (var rowSet in table.RowSets)
         foreach (var row in rowSet.Rows)
@@ -208,6 +216,14 @@ internal static class SchemaFieldTypes
                 cell.HasValue = true;
                 continue;
             }
+
+            // **A blank in a column that is only optional because of its group is absence,
+            // not the empty value the sheet wrote.** A deferred column arrives as text, so a
+            // blank cell is an empty string that reads as present - which is right for a
+            // `string` member and wrong for a variant's, where the blank means this row is
+            // another variant. spec/polymorphism.md section 5.2.
+            if (columnIsOptional && written.Length == 0)
+                cell.HasValue = false;
 
             cell.Value = context.ParseValue(
                 field.Type, declaredEnum, written, cell.RawCell?.Location,

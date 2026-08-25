@@ -70,7 +70,7 @@ internal static class Program
         WriteRecordRefTrim(Prepare(outputDir, "record-ref-trim", "record-ref-trim.xlsx"));
         WriteKeyTypes(Prepare(outputDir, "key-types", "key-types.xlsx"));
         WriteCompositeKey(Prepare(outputDir, "composite-key", "composite-key.xlsx"));
-        WriteVariantSet(Prepare(outputDir, "variant-set", "variant-set.xlsx"));
+        WritePolymorphism(Prepare(outputDir, "polymorphism", "polymorphism.xlsx"));
         WriteOptional(Prepare(outputDir, "optional", "optional.xlsx"));
         WriteBlankAndNull(Prepare(outputDir, "blank-and-null", "blank-and-null.xlsx"));
         WriteBlankCell(Prepare(outputDir, "blank-cell", "blank-cell.xlsx"));
@@ -99,7 +99,6 @@ internal static class Program
             Prepare(outputDir, "reference-required-blank", "reference-required-blank.xlsx"));
         WriteAsset(Prepare(outputDir, "asset", "asset.xlsx"));
         WriteRowSets(Prepare(outputDir, "row-sets", "row-sets.xlsx"));
-        WriteMultiTarget(Prepare(outputDir, "multi-target", "multi-target.xlsx"));
         WriteSerialRefTrim(Prepare(outputDir, "serial-ref-trim", "serial-ref-trim.xlsx"));
         // The corpus and the corpus one generation later, from one description. The skew
         // scenario is the same tables with a column appended, and the only thing the gate
@@ -1649,100 +1648,66 @@ internal static class Program
     // ---------------------------------------------------------------- variant set
 
     /// <summary>
-    /// A named set of catalogues, and a column that reaches all of them by naming the set.
+    /// A polymorphic record group: one `$type` column and the union of every variant's members.
     /// </summary>
     /// <remarks>
-    /// The declaration is `extends=Reward` on each catalogue's own cell, and
-    /// test/fixtures/schemas/variant-set declares what `Reward` is. What the tree pins is that
-    /// `foreign Reward` produces exactly what `foreign Item|Mount|Title` produces - the set is
-    /// a name for the list and nothing else travels.
+    /// **The shape this fixture has to hold is the blanks.** A row of `DamageEffect` leaves
+    /// `amount` empty and a row of `HealEffect` leaves `damage` and `pierces` empty, and those
+    /// blanks are not missing values - they are members that variant does not have. So the
+    /// wire carries them as optional columns and the presence bits are what say which.
     ///
-    /// The key bands do not overlap, which is not decoration: a multi-target column resolves
-    /// by finding the id, so two catalogues holding one id is refused. Written far apart on
-    /// purpose so the fixture says which rule it is keeping.
+    /// `NoEffect` is here because a variant with no members of its own has to work: every one
+    /// of its rows leaves every variant column blank, and the discriminator is the whole of
+    /// what it carries.
     ///
-    /// spec/polymorphism.md sections 3 and 4.
+    /// **The rows are deliberately not in variant order.** Section 6.3 sorts them in the
+    /// cooking, so a sheet written in any order has to reach the same file - and a fixture
+    /// already in order would never show that.
+    ///
+    /// spec/polymorphism.md sections 5.2 and 6.3.
     /// </remarks>
-    private static void WriteVariantSet(string path)
+    private static void WritePolymorphism(string path)
     {
         var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Polymorphism"));
 
-        var catalogues = new SheetBuilder(workbook.CreateSheet("Catalogues"));
-
-        // `name` and `icon` are the surface `Reward` declares. Every catalogue carries both,
-        // under those names and those types, or the set's promise does not hold.
-        var item = new TableSpec
+        var spec = new TableSpec
         {
-            Name = "Item",
-            Comment = "A catalogue in the Reward set.",
-            Meta = "extends=Reward",
+            Name = "Skill",
+            Comment = "Skills whose effect is one of several shapes.",
         };
-        item
+
+        spec
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("name", "string", "shown to the player"))
-            .Field(FieldSpec.Of("icon", "string", "art beside the name"))
-            .Field(FieldSpec.Of("Stack", "int", "how many fit in one slot"));
-        item
-            .Row("1", "Short Sword", "sword", "1")
-            .Row("2", "Small Potion", "potion", "99");
+            .Field(FieldSpec.Of("Name", "string", "plain column, outside the group"))
 
-        int next = catalogues.Table(1, 1, item);
+            // The group's discriminator. Its type cell names the abstract type; every other
+            // column of the group leaves its type cell empty, as the declared notation does.
+            .Field(FieldSpec.Of("Effect.$type", "Effect", "which shape this row's effect is"))
 
-        var mount = new TableSpec
-        {
-            Name = "Mount",
-            Comment = "Another catalogue in the same set, keyed well clear of the first.",
-            Meta = "extends=Reward",
-        };
-        mount
-            .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("name", "string", "shown to the player"))
-            .Field(FieldSpec.Of("icon", "string", "art beside the name"))
-            .Field(FieldSpec.Of("Speed", "int", "how fast it goes"));
-        mount
-            .Row("101", "Brown Horse", "horse", "12")
-            .Row("102", "Grey Wolf", "wolf", "15");
+            // The abstract type's own field - one column, every row fills it.
+            .Field(FieldSpec.Of("Effect.Chance", "", ""))
 
-        catalogues.Table(1, next + 1, mount);
+            // DamageEffect's members.
+            .Field(FieldSpec.Of("Effect.Damage", "", ""))
+            .Field(FieldSpec.Of("Effect.Pierces", "", ""))
 
-        // A catalogue that is not in the set, so the fixture also says what the set excludes.
-        var currency = new TableSpec
-        {
-            Name = "Currency",
-            Comment = "Not in the set: no `extends`, and no surface to keep.",
-        };
-        currency
-            .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Symbol", "string", "anything"));
-        currency
-            .Row("1", "G")
-            .Row("2", "S");
+            // HealEffect's member.
+            .Field(FieldSpec.Of("Effect.Amount", "", ""));
 
-        var others = new SheetBuilder(workbook.CreateSheet("Other"));
-        others.Table(1, 1, currency);
+        spec
+            .Row("1", "Slash",  "DamageEffect", "30",  "50", "TRUE",  "")
+            .Row("2", "Mend",   "HealEffect",   "100", "",   "",      "20")
+            .Row("3", "Feint",  "NoEffect",     "10",  "",   "",      "")
+            .Row("4", "Cleave", "DamageEffect", "45",  "70", "FALSE", "")
+            // A run of equal values, which is what the column encodings read.
+            .Row("5", "Mend2",  "HealEffect",   "100", "",   "",      "20");
 
-        // --- the column that names the set --------------------------------
-
-        var shops = new SheetBuilder(workbook.CreateSheet("Shop"));
-
-        var shop = new TableSpec
-        {
-            Name = "Shop",
-            Comment = "What is for sale. The reward may be a row of any catalogue in the set.",
-        };
-        shop
-            .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("RewardId", "foreign", "any row in the Reward set", detailType: "Reward"))
-            .Field(FieldSpec.Of("Price", "int", "what it costs"));
-        shop
-            .Row("1", "1", "100")
-            .Row("2", "102", "5000")
-            .Row("3", "2", "50");
-
-        shops.Table(1, 1, shop);
+        b.Table(1, 1, spec);
 
         Save(workbook, path);
     }
+
 
     private static void WriteKeyTypes(string path)
     {
@@ -3519,162 +3484,6 @@ internal static class Program
     }
 
     // ------------------------------------------------------------- helpers
-
-    // -------------------------------------------------------- multi-target
-
-    /// <summary>
-    /// A column whose value is a row of one of several tables.
-    /// </summary>
-    /// <remarks>
-    /// Written `Weapon|Armour` - the notation the core layout grew so that this shape could
-    /// be declared without a project's own constraint row. Before it, the only way in was
-    /// one project layout, which would have made this feature's gate that project's
-    /// workbook. spec/multi-target-accessors.md section 4.
-    ///
-    /// What the fixture has to hold, beyond one such column:
-    ///
-    ///   a wide one       five targets, because a two-target column exercises none of the
-    ///                    per-target layout - a pair could be special-cased and pass.
-    ///   both ends        a row resolving to the first target and a row resolving to the
-    ///                    last, so an off-by-one in the discriminator shows.
-    ///   a single target  the same notation with one name, which must generate exactly what
-    ///                    a plain `foreign` generates and move no golden byte.
-    ///   an absent one    `foreign?` with `-`, which is the `None` discriminator.
-    ///
-    /// The catalogues take separate id bands. That is not decoration: two targets holding one
-    /// id is already an error, because the accessors would answer together and which row the
-    /// column meant would not be in the data.
-    /// </remarks>
-    private static void WriteMultiTarget(string path)
-    {
-        var workbook = new XSSFWorkbook();
-
-        // The catalogues on their own sheet, so they can be three columns wide while the
-        // table pointing at them is five. Tables sharing a sheet are kept one width, since a
-        // narrower one reads rightward until a cell is blank.
-        var c = new SheetBuilder(workbook.CreateSheet("Catalogues"));
-
-        int row = 1;
-        foreach (var (name, band, comment) in new[]
-                 {
-                     ("Weapon", 10, "first target of every column below"),
-                     ("Armour", 20, "second target"),
-                     ("Trinket", 30, "only the wide column names this"),
-                     ("Mount", 40, "only the wide column names this"),
-                     ("Banner", 50, "the wide column's last target"),
-                 })
-        {
-            var catalogue = new TableSpec { Name = name, Comment = comment };
-            catalogue
-                .Field(FieldSpec.Of("index", "int", "primary index, in this table's own band"))
-                .Field(FieldSpec.Of("Name", "string", "so the resolved row has something to read"))
-                .Field(FieldSpec.Of("Note", "string", "a third column, so every table is one width"));
-            catalogue
-                .Row((band + 0).ToString(), name.ToLowerInvariant() + "-a", "a")
-                .Row((band + 1).ToString(), name.ToLowerInvariant() + "-b", "b");
-
-            c.Table(row, 1, catalogue);
-            row += 8;
-        }
-
-        var h = new SheetBuilder(workbook.CreateSheet("Holders"));
-
-        var holder = new TableSpec
-        {
-            Name = "Holder",
-            Comment = "One column per case the spec states.",
-        };
-        holder
-            .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Pick", "foreign", "two targets - the ordinary case",
-                                detailType: "Weapon|Armour"))
-            .Field(FieldSpec.Of("Wide", "foreign", "five targets, and the value picks one",
-                                detailType: "Weapon|Armour|Trinket|Mount|Banner"))
-            .Field(FieldSpec.Of("Only", "foreign", "the same notation with one name",
-                                detailType: "Weapon"))
-            .Field(FieldSpec.Of("Maybe", "foreign?", "two targets, and `-` is none of them",
-                                detailType: "Weapon|Armour"));
-        holder
-            // Resolves to the first target in one column and the third in the other.
-            .Row("1", "10", "30", "10", "20")
-            // The second target, and the wide column's last one - so a discriminator that
-            // stopped one short of the end is visible here rather than nowhere.
-            .Row("2", "21", "51", "11", "-")
-            // The wide column at its own first target, which is the one a loop that never
-            // advanced would also answer. It differs from row 1's third target for that
-            // reason.
-            .Row("3", "11", "10", "10", "21");
-
-        h.Table(1, 1, holder);
-
-        // ---- the record shapes -------------------------------------------------------
-        //
-        // A member of a record group reaching several tables. Three tables because the
-        // element number sits in three different places - on the group, nowhere, and on the
-        // member - and a linking pass written around one of them compiles for that one.
-        // spec/references-in-records.md.
-
-        var g = new SheetBuilder(workbook.CreateSheet("Groups"));
-
-        var loadout = new TableSpec
-        {
-            Name = "Loadout",
-            Comment = "A record array whose member reaches several tables.",
-        };
-        loadout
-            .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Slot1.Pick", "foreign", "element 1 - two targets",
-                                detailType: "Weapon|Armour"))
-            .Field(FieldSpec.Of("Slot1.Count", "int", "element 1 - an ordinary member"))
-            .Field(FieldSpec.Of("Slot2.Pick", "foreign", "element 2", detailType: "Weapon|Armour"))
-            .Field(FieldSpec.Of("Slot2.Count", "int", "element 2"));
-        loadout
-            // The two elements at different targets, so an element index taken from the wrong
-            // place shows as the wrong catalogue rather than as a missing row.
-            .Row("1", "10", "1", "20", "2")
-            .Row("2", "21", "3", "11", "4");
-
-        g.Table(1, 1, loadout);
-
-        var single = new TableSpec
-        {
-            Name = "Fitting",
-            Comment = "One record - no element number at all - whose member reaches several.",
-        };
-        single
-            .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Main.Pick", "foreign", "the member, in a record of one",
-                                detailType: "Weapon|Armour"))
-            .Field(FieldSpec.Of("Main.Count", "int", "an ordinary member beside it"))
-            .Field(FieldSpec.Of("Pad", "int", "padding, so every table is one width"))
-            .Field(FieldSpec.Of("Pad2", "int", "padding, so every table is one width"));
-        single
-            .Row("1", "20", "5", "0", "0")
-            .Row("2", "11", "6", "0", "0");
-
-        g.Table(9, 1, single);
-
-        var bag = new TableSpec
-        {
-            Name = "Rack",
-            Comment = "One record whose members are arrays, one of them reaching several.",
-        };
-        bag
-            .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Slots.Pick1", "foreign", "element 1 of the member",
-                                detailType: "Weapon|Armour"))
-            .Field(FieldSpec.Of("Slots.Pick2", "foreign", "element 2 of the member",
-                                detailType: "Weapon|Armour"))
-            .Field(FieldSpec.Of("Slots.Count1", "int", "element 1 beside it"))
-            .Field(FieldSpec.Of("Slots.Count2", "int", "element 2 beside it"));
-        bag
-            .Row("1", "10", "21", "10", "20")
-            .Row("2", "20", "11", "30", "40");
-
-        g.Table(17, 1, bag);
-
-        Save(workbook, path);
-    }
 
     /// <summary>
     /// A folded array of references whose length is each row's.

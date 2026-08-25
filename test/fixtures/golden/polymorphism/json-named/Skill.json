@@ -1,0 +1,57 @@
+[
+  {
+    "index": 1,
+    "name": "Slash",
+    "effect": {
+      "type": 1,
+      "chance": 30,
+      "damage": 50,
+      "pierces": true,
+      "amount": 0
+    }
+  },
+  {
+    "index": 4,
+    "name": "Cleave",
+    "effect": {
+      "type": 1,
+      "chance": 45,
+      "damage": 70,
+      "pierces": false,
+      "amount": 0
+    }
+  },
+  {
+    "index": 2,
+    "name": "Mend",
+    "effect": {
+      "type": 2,
+      "chance": 100,
+      "damage": 0,
+      "pierces": false,
+      "amount": 20
+    }
+  },
+  {
+    "index": 5,
+    "name": "Mend2",
+    "effect": {
+      "type": 2,
+      "chance": 100,
+      "damage": 0,
+      "pierces": false,
+      "amount": 20
+    }
+  },
+  {
+    "index": 3,
+    "name": "Feint",
+    "effect": {
+      "type": 3,
+      "chance": 10,
+      "damage": 0,
+      "pierces": false,
+      "amount": 0
+    }
+  }
+]

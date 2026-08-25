@@ -111,6 +111,18 @@ public partial class ModelCooker
         // this turns them into values of that type.
         ConvertReferenceCells(context, result, diagnostics);
 
+        // A `$type` cell waits for the same reason a reference cell does - which variants
+        // exist is not a fact any one sheet carries - so it is settled here, beside it. Then
+        // the union's own refusal, which needs each row's variant to be a number already.
+        // spec/polymorphism.md sections 5.2 and 8.
+        ConvertDiscriminatorCells(result, diagnostics);
+        RefuseValuesOutsideTheRowsVariant(result, diagnostics);
+
+        // And the rows are put in discriminator order, so that how the sheet was written stops
+        // deciding how the file encodes. Only tables that have such a group move at all.
+        // spec/polymorphism.md section 6.3.
+        SortRowsByDiscriminator(result);
+
         // Runs after resolution: validation follows references to check that what
         // they point at exists.
         //

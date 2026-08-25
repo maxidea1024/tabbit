@@ -189,17 +189,17 @@ public partial class ModelCooker
             return;
         }
 
-        ApplyMemberType(context, table, field, first.Member!, declared, declarations, diagnostics);
-
-        field.VariantsDeclaringThis = declaring
-            .Select(found => found.Variant.Name.ToPascalCase())
-            .ToList();
-
         // A row of another variant leaves this blank, so the column carries a presence bit.
         // The generated variant type still declares the member as the declaration wrote it -
         // whether it is there is answered by the variant, not by a `Has` accessor.
         // spec/polymorphism.md section 7.
-        field.IsRequired = false;
+        ApplyMemberType(
+            context, table, field, first.Member!, declared, declarations, diagnostics,
+            columnIsOptional: true);
+
+        field.VariantsDeclaringThis = declaring
+            .Select(found => found.Variant.Name.ToPascalCase())
+            .ToList();
     }
 
     /// <summary>
@@ -217,13 +217,14 @@ public partial class ModelCooker
         SchemaField member,
         SchemaStruct declared,
         SchemaDeclarations declarations,
-        Diagnostics diagnostics)
+        Diagnostics diagnostics,
+        bool columnIsOptional = false)
     {
         bool waiting = context.IsDeferredTypeName(field.TypeName);
 
         if (!SchemaFieldTypes.Apply(
                 context, table, field, member, declarations, waiting, diagnostics,
-                out string wanted))
+                out string wanted, columnIsOptional))
         {
             diagnostics.Error(waiting ? member.Type.Location : field.TypeLocation, Message.Of(
                 waiting ? SchemaMessages.MemberTypeUnusable : SchemaMessages.ColumnTypeDisagrees,
@@ -241,5 +242,222 @@ public partial class ModelCooker
 
         if (string.IsNullOrEmpty(field.Comment))
             field.Comment = member.Comment;
+    }
+
+    /// <summary>
+    /// Turns each `$type` cell from the variant's name into the number the file carries.
+    /// </summary>
+    /// <remarks>
+    /// **Here rather than while the sheet was open, for the reason a reference cell waits.**
+    /// Which variants exist is not a fact any one sheet carries - the declarations hold it, and
+    /// a variant may be declared in a file this sheet never mentions. So the layout keeps the
+    /// cell as written and this settles it once the binding has put the list on the column.
+    /// spec/polymorphism.md section 5.2.
+    /// </remarks>
+    private static void ConvertDiscriminatorCells(Model model, Diagnostics diagnostics)
+    {
+        foreach (var table in model.Tables)
+        {
+            foreach (var field in table.Fields.Where(field => field.IsDiscriminator))
+            {
+                if (field.Variants.Count == 0)
+                    continue;
+
+                var byName = field.Variants.ToDictionary(
+                    variant => variant.Name, variant => variant.Discriminator,
+                    System.StringComparer.OrdinalIgnoreCase);
+
+                string names = string.Join("`, `", field.Variants.Select(variant => variant.Name));
+
+                // Every set of rows the table has, for the reason the reference conversion
+                // walks them all: a cell left as text matches no variant afterwards.
+                foreach (var rowSet in table.RowSets)
+                foreach (var row in rowSet.Rows)
+                {
+                    if (field.Index >= row.Count)
+                        continue;
+
+                    var cell = row[field.Index];
+
+                    if (cell.Value is not string written || written.Length == 0)
+                    {
+                        // A blank one is a row that did not say what it is. Nothing else in
+                        // the group can be read then - which member columns apply is exactly
+                        // what this cell answers. spec/polymorphism.md section 8.
+                        if (!cell.HasValue || cell.Value is string)
+                        {
+                            diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
+                                Message.Of(SchemaMessages.DiscriminatorCellBlank,
+                                    ("Table", table.Name), ("Column", field.RawName),
+                                    ("Struct", field.AbstractTypeName ?? ""), ("Variants", names)));
+                        }
+
+                        continue;
+                    }
+
+                    if (!byName.TryGetValue(written.Trim(), out int discriminator))
+                    {
+                        diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
+                            Message.Of(SchemaMessages.DiscriminatorCellUnknown,
+                                ("Table", table.Name), ("Column", field.RawName),
+                                ("Written", written), ("Struct", field.AbstractTypeName ?? ""),
+                                ("Variants", names)));
+
+                        continue;
+                    }
+
+                    cell.Value = discriminator;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reports a value written in a column the row's own variant does not declare.
+    /// </summary>
+    /// <remarks>
+    /// **The refusal the union notation needs most.** The columns are every variant's members
+    /// side by side, so a row always has blank cells that are not its own - and a value put in
+    /// one of them looks like ordinary data. Nothing would ever read it: the generated variant
+    /// type has no such member. spec/polymorphism.md section 8.
+    /// </remarks>
+    private static void RefuseValuesOutsideTheRowsVariant(Model model, Diagnostics diagnostics)
+    {
+        foreach (var table in model.Tables)
+        {
+            var discriminators = table.Fields
+                .Where(field => field.IsDiscriminator && field.Variants.Count > 0)
+                .ToList();
+
+            if (discriminators.Count == 0)
+                continue;
+
+            foreach (var discriminator in discriminators)
+            {
+                string group = discriminator.GroupName ?? "";
+
+                // The member columns of this group, and which variants each belongs to. A base
+                // field carries an empty list and is never reported - every row has it.
+                var members = table.Fields
+                    .Where(field => !field.IsDiscriminator
+                                    && field.GroupName == group
+                                    && field.VariantsDeclaringThis.Count > 0)
+                    .ToList();
+
+                if (members.Count == 0)
+                    continue;
+
+                var nameOf = discriminator.Variants.ToDictionary(
+                    variant => variant.Discriminator, variant => variant.Name);
+
+                foreach (var rowSet in table.RowSets)
+                foreach (var row in rowSet.Rows)
+                {
+                    if (discriminator.Index >= row.Count
+                        || row[discriminator.Index].Value is not int written
+                        || !nameOf.TryGetValue(written, out string? variant))
+                    {
+                        continue;
+                    }
+
+                    foreach (var member in members)
+                    {
+                        if (member.Index >= row.Count)
+                            continue;
+
+                        var cell = row[member.Index];
+
+                        if (!cell.HasValue)
+                            continue;
+
+                        if (member.VariantsDeclaringThis.Contains(
+                                variant, System.StringComparer.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        diagnostics.Error(cell.RawCell?.Location ?? member.NameLocation,
+                            Message.Of(SchemaMessages.ValueOutsideTheRowsVariant,
+                                ("Table", table.Name),
+                                ("Column", FieldPath.Describe(member.NamePath!)),
+                                ("Variant", variant),
+                                ("Declared", string.Join(
+                                    "`, `", member.VariantsDeclaringThis))));
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Puts the rows of a table that has a polymorphic group in discriminator order.
+    /// </summary>
+    /// <remarks>
+    /// **So that a sheet's own order stops deciding the file's size.** A variant member column
+    /// carries the type's empty value on every row of another variant, and the run-length
+    /// encodings pay for those runs being broken up - measured at 1.9x on the same data
+    /// shuffled. Sorting gathers the runs and the sheet can be written in any order.
+    ///
+    /// **In the cooking rather than in an exporter**, because the JSON export and the binary
+    /// one have to agree row for row: the conformance gate reads one and compares it against
+    /// the other. One model, one order.
+    ///
+    /// Stable, so nothing moves inside a variant - the author's order is kept there, which is
+    /// all a run needs. Per row set, because each set is its own file with its own rows.
+    /// spec/polymorphism.md section 6.3.
+    /// </remarks>
+    private static void SortRowsByDiscriminator(Model model)
+    {
+        foreach (var table in model.Tables)
+        {
+            var discriminators = table.Fields
+                .Where(field => field.IsDiscriminator && field.Variants.Count > 0)
+                .OrderBy(field => field.Index)
+                .ToList();
+
+            if (discriminators.Count == 0)
+                continue;
+
+            foreach (var rowSet in table.RowSets)
+            {
+                var sorted = rowSet.Rows.OrderBy(
+                    row => Key(row, discriminators), DiscriminatorKeys.Instance);
+
+                var ordered = sorted.ToList();
+
+                rowSet.Rows.Clear();
+                rowSet.Rows.AddRange(ordered);
+            }
+        }
+    }
+
+    /// <summary>The discriminator values of one row, in column order.</summary>
+    private static int[] Key(List<Cell> row, List<Field> discriminators)
+        => discriminators
+            .Select(field => field.Index < row.Count && row[field.Index].Value is int written
+                ? written
+                : 0)
+            .ToArray();
+
+    /// <summary>Compares two rows' discriminator values, first one that differs.</summary>
+    private sealed class DiscriminatorKeys : IComparer<int[]>
+    {
+        public static readonly DiscriminatorKeys Instance = new DiscriminatorKeys();
+
+        public int Compare(int[]? left, int[]? right)
+        {
+            if (left is null || right is null)
+                return 0;
+
+            for (int at = 0; at < left.Length && at < right.Length; at++)
+            {
+                int answer = left[at].CompareTo(right[at]);
+
+                if (answer != 0)
+                    return answer;
+            }
+
+            return 0;
+        }
     }
 }
