@@ -150,8 +150,12 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 "lua-table.sbn", new LuaPartView
                 {
                     RootPattern = RootPatternDeep,
+                    // And the abstract types its groups are, each a module of its own.
+                    // spec/polymorphism.md section 7.1.
                     Requires = TypeDependencies.EnumsNamedBy(pair.model)
-                                                   .Select(EnumRequire).ToList(),
+                                                   .Select(EnumRequire)
+                                                   .Concat(PolymorphicRequires(pair.model))
+                                                   .ToList(),
                     AccessorModule = _recipe.AccessorName,
                     Table = pair.rendered,
                 });
@@ -168,6 +172,21 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 });
         }
 
+        // A struct is an entity beside a table and an enum, so it gets a module of its own -
+        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            var structure = BuildStruct(declared);
+
+            Write(System.IO.Path.Combine("structs", structure.ModuleName + ".lua"),
+                "lua-struct.sbn", new LuaPartView
+                {
+                    RootPattern = RootPatternDeep,
+                    Requires = Array.Empty<string>(),
+                    Structure = structure,
+                });
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             Write(System.IO.Path.Combine("constants", ConstantsModule(pair.model) + ".lua"),
@@ -180,6 +199,70 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 });
         }
     }
+
+    /// <summary>
+    /// The `require` lines a table needs for the abstract types its groups are.
+    /// </summary>
+    private IEnumerable<string> PolymorphicRequires(Table table)
+        => table.Fields
+            .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
+            .Select(field => field.AbstractTypeName!.ToPascalCase())
+            .Distinct()
+            .Select(name => $"local {name} = require(_root .. \"structs.struct_"
+                            + $"{name.ToSnakeCase()}\")");
+
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// **A `kind` field and one constructor per variant**, each with its own strict metatable.
+    /// There is no inheritance here, so narrowing is `value.kind == 'DamageEffect'` - the same
+    /// shape TypeScript's union takes, and for the same reason: it is what the language has.
+    ///
+    /// The metatables are the point. A misspelled member in a dynamic language is a nil that
+    /// compares false with everything, and this target refuses that everywhere else.
+    /// spec/polymorphism.md section 7 and spec/lua-language-support.md.
+    /// </remarks>
+    private LuaPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+    {
+        var baseMembers = declared.BaseMembers.Select(StructMember).ToList();
+
+        return new LuaPolymorphicTypeView
+        {
+            Name = declared.Name,
+            ModuleName = "struct_" + declared.Name.ToSnakeCase(),
+            BaseMembers = baseMembers,
+            Variants = declared.Variants
+                .Select(variant =>
+                {
+                    var own = variant.Members.Select(StructMember).ToList();
+
+                    return new LuaVariantView
+                    {
+                        TypeName = variant.Name,
+                        Discriminator = variant.Discriminator,
+                        Members = own,
+                        FieldNames = string.Join(
+                            ", ",
+                            new[] { "\"kind\"" }
+                                .Concat(baseMembers.Concat(own)
+                                    .Select(member => $"\"{member.Name}\""))),
+                    };
+                })
+                .ToList(),
+        };
+    }
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private LuaStructMemberView StructMember(Models.Field field)
+        => new LuaStructMemberView
+        {
+            Name = LuaName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = "",
+            Comment = CommentLines(field.Comment),
+        };
 
     private void Write(string filename, string templateName, LuaPartView view)
     {
@@ -484,6 +567,15 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
     private LuaFieldView BuildRecordField(Table table, SerialField sf)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string entry = RecordTypeName(table, sf);
 
         // Innermost first, and required rather than tidy: a constructor names the level
@@ -527,6 +619,18 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         return new LuaFieldView
         {
+            AbstractTypeName = declaredType?.Name ?? "",
+            DiscriminatorName = declaredType is null
+                ? ""
+                : LuaName(sf.Members
+                    .First(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                    .Name),
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            // The declared type answers this once, so the table's view and the struct's own
+            // module agree on the field list a strict metatable holds to.
+            Variants = declaredType is null ? [] : BuildStruct(declaredType).Variants,
+            Name = LuaName(sf.Name),
+
             // A record has no header cell of its own, so the first member's column comment
             // is the nearest thing the sheet said about the group.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),

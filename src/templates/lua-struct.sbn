@@ -1,0 +1,45 @@
+{{~##
+   One abstract type and its variants. `structure` is the single declaration this module is for.
+
+   **A `kind` field and one constructor per variant**, each with its own strict metatable. There
+   is no inheritance here, so narrowing is `value.kind == 'DamageEffect'` - the same shape
+   TypeScript's union takes, and for the same reason: it is what the language has.
+
+   The metatables are the point. A misspelled member in a dynamic language is a nil that compares
+   false with everything, and this target refuses that everywhere else.
+   spec/polymorphism.md section 7 and spec/lua-language-support.md.
+##~}}
+{{ include 'lua-file-head.sbn' }}
+local {{ structure.name }} = {}
+{{~ for variant in structure.variants }}
+
+---@class {{ variant.type_name }}
+---@field kind string
+{{~ for member in structure.base_members ~}}
+---@field {{ member.name }} any
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+---@field {{ member.name }} any
+{{~ end ~}}
+local {{ variant.type_name }}Meta = tcb.strictType(
+  "a `{{ variant.type_name }}`", { {{ variant.field_names }} })
+
+--- One shape of `{{ structure.name }}`.
+---
+--- The file carries {{ variant.discriminator }} for it. That number rather than the name is what
+--- lets this variant be renamed without a deployed reader reading a different one.
+---@return {{ variant.type_name }}
+function {{ structure.name }}.new{{ variant.type_name }}()
+  return setmetatable({
+    kind = "{{ variant.type_name }}",
+{{~ for member in structure.base_members ~}}
+    {{ member.name }} = nil,
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+    {{ member.name }} = nil,
+{{~ end ~}}
+  }, {{ variant.type_name }}Meta)
+end
+{{~ end }}
+
+return {{ structure.name }}

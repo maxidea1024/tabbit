@@ -313,4 +313,41 @@ function {{ table.table_name }}:read(filename)
   self:readBytes(tcb.readAllBytes(filename))
 end
 
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+{{~## **The value, built once on first use.** The entry is what the read filled - one assignment
+   per column - and which variant it is only became knowable when the discriminator column
+   arrived. Building it here keeps the read path and the wire exactly as they were.
+
+   A function on the table rather than a field on the row, because the row's strict metatable
+   declares its fields and a lazily added one would be an error to write.
+   spec/polymorphism.md section 7.2. ##~}}
+--- What one row's {{ field.abstract_type_name }} is. Narrow it on `.kind`.
+---@param row {{ table.record_name }}
+function {{ table.table_name }}.{{ field.name }}Of(row)
+  local entry = row.{{ field.name }}
+  local built
+
+{{~ for variant in field.variants ~}}
+  {{ if for.first }}if{{ else }}elseif{{ end }} entry.{{ field.discriminator_name }} == {{ variant.discriminator }} then
+    built = {{ field.abstract_type_name }}.new{{ variant.type_name }}()
+{{~ for member in field.base_members ~}}
+    built.{{ member.name }} = entry.{{ member.name }}
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+    built.{{ member.name }} = entry.{{ member.name }}
+{{~ end ~}}
+{{~ end ~}}
+  else
+{{~## An unknown number is a variant this build does not have. Unlike a column added later,
+   which the reader skips, that makes the whole row uninterpretable. ##~}}
+    error("{{ field.abstract_type_name }}: no variant is numbered "
+          .. tostring(entry.{{ field.discriminator_name }}))
+  end
+
+  return built
+end
+
+{{~ end ~}}
+{{~ end ~}}
 return {{ table.table_name }}

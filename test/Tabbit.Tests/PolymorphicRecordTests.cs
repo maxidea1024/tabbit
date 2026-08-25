@@ -437,6 +437,67 @@ assert rows['Slash'].effect_of() is rows['Slash'].effect_of()
             + $"{System.Environment.NewLine}{result.Output}");
     }
 
+    /// <summary>
+    /// The generated Lua reads each row back as the variant it is, and refuses a typo.
+    /// </summary>
+    /// <remarks>
+    /// **The language with the least to check and the most to lose.** There is no compile step
+    /// and a misspelled member is a nil that compares false with everything, so the variants get
+    /// strict metatables like every other generated table here - and the last two assertions are
+    /// what say those are on. spec/polymorphism.md section 7 and spec/lua-language-support.md.
+    /// </remarks>
+    [Fact]
+    public void The_generated_lua_reads_each_rows_variant()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        // A hard failure rather than a skip, as with the other toolchain gates: a gate that
+        // quietly turns itself off is worse than no gate.
+        Assert.True(ConformanceHarness.LuaIsAvailable(out string why),
+            $"A C toolchain is required to build the Lua host. {why}");
+
+        string binaryDir = System.IO.Path.Combine(RepoLayout.OutputDir(Scenario), "binary");
+
+        var result = ConformanceHarness.RunLuaSnippet(Scenario, @"
+local t = require('tables').new()
+t:readAll(arg[1])
+
+local rows = {}
+for _, r in ipairs(t.skill.records) do rows[r.name] = r end
+
+local skill = require('tables.skill_table')
+
+-- The variant, named by its own `kind` - which is what the discriminator picked.
+assert(skill.effectOf(rows['Slash']).kind == 'DamageEffect')
+assert(skill.effectOf(rows['Mend']).kind == 'HealEffect')
+assert(skill.effectOf(rows['Feint']).kind == 'NoEffect')
+
+-- The base field, on every variant.
+assert(skill.effectOf(rows['Slash']).chance == 30)
+assert(skill.effectOf(rows['Feint']).chance == 10)
+
+-- A member only one variant has.
+assert(skill.effectOf(rows['Slash']).damage == 50)
+assert(skill.effectOf(rows['Slash']).pierces == true)
+assert(skill.effectOf(rows['Mend']).amount == 20)
+
+-- And the strict metatable: a member of another variant is an error to read, not a nil.
+local ok, err = pcall(function() return skill.effectOf(rows['Mend']).damage end)
+assert(not ok and tostring(err):find('no field'), tostring(err))
+
+-- A misspelling too, which is the same guard the rows themselves get.
+ok, err = pcall(function() return skill.effectOf(rows['Slash']).chnace end)
+assert(not ok and tostring(err):find('no field'), tostring(err))
+", binaryDir);
+
+        Assert.True(result.Succeeded,
+            $"Reading `{Scenario}` back through the generated Lua failed."
+            + $"{System.Environment.NewLine}{result.Output}");
+    }
+
     /// <summary>Whether a toolchain is on this machine, and why not when it is missing.</summary>
     private delegate bool Availability(out string reason);
 

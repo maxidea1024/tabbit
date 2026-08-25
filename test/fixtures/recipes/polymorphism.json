@@ -76,6 +76,10 @@
       "Path": "test/fixtures/output/polymorphism/ruby"
     },
     {
+      "Type": "lua",
+      "Path": "test/fixtures/output/polymorphism/lua"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

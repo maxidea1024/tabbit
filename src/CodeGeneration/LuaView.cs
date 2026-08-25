@@ -41,6 +41,9 @@ internal sealed class LuaPartView
     public LuaTableView? Table { get; set; }
     public LuaEnumView? Enumm { get; set; }
     public LuaConstantSetView? Set { get; set; }
+
+    /// <summary>The abstract type this module declares, when it declares one.</summary>
+    public LuaPolymorphicTypeView? Structure { get; set; }
     public LuaAccessorView? Accessor { get; set; }
 }
 
@@ -146,6 +149,42 @@ internal sealed class LuaIndexView
 
 internal sealed class LuaFieldView
 {
+    /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// The type itself is declared once, elsewhere; this is what the table needs to build a
+    /// value of it - which number means which variant, and which of the entry's fields each
+    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// </remarks>
+    public IReadOnlyList<LuaVariantView> Variants { get; set; } = new List<LuaVariantView>();
+
+    /// <summary>The abstract type the variants make up, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>
+    /// What the discriminator member is called on the flat entry.
+    /// </summary>
+    /// <remarks>
+    /// Asked rather than assumed: `type` is a keyword in several of these languages, so the
+    /// name-escaping rule has already renamed it and a template spelling it by hand would be
+    /// spelling a field that is not there.
+    /// </remarks>
+    public string DiscriminatorName { get; set; } = "";
+
+    /// <summary>
+    /// The group's own name, for the accessor built beside it.
+    /// </summary>
+    /// <remarks>
+    /// This view had no name of its own: everything else it feeds is written from the
+    /// initializers, which already carry theirs. spec/polymorphism.md section 7.2.
+    /// </remarks>
+    public string Name { get; set; } = "";
+
+    /// <summary>The members every variant carries.</summary>
+    public IReadOnlyList<LuaStructMemberView> BaseMembers { get; set; }
+        = new List<LuaStructMemberView>();
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     /// <summary>
@@ -352,3 +391,66 @@ internal sealed class LuaRecordReferenceView
     public required string RefLookup { get; set; }
 }
 
+/// <summary>
+/// An abstract type and its variants, as this target declares them.
+/// </summary>
+/// <remarks>
+/// One per declaration however many tables named it. A struct is an entity beside a table and
+/// an enum, and emitting it inside each table that used it would give them types that share a
+/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// </remarks>
+internal sealed class LuaPolymorphicTypeView
+{
+    /// <summary>The abstract type's name.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>The module the type lives in, which this language spells in snake case.</summary>
+    public required string ModuleName { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<LuaStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<LuaVariantView> Variants { get; set; }
+}
+
+/// <summary>One variant of a <see cref="LuaPolymorphicTypeView"/>.</summary>
+internal sealed class LuaVariantView
+{
+    /// <summary>The variant's declared name - what its `kind` holds.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>
+    /// Every field one of this variant's values has, as the strict metatable's list.
+    /// </summary>
+    /// <remarks>
+    /// Both the base members and its own, and `kind`. A field left out of this list is an error
+    /// to read, which is the whole reason this target declares them at all - a misspelling in a
+    /// dynamic language is otherwise a nil that compares false with everything.
+    /// spec/lua-language-support.md.
+    /// </remarks>
+    public required string FieldNames { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<LuaStructMemberView> Members { get; set; }
+}
+
+/// <summary>One member of an abstract type or of one of its variants.</summary>
+/// <remarks>
+/// A view of its own rather than the record member's, because none of the reference machinery
+/// applies: the model refuses a reference inside a polymorphic group.
+/// </remarks>
+internal sealed class LuaStructMemberView
+{
+    /// <summary>The member's name in the generated type.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its type in this language.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
+}
