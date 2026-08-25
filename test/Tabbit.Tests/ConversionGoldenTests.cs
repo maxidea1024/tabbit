@@ -121,22 +121,6 @@ public class ConversionGoldenTests
     // generator emitted code for it that nothing ever read, and two of them wrote the sheet's
     // column count into the linking pass. spec/nullable-array-elements.md.
     [InlineData("serial-ref")]
-    // A column whose value is a row of one of several tables, written `Weapon|Armour` - the
-    // notation the core layout grew so this shape could be declared without a project's own
-    // constraint row. Every language, because what each adds is a slot, a discriminator and a
-    // narrowing accessor per target, all of them spelled per language. Both file formats too,
-    // and neither may move: the column already travelled as the target's key, so a diff in the
-    // binary or the JSON here is a defect rather than a feature.
-    // spec/multi-target-accessors.md.
-    [InlineData("multi-target")]
-    // The same shape with the list given a name: `abstract struct Reward` in a schema file,
-    // `extends=Reward` on each catalogue's declaration cell, and a column typed
-    // `foreign Reward`. What the tree pins is that the name reaches nothing below the
-    // expansion - the file and the generated surface are `multi-target`'s, because a set is a
-    // name for a list of targets and the list is all that travels. A catalogue outside the set
-    // sits beside them, so the tree also says what naming it excludes.
-    // spec/polymorphism.md sections 3 and 4.
-    [InlineData("variant-set")]
     // An array of references written as one cell, in both forms a reference takes. What the
     // tree pins is that this is `serial-ref`'s surface: the fold makes a delimited cell and a
     // group of numbered columns the same group, so the generated page holds one array of rows

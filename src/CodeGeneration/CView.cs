@@ -147,11 +147,6 @@ internal sealed class CTableView
     /// <summary>The table struct's name, already prefixed.</summary>
     public required string TableName { get; set; }
 
-    /// <summary>
-    /// The columns whose value is a row of one of several tables.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<CMultiReferenceView> MultiReferences { get; set; }
 
     /// <summary>What the table's functions are called, minus the verb.</summary>
     public required string FunctionPrefix { get; set; }
@@ -321,12 +316,7 @@ internal sealed class CFieldView
     public required bool IsString { get; set; }
 
 
-
-
     public required int ElementCount { get; set; }
-
-
-
 
 
 }
@@ -368,17 +358,7 @@ internal sealed class CCrossReferenceView
     /// </summary>
     public required IReadOnlyList<CRecordReferenceView> RecordFields { get; set; }
 
-    /// <summary>
-    /// The columns reaching several tables, which resolve by trying each in turn.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<CMultiReferenceView> MultiFields { get; set; }
 
-    /// <summary>
-    /// The columns reaching several tables that are members of a record, which resolve per
-    /// element. spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<CMultiRecordReferenceView> MultiRecordFields { get; set; }
 }
 
 /// <summary>
@@ -448,44 +428,8 @@ internal sealed class CRecordMemberView
     /// <summary>The whole declaration line, type and name included.</summary>
     public required string Declaration { get; set; }
 
-    /// <summary>
-    /// The slot and the discriminator of a member reaching several tables, so the functions can
-    /// be written beside the struct. Null for every other member.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public CMultiMemberView? Multi { get; set; }
 }
 
-/// <summary>
-/// One record member whose value is a row of one of several tables.
-/// </summary>
-/// <remarks>
-/// The member keeps the key it already carried; beside it go one slot for the resolved row and
-/// the discriminator saying which table filled it, at the member's own arity. `const void*` for
-/// the slot, as the row-level shape has it - this language has no common type for the target
-/// records, and casting from `void*` asks nothing of the one it lands on. Neither needs
-/// initializing: the arena hands back zeroed memory, so the slot starts NULL and the
-/// discriminator at its `None` label, which is zero by construction.
-/// spec/multi-target-accessors.md.
-/// </remarks>
-internal sealed class CMultiMemberView
-{
-    /// <summary>The key, the slot and the discriminator, by member name.</summary>
-    public required string KeyMember { get; set; }
-    public required string SlotMember { get; set; }
-    public required string TargetMember { get; set; }
-
-    /// <summary>The generated enumeration's type name.</summary>
-    public required string TargetTypeName { get; set; }
-
-    /// <summary>The struct tag the functions take a pointer to.</summary>
-    public required string ElementTypeName { get; set; }
-
-    /// <summary>Whether the member is the array, so a function takes an element number.</summary>
-    public required bool IsArray { get; set; }
-
-    public required IReadOnlyList<CMultiTargetView> Targets { get; set; }
-}
 
 /// <summary>
 /// One generated struct of a record group - the group's own element type, or a level below it.
@@ -512,12 +456,6 @@ internal sealed class CRecordTypeView
     /// <summary>What the struct belongs to, for its comment.</summary>
     public required string Owner { get; set; }
 
-    /// <summary>
-    /// Those of its members that reach several tables, for the functions written beside the
-    /// struct. spec/multi-target-accessors.md.
-    /// </summary>
-    public IReadOnlyList<CMultiMemberView> MultiMembers { get; set; }
-        = System.Array.Empty<CMultiMemberView>();
 }
 
 /// <summary>
@@ -654,78 +592,3 @@ internal sealed class CColumnView
     public required string EmptyAssignment { get; set; }
 }
 
-/// <summary>
-/// One column whose value is a row of one of several tables.
-/// </summary>
-/// <remarks>
-/// One member for the resolved row whatever table it came from, and the discriminator saying
-/// which. `const void*` for the slot, because C has no common type for the targets - the
-/// function below casts it, having asked the discriminator first. Casting from `void*` asks
-/// nothing of the target type, so the forward header is enough.
-/// spec/multi-target-accessors.md.
-/// </remarks>
-internal sealed class CMultiReferenceView
-{
-    /// <summary>The member holding the key.</summary>
-    public required string KeyMember { get; set; }
-
-    /// <summary>The member the resolved row lands in, and the discriminator beside it.</summary>
-    public required string SlotMember { get; set; }
-    public required string TargetMember { get; set; }
-
-    /// <summary>The generated enumeration's type name.</summary>
-    public required string TargetTypeName { get; set; }
-
-    /// <summary>The constant standing for "no row of any of them".</summary>
-    public required string NoneLabel { get; set; }
-
-    /// <summary>What follows the key to ask whether it points anywhere.</summary>
-    public required string KeyIsSet { get; set; }
-
-    public required IReadOnlyList<CMultiTargetView> Targets { get; set; }
-}
-
-/// <summary>One table a multi-target column may point at.</summary>
-internal sealed class CMultiTargetView
-{
-    /// <summary>The accessor member holding the table, for the linking pass.</summary>
-    public required string Table { get; set; }
-
-    /// <summary>The record struct a resolved row has.</summary>
-    public required string RecordName { get; set; }
-
-    /// <summary>The function this target is read through, already prefixed.</summary>
-    public required string Function { get; set; }
-
-    /// <summary>The enum constant for this target.</summary>
-    public required string Label { get; set; }
-
-    /// <summary>The target's lookup, which answers NULL rather than aborting.</summary>
-    public required string Lookup { get; set; }
-}
-
-/// <summary>
-/// One multi-target column that is a member of a record, as the linking pass writes it.
-/// </summary>
-internal sealed class CMultiRecordReferenceView
-{
-    /// <summary>The key this resolves through, loop variable included.</summary>
-    public required string Key { get; set; }
-
-    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
-    public required string Slot { get; set; }
-    public required string Target { get; set; }
-
-    /// <summary>
-    /// The loop bound, or empty where the group is one record and there is nothing to walk.
-    /// </summary>
-    public required string Count { get; set; }
-
-    /// <summary>The generated enumeration's `None` label.</summary>
-    public required string NoneLabel { get; set; }
-
-    /// <summary>The whole condition asking whether the key points anywhere.</summary>
-    public required string KeyIsSet { get; set; }
-
-    public required IReadOnlyList<CMultiTargetView> Targets { get; set; }
-}

@@ -748,28 +748,12 @@ public partial class ModelCooker
     {
         foreach (var field in table.Fields)
         {
-            // A column that resolved to several tables is checked against those, whichever
-            // notation declared it. The list used to be read off the column constraint,
-            // which only one layout fills - so the same declaration written in the core
-            // layout got no existence check and, worse, no overlap check. The accessors rest
-            // on there being at most one target holding a given id, so that check may not
-            // depend on which notation was used. spec/multi-target-accessors.md.
-            if (field.ResolvedRefTables is { Count: > 0 })
-            {
-                Interlocked.Increment(ref _checkedReferencedTables);
-                Interlocked.Add(ref _rowsAgainstReferencedTables, rowSet.Rows.Count);
-
-                CheckKeyBandsDoNotOverlap(table, field, field.ResolvedRefTables, diagnostics);
-                CheckValuesExistIn(table, rowSet, field, field.ResolvedRefTables, diagnostics);
-                continue;
-            }
-
             var named = field.Constraints.ReferencedTables;
             if (named is null || named.Count == 0)
                 continue;
 
-            // Promoted to a reference with one target, so ValidateReferences answers for it
-            // and saying the same thing twice would report every fault twice.
+            // Already a reference, so `ValidateReferences` answers for it and saying the
+            // same thing twice would report every fault twice.
             if (field.IsRef)
                 continue;
 
@@ -815,59 +799,7 @@ public partial class ModelCooker
             Interlocked.Increment(ref _checkedReferencedTables);
             Interlocked.Add(ref _rowsAgainstReferencedTables, rowSet.Rows.Count);
 
-            CheckKeyBandsDoNotOverlap(table, field, targets, diagnostics);
             CheckValuesExistIn(table, rowSet, field, targets, diagnostics);
-        }
-    }
-
-    /// <summary>
-    /// That no two of a column's targets hold the same id.
-    /// </summary>
-    /// <remarks>
-    /// A column reaching several tables gets one accessor per target, and what makes that
-    /// usable rather than merely correct is that exactly one of them ever answers. That is
-    /// true of the sheets this came from - 58 declarations over 94,748 rows, and not one id
-    /// in two tables - because the id bands are split by table. It is a property of the
-    /// data, though, not of the declaration, so it is checked rather than assumed.
-    ///
-    /// Reported once per pair rather than once per shared id: what is wrong is that two
-    /// catalogues overlap, and a row is only where it shows.
-    ///
-    /// spec/multi-target-references.md.
-    /// </remarks>
-    private static void CheckKeyBandsDoNotOverlap(
-        Table table, Field field, List<Table> targets, Diagnostics diagnostics)
-    {
-        if (targets.Count < 2)
-            return;
-
-        var keys = new List<HashSet<object>>();
-        foreach (var target in targets)
-        {
-            var set = new HashSet<object>();
-            if (target.Fields.Count > 0)
-            {
-                foreach (var row in target.Data)
-                    set.Add(ComparableKey(row[target.PrimaryIndexField!.Index].Value)!);
-            }
-
-            keys.Add(set);
-        }
-
-        for (int a = 0; a < targets.Count; a++)
-        {
-            for (int b = a + 1; b < targets.Count; b++)
-            {
-                var shared = keys[a].Where(key => keys[b].Contains(key)).Take(3).ToList();
-                if (shared.Count == 0)
-                    continue;
-
-                diagnostics.Error(field.Constraints.ReferencedTablesLocation ?? field.NameLocation,
-                    Message.Of(CookingMessages.MultiTargetIdOverlap,
-                        ("Table", table.Name), ("Field", field.Name),
-                        ("First", targets[a].Name), ("Second", targets[b].Name),
-                        ("Shared", string.Join("`, `", shared))));
-            }
         }
     }
 

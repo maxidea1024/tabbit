@@ -27,31 +27,6 @@ type {{ rt.type_name }} struct {
 {{~## The per-target methods of every member of this struct that reaches several tables. One
    taking an element number where the member is the array, which is the third place an element
    number sits. spec/multi-target-accessors.md. ##~}}
-{{~ for multi in rt.multi_members ~}}
-{{~ for target in multi.targets }}
-{{~ if multi.is_array ~}}
-// {{ target.method }} returns the {{ target.record_name }} row that element at of {{ multi.key_member }}
-// names, or nil when that element names a row of one of the others.
-func (e *{{ rt.type_name }}) {{ target.method }}(at int) *{{ target.record_name }} {
-	if e.{{ multi.target_member }}[at] != {{ target.constant }} {
-		return nil
-	}
-
-	return e.{{ multi.slot_member }}[at].(*{{ target.record_name }})
-}
-{{~ else ~}}
-// {{ target.method }} returns the {{ target.record_name }} row {{ multi.key_member }} names, or nil when
-// it names a row of one of the others.
-func (e *{{ rt.type_name }}) {{ target.method }}() *{{ target.record_name }} {
-	if e.{{ multi.target_member }} != {{ target.constant }} {
-		return nil
-	}
-
-	return e.{{ multi.slot_member }}.(*{{ target.record_name }})
-}
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
 
 {{~ end ~}}
 {{~ end ~}}
@@ -83,27 +58,7 @@ type {{ table.record_name }} struct {
    whatever table it came from, and the discriminator saying which - the targets take separate
    id bands, so at most one of them ever answers and a member per target would be permanently
    nil. spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_references ~}}
-	// The row {{ ref.key_member }} names, as whichever of its target tables holds it. Read it
-	// through the methods below rather than directly: they check the discriminator first.
-	{{ ref.slot_member }} any
-	// Which table {{ ref.key_member }} is a row of.
-	{{ ref.target_member }} {{ ref.target_type_name }}
-{{~ end ~}}
 }
-{{~ for ref in table.multi_references }}
-{{~ for target in ref.targets }}
-// {{ target.method }} returns the {{ target.table }} row {{ ref.key_member }} names, or nil when it
-// names a row of one of the others.
-func (r *{{ table.record_name }}) {{ target.method }}() *{{ target.record_name }} {
-	if r.{{ ref.target_member }} != {{ target.constant }} {
-		return nil
-	}
-
-	return r.{{ ref.slot_member }}.(*{{ target.record_name }})
-}
-{{~ end ~}}
-{{~ end ~}}
 
 // {{ table.table_name }} holds every row of {{ table.raw_name }}.
 type {{ table.table_name }} struct {
@@ -225,13 +180,6 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are made. spec/references-in-records.md. ##~}}
 		records[i].{{ field.name }}.{{ member.name }}Index = make({{ member.ref_key_slice_type }}, 0)
-{{~ end ~}}
-{{~ if member.multi ~}}
-{{~## A member reaching several tables holds one slot and one discriminator per element beside
-   the keys, and the linking pass writes into both - so both are made here as well.
-   spec/multi-target-accessors.md. ##~}}
-		records[i].{{ field.name }}.{{ member.multi.slot_member }} = make([]any, 0)
-		records[i].{{ field.name }}.{{ member.multi.target_member }} = make([]{{ member.multi.target_type_name }}, 0)
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

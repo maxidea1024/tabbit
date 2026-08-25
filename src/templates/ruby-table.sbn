@@ -29,27 +29,6 @@
 {{~## The per-target methods of every member of this class that reaches several tables. One
    taking the element number where the member is the array, which is the third place an element
    number sits. spec/multi-target-accessors.md. ##~}}
-{{~ for multi in rt.multi_members ~}}
-{{~ for target in multi.targets }}
-{{~ if multi.is_array ~}}
-    # The {{ target.table }} row element `at` of {{ multi.key_member }} names, or nil when that
-    # element names a row of one of the others.
-    def {{ target.method }}(at)
-      return nil unless @{{ multi.target_member }}[at] == {{ multi.target_type_name }}::{{ target.label }}
-
-      @{{ multi.slot_member }}[at]
-    end
-{{~ else ~}}
-    # The {{ target.table }} row {{ multi.key_member }} names, or nil when it names a row of one of
-    # the others.
-    def {{ target.method }}
-      return nil unless @{{ multi.target_member }} == {{ multi.target_type_name }}::{{ target.label }}
-
-      @{{ multi.slot_member }}
-    end
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
   end
 
 {{~ end ~}}
@@ -75,21 +54,7 @@
    row whatever table it came from, and the discriminator saying which - the targets take
    separate id bands, so at most one of them ever answers.
    spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_references ~}}
-      @{{ ref.slot_member }} = nil
-      @{{ ref.target_member }} = {{ ref.target_type_name }}::{{ ref.none_label }}
-{{~ end ~}}
     end
-{{~ for ref in table.multi_references }}
-{{~ for target in ref.targets }}
-    # The {{ target.table }} row this column names, or nil when it names a row of one of the others.
-    def {{ target.method }}
-      return nil unless @{{ ref.target_member }} == {{ ref.target_type_name }}::{{ target.label }}
-
-      @{{ ref.slot_member }}
-    end
-{{~ end ~}}
-{{~ end ~}}
 
   end
 

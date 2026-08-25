@@ -98,20 +98,6 @@
       bands, so at most one target ever answers and the rest would be permanently null.
       The cast is safe by construction - the discriminator was set by the same assignment
       that filled the slot. spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_reference_fields }}
-            /// <summary>Which table <see cref="{{ ref.key_property }}"/> is a row of.</summary>
-            public {{ ref.target_type_name }} {{ ref.target_property }} => {{ ref.target_field }};
-{{~ for target in ref.targets ~}}
-            /// <summary>
-            /// The <c>{{ target.table }}</c> row <see cref="{{ ref.key_property }}"/> names, or null
-            /// when it names a row of one of the others.
-            /// </summary>
-            public {{ target.record_type_name }} {{ target.property }}
-                => {{ ref.target_field }} == {{ ref.target_type_name }}.{{ target.label }}
-                    ? ({{ target.record_type_name }}){{ ref.slot_field }}
-                    : null;
-{{~ end ~}}
-{{~ end ~}}
             #endregion
 {{~## The element type of each record group. A struct, so an array of them needs no
       per-element allocation and `array[j].Member = x` is a legal assignment - which is
@@ -157,40 +143,11 @@
                 public {{ member.ref_key_type_name }} {{ member.prop_name }}_index;
                 public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
 {{~ end ~}}
-{{~ if member.multi_target_type_name != '' ~}}
-{{~## A member reaching several tables keeps the key above and gains these: one slot for the
-   resolved row whatever table it came from, and the discriminator saying which. At the
-   member's own arity, so a record of arrays holds one of each per element.
-   spec/multi-target-accessors.md. ##~}}
-                public {{ member.multi_slot_type }} {{ member.multi_slot_name }};
-                public {{ member.multi_target_declared_type }} {{ member.multi_target_name }};
-{{~ end ~}}
 {{~ end ~}}
 {{~## The per-target accessors of every member that reaches several tables. A property where
    the member is one value; a method taking the element number where the member is the array,
    which is the third place an element number sits. spec/multi-target-accessors.md. ##~}}
 {{~ for member in rt.members ~}}
-{{~ for target in member.multi_targets ~}}
-{{~ if member.multi_is_array ~}}
-                /// <summary>
-                /// Element <paramref name="at"/> of <c>{{ member.prop_name }}</c> as a
-                /// <c>{{ target.record_type_name }}</c>, or null when it is a row of one of the others.
-                /// </summary>
-                public {{ target.record_type_name }} {{ target.accessor }}(int at)
-                    => {{ member.multi_target_name }}[at] == {{ member.multi_target_type_name }}.{{ target.label }}
-                        ? ({{ target.record_type_name }}){{ member.multi_slot_name }}[at]
-                        : null;
-{{~ else ~}}
-                /// <summary>
-                /// <c>{{ member.prop_name }}</c> as a <c>{{ target.record_type_name }}</c>, or null
-                /// when it is a row of one of the others.
-                /// </summary>
-                public {{ target.record_type_name }} {{ target.accessor }}
-                    => {{ member.multi_target_name }} == {{ member.multi_target_type_name }}.{{ target.label }}
-                        ? ({{ target.record_type_name }}){{ member.multi_slot_name }}
-                        : null;
-{{~ end ~}}
-{{~ end ~}}
 {{~ end ~}}
 
                 public override string ToString()
@@ -226,13 +183,6 @@
       are allocated with the member for the same reason it is. ##~}}
                 result.{{ member.prop_name }}_index{{ member.ref_key_initializer }};
                 result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
-{{~ end ~}}
-{{~ if member.multi_slot_initializer != '' ~}}
-{{~## A record of arrays holds one slot and one discriminator per element, and a struct cannot
-      size them at their declaration - the same reason the key and flag arrays above are
-      sized here. spec/multi-target-accessors.md. ##~}}
-                result.{{ member.multi_slot_name }}{{ member.multi_slot_initializer }};
-                result.{{ member.multi_target_name }}{{ member.multi_target_initializer }};
 {{~ end ~}}
 {{~ end ~}}
                 return result;
@@ -283,13 +233,6 @@
                 result.{{ member.prop_name }}_index{{ member.ref_key_initializer }};
                 result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
 {{~ end ~}}
-{{~ if member.multi_slot_initializer != '' ~}}
-{{~## A record of arrays holds one slot and one discriminator per element, and a struct cannot
-      size them at their declaration - the same reason the key and flag arrays above are
-      sized here. spec/multi-target-accessors.md. ##~}}
-                result.{{ member.multi_slot_name }}{{ member.multi_slot_initializer }};
-                result.{{ member.multi_target_name }}{{ member.multi_target_initializer }};
-{{~ end ~}}
 {{~ end ~}}
                 return result;
             }
@@ -307,19 +250,6 @@
 {{~ else ~}}
             public void SetReference_{{ field.pascal_name }}_INTERNAL({{ field.reference_setter_type }} value) => {{ field.field_name }} = value;
 {{~ end ~}}
-{{~ end ~}}
-            #endregion
-{{~ end ~}}
-{{~ if table.multi_reference_fields | array.size > 0 }}
-            #region Multi-target reference wiring
-{{~## The row and which table it came from arrive together, because either without the
-      other is a state the properties above would read wrongly. ##~}}
-{{~ for ref in table.multi_reference_fields ~}}
-            public void SetReference_{{ ref.pascal_name }}_INTERNAL({{ ref.target_type_name }} target, object row)
-            {
-                {{ ref.target_field }} = target;
-                {{ ref.slot_field }} = row;
-            }
 {{~ end ~}}
             #endregion
 {{~ end ~}}
@@ -366,10 +296,6 @@
       says which. `object` because the tables have no common type and inventing one would be
       a sum type in every language; the cast back out lives in the property above, where the
       discriminator has already answered. spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_reference_fields ~}}
-            internal object {{ ref.slot_field }};
-            internal {{ ref.target_type_name }} {{ ref.target_field }};
-{{~ end ~}}
             #endregion
 
             #region ToString

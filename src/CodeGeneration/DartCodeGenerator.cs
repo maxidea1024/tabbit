@@ -304,7 +304,6 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
-        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -391,111 +390,6 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             _ => "!= 0",
         };
 
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    /// <summary>
-    /// The slot and the discriminator of a record member reaching several tables, or null when
-    /// the member reaches one table or none.
-    /// </summary>
-    private DartMultiMemberView? MultiMemberOrNull(RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return null;
-
-        string name = DartName(member.Name);
-
-        return new DartMultiMemberView
-        {
-            KeyMember = name,
-            SlotMember = name + "Row",
-            TargetMember = name + "Target",
-            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
-            NoneLabel = DartCamelName("None"),
-            IsArray = member.IsArray,
-            Targets = field.ResolvedRefTables!.Select(target => new DartMultiTargetView
-            {
-                Table = DartName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = DartName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-                Label = DartCamelName(target.Name),
-                Lookup = "",
-            }).ToList(),
-        };
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Which of the three record shapes this is decides where the element number sits, exactly
-    /// as it does for a single-target member. spec/references-in-records.md.
-    /// </remarks>
-    private DartMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string name = DartName(wire.Group.Name);
-        string member = string.Concat(wire.MemberPath.Select(part => "." + DartName(part)));
-        var field = wire.TagCarrier;
-
-        bool isArray = wire.IsArray;
-
-        string path = !isArray || wire.Group.MembersAreArrays
-            ? $"record.{name}{member}"
-            : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
-
-        return new DartMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "Row" + subscript,
-            Target = path + "Target" + subscript,
-
-            // Whichever list holds the elements. The key member is that list where the members
-            // are the arrays, so there is no separate key list to measure.
-            Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{name}.length")
-                : "",
-
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            NoneLabel = DartCamelName("None"),
-            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
-            Targets = field.ResolvedRefTables!.Select(target => new DartMultiTargetView
-            {
-                Table = DartName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = "",
-                Label = DartCamelName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
-
-    private DartMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-        => new DartMultiReferenceView
-        {
-            KeyMember = DartName(column.Group.Name),
-            SlotMember = DartName(column.Group.Name) + "Row",
-            TargetMember = DartName(column.Group.Name) + "Target",
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-            NoneLabel = DartCamelName("None"),
-            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
-            Targets = column.Targets.Select(target => new DartMultiTargetView
-            {
-                Table = DartName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = DartName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-                Label = DartCamelName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
 
     private DartFieldView BuildField(Table table, SerialField sf)
     {
@@ -606,31 +500,11 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                                 + ";");
                 }
 
-                // A member reaching several tables keeps the key declared above and gains two
-                // fields: one slot for the resolved row whatever table it came from, and the
-                // discriminator saying which. spec/multi-target-accessors.md.
-                var multi = MultiMemberOrNull(member);
-
-                if (multi is not null)
-                {
-                    declarations.Add(member.IsArray
-                        ? $"List<Object?> {multi.SlotMember} = "
-                          + $"List.filled({member.Fields.Count}, null);"
-                        : $"Object? {multi.SlotMember};");
-
-                    declarations.Add(member.IsArray
-                        ? $"List<{multi.TargetTypeName}> {multi.TargetMember} = "
-                          + $"List.filled({member.Fields.Count}, "
-                          + $"{multi.TargetTypeName}.{multi.NoneLabel});"
-                        : $"{multi.TargetTypeName} {multi.TargetMember} = "
-                          + $"{multi.TargetTypeName}.{multi.NoneLabel};");
-                }
 
                 result.Add(new DartRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     Declarations = declarations,
-                    Multi = multi,
                 });
 
                 continue;
@@ -643,7 +517,6 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
             declared.Add(new DartRecordTypeView
             {
-                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -671,7 +544,6 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         recordTypes.Add(new DartRecordTypeView
         {
-            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -1157,24 +1029,13 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                                     .Select(BuildRecordReference)
                                     .ToList(),
 
-                // A column reaching several tables is looked up in each of them in turn, so it
-                // is a loop of its own too. spec/multi-target-accessors.md.
-                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
-                // One of those that is a member of a record resolves per element, so it is a
-                // loop of its own. spec/multi-target-accessors.md.
-                MultiRecordFields = table.WireColumns
-                                         .Where(IsMultiTargetMember)
-                                         .Select(BuildMultiRecordReference)
-                                         .ToList(),
             })
             .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                         )
             .Select(x => new DartCrossReferenceView
             {
                 Table = DartName(x.Table.Name),
-                MultiFields = x.MultiFields,
-                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new DartReferenceFieldView
                 {
                     Name = DartName(sf.Name),

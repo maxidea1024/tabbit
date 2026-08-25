@@ -566,9 +566,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             Tables = tables,
             TablesWithReferences = tables
                 .Where(t => t.ReferenceFields.Count > 0
-                            || t.RecordReferenceFields.Count > 0
-                            || t.MultiReferenceFields.Count > 0
-                            || t.MultiRecordReferenceFields.Count > 0)
+                            || t.RecordReferenceFields.Count > 0)
                 .ToList(),
             Enums = _model.Enums.Select(BuildEnum).ToList(),
             ConstantSets = _model.ConstantSets.Select(BuildConstantSet).ToList(),
@@ -612,17 +610,6 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                                          .Select(BuildRecordReference)
                                          .ToList(),
 
-            MultiReferenceFields = MultiTargetColumns.Of(table)
-                                                     .Select(BuildMultiReference)
-                                                     .ToList(),
-
-            // A member is resolved per element, so it is a loop of its own. Read off the wire
-            // columns, which is the same list the read path walks - the two have to agree
-            // about where the key landed. spec/multi-target-accessors.md.
-            MultiRecordReferenceFields = table.WireColumns
-                                              .Where(IsMultiTargetMember)
-                                              .Select(BuildMultiRecordReference)
-                                              .ToList(),
 
             // One scratch int for the whole method rather than one per field: the reader
             // hands back an int and an enum field needs a cast through something. Scalar
@@ -689,46 +676,6 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     private static string PrimaryFind(Table table)
         => "FindBy" + table.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
 
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    /// <summary>
-    /// Whether a wire column is a record member reaching several tables.
-    /// </summary>
-    /// <remarks>
-    /// One entry per element, which is what the read path walks - and what the linking has to
-    /// walk with it. The element type declares the slot once per member; this says where each
-    /// element's copy of it is. spec/multi-target-accessors.md.
-    /// </remarks>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
-
-    private CsMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-    {
-        string pascal = column.Group.Name.ToPascalCase();
-        string storage = "_" + column.Group.Name.ToCamelCase();
-
-        return new CsMultiReferenceView
-        {
-            KeyProperty = CsName(column.Group.Name),
-            PascalName = pascal,
-            SlotField = storage + "Row",
-            TargetField = storage + "Target",
-            TargetProperty = CsName(column.Group.Name + "Target"),
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-            RefIsSet = RefIsSetSuffix(column.Field.RefKeyType),
-            Targets = column.Targets.Select(target => new CsMultiTargetView
-            {
-                Table = target.Name.ToPascalCase(),
-                RecordTypeName = target.Name.ToPascalCase() + "Table.Record",
-                Property = CsName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-                Label = target.Name.ToPascalCase(),
-                Lookup = PrimaryFind(target),
-            }).ToList(),
-        };
-    }
 
     /// <summary>
     /// One column of the file: how it is checked, how it is decoded, and where its values
@@ -922,8 +869,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             Members = members,
             // And the slot a member reaching several tables holds per element, which a struct
             // cannot size at its declaration either. spec/multi-target-accessors.md.
-            NeedsInit = members.Any(m => m.Initializer.Length > 0
-                                         || m.MultiSlotInitializer.Length > 0),
+            NeedsInit = members.Any(m => m.Initializer.Length > 0),
             IsOutermost = true,
         });
 
@@ -985,100 +931,6 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         };
     }
 
-    /// <summary>
-    /// One reference that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Built from the wire column rather than from the declaration, so the name the linking
-    /// pass writes and the name the read wrote come from one place. The loop bound says which
-    /// of the three record shapes this is: the group's array, the member's, or neither.
-    /// spec/references-in-records.md.
-    /// </remarks>
-    /// <summary>
-    /// One column whose value is a row of one of several tables, as a member of a record.
-    /// </summary>
-    /// <remarks>
-    /// The member keeps the key it already carried; what is added beside it, inside the
-    /// element, is one slot for the resolved row and the discriminator saying which table
-    /// filled it. At the member's own arity: a record of arrays holds one of each per element.
-    ///
-    /// The accessor is a property when the member is one value and a method taking the element
-    /// number when the member is the array - the third of the three places an element number
-    /// sits. spec/multi-target-accessors.md · spec/nested-multi-level.md.
-    /// </remarks>
-    private CsRecordMemberView FillMultiTarget(CsRecordMemberView view, RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return view;
-
-        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
-        string brackets = member.IsArray ? "[]" : "";
-
-        view.MultiTargetTypeName = enumType;
-        view.MultiIsArray = member.IsArray;
-        view.MultiSlotName = view.PropName + "_row";
-        view.MultiTargetName = view.PropName + "_target";
-        view.MultiSlotType = "object" + brackets;
-        view.MultiTargetDeclaredType = enumType + brackets;
-        view.MultiSlotInitializer = member.IsArray
-            ? $" = new object[{member.Fields.Count}]"
-            : "";
-        view.MultiTargetInitializer = member.IsArray
-            ? $" = new {enumType}[{member.Fields.Count}]"
-            : "";
-
-        view.MultiTargets = field.ResolvedRefTables!
-            .Select(target => new CsMultiMemberTargetView
-            {
-                RecordTypeName = target.Name.ToPascalCase() + "Table.Record",
-                Accessor = CsName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-                Label = target.Name.ToPascalCase(),
-            })
-            .ToList();
-
-        return view;
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    private CsMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string fieldName = "_" + wire.Group.Name.ToCamelCase();
-        string memberAccess = string.Concat(wire.MemberPath.Select(name => "." + CsName(name)));
-
-        var (path, subscript) = MemberPlace(wire, fieldName, memberAccess);
-        var field = wire.TagCarrier;
-
-        return new CsMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "_row" + subscript,
-            Target = path + "_target" + subscript,
-
-            // The member's own array when the number is on the member, the group's when it is
-            // on the group, and nothing to walk when the group is one record - the same three
-            // answers the single-target one gives.
-            Count = subscript.Length > 0
-                ? path + ".Length"
-                : wire.IsArray
-                    ? $"record.{fieldName}.Length"
-                    : "",
-
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            RefIsSet = RefIsSetSuffix(wire.RefKeyType),
-            Targets = field.ResolvedRefTables!.Select(target => new CsMultiTargetView
-            {
-                Table = target.Name.ToPascalCase(),
-                RecordTypeName = target.Name.ToPascalCase() + "Table.Record",
-                Property = "",
-                Label = target.Name.ToPascalCase(),
-                Lookup = PrimaryFind(target),
-            }).ToList(),
-        };
-    }
 
     private CsRecordReferenceView BuildRecordReference(WireColumn wire)
     {
@@ -1149,7 +1001,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
             if (member.IsLeaf)
             {
-                result.Add(FillMultiTarget(new CsRecordMemberView
+                result.Add(new CsRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     PropName = CsName(member.Name),
@@ -1188,7 +1040,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                     RefTable = member.IsRef ? member.FirstField!.RefTableName.ToPascalCase() ?? "" : "",
                     RefLookup = member.IsRef ? PrimaryLookup(member.FirstField!.ResolvedRefTable) : "",
                     RefIsSet = member.IsRef ? RefIsSetSuffix(member.FirstField!.RefKeyType) : "",
-                }, member));
+                });
 
                 continue;
             }

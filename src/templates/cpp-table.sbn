@@ -30,27 +30,6 @@ struct {{ rt.type_name }} {
 {{~## The per-target accessors of every member of this struct that reaches several tables. One
    taking the element number where the member is the array, which is the third place an element
    number sits. spec/multi-target-accessors.md. ##~}}
-{{~ for multi in rt.multi_members ~}}
-{{~ for target in multi.targets }}
-{{~ if multi.is_array ~}}
-  /// The `{{ target.record_name }}` row element `at` of `{{ multi.key_member }}` names, or
-  /// nullptr when that element names a row of one of the others.
-  const {{ target.record_name }}* {{ target.method }}(std::size_t at) const {
-    return {{ multi.target_member }}[at] == {{ multi.target_type_name }}::{{ target.label }}
-        ? static_cast<const {{ target.record_name }}*>({{ multi.slot_member }}[at])
-        : nullptr;
-  }
-{{~ else ~}}
-  /// The `{{ target.record_name }}` row `{{ multi.key_member }}` names, or nullptr when it names
-  /// a row of one of the others.
-  const {{ target.record_name }}* {{ target.method }}() const {
-    return {{ multi.target_member }} == {{ multi.target_type_name }}::{{ target.label }}
-        ? static_cast<const {{ target.record_name }}*>({{ multi.slot_member }})
-        : nullptr;
-  }
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
 };
 
 {{~ end ~}}
@@ -94,24 +73,6 @@ struct {{ table.record_name }} {
    discriminator was set by the same assignment that filled the slot, and casting from `void*`
    asks nothing of the target type - the forward header this file already includes is enough.
    spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_references ~}}
-
-  /// The row `{{ ref.key_member }}` names, as whichever of its target tables holds it. Read it
-  /// through the accessors below rather than directly: they check the discriminator first.
-  const void* {{ ref.slot_member }} = nullptr;
-
-  /// Which table `{{ ref.key_member }}` is a row of.
-  {{ ref.target_type_name }} {{ ref.target_member }} = {{ ref.target_type_name }}::{{ ref.none_label }};
-{{~ for target in ref.targets }}
-  /// The `{{ target.record_name }}` row `{{ ref.key_member }}` names, or nullptr when it names a
-  /// row of one of the others.
-  const {{ target.record_name }}* {{ target.method }}() const {
-    return {{ ref.target_member }} == {{ ref.target_type_name }}::{{ target.label }}
-        ? static_cast<const {{ target.record_name }}*>({{ ref.slot_member }})
-        : nullptr;
-  }
-{{~ end ~}}
-{{~ end ~}}
 };
 
 {{~ for line in table.comment ~}}
@@ -317,16 +278,6 @@ class {{ table.table_name }} {
                 static_cast<std::size_t>(element_count), nullptr);
             record.{{ column_view.name }}{{ column_view.member_access }}_index.resize(
                 static_cast<std::size_t>(element_count));
-{{~ else if column_view.multi_target_type_name != '' ~}}
-{{~## A member reaching several tables holds one slot and one discriminator per element beside
-   the keys, and the linking pass assigns into both - so all three are sized.
-   spec/multi-target-accessors.md. ##~}}
-            record.{{ column_view.name }}{{ column_view.member_access }}.resize(
-                static_cast<std::size_t>(element_count));
-            record.{{ column_view.name }}{{ column_view.member_access }}_row.assign(
-                static_cast<std::size_t>(element_count), nullptr);
-            record.{{ column_view.name }}{{ column_view.member_access }}_target.assign(
-                static_cast<std::size_t>(element_count), {{ column_view.multi_target_type_name }}::None);
 {{~ else ~}}
             record.{{ column_view.name }}{{ column_view.member_access }}.resize(
                 static_cast<std::size_t>(element_count));

@@ -44,28 +44,6 @@ internal static class TypeDependencies
             .Where(sf => sf.ElementType == ValueType.Enum)
             .Select(sf => sf.FirstField!.Enum));
 
-    /// <summary>
-    /// The discriminators of a table's columns that reach several tables.
-    /// </summary>
-    /// <remarks>
-    /// Apart from <see cref="EnumsNamedBy(Table)"/> rather than folded into it, because the two
-    /// are named by different things. An enum column names its enum in every language; the
-    /// discriminator is named only by the per-target accessors, and the languages that do not
-    /// generate those - the ones with no linking pass - would import a type they never use.
-    /// Rust warns about exactly that. spec/multi-target-accessors.md.
-    /// </remarks>
-    public static IReadOnlyList<Models.Enum> MultiTargetDiscriminatorsOf(Table table)
-        => Distinct(MultiTargetColumns.Of(table)
-                        .Select(column => column.Discriminator)
-
-                        // And the ones a record member declares. A member reaching several
-                        // tables is not one of the columns above - the list of those skips a
-                        // record group deliberately - but its accessors name a discriminator
-                        // exactly the same way, so the file has to see that type too.
-                        .Concat(table.WireColumns
-                                     .Where(wire => wire.Member is not null
-                                                    && wire.TagCarrier.MultiTargetEnum is not null)
-                                     .Select(wire => wire.TagCarrier.MultiTargetEnum!)));
 
     /// <summary>
     /// The tables a table references, in declaration order and without repeats.
@@ -99,8 +77,7 @@ internal static class TypeDependencies
     /// cross-reference resolution to generate at all.
     /// </summary>
     public static bool AnyCrossReference(Model model)
-        => model.Tables.Any(table => table.SerialFields.Any(sf => sf.IsRef)
-                                     || MultiTargetColumns.Of(table).Count > 0);
+        => model.Tables.Any(table => table.SerialFields.Any(sf => sf.IsRef));
 
     /// <summary>
     /// Reference order by declaration, and each entry once.

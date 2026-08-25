@@ -204,52 +204,6 @@ assert trimmed[1].slot[0].name == 'ring'
 assert trimmed[0].tier[2] == 8
 ");
 
-    /// <summary>
-    /// A column whose value is a row of one of several tables.
-    /// </summary>
-    /// <remarks>
-    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
-    /// discriminator are written by the same assignment, and one set a target late hands out a
-    /// row of the wrong table. The wide column is checked at its first and last target, which
-    /// is where an off-by-one shows.
-    ///
-    /// Then the same column as a member of a record, in all three of the shapes a record group
-    /// takes: the element number on the group, nowhere, and on the member. Each is a different
-    /// path through the linking pass, and the last one resolves through a list that has to have
-    /// been made with the row. spec/multi-target-accessors.md.
-    /// </remarks>
-    [Fact]
-    public void A_multi_target_column_reads()
-        => AssertReads("multi-target", "multi_target_data", @"
-t = Tables()
-t.read_all(sys.argv[1])
-rows = t.holder.records
-assert rows[0].weapon_by_pick.name == 'weapon-a'
-assert rows[0].armour_by_pick is None
-assert rows[1].armour_by_pick.name == 'armour-b'
-assert rows[1].weapon_by_pick is None
-assert rows[0].trinket_by_wide.name == 'trinket-a'
-assert rows[1].banner_by_wide.name == 'banner-b'
-assert rows[2].weapon_by_wide.name == 'weapon-a'
-assert rows[1].maybe_target.value == 0
-assert rows[1].weapon_by_maybe is None and rows[1].armour_by_maybe is None
-assert rows[0].only.name == 'weapon-a'
-groups = t.loadout.records
-assert groups[0].slot[0].weapon_by_pick.name == 'weapon-a'
-assert groups[0].slot[1].armour_by_pick.name == 'armour-a'
-assert groups[0].slot[0].armour_by_pick is None
-assert groups[1].slot[0].armour_by_pick.name == 'armour-b'
-fittings = t.fitting.records
-assert fittings[0].main.armour_by_pick.name == 'armour-a'
-assert fittings[1].main.weapon_by_pick.name == 'weapon-b'
-assert fittings[0].main.weapon_by_pick is None
-racks = t.rack.records
-assert racks[0].slots.weapon_by_pick(0).name == 'weapon-a'
-assert racks[0].slots.armour_by_pick(1).name == 'armour-b'
-assert racks[0].slots.weapon_by_pick(1) is None
-assert racks[1].slots.armour_by_pick(0).name == 'armour-a'
-");
-
     private static void AssertReads(string scenario, string package, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);

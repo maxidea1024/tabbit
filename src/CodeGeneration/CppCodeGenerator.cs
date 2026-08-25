@@ -280,7 +280,6 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 new[] { "<cstddef>", "<cstdint>", "<string>", "<unordered_map>", "<vector>", ReaderInclude }
                     .Append(ForwardHeader)
                     .Concat(TypeDependencies.EnumsNamedBy(pair.model)
-                            .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
                             .Select(EnumHeaderFor)),
                 part => part.Table = pair.rendered));
         }
@@ -471,7 +470,6 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
-        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
@@ -598,27 +596,6 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             _ => "!= 0",
         };
 
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    private CppMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-        => new CppMultiReferenceView
-        {
-            KeyMember = CppName(column.Group.Name),
-            SlotMember = CppName(column.Group.Name + "Row"),
-            TargetMember = CppName(column.Group.Name + "Target"),
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-            NoneLabel = "None",
-            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
-            Targets = column.Targets.Select(target => new CppMultiTargetView
-            {
-                Table = CppName(target.Name),
-                RecordName = RecordName(target),
-                Method = CppName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-                Label = target.Name.ToPascalCase(),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
 
     /// <summary>
     /// One declared member of the record: what it is called and what it holds.
@@ -657,7 +634,6 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                     Comment = CommentLines(member.FirstField!.Comment),
                     Name = CppName(member.Name),
                     Declarations = MemberDeclarations(member),
-                    Multi = MultiMemberOrNull(member),
                 });
 
                 continue;
@@ -670,7 +646,6 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
             declared.Add(new CppRecordTypeView
             {
-                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -723,27 +698,6 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 };
         }
 
-        // A member reaching several tables keeps its key and gains two declarations: one slot
-        // for the resolved row whatever table it came from, and the discriminator saying which.
-        // spec/multi-target-accessors.md.
-        var multi = MultiMemberOrNull(member);
-
-        if (multi is not null)
-        {
-            return member.IsArray
-                ? new[]
-                {
-                    $"std::vector<{ToCppTypeName(member.FirstField)}> {name};",
-                    $"std::vector<const void*> {multi.SlotMember};",
-                    $"std::vector<{multi.TargetTypeName}> {multi.TargetMember};",
-                }
-                : new[]
-                {
-                    $"{ToCppTypeName(member.FirstField)} {name}{DefaultInitializer(member.FirstField)};",
-                    $"const void* {multi.SlotMember} = nullptr;",
-                    $"{multi.TargetTypeName} {multi.TargetMember} = {multi.TargetTypeName}::None;",
-                };
-        }
 
         // The vector is the member's when the group is one record - same columns, same wire,
         // and only which of the two owns it differs.
@@ -755,87 +709,6 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             };
     }
 
-    /// <summary>
-    /// The slot and the discriminator of a record member reaching several tables, or null when
-    /// the member reaches one table or none.
-    /// </summary>
-    private CppMultiMemberView? MultiMemberOrNull(RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return null;
-
-        string name = CppName(member.Name);
-
-        return new CppMultiMemberView
-        {
-            KeyMember = name,
-            SlotMember = CppName(member.Name + "Row"),
-            TargetMember = CppName(member.Name + "Target"),
-            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
-            IsArray = member.IsArray,
-            Targets = field.ResolvedRefTables!.Select(target => new CppMultiTargetView
-            {
-                Table = CppName(target.Name),
-                RecordName = RecordName(target),
-                Method = CppName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-                Label = target.Name.ToPascalCase(),
-                Lookup = "",
-            }).ToList(),
-        };
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Which of the three record shapes this is decides where the element number sits, exactly
-    /// as it does for a single-target member. spec/references-in-records.md.
-    /// </remarks>
-    private CppMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string name = CppName(wire.Group.Name);
-        string member = string.Concat(wire.MemberPath.Select(part => "." + CppName(part)));
-        var field = wire.TagCarrier;
-
-        bool isArray = wire.IsArray;
-
-        string path = !isArray || wire.Group.MembersAreArrays
-            ? $"record.{name}{member}"
-            : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
-
-        return new CppMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "_row" + subscript,
-            Target = path + "_target" + subscript,
-
-            // Whichever vector holds the elements. The key member is that vector where the
-            // members are the arrays, so there is no separate key vector to measure.
-            Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.size()" : $"record.{name}.size()")
-                : "",
-
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
-            Targets = field.ResolvedRefTables!.Select(target => new CppMultiTargetView
-            {
-                Table = CppName(target.Name),
-                RecordName = RecordName(target),
-                Method = "",
-                Label = target.Name.ToPascalCase(),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
 
     private CppFieldView BuildField(Table table, SerialField sf)
     {
@@ -851,7 +724,6 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         {
             recordTypes.Add(new CppRecordTypeView
             {
-                MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = RecordEntryName(table, sf),
                 Members = members,
                 IsOutermost = true,
@@ -932,9 +804,6 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // sizing only the row left it writing past the end.
             // spec/references-in-records.md.
             MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "_index" : "",
-            MultiTargetTypeName = IsMultiTargetMember(wire)
-                ? wire.TagCarrier.MultiTargetEnum!.Name.ToPascalCase()
-                : "",
             OuterCount = wire.Group.IsRecord ? wire.Group.Members.Count : 0,
             ElementCount = wire.Cells.Count,
             RefDefault = RefDefault(wire.Group),
@@ -1084,24 +953,13 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                                     .Select(BuildRecordReference)
                                     .ToList(),
 
-                // A column reaching several tables is looked up in each of them in turn, so it
-                // is a loop of its own too. spec/multi-target-accessors.md.
-                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
-                // One of those that is a member of a record resolves per element, so it is a
-                // loop of its own. spec/multi-target-accessors.md.
-                MultiRecordFields = table.WireColumns
-                                         .Where(IsMultiTargetMember)
-                                         .Select(BuildMultiRecordReference)
-                                         .ToList(),
             })
             .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                         )
             .Select(x => new CppCrossReferenceView
             {
                 Table = CppName(x.Table.Name),
-                MultiFields = x.MultiFields,
-                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new CppReferenceFieldView
                 {
                     Name = CppName(sf.Name),

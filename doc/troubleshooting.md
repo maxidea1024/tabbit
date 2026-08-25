@@ -175,16 +175,17 @@ index 필드를 서버나 클라 한쪽으로 보낼 수 없습니다. 양쪽 �
 ### `... is typed 'foreign' and names no table`
 
 `foreign` 뒤에 가리킬 테이블을 적습니다 — `foreign Item`, 또는 그 테이블의 값 하나를
-가리키려면 `foreign Owners.rank`, 여럿 중 하나면 `foreign Item|CEquip`입니다.
+가리키려면 `foreign Owners.rank`입니다. 여러 테이블 중 하나여도 되는 값은 참조가
+아니라 검사이고 `int (refs=Item;CEquip)`으로 적습니다.
 
 **세부타입 칸은 없습니다.** 타입 하나가 셀 하나에 들어가므로 enum도 이름을 바로 적습니다 —
 `Grade`.
 
-### `... One table per element is supported and this is not`
+### `... has no single type to resolve to`
 
-`foreign A|B[]` — 원소마다 다른 테이블일 수 있는 배열입니다. 대상이 하나인 배열은
-됩니다(`foreign Item[]`). 여럿이 필요하면 원소를 컬럼으로 적고 그 목록을 컬럼마다
-적으세요 — `ref[0]` · `ref[1]`.
+`foreign A|B` — 테이블을 여럿 지목했습니다. 참조는 테이블 하나를 지목해 해석하는 것이라,
+여러 테이블 중 하나의 id일 수 있는 값에는 해석할 타입이 하나가 없습니다. **그것은 검사이고**
+`int (refs=A;B)`로 적습니다. 행에 닿아야 하면 테이블마다 컬럼을 두세요.
 
 ### `Enum ... has two labels named ...` / `Constant set ... has two constants named ...`
 

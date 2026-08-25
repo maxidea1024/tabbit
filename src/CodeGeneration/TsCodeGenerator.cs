@@ -232,14 +232,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 CrossReferences = BuildCrossReferences(),
 
                 // Both kinds: a plain column reaching several tables and a record member
-                // doing the same. The linking compares against either discriminator, so this
-                // module names both types. spec/multi-target-accessors.md.
-                Imports = _model.Tables
-                                .SelectMany(DiscriminatorsOf)
-                                .Select(discriminator =>
-                                    $"import {{ {discriminator.Name.ToPascalCase()} }} "
-                                    + $"from './enums/{TsFileName(discriminator.Name)}'")
-                                .Distinct()
+                Imports = System.Linq.Enumerable.Empty<string>()
                                 .ToList(),
             });
 
@@ -382,28 +375,15 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                                          .Select(BuildRecordReference)
                                          .ToList(),
 
-                     // A column reaching several tables is looked up in each of them in turn,
-                     // so it is a loop of its own too. spec/multi-target-accessors.md.
-                     MultiFields = MultiTargetColumns.Of(table)
-                                                     .Select(BuildMultiReference)
-                                                     .ToList(),
 
-                     // A member is resolved per element, so it is a loop of its own.
-                     // spec/multi-target-accessors.md.
-                     MultiRecordFields = table.WireColumns
-                                              .Where(IsMultiTargetMember)
-                                              .Select(BuildMultiRecordReference)
-                                              .ToList(),
                  })
                  .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                             || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                              )
                  .Select(x => new TsCrossReferenceView
                  {
                      Table = TsName(x.Table.Name),
                      Fields = x.Fields.Select(BuildReferenceField).ToList(),
                      RecordFields = x.RecordFields,
-                     MultiFields = x.MultiFields,
-                     MultiRecordFields = x.MultiRecordFields,
                  })
                  .ToList();
 
@@ -528,206 +508,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     private static string PrimaryFind(Models.Table refTable)
         => "findBy" + refTable.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
 
-    /// <summary>
-    /// One record member whose value is a row of one of several tables.
-    /// </summary>
-    /// <remarks>
-    /// The member keeps its key; beside it go one slot for the resolved row and the
-    /// discriminator saying which table filled it, at the member's own arity. The slot is
-    /// typed as the union of the target records, which is more than most languages can say -
-    /// and the accessors are functions beside the element rather than members of it, because
-    /// this language's element type is an interface. spec/multi-target-accessors.md.
-    /// </remarks>
-    /// <summary>
-    /// Every discriminator one table's page names - the plain columns' and the record
-    /// members'. spec/multi-target-accessors.md.
-    /// </summary>
-    private static IEnumerable<Models.Enum> DiscriminatorsOf(Models.Table table)
-        => MultiTargetColumns.Of(table)
-                             .Select(column => column.Discriminator)
-                             .Concat(table.SerialFields
-                                          .Where(group => group.IsRecord)
-                                          .SelectMany(group => group.Leaves)
-                                          .Select(leaf => leaf.FirstField)
-                                          .Where(field => field is not null
-                                                          && field.IsMultiRef
-                                                          && field.MultiTargetEnum is not null)
-                                          .Select(field => field!.MultiTargetEnum!));
 
-    private TsRecordMemberView FillMultiTargetMember(TsRecordMemberView view, RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return view;
-
-        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
-
-        var targets = field.ResolvedRefTables!
-            .Select(target => new TsMultiMemberTargetView
-            {
-                RecordTypeName = target.Name.ToPascalCase() + "Record",
-                Function = TsName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-                Label = target.Name.ToPascalCase(),
-            })
-            .ToList();
-
-        string union = string.Join(" | ", targets.Select(t => t.RecordTypeName)) + " | undefined";
-
-        view.MultiTargetTypeName = enumType;
-        view.MultiIsArray = member.IsArray;
-        view.MultiSlotName = view.PropName + "Row";
-        view.MultiTargetName = view.PropName + "Target";
-        view.MultiSlotType = member.IsArray ? $"({union})[]" : union;
-        view.MultiTargetDeclaredType = member.IsArray ? enumType + "[]" : enumType;
-        view.MultiSlotDefault = member.IsArray
-            ? "[" + string.Join(", ", Enumerable.Repeat("undefined", member.Fields.Count)) + "]"
-            : "undefined";
-        view.MultiTargetDefault = member.IsArray
-            ? "[" + string.Join(", ", Enumerable.Repeat(enumType + ".None", member.Fields.Count)) + "]"
-            : enumType + ".None";
-        view.MultiTargets = targets;
-
-        return view;
-    }
-
-    /// <summary>
-    /// The multi-target members of a table's record groups, one entry per member.
-    /// </summary>
-    private IReadOnlyList<TsMultiMemberView> BuildMultiMembers(Models.Table table)
-    {
-        var result = new List<TsMultiMemberView>();
-
-        // The element type a leaf belongs to is the one its own level declares, so the walk
-        // carries the prefix the declaration is built from - `Rig` then `RigCore`. A name
-        // taken from the group alone is right only for a leaf directly under it.
-        // spec/nested-multi-level.md.
-        void Walk(string prefix, List<RecordMember> members)
-        {
-            foreach (var member in members)
-            {
-                if (!member.IsLeaf)
-                {
-                    Walk(prefix + member.Name.ToPascalCase(), member.Members);
-                    continue;
-                }
-
-                Collect(prefix + "Entry", member);
-            }
-        }
-
-        foreach (var group in table.SerialFields.Where(sf => sf.IsRecord))
-            Walk(group.Name.ToPascalCase(), group.Members);
-
-        return result;
-
-        void Collect(string elementTypeName, RecordMember leaf)
-        {
-            {
-                var field = leaf.FirstField;
-
-                if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-                    return;
-
-                string enumType = field.MultiTargetEnum.Name.ToPascalCase();
-
-                result.Add(new TsMultiMemberView
-                {
-                    ElementTypeName = elementTypeName,
-                    KeyName = TsName(leaf.Name),
-                    SlotName = TsName(leaf.Name) + "Row",
-                    TargetName = TsName(leaf.Name) + "Target",
-                    TargetTypeName = enumType,
-                    IsArray = leaf.IsArray,
-                    Targets = field.ResolvedRefTables!
-                        .Select(target => new TsMultiMemberTargetView
-                        {
-                            RecordTypeName = target.Name.ToPascalCase() + "Record",
-                            Function = TsName(target.Name.ToPascalCase() + "By" + leaf.Name.ToPascalCase()),
-                            Label = target.Name.ToPascalCase(),
-                        })
-                        .ToList(),
-                });
-            }
-        }
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    private TsMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string fieldName = "_" + TsName(wire.Group.Name);
-        string memberAccess = string.Concat(wire.MemberPath.Select(name => "." + TsName(name)));
-        var field = wire.TagCarrier;
-
-        bool isArray = wire.IsArray;
-
-        // Where the element number goes is the whole difference between the record shapes -
-        // the group's array, the member's, or neither. spec/nested-multi-level.md.
-        string path = !isArray || wire.Group.MembersAreArrays
-            ? $"record.{fieldName}{memberAccess}"
-            : $"record.{fieldName}[i]{memberAccess}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
-
-        return new TsMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "Row" + subscript,
-            Target = path + "Target" + subscript,
-            Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{fieldName}.length")
-                : "",
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            RefIsSet = RefIsSetSuffix(wire.RefKeyType),
-            Targets = field.ResolvedRefTables!.Select(target => new TsMultiTargetView
-            {
-                Table = TsName(target.Name),
-                RecordTypeName = target.Name.ToPascalCase() + "Record",
-                Prop = "",
-                Label = target.Name.ToPascalCase(),
-                Lookup = PrimaryFind(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
-
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    private TsMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-    {
-        var targets = column.Targets.Select(target => new TsMultiTargetView
-        {
-            Table = TsName(target.Name),
-            RecordTypeName = target.Name.ToPascalCase() + "Record",
-            Prop = TsName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-            Label = target.Name.ToPascalCase(),
-            Lookup = PrimaryFind(target),
-        }).ToList();
-
-        return new TsMultiReferenceView
-        {
-            KeyProp = TsName(column.Group.Name),
-            KeyField = "_" + column.Group.Name.ToCamelCase(),
-            SlotField = "_" + column.Group.Name.ToCamelCase() + "Row",
-            TargetField = "_" + column.Group.Name.ToCamelCase() + "Target",
-            TargetProp = TsName(column.Group.Name + "Target"),
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-
-            // A union rather than `unknown`: the discriminator already tells a reader which
-            // of them it is, and saying so in the type lets the getters narrow instead of
-            // asserting.
-            SlotTypeName = string.Join(" | ", targets.Select(t => t.RecordTypeName)) + " | undefined",
-            RefIsSet = RefIsSetSuffix(column.Field.RefKeyType),
-            Targets = targets,
-        };
-    }
 
     private TsTableView BuildTable(Models.Table table)
     {
@@ -758,10 +539,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                                    .Select(x => x.view)
                                    .ToList(),
 
-            MultiReferenceFields = MultiTargetColumns.Of(table)
-                                                     .Select(BuildMultiReference)
-                                                     .ToList(),
-            MultiMembers = BuildMultiMembers(table),
 
             // One cursor variable for the whole method: switch cases share a scope in
             // JavaScript too, so each encodable column assigns it rather than declaring
@@ -892,43 +669,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
                 if (refTable is not null && refTable.Name != table.Name)
                     Add($"import {{ {refTable.Name.ToPascalCase()}Record }} from './{TsFileName(refTable.Name)}'");
-            }
-        }
-
-        // A column reaching several tables names all of them and the enumeration that says
-        // which one answered. Asked separately because the loop above reads the element type,
-        // and such a column's element type is the key it carries - it says nothing about the
-        // tables. spec/multi-target-accessors.md.
-        foreach (var column in MultiTargetColumns.Of(table))
-        {
-            Add($"import {{ {column.Discriminator.Name.ToPascalCase()} }} "
-                + $"from '../enums/{TsFileName(column.Discriminator.Name)}'");
-
-            foreach (var target in column.Targets)
-            {
-                if (target.Name != table.Name)
-                    Add($"import {{ {target.Name.ToPascalCase()}Record }} from './{TsFileName(target.Name)}'");
-            }
-        }
-
-        // The same for a record member reaching several tables: the element declares the slot
-        // as the union of those records, and the accessors beside it name each one.
-        // spec/multi-target-accessors.md.
-        foreach (var leaf in table.SerialFields.Where(group => group.IsRecord)
-                                  .SelectMany(group => group.Leaves))
-        {
-            var member = leaf.FirstField;
-
-            if (member is null || !member.IsMultiRef || member.MultiTargetEnum is null)
-                continue;
-
-            Add($"import {{ {member.MultiTargetEnum.Name.ToPascalCase()} }} "
-                + $"from '../enums/{TsFileName(member.MultiTargetEnum.Name)}'");
-
-            foreach (var target in member.ResolvedRefTables!)
-            {
-                if (target.Name != table.Name)
-                    Add($"import {{ {target.Name.ToPascalCase()}Record }} from './{TsFileName(target.Name)}'");
             }
         }
 
@@ -1154,7 +894,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                         : $"{ToTypescriptTypename(member.FirstField)} | undefined")
                     : ToTypescriptTypename(member.FirstField) + (member.IsArray ? "[]" : "");
 
-                result.Add(FillMultiTargetMember(new TsRecordMemberView
+                result.Add(new TsRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     PropName = TsName(member.Name),
@@ -1188,7 +928,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                             ? "[" + string.Join(", ", Enumerable.Repeat("false", member.Fields.Count)) + "]"
                             : "false")
                         : "",
-                }, member));
+                });
 
                 continue;
             }
@@ -1247,11 +987,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             yield return $"{member.PropName}_F: {member.RefFlagDefault}";
         }
 
-        if (member.MultiTargetTypeName.Length > 0)
-        {
-            yield return $"{member.MultiSlotName}: {member.MultiSlotDefault}";
-            yield return $"{member.MultiTargetName}: {member.MultiTargetDefault}";
-        }
     }
 
     /// <summary>
@@ -1280,43 +1015,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             : $"this.{field} = ((e: any) => ({literal}))(dataRow.{prop})";
     }
 
-    /// <summary>
-    /// The object literal for one level of a record read out of a named JSON row.
-    /// </summary>
-    /// <remarks>
-    /// Rebuilt member by member rather than assigned through, because a member whose value
-    /// needs converting on the way in - a 64-bit integer arrives as a string - would otherwise
-    /// land as whatever the file held. That is also why a level below cannot be assigned
-    /// whole: its members need the same treatment, one level further in.
-    ///
-    /// A member that is itself the array maps its own elements: the JSON holds
-    /// `{ m: [a, b] }` rather than `[{ m: a }, { m: b }]` - see spec/nested-multi-level.md.
-    /// </remarks>
-    /// <summary>
-    /// What a multi-target member adds to a JSON literal: the slot and the discriminator, at
-    /// the member's own arity and both starting empty.
-    /// </summary>
-    private static IEnumerable<string> MultiTargetLiteralParts(
-        RecordMember member, string accessor, string prop)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            yield break;
-
-        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
-
-        if (member.IsArray)
-        {
-            yield return $"{prop}Row: {accessor}.{prop}.map(() => undefined)";
-            yield return $"{prop}Target: {accessor}.{prop}.map(() => {enumType}.None)";
-        }
-        else
-        {
-            yield return $"{prop}Row: undefined";
-            yield return $"{prop}Target: {enumType}.None";
-        }
-    }
 
     private string NamedRowLiteral(List<RecordMember> members, string accessor)
     {
@@ -1353,19 +1051,13 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
             string element = FromJsonExpressionOf(member.ElementType, "v");
 
-            // A member reaching several tables: the JSON holds its key under the member's own
-            // name, exactly as an ordinary member does, and the slot and the discriminator are
-            // what the linking pass fills - so they start where the binary path leaves them.
-            // The literal has to give them all the same: it satisfies the element interface.
-            // spec/multi-target-accessors.md.
-            var multi = MultiTargetLiteralParts(member, accessor, prop);
 
             return new[]
             {
                 member.IsArray
                     ? $"{prop}: {accessor}.{prop}.map((v: any) => {element})"
                     : $"{prop}: {FromJsonExpressionOf(member.ElementType, $"{accessor}.{prop}")}",
-            }.Concat(multi);
+            };
         });
 
         return "{ " + string.Join(", ", parts) + " }";
@@ -1464,17 +1156,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 // they are sized from the same run. spec/multi-target-accessors.md.
                 var field2 = member.FirstField;
 
-                if (field2 is not null && field2.IsMultiRef && field2.MultiTargetEnum is not null)
-                {
-                    string enumType = field2.MultiTargetEnum.Name.ToPascalCase();
-
-                    return new[]
-                    {
-                        $"{prop}: {slice}.map((v: any) => {element})",
-                        $"{prop}Row: {slice}.map(() => undefined)",
-                        $"{prop}Target: {slice}.map(() => {enumType}.None)",
-                    };
-                }
 
                 return new[] { $"{prop}: {slice}.map((v: any) => {element})" };
             });
@@ -1503,29 +1184,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         return lines;
     }
 
-    /// <summary>
-    /// The object literal for one level of a record read out of a compact JSON row, taking one
-    /// entry per leaf as it goes.
-    /// </summary>
-    /// <remarks>
-    /// `offset++` inside a literal is safe here and only here: an object literal's properties
-    /// are evaluated in source order, and source order is leaf order, which is the order the
-    /// exporter wrote the entries in.
-    /// </remarks>
-    /// <summary>
-    /// The same two properties where the member holds one value, so neither is mapped over
-    /// anything. spec/multi-target-accessors.md.
-    /// </summary>
-    private static IEnumerable<string> MultiTargetScalarLiteralParts(RecordMember member, string prop)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            yield break;
-
-        yield return $"{prop}Row: undefined";
-        yield return $"{prop}Target: {field.MultiTargetEnum.Name.ToPascalCase()}.None";
-    }
 
     private string CompactRowLiteral(List<RecordMember> members)
     {
@@ -1552,7 +1210,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             return new[]
             {
                 $"{prop}: {FromJsonExpressionOf(member.ElementType, "dataRow[offset++]")}",
-            }.Concat(MultiTargetScalarLiteralParts(member, prop));
+            };
         });
 
         return "{ " + string.Join(", ", parts) + " }";
@@ -1612,7 +1270,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             return new[]
             {
                 $"{prop}: {FromJsonExpressionOf(member.ElementType, $"{field}_{prefix}{prop}[k]")}",
-            }.Concat(MultiTargetScalarLiteralParts(member, prop));
+            };
         });
 
         return "{ " + string.Join(", ", parts) + " }";

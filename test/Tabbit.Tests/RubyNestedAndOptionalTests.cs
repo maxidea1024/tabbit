@@ -189,45 +189,6 @@ raise unless trimmed[1].slot[0].name == 'ring'
 raise unless trimmed[0].tier[2] == 8
 ");
 
-    /// <summary>
-    /// A column whose value is a row of one of several tables.
-    /// </summary>
-    /// <remarks>
-    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
-    /// discriminator are written by the same assignment, and one set a target late hands out a
-    /// row of the wrong table. The wide column is checked at its first and last target, which
-    /// is where an off-by-one shows. spec/multi-target-accessors.md.
-    /// </remarks>
-    [Fact]
-    public void A_multi_target_column_reads()
-        => AssertReads("multi-target", "MultiTarget", @"
-rows = accessor.holder.records
-raise unless rows[0].weapon_by_pick.name == 'weapon-a'
-raise unless rows[0].armour_by_pick.nil?
-raise unless rows[1].armour_by_pick.name == 'armour-b'
-raise unless rows[1].weapon_by_pick.nil?
-raise unless rows[0].trinket_by_wide.name == 'trinket-a'
-raise unless rows[1].banner_by_wide.name == 'banner-b'
-raise unless rows[2].weapon_by_wide.name == 'weapon-a'
-raise unless rows[1].maybe_target == MultiTarget::HolderMaybeTarget::NONE
-raise unless rows[1].weapon_by_maybe.nil? && rows[1].armour_by_maybe.nil?
-raise unless rows[0].only.name == 'weapon-a'
-groups = accessor.loadout.records
-raise unless groups[0].slot[0].weapon_by_pick.name == 'weapon-a'
-raise unless groups[0].slot[1].armour_by_pick.name == 'armour-a'
-raise unless groups[0].slot[0].armour_by_pick.nil?
-raise unless groups[1].slot[0].armour_by_pick.name == 'armour-b'
-fittings = accessor.fitting.records
-raise unless fittings[0].main.armour_by_pick.name == 'armour-a'
-raise unless fittings[1].main.weapon_by_pick.name == 'weapon-b'
-raise unless fittings[0].main.weapon_by_pick.nil?
-racks = accessor.rack.records
-raise unless racks[0].slots.weapon_by_pick(0).name == 'weapon-a'
-raise unless racks[0].slots.armour_by_pick(1).name == 'armour-b'
-raise unless racks[0].slots.weapon_by_pick(1).nil?
-raise unless racks[1].slots.armour_by_pick(0).name == 'armour-a'
-");
-
     private static void AssertReads(string scenario, string module, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);

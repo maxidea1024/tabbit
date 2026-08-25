@@ -187,44 +187,6 @@ assert($rows[0]->tier === [3, 5]);
 assert($rows[2]->tier[1] === null);
 ");
 
-    /// <summary>
-    /// A column whose value is a row of one of several tables.
-    /// </summary>
-    /// <remarks>
-    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
-    /// discriminator are written by the same assignment, and one set a target late hands out a
-    /// row of the wrong table. The wide column is checked at its first and last target, which
-    /// is where an off-by-one shows. spec/multi-target-accessors.md.
-    /// </remarks>
-    [Fact]
-    public void A_multi_target_column_reads()
-        => AssertReads("multi-target", "MultiTargetAccessor", @"
-$rows = $accessor->holder->records;
-if ($rows[0]->weaponByPick()->name !== 'weapon-a') { throw new \Exception('pick 0'); }
-if ($rows[0]->armourByPick() !== null) { throw new \Exception('pick 0 armour'); }
-if ($rows[1]->armourByPick()->name !== 'armour-b') { throw new \Exception('pick 1'); }
-if ($rows[1]->weaponByPick() !== null) { throw new \Exception('pick 1 weapon'); }
-if ($rows[0]->trinketByWide()->name !== 'trinket-a') { throw new \Exception('wide 0'); }
-if ($rows[1]->bannerByWide()->name !== 'banner-b') { throw new \Exception('wide 1'); }
-if ($rows[2]->weaponByWide()->name !== 'weapon-a') { throw new \Exception('wide 2'); }
-if ($rows[1]->maybeTarget->value !== 0) { throw new \Exception('maybe 1'); }
-if ($rows[0]->only->name !== 'weapon-a') { throw new \Exception('only 0'); }
-$groups = $accessor->loadout->records;
-if ($groups[0]->slot[0]->weaponByPick()->name !== 'weapon-a') { throw new \Exception('group 0 0'); }
-if ($groups[0]->slot[1]->armourByPick()->name !== 'armour-a') { throw new \Exception('group 0 1'); }
-if ($groups[0]->slot[0]->armourByPick() !== null) { throw new \Exception('group 0 0 armour'); }
-if ($groups[1]->slot[0]->armourByPick()->name !== 'armour-b') { throw new \Exception('group 1 0'); }
-$fittings = $accessor->fitting->records;
-if ($fittings[0]->main->armourByPick()->name !== 'armour-a') { throw new \Exception('fitting 0'); }
-if ($fittings[1]->main->weaponByPick()->name !== 'weapon-b') { throw new \Exception('fitting 1'); }
-if ($fittings[0]->main->weaponByPick() !== null) { throw new \Exception('fitting 0 weapon'); }
-$racks = $accessor->rack->records;
-if ($racks[0]->slots->weaponByPick(0)->name !== 'weapon-a') { throw new \Exception('rack 0 0'); }
-if ($racks[0]->slots->armourByPick(1)->name !== 'armour-b') { throw new \Exception('rack 0 1'); }
-if ($racks[0]->slots->weaponByPick(1) !== null) { throw new \Exception('rack 0 1 weapon'); }
-if ($racks[1]->slots->armourByPick(0)->name !== 'armour-a') { throw new \Exception('rack 1 0'); }
-");
-
     private static void AssertReads(string scenario, string accessor, string body)
     {
         var conversion = TabbitRunner.Convert(scenario);

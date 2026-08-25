@@ -137,12 +137,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             // And the discriminator of every column reaching several tables: linking compares
             // against it, so the accessor names that module as well as the table ones.
             // spec/multi-target-accessors.md.
-            Requires = _model.Tables.Select(TableRequire)
-                             .Concat(_model.Tables
-                                           .SelectMany(TypeDependencies.MultiTargetDiscriminatorsOf)
-                                           .Select(EnumRequire)
-                                           .Distinct())
-                             .ToList(),
+            Requires = _model.Tables.Select(TableRequire).ToList(),
             Accessor = view.Accessor,
         });
 
@@ -156,7 +151,6 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 {
                     RootPattern = RootPatternDeep,
                     Requires = TypeDependencies.EnumsNamedBy(pair.model)
-                                                   .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
                                                    .Select(EnumRequire).ToList(),
                     AccessorModule = _recipe.AccessorName,
                     Table = pair.rendered,
@@ -313,23 +307,9 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             }
         }
 
-        // A column reaching several tables adds the resolved row and the discriminator beside
-        // the key, and both have to be in the declared list or the strict metatable refuses
-        // the write. spec/multi-target-accessors.md.
-        var multiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList();
-
-        foreach (var reference in multiReferences)
-        {
-            known.Add(reference.SlotMember);
-            annotations.Add($"---@field {reference.SlotMember} any");
-
-            known.Add(reference.TargetMember);
-            annotations.Add($"---@field {reference.TargetMember} integer");
-        }
 
         return new LuaTableView
         {
-            MultiReferences = multiReferences,
             RawName = table.Name,
             RecordName = table.Name.ToPascalCase() + "Record",
             TableName = table.Name.ToPascalCase() + "Table",
@@ -420,27 +400,6 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             _ => "~= 0",
         };
 
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    private LuaMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-        => new LuaMultiReferenceView
-        {
-            KeyMember = LuaName(column.Group.Name),
-            SlotMember = LuaName(column.Group.Name) + "Row",
-            TargetMember = LuaName(column.Group.Name) + "Target",
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-            NoneLabel = LuaCamelName("None"),
-            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
-            Targets = column.Targets.Select(target => new LuaMultiTargetView
-            {
-                Table = "loaded" + target.Name.ToPascalCase(),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = LuaName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-                Label = LuaCamelName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
 
     private LuaFieldView BuildField(Table table, SerialField sf)
     {
@@ -481,7 +440,6 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     Initializers = MemberInitializers(member),
-                    Multi = MultiMemberOrNull(member),
                 });
 
                 continue;
@@ -494,13 +452,12 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
             declared.Add(new LuaRecordTypeView
             {
-                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
                 Owner = $"{table.Name.ToPascalCase()}Record{Access(LuaName(group.Name))}",
                 FieldNames = QuotedList(MemberFieldNames(member.Members)),
-                Annotations = member.Members.SelectMany(m => MemberAnnotations(m, typeName)).ToList(),
+                Annotations = member.Members.Select(m => MemberAnnotation(m, typeName)).ToList(),
             });
 
             result.Add(new LuaRecordMemberView
@@ -524,13 +481,12 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         recordTypes.Add(new LuaRecordTypeView
         {
-            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
             Owner = $"{table.Name.ToPascalCase()}Record{Access(LuaName(sf.Name))}",
             FieldNames = QuotedList(MemberFieldNames(sf.Members)),
-            Annotations = sf.Members.SelectMany(m => MemberAnnotations(m, entry)).ToList(),
+            Annotations = sf.Members.Select(m => MemberAnnotation(m, entry)).ToList(),
         });
 
         // A list with its elements already made, where the length is the sheet's column
@@ -697,125 +653,12 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 : new[] { $"{Key(RefIndexName(member.Name))} = {keyDefault}," };
         }
 
-        // A member reaching several tables keeps its key and gains the slot and the
-        // discriminator. The slot is written as an empty table where the member is the array -
-        // the linking pass assigns into a position, and a nil field cannot be indexed - and
-        // left nil where it is one value, which is what the row-level shape does.
-        // spec/multi-target-accessors.md.
-        var multi = MultiMemberOrNull(member);
-
-        if (multi is not null)
-        {
-            string none = $"{multi.TargetTypeName}.{multi.NoneLabel}";
-
-            return member.IsArray
-                ? new[]
-                {
-                    $"{key} = tcb.repeated({member.Fields.Count}, {MemberDefault(member)}),",
-                    $"{Key(LuaName(member.Name) + "Row")} = {{}},",
-                    $"{Key(LuaName(member.Name) + "Target")} = tcb.repeated({member.Fields.Count}, {none}),",
-                }
-                : new[]
-                {
-                    $"{key} = {MemberDefault(member)},",
-                    $"{Key(LuaName(member.Name) + "Row")} = nil,",
-                    $"{Key(LuaName(member.Name) + "Target")} = {none},",
-                };
-        }
 
         return member.IsArray
             ? new[] { $"{key} = tcb.repeated({member.Fields.Count}, {MemberDefault(member)})," }
             : new[] { $"{key} = {MemberDefault(member)}," };
     }
 
-    /// <summary>
-    /// The slot and the discriminator of a record member reaching several tables, or null when
-    /// the member reaches one table or none.
-    /// </summary>
-    private LuaMultiMemberView? MultiMemberOrNull(RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return null;
-
-        string name = LuaName(member.Name);
-
-        return new LuaMultiMemberView
-        {
-            KeyMember = name,
-            SlotMember = name + "Row",
-            TargetMember = name + "Target",
-            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
-            NoneLabel = LuaName("None"),
-            IsArray = member.IsArray,
-            Targets = field.ResolvedRefTables!.Select(target => new LuaMultiTargetView
-            {
-                Table = "",
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = LuaName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-                Label = LuaName(target.Name),
-                Lookup = "",
-            }).ToList(),
-        };
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Which of the three record shapes this is decides where the element number sits, exactly
-    /// as it does for a single-target member. spec/references-in-records.md.
-    /// </remarks>
-    private LuaMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string group = Access(LuaName(wire.Group.Name));
-        string member = string.Concat(wire.MemberPath.Select(part => Access(LuaName(part))));
-
-        var path = wire.MemberPath.ToList();
-        string Beside(string suffix)
-            => string.Concat(path.Take(path.Count - 1).Select(part => Access(LuaName(part))))
-               + Access(LuaName(path[^1]) + suffix);
-
-        var field = wire.TagCarrier;
-        bool isArray = wire.IsArray;
-
-        string Row(string tail) => !isArray || wire.Group.MembersAreArrays
-            ? $"record{group}{tail}"
-            : $"record{group}[i]{tail}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
-
-        return new LuaMultiRecordReferenceView
-        {
-            Key = Row(member) + subscript,
-            Slot = Row(Beside("Row")) + subscript,
-            Target = Row(Beside("Target")) + subscript,
-
-            // Whichever list holds the elements. The key member is that list where the members
-            // are the arrays, so there is no separate key list to count.
-            Range = isArray
-                ? (wire.Group.MembersAreArrays ? Row(member) : $"record{group}")
-                : "",
-
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            NoneLabel = LuaName("None"),
-            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
-            Targets = field.ResolvedRefTables!.Select(target => new LuaMultiTargetView
-            {
-                Table = "loaded" + target.Name.ToPascalCase(),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = "",
-                Label = LuaName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
 
     private static string RefKeyDefault(ValueType keyType)
         => keyType switch
@@ -873,15 +716,6 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
             if (member.IsLeaf && member.IsRef)
                 result.Add(RefIndexName(member.Name));
-
-            // The slot and the discriminator of a member reaching several tables. Declared for
-            // the reason the resolved row above is: a field the strict metatable does not know
-            // is an error to read. spec/multi-target-accessors.md.
-            if (member.IsLeaf && member.FirstField is { IsMultiRef: true, MultiTargetEnum: not null })
-            {
-                result.Add(LuaName(member.Name) + "Row");
-                result.Add(LuaName(member.Name) + "Target");
-            }
         }
 
         return result;
@@ -1198,25 +1032,14 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                                     .Select(BuildRecordReference)
                                     .ToList(),
 
-                // A column reaching several tables is looked up in each of them in turn, so it
-                // is a loop of its own too. spec/multi-target-accessors.md.
-                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
-                // One of those that is a member of a record resolves per element, so it is a
-                // loop of its own. spec/multi-target-accessors.md.
-                MultiRecordFields = table.WireColumns
-                                         .Where(IsMultiTargetMember)
-                                         .Select(BuildMultiRecordReference)
-                                         .ToList(),
             })
             .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                         )
             .Select(x => new LuaCrossReferenceView
             {
                 Loaded = "loaded" + x.Table.Name.ToPascalCase(),
                 RecordFields = x.RecordFields,
-                MultiFields = x.MultiFields,
-                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new LuaReferenceFieldView
                 {
                     Access = "record" + Access(LuaName(sf.Name)),
@@ -1355,29 +1178,6 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         string scalar = ScalarAnnotation(sf.ElementType);
 
         return $"---@field {name} {(sf.IsArray ? scalar + "[]" : scalar)}";
-    }
-
-    /// <summary>
-    /// The `---@field` lines one member declares: one, or three where it reaches several
-    /// tables and so carries the slot and the discriminator beside its key.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    private IReadOnlyList<string> MemberAnnotations(RecordMember member, string prefix)
-    {
-        string name = LuaName(member.Name);
-        var multi = member.IsLeaf ? MultiMemberOrNull(member) : null;
-
-        if (multi is null)
-            return new[] { MemberAnnotation(member, prefix) };
-
-        // `any` for the slot, as the row-level shape has it: the target records share no
-        // common type, and the method narrows it back where the discriminator has answered.
-        return new[]
-        {
-            MemberAnnotation(member, prefix),
-            $"---@field {name}Row {(member.IsArray ? "any[]" : "any")}",
-            $"---@field {name}Target {(member.IsArray ? "integer[]" : "integer")}",
-        };
     }
 
     private string MemberAnnotation(RecordMember member, string prefix)

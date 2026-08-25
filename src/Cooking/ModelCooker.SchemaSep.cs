@@ -182,7 +182,6 @@ public partial class ModelCooker
 
                 Type = resolved.Type,
                 TypeName = resolved.TypeName,
-                RefTableNames = resolved.RefTables,
                 RefTableName = resolved.RefTables?[0],
 
                 Index = 0,

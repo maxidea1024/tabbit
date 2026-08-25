@@ -92,18 +92,6 @@ public class JavaNestedAndOptionalTests
     public void Optional_array_elements_compile()
         => AssertCompiles("nullable-elements");
 
-    /// <summary>
-    /// A column whose value is a row of one of several tables.
-    /// </summary>
-    /// <remarks>
-    /// The shape is one slot holding the resolved row whatever table it came from, the
-    /// discriminator saying which, and one accessor per target that narrows the slot back to
-    /// that table's type. Every part of that is spelled by this generator, and the narrowing is
-    /// the part a compiler has something to say about. spec/multi-target-accessors.md.
-    /// </remarks>
-    [Fact]
-    public void A_multi_target_column_compiles() => AssertCompiles("multi-target");
-
     private static void AssertCompiles(string scenario)
     {
         var conversion = TabbitRunner.Convert(scenario);

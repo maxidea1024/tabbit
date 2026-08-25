@@ -71,7 +71,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// </remarks>
     private static readonly string[] EntityRowKeys = [RowKeyField];
 
-    private static readonly string[] DeclarationMetaKeys = ["side", "key", "extends"];
+    private static readonly string[] DeclarationMetaKeys = ["side", "key"];
 
     /// <summary>The declaration keys only a `:table` takes, and what each is for in a report.</summary>
     /// <remarks>
@@ -1184,34 +1184,6 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
     #region Tables
 
-    /// <summary>
-    /// Reads `extends=Reward` and checks that the name is an abstract struct.
-    /// </summary>
-    /// <remarks>
-    /// Checked here rather than left to the pass that expands `foreign Reward`, because the
-    /// mistake is in this cell: a table naming a set that is not one has written something
-    /// wrong whether or not any column ever points at it.
-    ///
-    /// **What fills the set is not checked here.** Whether the struct's fields are all present
-    /// as columns is a question about a table that may not have been read yet, so the model
-    /// pass that has every table asks it. spec/polymorphism.md section 3.
-    /// </remarks>
-    private string? ReadVariantSet(EntityBlock block)
-    {
-        if (!block.Meta.TryGetValue("extends", out var extends))
-            return null;
-
-        string name = extends.Value.ToPascalCase();
-
-        if (_context.Declarations?.FindAbstract(name) is null)
-        {
-            throw new TabbitException(extends.At,
-                Message.Of(TabbitLayoutMessages.ExtendsNotAbstract,
-                    ("Table", block.Name), ("Written", extends.Value)));
-        }
-
-        return name;
-    }
 
     private Models.Table ParseTable(EntityBlock block)
     {
@@ -1225,8 +1197,6 @@ public sealed class TabbitLayoutParser : ILayoutParser
             Name = block.Name,
             Comment = block.Comment,
 
-            VariantOf = ReadVariantSet(block),
-            VariantOfLocation = block.Meta.TryGetValue("extends", out var extends) ? extends.At : null,
 
 
             TrimTrailingArrayElements = block.Sheet.Layout.TrimTrailingArrayElements,
@@ -1543,7 +1513,6 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 field.RoleGroup = source.RoleGroup;
                 field.RoleNamespace = source.RoleNamespace;
                 field.RefTableName = source.RefTableName;
-                field.RefTableNames = source.RefTableNames;
                 field.RefFieldName = source.RefFieldName;
 
                 break;
@@ -1701,8 +1670,13 @@ public sealed class TabbitLayoutParser : ILayoutParser
     }
 
     /// <summary>
-    /// Reads `foreign Item` and `foreign Item|CEquip`, or answers that this is not one.
+    /// Reads `foreign Item`, or answers that this is not one.
     /// </summary>
+    /// <remarks>
+    /// **One table.** A value that may be an id of any of several tables is a check and not
+    /// a reference - there is no one type for it to resolve to, so it is written `refs=` and
+    /// the column stays the number it was. spec/reference-surface-naming.md section 6.
+    /// </remarks>
     private bool ReadReferenceType(
         Field field, string expression, bool isArray, Location at, EntityBlock block)
     {
@@ -1718,45 +1692,37 @@ public sealed class TabbitLayoutParser : ILayoutParser
             throw new TabbitException(at,
                 Message.Of(TabbitLayoutMessages.PathProblem,
                     ("Entity", block.Name), ("Column", field.Name),
-                    ("Detail", "is typed `foreign` and names no table. Write the table after it - `foreign Item`, or `foreign Item|CEquip` for a key that is a row of either.")));
+                    ("Detail", "is typed `foreign` and names no table. Write the table after it - `foreign Item`.")));
         }
 
-        // Split before casing: a bar is not a word separator, so casing the whole cell would
-        // leave the second name as written. Each half is cased on its own for the same reason -
-        // a dot is not one either, and `ItemCategory.Name` has to stay two names.
-        var written = rest.Split('|')
-            .Select(part => part.Trim())
-            .Where(part => part.Length > 0)
-            .ToList();
-
-        var names = new List<string>();
-        string? member = null;
-
-        foreach (string target in written)
+        // **Several tables is not a reference.** A bar was once how "a row of either" was
+        // written, and it is refused now: a value that may be an id of any of several
+        // tables has no single type to resolve to, so what a sheet is saying there is a
+        // check. `refs=Item;CEquip` says it, and the column keeps the type it had.
+        // spec/reference-surface-naming.md section 6.
+        if (rest.Contains('|'))
         {
-            int dot = target.IndexOf('.');
+            throw new TabbitException(at,
+                Message.Of(TabbitLayoutMessages.MultiTargetReferenceRemoved,
+                    ("Entity", block.Name), ("Column", field.Name), ("Written", rest),
+                    ("Refs", rest.Replace('|', ';'))));
+        }
 
-            if (dot < 0)
-            {
-                string name = target.ToPascalCase();
-                if (!names.Contains(name))
-                    names.Add(name);
+        string? member = null;
+        string name;
 
-                continue;
-            }
+        int dot = rest.IndexOf('.');
 
+        if (dot < 0)
+        {
+            name = rest.ToPascalCase();
+        }
+        else
+        {
             // **`Table.Field` names a value inside the target** rather than the row - the
             // reference resolves to that field, so the column's type becomes that field's.
-            if (written.Count > 1)
-            {
-                throw new TabbitException(at,
-                    Message.Of(TabbitLayoutMessages.MultiTargetNamesAField,
-                        ("Entity", block.Name), ("Column", field.Name), ("Written", rest),
-                        ("Dotted", target)));
-            }
-
-            names.Add(target.Substring(0, dot).ToPascalCase());
-            member = target.Substring(dot + 1).ToPascalCase();
+            name = rest.Substring(0, dot).ToPascalCase();
+            member = rest.Substring(dot + 1).ToPascalCase();
 
             // `Table.Index` names the row's own key, which is the row - so it is cleared and
             // the reference resolves to the record, which is what the writer meant either way.
@@ -1764,29 +1730,12 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 member = "";
         }
 
-        if (names.Count == 0)
+        if (name.Length == 0)
         {
             throw new TabbitException(at,
                 Message.Of(TabbitLayoutMessages.PathProblem,
                     ("Entity", block.Name), ("Column", field.Name),
-                    ("Detail", "is typed `foreign` and names no table between its bars.")));
-        }
-
-        // **An array of a set is refused, and an array of one table is not.** What separates
-        // them is what the generated code can say: one table per element resolves to a row,
-        // which is the shape a folded group of numbered reference columns already produces in
-        // every language. Several tables per element needs a discriminator and a narrowing
-        // accessor per element, and no generator has that for a column - it has it for a
-        // scalar column and for a record member.
-        //
-        // Refused rather than half generated. Letting it through emits a column of keys with
-        // no way to reach the rows, which is the same silence the whole-array refusal existed
-        // to prevent. spec/polymorphism.md section 4.
-        if (isArray && names.Count > 1)
-        {
-            throw new TabbitException(at,
-                Message.Of(TabbitLayoutMessages.MultiTargetArrayUnsupported,
-                    ("Entity", block.Name), ("Column", field.Name), ("Written", rest)));
+                    ("Detail", "is typed `foreign` and names no table.")));
         }
 
         field.TypeName = "$Unresolved$";
@@ -1803,13 +1752,8 @@ public sealed class TabbitLayoutParser : ILayoutParser
         // `SerialField.IsRef` and `IsArray` together. spec/polymorphism.md section 4.
         field.Type = isArray ? Models.ValueType.StringArray : Models.ValueType.String;
 
-        field.RefTableNames = names;
         field.RefFieldName = member;
-
-        // Left empty on purpose when there are several, because `IsRef` reads it and has to go
-        // on meaning "resolves to exactly one record".
-        if (names.Count == 1)
-            field.RefTableName = names[0];
+        field.RefTableName = name;
 
         return true;
     }

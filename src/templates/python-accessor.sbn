@@ -134,37 +134,5 @@ class {{ accessor_name }}:
    so the elements are walked and each one's own key is looked up. Which list that is - the
    group's or the member's - the view decided, and a record of one has neither.
    spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
-{{~ for ref in reference.multi_record_fields ~}}
-{{~ if ref.range != '' ~}}
-            for i in {{ ref.range }}:
-                if {{ ref.key }} {{ ref.key_is_set }}:
-{{~ for target in ref.targets ~}}
-                    if {{ ref.target }} == {{ ref.target_type_name }}.{{ ref.none_label }}:
-                        found = {{ target.table }}.{{ target.lookup }}({{ ref.key }})
-                        if found is not None:
-                            {{ ref.slot }} = found
-                            {{ ref.target }} = {{ ref.target_type_name }}.{{ target.label }}
-{{~ end ~}}
-{{~ else ~}}
-            if {{ ref.key }} {{ ref.key_is_set }}:
-{{~ for target in ref.targets ~}}
-                if {{ ref.target }} == {{ ref.target_type_name }}.{{ ref.none_label }}:
-                    found = {{ target.table }}.{{ target.lookup }}({{ ref.key }})
-                    if found is not None:
-                        {{ ref.slot }} = found
-                        {{ ref.target }} = {{ ref.target_type_name }}.{{ target.label }}
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
-{{~ for ref in reference.multi_fields ~}}
-            if record.{{ ref.key_member }} {{ ref.key_is_set }}:
-{{~ for target in ref.targets ~}}
-                if record.{{ ref.target_member }} == {{ ref.target_type_name }}.{{ ref.none_label }}:
-                    target = {{ target.table }}.{{ target.lookup }}(record.{{ ref.key_member }})
-                    if target is not None:
-                        record.{{ ref.slot_member }} = target
-                        record.{{ ref.target_member }} = {{ ref.target_type_name }}.{{ target.label }}
-{{~ end ~}}
-{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

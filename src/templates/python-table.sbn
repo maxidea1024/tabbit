@@ -31,30 +31,6 @@ class {{ rt.type_name }}:
    property where the member is one value; a method taking the element number where the member
    is the array, which is the third place an element number sits.
    spec/multi-target-accessors.md. ##~}}
-{{~ for multi in rt.multi_members ~}}
-{{~ for target in multi.targets }}
-{{~ if multi.is_array ~}}
-    def {{ target.property }}(self, at):
-        """Element `at` of {{ multi.key_member }} as a {{ target.table }} row, or None when that element
-        names a row of one of the others.
-        """
-        if self.{{ multi.target_member }}[at] != {{ multi.target_type_name }}.{{ target.label }}:
-            return None
-
-        return self.{{ multi.slot_member }}[at]
-{{~ else ~}}
-    @property
-    def {{ target.property }}(self):
-        """The {{ target.table }} row {{ multi.key_member }} names, or None when it names a row of one of
-        the others.
-        """
-        if self.{{ multi.target_member }} != {{ multi.target_type_name }}.{{ target.label }}:
-            return None
-
-        return self.{{ multi.slot_member }}
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
 
     def __repr__(self):
         return "{{ rt.type_name }}({{ rt.repr_format }})" % ({{ rt.repr_values }})
@@ -85,21 +61,6 @@ class {{ table.record_name }}:
    row whatever table it came from, and the discriminator saying which - the targets take
    separate id bands, so at most one of them ever answers.
    spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_references ~}}
-        self.{{ ref.slot_member }} = None
-        self.{{ ref.target_member }} = {{ ref.target_type_name }}.{{ ref.none_label }}
-{{~ end ~}}
-{{~ for ref in table.multi_references }}
-{{~ for target in ref.targets }}
-    @property
-    def {{ target.property }}(self):
-        """The {{ target.table }} row this column names, or None when it names a row of one of the others."""
-        if self.{{ ref.target_member }} != {{ ref.target_type_name }}.{{ target.label }}:
-            return None
-
-        return self.{{ ref.slot_member }}
-{{~ end ~}}
-{{~ end ~}}
 
     def __repr__(self):
         return "{{ table.record_name }}({{ table.repr_format }})" % ({{ table.repr_values }})

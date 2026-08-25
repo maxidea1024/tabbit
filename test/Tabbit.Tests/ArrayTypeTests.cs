@@ -200,9 +200,8 @@ public class ArrayTypeTests
     }
 
     /// <summary>
-    /// The half that stays refused: an element that may be a row of any of several tables
-    /// needs a discriminator and a narrowing accessor per element, and the generators have
-    /// those for a column and for a record member rather than for an array.
+    /// Several tables is refused whether or not it is an array, because it is a check and
+    /// not a reference - spec/reference-surface-naming.md section 6.
     /// </summary>
     [Fact]
     public void An_array_reaching_several_tables_is_refused_with_what_is_available()
@@ -210,7 +209,7 @@ public class ArrayTypeTests
         var result = TabbitRunner.Convert("array-foreign-multi");
 
         Assert.False(result.Succeeded, "`foreign A|B[]` was accepted.");
-        Assert.Contains("One table per element is supported and this is not", result.StdOut);
-        Assert.Contains("foreign Item[]", result.StdOut);
+        Assert.Contains("has no single type to resolve to", result.StdOut);
+        Assert.Contains("refs=", result.StdOut);
     }
 }

@@ -362,7 +362,6 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
-        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
         // One cursor variable for the whole read method, assigned per column before its
         // row loop rather than declared once per case. Asked of the columns, because that
@@ -468,127 +467,6 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             _ => "!= 0",
         };
 
-    /// <summary>
-    /// The slot and the discriminator of a record member reaching several tables, or null when
-    /// the member reaches one table or none.
-    /// </summary>
-    private JavaMultiMemberView? MultiMemberOrNull(RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return null;
-
-        string name = JavaName(member.Name);
-        string enumType = field.MultiTargetEnum.Name.ToPascalCase();
-        string none = JavaConstantName("None");
-
-        return new JavaMultiMemberView
-        {
-            KeyMember = name,
-            SlotMember = name + "Row",
-            TargetMember = name + "Target",
-            TargetTypeName = enumType,
-            NoneLabel = none,
-            IsArray = member.IsArray,
-            Fill = member.IsArray
-                ? $"for (int i = 0; i < {member.Fields.Count}; i++) "
-                  + $"{name}Target[i] = {enumType}.{none};"
-                : "",
-            Targets = field.ResolvedRefTables!.Select(target => new JavaMultiTargetView
-            {
-                Table = JavaName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = JavaName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-                Label = JavaConstantName(target.Name),
-                Lookup = "",
-            }).ToList(),
-        };
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Which of the three record shapes this is decides where the element number sits, exactly
-    /// as it does for a single-target member. spec/references-in-records.md.
-    /// </remarks>
-    private JavaMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string name = JavaName(wire.Group.Name);
-        string member = string.Concat(wire.MemberPath.Select(part => "." + JavaName(part)));
-        var field = wire.TagCarrier;
-
-        bool isArray = wire.IsArray;
-
-        string path = !isArray || wire.Group.MembersAreArrays
-            ? $"record.{name}{member}"
-            : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
-
-        return new JavaMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "Row" + subscript,
-            Target = path + "Target" + subscript,
-
-            // Whichever array holds the elements. The key member is that array where the
-            // members are the arrays, so there is no separate key array to measure.
-            Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{name}.length")
-                : "",
-
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            NoneLabel = JavaConstantName("None"),
-
-            // The string case needs the key twice - Java has no truthiness - so the suffix is
-            // written with the expression substituted in rather than appended blindly.
-            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType).Replace("$KEY$", path + subscript),
-            Targets = field.ResolvedRefTables!.Select(target => new JavaMultiTargetView
-            {
-                Table = JavaName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = "",
-                Label = JavaConstantName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
-
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    private JavaMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-    {
-        string key = "record." + JavaName(column.Group.Name);
-
-        return new JavaMultiReferenceView
-        {
-            KeyMember = JavaName(column.Group.Name),
-            SlotMember = JavaName(column.Group.Name) + "Row",
-            TargetMember = JavaName(column.Group.Name) + "Target",
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-            NoneLabel = JavaConstantName("None"),
-
-            // The string case needs the key twice - Java has no truthiness - so the suffix is
-            // written with the expression substituted in rather than appended blindly.
-            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType).Replace("$KEY$", key),
-            Targets = column.Targets.Select(target => new JavaMultiTargetView
-            {
-                Table = JavaName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = JavaName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-                Label = JavaConstantName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
 
     private JavaFieldView BuildField(Table table, SerialField sf)
     {
@@ -667,31 +545,10 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                         + ";");
                 }
 
-                // A member reaching several tables keeps the key declared above and gains two
-                // fields: one slot for the resolved row whatever table it came from, and the
-                // discriminator saying which. spec/multi-target-accessors.md.
-                var multi = MultiMemberOrNull(member);
-
-                if (multi is not null)
-                {
-                    declarations.Add(
-                        (member.IsArray
-                            ? $"Object[] {multi.SlotMember} = new Object[{member.Fields.Count}]"
-                            : $"Object {multi.SlotMember}")
-                        + ";");
-                    declarations.Add(
-                        (member.IsArray
-                            ? $"{multi.TargetTypeName}[] {multi.TargetMember} "
-                              + $"= new {multi.TargetTypeName}[{member.Fields.Count}]"
-                            : $"{multi.TargetTypeName} {multi.TargetMember} "
-                              + $"= {multi.TargetTypeName}.{multi.NoneLabel}")
-                        + ";");
-                }
 
                 result.Add(new JavaRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
-                    Multi = multi,
 
                     // The array is the member's when the group is one record - same columns,
                     // same wire, and only which of the two owns it differs.
@@ -712,7 +569,6 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
             declared.Add(new JavaRecordTypeView
             {
-                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -755,7 +611,6 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
         recordTypes.Add(new JavaRecordTypeView
         {
-            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -1246,25 +1101,14 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                                     .Select(BuildRecordReference)
                                     .ToList(),
 
-                // A column reaching several tables is looked up in each of them in turn, so it
-                // is a loop of its own too. spec/multi-target-accessors.md.
-                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
-                // One of those that is a member of a record resolves per element, so it is a
-                // loop of its own. spec/multi-target-accessors.md.
-                MultiRecordFields = table.WireColumns
-                                         .Where(IsMultiTargetMember)
-                                         .Select(BuildMultiRecordReference)
-                                         .ToList(),
             })
             .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                         )
             .Select(x => new JavaCrossReferenceView
             {
                 Table = JavaName(x.Table.Name),
                 RecordName = x.Table.Name.ToPascalCase() + "Record",
-                MultiFields = x.MultiFields,
-                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new JavaReferenceFieldView
                 {
                     Name = JavaName(sf.Name),

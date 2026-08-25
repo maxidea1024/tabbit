@@ -250,57 +250,12 @@ public class Field
     /// the field is not a reference, and when it names more than one.
     /// </summary>
     /// <remarks>
-    /// The single-target name. <see cref="IsRef"/> reads it, and that is what keeps its
-    /// meaning "resolves to exactly one record" - a column naming several tables is not one
-    /// record and must not present itself as one to the hundred and sixty places that ask.
-    /// <see cref="RefTableNames"/> is the general form. spec/multi-target-references.md.
+    /// The one table a reference names. `foreign` takes one, so "resolves to exactly one
+    /// record" holds for every reference there is - a value that may be an id of any of
+    /// several tables is a check and not a reference, written `refs=` and left as the
+    /// number it was. spec/reference-surface-naming.md section 6.
     /// </remarks>
     public string? RefTableName { get; set; }
-
-    /// <summary>
-    /// Every table this field's value may be a row of. Null when it is not a reference.
-    /// </summary>
-    /// <remarks>
-    /// One entry is the ordinary case and the same thing <see cref="RefTableName"/> says.
-    /// More than one is a column that reaches several tables - the value is an id, and which
-    /// table holds the row is a question each generated accessor answers for its own target
-    /// rather than a sum type nobody could spell in every language.
-    ///
-    /// The list is what the layouts fill; the singular name follows from it.
-    /// </remarks>
-    public List<string>? RefTableNames { get; set; }
-
-    /// <summary>Whether this field names more than one table.</summary>
-    /// <remarks>
-    /// Such a field is never a <see cref="ValueType.ForeignRecord"/>: its type stays the key
-    /// it carries, which is how "does not resolve to one record" is said without inventing a
-    /// third state for <see cref="ResolvedRefTable"/>.
-    /// </remarks>
-    [JsonIgnore]
-    public bool IsMultiRef => RefTableNames is { Count: > 1 };
-
-    /// <summary>
-    /// The tables a multi-target reference resolved to, in the order the sheet named them.
-    /// </summary>
-    [JsonIgnore]
-    public List<Table>? ResolvedRefTables { get; set; }
-
-    /// <summary>
-    /// The enumeration saying which of those tables a row's value is in. Null unless this
-    /// field names several.
-    /// </summary>
-    /// <remarks>
-    /// Declared by the cooker, not by a sheet - see <see cref="Enum.Synthesized"/>. It has a
-    /// `None` at zero and one label per target, in the order they are named, and the linking
-    /// pass sets it beside the resolved row.
-    ///
-    /// The column's value could answer this question by being looked up in each target in
-    /// turn, and that is exactly what a consumer would otherwise write. The linking already
-    /// walks the targets once, so it records the answer instead.
-    /// spec/multi-target-accessors.md.
-    /// </remarks>
-    [JsonIgnore]
-    public Enum? MultiTargetEnum { get; set; }
 
     /// <summary>
     /// Field within the referenced table, for the `RefTable.RefFieldName` form.

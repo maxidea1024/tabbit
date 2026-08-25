@@ -353,7 +353,6 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
-        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -429,111 +428,6 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             _ => "!= 0",
         };
 
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    /// <summary>
-    /// The slot and the discriminator of a record member reaching several tables, or null when
-    /// the member reaches one table or none.
-    /// </summary>
-    private SwiftMultiMemberView? MultiMemberOrNull(RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return null;
-
-        string name = SwiftName(member.Name);
-
-        return new SwiftMultiMemberView
-        {
-            KeyMember = name,
-            SlotMember = name + "Row",
-            TargetMember = name + "Target",
-            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
-            NoneLabel = SwiftCamelName("None"),
-            IsArray = member.IsArray,
-            Targets = field.ResolvedRefTables!.Select(target => new SwiftMultiTargetView
-            {
-                Table = SwiftName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = SwiftName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-                Label = SwiftCamelName(target.Name),
-                Lookup = "",
-            }).ToList(),
-        };
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Which of the three record shapes this is decides where the element number sits, exactly
-    /// as it does for a single-target member. spec/references-in-records.md.
-    /// </remarks>
-    private SwiftMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string name = SwiftName(wire.Group.Name);
-        string member = string.Concat(wire.MemberPath.Select(part => "." + SwiftName(part)));
-        var field = wire.TagCarrier;
-
-        bool isArray = wire.IsArray;
-
-        string path = !isArray || wire.Group.MembersAreArrays
-            ? $"record.{name}{member}"
-            : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
-
-        return new SwiftMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "Row" + subscript,
-            Target = path + "Target" + subscript,
-
-            // Whichever array holds the elements. The key member is that array where the
-            // members are the arrays, so there is no separate key array to measure.
-            Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.count" : $"record.{name}.count")
-                : "",
-
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            NoneLabel = SwiftCamelName("None"),
-            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
-            Targets = field.ResolvedRefTables!.Select(target => new SwiftMultiTargetView
-            {
-                Table = SwiftName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = "",
-                Label = SwiftCamelName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
-
-    private SwiftMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-        => new SwiftMultiReferenceView
-        {
-            KeyMember = SwiftName(column.Group.Name),
-            SlotMember = SwiftName(column.Group.Name) + "Row",
-            TargetMember = SwiftName(column.Group.Name) + "Target",
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-            NoneLabel = SwiftCamelName("None"),
-            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
-            Targets = column.Targets.Select(target => new SwiftMultiTargetView
-            {
-                Table = SwiftName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = SwiftName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-                Label = SwiftCamelName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
 
     private SwiftFieldView BuildField(Table table, SerialField sf)
     {
@@ -620,31 +514,11 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                                     : MemberDefault(member)));
                 }
 
-                // A member reaching several tables keeps the key declared above and gains two
-                // properties: one slot for the resolved row whatever table it came from, and
-                // the discriminator saying which. spec/multi-target-accessors.md.
-                var multi = MultiMemberOrNull(member);
-
-                if (multi is not null)
-                {
-                    declarations.Add(member.IsArray
-                        ? $"public var {multi.SlotMember}: [AnyObject?] = "
-                          + $"[AnyObject?](repeating: nil, count: {member.Fields.Count})"
-                        : $"public var {multi.SlotMember}: AnyObject? = nil");
-
-                    declarations.Add(member.IsArray
-                        ? $"public var {multi.TargetMember}: [{multi.TargetTypeName}] = "
-                          + $"[{multi.TargetTypeName}](repeating: "
-                          + $"{multi.TargetTypeName}.{multi.NoneLabel}, count: {member.Fields.Count})"
-                        : $"public var {multi.TargetMember}: {multi.TargetTypeName} = "
-                          + $"{multi.TargetTypeName}.{multi.NoneLabel}");
-                }
 
                 result.Add(new SwiftRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     Declarations = declarations,
-                    Multi = multi,
                 });
 
                 continue;
@@ -657,7 +531,6 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
             declared.Add(new SwiftRecordTypeView
             {
-                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -685,7 +558,6 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
         recordTypes.Add(new SwiftRecordTypeView
         {
-            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -1122,24 +994,13 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                                     .Select(BuildRecordReference)
                                     .ToList(),
 
-                // A column reaching several tables is looked up in each of them in turn, so it
-                // is a loop of its own too. spec/multi-target-accessors.md.
-                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
-                // One of those that is a member of a record resolves per element, so it is a
-                // loop of its own. spec/multi-target-accessors.md.
-                MultiRecordFields = table.WireColumns
-                                         .Where(IsMultiTargetMember)
-                                         .Select(BuildMultiRecordReference)
-                                         .ToList(),
             })
             .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                         )
             .Select(x => new SwiftCrossReferenceView
             {
                 Table = SwiftName(x.Table.Name),
-                MultiFields = x.MultiFields,
-                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new SwiftReferenceFieldView
                 {
                     Name = SwiftName(sf.Name),

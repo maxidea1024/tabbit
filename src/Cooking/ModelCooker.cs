@@ -104,23 +104,7 @@ public partial class ModelCooker
         // another table's extra rows is not given a file name of its own.
         NameDataFiles(result, recipeModel);
 
-        // A column that named a variant set names the tables in it from here on. Before
-        // promotion, because everything below this line is meant to meet the expanded list
-        // and never the name it was written as. spec/polymorphism.md section 4.
-        ExpandVariantSetReferences(result, declarations, diagnostics);
-
-        // A column whose sheet named the tables its value belongs to is a reference, and
-        // this is where it becomes one. Before resolution, because resolution is what it is
-        // being handed to.
-        PromoteReferencedTablesToReferences(result);
-
         result.SolveTableCrossReferencings(diagnostics);
-
-        // Now that the targets are known, the type that says which of them a row landed in.
-        // After resolution because it is built from the resolved tables, and before anything
-        // is generated because every generator emits it through the enumeration machinery it
-        // already has.
-        DeclareMultiTargetDiscriminators(result, diagnostics);
 
         // Only now is it known what a reference cell holds. The layout kept those cells as
         // written because the target's key type is not a fact any one sheet carries, and
@@ -227,141 +211,7 @@ public partial class ModelCooker
         }
     }
 
-    /// <summary>
-    /// Turns a column that named the tables its value belongs to into a reference.
-    /// </summary>
-    /// <remarks>
-    /// The declaration those layouts carry is a reference - it says a value is a row of
-    /// another table - and the project it comes from stops at checking only because it has
-    /// no code generation. This one does, so the column gets the accessor its declaration
-    /// was always describing.
-    ///
-    /// **Only when every named table is in this build.** Generated code for a reference
-    /// names the target's type, so a column pointing at a table this recipe does not read
-    /// would emit code that cannot compile. Those columns stay what they were: an id, and
-    /// the check in ValidateReferencedTables. spec/multi-target-references.md.
-    /// </remarks>
-    /// <summary>
-    /// Replaces a reference that named a variant set with the tables in that set.
-    /// </summary>
-    /// <remarks>
-    /// **`foreign Reward` and `foreign Item|CEquip` are one thing from here down.** The set is
-    /// a name for the list, so expanding it early means the multi-target machinery - the
-    /// existence check, the key-type agreement, the disjoint key bands, the per-target
-    /// accessors - is reached without any of it learning a second spelling.
-    ///
-    /// What the name buys is where the list is written. A catalogue joins the set by declaring
-    /// `extends=` on its own sheet, and every column pointing at the set follows without being
-    /// edited. spec/polymorphism.md sections 3 and 4.
-    ///
-    /// The contract the set promises - that every variant carries the abstract struct's fields -
-    /// is checked here too, because this is the first pass holding every table with its types
-    /// settled.
-    /// </remarks>
-    private static void ExpandVariantSetReferences(
-        Model model, Schema.SchemaDeclarations declarations, Diagnostics diagnostics)
-    {
-        if (declarations.IsEmpty)
-            return;
 
-        var sets = new Dictionary<string, List<Table>>(System.StringComparer.OrdinalIgnoreCase);
-
-        foreach (var table in model.Tables)
-        {
-            if (table.VariantOf is not { Length: > 0 } set)
-                continue;
-
-            if (!sets.TryGetValue(set, out var members))
-                sets[set] = members = [];
-
-            members.Add(table);
-        }
-
-        foreach (var (set, members) in sets)
-            CheckVariantSurface(declarations, set, members, diagnostics);
-
-        foreach (var table in model.Tables)
-        {
-            foreach (var field in table.Fields)
-            {
-                // Exactly one name, because a set is named on its own: mixing it with other
-                // targets would be a list holding a list, and what that means for the
-                // discriminator is not something the notation says.
-                if (field.RefTableNames is not { Count: 1 } named)
-                    continue;
-
-                var declared = declarations.FindAbstract(named[0]);
-                if (declared is null)
-                    continue;
-
-                if (!sets.TryGetValue(declared.Name.ToPascalCase(), out var members))
-                {
-                    diagnostics.Error(field.DetailTypeLocation, Messages.Message.Of(
-                        CookingMessages.VariantSetHasNoTables,
-                        ("Table", table.Name), ("Field", field.Name), ("Set", declared.Name)));
-                    continue;
-                }
-
-                field.RefTableNames = members.Select(member => member.Name).ToList();
-                field.RefTableName = members.Count == 1 ? members[0].Name : null;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Checks that every table in a set carries the columns the set's abstract struct declares.
-    /// </summary>
-    /// <remarks>
-    /// This is the whole of what an abstract struct's members mean on the reference path: they
-    /// are the surface a consumer may read without knowing which variant it holds, so a table
-    /// missing one is a table that would break that promise for every column naming the set.
-    ///
-    /// A set whose struct declares no members promises nothing and is checked for nothing.
-    /// That is a real case - section 3 keeps it, because a set is worth naming for the list
-    /// alone.
-    /// </remarks>
-    private static void CheckVariantSurface(
-        Schema.SchemaDeclarations declarations,
-        string set,
-        List<Table> members,
-        Diagnostics diagnostics)
-    {
-        var declared = declarations.FindAbstract(set);
-        if (declared is null)
-            return;
-
-        foreach (var promised in declared.LiveFields)
-        {
-            foreach (var table in members)
-            {
-                var carried = table.Fields
-                    .FirstOrDefault(field => string.Equals(
-                        field.Name, promised.Name.ToPascalCase(),
-                        System.StringComparison.OrdinalIgnoreCase));
-
-                if (carried is null)
-                {
-                    diagnostics.Error(table.VariantOfLocation ?? table.Location,
-                        Messages.Message.Of(CookingMessages.VariantMissingSurface,
-                            ("Table", table.Name), ("Set", declared.Name),
-                            ("Member", promised.Name), ("Type", promised.Type.ToString())));
-
-                    continue;
-                }
-
-                if (SurfaceTypeOf(carried) is { Length: > 0 } written
-                    && !string.Equals(written, Promised(promised.Type),
-                        System.StringComparison.OrdinalIgnoreCase))
-                {
-                    diagnostics.Error(carried.TypeLocation,
-                        Messages.Message.Of(CookingMessages.VariantSurfaceTypeDiffers,
-                            ("Table", table.Name), ("Set", declared.Name),
-                            ("Member", promised.Name),
-                            ("Type", Promised(promised.Type)), ("Written", written)));
-                }
-            }
-        }
-    }
 
     /// <summary>
     /// What a set promises for one member, as a sheet would write it in a `:type` cell.
@@ -386,8 +236,8 @@ public partial class ModelCooker
     /// </remarks>
     private static string SurfaceTypeOf(Field field)
     {
-        if (field.RefTableNames is { Count: > 0 } targets)
-            return "foreign " + string.Join("|", targets.Select(name => name.ToPascalCase()));
+        if (field.RefTableName is { Length: > 0 } target)
+            return "foreign " + target.ToPascalCase();
 
         if (field.TypeName is not { Length: > 0 } written || written == "$Unresolved$")
             return "";
@@ -395,129 +245,7 @@ public partial class ModelCooker
         return written + (field.IsArray ? "[]" : "");
     }
 
-    private static void PromoteReferencedTablesToReferences(Model model)
-    {
-        foreach (var table in model.Tables)
-        {
-            // A member of a record group is promoted like any other column, whether it names
-            // one table or several: the generated element carries the key, the row it
-            // resolved to - or the slot and the discriminator where there is more than one
-            // target - and the linking that fills them.
-            // spec/references-in-records.md ~ spec/multi-target-accessors.md.
-            //
-            // One kind is still held back, and for a reason about names rather than targets.
-            // An anonymous level is reached by number, so a reference in one has no name to
-            // keep its key under - the same thing `ValidateRecordGroup` refuses for a column
-            // declared `foreign`. It cannot refuse this one: it runs while the groups are
-            // built, which is before this pass makes the column a reference at all.
-            // spec/references-in-records.md.
-            var heldBack = new HashSet<Field>(
-                table.SerialFields
-                    .Where(group => group.IsRecord && group.MembersAreAnonymous)
-                    .SelectMany(group => group.Leaves.SelectMany(member => member.Fields)));
 
-            foreach (var field in table.Fields)
-            {
-                if (heldBack.Contains(field))
-                    continue;
-
-                var named = field.Constraints.ReferencedTables;
-
-                // Already a reference by its own notation, or not one at all.
-                if (field.IsRef || named is null || named.Count == 0)
-                    continue;
-
-                if (named.Any(name => model.FindTable(name) is null))
-                    continue;
-
-                field.RefTableNames = named.ToList();
-
-                // One target is an ordinary reference and takes the path every `foreign`
-                // takes. Several is not one record, so it keeps carrying the key and the
-                // generated accessors answer per target.
-                if (named.Count == 1)
-                {
-                    field.RefTableName = named[0];
-                    field.RefFieldName = null;
-                    field.TypeName = "$Unresolved$";
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Declares, for every column reaching several tables, the enumeration that says which
-    /// of them a row's value is in.
-    /// </summary>
-    /// <remarks>
-    /// **In the model rather than in each generator.** Every generator already turns
-    /// <see cref="Model.Enums"/> into its language's enumeration, so declaring the type here
-    /// means every one of them emits it with no new code - and they all spell it and case it
-    /// the way they spell every other enumeration, which is what stops the same type being
-    /// named three ways across a project's languages.
-    ///
-    /// One per declaration rather than one per distinct target list. Lists do repeat - a
-    /// project's reward tables name the same sixteen catalogues from several columns - but
-    /// merging them would mean inventing a name for the list, and the name of a thing the
-    /// sheets did not declare is not this tool's to choose. A project that wants one
-    /// declares an enum and points its columns at that instead.
-    ///
-    /// spec/multi-target-accessors.md.
-    /// </remarks>
-    private static void DeclareMultiTargetDiscriminators(Model model, Diagnostics diagnostics)
-    {
-        // Snapshotted, because the loop adds to the list it would otherwise be walking.
-        var tables = model.Tables.ToList();
-
-        foreach (var table in tables)
-        {
-            // A record group's member first, because its columns are one member: an array of
-            // records spreads it over a column per element, and those elements share the
-            // question "which table is this one in". Named after the member rather than the
-            // column, or a group of two elements would declare two types for one member.
-            // spec/multi-target-accessors.md.
-            foreach (var group in table.SerialFields.Where(g => g.IsRecord))
-            {
-                foreach (var (path, leaf) in LeavesWithPath(group))
-                {
-                    var columns = leaf.Fields
-                                      .Where(f => f.ResolvedRefTables is { Count: > 1 })
-                                      .ToList();
-
-                    if (columns.Count == 0)
-                        continue;
-
-                    string memberName = table.Name.ToPascalCase()
-                        + group.Name.ToPascalCase()
-                        + string.Concat(path.Select(part => part.ToPascalCase()))
-                        + "Target";
-
-                    var shared = DeclareDiscriminator(
-                        model, table, columns[0], memberName, diagnostics);
-
-                    if (shared is null)
-                        continue;
-
-                    // Every element of the member points at the one type.
-                    foreach (var column in columns)
-                        column.MultiTargetEnum = shared;
-                }
-            }
-
-            foreach (var field in table.Fields)
-            {
-                if (field.ResolvedRefTables is not { Count: > 1 } || field.MultiTargetEnum is not null)
-                    continue;
-
-                string name = $"{table.Name.ToPascalCase()}{field.Name.ToPascalCase()}Target";
-
-                var declared = DeclareDiscriminator(model, table, field, name, diagnostics);
-
-                if (declared is not null)
-                    field.MultiTargetEnum = declared;
-            }
-        }
-    }
 
     /// <summary>
     /// Every leaf of a record group, with the member names that reach it.
@@ -555,66 +283,6 @@ public partial class ModelCooker
             yield return found;
     }
 
-    /// <summary>
-    /// The enumeration for one declaration, or null when the name is taken.
-    /// </summary>
-    private static Models.Enum? DeclareDiscriminator(
-        Model model, Table table, Field field, string name, Diagnostics diagnostics)
-    {
-        // A sheet may already have declared this name, and then two different types
-        // would be generated under it. Reported rather than renamed: a name this
-        // tool made up silently is one nobody can search for.
-        if (model.Enums.Exists(existing => existing.Name == name))
-        {
-            diagnostics.Error(field.DetailTypeLocation,
-                Messages.Message.Of(CookingMessages.MultiTargetEnumNameTaken,
-                    ("Table", table.Name), ("Field", field.Name), ("Enum", name)));
-            return null;
-        }
-
-        var discriminator = new Models.Enum
-        {
-            Location = field.DetailTypeLocation ?? field.NameLocation,
-            TargetSide = table.TargetSide,
-            RawName = name,
-            Name = name,
-            Synthesized = true,
-            Comment =
-                $"Which table `{table.Name}.{field.Name}` points at. "
-                + "The column carries one id and the tables it may be a row of take "
-                + "separate id bands, so exactly one of them answers.",
-        };
-
-        // Zero is "points at nothing", which is what a column with no value holds and
-        // what a key found in none of the targets leaves behind. Every other
-        // enumeration in the model has a zero for the same reason.
-        discriminator.Labels.Add(new Models.Enum.Label
-        {
-            RawName = "None",
-            Name = "None",
-            Value = 0,
-            Synthesized = true,
-            Location = discriminator.Location,
-            Comment = "No row of any of them.",
-        });
-
-        int value = 1;
-        foreach (var target in field.ResolvedRefTables!)
-        {
-            discriminator.Labels.Add(new Models.Enum.Label
-            {
-                RawName = target.Name,
-                Name = target.Name.ToPascalCase(),
-                Value = value++,
-                Synthesized = true,
-                Location = discriminator.Location,
-                Comment = $"A row of `{target.Name}`.",
-            });
-        }
-
-        model.Enums.Add(discriminator);
-        return discriminator;
-    }
 
     /// <summary>
     /// Turns every reference cell into a value of the key its target is addressed by, now
@@ -643,7 +311,7 @@ public partial class ModelCooker
             foreach (var field in table.Fields)
             {
                 bool resolved = (field.IsRef && field.ResolvedRefTable is not null)
-                    || field.ResolvedRefTables is not null;
+                    ;
 
                 if (!resolved)
                     continue;
@@ -720,12 +388,7 @@ public partial class ModelCooker
         Table table, Field field, Cell cell, string written,
         TabbitException problem, Diagnostics diagnostics)
     {
-        // Every target, not the resolved one: a column naming several has no single resolved
-        // table, and reading the singular here dereferenced null the moment such a column held
-        // a key it could not parse.
-        string targets = field.ResolvedRefTables is not null
-            ? string.Join("`, `", field.ResolvedRefTables.Select(t => t.Name))
-            : field.ResolvedRefTable!.Name;
+        string targets = field.ResolvedRefTable!.Name;
 
         // `Detail` is the caught parser's own message. The frame around it is translatable;
         // what it quotes stays as it arrived.

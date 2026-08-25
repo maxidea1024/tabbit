@@ -16,7 +16,8 @@ namespace Tabbit.Tests;
 /// A constraint and not a reference: the value stays the number it was, nothing is resolved,
 /// and no generated code learns the column has this on it. What a sheet is saying is
 /// "whatever id this holds, one of these tables has a row for it", and the whole of honouring
-/// that is looking.
+/// that is looking. `refs=` says the same thing in the core notation.
+/// spec/reference-surface-naming.md section 6.
 ///
 /// Built as grids rather than workbooks because what is under test is a layout's own rules
 /// plus the check that reads them. Two tables on one sheet, which this layout allows.
@@ -115,13 +116,6 @@ public class ReferencedTableTests
             new[] { "key", "number" },
             new[] { linkRow, targets },
         }.Concat(values.Select((value, at) => new[] { (at + 1).ToString(), value })).ToArray());
-
-    /// <summary>Runs the promotion pass the cooker runs before resolution.</summary>
-    private static void Promote(Model model)
-        => typeof(ModelCooker)
-            .GetMethod("PromoteReferencedTablesToReferences",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
-            .Invoke(null, new object[] { model });
 
     private static List<(Severity Severity, TabbitException.Detail Detail)> Check(Model model)
     {
@@ -304,103 +298,22 @@ public class ReferencedTableTests
     }
 
     /// <summary>
-    /// A column naming one table that this build has becomes a reference.
+    /// Two targets holding the same id passes, because the question is not which one.
     /// </summary>
     /// <remarks>
-    /// The declaration always said what a reference says - this value is a row of that table
-    /// - and the project it comes from stops at checking only because it has no code
-    /// generation. This one does, so the column gets the record accessor its declaration was
-    /// describing. spec/multi-target-references.md.
+    /// The check asks whether the value is an id of one of the named tables. Nothing narrows
+    /// it to a row, so nothing has to choose between two tables that both hold it - and a
+    /// project that wants ids kept apart is stating a rule of its own.
+    /// spec/reference-surface-naming.md section 6.
     /// </remarks>
     [Fact]
-    public void One_named_table_makes_the_column_a_reference()
-    {
-        var model = ParseModel(
-            Catalogue("Weapon", "10", "11"),
-            Holder(":links", "\"Weapon\"", "10", "11"));
-
-        Promote(model);
-
-        var field = model.FindTable("Holder").Fields[1];
-
-        Assert.True(field.IsRef);
-        Assert.Equal("Weapon", field.RefTableName);
-        Assert.False(field.IsMultiRef);
-    }
-
-    /// <summary>
-    /// Several tables leave it carrying the key instead.
-    /// </summary>
-    /// <remarks>
-    /// Not one record, so not a `ForeignRecord` - which is how "does not resolve to one row"
-    /// is said without inventing a third state for the resolved table. `IsRef` keeps meaning
-    /// "exactly one", and the hundred and sixty places that read it are untouched.
-    /// </remarks>
-    [Fact]
-    public void Several_named_tables_leave_the_column_carrying_the_key()
-    {
-        var model = ParseModel(
-            Catalogue("Weapon", "10"),
-            Catalogue("Armour", "20"),
-            Holder(":links", "\"Weapon\",\n\"Armour\"", "10", "20"));
-
-        Promote(model);
-
-        var field = model.FindTable("Holder").Fields[1];
-
-        Assert.True(field.IsMultiRef);
-        Assert.False(field.IsRef);
-        Assert.Null(field.RefTableName);
-    }
-
-    /// <summary>
-    /// A column naming a table this build lacks is not promoted, and keeps its check.
-    /// </summary>
-    /// <remarks>
-    /// Generated code for a reference names the target's type, so promoting one whose target
-    /// is absent would emit code that cannot compile. Those columns stay an id with a check
-    /// on it, which is what this file's other tests cover.
-    /// </remarks>
-    [Fact]
-    public void A_column_whose_target_is_absent_is_not_promoted()
-    {
-        var model = ParseModel(
-            Catalogue("Weapon", "10"),
-            Holder(":links", "\"Armour\"", "10"));
-
-        Promote(model);
-
-        var field = model.FindTable("Holder").Fields[1];
-
-        Assert.False(field.IsRef);
-        Assert.False(field.IsMultiRef);
-    }
-
-    /// <summary>
-    /// Two targets holding the same id is reported.
-    /// </summary>
-    /// <remarks>
-    /// One accessor per target is usable because exactly one of them ever answers, and that
-    /// is a property of the data rather than of the declaration - true of the live sheets,
-    /// where 58 declarations over 94,748 rows share no id at all. Checked rather than
-    /// assumed, so the day it stops being true it is a finding and not a silent ambiguity.
-    /// </remarks>
-    [Fact]
-    public void Targets_sharing_an_id_are_reported()
+    public void Targets_sharing_an_id_are_not_a_finding()
     {
         var model = ParseModel(
             Catalogue("Weapon", "10", "11"),
             Catalogue("Armour", "11", "12"),
             Holder(":links", "\"Weapon\",\n\"Armour\"", "10"));
 
-        var reported = Check(model);
-
-        var overlap = Assert.Single(
-            reported, entry => entry.Detail.Message.Contains("both hold"));
-
-        Assert.Equal(Tabbit.Cooking.CookingMessages.MultiTargetIdOverlap, overlap.Detail.MessageId);
-        Assert.Contains("Weapon", overlap.Detail.Message);
-        Assert.Contains("Armour", overlap.Detail.Message);
-        Assert.Contains("11", overlap.Detail.Message);
+        Assert.Empty(Check(model));
     }
 }

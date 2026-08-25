@@ -266,7 +266,6 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                     reader: true,
                     headers: new[] { ForwardHeader }
                         .Concat(TypeDependencies.EnumsNamedBy(pair.model)
-                                .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
                                 .Select(EnumHeaderFor))),
                 Forwards = Array.Empty<string>(),
                 ExternC = true,
@@ -505,9 +504,6 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
-        MultiReferences = MultiTargetColumns.Of(table)
-                                            .Select(column => BuildMultiReference(table, column))
-                                            .ToList(),
 
         // Only the scalars. An array is a pointer now, so a column the file does not carry
         // leaves it NULL with a count of zero - which is an empty array rather than a row of
@@ -636,32 +632,6 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             _ => "!= 0",
         };
 
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    private CMultiReferenceView BuildMultiReference(Table table, MultiTargetColumn column)
-        => new CMultiReferenceView
-        {
-            KeyMember = CName(column.Group.Name),
-            SlotMember = CName(column.Group.Name + "Row"),
-            TargetMember = CName(column.Group.Name + "Target"),
-            TargetTypeName = EnumName(column.Discriminator),
-            NoneLabel = ConstantName(column.Discriminator.Name, "None"),
-
-            // The string case names the key twice - C has no truthiness - so the suffix
-            // carries the member rather than being appended blindly.
-            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType)
-                .Replace("$KEY$", CName(column.Group.Name)),
-            Targets = column.Targets.Select(target => new CMultiTargetView
-            {
-                Table = CName(target.Name),
-                RecordName = RecordName(target),
-                Function = FunctionPrefix(table)
-                    + (target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()).ToPascalCase(),
-                Label = ConstantName(column.Discriminator.Name, target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
 
     /// <summary>
     /// Members of one level of a record, declaring a struct for each member that is itself a
@@ -694,7 +664,6 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                     // same wire, and only which of the two owns it differs. A fixed length, so
                     // it is the member's own storage and nothing frees it.
                     Declaration = MemberDeclaration(member),
-                    Multi = MultiMemberOrNull(member, prefix, ownerPath),
                 });
 
                 continue;
@@ -709,7 +678,6 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
             declared.Add(new CRecordTypeView
             {
-                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -741,7 +709,6 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         {
             recordTypes.Add(new CRecordTypeView
             {
-                MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = RecordEntryName(table, sf),
                 Members = members,
                 IsOutermost = true,
@@ -1361,21 +1328,10 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                                     .Select(BuildRecordReference)
                                     .ToList(),
 
-                // A column reaching several tables is looked up in each of them in turn, so it
-                // is a loop of its own too. spec/multi-target-accessors.md.
-                MultiFields = MultiTargetColumns.Of(table)
-                                                .Select(column => BuildMultiReference(table, column))
-                                                .ToList(),
 
-                // One of those that is a member of a record resolves per element, so it is a
-                // loop of its own. spec/multi-target-accessors.md.
-                MultiRecordFields = table.WireColumns
-                                         .Where(IsMultiTargetMember)
-                                         .Select(BuildMultiRecordReference)
-                                         .ToList(),
             })
             .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                         )
             .Select(x => new CCrossReferenceView
             {
                 Table = CName(x.Table.Name),
@@ -1383,8 +1339,6 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 RecordName = RecordName(x.Table),
                 Fields = x.Fields.Select(BuildReferenceField).ToList(),
                 RecordFields = x.RecordFields,
-                MultiFields = x.MultiFields,
-                MultiRecordFields = x.MultiRecordFields,
             })
             .ToList(),
     };
@@ -1535,119 +1489,11 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         string type = ScalarTypeName(member.ElementType, member.FirstField!.EnumOrNull);
 
-        // A member reaching several tables keeps its key and gains two more: one slot for the
-        // resolved row whatever table it came from, and the discriminator saying which. On one
-        // line, as the reference member above has it. spec/multi-target-accessors.md.
-        if (member.FirstField is { IsMultiRef: true, MultiTargetEnum: not null } multi)
-        {
-            string enumType = EnumName(multi.MultiTargetEnum!);
-
-            return member.IsArray
-                ? $"{type}* {name}; const void** {name}_row; "
-                  + $"{enumType}* {name}_target; int32_t {name}_count;"
-                : $"{type} {name}; const void* {name}_row; {enumType} {name}_target;";
-        }
-
         return member.IsArray
             ? $"{type}* {name}; int32_t {name}_count;"
             : $"{type} {name};";
     }
 
-    /// <summary>
-    /// The slot and the discriminator of a record member reaching several tables, or null when
-    /// the member reaches one table or none.
-    /// </summary>
-    /// <remarks>
-    /// The struct tag is passed in: the view has flattened the nesting by the time this runs,
-    /// and that tag carries the whole path - which it has to, because this language has one
-    /// namespace for struct tags. spec/multi-target-accessors.md.
-    /// </remarks>
-    private CMultiMemberView? MultiMemberOrNull(
-        RecordMember member, string elementTypeName, string ownerPath)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return null;
-
-        string name = CName(member.Name);
-        var discriminator = field.MultiTargetEnum!;
-
-        // The function name carries the group's path as well as the table's, for the reason the
-        // struct tag does: every generated function shares one namespace.
-        string prefix = $"{Prefix}_{ownerPath}";
-
-        return new CMultiMemberView
-        {
-            KeyMember = name,
-            SlotMember = name + "_row",
-            TargetMember = name + "_target",
-            TargetTypeName = EnumName(discriminator),
-            ElementTypeName = elementTypeName,
-            IsArray = member.IsArray,
-            Targets = field.ResolvedRefTables!.Select(target => new CMultiTargetView
-            {
-                Table = CName(target.Name),
-                RecordName = RecordName(target),
-                Function = prefix + target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase(),
-                Label = ConstantName(discriminator.Name, target.Name),
-                Lookup = "",
-            }).ToList(),
-        };
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Which of the three record shapes this is decides where the element number sits, exactly
-    /// as it does for a single-target member. spec/references-in-records.md.
-    /// </remarks>
-    private CMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string name = CName(wire.Group.Name);
-        string member = string.Concat(wire.MemberPath.Select(part => "." + CName(part)));
-        var field = wire.TagCarrier;
-
-        var (path, subscript) = MemberPlace(wire, name, member, "element");
-
-        return new CMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "_row" + subscript,
-            Target = path + "_target" + subscript,
-
-            // Whichever array holds the elements, counted the way the single-target member is.
-            Count = !wire.IsArray
-                ? ""
-                : wire.Group.MembersAreArrays
-                    ? $"record->{name}{member}_count"
-                    : $"record->{name}_count",
-
-            NoneLabel = ConstantName(field.MultiTargetEnum!.Name, "None"),
-
-            // The whole condition rather than a suffix. The row-level one is written against
-            // `record->key`, and the string case names that key twice - C has no truthiness -
-            // so a member's longer path has to be substituted into both halves.
-            KeyIsSet = wire.RefKeyType == ValueType.String
-                ? $"{path}{subscript} != NULL && {path}{subscript}[0] != 0"
-                : $"{path}{subscript} != 0",
-            Targets = field.ResolvedRefTables!.Select(target => new CMultiTargetView
-            {
-                Table = CName(target.Name),
-                RecordName = RecordName(target),
-                Function = "",
-                Label = ConstantName(field.MultiTargetEnum!.Name, target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
 
     private string ScalarTypeName(ValueType type, Models.Enum? enumm)
     {

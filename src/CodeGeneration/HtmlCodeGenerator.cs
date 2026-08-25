@@ -244,7 +244,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 if (field.EnumOrNull is not null)
                     Add(_enumUsers, field.Enum.Name, field);
 
-                if (!PointsAtTable(field))
+                if (!field.IsRef)
                     continue;
 
                 // Every declared target, not just the resolved one: a multi-target
@@ -414,28 +414,11 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
     private static IEnumerable<string> RefTargetsOf(Models.Field field)
     {
-        if (field.RefTableNames is { Count: > 0 })
-            return field.RefTableNames;
-
         return field.RefTableName is null
             ? Array.Empty<string>()
             : new[] { field.RefTableName };
     }
 
-    /// <summary>
-    /// Whether this column points at another table at all - one target or several.
-    /// </summary>
-    /// <remarks>
-    /// <see cref="Models.Field.IsRef"/> answers a narrower question by design: it means
-    /// "resolves to exactly one record", and a column naming several tables must not claim
-    /// that. Every page here wants the wider question - a column with several targets is
-    /// still a column that points somewhere, and the reader is still owed the link.
-    ///
-    /// Asking the narrow one at these sites is why such a column rendered as a plain
-    /// number: the pages had the rendering for several targets all along and never reached
-    /// it. spec/multi-target-accessors.md.
-    /// </remarks>
-    private static bool PointsAtTable(Models.Field field) => field.IsRef || field.IsMultiRef;
 
     /// <summary>
     /// Every table a column's values may be a row of - resolved reference or sheet
@@ -449,7 +432,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// </remarks>
     private static List<string> NamedTablesOf(Models.Field field)
     {
-        if (PointsAtTable(field))
+        if (field.IsRef)
             return RefTargetsOf(field).Distinct(StringComparer.Ordinal).ToList();
 
         return field.Constraints.ReferencedTables is { Count: > 0 } declared
@@ -561,7 +544,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         foreach (var table in _model.Tables)
         {
-            foreach (var field in table.Fields.Where(PointsAtTable))
+            foreach (var field in table.Fields.Where(f => f.IsRef))
             {
                 foreach (var target in RefTargetsOf(field))
                 {
@@ -1363,13 +1346,13 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         return Bars(new[]
         {
-            (Name: "참조", Count: fields.Count(PointsAtTable)),
+            (Name: "참조", Count: fields.Count(f => f.IsRef)),
             (Name: "배열", Count: fields.Count(f => f.IsArray)),
             (Name: "옵셔널", Count: fields.Count(f => !f.IsRequired)),
             (Name: "레코드 멤버", Count: fields.Count(f => f.IsRecordMember)),
             (Name: "번역 문자열", Count: fields.Count(f => f.Role == StringRole.Text)),
             (Name: "애셋 경로", Count: fields.Count(f => f.Role == StringRole.Asset)),
-            (Name: "그 밖", Count: fields.Count(f => !PointsAtTable(f) && !f.IsArray && f.IsRequired
+            (Name: "그 밖", Count: fields.Count(f => !f.IsRef && !f.IsArray && f.IsRequired
                                                      && !f.IsRecordMember && f.Role == StringRole.None)),
         });
     }
@@ -1949,7 +1932,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                    $"<code>{content}</code></td>";
         }
 
-        if (PointsAtTable(field))
+        if (field.IsRef)
             return $"<td class=\"key\"><code>{content}</code></td>";
 
         // How many elements, outside whatever gets clipped, because the count is the thing
@@ -2042,21 +2025,6 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     private string TypeMarkup(Models.Field field, string root)
     {
         // Several targets, so the column's type is the key it carries and the arrow names
-        // every table that key may be a row of. Not one of them: which one holds the row is
-        // a question about the value rather than about the column, and the value cell is
-        // where that gets answered. spec/multi-target-accessors.md.
-        if (field.IsMultiRef)
-        {
-            var links = RefTargetsOf(field).Select(name =>
-                _model.FindTable(name) is not null
-                    ? $"<a href=\"{HtmlLinks.Table(name, root)}\" title=\"{Esc(name)} 참조\">{Esc(name)}</a>"
-                    : $"<span class=\"flag\" title=\"{Esc(name)} 참조\">{Esc(name)}</span>");
-
-            return $"<span class=\"type\">{Esc(field.TypeName)}" +
-                   $"{(field.IsArray ? "[]" : "")}{Optional(field)}</span> " +
-                   $"<span class=\"hint\">&#x2192; " +
-                   $"{string.Join(" <span class=\"sep\">&middot;</span> ", links)}</span>";
-        }
 
         if (field.IsRef)
         {
@@ -2142,7 +2110,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     {
         // Nothing to add where the column is a reference: the type cell already names what
         // it points at, and for several targets it names all of them.
-        if (PointsAtTable(field) || field.Constraints.ReferencedTables is not { Count: > 0 } named)
+        if (field.IsRef || field.Constraints.ReferencedTables is not { Count: > 0 } named)
             return "";
 
         var parts = named.Select(name => _model.FindTable(name) is not null
@@ -2266,10 +2234,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         if (targets.Count == 1)
         {
             return $"<a href=\"{RowHref(targets[0], key, root)}\" " +
-                   $"data-ref=\"{Esc(targets[0])}\" data-key=\"{Esc(key)}\">{Esc(key)}</a>" +
-                   (field.IsMultiRef
-                       ? $" <span class=\"hint\">&#x2192; {Esc(targets[0])}</span>"
-                       : "");
+                   $"data-ref=\"{Esc(targets[0])}\" data-key=\"{Esc(key)}\">{Esc(key)}</a>";
         }
 
         var choices = targets.Select(name =>

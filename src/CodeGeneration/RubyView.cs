@@ -99,11 +99,6 @@ internal sealed class RubyTableView
     /// <summary>The `attr_accessor` list, already as symbols and comma separated.</summary>
     public required string AccessorNames { get; set; }
 
-    /// <summary>
-    /// The columns whose value is a row of one of several tables.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<RubyMultiReferenceView> MultiReferences { get; set; }
 
     public required IReadOnlyList<RubyFieldView> Fields { get; set; }
 
@@ -215,38 +210,8 @@ internal sealed class RubyRecordMemberView
     /// <summary>The constructor assignment, `@x = 0.0`.</summary>
     public required IReadOnlyList<string> Initializers { get; set; }
 
-    /// <summary>
-    /// The slot and the discriminator of a member reaching several tables, so the methods can
-    /// be written on the element class. Null for every other member.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public RubyMultiMemberView? Multi { get; set; }
 }
 
-/// <summary>
-/// One record member whose value is a row of one of several tables.
-/// </summary>
-/// <remarks>
-/// The member keeps the key it already carried; beside it go one slot for the resolved row and
-/// the discriminator saying which table filled it, at the member's own arity.
-/// spec/multi-target-accessors.md.
-/// </remarks>
-internal sealed class RubyMultiMemberView
-{
-    /// <summary>The key, the slot and the discriminator, by instance variable.</summary>
-    public required string KeyMember { get; set; }
-    public required string SlotMember { get; set; }
-    public required string TargetMember { get; set; }
-
-    /// <summary>The generated enumeration's type name, and its `None` label.</summary>
-    public required string TargetTypeName { get; set; }
-    public required string NoneLabel { get; set; }
-
-    /// <summary>Whether the member is the array, so a method takes an element number.</summary>
-    public required bool IsArray { get; set; }
-
-    public required IReadOnlyList<RubyMultiTargetView> Targets { get; set; }
-}
 
 /// <summary>
 /// One generated class of a record group - the group's own element type, or a level below it.
@@ -262,12 +227,6 @@ internal sealed class RubyMultiMemberView
 /// </remarks>
 internal sealed class RubyRecordTypeView
 {
-    /// <summary>
-    /// Those of its members that reach several tables, for the methods written on the class.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public IReadOnlyList<RubyMultiMemberView> MultiMembers { get; set; }
-        = System.Array.Empty<RubyMultiMemberView>();
 
     /// <summary>Name of the class.</summary>
     public required string TypeName { get; set; }
@@ -417,62 +376,9 @@ internal sealed class RubyCrossReferenceView
     /// </summary>
     public required IReadOnlyList<RubyRecordReferenceView> RecordFields { get; set; }
 
-    /// <summary>
-    /// The columns reaching several tables, which resolve by trying each in turn.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<RubyMultiReferenceView> MultiFields { get; set; }
 
-    /// <summary>
-    /// The columns reaching several tables that are members of a record, which resolve per
-    /// element. spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<RubyMultiRecordReferenceView> MultiRecordFields { get; set; }
 }
 
-/// <summary>
-/// One column whose value is a row of one of several tables.
-/// </summary>
-/// <remarks>
-/// One attribute for the resolved row whatever table it came from, and the discriminator
-/// saying which. spec/multi-target-accessors.md.
-/// </remarks>
-internal sealed class RubyMultiReferenceView
-{
-    /// <summary>The attribute holding the key.</summary>
-    public required string KeyMember { get; set; }
-
-    /// <summary>The attribute the resolved row lands in, and the discriminator beside it.</summary>
-    public required string SlotMember { get; set; }
-    public required string TargetMember { get; set; }
-
-    /// <summary>The generated module's name, which qualifies the labels.</summary>
-    public required string TargetTypeName { get; set; }
-
-    /// <summary>The label standing for "no row of any of them".</summary>
-    public required string NoneLabel { get; set; }
-
-    /// <summary>What follows the key to ask whether it points anywhere.</summary>
-    public required string KeyIsSet { get; set; }
-
-    public required IReadOnlyList<RubyMultiTargetView> Targets { get; set; }
-}
-
-/// <summary>One table a multi-target column may point at.</summary>
-internal sealed class RubyMultiTargetView
-{
-    /// <summary>The accessor's local name for the table.</summary>
-    public required string Table { get; set; }
-
-    /// <summary>The method this target is read through.</summary>
-    public required string Method { get; set; }
-
-    /// <summary>The label for this target.</summary>
-    public required string Label { get; set; }
-
-    /// <summary>The target's lookup, which answers nil rather than raising.</summary>
-    public required string Lookup { get; set; }
-}
 
 /// <summary>
 /// One reference that is a member of a record, as the linking pass writes it.
@@ -512,30 +418,3 @@ internal sealed class RubyReferenceFieldView
     public required bool IsArray { get; set; }
 }
 
-/// <summary>
-/// One multi-target column that is a member of a record, as the linking pass writes it.
-/// </summary>
-internal sealed class RubyMultiRecordReferenceView
-{
-    /// <summary>The key this resolves through, loop variable included.</summary>
-    public required string Key { get; set; }
-
-    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
-    public required string Slot { get; set; }
-    public required string Target { get; set; }
-
-    /// <summary>
-    /// What the loop walks, or empty where the group is one record and there is nothing to
-    /// walk.
-    /// </summary>
-    public required string Range { get; set; }
-
-    /// <summary>The generated enumeration's type name, and its `None` label.</summary>
-    public required string TargetTypeName { get; set; }
-    public required string NoneLabel { get; set; }
-
-    /// <summary>What follows the key to ask whether it points anywhere.</summary>
-    public required string KeyIsSet { get; set; }
-
-    public required IReadOnlyList<RubyMultiTargetView> Targets { get; set; }
-}

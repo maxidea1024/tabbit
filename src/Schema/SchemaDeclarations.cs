@@ -387,12 +387,8 @@ public sealed class SchemaDeclarations
 
             string name = declared.Name.ToPascalCase();
 
-            if (VariantsOf(name).Count > 0
-                || model.Tables.Any(table => string.Equals(
-                    table.VariantOf, name, System.StringComparison.OrdinalIgnoreCase)))
-            {
+            if (VariantsOf(name).Count > 0)
                 continue;
-            }
 
             diagnostics.Error(declared.Location, Message.Of(
                 SchemaMessages.AbstractWithoutVariants, ("Struct", declared.Name)));
