@@ -94,8 +94,13 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// settles - a polymorphic record's discriminator, a map's key column, a variant's packed
     /// value - and holding the name now means those specs do not have to choose a spelling
     /// around whatever a sheet happened to use in the meantime.
+    ///
+    /// **`$` rather than `:`, and judged at the path's last step.** `:type` is already a header
+    /// row key, so one word would have named two unrelated places; and the discriminator of a
+    /// group is written on that group's path - `effect.$type` - which the whole-name comparison
+    /// this used to make never saw. spec/primary-layout.md section 2.
     /// </remarks>
-    private static readonly string[] ReservedColumnNames = [":type", ":key", ":value"];
+    private static readonly string[] ReservedColumnNames = ["$type", "$key", "$value"];
 
     /// <summary>The columns of an enum, by the name written in `:field`.</summary>
     private const string EnumColumnLabel = "label";
@@ -808,14 +813,6 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 continue;
             }
 
-            if (ReservedColumnNames.Contains(written, StringComparer.OrdinalIgnoreCase))
-            {
-                throw new TabbitException(cell.Location,
-                    Message.Of(TabbitLayoutMessages.ReservedColumnNotYetSupported,
-                        ("Entity", block.Name), ("Column", written),
-                        ("Reserved", string.Join(" · ", ReservedColumnNames))));
-            }
-
             var header = new ColumnHeader { Column = column, NameCell = cell };
 
             if (written.StartsWith(OmitMark, StringComparison.Ordinal)
@@ -831,6 +828,14 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
             header.Written = written;
 
+            if (ReservedName(written) is { } reserved)
+            {
+                throw new TabbitException(cell.Location,
+                    Message.Of(TabbitLayoutMessages.ReservedColumnNotYetSupported,
+                        ("Entity", block.Name), ("Column", written), ("Name", reserved),
+                        ("Reserved", string.Join(" · ", ReservedColumnNames))));
+            }
+
             if (header.IsTombstone)
             {
                 headers.Add(header);
@@ -845,6 +850,31 @@ public sealed class TabbitLayoutParser : ILayoutParser
         MarkFirstOfEachGroup(headers);
 
         return headers;
+    }
+
+    /// <summary>
+    /// The reserved name this column ends in, or null.
+    /// </summary>
+    /// <remarks>
+    /// The last step of the path and nothing above it: `effect.$type` is the discriminator of
+    /// `effect`, and a group two levels down writes `rig.core.$type`. Brackets come off first
+    /// because an element of a polymorphic array is `effects[].$type`.
+    /// spec/polymorphism.md section 5.2.
+    /// </remarks>
+    private static string? ReservedName(string written)
+    {
+        int dot = written.LastIndexOf('.');
+        string tail = (dot < 0) ? written : written.Substring(dot + 1);
+
+        int open = tail.IndexOf('[');
+
+        if (open >= 0)
+            tail = tail.Substring(0, open);
+
+        tail = tail.Trim();
+
+        return ReservedColumnNames.FirstOrDefault(
+            name => string.Equals(name, tail, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

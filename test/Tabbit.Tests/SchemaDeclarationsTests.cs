@@ -418,6 +418,28 @@ public class SchemaDeclarationsTests
     }
 
     /// <summary>
+    /// And the same set written the other way round, which is the order that used to pass.
+    /// </summary>
+    /// <remarks>
+    /// The check read the first variant to decide whether the set was numbered, so a set whose
+    /// first variant carries no number was taken for an unnumbered set - and the numbers on the
+    /// rest went unexamined. That is the order that collides: `DamageEffect` takes 1 from its
+    /// position and `HealEffect` takes 1 from its `@1`, and both are 1.
+    /// spec/polymorphism.md section 5.1.1.
+    /// </remarks>
+    [Fact]
+    public void A_set_whose_first_variant_carries_no_number_is_refused_too()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            struct DamageEffect extends Effect
+            struct HealEffect extends Effect @1
+            """);
+
+        Assert.Contains("Number all of them or none", reported);
+    }
+
+    /// <summary>
     /// Value embedding is stage 4 of the spec. The notation for the declaration is settled, so
     /// the refusal names what is missing and where the reference path reaches the same
     /// variants.

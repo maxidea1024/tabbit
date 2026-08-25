@@ -1702,9 +1702,9 @@ public class TabbitLayoutTests
     #region Reserved columns - section 7
 
     [Theory]
-    [InlineData(":type")]
-    [InlineData(":key")]
-    [InlineData(":value")]
+    [InlineData("$type")]
+    [InlineData("$key")]
+    [InlineData("$value")]
     public void A_reserved_column_name_is_refused_by_name(string reserved)
     {
         // Held rather than left undefined. Each of the three is a notation a later spec settles,
@@ -1717,6 +1717,53 @@ public class TabbitLayoutTests
             ["", "1", "x"]));
 
         Assert.Contains(reserved, problem.Message);
+    }
+
+    /// <summary>
+    /// A reserved name is judged at the path's last step, not on the whole column name.
+    /// </summary>
+    /// <remarks>
+    /// The discriminator of a group is written on that group's path - `effect.$type` - which is
+    /// the form the spec's own examples use, and a whole-name comparison never saw it. Two
+    /// levels down and one element of an array are the same judgment.
+    /// spec/polymorphism.md section 5.2.
+    /// </remarks>
+    [Theory]
+    [InlineData("effect.$type")]
+    [InlineData("rig.core.$type")]
+    [InlineData("effects[].$type")]
+    [InlineData("prices.$key")]
+    public void A_reserved_name_on_a_path_is_refused_too(string written)
+    {
+        var problem = Refuses(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", written],
+            [":type", "int", "string"],
+            ["", "1", "x"]));
+
+        Assert.Contains(written, problem.Message);
+    }
+
+    /// <summary>
+    /// And a name that merely holds one of those words is not reserved.
+    /// </summary>
+    /// <remarks>
+    /// The judgment is the whole last step, so a member actually called `subtype` keeps
+    /// working - reserving a substring would take names the sheets already use.
+    /// </remarks>
+    [Theory]
+    [InlineData("subtype")]
+    [InlineData("typeName")]
+    [InlineData("effect.subtype")]
+    public void A_name_that_only_contains_a_reserved_word_is_not_reserved(string written)
+    {
+        var model = Cook(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", written],
+            [":type", "int", "string"],
+            ["", "1", "x"]));
+
+        Assert.Single(model.Tables);
     }
 
     #endregion

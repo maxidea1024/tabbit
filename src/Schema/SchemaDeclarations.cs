@@ -208,7 +208,12 @@ public sealed class SchemaDeclarations
     private static void CheckVariantTags(
         string baseName, List<SchemaStruct> set, Diagnostics diagnostics)
     {
-        bool numbered = set.Count > 0 && set[0].VariantTag > 0;
+        // Any number at all makes the set a numbered one - not the first variant's. Reading
+        // only the first took a set whose first variant carried no number for an unnumbered
+        // set and left the rest unexamined, and that is the order that collides: the untagged
+        // one takes 1 from its position while a tagged sibling takes 1 from its `@1`.
+        // spec/polymorphism.md section 5.1.1.
+        bool numbered = set.Any(variant => variant.VariantTag > 0);
 
         if (numbered)
         {

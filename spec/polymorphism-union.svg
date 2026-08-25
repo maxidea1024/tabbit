@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="978" height="150" viewBox="0 0 978 150" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>다형 레코드 — 컬럼의 합집합</title>
+<rect x="0" y="0" width="599.625" height="142" fill="#FFFFFF"/>
+<rect x="0" y="0" width="598.625" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="142" fill="#E9ECEF"/>
+<rect x="30" y="22" width="568.625" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="568.625" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="568.625" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="122.375" y1="22" x2="122.375" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="174.375" y1="22" x2="174.375" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="276.125" y1="22" x2="276.125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="383.625" y1="22" x2="383.625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="491.125" y1="22" x2="491.125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="598.625" y1="22" x2="598.625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="598.625" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="598.625" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="598.625" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="598.625" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="598.625" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="598.625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="598.625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="122.375" y1="0" x2="122.375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="174.375" y1="0" x2="174.375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="276.125" y1="0" x2="276.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="383.625" y1="0" x2="383.625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="491.125" y1="0" x2="491.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="598.625" y1="0" x2="598.625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="598.125" height="141.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="76.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="148.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="225.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="329.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="437.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="544.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">F</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Skill</text>
+<text x="129.375" y="38.5" font-size="12.5" fill="#1F2328">스킬과 그 효과입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="129.375" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="181.375" y="62.5" font-size="12.5" fill="#1F2328">effect.$type</text>
+<text x="283.125" y="62.5" font-size="12.5" fill="#1F2328">effect.chance</text>
+<text x="390.625" y="62.5" font-size="12.5" fill="#1F2328">effect.damage</text>
+<text x="498.125" y="62.5" font-size="12.5" fill="#1F2328">effect.amount</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="129.375" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="181.375" y="86.5" font-size="12.5" fill="#1F2328">Effect</text>
+<text x="129.375" y="110.5" font-size="12.5" fill="#1F2328">101</text>
+<text x="181.375" y="110.5" font-size="12.5" fill="#1F2328">DamageEffect</text>
+<text x="283.125" y="110.5" font-size="12.5" fill="#1F2328">30</text>
+<text x="390.625" y="110.5" font-size="12.5" fill="#1F2328">50</text>
+<text x="129.375" y="134.5" font-size="12.5" fill="#1F2328">102</text>
+<text x="181.375" y="134.5" font-size="12.5" fill="#1F2328">HealEffect</text>
+<text x="283.125" y="134.5" font-size="12.5" fill="#1F2328">100</text>
+<text x="498.125" y="134.5" font-size="12.5" fill="#1F2328">20</text>
+<text x="608.625" y="110.0" font-size="11" fill="#8A929B" font-style="italic">◀ damage 만 있습니다 — amount 는 이 변종에 없는 멤버</text>
+<text x="608.625" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ amount 만 있습니다 — damage 칸이 비는 이유가 같습니다</text>
+</svg>
