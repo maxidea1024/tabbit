@@ -4,8 +4,8 @@ using Tabbit.Validation;
 // The reason a rule folder belongs in this directory at all.
 //
 // This table's columns are named `class`, `delete`, `operator`, `namespace`, `constructor`,
-// `function` and `int`, and the point of the side-by-side tree is showing how each language
-// gets out of the way of its own keywords. A rule file is the fourteenth view of that: what a
+// `function` and `int`, and the point of this tree is showing how each language gets out of
+// the way of its own keywords. A rule file is one more view of that: what a
 // project actually types to read those columns. Every one of them is reached below, and this
 // file compiles - which is the claim being made.
 

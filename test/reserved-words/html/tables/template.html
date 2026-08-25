@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>컬럼</title>
+<title>Template</title>
 <style>
 :root {
   --bg: #fff; --fg: #1f2328; --muted: #59636e; --faint: #818b98;
@@ -484,68 +484,94 @@ tbody [data-pick] { cursor: pointer; }
 <header class="bar">
 <span class="brand"><img class="mark" src="data:image/png;base64,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" alt="" width="18" height="18">Tabbit</span>
 <nav>
-<a href="index.html"><svg class="i"><use href="#i-overview"></use></svg>개요</a>
-<a href="tables.html"><svg class="i"><use href="#i-table"></use></svg>테이블</a>
-<a href="fields.html" class="on"><svg class="i"><use href="#i-column"></use></svg>컬럼</a>
-<a href="references.html"><svg class="i"><use href="#i-graph"></use></svg>참조</a>
-<a href="enums.html"><svg class="i"><use href="#i-enum"></use></svg>enum</a>
-<a href="constantsets.html"><svg class="i"><use href="#i-const"></use></svg>상수 세트</a>
+<a href="../index.html"><svg class="i"><use href="#i-overview"></use></svg>개요</a>
+<a href="../tables.html" class="on"><svg class="i"><use href="#i-table"></use></svg>테이블</a>
+<a href="../fields.html"><svg class="i"><use href="#i-column"></use></svg>컬럼</a>
+<a href="../references.html"><svg class="i"><use href="#i-graph"></use></svg>참조</a>
+<a href="../enums.html"><svg class="i"><use href="#i-enum"></use></svg>enum</a>
+<a href="../constantsets.html"><svg class="i"><use href="#i-const"></use></svg>상수 세트</a>
 </nav>
 <button class="theme" type="button" data-theme-cycle title="테마: 시스템 설정을 따릅니다">
 <svg class="i"><use href="#i-auto"></use></svg><span data-theme-name>시스템</span>
 </button>
 </header>
 <p class="crumbs">
-<span><a href="index.html">개요</a></span>
-<span>컬럼</span>
+<span><a href="../index.html">개요</a></span>
+<span><a href="../tables.html">테이블</a></span>
+<span>Template</span>
 </p>
 <div class="page">
+<aside>
+<div class="side-head"><svg class="i"><use href="#i-table"></use></svg>테이블</div>
+<input type="search" data-filter="side" placeholder="이름 필터">
+<ul class="side-list">
+<li><a href="../tables/package.html"><svg class="i"><use href="#i-table"></use></svg>Package</a></li>
+<li class="on"><a href="../tables/template.html"><svg class="i"><use href="#i-table"></use></svg>Template</a></li>
+</ul>
+</aside>
 <main class="fill">
-<h1>컬럼</h1>
-<p class="lead">테이블 2개의 컬럼 11개 <span class="hint">&middot; 접힌 것을 펼치면 시트 컬럼 11개</span></p>
+<h1>Template</h1>
+<p class="lead"><svg class="i"><use href="#i-table"></use></svg>Template &middot; 행 2개 &middot; 컬럼 8개 <span class="hint">&middot; <span class="book" title="test/fixtures/xlsx/reserved-words/reserved-words.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>reserved-words.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>ReservedWords : B2</span></p>
+<p class="comment">Named after a C++ keyword.</p>
 <div data-table>
 <div class="tools">
-<input type="search" data-filter="rows" placeholder="컬럼 필터">
-<span class="hint" data-shown>11행 중 11행</span>
-<span class="hint">제목을 누르면 정렬됩니다.</span>
+<input type="search" data-filter="rows" placeholder="행 필터">
+<span class="hint" data-shown>2행 중 2행</span>
 </div>
 <div class="scroll">
-<table data-sortable>
+<table id="table_Template" data-sortable>
 <thead>
 <tr class="names">
-<th class="sorted"><svg class="i"><use href="#i-column"></use></svg>컬럼</th><th><svg class="i"><use href="#i-table"></use></svg>테이블</th><th>타입</th><th>측</th><th title="필수 여부">필수</th><th>설명</th>
+<th id="col_Template.Index" title="기본 인덱스 &#183; 생성 이름 Index">index</th>
+<th id="col_Template.Class">Class</th>
+<th id="col_Template.Int">Int</th>
+<th id="col_Template.Delete">Delete</th>
+<th id="col_Template.Operator">Operator</th>
+<th id="col_Template.Namespace">Namespace</th>
+<th id="col_Template.Constructor">Constructor</th>
+<th id="col_Template.Function">Function</th>
+</tr>
+<tr class="about">
+<th>primary index</th>
+<th>class: keyword in C++ and C#</th>
+<th>int: keyword in C++ and C#</th>
+<th>delete: keyword in C++</th>
+<th>operator: keyword in C++, and a secondary index</th>
+<th>namespace: keyword in C++ and C#</th>
+<th>constructor: special member in TypeScript</th>
+<th>function: keyword in TypeScript</th>
+</tr>
+<tr class="types">
+<th><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></th>
+<th><span class="type">string</span></th>
+<th><span class="type">int</span></th>
+<th><span class="type">bool</span></th>
+<th><span class="type">string</span> <span class="keymark" title="기본 인덱스">🔑</span></th>
+<th><span class="type">string</span></th>
+<th><span class="type">string</span></th>
+<th><span class="type">string</span></th>
+</tr>
+<tr class="side">
+<th>cs</th>
+<th>cs</th>
+<th>cs</th>
+<th>cs</th>
+<th>cs</th>
+<th>cs</th>
+<th>cs</th>
+<th>cs</th>
 </tr>
 </thead>
 <tbody>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/package.html#col_Package.Index"><svg class="i"><use href="#i-table"></use></svg>Package</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/template.html#col_Template.Index"><svg class="i"><use href="#i-table"></use></svg>Template</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg>Class</td><td><a href="tables/template.html#col_Template.Class"><svg class="i"><use href="#i-table"></use></svg>Template</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>class: keyword in C++ and C#</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg>Constructor</td><td><a href="tables/template.html#col_Template.Constructor"><svg class="i"><use href="#i-table"></use></svg>Template</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>constructor: special member in TypeScript</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg>Delete</td><td><a href="tables/template.html#col_Template.Delete"><svg class="i"><use href="#i-table"></use></svg>Template</a></td><td><span class="type">bool</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>delete: keyword in C++</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg>Function</td><td><a href="tables/template.html#col_Template.Function"><svg class="i"><use href="#i-table"></use></svg>Template</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>function: keyword in TypeScript</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg>Int</td><td><a href="tables/template.html#col_Template.Int"><svg class="i"><use href="#i-table"></use></svg>Template</a></td><td><span class="type">int</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>int: keyword in C++ and C#</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg>Kind</td><td><a href="tables/package.html#col_Package.Kind"><svg class="i"><use href="#i-table"></use></svg>Package</a></td><td><a href="enums/keyword.html#enum_Keyword" data-enum="Keyword">enum.Keyword</a></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>예약어 라벨을 쓰는 enum 필드</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg>Label</td><td><a href="tables/package.html#col_Package.Label"><svg class="i"><use href="#i-table"></use></svg>Package</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>라벨 — 한글 주석</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg>Namespace</td><td><a href="tables/template.html#col_Template.Namespace"><svg class="i"><use href="#i-table"></use></svg>Template</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>namespace: keyword in C++ and C#</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg>Operator</td><td><a href="tables/template.html#col_Template.Operator"><svg class="i"><use href="#i-table"></use></svg>Template</a></td><td><span class="type">string</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>operator: keyword in C++, and a secondary index</td></tr>
+<tr><td class="key" id="row_Template.1"><code>1</code></td><td><span class="str">&quot;first&quot;</span></td><td class="num">10</td><td><span class="yes">&#x2714;</span></td><td><span class="str">&quot;plus&quot;</span></td><td><span class="str">&quot;alpha&quot;</span></td><td><span class="str">&quot;ctor-a&quot;</span></td><td><span class="str">&quot;fn-a&quot;</span></td></tr>
+<tr><td class="key" id="row_Template.2"><code>2</code></td><td><span class="str">&quot;second&quot;</span></td><td class="num">20</td><td><span class="no">&#x2718;</span></td><td><span class="str">&quot;minus&quot;</span></td><td><span class="str">&quot;beta&quot;</span></td><td><span class="str">&quot;ctor-b&quot;</span></td><td><span class="str">&quot;fn-b&quot;</span></td></tr>
 </tbody>
 </table>
 </div>
 </div>
 </main>
 </div>
-<div id="enumdefs" hidden>
-<div data-enum-def="Keyword">
-<p class="lead"><b>enum.Keyword</b> <span class="hint">Labels that collide with a keyword somewhere.</span></p>
-<table><tbody>
-<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint">unset</td></tr>
-<tr data-label="Self"><td>Self</td><td class="num">1</td><td class="hint">Self is a Rust keyword, and the one that is PascalCase</td></tr>
-<tr data-label="Package"><td>Package</td><td class="num">2</td><td class="hint">package is a Java keyword and reserved in strict-mode JavaScript</td></tr>
-<tr data-label="Type"><td>Type</td><td class="num">3</td><td class="hint">type is a keyword in Rust and TypeScript</td></tr>
-</tbody></table>
-</div>
-</div>
-<p class="foot">생성 시각 2026-08-26 00:18:21</p>
+<p class="foot">생성 시각 2026-08-26 00:41:10</p>
 <script>
 (function () {
   "use strict";

@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-26T00:18:21.2812799+09:00",
+    "generatedAt": "2026-08-26T00:41:10.1453704+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
-    "recipe": "side-by-side.json",
+    "recipe": "reserved-words.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "cf4e30de2bd00e6ce3252013f58ae33ac3c0bca8",
-      "shortHash": "cf4e30de2bd0",
+      "hash": "0194ec8859bf22f0a9f25e885afa77d97e8c4a92",
+      "shortHash": "0194ec8859bf",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-26T00:02:02.0000000+09:00",
-      "subject": "fix: wildling 보고의 남은 항목 — 참조·상수·검사가 가리키는 곳",
+      "committedAt": "2026-08-26T00:33:52.0000000+09:00",
+      "subject": "feat: Unreal도 상수셋을 냅니다 — 이 타깃만 아예 내지 않고 있었습니다",
       "origin": "git",
       "dirty": true,
       "attributable": false

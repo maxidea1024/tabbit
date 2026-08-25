@@ -24,7 +24,7 @@ lib/** text eol=lf
 # autocrlf가 CRLF로 꺼내 놓으면 재생성을 한 번 돌릴 때마다 **내용은 한 글자도 다르지 않은
 # 채로** 수백 개 파일이 수정된 상태로 남습니다. 그러면 진짜 변경이 그 잡음에 묻힙니다 —
 # 실제로 언리얼 샘플 하나가 줄 중간에서 잘린 채 커밋되어 있었고, 아무도 보지 못했습니다.
-side-by-side/** text eol=lf
+test/reserved-words/** text eol=lf
 samples/**/out/** text eol=lf
 test/fixtures/validation/**/Validation.csproj text eol=lf
 

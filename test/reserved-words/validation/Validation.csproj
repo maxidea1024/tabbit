@@ -104,8 +104,8 @@
     half-written and the data would only report the obvious.
   -->
   <Target Name="Validate" AfterTargets="Build" Condition="'$(TabbitValidate)' != 'false'">
-    <Exec Command="tabbit --recipe &quot;side-by-side/side-by-side.json&quot; --validate-only"
-          WorkingDirectory="../.."
+    <Exec Command="tabbit --recipe &quot;test/reserved-words/reserved-words.json&quot; --validate-only"
+          WorkingDirectory="../../.."
           ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="TabbitExitCode" />
     </Exec>

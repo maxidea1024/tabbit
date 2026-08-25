@@ -5,9 +5,9 @@
       "commandLineArgs": "--recipe test/fixtures/recipes/conformance.json --debug",
       "workingDirectory": ".."
     },
-    "side by side": {
+    "reserved words": {
       "commandName": "Project",
-      "commandLineArgs": "--recipe side-by-side/side-by-side.json --debug",
+      "commandLineArgs": "--recipe test/reserved-words/reserved-words.json --debug",
       "workingDirectory": ".."
     }
   }

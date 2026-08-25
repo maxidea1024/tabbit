@@ -1,0 +1,81 @@
+{
+  // One workbook - the reserved-words fixture - through every code generator, with the
+  // output committed next to this file.
+  //
+  // The fixture is what the directory is named for, and it is a narrow one on purpose. Its
+  // columns are named `class`, `delete`, `operator`, `namespace`, `constructor`, `function`
+  // and `int`, so what these trees show above all is how each language gets out of the way
+  // of its own keywords - Kotlin's backticks, Go's exported-name rewrite, Dart's renaming
+  // of a field that would shadow a built-in type. Two tables, four rows, one enum; no
+  // arrays, no references, no constant sets. Anything wider belongs to a fixture of its own.
+  //
+  // It is a reading aid, not a gate. The regression suite already compiles all of this; what
+  // it cannot do is let somebody see, side by side and in a diff, what the generators
+  // actually emit. That turns out to matter beyond keywords: the Unreal target shipped for a
+  // while with the plain C++ reader inside it, and nothing in the suite could tell, because
+  // every gate it had was still green. It was reading test/reserved-words/cpp/A.h next to
+  // test/reserved-words/unreal that made it obvious.
+  //
+  // Regenerate after changing a generator, a template or a reader, and review the diff:
+  //
+  //     dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-words.json --silent
+  //
+  // Paths are relative to the repository root, which is where the CLI has to be run from.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/reserved-words"
+      }
+    ]
+  },
+
+  // The validation pipeline over the same workbook, because a rule file is another view of
+  // these tables and this directory is where the views are read next to each other. It is
+  // also the only view written by hand: the ones below are emitted, and this one is what
+  // somebody types to read what they emit.
+  //
+  // Committed are the rules themselves. The run also writes the accessor into `.generated/` and
+  // the project an editor reads it through, and both are gitignored - so nothing machine-specific
+  // lands here.
+  "Validation": {
+    "Path": "test/reserved-words/validation",
+
+    // A key the core knows nothing about, read by `pre/Inputs.cs` and given meaning there.
+    "Options": { "Locale": "KR" }
+  },
+
+  // No binary export here. It is the runtime format and it is covered by the golden
+  // tree; what it is not is reviewable - a .tcb in a diff says nothing to anybody.
+  "Targets": [
+    { "Type": "json", "Path": "test/reserved-words/json", "UseCompactRowFormat": false, "Indented": true },
+    {
+      "Type": "cpp",
+      "Path": "test/reserved-words/cpp",
+      "Namespace": "x",
+      "AccessorName": "A",
+      "BinaryTableFileExtension": ".tcb",
+      "WriteUpdater": true
+    },
+    { "Type": "csharp", "Path": "test/reserved-words/csharp", "Namespace": "X", "AccessorName": "A", "WriteUpdater": true },
+    { "Type": "typescript", "Path": "test/reserved-words/ts", "WriteUpdater": true },
+    { "Type": "html", "Path": "test/reserved-words/html" },
+    { "Type": "go", "Path": "test/reserved-words/go", "PackageName": "x", "ModulePath": "x", "WriteUpdater": true },
+    { "Type": "rust", "Path": "test/reserved-words/rust", "CrateName": "x", "WriteUpdater": true },
+    { "Type": "python", "Path": "test/reserved-words/python", "PackageName": "x", "WriteUpdater": true },
+    { "Type": "java", "Path": "test/reserved-words/java", "PackageName": "x", "AccessorName": "A", "WriteUpdater": true },
+    { "Type": "kotlin", "Path": "test/reserved-words/kotlin", "PackageName": "x", "AccessorName": "A", "WriteUpdater": true },
+    { "Type": "swift", "Path": "test/reserved-words/swift", "AccessorName": "A", "WriteUpdater": true, "WriteManifest": true, "ModuleName": "X" },
+    { "Type": "lua", "Path": "test/reserved-words/lua", "WriteUpdater": true },
+    { "Type": "ruby", "Path": "test/reserved-words/ruby", "ModuleName": "X", "AccessorName": "a", "WriteUpdater": true },
+    { "Type": "dart", "Path": "test/reserved-words/dart", "AccessorName": "a", "WriteUpdater": true },
+    { "Type": "unreal", "Path": "test/reserved-words/unreal", "ModuleName": "X", "AccessorName": "A", "WriteUpdater": true },
+    { "Type": "c", "Path": "test/reserved-words/c", "AccessorName": "A", "WriteUpdater": true },
+    { "Type": "php", "Path": "test/reserved-words/php", "Namespace": "X", "AccessorName": "A", "WriteUpdater": true },
+
+    // The document every other view renders from, in the same diff as the views.
+    // `Author: none` because this file is committed: a name and an e-mail address
+    // are personal data, and nothing here needs them.
+    { "Type": "summary", "Path": "test/reserved-words/summary", "Author": "none" }
+  ]
+}

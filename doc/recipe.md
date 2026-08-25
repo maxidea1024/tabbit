@@ -919,10 +919,10 @@ tabbit --recipe ci-recipe.json --commit $GITHUB_SHA
 
 ### 8. 전부 — 지원하는 언어를 한 번에
 
-`side-by-side/side-by-side.json`이 저장소에 있고, 실제로 매번 실행되어 [side-by-side/](../side-by-side/)에 결과가 커밋됩니다. 언어별 출력이 어떻게 생겼는지 나란히 볼 수 있습니다.
+`test/reserved-words/reserved-words.json`이 저장소에 있고, 실제로 매번 실행되어 [test/reserved-words/](../test/reserved-words/)에 결과가 커밋됩니다. 언어별 출력이 어떻게 생겼는지 나란히 볼 수 있습니다.
 
 ```
-dotnet run --project src/Tabbit.csproj -- --recipe side-by-side/side-by-side.json
+dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-words.json
 ```
 
 ### 실제로 돌아가는 recipe들

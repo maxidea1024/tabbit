@@ -81,7 +81,7 @@ public class DependencyDocTests
     /// document said the readers use only their standard libraries - and nothing noticed,
     /// because nothing was looking.
     ///
-    /// The manifests under side-by-side/ are what is read. They are committed and reviewed
+    /// The manifests under test/reserved-words/ are what is read. They are committed and reviewed
     /// as output, so a new dependency arrives in a diff either way; this makes it arrive in
     /// the document as well. A missing manifest fails rather than skips - a gate that turns
     /// itself off when a path moves is worse than no gate.
@@ -93,7 +93,7 @@ public class DependencyDocTests
         var declared = new List<(string Manifest, string Name)>();
 
         // Cargo.toml: the names under [dependencies], up to the next section.
-        string cargo = Path.Combine(RepoLayout.Root, "side-by-side", "rust", "Cargo.toml");
+        string cargo = Path.Combine(RepoLayout.Root, "test", "reserved-words", "rust", "Cargo.toml");
 
         Assert.True(File.Exists(cargo), $"{cargo} is not there any more; this gate needs it.");
 
@@ -119,7 +119,7 @@ public class DependencyDocTests
         }
 
         // Package.swift: the repository name of each package URL.
-        string manifest = Path.Combine(RepoLayout.Root, "side-by-side", "swift", "Package.swift");
+        string manifest = Path.Combine(RepoLayout.Root, "test", "reserved-words", "swift", "Package.swift");
 
         Assert.True(File.Exists(manifest), $"{manifest} is not there any more; this gate needs it.");
 

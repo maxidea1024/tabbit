@@ -131,7 +131,7 @@ tabbit --recipe recipe.json --validate-only
 
 > **돌아가는 규칙 폴더가 저장소에 있습니다.**
 >
-> [side-by-side/validation/](../side-by-side/validation/)이고, `rules/` 아래 `pre`, `tables`,
+> [test/reserved-words/validation/](../test/reserved-words/validation/)이고, `rules/` 아래 `pre`, `tables`,
 > `global`, `shared` 각각 한 파일입니다.
 >
 > 같은 디렉터리에 그 시트를 모든 언어로 생성한 결과가 함께 커밋되어 있으므로, 규칙이 읽는

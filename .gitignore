@@ -165,7 +165,7 @@ samples/named-range/out/main/
 samples/named-range/out/all/
 
 # Byte-compiled Python, which the language gate produces inside whatever package it
-# just checked - including side-by-side/, which is a committed directory.
+# just checked - including test/reserved-words/, which is a committed directory.
 __pycache__/
 *.py[cod]
 
@@ -176,7 +176,7 @@ classes/
 
 # Cargo's lockfile in a generated crate. The crate is generated, so a lockfile
 # committed here would be one nobody chose and nobody updates.
-/side-by-side/rust/Cargo.lock
+/test/reserved-words/rust/Cargo.lock
 
 # 설계 근거 문서 — 다른 팀의 데이터 문제를 구체적으로 다루므로 저장소에는 두지 않습니다.
 /doc/rescue-레이아웃-지원-분석-및-계획-20260807.md
@@ -229,8 +229,8 @@ test/fixtures/validation/*/.build/
 #
 # What committing it buys is completion in a clone, and nobody opens a fixture in an editor - the
 # suite rewrites these on every run. What it costs is a copy of `Newtonsoft.Json.dll` per fixture,
-# 723 KB each, changed and re-committed whenever that package moves. The samples and side-by-side
-# still carry theirs, which is where the claim is demonstrated.
+# 723 KB each, changed and re-committed whenever that package moves. The samples and
+# test/reserved-words/ still carry theirs, which is where the claim is demonstrated.
 test/fixtures/validation/*/lib/
 
 # 브랜드 파생본은 커밋합니다. 위쪽 유니티 템플릿의 `dist/` 규칙에서 되살립니다 —

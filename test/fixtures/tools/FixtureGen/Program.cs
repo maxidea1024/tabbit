@@ -3018,7 +3018,8 @@ internal static class Program
     ///
     /// The point of the fixture is that the toolchain gates answer the question rather
     /// than anybody reasoning about it: the generated languages are compiled,
-    /// linted or type-checked, and the side-by-side comparison reads this same workbook.
+    /// linted or type-checked, and the all-language tree in test/reserved-words/ reads
+    /// this same workbook.
     ///
     /// A table name, an enum and its labels are all identifiers too, so all three are in
     /// here: `Package` names a table and is a Java keyword and a strict-mode binding
