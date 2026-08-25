@@ -362,6 +362,14 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         foreach (var enumm in view.Enums)
             Write(Path.Combine("enums", enumm.Name + ".cs"), "csharp-enum.sbn", Part(enumm: enumm));
 
+        // A struct is an entity beside a table and an enum, so it gets a file of its own and
+        // every table that uses it refers to the one type. spec/polymorphism.md section 7.1.
+        foreach (var structure in view.Structs)
+        {
+            Write(Path.Combine("structs", structure.Name + ".cs"), "csharp-struct.sbn",
+                  Part(structure: structure, usings: TableUsings()));
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             Write(Path.Combine("constants", pair.rendered.Name + ".cs"), "csharp-constants.sbn",
@@ -372,7 +380,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <summary>A view for one of the single-subject templates.</summary>
     private CsPartView Part(
         CsTableView? table = null, CsEnumView? enumm = null, CsConstantSetView? set = null,
-        IReadOnlyList<string>? usings = null)
+        IReadOnlyList<string>? usings = null, CsPolymorphicTypeView? structure = null)
         => new CsPartView
         {
             Namespace = _csharpReceipe.Namespace,
@@ -381,6 +389,43 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             Table = table,
             Enumm = enumm,
             Set = set,
+            Structure = structure,
+        };
+
+    /// <summary>
+    /// The abstract types the sheets used, as the templates read them.
+    /// </summary>
+    /// <remarks>
+    /// The members are columns, so their types come out of the same conversion a table's
+    /// members do - which is the point of the model handing over the columns rather than the
+    /// declaration. spec/polymorphism.md section 7.1.
+    /// </remarks>
+    private IReadOnlyList<CsPolymorphicTypeView> BuildStructs()
+        => _model.PolymorphicTypes
+            .Select(declared => new CsPolymorphicTypeView
+            {
+                Name = declared.Name,
+                BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+                Variants = declared.Variants
+                    .Select(variant => new CsVariantView
+                    {
+                        TypeName = variant.Name,
+                        Discriminator = variant.Discriminator,
+                        Members = variant.Members.Select(StructMember).ToList(),
+                    })
+                    .ToList(),
+            })
+            .ToList();
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private CsStructMemberView StructMember(Models.Field field)
+        => new CsStructMemberView
+        {
+            PropName = field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name.ToPascalCase(),
+            FieldType = ToCSharpTypeName(field),
+            Comment = CommentLines(field.Comment),
         };
 
     /// <summary>
@@ -569,6 +614,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                             || t.RecordReferenceFields.Count > 0)
                 .ToList(),
             Enums = _model.Enums.Select(BuildEnum).ToList(),
+            Structs = BuildStructs(),
             ConstantSets = _model.ConstantSets.Select(BuildConstantSet).ToList(),
         };
     }
@@ -893,6 +939,18 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             IsOutermost = true,
         });
 
+        // Which abstract type this group is, if it is one. The variants and their members are
+        // the shared declaration's - one per declaration however many tables named it - so this
+        // looks them up rather than working them out again from the columns.
+        // spec/polymorphism.md section 7.1.
+        var discriminator = sf.Members.FirstOrDefault(
+            member => member.IsLeaf && member.FirstField is { IsDiscriminator: true });
+
+        var declaredType = discriminator?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         return new CsFieldView
         {
             IsRecord = true,
@@ -904,6 +962,19 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             RecordTypeName = sf.Name.ToPascalCase() + "Entry",
             Members = members,
             RecordTypes = recordTypes,
+
+            AbstractTypeName = declaredType?.Name ?? "",
+            BaseMembers = (declaredType?.BaseMembers ?? [])
+                .Select(StructMember)
+                .ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new CsVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
             MembersAreArrays = sf.MembersAreArrays,
             MembersAreAnonymous = sf.MembersAreAnonymous,
             OuterCount = sf.Members.Count,

@@ -64,6 +64,40 @@
             internal const int {{ field.pascal_name }}_N = {{ field.outer_count }};
 {{~ else if field.kind == 'record_var_array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
+{{~ else if field.kind == 'record' && field.variants.size > 0 ~}}
+{{~## **The variant object, built once on first use.** The struct below is what the read
+      filled - one assignment per column - and which variant it is only became knowable when
+      the discriminator column arrived. Building it here rather than while reading keeps the
+      read path and the wire exactly as they were, and a row nobody looks at costs nothing.
+      spec/polymorphism.md section 7. ##~}}
+            public {{ field.abstract_type_name }} {{ field.prop_name }}
+                => {{ field.field_name }}_value ?? ({{ field.field_name }}_value = Build{{ field.prop_name }}());
+
+            private {{ field.abstract_type_name }} {{ field.field_name }}_value;
+
+            private {{ field.abstract_type_name }} Build{{ field.prop_name }}()
+            {
+                switch ({{ field.field_name }}.Type)
+                {
+{{~ for variant in field.variants ~}}
+                    case {{ variant.discriminator }}:
+                        return new {{ variant.type_name }}
+                        {
+{{~ for member in field.base_members ~}}
+                            {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+                            {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
+{{~ end ~}}
+                        };
+{{~ end ~}}
+                }
+
+                // A number no variant claims. The conversion refuses one, so reaching this
+                // means the file was written by a build that had a variant this code does not
+                // - the same shape as a column added after this code was generated.
+                return null;
+            }
 {{~ else if field.kind == 'record' ~}}
             public {{ field.field_type }} {{ field.prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'array_ref' && field.row_prop_name != '' ~}}

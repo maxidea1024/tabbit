@@ -113,4 +113,52 @@ public class PolymorphicRecordTests
 
         Assert.Equal(["Slash", "Cleave", "Mend", "Mend2", "Feint"], order);
     }
+
+    /// <summary>
+    /// The generated C# compiles, and `is` narrows to the variant each row is.
+    /// </summary>
+    /// <remarks>
+    /// **The compile is most of this gate.** Variant types only mean something if pattern
+    /// matching reaches them, and that is a claim about generated code which has to be built
+    /// to be tested - a generator emitting the union flat would produce something this harness
+    /// cannot compile against.
+    ///
+    /// The read adds what a compile cannot: that the discriminator picked the right variant
+    /// per row, and that a member of another variant is not on the object at all.
+    /// spec/polymorphism.md section 7.
+    /// </remarks>
+    [Fact]
+    public void The_generated_csharp_narrows_to_each_rows_variant()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        var result = CsToolchain.ReadBack(Scenario, "cs-check-polymorphism");
+
+        Assert.True(result.Succeeded,
+            $"Reading `{Scenario}` back through the generated C# failed."
+            + $"{System.Environment.NewLine}{result.Output}");
+
+        var rows = JsonDocument.Parse(result.Output).RootElement
+            .GetProperty("Skill").EnumerateArray().ToArray();
+
+        var kind = rows.ToDictionary(
+            row => row.GetProperty("name").GetString()!,
+            row => row.GetProperty("kind").GetString());
+
+        Assert.Equal("DamageEffect", kind["Slash"]);
+        Assert.Equal("HealEffect", kind["Mend"]);
+        Assert.Equal("NoEffect", kind["Feint"]);
+
+        var own = rows.ToDictionary(
+            row => row.GetProperty("name").GetString()!,
+            row => row.GetProperty("own").GetString());
+
+        Assert.Equal("damage=50,pierces=True", own["Slash"]);
+        Assert.Equal("damage=70,pierces=False", own["Cleave"]);
+        Assert.Equal("amount=20", own["Mend"]);
+        Assert.Equal("none", own["Feint"]);
+    }
 }

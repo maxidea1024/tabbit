@@ -19,6 +19,21 @@ public class Model
     /// <summary>Enum declarations. Parsed before tables, which may refer to them.</summary>
     public List<Enum> Enums { get; set; } = new List<Enum>();
 
+    /// <summary>
+    /// The abstract types a sheet used, each with its variants - one entry however many
+    /// tables named it.
+    /// </summary>
+    /// <remarks>
+    /// **Model level rather than table level, because the declaration is one type.** A
+    /// generator emitting the variants inside each table that uses them would produce types
+    /// that share a name and are not the same type, and then nothing can be written that takes
+    /// one - which is the opposite of what declaring it in one file was for.
+    ///
+    /// A struct is an entity beside a table and an enum, and this is where it sits.
+    /// spec/polymorphism.md section 7.1.
+    /// </remarks>
+    public List<PolymorphicType> PolymorphicTypes { get; set; } = new List<PolymorphicType>();
+
     /// <summary>Constant sets. Parsed before tables, for the same reason.</summary>
     public List<ConstantSet> ConstantSets { get; set; } = new List<ConstantSet>();
 

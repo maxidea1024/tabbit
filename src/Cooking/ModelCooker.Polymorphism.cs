@@ -460,4 +460,58 @@ public partial class ModelCooker
             return 0;
         }
     }
+
+    /// <summary>
+    /// Gathers the abstract types the sheets used, one entry per declaration.
+    /// </summary>
+    /// <remarks>
+    /// **First group wins, and any group would do.** The declaration fixes what the members
+    /// are and the binding refuses a group whose columns disagree, so two tables using one
+    /// abstract type give the same answer - and taking the columns from one of them is what
+    /// lets every generator write the type with the machinery it already has.
+    ///
+    /// Nothing is gathered for an abstract type no sheet used. A declaration on its own is not
+    /// a type in the output, the same way an enum nobody typed a column with is not.
+    /// spec/polymorphism.md section 7.1.
+    /// </remarks>
+    private static void GatherPolymorphicTypes(Model model)
+    {
+        var seen = new HashSet<string>(System.StringComparer.Ordinal);
+
+        foreach (var table in model.Tables)
+        {
+            foreach (var discriminator in table.Fields.Where(field => field.IsDiscriminator))
+            {
+                string? name = discriminator.AbstractTypeName;
+
+                if (name is null || discriminator.Variants.Count == 0 || !seen.Add(name))
+                    continue;
+
+                string group = discriminator.GroupName ?? "";
+
+                var members = table.Fields
+                    .Where(field => !field.IsDiscriminator && field.GroupName == group)
+                    .ToList();
+
+                model.PolymorphicTypes.Add(new PolymorphicType
+                {
+                    Name = name.ToPascalCase(),
+                    BaseMembers = members
+                        .Where(field => field.VariantsDeclaringThis.Count == 0)
+                        .ToList(),
+                    Variants = discriminator.Variants
+                        .Select(variant => new PolymorphicTypeVariant
+                        {
+                            Name = variant.Name,
+                            Discriminator = variant.Discriminator,
+                            Members = members
+                                .Where(field => field.VariantsDeclaringThis.Contains(
+                                    variant.Name, System.StringComparer.OrdinalIgnoreCase))
+                                .ToList(),
+                        })
+                        .ToList(),
+                });
+            }
+        }
+    }
 }

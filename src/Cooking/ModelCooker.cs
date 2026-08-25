@@ -123,6 +123,12 @@ public partial class ModelCooker
         // spec/polymorphism.md section 6.3.
         SortRowsByDiscriminator(result);
 
+        // And the abstract types the sheets used, gathered once. A struct is an entity beside
+        // a table and an enum, so the generators get one list rather than finding it again per
+        // table - which is also what keeps two tables from each declaring their own `Effect`.
+        // spec/polymorphism.md section 7.1.
+        GatherPolymorphicTypes(result);
+
         // Runs after resolution: validation follows references to check that what
         // they point at exists.
         //

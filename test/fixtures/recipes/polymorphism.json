@@ -28,6 +28,11 @@
       "FileExtension": ".tcb"
     },
     {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/polymorphism/csharp",
+      "AccessorName": "PolyAccessor"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

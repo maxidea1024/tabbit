@@ -50,6 +50,16 @@ internal sealed class CsFileView
 
     public required IReadOnlyList<CsEnumView> Enums { get; set; }
 
+    /// <summary>
+    /// The abstract types the sheets used, each written as a file of its own.
+    /// </summary>
+    /// <remarks>
+    /// One per declaration however many tables named it, which is the whole reason the list is
+    /// here rather than on a table. spec/polymorphism.md section 7.1.
+    /// </remarks>
+    public IReadOnlyList<CsPolymorphicTypeView> Structs { get; set; }
+        = Array.Empty<CsPolymorphicTypeView>();
+
     public required IReadOnlyList<CsConstantSetView> ConstantSets { get; set; }
 
     /// <summary>
@@ -95,6 +105,16 @@ internal sealed class CsPartView
 
     /// <summary>The constant set this file is for, when it is a constants file.</summary>
     public CsConstantSetView? Set { get; set; }
+
+    /// <summary>
+    /// The abstract type this file declares, when it declares one.
+    /// </summary>
+    /// <remarks>
+    /// `Structure` rather than `Struct`: the shorter word is a keyword in this language and in
+    /// several of the generated ones, and the existing `Enumm` is what that costs when the
+    /// answer is a spelling nobody would choose.
+    /// </remarks>
+    public CsPolymorphicTypeView? Structure { get; set; }
 }
 
 internal sealed class CsTableView
@@ -549,6 +569,28 @@ internal sealed class CsFieldView
     public IReadOnlyList<CsRecordTypeView> RecordTypes { get; set; } = Array.Empty<CsRecordTypeView>();
 
     /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// **The flat entry struct stays and the variants sit beside it.** The struct is what the
+    /// read path fills - one assignment per column, no allocation - and changing that to build
+    /// objects while reading would mean knowing the variant before the discriminator column
+    /// has been read, which the column order does not promise. So the entry is read as it
+    /// always was and the variant object is built from it afterwards, once, on first use.
+    ///
+    /// That is also why the wire does not move: nothing here is about the file.
+    /// spec/polymorphism.md sections 6 and 7.
+    /// </remarks>
+    public IReadOnlyList<CsVariantView> Variants { get; set; } = Array.Empty<CsVariantView>();
+
+    /// <summary>The abstract type the variants extend, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>The members every variant carries - the abstract type's own fields.</summary>
+    public IReadOnlyList<CsStructMemberView> BaseMembers { get; set; }
+        = Array.Empty<CsStructMemberView>();
+
+    /// <summary>
     /// Whether the element type needs a factory that fills its string fields, because a
     /// struct cannot initialize its own.
     /// </summary>
@@ -751,3 +793,57 @@ internal sealed class CsRecordReferenceView
     public required string RefIsSet { get; set; }
 }
 
+/// <summary>
+/// One variant of a polymorphic group, as the generated code declares it.
+/// </summary>
+internal sealed class CsVariantView
+{
+    /// <summary>The variant's declared name - the type the consumer tests for.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<CsStructMemberView> Members { get; set; }
+}
+
+/// <summary>
+/// One member of an abstract type or of one of its variants.
+/// </summary>
+/// <remarks>
+/// A view of its own rather than the record member's, because none of the reference machinery
+/// applies: a polymorphic group's member is a value, and the model refuses a reference inside
+/// one. Three things, which is all a field declaration needs.
+/// </remarks>
+internal sealed class CsStructMemberView
+{
+    /// <summary>The field's name in the generated type.</summary>
+    public required string PropName { get; set; }
+
+    /// <summary>Its C# type.</summary>
+    public required string FieldType { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
+}
+
+/// <summary>
+/// An abstract type and its variants, written as a file of their own.
+/// </summary>
+/// <remarks>
+/// **A struct is an entity beside a table and an enum, so it gets a file like one.** Declaring
+/// it inside every table that uses it would give each of them a type of the same name that is
+/// not the same type. spec/polymorphism.md section 7.1.
+/// </remarks>
+internal sealed class CsPolymorphicTypeView
+{
+    /// <summary>The abstract type's name.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<CsStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<CsVariantView> Variants { get; set; }
+}

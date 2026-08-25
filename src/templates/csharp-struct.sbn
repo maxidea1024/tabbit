@@ -1,0 +1,62 @@
+{{~##
+   One abstract type and its variants. `structure` is the single declaration this file is for.
+
+   **A struct is an entity beside a table and an enum, so it gets a file like one.** The
+   declaration says "this is one type", and the generated code says the same thing only if
+   there is one type - so this is written once however many tables named it. Declaring it
+   inside each of those tables would give them an `Effect` apiece that share a name and are
+   not the same type, and then nothing can be written that takes one.
+
+   Classes rather than structs, because that is what `is` and pattern matching need, and the
+   spec chose that surface for a language that has it. The read path is untouched: the file is
+   still read into the table's flat entry struct and the variant is built from it, which is why
+   the wire does not move. spec/polymorphism.md section 7.
+##~}}
+{{ include 'csharp-file-head.sbn' ~}}
+    /// <summary>
+    /// One value of <c>{{ structure.name }}</c>, whichever shape it took.
+    /// </summary>
+    [System.Serializable]
+    public abstract partial class {{ structure.name }}
+    {
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+{{~ if for.first ~}}
+        /// <summary>
+{{~ end ~}}
+        /// {{ line }}
+{{~ if for.last ~}}
+        /// </summary>
+{{~ end ~}}
+{{~ end ~}}
+        public {{ member.field_type }} {{ member.prop_name }};
+{{~ end ~}}
+    }
+{{~ for variant in structure.variants ~}}
+
+    /// <summary>
+    /// One shape of <c>{{ structure.name }}</c>.
+    /// </summary>
+    /// <remarks>
+    /// The file carries <c>{{ variant.discriminator }}</c> for it. That number rather than the
+    /// name is what lets this variant be renamed without a deployed reader reading a different
+    /// one.
+    /// </remarks>
+    [System.Serializable]
+    public sealed partial class {{ variant.type_name }} : {{ structure.name }}
+    {
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+{{~ if for.first ~}}
+        /// <summary>
+{{~ end ~}}
+        /// {{ line }}
+{{~ if for.last ~}}
+        /// </summary>
+{{~ end ~}}
+{{~ end ~}}
+        public {{ member.field_type }} {{ member.prop_name }};
+{{~ end ~}}
+    }
+{{~ end ~}}
+{{ include 'csharp-file-foot.sbn' ~}}
