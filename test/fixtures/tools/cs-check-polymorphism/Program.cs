@@ -51,6 +51,17 @@ internal static class Program
                     // consumer reaches them. `is` has to narrow for this to compile.
                     ["own"] = Own(r.Effect),
                 }).ToList(),
+
+                // **The array of them**, where each element carries its own discriminator - so
+                // one row's shapes may differ. Section 5.3.
+                ["Combo"] = PolyAccessor.Combo.Records.Select(r => new Dictionary<string, object>
+                {
+                    ["index"] = r.Index,
+                    ["name"] = r.Name,
+                    ["kinds"] = string.Join(
+                        ",", r.Effects.Select(effect => effect.GetType().Name)),
+                    ["own"] = string.Join(",", r.Effects.Select(Own)),
+                }).ToList(),
             };
 
             Console.WriteLine(JsonSerializer.Serialize(report));

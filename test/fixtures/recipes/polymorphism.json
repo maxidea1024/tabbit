@@ -16,7 +16,14 @@
 
   "Sources": {
     "Xlsx": [
-      { "Path": "test/fixtures/xlsx/polymorphism" }
+      {
+        "Path": "test/fixtures/xlsx/polymorphism",
+
+        // The polymorphic array's whole point is that the element count is the row's -
+        // section 5.3 - so the tail of a shorter row is elements it does not have rather
+        // than blanks its author left.
+        "TrimTrailingArrayElements": true
+      }
     ],
     "GoogleSheets": []
   },

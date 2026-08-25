@@ -1383,8 +1383,18 @@ public sealed class TabbitLayoutParser : ILayoutParser
             {
                 foreach (var member in members)
                 {
+                    // **Every part of the step, not two of them.** A copy that dropped
+                    // `IsDiscriminator` made each element's `$type` column an ordinary member,
+                    // and then the group looked like one naming its struct twice - once from
+                    // the discriminator and once from the member it had become.
+                    // spec/polymorphism.md section 5.3.
                     var path = member.Path!
-                        .Select(step => new FieldPathStep { Name = step.Name, Index = step.Index })
+                        .Select(step => new FieldPathStep
+                        {
+                            Name = step.Name,
+                            Index = step.Index,
+                            IsDiscriminator = step.IsDiscriminator,
+                        })
                         .ToList();
 
                     path[member.MultiRowLevel!.Value].Index = element;

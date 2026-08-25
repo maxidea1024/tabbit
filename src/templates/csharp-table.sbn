@@ -62,6 +62,57 @@
       spec/nested-multi-level.md. ##~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
             internal const int {{ field.pascal_name }}_N = {{ field.outer_count }};
+{{~ else if field.kind == 'record_var_array' && field.variants.size > 0 ~}}
+{{~## **The array of them, built once on first use.** Each element carries its own
+      discriminator - section 5.3 - so the shapes inside one row may differ, and the array a
+      consumer reads is an array of the abstract type. The entries below are what the read
+      filled, element by element, and nothing about the wire changes.
+      spec/polymorphism.md sections 5.3 and 7.2. ##~}}
+            public {{ field.abstract_type_name }}[] {{ field.prop_name }}
+                => {{ field.field_name }}_value ?? ({{ field.field_name }}_value = Build{{ field.prop_name }}());
+
+            private {{ field.abstract_type_name }}[] {{ field.field_name }}_value;
+
+            private {{ field.abstract_type_name }}[] Build{{ field.prop_name }}()
+            {
+                var built = new {{ field.abstract_type_name }}[{{ field.field_name }}.Length];
+
+                for (int at = 0; at < {{ field.field_name }}.Length; at++)
+                    built[at] = Build{{ field.prop_name }}Element({{ field.field_name }}[at]);
+
+                return built;
+            }
+
+            private static {{ field.abstract_type_name }} Build{{ field.prop_name }}Element(
+                {{ field.record_type_name }} entry)
+            {
+                switch (entry.Type)
+                {
+{{~ for variant in field.variants ~}}
+                    case {{ variant.discriminator }}:
+                        return new {{ variant.type_name }}
+                        {
+{{~ for member in field.base_members ~}}
+                            {{ member.prop_name }} = entry.{{ member.prop_name }},
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+{{~ if member.row_prop_name != '' ~}}
+                            {{ member.prop_name }} = entry.{{ member.prop_name }},
+                            {{ member.row_prop_name }} = entry.{{ member.row_prop_name }},
+{{~ else ~}}
+                            {{ member.prop_name }} = entry.{{ member.prop_name }},
+{{~ end ~}}
+{{~ end ~}}
+                        };
+{{~ end ~}}
+                }
+
+                // A number no variant claims - a file written by a build that had one this code
+                // does not. Unlike a column added later, which the reader skips, that makes the
+                // element uninterpretable.
+                throw new TcbException(
+                    "{{ field.abstract_type_name }}: no variant is numbered " + entry.Type);
+            }
 {{~ else if field.kind == 'record_var_array' ~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'record' && field.variants.size > 0 ~}}

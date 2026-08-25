@@ -1734,6 +1734,45 @@ internal static class Program
         // two tables on one sheet do - a blank column between is what separates them.
         b.Table(5, 1, spec);
 
+        // **The array of them**, on a sheet of its own so its extension rows cannot be read as
+        // the other tables'. Section 5.3: multi-row, and each element's own `$type` cell says
+        // what that element is - so one row can hold a damaging effect and a healing one.
+        var arraySheet = new SheetBuilder(workbook.CreateSheet("PolymorphicArray"));
+
+        var combo = new TableSpec
+        {
+            Name = "Combo",
+            Comment = "Skills whose effects are a list, each element its own shape.",
+        };
+
+        combo
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "plain column, outside the group"))
+            .Field(FieldSpec.Of(
+                "Effects[].$type", "Effect", "which shape this element's effect is"))
+            .Field(FieldSpec.Of("Effects[].Chance", "", ""))
+            .Field(FieldSpec.Of("Effects[].Damage", "", ""))
+            .Field(FieldSpec.Of("Effects[].Pierces", "", ""))
+            .Field(FieldSpec.Of("Effects[].ElementId", "", ""))
+            .Field(FieldSpec.Of("Effects[].Amount", "", ""))
+            .Field(FieldSpec.Of("Effects[].Band", "", ""));
+
+        combo
+            // Two elements, and they are different variants - which is the whole point of the
+            // shape. A row whose elements were all one variant would not show it.
+            .Row("1", "Flurry", "DamageEffect", "30", "50", "TRUE", "1", "", "")
+            .Row("", "", "HealEffect", "100", "", "", "", "20", "Common")
+
+            // One element.
+            .Row("2", "Jab", "DamageEffect", "45", "70", "FALSE", "2", "", "")
+
+            // Three, with the variant that declares nothing of its own among them.
+            .Row("3", "Chain", "NoEffect", "10", "", "", "", "", "")
+            .Row("", "", "DamageEffect", "20", "5", "TRUE", "1", "", "")
+            .Row("", "", "HealEffect", "50", "", "", "", "3", "Rare");
+
+        arraySheet.Table(1, 1, combo);
+
         Save(workbook, path);
     }
 

@@ -766,9 +766,17 @@ public partial class ModelCooker
         if (field.VariantsDeclaringThis.Count == 0)
             return true;
 
+        // **The discriminator of this element, not of the group.** A multi-row group has one
+        // per element, and the one that answers for a member is the one at the same element.
+        // spec/polymorphism.md section 5.3.
+        int? element = field.NamePath is { Count: > 0 } ? field.NamePath[0].Index : null;
+
         var discriminator = table.Fields.FirstOrDefault(
             candidate => candidate.IsDiscriminator
-                         && candidate.GroupName == field.GroupName);
+                         && candidate.GroupName == field.GroupName
+                         && (candidate.NamePath is { Count: > 0 }
+                             ? candidate.NamePath[0].Index
+                             : null) == element);
 
         if (discriminator is null || discriminator.Index >= row.Count)
             return true;

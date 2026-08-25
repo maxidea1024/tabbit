@@ -160,6 +160,17 @@ public class PolymorphicRecordTests
         Assert.Equal("damage=70,pierces=False", own["Cleave"]);
         Assert.Equal("amount=20", own["Mend"]);
         Assert.Equal("none", own["Feint"]);
+
+        // And the array of them, where each element is its own shape. Section 5.3.
+        var combo = JsonDocument.Parse(result.Output).RootElement
+            .GetProperty("Combo").EnumerateArray()
+            .ToDictionary(
+                row => row.GetProperty("name").GetString()!,
+                row => row.GetProperty("kinds").GetString());
+
+        Assert.Equal("DamageEffect,HealEffect", combo["Flurry"]);
+        Assert.Equal("DamageEffect", combo["Jab"]);
+        Assert.Equal("NoEffect,DamageEffect,HealEffect", combo["Chain"]);
     }
 
     /// <summary>

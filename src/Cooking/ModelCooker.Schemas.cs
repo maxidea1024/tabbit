@@ -82,8 +82,14 @@ public partial class ModelCooker
         // Which column named the struct. Exactly one, and the report says so either way: a
         // group naming none is the ordinary notation and nothing here applies to it, and a
         // group naming two has two answers to what it is.
+        // **One cell, not one field per element.** A multi-row group's header is one column and
+        // every element's field carries its type cell, so counting fields made a group of two
+        // elements look like one naming its struct twice. The location is what says which cell
+        // an author actually wrote. spec/polymorphism.md section 5.3.
         var naming = group
             .Where(field => declarations.FindStruct(field.TypeName) is not null)
+            .GroupBy(field => field.TypeLocation?.ToString() ?? field.RawName)
+            .Select(byCell => byCell.First())
             .ToList();
 
         if (naming.Count == 0)

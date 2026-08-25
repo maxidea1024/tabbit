@@ -61,15 +61,26 @@ public partial class ModelCooker
             return;
         }
 
-        BindDiscriminator(context, table, naming, declared, variants, declarations);
+        // **Every element's discriminator, not only the one that carried the type cell.** A
+        // multi-row group's member is one column per element in the model, and the file stores
+        // a member as one column with one type - so an element left as text is a member whose
+        // elements disagree. spec/polymorphism.md section 5.3.
+        var discriminators = group
+            .Where(field => field.IsDiscriminator)
+            .ToList();
+
+        foreach (var field in discriminators)
+            BindDiscriminator(context, table, field, declared, variants, declarations);
 
         foreach (var field in group)
         {
-            if (ReferenceEquals(field, naming))
+            if (field.IsDiscriminator)
                 continue;
 
             BindVariantMember(
-                context, table, field, declared, variants, declarations, diagnostics);
+                context, table, field, declared, variants, declarations, diagnostics,
+                groupIsArray: group.Any(other => other.NamePath is { Count: > 1 }
+                                                 && other.NamePath[0].Index is not null));
         }
     }
 
@@ -127,7 +138,8 @@ public partial class ModelCooker
         SchemaStruct declared,
         List<SchemaStruct> variants,
         SchemaDeclarations declarations,
-        Diagnostics diagnostics)
+        Diagnostics diagnostics,
+        bool groupIsArray = false)
     {
         if (field.NamePath is not { Count: > 1 })
             return;
@@ -139,10 +151,18 @@ public partial class ModelCooker
 
         if (baseMember is not null)
         {
-            // A base field. Nothing optional about it - every variant carries it, which is the
-            // reason section 5.1 puts the base fields in one column instead of copying them
-            // into every variant.
-            ApplyMemberType(context, table, field, baseMember, declared, declarations, diagnostics);
+            // A base field. Every variant carries it, which is the reason section 5.1 puts the
+            // base fields in one column instead of copying them into every variant - so the
+            // column is required.
+            //
+            // **Except where the group is an array.** There a row with fewer elements has no
+            // cell for the ones it does not have, which is what trimming means: the tail is
+            // elements the row lacks rather than blanks its author left. The same reason the
+            // trimmed-record fixture types its members optional. spec/polymorphism.md 5.3.
+            ApplyMemberType(
+                context, table, field, baseMember, declared, declarations, diagnostics,
+                columnIsOptional: groupIsArray);
+
             field.VariantsDeclaringThis.Clear();
 
             return;
@@ -277,6 +297,22 @@ public partial class ModelCooker
                     if (field.Index >= row.Count)
                         continue;
 
+                    // **Past this row's last element there is nothing to say.** A trimmed array
+                    // ends where the row's values end, and the columns after that are elements
+                    // the row does not have - not elements whose kind was left out. The same
+                    // skip the reference check makes one level over.
+                    // spec/polymorphism.md section 5.3.
+                    var serial = table.SerialFields.FirstOrDefault(
+                        candidate => candidate.Name == field.GroupName);
+
+                    if (serial is not null
+                        && field.NamePath is { Count: > 0 } path
+                        && path[0].Index is { } at
+                        && at >= table.ElementCountIn(serial, row))
+                    {
+                        continue;
+                    }
+
                     var cell = row[field.Index];
 
                     if (cell.Value is not string written || written.Length == 0)
@@ -336,12 +372,22 @@ public partial class ModelCooker
             {
                 string group = discriminator.GroupName ?? "";
 
+                // **The same element, not the whole group.** A multi-row group has one
+                // discriminator per element, and the members it answers for are the ones at
+                // that element. spec/polymorphism.md section 5.3.
+                int? element = discriminator.NamePath is { Count: > 0 }
+                    ? discriminator.NamePath[0].Index
+                    : null;
+
                 // The member columns of this group, and which variants each belongs to. A base
                 // field carries an empty list and is never reported - every row has it.
                 var members = table.Fields
                     .Where(field => !field.IsDiscriminator
                                     && field.GroupName == group
-                                    && field.VariantsDeclaringThis.Count > 0)
+                                    && field.VariantsDeclaringThis.Count > 0
+                                    && (field.NamePath is { Count: > 0 }
+                                        ? field.NamePath[0].Index
+                                        : null) == element)
                     .ToList();
 
                 if (members.Count == 0)
@@ -410,8 +456,16 @@ public partial class ModelCooker
     {
         foreach (var table in model.Tables)
         {
+            // **A scalar group only.** Section 6.3 gathers runs by putting each row's variant
+            // together, and an array group has no single variant to sort by - its elements each
+            // have their own, the count differs per row, and ordering by the tuple of them
+            // reorders rows for no measured gain while losing the author's order. So a
+            // polymorphic array is left where the sheet put it. spec/polymorphism.md 5.3.
             var discriminators = table.Fields
-                .Where(field => field.IsDiscriminator && field.Variants.Count > 0)
+                .Where(field => field.IsDiscriminator
+                                && field.Variants.Count > 0
+                                && (field.NamePath is not { Count: > 0 }
+                                    || field.NamePath[0].Index is null))
                 .OrderBy(field => field.Index)
                 .ToList();
 
