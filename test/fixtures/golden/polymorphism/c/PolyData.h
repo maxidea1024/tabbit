@@ -9,6 +9,8 @@
 #ifndef POLY_DATA_H
 #define POLY_DATA_H
 
+#include "enums/PolyData_EnumBand.h"
+#include "tables/PolyData_Element.h"
 #include "tables/PolyData_Skill.h"
 
 #ifdef __cplusplus
@@ -17,6 +19,7 @@ extern "C" {
 
 /* Every table, loaded together so cross-table references can be resolved. */
 typedef struct PolyData_t {
+  PolyData_ElementTable_t element;
   PolyData_SkillTable_t skill;
 } PolyData_t;
 

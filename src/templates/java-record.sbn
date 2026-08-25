@@ -111,10 +111,24 @@ public final class {{ table.record_name }} {
                 {{ field.abstract_type_name }}.{{ variant.type_name }} built =
                     new {{ field.abstract_type_name }}.{{ variant.type_name }}();
 {{~ for member in field.base_members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+                built.{{ member.name }} = {{ field.name }}.{{ member.name }};
+                built.{{ member.row_name }} = {{ field.name }}.{{ member.row_name }};
+{{~ else ~}}
                 built.{{ member.name }} = {{ field.name }}.{{ member.name }};
 {{~ end ~}}
+{{~ end ~}}
 {{~ for member in variant.members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
                 built.{{ member.name }} = {{ field.name }}.{{ member.name }};
+                built.{{ member.row_name }} = {{ field.name }}.{{ member.row_name }};
+{{~ else ~}}
+                built.{{ member.name }} = {{ field.name }}.{{ member.name }};
+{{~ end ~}}
 {{~ end ~}}
                 {{ field.name }}Value = built;
                 return built;

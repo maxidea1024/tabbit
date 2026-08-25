@@ -45,6 +45,20 @@ type DamageEffect struct {
 
 	// Whether it ignores armour.
 	Pierces bool
+
+	// Which element it deals, as a row of that catalogue.
+
+	//
+
+	// **A reference on a variant member is the shape a real project reaches for first** - "the
+
+	// reward is an item, or a currency, or a monster" is that shape - and it is a different
+
+	// path twice over: the blank cells of the other variants go through the reference
+
+	// conversion, and the built variant has to carry the resolved row rather than the key.
+	ElementId int32
+	ElementByElementId *ElementRecord
 }
 
 func (DamageEffect) isEffect() {}
@@ -58,6 +72,9 @@ type HealEffect struct {
 
 	// How much it gives.
 	Amount int32
+
+	// How often it lands, as a band rather than a number.
+	Band Band
 }
 
 func (HealEffect) isEffect() {}

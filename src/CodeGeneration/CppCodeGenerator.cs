@@ -385,15 +385,27 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         };
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two fields**, as a reference is anywhere: the declared name is
+    /// the key's and the row it resolves to takes the derived one.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private CppStructMemberView StructMember(Models.Field field)
-        => new CppStructMemberView
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new CppStructMemberView
         {
-            Name = CppName(field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name),
-            TypeName = ToCppTypeName(field),
+            Name = CppName(raw),
+            TypeName = toRow
+                ? "const " + field.ResolvedRefTable!.Name.ToPascalCase() + "Record*"
+                : ToCppTypeName(field),
             Comment = CommentLines(field.Comment),
+            RowName = toRow ? CppName(RowAccessorName(field.ResolvedRefTable!.Name, raw)) : "",
+            KeyTypeName = field.IsRef ? ToCppTypeName(field.RefKeyType, null) : "",
         };
+    }
 
     private string EnumHeader(CppEnumView enumm) => $"enums/{_cppRecipe.AccessorName}_enum_{enumm.Name.ToSnakeCase()}.h";
     private string EnumHeaderFor(Models.Enum enumm) => $"enums/{_cppRecipe.AccessorName}_enum_{enumm.Name.ToSnakeCase()}.h";

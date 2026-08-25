@@ -39,10 +39,20 @@ internal static class TypeDependencies
     /// An enum field reads through its own type - `Rank(reader.read_enum())` - so the
     /// table's file names every enum any of its fields is typed with.
     /// </summary>
+    /// <remarks>
+    /// **A group's members count, not only the group.** A serial field whose elements are
+    /// records has no element type of its own - `sf.ElementType` is the record's - so a member
+    /// typed with an enum was invisible here, and the generated file named an enum nothing had
+    /// brought in. A polymorphic group is where that first showed: its members are what the
+    /// variants declare, and one of them being an enum is ordinary.
+    /// </remarks>
     public static IReadOnlyList<Models.Enum> EnumsNamedBy(Table table)
         => Distinct(table.SerialFields
-            .Where(sf => sf.ElementType == ValueType.Enum)
-            .Select(sf => sf.FirstField!.Enum));
+            .SelectMany(sf => sf.IsRecord
+                ? sf.Leaves.Select(leaf => leaf.FirstField!)
+                : new[] { sf.FirstField! })
+            .Where(field => field is not null && field.ElementType == ValueType.Enum)
+            .Select(field => field.Enum));
 
 
     /// <summary>
@@ -54,8 +64,11 @@ internal static class TypeDependencies
     /// </summary>
     public static IReadOnlyList<Table> TablesReferencedBy(Table table)
         => Distinct(table.SerialFields
-            .Where(sf => sf.IsRef)
-            .Select(sf => sf.FirstField!.ResolvedRefTable!));
+            .SelectMany(sf => sf.IsRecord
+                ? sf.Leaves.Select(leaf => leaf.FirstField!)
+                : new[] { sf.FirstField! })
+            .Where(field => field is { IsRef: true, ResolvedRefTable: not null })
+            .Select(field => field.ResolvedRefTable!));
 
     /// <summary>The same, minus the table itself.</summary>
     public static IReadOnlyList<Table> OtherTablesReferencedBy(Table table)

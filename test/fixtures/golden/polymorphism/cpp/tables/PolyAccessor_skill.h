@@ -20,8 +20,9 @@
 
 #include "tabbit/tcb_reader.h"
 #include "PolyAccessor_forward.h"
+#include "enums/PolyAccessor_enum_band.h"
 #include "structs/PolyAccessor_struct_effect.h"
-// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
 /// One element of SkillRecord::effect.
 struct SkillRecord_effect_entry {
   /// which shape this row's effect is
@@ -33,8 +34,18 @@ struct SkillRecord_effect_entry {
   std::int32_t damage = 0;
   /// Whether it ignores armour.
   bool pierces = false;
+  /// Which element it deals, as a row of that catalogue.
+  ///
+  /// **A reference on a variant member is the shape a real project reaches for first** - "the
+  /// reward is an item, or a currency, or a monster" is that shape - and it is a different
+  /// path twice over: the blank cells of the other variants go through the reference
+  /// conversion, and the built variant has to carry the resolved row rather than the key.
+  std::int32_t element_id = 0;
+  const ElementRecord* element_by_element_id = nullptr;
   /// How much it gives.
   std::int32_t amount = 0;
+  /// How often it lands, as a band rather than a number.
+  Band band = static_cast<Band>(0);
 };
 
 /// Skills whose effect is one of several shapes.
@@ -55,12 +66,15 @@ struct SkillRecord {
         built->chance = effect.chance;
         built->damage = effect.damage;
         built->pierces = effect.pierces;
+        built->element_id = effect.element_id;
+        built->element_by_element_id = effect.element_by_element_id;
         return built;
       }
       case 2: {
         auto built = std::make_unique<HealEffect>();
         built->chance = effect.chance;
         built->amount = effect.amount;
+        built->band = effect.band;
         return built;
       }
       case 3: {
@@ -218,6 +232,19 @@ class SkillTable {
           break;
         }
         case 7: {
+          tabbit::check_column(column, "Skill.Effect.ElementId", tabbit::kKindScalar, false, {tabbit::kElementI32});
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Skill.Effect.ElementId");
+          std::int32_t value{};
+          for (std::size_t i = 0; i < row_count; ) {
+            std::int32_t n = cursor.next_same_i32(
+                static_cast<std::int32_t>(row_count - i), value);
+            for (; n > 0; --n, ++i) {
+              records[i].effect.element_id = value;
+            }
+          }
+          break;
+        }
+        case 8: {
           tabbit::check_column(column, "Skill.Effect.Amount", tabbit::kKindScalar, false, {tabbit::kElementI32, tabbit::kElementVarint});
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Skill.Effect.Amount");
           std::int32_t value{};
@@ -226,6 +253,19 @@ class SkillTable {
                 static_cast<std::int32_t>(row_count - i), value);
             for (; n > 0; --n, ++i) {
               records[i].effect.amount = value;
+            }
+          }
+          break;
+        }
+        case 9: {
+          tabbit::check_column(column, "Skill.Effect.Band", tabbit::kKindScalar, false, {tabbit::kElementVarint});
+          tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "Skill.Effect.Band");
+          std::int32_t value{};
+          for (std::size_t i = 0; i < row_count; ) {
+            std::int32_t n = cursor.next_same_i32(
+                static_cast<std::int32_t>(row_count - i), value);
+            for (; n > 0; --n, ++i) {
+              records[i].effect.band = static_cast<Band>(value);
             }
           }
           break;

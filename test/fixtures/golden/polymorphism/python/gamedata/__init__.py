@@ -5,10 +5,15 @@
 # regenerated.
 # ------------------------------------------------------------------------------
 
+from .enum_band import Band
+from .element_table import ElementRecord, ElementTable
 from .skill_table import SkillRecord, SkillTable, SkillEffectEntry
 from .polymorphism_data import Tables
 
 __all__ = [
+    "Band",
+    "ElementRecord",
+    "ElementTable",
     "SkillRecord",
     "SkillTable",
     "SkillEffectEntry",

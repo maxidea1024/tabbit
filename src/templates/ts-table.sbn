@@ -70,10 +70,21 @@ function build{{ field.prop_name | string.capitalize }}(e: {{ rt.type_name }}): 
       return {
         kind: '{{ variant.type_name }}',
 {{~ for member in field.base_members ~}}
+{{~ if member.row_name != '' ~}}
+        {{ member.prop_name }}: e.{{ member.prop_name }},
+        {{ member.row_name }}: e.{{ member.row_name }},
+{{~ else ~}}
         {{ member.prop_name }}: e.{{ member.prop_name }},
 {{~ end ~}}
+{{~ end ~}}
 {{~ for member in variant.members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## The row from the row and the key from the key. The entry carries both. ##~}}
         {{ member.prop_name }}: e.{{ member.prop_name }},
+        {{ member.row_name }}: e.{{ member.row_name }},
+{{~ else ~}}
+        {{ member.prop_name }}: e.{{ member.prop_name }},
+{{~ end ~}}
 {{~ end ~}}
       }
 {{~ end ~}}

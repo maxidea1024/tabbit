@@ -47,6 +47,16 @@ public sealed partial class DamageEffect : Effect
     /// Whether it ignores armour.
     /// </summary>
     public bool Pierces;
+    /// <summary>
+    /// Which element it deals, as a row of that catalogue.
+    ///
+    /// **A reference on a variant member is the shape a real project reaches for first** - "the
+    /// reward is an item, or a currency, or a monster" is that shape - and it is a different
+    /// path twice over: the blank cells of the other variants go through the reference
+    /// conversion, and the built variant has to carry the resolved row rather than the key.
+    /// </summary>
+    public int ElementId;
+    public ElementTable.Record ElementByElementId;
 }
 
 /// <summary>
@@ -64,6 +74,10 @@ public sealed partial class HealEffect : Effect
     /// How much it gives.
     /// </summary>
     public int Amount;
+    /// <summary>
+    /// How often it lands, as a band rather than a number.
+    /// </summary>
+    public Band Band;
 }
 
 /// <summary>

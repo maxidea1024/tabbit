@@ -88,10 +88,20 @@ final class {{ table.record_name }}
             case {{ variant.discriminator }}:
                 $built = new {{ variant.type_name }}();
 {{~ for member in field.base_members ~}}
+{{~ if member.row_name != '' ~}}
+                $built->{{ member.name }} = $this->{{ field.name }}->{{ member.name }};
+                $built->{{ member.row_name }} = $this->{{ field.name }}->{{ member.row_name }};
+{{~ else ~}}
                 $built->{{ member.name }} = $this->{{ field.name }}->{{ member.name }};
 {{~ end ~}}
+{{~ end ~}}
 {{~ for member in variant.members ~}}
+{{~ if member.row_name != '' ~}}
                 $built->{{ member.name }} = $this->{{ field.name }}->{{ member.name }};
+                $built->{{ member.row_name }} = $this->{{ field.name }}->{{ member.row_name }};
+{{~ else ~}}
+                $built->{{ member.name }} = $this->{{ field.name }}->{{ member.name }};
+{{~ end ~}}
 {{~ end ~}}
                 $this->{{ field.name }}Value = $built;
                 return $built;

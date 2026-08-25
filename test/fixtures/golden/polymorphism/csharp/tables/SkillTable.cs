@@ -54,12 +54,15 @@ public partial class SkillTable
                         Chance = _effect.Chance,
                         Damage = _effect.Damage,
                         Pierces = _effect.Pierces,
+                        ElementId = _effect.ElementId,
+                        ElementByElementId = _effect.ElementByElementId,
                     };
                 case 2:
                     return new HealEffect
                     {
                         Chance = _effect.Chance,
                         Amount = _effect.Amount,
+                        Band = _effect.Band,
                     };
                 case 3:
                     return new NoEffect
@@ -88,8 +91,19 @@ public partial class SkillTable
             public int Damage;
             /// Whether it ignores armour.
             public bool Pierces;
+            /// Which element it deals, as a row of that catalogue.
+            ///
+            /// **A reference on a variant member is the shape a real project reaches for first** - "the
+            /// reward is an item, or a currency, or a monster" is that shape - and it is a different
+            /// path twice over: the blank cells of the other variants go through the reference
+            /// conversion, and the built variant has to carry the resolved row rather than the key.
+            public int ElementId;
+            public ElementTable.Record ElementByElementId;
+            public bool ElementId_F;
             /// How much it gives.
             public int Amount;
+            /// How often it lands, as a band rather than a number.
+            public Band Band;
 
             public override string ToString()
             {
@@ -98,7 +112,9 @@ public partial class SkillTable
                 sb.Append(",\"Chance\":"); ToStringHelper.ToString(Chance, sb);
                 sb.Append(",\"Damage\":"); ToStringHelper.ToString(Damage, sb);
                 sb.Append(",\"Pierces\":"); ToStringHelper.ToString(Pierces, sb);
+                sb.Append(",\"ElementId\":"); ToStringHelper.ToString(ElementId, sb);
                 sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+                sb.Append(",\"Band\":"); ToStringHelper.ToString(Band, sb);
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -332,6 +348,24 @@ public partial class SkillTable
                     break;
 
                 case 7:
+                    TcbTable.CheckColumn(column, "Skill.Effect.ElementId", TcbTable.KindScalar, false, TcbTable.ElementI32);
+                    cursor = new TcbColumnCursor(reader, column, count, "Skill.Effect.ElementId");
+                    for (int i = 0; i < count; )
+                    {
+                        // One call per run of equal values, not one per row - over a
+                        // run-length encoded column this is most of the decode.
+                        int n = cursor.NextSameI32(count - i, out var value);
+                        do
+                        {
+                            var record = records[i++];
+                            record._effect.ElementId = value;
+                            record._effect.ElementByElementId = default(ElementTable.Record); // will be assigned.
+                            record._effect.ElementId_F = false;
+                        } while (--n > 0);
+                    }
+                    break;
+
+                case 8:
                     TcbTable.CheckColumn(column, "Skill.Effect.Amount", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
                     cursor = new TcbColumnCursor(reader, column, count, "Skill.Effect.Amount");
                     for (int i = 0; i < count; )
@@ -343,6 +377,22 @@ public partial class SkillTable
                         {
                             var record = records[i++];
                             record._effect.Amount = value;
+                        } while (--n > 0);
+                    }
+                    break;
+
+                case 9:
+                    TcbTable.CheckColumn(column, "Skill.Effect.Band", TcbTable.KindScalar, false, TcbTable.ElementVarint);
+                    cursor = new TcbColumnCursor(reader, column, count, "Skill.Effect.Band");
+                    for (int i = 0; i < count; )
+                    {
+                        // One call per run of equal values, not one per row - over a
+                        // run-length encoded column this is most of the decode.
+                        int n = cursor.NextSameI32(count - i, out var value);
+                        do
+                        {
+                            var record = records[i++];
+                            record._effect.Band = (Band)value;
                         } while (--n > 0);
                     }
                     break;

@@ -574,6 +574,15 @@ public partial class ModelCooker
                 if (isArrayElement && place.Element >= table.ElementCountIn(place.Group, row))
                     continue;
 
+                // And a column this row's variant does not have, which is the same distinction
+                // one level over: not a cell nobody filled in but a column that is not this
+                // row's at all. A polymorphic group's columns are every variant's members side
+                // by side, so every row has blank ones by design - and a reference among them
+                // would otherwise be reported as a blank the author left.
+                // spec/polymorphism.md section 5.2.
+                if (!IsThisRowsVariantColumn(table, row, field))
+                    continue;
+
                 // A blank cell is refused whether or not the column allows absence: it is a
                 // cell nobody filled in, and a row that points at nothing says so with `-`.
                 // The reading is not refused where it happens, because whether an empty cell
@@ -744,6 +753,38 @@ public partial class ModelCooker
     /// worth pinning is the rule reading a sheet, and running the whole cooker to reach it
     /// would test the cooker instead.
     /// </remarks>
+    /// <summary>
+    /// Whether a column belongs to the variant the given row is, for a polymorphic group.
+    /// </summary>
+    /// <remarks>
+    /// True for everything that is not a variant member - a plain column, a base field, a
+    /// group that is not polymorphic - so a caller can ask without knowing which it has.
+    /// spec/polymorphism.md section 5.2.
+    /// </remarks>
+    private static bool IsThisRowsVariantColumn(Table table, List<Cell> row, Field field)
+    {
+        if (field.VariantsDeclaringThis.Count == 0)
+            return true;
+
+        var discriminator = table.Fields.FirstOrDefault(
+            candidate => candidate.IsDiscriminator
+                         && candidate.GroupName == field.GroupName);
+
+        if (discriminator is null || discriminator.Index >= row.Count)
+            return true;
+
+        if (row[discriminator.Index].Value is not int written)
+            return true;
+
+        string? variant = discriminator.Variants
+            .FirstOrDefault(candidate => candidate.Discriminator == written)
+            ?.Name;
+
+        return variant is not null
+               && field.VariantsDeclaringThis.Contains(
+                   variant, System.StringComparer.OrdinalIgnoreCase);
+    }
+
     internal void ValidateReferencedTables(Model model, Table table, RowSet rowSet, Diagnostics diagnostics)
     {
         foreach (var field in table.Fields)

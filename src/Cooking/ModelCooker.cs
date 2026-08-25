@@ -377,10 +377,20 @@ public partial class ModelCooker
 
                     try
                     {
+                        // **A blank is an absent value, and this is where that gets recorded.**
+                        // The comment here used to say `HasValue` carried it already - it did
+                        // not: nothing on the reference path ever set it, because a reference
+                        // column skips the conversion that does so for every other type. So a
+                        // blank reference cell read as present holding the key type's empty
+                        // value, and a polymorphic group's untouched columns - which are blank
+                        // by design - were reported as values the row should not have.
+                        // spec/reference-optionality.md and spec/polymorphism.md section 8.
+                        if (written.Length == 0)
+                            cell.HasValue = false;
+
                         // `required: false`, so a cell nobody filled in becomes the key
                         // type's empty value rather than a parse failure. Whether that blank
-                        // was allowed is the validator's question and `HasValue` still
-                        // carries it. spec/reference-optionality.md.
+                        // was allowed is the validator's question.
                         cell.Value = context.ParseValue(
                             field.RefKeyType, null, written, cell.RawCell?.Location,
                             required: false);

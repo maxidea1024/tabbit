@@ -10,6 +10,10 @@
 
 pub mod tabbit;
 
+// The enums.
+mod enum_band;
+pub use enum_band::Band;
+
 // The declared abstract types, one module each.
 mod struct_effect;
 pub use struct_effect::Effect;
@@ -18,6 +22,8 @@ pub use struct_effect::HealEffect;
 pub use struct_effect::NoEffect;
 
 // A record and a table type per table.
+mod element_table;
+pub use element_table::{ElementRecord, ElementTable};
 mod skill_table;
 pub use skill_table::{SkillRecord, SkillTable, SkillEffectEntry};
 

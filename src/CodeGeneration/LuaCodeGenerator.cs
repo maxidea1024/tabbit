@@ -242,11 +242,16 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                         TypeName = variant.Name,
                         Discriminator = variant.Discriminator,
                         Members = own,
+                        // Both names of a reference member, because both are fields and the
+                        // strict metatable refuses anything not on this list.
+                        // spec/reference-surface-naming.md sections 4 and 5.
                         FieldNames = string.Join(
                             ", ",
                             new[] { "\"kind\"" }
                                 .Concat(baseMembers.Concat(own)
-                                    .Select(member => $"\"{member.Name}\""))),
+                                    .SelectMany(member => member.RowName.Length > 0
+                                        ? new[] { $"\"{member.Name}\"", $"\"{member.RowName}\"" }
+                                        : new[] { $"\"{member.Name}\"" }))),
                     };
                 })
                 .ToList(),
@@ -254,15 +259,29 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     }
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two of these**, as a reference is anywhere: the declared name is
+    /// the key's and the row it resolves to takes the derived one. A variant carrying only the
+    /// key would hand a consumer a key where the declaration promised a row.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private LuaStructMemberView StructMember(Models.Field field)
-        => new LuaStructMemberView
-        {
-            Name = LuaName(field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name),
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new LuaStructMemberView
+        {            Name = LuaName(raw),
             TypeName = "",
             Comment = CommentLines(field.Comment),
+            RowName = toRow
+                ? LuaName(RowAccessorName(field.ResolvedRefTable!.Name, raw))
+                : "",
+            KeyTypeName = field.IsRef
+                ? ""
+                : "",
         };
+    }
 
     private void Write(string filename, string templateName, LuaPartView view)
     {

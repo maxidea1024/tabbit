@@ -332,10 +332,24 @@ function {{ table.table_name }}.{{ field.name }}Of(row)
   {{ if for.first }}if{{ else }}elseif{{ end }} entry.{{ field.discriminator_name }} == {{ variant.discriminator }} then
     built = {{ field.abstract_type_name }}.new{{ variant.type_name }}()
 {{~ for member in field.base_members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+    built.{{ member.name }} = entry.{{ member.name }}
+    built.{{ member.row_name }} = entry.{{ member.row_name }}
+{{~ else ~}}
     built.{{ member.name }} = entry.{{ member.name }}
 {{~ end ~}}
+{{~ end ~}}
 {{~ for member in variant.members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
     built.{{ member.name }} = entry.{{ member.name }}
+    built.{{ member.row_name }} = entry.{{ member.row_name }}
+{{~ else ~}}
+    built.{{ member.name }} = entry.{{ member.name }}
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
   else

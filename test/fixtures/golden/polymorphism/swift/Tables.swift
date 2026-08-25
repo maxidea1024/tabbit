@@ -18,6 +18,8 @@ public final class Tables {
 
     public init() {}
 
+    public private(set) var element: ElementTable = ElementTable()
+
     public private(set) var skill: SkillTable = SkillTable()
 
     /// The key the table files were sealed with, or nil when they were not sealed.
@@ -80,12 +82,18 @@ public final class Tables {
     ) throws {
         let base = URL(fileURLWithPath: basePath)
 
+        let loadedElementTable = ElementTable()
+        try loadedElementTable.read(
+            base.appendingPathComponent("Element" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
         let loadedSkillTable = SkillTable()
         try loadedSkillTable.read(
             base.appendingPathComponent("Skill" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
-        Tables.solveCrossReferences(skill: loadedSkillTable)
+        Tables.solveCrossReferences(element: loadedElementTable, skill: loadedSkillTable)
+        element = loadedElementTable
         skill = loadedSkillTable
     }
 
@@ -93,7 +101,11 @@ public final class Tables {
     ///
     /// The tables arrive as arguments rather than being read off the instance, which is how
     /// this resolves the load being read rather than the one already published.
-    private static func solveCrossReferences(skill: SkillTable) {
-        // No table references another.
+    private static func solveCrossReferences(element: ElementTable, skill: SkillTable) {
+        for record in skill.records {
+            if let target = element.findByCode(record.effect.elementId) {
+                record.effect.elementByElementId = target
+            }
+        }
     }
 }

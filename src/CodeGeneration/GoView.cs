@@ -603,6 +603,19 @@ internal sealed class GoVariantView
 /// <summary>One member of an abstract type or of one of its variants.</summary>
 internal sealed class GoStructMemberView
 {
+    /// <summary>
+    /// Where the row a reference member resolved to goes, or empty when the member is a value.
+    /// </summary>
+    /// <remarks>
+    /// **A reference member is two fields here, the same two a reference column is anywhere.**
+    /// The declared name is the key's - that is what the cell holds - and the row it resolves to
+    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
+    public string RowName { get; set; } = "";
+
+    /// <summary>The key's type, for a reference member.</summary>
+    public string KeyTypeName { get; set; } = "";
+
     /// <summary>The field's name.</summary>
     public required string FieldName { get; set; }
 

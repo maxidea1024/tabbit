@@ -726,15 +726,29 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         };
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two of these**, as a reference is anywhere: the declared name is
+    /// the key's and the row it resolves to takes the derived one. A variant carrying only the
+    /// key would hand a consumer a key where the declaration promised a row.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private PythonStructMemberView StructMember(Models.Field field)
-        => new PythonStructMemberView
-        {
-            Name = PythonName(field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name),
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new PythonStructMemberView
+        {            Name = PythonName(raw),
             TypeName = "",
             Comment = CommentLines(field.Comment),
+            RowName = toRow
+                ? PythonName(RowAccessorName(field.ResolvedRefTable!.Name, raw))
+                : "",
+            KeyTypeName = field.IsRef
+                ? ""
+                : "",
         };
+    }
 
     private PythonFieldView BuildRecordField(Table table, SerialField sf)
     {

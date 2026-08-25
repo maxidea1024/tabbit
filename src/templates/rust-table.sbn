@@ -70,10 +70,24 @@ impl {{ table.record_name }} {
             {{ variant.discriminator }} => {{ field.abstract_type_name }}::{{ variant.type_name }}(
                 {{ variant.type_name }} {
 {{~ for member in field.base_members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+                    {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
+                    {{ member.row_name }}: self.{{ field.name }}.{{ member.row_name }}.clone(),
+{{~ else ~}}
                     {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
 {{~ end ~}}
+{{~ end ~}}
 {{~ for member in variant.members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
                     {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
+                    {{ member.row_name }}: self.{{ field.name }}.{{ member.row_name }}.clone(),
+{{~ else ~}}
+                    {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
+{{~ end ~}}
 {{~ end ~}}
                 }),
 {{~ end ~}}

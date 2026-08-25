@@ -21,7 +21,14 @@ sealed class {{ structure.name }}(
 {{~ for line in member.comment ~}}
     /** {{ line }} */
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+    val {{ member.name }}: {{ member.key_type_name }},
+    val {{ member.row_name }}: {{ member.type_name }},
+{{~ else ~}}
     val {{ member.name }}: {{ member.type_name }},
+{{~ end ~}}
 {{~ end ~}}
 )
 {{~ for variant in structure.variants ~}}
@@ -34,13 +41,27 @@ sealed class {{ structure.name }}(
  */
 class {{ variant.type_name }}(
 {{~ for member in structure.base_members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+    {{ member.name }}: {{ member.key_type_name }},
+    {{ member.row_name }}: {{ member.type_name }},
+{{~ else ~}}
     {{ member.name }}: {{ member.type_name }},
+{{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ for line in member.comment ~}}
     /** {{ line }} */
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+    val {{ member.name }}: {{ member.key_type_name }},
+    val {{ member.row_name }}: {{ member.type_name }},
+{{~ else ~}}
     val {{ member.name }}: {{ member.type_name }},
+{{~ end ~}}
 {{~ end ~}}
 ) : {{ structure.name }}(
 {{~ for member in structure.base_members ~}}

@@ -36,6 +36,8 @@ import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 /** Every table, loaded together so cross-table references can be resolved. */
 object Tables {
+    var element: ElementTable = ElementTable()
+        private set
     var skill: SkillTable = SkillTable()
         private set
 
@@ -95,11 +97,14 @@ object Tables {
      * Safe to call on a loaded accessor. Every file is read into a set of its own and the references are linked among those, so nothing here is visible until all of it is: a failure part way through leaves the tables holding the load they already had, and no row ever points at a row from it.
      */
     fun readAll(basePath: String, fileExtension: String = ".tcb") {
+        val loadedElementTable = ElementTable()
+        loadedElementTable.read(File(basePath, "Element$fileExtension").path)
         val loadedSkillTable = SkillTable()
         loadedSkillTable.read(File(basePath, "Skill$fileExtension").path)
 
-        solveCrossReferences(loadedSkillTable)
+        solveCrossReferences(loadedElementTable, loadedSkillTable)
 
+        element = loadedElementTable
         skill = loadedSkillTable
     }
 
@@ -109,7 +114,11 @@ object Tables {
      * The tables arrive as arguments and shadow the properties of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private fun solveCrossReferences(skill: SkillTable) {
-        // No table references another.
+    private fun solveCrossReferences(element: ElementTable, skill: SkillTable) {
+        for (record in skill.records) {
+            element.findByCode(record.effect.elementId)?.let { target ->
+                record.effect.elementByElementId = target
+            }
+        }
     }
 }

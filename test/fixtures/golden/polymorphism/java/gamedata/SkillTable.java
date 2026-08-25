@@ -159,12 +159,34 @@ public final class SkillTable {
                     break;
                 }
                 case 7: {
+                    TcbReader.checkColumn(column, "Skill.Effect.ElementId", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32);
+                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Skill.Effect.ElementId");
+                    for (int i = 0; i < count; ) {
+                        int n = cursor.nextSameI32(count - i);
+                        for (; n > 0; n--, i++) {
+                            loaded.get(i).effect.elementId = cursor.runSameValue;
+                        }
+                    }
+                    break;
+                }
+                case 8: {
                     TcbReader.checkColumn(column, "Skill.Effect.Amount", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_I32, TcbReader.ELEMENT_VARINT);
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "Skill.Effect.Amount");
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
                         for (; n > 0; n--, i++) {
                             loaded.get(i).effect.amount = cursor.runSameValue;
+                        }
+                    }
+                    break;
+                }
+                case 9: {
+                    TcbReader.checkColumn(column, "Skill.Effect.Band", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_VARINT);
+                    cursor = new TcbReader.ColumnCursor(reader, column, count, "Skill.Effect.Band");
+                    for (int i = 0; i < count; ) {
+                        int n = cursor.nextSameI32(count - i);
+                        for (; n > 0; n--, i++) {
+                            loaded.get(i).effect.band = Band.of(cursor.runSameValue);
                         }
                     }
                     break;

@@ -12,13 +12,14 @@
 #include "tabbit/tabbit_tcb_reader.h"
 
 #include "PolyData_Forward.h"
+#include "enums/PolyData_EnumBand.h"
 #include "structs/PolyData_StructEffect.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+/* Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
  *
  * Skills whose effect is one of several shapes.
  */
@@ -33,8 +34,17 @@ struct PolyData_SkillRecord_t_effect_entry {
   int32_t damage;
   /* Whether it ignores armour. */
   bool pierces;
+  /* Which element it deals, as a row of that catalogue. */
+  /*  */
+  /* **A reference on a variant member is the shape a real project reaches for first** - "the */
+  /* reward is an item, or a currency, or a monster" is that shape - and it is a different */
+  /* path twice over: the blank cells of the other variants go through the reference */
+  /* conversion, and the built variant has to carry the resolved row rather than the key. */
+  int32_t element_id; const PolyData_ElementRecord_t* element_by_element_id;
   /* How much it gives. */
   int32_t amount;
+  /* How often it lands, as a band rather than a number. */
+  PolyData_Band_t band;
 };
 
 struct PolyData_SkillRecord_t {

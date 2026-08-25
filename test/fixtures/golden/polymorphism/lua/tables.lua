@@ -7,6 +7,7 @@
 
 local _root = (...):match("^(.-)[^%.]*$")
 local tcb = require(_root .. "tabbit.tcb_reader")
+local ElementTable = require(_root .. "tables.element_table")
 local SkillTable = require(_root .. "tables.skill_table")
 
 -- Every table, loaded together so cross-table references can be resolved.
@@ -32,10 +33,11 @@ tables.macKey = nil
 -- is not a security boundary.
 tables.verifyMac = true
 
-local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "skill" })
+local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "element", "skill" })
 
 function tables.new()
   return setmetatable({
+    element = ElementTable.new(),
     skill = SkillTable.new(),
   }, instanceMeta)
 end
@@ -60,10 +62,26 @@ end
 function tables:readAll(source, fileExtension)
   fileExtension = fileExtension or ".tcb"
 
+  local loadedElement = ElementTable.new()
+  loadedElement:readBytes(bytesOf(source, "Element", fileExtension))
+
   local loadedSkill = SkillTable.new()
   loadedSkill:readBytes(bytesOf(source, "Skill", fileExtension))
 
+  -- Turns loadedSkill's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedSkill.records) do
+    do
+      local target = loadedElement:findByCode(record.effect.elementId)
+
+      if target ~= nil then
+        record.effect.elementByElementId = target
+      end
+    end
+  end
+
   -- Published, now that every table read and linked.
+  self.element = loadedElement
   self.skill = loadedSkill
 end
 

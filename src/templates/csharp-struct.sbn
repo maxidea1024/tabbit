@@ -29,7 +29,14 @@
         /// </summary>
 {{~ end ~}}
 {{~ end ~}}
+{{~ if member.row_prop_name != '' ~}}
+{{~## A reference member is two fields: the key the cell held under its own name, and the row it
+      resolved to under the derived one. spec/reference-surface-naming.md sections 4 and 5. ##~}}
+        public {{ member.ref_key_type_name }} {{ member.prop_name }};
+        public {{ member.field_type }} {{ member.row_prop_name }};
+{{~ else ~}}
         public {{ member.field_type }} {{ member.prop_name }};
+{{~ end ~}}
 {{~ end ~}}
     }
 {{~ for variant in structure.variants ~}}
@@ -55,7 +62,12 @@
         /// </summary>
 {{~ end ~}}
 {{~ end ~}}
+{{~ if member.row_prop_name != '' ~}}
+        public {{ member.ref_key_type_name }} {{ member.prop_name }};
+        public {{ member.field_type }} {{ member.row_prop_name }};
+{{~ else ~}}
         public {{ member.field_type }} {{ member.prop_name }};
+{{~ end ~}}
 {{~ end ~}}
     }
 {{~ end ~}}

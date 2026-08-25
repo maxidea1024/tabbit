@@ -9,7 +9,7 @@ package gamedata;
 
 import tabbit.TcbReader;
 
-// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
 /** Skills whose effect is one of several shapes. */
 public final class SkillRecord {
     /** primary index */
@@ -30,8 +30,18 @@ public final class SkillRecord {
         public int damage;
         /** Whether it ignores armour. */
         public boolean pierces;
+        /** Which element it deals, as a row of that catalogue. */
+        /**  */
+        /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+        /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+        /** path twice over: the blank cells of the other variants go through the reference */
+        /** conversion, and the built variant has to carry the resolved row rather than the key. */
+        public int elementId;
+        public ElementRecord elementByElementId;
         /** How much it gives. */
         public int amount;
+        /** How often it lands, as a band rather than a number. */
+        public Band band = Band.of(0);
     }
 
 
@@ -53,6 +63,8 @@ public final class SkillRecord {
                 built.chance = effect.chance;
                 built.damage = effect.damage;
                 built.pierces = effect.pierces;
+                built.elementId = effect.elementId;
+                built.elementByElementId = effect.elementByElementId;
                 effectValue = built;
                 return built;
             }
@@ -61,6 +73,7 @@ public final class SkillRecord {
                     new Effect.HealEffect();
                 built.chance = effect.chance;
                 built.amount = effect.amount;
+                built.band = effect.band;
                 effectValue = built;
                 return built;
             }

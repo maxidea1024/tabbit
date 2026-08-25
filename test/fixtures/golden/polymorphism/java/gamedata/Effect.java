@@ -27,9 +27,17 @@ public abstract class Effect {
      */
     public static final class DamageEffect extends Effect {
         /** How much it takes. */
-        public int damage;
+    public int damage;
         /** Whether it ignores armour. */
-        public boolean pierces;
+    public boolean pierces;
+        /** Which element it deals, as a row of that catalogue. */
+        /**  */
+        /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+        /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+        /** path twice over: the blank cells of the other variants go through the reference */
+        /** conversion, and the built variant has to carry the resolved row rather than the key. */
+    public int elementId;
+    public ElementRecord elementByElementId;
     }
 
     /**
@@ -41,7 +49,9 @@ public abstract class Effect {
      */
     public static final class HealEffect extends Effect {
         /** How much it gives. */
-        public int amount;
+    public int amount;
+        /** How often it lands, as a band rather than a number. */
+    public Band band;
     }
 
     /**

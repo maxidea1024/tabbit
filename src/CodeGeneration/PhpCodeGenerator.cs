@@ -652,17 +652,34 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         };
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two properties**, as a reference is anywhere: the declared name
+    /// is the key's and the row it resolves to takes the derived one. And `ScalarTypeName` has
+    /// no answer for a row, which is what asking it for one used to produce - a defect, not a
+    /// diagnostic. spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private PhpStructMemberView StructMember(Models.Field field)
-        => new PhpStructMemberView
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new PhpStructMemberView
         {
-            Name = PhpName(field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name),
-            TypeName = field.ElementType == ValueType.Enum
-                ? EnumName(field.Enum)
-                : LanguageProfile.Php.ScalarTypeName(field.ElementType),
+            Name = PhpName(raw),
+            TypeName = toRow
+                ? "?" + field.ResolvedRefTable!.Name.ToPascalCase() + "Record"
+                : field.ElementType == ValueType.Enum
+                    ? EnumName(field.Enum)
+                    : LanguageProfile.Php.ScalarTypeName(field.ElementType),
             Comment = CommentLines(field.Comment),
+            RowName = toRow
+                ? PhpName(RowAccessorName(field.ResolvedRefTable!.Name, raw))
+                : "",
+            KeyTypeName = field.IsRef
+                ? LanguageProfile.Php.ScalarTypeName(field.RefKeyType)
+                : "",
         };
+    }
 
     private PhpFieldView BuildRecordField(Table table, SerialField sf)
     {

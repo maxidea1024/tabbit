@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
 /// Skills whose effect is one of several shapes.
 public final class SkillRecord {
 
@@ -37,11 +37,14 @@ public final class SkillRecord {
                     chance: effect.chance,
                     damage: effect.damage,
                     pierces: effect.pierces,
+                    elementId: effect.elementId,
+                    elementByElementId: effect.elementByElementId,
                 ))
             case 2:
                 built = .healEffect(HealEffect(
                     chance: effect.chance,
                     amount: effect.amount,
+                    band: effect.band,
                 ))
             case 3:
                 built = .noEffect(NoEffect(
@@ -75,8 +78,20 @@ public final class SkillRecord {
         /// Whether it ignores armour.
         public var pierces: Bool = false
 
+        /// Which element it deals, as a row of that catalogue.
+        ///
+        /// **A reference on a variant member is the shape a real project reaches for first** - "the
+        /// reward is an item, or a currency, or a monster" is that shape - and it is a different
+        /// path twice over: the blank cells of the other variants go through the reference
+        /// conversion, and the built variant has to carry the resolved row rather than the key.
+        public var elementId: Int32 = 0
+        public var elementByElementId: ElementRecord? = nil
+
         /// How much it gives.
         public var amount: Int32 = 0
+
+        /// How often it lands, as a band rather than a number.
+        public var band: Band = Band.of(0)
     }
 }
 
@@ -234,6 +249,19 @@ public final class SkillTable {
                     record.effect.pierces = try cursor.nextBool()
                 }
             case 7:
+                try Tcb.checkColumn(column, "Skill.Effect.ElementId", Tcb.kindScalar, false, Tcb.elementI32)
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Skill.Effect.ElementId")
+                var at = 0
+                while at < count {
+                    var n = try cursor.nextSameI32(count - at)
+                    while n > 0 {
+                        let i = at
+                        loaded[i].effect.elementId = cursor.runSameValue
+                        at += 1
+                        n -= 1
+                    }
+                }
+            case 8:
                 try Tcb.checkColumn(column, "Skill.Effect.Amount", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Skill.Effect.Amount")
                 var at = 0
@@ -242,6 +270,19 @@ public final class SkillTable {
                     while n > 0 {
                         let i = at
                         loaded[i].effect.amount = cursor.runSameValue
+                        at += 1
+                        n -= 1
+                    }
+                }
+            case 9:
+                try Tcb.checkColumn(column, "Skill.Effect.Band", Tcb.kindScalar, false, Tcb.elementVarint)
+                let cursor = try Tcb.ColumnCursor(reader, column, count, "Skill.Effect.Band")
+                var at = 0
+                while at < count {
+                    var n = try cursor.nextSameI32(count - at)
+                    while n > 0 {
+                        let i = at
+                        loaded[i].effect.band = Band.of(cursor.runSameValue)
                         at += 1
                         n -= 1
                     }

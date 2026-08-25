@@ -9,13 +9,14 @@ import enum
 import os
 
 from . import tabbit
+from .element_table import ElementTable
 from .skill_table import SkillTable
 
 
 class Tables:
     """Every table, loaded together so cross-table references can be resolved."""
 
-    __slots__ = ("skill",)
+    __slots__ = ("element", "skill")
 
     #: The key the table files were sealed with, or None when they were not sealed.
     #:
@@ -62,6 +63,7 @@ class Tables:
     verify_mac = True
 
     def __init__(self):
+        self.element = ElementTable()
         self.skill = SkillTable()
 
     def read_all(self, base_path, file_extension=".tcb"):
@@ -74,18 +76,23 @@ class Tables:
         the references are linked among those, so a failure part way through leaves every
         table holding the load it already had, and no row points at a row from it.
         """
+        loaded_element = ElementTable()
+        loaded_element.read(os.path.join(base_path, "Element" + file_extension))
         loaded_skill = SkillTable()
         loaded_skill.read(os.path.join(base_path, "Skill" + file_extension))
 
-        self._solve_cross_references(loaded_skill)
+        self._solve_cross_references(loaded_element, loaded_skill)
 
+        self.element = loaded_element
         self.skill = loaded_skill
 
-    def _solve_cross_references(self, skill):
+    def _solve_cross_references(self, element, skill):
         """Turns the stored indices into usable values, once every table is in memory.
 
         The tables arrive as arguments rather than off self, which is how this resolves the
         load being read rather than the one already published.
         """
-        # No table references another.
-        return
+        for record in skill.records:
+            target = element.find_by_code(record.effect.element_id)
+            if target is not None:
+                record.effect.element_by_element_id = target

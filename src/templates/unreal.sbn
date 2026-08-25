@@ -96,7 +96,14 @@ struct {{ variant.type_name }}
     /** {{ line }} */
 {{~ end ~}}
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "{{ st.name }}")
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+    {{ member.key_type_name }} {{ member.name }} = {};
+    {{ member.type_name }} {{ member.row_name }} = nullptr;
+{{~ else ~}}
     {{ member.type_name }} {{ member.name }} = {};
+{{~ end ~}}
 
 {{~ end ~}}
 {{~ for member in variant.members ~}}
@@ -104,7 +111,14 @@ struct {{ variant.type_name }}
     /** {{ line }} */
 {{~ end ~}}
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "{{ st.name }}")
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+    {{ member.key_type_name }} {{ member.name }} = {};
+    {{ member.type_name }} {{ member.row_name }} = nullptr;
+{{~ else ~}}
     {{ member.type_name }} {{ member.name }} = {};
+{{~ end ~}}
 
 {{~ end ~}}
 };
@@ -238,10 +252,24 @@ public:
         }
 
 {{~ for member in field.base_members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+        Out.{{ member.name }} = Row.{{ field.pascal_name }}.{{ member.name }};
+        Out.{{ member.row_name }} = Row.{{ field.pascal_name }}.{{ member.row_name }};
+{{~ else ~}}
         Out.{{ member.name }} = Row.{{ field.pascal_name }}.{{ member.name }};
 {{~ end ~}}
+{{~ end ~}}
 {{~ for member in variant.members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
         Out.{{ member.name }} = Row.{{ field.pascal_name }}.{{ member.name }};
+        Out.{{ member.row_name }} = Row.{{ field.pascal_name }}.{{ member.row_name }};
+{{~ else ~}}
+        Out.{{ member.name }} = Row.{{ field.pascal_name }}.{{ member.name }};
+{{~ end ~}}
 {{~ end ~}}
         return true;
     }

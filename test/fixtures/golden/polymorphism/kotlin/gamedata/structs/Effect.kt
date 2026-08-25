@@ -57,6 +57,14 @@ class DamageEffect(
     val damage: Int,
     /** Whether it ignores armour. */
     val pierces: Boolean,
+    /** Which element it deals, as a row of that catalogue. */
+    /**  */
+    /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+    /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+    /** path twice over: the blank cells of the other variants go through the reference */
+    /** conversion, and the built variant has to carry the resolved row rather than the key. */
+    val elementId: Int,
+    val elementByElementId: ElementRecord?,
 ) : Effect(
     chance,
 )
@@ -71,6 +79,8 @@ class HealEffect(
     chance: Int,
     /** How much it gives. */
     val amount: Int,
+    /** How often it lands, as a band rather than a number. */
+    val band: Band,
 ) : Effect(
     chance,
 )

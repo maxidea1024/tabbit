@@ -113,6 +113,7 @@ public partial class PolyAccessor
     /// </remarks>
     public sealed class Snapshot
     {
+        public ElementTable Element = new ElementTable();
         public SkillTable Skill = new SkillTable();
     }
 
@@ -124,6 +125,11 @@ public partial class PolyAccessor
     /// the point of the mistake rather than handing back something empty.
     /// </remarks>
     public static Snapshot Current { get; private set; }
+
+    /// <summary>
+    /// Property for Element table.
+    /// </summary>
+    public static ElementTable Element => Current.Element;
 
     /// <summary>
     /// Property for Skill table.
@@ -143,6 +149,7 @@ public partial class PolyAccessor
     {
         var snapshot = new Snapshot();
         var tasks = new List<Task>();
+        tasks.Add(snapshot.Element.ReadAsync(System.IO.Path.Combine(basePath, $"Element{fileExtension}")));
         tasks.Add(snapshot.Skill.ReadAsync(System.IO.Path.Combine(basePath, $"Skill{fileExtension}")));
 
         await Task.WhenAll(tasks);
@@ -187,5 +194,13 @@ public partial class PolyAccessor
     /// </summary>
     private static void SolveCrossReferences(Snapshot snapshot)
     {
+        foreach (var record in snapshot.Skill.Records)
+        {
+            if (record._effect.ElementId > 0)
+            {
+                record._effect.ElementByElementId = snapshot.Element.GetByCodeOrThrow(record._effect.ElementId);
+                record._effect.ElementId_F = true;
+            }
+        }
     }
 }

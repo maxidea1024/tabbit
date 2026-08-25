@@ -243,20 +243,36 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         };
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two of these**, as a reference is anywhere: the declared name is
+    /// the key's and the row it resolves to takes the derived one. A variant carrying only the
+    /// key would hand a consumer a key where the declaration promised a row.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private KotlinStructMemberView StructMember(Models.Field field)
-        => new KotlinStructMemberView
-        {
-            Name = KotlinName(field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name),
-            TypeName = ToKotlinTypeName(
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new KotlinStructMemberView
+        {            Name = KotlinName(raw),
+            TypeName = toRow
+                ? field.ResolvedRefTable!.Name.ToPascalCase() + "Record?"
+                : ToKotlinTypeName(
                 field.Type,
                 field.Type is Models.ValueType.Enum or Models.ValueType.EnumArray
                     ? field.Enum
                     : null,
                 field.RefTableName),
             Comment = CommentLines(field.Comment),
+            RowName = toRow
+                ? KotlinName(RowAccessorName(field.ResolvedRefTable!.Name, raw))
+                : "",
+            KeyTypeName = field.IsRef
+                ? ToKotlinTypeName(field.RefKeyType, null, null)
+                : "",
         };
+    }
 
     private void Write(string relative, string templateName, object view)
     {

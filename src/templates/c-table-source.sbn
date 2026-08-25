@@ -406,7 +406,7 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
         int32_t scratch = 0;
 
         (void){{ column_view.read_scratch }};
-        record->{{ column_view.name }} = ({{ column_view.enum_type }})scratch;
+        record->{{ column_view.name }}{{ column_view.member_access }} = ({{ column_view.enum_type }})scratch;
       }
 {{~ else }}
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
@@ -609,10 +609,20 @@ bool {{ table.function_prefix }}{{ field.pascal_name }}As{{ variant.suffix }}(
   }
 
 {{~ for member in field.base_members ~}}
+{{~ if member.row_name != '' ~}}
+  out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
+  out->{{ member.row_name }} = record->{{ field.name }}.{{ member.row_name }};
+{{~ else ~}}
   out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
 {{~ end ~}}
+{{~ end ~}}
 {{~ for member in variant.members ~}}
+{{~ if member.row_name != '' ~}}
   out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
+  out->{{ member.row_name }} = record->{{ field.name }}.{{ member.row_name }};
+{{~ else ~}}
+  out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
+{{~ end ~}}
 {{~ end ~}}
   return true;
 }

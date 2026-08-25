@@ -24,11 +24,21 @@ type SkillEffectEntry struct {
 	Damage int32
 	// Whether it ignores armour.
 	Pierces bool
+	// Which element it deals, as a row of that catalogue.
+	//
+	// **A reference on a variant member is the shape a real project reaches for first** - "the
+	// reward is an item, or a currency, or a monster" is that shape - and it is a different
+	// path twice over: the blank cells of the other variants go through the reference
+	// conversion, and the built variant has to carry the resolved row rather than the key.
+	ElementId int32
+	ElementByElementId *ElementRecord
 	// How much it gives.
 	Amount int32
+	// How often it lands, as a band rather than a number.
+	Band Band
 }
 
-// SkillRecord was generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2.
+// SkillRecord was generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2.
 // Skills whose effect is one of several shapes.
 type SkillRecord struct {
 	// primary index
@@ -51,6 +61,8 @@ func (r *SkillRecord) Effect() Effect {
 			},
 			Damage: r.effect.Damage,
 			Pierces: r.effect.Pierces,
+			ElementId: r.effect.ElementId,
+			ElementByElementId: r.effect.ElementByElementId,
 		}
 	case 2:
 		return HealEffect{
@@ -58,6 +70,7 @@ func (r *SkillRecord) Effect() Effect {
 				Chance: r.effect.Chance,
 			},
 			Amount: r.effect.Amount,
+			Band: r.effect.Band,
 		}
 	case 3:
 		return NoEffect{
@@ -214,12 +227,34 @@ func (t *SkillTable) Read(filename string) error {
 				}
 			}
 		case 7:
+			if tabbit.CheckColumn(reader, column, "Skill.Effect.ElementId", tabbit.KindScalar, false, tabbit.ElementI32) {
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Skill.Effect.ElementId")
+				for i := int32(0); i < count; {
+					n, value := cursor.NextSameI32(count - i)
+					for ; n > 0; n-- {
+						records[i].effect.ElementId = value
+						i++
+					}
+				}
+			}
+		case 8:
 			if tabbit.CheckColumn(reader, column, "Skill.Effect.Amount", tabbit.KindScalar, false, tabbit.ElementI32, tabbit.ElementVarint) {
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Skill.Effect.Amount")
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
 					for ; n > 0; n-- {
 						records[i].effect.Amount = value
+						i++
+					}
+				}
+			}
+		case 9:
+			if tabbit.CheckColumn(reader, column, "Skill.Effect.Band", tabbit.KindScalar, false, tabbit.ElementVarint) {
+				cursor := tabbit.NewColumnCursor(reader, column, count, "Skill.Effect.Band")
+				for i := int32(0); i < count; {
+					n, value := cursor.NextSameI32(count - i)
+					for ; n > 0; n-- {
+						records[i].effect.Band = Band(value)
 						i++
 					}
 				}

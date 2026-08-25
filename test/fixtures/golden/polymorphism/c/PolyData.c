@@ -19,6 +19,25 @@ const uint8_t* PolyData_MacKey = NULL;
 int32_t PolyData_MacKeyLength = 0;
 bool PolyData_VerifyMac = true;
 
+/* Turns the stored indices into usable pointers, once every table is in memory.
+ *
+ * A reference into a row that is not there stays NULL rather than inventing one. */
+static void PolyData_SolveCrossReferences(PolyData_t* data) {
+  int32_t row;
+
+  for (row = 0; row < data->skill.count; ++row) {
+    PolyData_SkillRecord_t* record = &data->skill.records[row];
+
+    {
+      const PolyData_ElementRecord_t* target = PolyData_ElementFindByCode(
+        &data->element, record->effect.element_id);
+
+      if (target != NULL)
+        record->effect.element_by_element_id = target;
+    }
+  }
+}
+
 bool PolyData_LoadAll(PolyData_t* data, const char* base_path,
                  char* error, size_t error_size) {
   return PolyData_LoadAllWithExtension(
@@ -38,6 +57,20 @@ bool PolyData_LoadAllWithExtension(PolyData_t* data, const char* base_path,
   memset(&loaded, 0, sizeof loaded);
 
   if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Element", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    PolyData_Free(&loaded);
+    return false;
+  }
+
+  if (!PolyData_ElementLoad(&loaded.element, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    PolyData_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
         base_path, "Skill", file_extension) >= (int)sizeof path) {
     tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
     PolyData_Free(&loaded);
@@ -51,6 +84,9 @@ bool PolyData_LoadAllWithExtension(PolyData_t* data, const char* base_path,
     return false;
   }
 
+  /* Linked among the tables of this load, so no row points into the previous one. */
+  PolyData_SolveCrossReferences(&loaded);
+
   /* The previous load goes now, and not before. */
   PolyData_Free(data);
   *data = loaded;
@@ -59,5 +95,6 @@ bool PolyData_LoadAllWithExtension(PolyData_t* data, const char* base_path,
 }
 
 void PolyData_Free(PolyData_t* data) {
+  PolyData_ElementFree(&data->element);
   PolyData_SkillFree(&data->skill);
 }

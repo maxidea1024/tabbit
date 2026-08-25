@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <vector>
+struct ElementRecord;
 struct SkillRecord;
 
 /// The key the table files were sealed with, or empty when they were not sealed.

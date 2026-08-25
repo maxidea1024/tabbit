@@ -1671,6 +1671,24 @@ internal static class Program
         var workbook = new XSSFWorkbook();
         var b = new SheetBuilder(workbook.CreateSheet("Polymorphism"));
 
+        // The catalogue a variant member points at. First, because a reference is resolved
+        // against a table this run has read.
+        var element = new TableSpec
+        {
+            Name = "Element",
+            Comment = "What a damaging effect is made of.",
+        };
+
+        element
+            .Field(FieldSpec.Of("code", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "what it is called"));
+
+        element
+            .Row("1", "Fire")
+            .Row("2", "Ice");
+
+        b.Table(1, 1, element);
+
         var spec = new TableSpec
         {
             Name = "Skill",
@@ -1688,25 +1706,37 @@ internal static class Program
             // The abstract type's own field - one column, every row fills it.
             .Field(FieldSpec.Of("Effect.Chance", "", ""))
 
-            // DamageEffect's members.
+            // DamageEffect's members, including a reference. **A reference on a variant member
+            // is the shape a real project reaches for first**, and it is a different path
+            // twice: the other variants' blank cells go through the reference conversion, and
+            // the built variant has to carry the resolved row rather than the key.
             .Field(FieldSpec.Of("Effect.Damage", "", ""))
             .Field(FieldSpec.Of("Effect.Pierces", "", ""))
+            .Field(FieldSpec.Of("Effect.ElementId", "", ""))
 
-            // HealEffect's member.
-            .Field(FieldSpec.Of("Effect.Amount", "", ""));
+            // HealEffect's members, including an enum - the other type whose blank cell takes
+            // its own path.
+            .Field(FieldSpec.Of("Effect.Amount", "", ""))
+            .Field(FieldSpec.Of("Effect.Band", "", ""));
 
+        // **The blanks are left blank, not written as `-`.** Section 5.2 says a row leaves the
+        // columns its variant does not have empty, and a fixture that spelled "no value" in
+        // them would pass while the notation the spec defines failed.
         spec
-            .Row("1", "Slash",  "DamageEffect", "30",  "50", "TRUE",  "")
-            .Row("2", "Mend",   "HealEffect",   "100", "",   "",      "20")
-            .Row("3", "Feint",  "NoEffect",     "10",  "",   "",      "")
-            .Row("4", "Cleave", "DamageEffect", "45",  "70", "FALSE", "")
+            .Row("1", "Slash",  "DamageEffect", "30",  "50", "TRUE",  "1", "",   "")
+            .Row("2", "Mend",   "HealEffect",   "100", "",   "",      "",  "20", "Common")
+            .Row("3", "Feint",  "NoEffect",     "10",  "",   "",      "",  "",   "")
+            .Row("4", "Cleave", "DamageEffect", "45",  "70", "FALSE", "2", "",   "")
             // A run of equal values, which is what the column encodings read.
-            .Row("5", "Mend2",  "HealEffect",   "100", "",   "",      "20");
+            .Row("5", "Mend2",  "HealEffect",   "100", "",   "",      "",  "20", "Common");
 
-        b.Table(1, 1, spec);
+        // Beside the catalogue rather than under it, which is what the other fixtures with
+        // two tables on one sheet do - a blank column between is what separates them.
+        b.Table(5, 1, spec);
 
         Save(workbook, path);
     }
+
 
 
     private static void WriteKeyTypes(string path)

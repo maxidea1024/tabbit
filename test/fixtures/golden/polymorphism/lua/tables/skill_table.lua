@@ -7,6 +7,7 @@
 
 local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
+local Band = require(_root .. "enums.enum_band")
 local Effect = require(_root .. "structs.struct_effect")
 
 ---@class SkillEffectEntry
@@ -14,8 +15,11 @@ local Effect = require(_root .. "structs.struct_effect")
 ---@field chance integer
 ---@field damage integer
 ---@field pierces boolean
+---@field elementId integer
+---@field elementByElementId ElementRecord|nil
 ---@field amount integer
-local SkillEffectEntryMeta = tcb.strictType("an element of SkillRecord.effect", { "type", "chance", "damage", "pierces", "amount" })
+---@field band integer
+local SkillEffectEntryMeta = tcb.strictType("an element of SkillRecord.effect", { "type", "chance", "damage", "pierces", "elementId", "elementByElementId", "amount", "band" })
 
 ---@return SkillEffectEntry
 local function newSkillEffectEntry()
@@ -24,11 +28,13 @@ local function newSkillEffectEntry()
     chance = 0,
     damage = 0,
     pierces = false,
+    elementId = 0,
     amount = 0,
+    band = 0,
   }, SkillEffectEntryMeta)
 end
 
--- Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2.
+-- Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2.
 -- Skills whose effect is one of several shapes.
 ---@class SkillRecord
 ---@field index integer
@@ -188,6 +194,20 @@ function SkillTable:readBytes(data)
         record.effect.pierces = cursor:nextBool()
       end
     elseif column.tag == 7 then
+      tcb.checkColumn(column, "Skill.Effect.ElementId", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32 })
+      local cursor = tcb.newCursor(reader, column, count, "Skill.Effect.ElementId")
+      local at = 0
+
+      while at < count do
+        local n, value = cursor:nextSameI32(count - at)
+
+        for i = at + 1, at + n do
+          records[i].effect.elementId = value
+        end
+
+        at = at + n
+      end
+    elseif column.tag == 8 then
       tcb.checkColumn(column, "Skill.Effect.Amount", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })
       local cursor = tcb.newCursor(reader, column, count, "Skill.Effect.Amount")
       local at = 0
@@ -197,6 +217,20 @@ function SkillTable:readBytes(data)
 
         for i = at + 1, at + n do
           records[i].effect.amount = value
+        end
+
+        at = at + n
+      end
+    elseif column.tag == 9 then
+      tcb.checkColumn(column, "Skill.Effect.Band", tcb.KIND_SCALAR, false, { tcb.ELEMENT_VARINT })
+      local cursor = tcb.newCursor(reader, column, count, "Skill.Effect.Band")
+      local at = 0
+
+      while at < count do
+        local n, value = cursor:nextSameI32(count - at)
+
+        for i = at + 1, at + n do
+          records[i].effect.band = value
         end
 
         at = at + n
@@ -237,10 +271,13 @@ function SkillTable.effectOf(row)
     built.chance = entry.chance
     built.damage = entry.damage
     built.pierces = entry.pierces
+    built.elementId = entry.elementId
+    built.elementByElementId = entry.elementByElementId
   elseif entry.type == 2 then
     built = Effect.newHealEffect()
     built.chance = entry.chance
     built.amount = entry.amount
+    built.band = entry.band
   elseif entry.type == 3 then
     built = Effect.newNoEffect()
     built.chance = entry.chance

@@ -7,6 +7,11 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
+
+// The types this module's members name.
+import { ElementRecord } from '../tables/element'
+import { Band } from '../enums/band'
+
 /**
  * One value of Effect, whichever shape it took.
  *
@@ -35,6 +40,10 @@ export interface DamageEffect extends EffectBase {
   damage: number
   /** Whether it ignores armour. */
   pierces: boolean
+  /** Which element it deals, as a row of that catalogue.
+  **A reference on a variant member is the shape a real project reaches for first** - "thereward is an item, or a currency, or a monster" is that shape - and it is a differentpath twice over: the blank cells of the other variants go through the referenceconversion, and the built variant has to carry the resolved row rather than the key. */
+  elementId: number
+  elementByElementId: ElementRecord
 }
 
 /**
@@ -47,6 +56,8 @@ export interface HealEffect extends EffectBase {
   readonly kind: 'HealEffect'
   /** How much it gives. */
   amount: number
+  /** How often it lands, as a band rather than a number. */
+  band: Band
 }
 
 /**

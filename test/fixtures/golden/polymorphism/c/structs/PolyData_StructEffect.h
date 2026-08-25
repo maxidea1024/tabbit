@@ -11,6 +11,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "enums/PolyData_EnumBand.h"
+#include "PolyData_Forward.h"
 
 /** Which shape a PolyData_StructEffect value took. */
 typedef enum PolyData_StructEffectKind {
@@ -31,6 +33,14 @@ typedef struct PolyData_StructDamageEffect {
   int32_t damage;
   /* Whether it ignores armour. */
   bool pierces;
+  /* Which element it deals, as a row of that catalogue. */
+  /*  */
+  /* **A reference on a variant member is the shape a real project reaches for first** - "the */
+  /* reward is an item, or a currency, or a monster" is that shape - and it is a different */
+  /* path twice over: the blank cells of the other variants go through the reference */
+  /* conversion, and the built variant has to carry the resolved row rather than the key. */
+  int32_t element_id;
+  const PolyData_ElementRecord_t* element_by_element_id;
 } PolyData_StructDamageEffect;
 
 /** One shape of PolyData_StructEffect. */
@@ -40,6 +50,8 @@ typedef struct PolyData_StructHealEffect {
   int32_t chance;
   /* How much it gives. */
   int32_t amount;
+  /* How often it lands, as a band rather than a number. */
+  PolyData_Band_t band;
 } PolyData_StructHealEffect;
 
 /** One shape of PolyData_StructEffect. */

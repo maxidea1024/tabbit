@@ -77,11 +77,21 @@ func (r *{{ table.record_name }}) {{ field.name }}() {{ field.abstract_type_name
 		return {{ variant.type_name }}{
 			{{ field.abstract_base_name }}: {{ field.abstract_base_name }}{
 {{~ for member in field.base_members ~}}
+{{~ if member.row_name != '' ~}}
 				{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
+				{{ member.row_name }}: r.{{ field.entry_field_name }}.{{ member.row_name }},
+{{~ else ~}}
+				{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
+{{~ end ~}}
 {{~ end ~}}
 			},
 {{~ for member in variant.members ~}}
+{{~ if member.row_name != '' ~}}
 			{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
+			{{ member.row_name }}: r.{{ field.entry_field_name }}.{{ member.row_name }},
+{{~ else ~}}
+			{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
+{{~ end ~}}
 {{~ end ~}}
 		}
 {{~ end ~}}

@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 
 /** Every table, loaded together so cross-table references can be resolved. */
 public final class Tables {
+    public ElementTable element = new ElementTable();
     public SkillTable skill = new SkillTable();
 
     /**
@@ -79,11 +80,14 @@ public final class Tables {
      * <p>Safe to call on a loaded accessor. Every file is read into a set of its own and the references are linked among those, so nothing here is visible until all of it is: a failure part way through leaves the tables holding the load they already had, and no row ever points at a row from it.
      */
     public void readAll(String basePath, String fileExtension) {
+        ElementTable loadedElementTable = new ElementTable();
+        loadedElementTable.read(Paths.get(basePath, "Element" + fileExtension));
         SkillTable loadedSkillTable = new SkillTable();
         loadedSkillTable.read(Paths.get(basePath, "Skill" + fileExtension));
 
-        solveCrossReferences(loadedSkillTable);
+        solveCrossReferences(loadedElementTable, loadedSkillTable);
 
+        element = loadedElementTable;
         skill = loadedSkillTable;
     }
 
@@ -93,7 +97,14 @@ public final class Tables {
      * <p>The tables arrive as arguments and shadow the fields of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private void solveCrossReferences(SkillTable skill) {
-        // No table references another.
+    private void solveCrossReferences(ElementTable element, SkillTable skill) {
+        for (SkillRecord record : skill.records()) {
+            {
+                ElementRecord target = element.findByCode(record.effect.elementId);
+                if (target != null) {
+                    record.effect.elementByElementId = target;
+                }
+            }
+        }
     }
 }

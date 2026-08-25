@@ -10,6 +10,14 @@
    this is what a consumer reads, and a name reads better than a 1. spec/polymorphism.md §7.
 ##~}}
 {{ include 'ts-head.sbn' ~}}
+{{~ if imports | array.size > 0 ~}}
+
+// The types this module's members name.
+{{~ for line in imports ~}}
+{{ line }}
+{{~ end ~}}
+{{~ end ~}}
+
 /**
  * One value of {{ name }}, whichever shape it took.
  *
@@ -26,7 +34,12 @@ export interface {{ name }}Base {
 {{~ for line in member.comment ~}}
   {{ line }}
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+  {{ member.prop_name }}: {{ member.key_type_name }}
+  {{ member.row_name }}: {{ member.field_type }}
+{{~ else ~}}
   {{ member.prop_name }}: {{ member.field_type }}
+{{~ end ~}}
 {{~ end ~}}
 }
 {{~ for variant in variants ~}}
@@ -43,7 +56,14 @@ export interface {{ variant.type_name }} extends {{ name }}Base {
 {{~ for line in member.comment ~}}
   {{ line }}
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two properties: the key the cell held under its own name, and the
+   row it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+  {{ member.prop_name }}: {{ member.key_type_name }}
+  {{ member.row_name }}: {{ member.field_type }}
+{{~ else ~}}
   {{ member.prop_name }}: {{ member.field_type }}
+{{~ end ~}}
 {{~ end ~}}
 }
 {{~ end ~}}

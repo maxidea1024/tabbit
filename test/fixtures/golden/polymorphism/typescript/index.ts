@@ -8,7 +8,12 @@
 // ------------------------------------------------------------------------------
 
 
+// Enums
+export { Band } from './enums/band'
+
 // Tables
+export { ElementRecord } from './tables/element'
+export { ElementTable } from './tables/element'
 export { SkillRecord } from './tables/skill'
 export { SkillTable } from './tables/skill'
 

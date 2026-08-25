@@ -18,6 +18,27 @@
 #include "PolymorphismData.generated.h"
 
 
+// Generated from effect.tbs(6,6)
+/** How likely something is to happen, as a named band rather than a number. */
+/**  */
+/** Here so a variant member can be an enum. The union's columns are every variant's members */
+/** side by side, and a row of another variant leaves this one blank - which is a different */
+/** path through the conversion than a blank `int`, and the one a real project hits. */
+UENUM(BlueprintType)
+enum class EBand : uint8
+{
+    /** Not said. A zero entry, which the Unreal target's `UENUM` requires of every enum - a */
+    /** default-constructed value has to name something. */
+    None = 0 UMETA(DisplayName = "None"),
+    /** Almost never. */
+    Rare = 1 UMETA(DisplayName = "Rare"),
+    /** About half the time. */
+    Even = 2 UMETA(DisplayName = "Even"),
+    /** Nearly always. */
+    Common = 3 UMETA(DisplayName = "Common"),
+};
+
+
 /** Which shape a FEffect value took. */
 UENUM(BlueprintType)
 enum class FEffectKind : uint8
@@ -57,6 +78,16 @@ struct FDamageEffect
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FEffect")
     bool Pierces = {};
 
+    /** Which element it deals, as a row of that catalogue. */
+    /**  */
+    /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+    /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+    /** path twice over: the blank cells of the other variants go through the reference */
+    /** conversion, and the built variant has to carry the resolved row rather than the key. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FEffect")
+    int32 ElementId = {};
+    int32 ElementByElementId = nullptr;
+
 };
 
 
@@ -79,6 +110,10 @@ struct FHealEffect
     /** How much it gives. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FEffect")
     int32 Amount = {};
+
+    /** How often it lands, as a band rather than a number. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FEffect")
+    EBand Band = {};
 
 };
 
@@ -103,6 +138,24 @@ struct FNoEffect
 
 
 // Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+/** What a damaging effect is made of. */
+USTRUCT(BlueprintType)
+struct POLYMORPHISM_API FElementRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Element")
+    int32 Code = 0;
+
+    /** what it is called */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Element")
+    FString Name;
+
+};
+
+
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
 /** One element of FSkillRow::Effect. */
 USTRUCT(BlueprintType)
 struct POLYMORPHISM_API FSkillEffectEntry
@@ -126,9 +179,22 @@ struct POLYMORPHISM_API FSkillEffectEntry
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
     bool bPierces = false;
 
+    /** Which element it deals, as a row of that catalogue. */
+    /**  */
+    /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+    /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+    /** path twice over: the blank cells of the other variants go through the reference */
+    /** conversion, and the built variant has to carry the resolved row rather than the key. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    int32 ElementId = 0;
+
     /** How much it gives. */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
     int32 Amount = 0;
+
+    /** How often it lands, as a band rather than a number. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    EBand Band = static_cast<EBand>(0);
 
 };
 
@@ -150,6 +216,32 @@ struct POLYMORPHISM_API FSkillRow
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
     FSkillEffectEntry Effect;
 
+};
+
+
+/** Every row of Element. */
+class POLYMORPHISM_API FElementTable
+{
+public:
+    const TArray<FElementRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Code, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FElementRow* FindByCode(int32 Key) const;
+
+    /** Whether the table holds a row with this Code. */
+    bool ContainsCode(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FElementRow> RecordsStorage;
+    TMap<int32, int32> ByCode;
 };
 
 
@@ -190,6 +282,8 @@ public:
         Out.Chance = Row.Effect.Chance;
         Out.Damage = Row.Effect.Damage;
         Out.Pierces = Row.Effect.Pierces;
+        Out.ElementId = Row.Effect.ElementId;
+        Out.ElementByElementId = Row.Effect.ElementByElementId;
         return true;
     }
 
@@ -205,6 +299,7 @@ public:
 
         Out.Chance = Row.Effect.Chance;
         Out.Amount = Row.Effect.Amount;
+        Out.Band = Row.Effect.Band;
         return true;
     }
 
@@ -239,6 +334,7 @@ private:
 class POLYMORPHISM_API PolymorphismData
 {
 public:
+    static const FElementTable& Element() { return ElementStorage; }
     static const FSkillTable& Skill() { return SkillStorage; }
 
     /**
@@ -302,6 +398,7 @@ public:
     static bool bVerifyMac;
 
 private:
+    static FElementTable ElementStorage;
     static FSkillTable SkillStorage;
 };
 
@@ -324,6 +421,34 @@ class POLYMORPHISM_API UPolymorphismDataLibrary : public UBlueprintFunctionLibra
     GENERATED_BODY()
 
 public:
+
+    /**
+     * The Element row with the given Code.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Element",
+              meta = (DisplayName = "Get Element Row"))
+    static FElementRow GetElementRow(int32 Key, bool& bFound);
+
+    /** How many Element rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Element",
+              meta = (DisplayName = "Get Element Row Count"))
+    static int32 GetElementRowCount();
+
+    /**
+     * The Element row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Element",
+              meta = (DisplayName = "Get Element Row At"))
+    static FElementRow GetElementRowAt(int32 Position, bool& bFound);
 
     /**
      * The Skill row with the given Index.

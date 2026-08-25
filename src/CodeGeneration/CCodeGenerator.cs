@@ -228,10 +228,26 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
+            // The complete type of every enum a member is declared with, and the forward
+            // header for the rows a reference member points at - a member is a value or a
+            // pointer, and neither takes an incomplete type.
+            var members = declared.BaseMembers
+                .Concat(declared.Variants.SelectMany(variant => variant.Members))
+                .ToList();
+
             Write(StructHeader(declared), "c-struct.sbn", new CPartView
             {
                 Guard = Guard("STRUCT_" + declared.Name.ToUpperSnakeCase()),
-                Includes = new[] { "#include <stdbool.h>", "#include <stdint.h>" },
+                Includes = new[] { "#include <stdbool.h>", "#include <stdint.h>" }
+                    .Concat(members
+                        .Where(field => field.ElementType == Models.ValueType.Enum)
+                        .Select(field => field.Enum)
+                        .Distinct()
+                        .Select(enumm => $"#include \"{EnumHeaderFor(enumm)}\""))
+                    .Concat(members.Any(field => field.IsRef)
+                        ? new[] { $"#include \"{ForwardHeader}\"" }
+                        : Array.Empty<string>())
+                    .ToArray(),
                 Forwards = Array.Empty<string>(),
                 Structure = BuildStruct(declared),
             });
@@ -411,15 +427,32 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         };
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two fields**, as a reference is anywhere: the declared name is
+    /// the key's and the row it resolves to takes the derived one. A row is a pointer here -
+    /// `ScalarTypeName` has no answer for one, which is what asking it produced.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private CStructMemberView StructMember(Models.Field field)
-        => new CStructMemberView
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new CStructMemberView
         {
-            Name = CName(field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name),
-            TypeName = ScalarTypeName(field.ElementType, field.EnumOrNull),
+            Name = CName(raw),
+            TypeName = toRow
+                ? "const " + RecordName(field.ResolvedRefTable!) + "*"
+                : ScalarTypeName(field.ElementType, field.EnumOrNull),
             Comment = CommentLines(field.Comment),
+            RowName = toRow
+                ? CName(RowAccessorName(field.ResolvedRefTable!.Name, raw))
+                : "",
+            KeyTypeName = field.IsRef
+                ? ScalarTypeName(field.RefKeyType, null)
+                : "",
         };
+    }
 
     private string EnumHeader(CEnumView enumm) => $"enums/{FileBase}_Enum{enumm.RawName}.h";
     private string EnumHeaderFor(Models.Enum enumm) => $"enums/{FileBase}_Enum{enumm.Name.ToPascalCase()}.h";

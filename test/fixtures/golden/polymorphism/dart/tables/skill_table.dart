@@ -17,11 +17,21 @@ class SkillEffectEntry {
   int damage = 0;
   /// Whether it ignores armour.
   bool pierces = false;
+  /// Which element it deals, as a row of that catalogue.
+  ///
+  /// **A reference on a variant member is the shape a real project reaches for first** - "the
+  /// reward is an item, or a currency, or a monster" is that shape - and it is a different
+  /// path twice over: the blank cells of the other variants go through the reference
+  /// conversion, and the built variant has to carry the resolved row rather than the key.
+  int elementId = 0;
+  ElementRecord? elementByElementId;
   /// How much it gives.
   int amount = 0;
+  /// How often it lands, as a band rather than a number.
+  Band band = Band.of(0);
 }
 
-// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
 /// Skills whose effect is one of several shapes.
 class SkillRecord {
   /// primary index
@@ -44,10 +54,13 @@ class SkillRecord {
         chance: effect.chance,
         damage: effect.damage,
         pierces: effect.pierces,
+        elementId: effect.elementId,
+        elementByElementId: effect.elementByElementId,
       ),
       2 => HealEffect(
         chance: effect.chance,
         amount: effect.amount,
+        band: effect.band,
       ),
       3 => NoEffect(
         chance: effect.chance,
@@ -185,12 +198,32 @@ class SkillTable {
           }
           break;
         case 7:
+          checkColumn(column, 'Skill.Effect.ElementId', kindScalar, false, [elementI32]);
+          cursor = TcbColumnCursor(reader, column, count, 'Skill.Effect.ElementId');
+          for (var i = 0; i < count; ) {
+            final (n, value) = cursor.nextSameI32(count - i);
+            for (var left = n; left > 0; left--, i++) {
+              loaded[i].effect.elementId = value;
+            }
+          }
+          break;
+        case 8:
           checkColumn(column, 'Skill.Effect.Amount', kindScalar, false, [elementI32, elementVarint]);
           cursor = TcbColumnCursor(reader, column, count, 'Skill.Effect.Amount');
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
             for (var left = n; left > 0; left--, i++) {
               loaded[i].effect.amount = value;
+            }
+          }
+          break;
+        case 9:
+          checkColumn(column, 'Skill.Effect.Band', kindScalar, false, [elementVarint]);
+          cursor = TcbColumnCursor(reader, column, count, 'Skill.Effect.Band');
+          for (var i = 0; i < count; ) {
+            final (n, value) = cursor.nextSameI32(count - i);
+            for (var left = n; left > 0; left--, i++) {
+              loaded[i].effect.band = Band.of(value);
             }
           }
           break;

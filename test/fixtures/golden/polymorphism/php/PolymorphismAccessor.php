@@ -12,7 +12,9 @@ declare(strict_types=1);
 namespace Tabbit\Fixtures\Polymorphism;
 
 require_once __DIR__ . '/tabbit/TcbReader.php';
+require_once __DIR__ . '/enums/Band.php';
 require_once __DIR__ . '/structs/Effect.php';
+require_once __DIR__ . '/tables/ElementTable.php';
 require_once __DIR__ . '/tables/SkillTable.php';
 
 use Tabbit\TcbReader;
@@ -23,10 +25,12 @@ use Tabbit\Uuid;
 /** Every table, loaded together so cross-table references can be resolved. */
 final class PolymorphismAccessor
 {
+    public ElementTable $element;
     public SkillTable $skill;
 
     public function __construct()
     {
+        $this->element = new ElementTable();
         $this->skill = new SkillTable();
     }
 
@@ -87,11 +91,14 @@ final class PolymorphismAccessor
      */
     public function readAll(string $basePath, string $fileExtension = '.tcb'): void
     {
+        $loadedElementTable = new ElementTable();
+        $loadedElementTable->read($basePath . \DIRECTORY_SEPARATOR . 'Element' . $fileExtension);
         $loadedSkillTable = new SkillTable();
         $loadedSkillTable->read($basePath . \DIRECTORY_SEPARATOR . 'Skill' . $fileExtension);
 
-        $this->solveCrossReferences($loadedSkillTable);
+        $this->solveCrossReferences($loadedElementTable, $loadedSkillTable);
 
+        $this->element = $loadedElementTable;
         $this->skill = $loadedSkillTable;
     }
 
@@ -101,8 +108,14 @@ final class PolymorphismAccessor
      * The tables arrive as arguments rather than off $this, which is how this resolves the
      * load being read rather than the one already published.
      */
-    private function solveCrossReferences(SkillTable $skill): void
+    private function solveCrossReferences(ElementTable $element, SkillTable $skill): void
     {
-        // No table references another.
+        foreach ($skill->records as $record) {
+            $target = $element->findByCode($record->effect->elementId);
+
+            if ($target !== null) {
+                $record->effect->elementByElementId = $target;
+            }
+        }
     }
 }

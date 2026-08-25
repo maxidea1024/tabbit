@@ -264,11 +264,38 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// The members are columns, so their types come out of the same conversion a table's
     /// members do. spec/polymorphism.md section 7.1.
     /// </remarks>
+    /// <summary>The imports one abstract type's module needs for the types its members name.</summary>
+    private IReadOnlyList<string> StructImports(Models.PolymorphicType declared)
+    {
+        var lines = new List<string>();
+
+        foreach (var field in declared.BaseMembers
+                     .Concat(declared.Variants.SelectMany(variant => variant.Members)))
+        {
+            string line = field.ElementType switch
+            {
+                ValueType.Enum =>
+                    $"import {{ {field.Enum.Name.ToPascalCase()} }} "
+                    + $"from '../enums/{TsFileName(field.Enum.Name)}'",
+                ValueType.ForeignRecord when field.ResolvedRefTable is not null =>
+                    $"import {{ {field.ResolvedRefTable.Name.ToPascalCase()}Record }} "
+                    + $"from '../tables/{TsFileName(field.ResolvedRefTable.Name)}'",
+                _ => "",
+            };
+
+            if (line.Length > 0 && !lines.Contains(line))
+                lines.Add(line);
+        }
+
+        return lines;
+    }
+
     private TsPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
         => new TsPolymorphicTypeView
         {
             Name = declared.Name,
             File = TsFileName(declared.Name),
+            Imports = StructImports(declared),
             BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
             Variants = declared.Variants
                 .Select(variant => new TsVariantView
@@ -281,12 +308,25 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         };
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two properties**, as a reference is anywhere: the declared name
+    /// is the key's and the row it resolves to takes the derived one.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private TsStructMemberView StructMember(Models.Field field)
-        => new TsStructMemberView
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new TsStructMemberView
         {
-            PropName = TsCamelName(field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name),
+            RowName = toRow
+                ? TsCamelName(RowAccessorName(field.ResolvedRefTable!.Name, raw))
+                : "",
+            KeyTypeName = field.IsRef
+                ? ToTypescriptTypename(field.RefKeyType, null, null)
+                : "",
+            PropName = TsCamelName(raw),
             // `Enum` refuses a field that is not one, so it is only asked where the type says
             // to ask - the same guard every other caller of this makes.
             FieldType = ToTypescriptTypename(
@@ -296,6 +336,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 asArray: Models.ValueTypes.IsArray(field.Type)),
             Comment = CommentLines(field.Comment),
         };
+    }
 
     private void GenerateIndexTs()
     {

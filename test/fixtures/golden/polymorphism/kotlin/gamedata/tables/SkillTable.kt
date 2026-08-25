@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
 /** Skills whose effect is one of several shapes. */
 class SkillRecord {
     /** primary index */
@@ -58,10 +58,13 @@ class SkillRecord {
                     effect.chance,
                     effect.damage,
                     effect.pierces,
+                    effect.elementId,
+                    effect.elementByElementId,
                 )
                 2 -> HealEffect(
                     effect.chance,
                     effect.amount,
+                    effect.band,
                 )
                 3 -> NoEffect(
                     effect.chance,
@@ -85,8 +88,18 @@ class SkillRecord {
         var damage: Int = 0
         /** Whether it ignores armour. */
         var pierces: Boolean = false
+        /** Which element it deals, as a row of that catalogue. */
+        /**  */
+        /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+        /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+        /** path twice over: the blank cells of the other variants go through the reference */
+        /** conversion, and the built variant has to carry the resolved row rather than the key. */
+        var elementId: Int = 0
+        var elementByElementId: ElementRecord? = null
         /** How much it gives. */
         var amount: Int = 0
+        /** How often it lands, as a band rather than a number. */
+        var band: Band = Band.of(0)
     }
 
 }
@@ -234,6 +247,20 @@ class SkillTable {
                     }
                 }
                 7 -> {
+                    checkColumn(column, "Skill.Effect.ElementId", KIND_SCALAR, false, ELEMENT_I32)
+                    val cursor = ColumnCursor(reader, column, count, "Skill.Effect.ElementId")
+                    var at = 0
+                    while (at < count) {
+                        var n = cursor.nextSameI32(count - at)
+                        while (n > 0) {
+                            val i = at
+                            loaded[i].effect.elementId = cursor.runSameValue
+                            at++
+                            n--
+                        }
+                    }
+                }
+                8 -> {
                     checkColumn(column, "Skill.Effect.Amount", KIND_SCALAR, false, ELEMENT_I32, ELEMENT_VARINT)
                     val cursor = ColumnCursor(reader, column, count, "Skill.Effect.Amount")
                     var at = 0
@@ -242,6 +269,20 @@ class SkillTable {
                         while (n > 0) {
                             val i = at
                             loaded[i].effect.amount = cursor.runSameValue
+                            at++
+                            n--
+                        }
+                    }
+                }
+                9 -> {
+                    checkColumn(column, "Skill.Effect.Band", KIND_SCALAR, false, ELEMENT_VARINT)
+                    val cursor = ColumnCursor(reader, column, count, "Skill.Effect.Band")
+                    var at = 0
+                    while (at < count) {
+                        var n = cursor.nextSameI32(count - at)
+                        while (n > 0) {
+                            val i = at
+                            loaded[i].effect.band = Band.of(cursor.runSameValue)
                             at++
                             n--
                         }

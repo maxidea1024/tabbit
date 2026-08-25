@@ -418,15 +418,33 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             .ToList();
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two fields**, as a reference is anywhere: the declared name is
+    /// the key's and the row it resolves to takes the derived one. Getting this wrong is not a
+    /// naming problem - a builder that assigned the key into a field declared as a row does not
+    /// compile. spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private CsStructMemberView StructMember(Models.Field field)
-        => new CsStructMemberView
+    {
+        string name = field.NamePath is { Count: > 1 }
+            ? field.NamePath[^1].Name
+            : field.Name.ToPascalCase();
+
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new CsStructMemberView
         {
-            PropName = field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name.ToPascalCase(),
+            PropName = name,
             FieldType = ToCSharpTypeName(field),
             Comment = CommentLines(field.Comment),
+            RowPropName = toRow
+                ? RowAccessorName(field.ResolvedRefTable!.Name, name)
+                : "",
+            RefKeyTypeName = field.IsRef
+                ? ToCSharpTypeName(field.RefKeyType, null, null)
+                : "",
         };
+    }
 
     /// <summary>
     /// The `using` lines one generated file needs.

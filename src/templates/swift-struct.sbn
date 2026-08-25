@@ -44,13 +44,27 @@ public struct {{ variant.type_name }} {
 {{~ for line in member.comment ~}}
     /// {{ line }}
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+    public var {{ member.name }}: {{ member.key_type_name }}
+    public var {{ member.row_name }}: {{ member.type_name }}
+{{~ else ~}}
     public var {{ member.name }}: {{ member.type_name }}
+{{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ for line in member.comment ~}}
     /// {{ line }}
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+    public var {{ member.name }}: {{ member.key_type_name }}
+    public var {{ member.row_name }}: {{ member.type_name }}
+{{~ else ~}}
     public var {{ member.name }}: {{ member.type_name }}
+{{~ end ~}}
 {{~ end ~}}
 }
 {{~ end ~}}

@@ -9,27 +9,31 @@ import enum
 import os
 
 from . import tabbit
+from .enum_band import Band
 from .struct_effect import Effect, DamageEffect, HealEffect, NoEffect
 
 
 class SkillEffectEntry:
     """One element of SkillRecord.effect."""
 
-    __slots__ = ("type_", "chance", "damage", "pierces", "amount")
+    __slots__ = ("type_", "chance", "damage", "pierces", "element_id", "element_by_element_id", "amount", "band")
 
     def __init__(self):
         self.type_ = 0
         self.chance = 0
         self.damage = 0
         self.pierces = False
+        self.element_id = 0
+        self.element_by_element_id = None
         self.amount = 0
+        self.band = Band(0)
 
     def __repr__(self):
-        return "SkillEffectEntry(type_=%r, chance=%r, damage=%r, pierces=%r, amount=%r)" % (self.type_, self.chance, self.damage, self.pierces, self.amount)
+        return "SkillEffectEntry(type_=%r, chance=%r, damage=%r, pierces=%r, element_id=%r, amount=%r, band=%r)" % (self.type_, self.chance, self.damage, self.pierces, self.element_id, self.amount, self.band)
 
 
 class SkillRecord:
-    """Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2.
+    """Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2.
 
     Skills whose effect is one of several shapes.
     """
@@ -54,10 +58,13 @@ class SkillRecord:
             built.chance = self.effect.chance
             built.damage = self.effect.damage
             built.pierces = self.effect.pierces
+            built.element_id = self.effect.element_id
+            built.element_by_element_id = self.effect.element_by_element_id
         elif self.effect.type_ == 2:
             built = HealEffect()
             built.chance = self.effect.chance
             built.amount = self.effect.amount
+            built.band = self.effect.band
         elif self.effect.type_ == 3:
             built = NoEffect()
             built.chance = self.effect.chance
@@ -187,6 +194,15 @@ class SkillTable:
                 for record in records:
                     record.effect.pierces = cursor.next_bool()
             elif column.tag == 7:
+                tabbit.check_column(column, "Skill.Effect.ElementId", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32,))
+                cursor = tabbit.ColumnCursor(reader, column, count, "Skill.Effect.ElementId")
+                at = 0
+                while at < count:
+                    n, value = cursor.next_same_i32(count - at)
+                    for i in range(at, at + n):
+                        records[i].effect.element_id = value
+                    at += n
+            elif column.tag == 8:
                 tabbit.check_column(column, "Skill.Effect.Amount", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Skill.Effect.Amount")
                 at = 0
@@ -194,6 +210,15 @@ class SkillTable:
                     n, value = cursor.next_same_i32(count - at)
                     for i in range(at, at + n):
                         records[i].effect.amount = value
+                    at += n
+            elif column.tag == 9:
+                tabbit.check_column(column, "Skill.Effect.Band", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_VARINT,))
+                cursor = tabbit.ColumnCursor(reader, column, count, "Skill.Effect.Band")
+                at = 0
+                while at < count:
+                    n, value = cursor.next_same_i32(count - at)
+                    for i in range(at, at + n):
+                        records[i].effect.band = Band(value)
                     at += n
             else:
                 # A column added after this code was generated.

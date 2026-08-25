@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Tabbit\Fixtures\Polymorphism;
 
 require_once __DIR__ . '/../tabbit/TcbReader.php';
+require_once __DIR__ . '/../enums/Band.php';
 require_once __DIR__ . '/../structs/Effect.php';
 require_once __DIR__ . '/../PolymorphismAccessor.php';
 
@@ -32,12 +33,23 @@ final class SkillEffectEntry
     public int $damage = 0;
     /** Whether it ignores armour. */
     public bool $pierces = false;
+    /** Which element it deals, as a row of that catalogue. */
+    /**  */
+    /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+    /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+    /** path twice over: the blank cells of the other variants go through the reference */
+    /** conversion, and the built variant has to carry the resolved row rather than the key. */
+    public int $elementId = 0;
+
+    public ?ElementRecord $elementByElementId = null;
     /** How much it gives. */
     public int $amount = 0;
+    /** How often it lands, as a band rather than a number. */
+    public Band $band = Band::None;
 }
 
 /**
- * Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+ * Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
  *
  * Skills whose effect is one of several shapes.
  */
@@ -66,12 +78,15 @@ final class SkillRecord
                 $built->chance = $this->effect->chance;
                 $built->damage = $this->effect->damage;
                 $built->pierces = $this->effect->pierces;
+                $built->elementId = $this->effect->elementId;
+                $built->elementByElementId = $this->effect->elementByElementId;
                 $this->effectValue = $built;
                 return $built;
             case 2:
                 $built = new HealEffect();
                 $built->chance = $this->effect->chance;
                 $built->amount = $this->effect->amount;
+                $built->band = $this->effect->band;
                 $this->effectValue = $built;
                 return $built;
             case 3:
@@ -241,12 +256,34 @@ final class SkillTable
                     break;
 
                 case 7:
+                    TcbReader::checkColumn($column, 'Skill.Effect.ElementId', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32]);
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Skill.Effect.ElementId');
+                    for ($i = 0; $i < $count; ) {
+                        [$n, $value] = $cursor->nextSameI32($count - $i);
+                        for (; $n > 0; $n--, $i++) {
+                            $records[$i]->effect->elementId = $value;
+                        }
+                    }
+                    break;
+
+                case 8:
                     TcbReader::checkColumn($column, 'Skill.Effect.Amount', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_I32, TcbReader::ELEMENT_VARINT]);
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Skill.Effect.Amount');
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
                         for (; $n > 0; $n--, $i++) {
                             $records[$i]->effect->amount = $value;
+                        }
+                    }
+                    break;
+
+                case 9:
+                    TcbReader::checkColumn($column, 'Skill.Effect.Band', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_VARINT]);
+                    $cursor = new TcbColumnCursor($reader, $column, $count, 'Skill.Effect.Band');
+                    for ($i = 0; $i < $count; ) {
+                        [$n, $value] = $cursor->nextSameI32($count - $i);
+                        for (; $n > 0; $n--, $i++) {
+                            $records[$i]->effect->band = Band::tryFrom($value) ?? Band::None;
                         }
                     }
                     break;

@@ -16,12 +16,15 @@ class {{ structure.name }}:
     Narrow it with ``isinstance``.
     """
 
-    __slots__ = ({{ for member in structure.base_members }}"{{ member.name }}", {{ end }})
+    __slots__ = ({{ for member in structure.base_members }}"{{ member.name }}", {{ if member.row_name != '' }}"{{ member.row_name }}", {{ end }}{{ end }})
 
     def __init__(self):
 {{~ for member in structure.base_members ~}}
         #: {{ for line in member.comment }}{{ line }} {{ end }}
         self.{{ member.name }} = None
+{{~ if member.row_name != '' ~}}
+        self.{{ member.row_name }} = None
+{{~ end ~}}
 {{~ end ~}}
 {{~ if structure.base_members.size == 0 ~}}
         pass
@@ -36,12 +39,15 @@ class {{ variant.type_name }}({{ structure.name }}):
     what lets this variant be renamed without a deployed reader reading a different one.
     """
 
-    __slots__ = ({{ for member in variant.members }}"{{ member.name }}", {{ end }})
+    __slots__ = ({{ for member in variant.members }}"{{ member.name }}", {{ if member.row_name != '' }}"{{ member.row_name }}", {{ end }}{{ end }})
 
     def __init__(self):
         super().__init__()
 {{~ for member in variant.members ~}}
         #: {{ for line in member.comment }}{{ line }} {{ end }}
         self.{{ member.name }} = None
+{{~ if member.row_name != '' ~}}
+        self.{{ member.row_name }} = None
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

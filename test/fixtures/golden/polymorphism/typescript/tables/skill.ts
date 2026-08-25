@@ -16,6 +16,8 @@ import * as tabbit from '../tabbit/tcb-reader'
 import { Tables } from '../tables'
 
 // Automatically import to handle external type references.
+import { ElementRecord } from './element'
+import { Band } from '../enums/band'
 import { Effect } from '../structs/effect'
 
 /** One element of SkillRecord.effect. */
@@ -28,8 +30,15 @@ export interface EffectEntry {
   damage: number
   /** Whether it ignores armour. */
   pierces: boolean
+  /** Which element it deals, as a row of that catalogue.
+  **A reference on a variant member is the shape a real project reaches for first** - "thereward is an item, or a currency, or a monster" is that shape - and it is a differentpath twice over: the blank cells of the other variants go through the referenceconversion, and the built variant has to carry the resolved row rather than the key. */
+  elementId: number
+  elementByElementId: ElementRecord | undefined
+  elementId_F: boolean
   /** How much it gives. */
   amount: number
+  /** How often it lands, as a band rather than a number. */
+  band: Band
 }
 
 function buildEffect(e: EffectEntry): Effect {
@@ -40,12 +49,15 @@ function buildEffect(e: EffectEntry): Effect {
         chance: e.chance,
         damage: e.damage,
         pierces: e.pierces,
+        elementId: e.elementId,
+        elementByElementId: e.elementByElementId,
       }
     case 2:
       return {
         kind: 'HealEffect',
         chance: e.chance,
         amount: e.amount,
+        band: e.band,
       }
     case 3:
       return {
@@ -63,7 +75,9 @@ interface EffectEntryJson {
   chance: number
   damage: number
   pierces: boolean
+  elementId: number
   amount: number
+  band: Band
 }
 
 /** A type for handling rows when parsing .json. */
@@ -73,7 +87,7 @@ interface IDataRow {
   effect: EffectEntryJson
 }
 
-// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
 /** Skills whose effect is one of several shapes. */
 export class SkillRecord {
   /** Default constructor */
@@ -95,13 +109,13 @@ export class SkillRecord {
 
   public _index: number = 0
   public _name: string = ''
-  public _effect: EffectEntry = { type: 0, chance: 0, damage: 0, pierces: false, amount: 0 }
+  public _effect: EffectEntry = { type: 0, chance: 0, damage: 0, pierces: false, elementByElementId: undefined, elementId: 0, elementId_F: false, amount: 0, band: 0 as Band }
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
     this._name = dataRow.name
-    this._effect = ((e: any) => ({ type: e.type, chance: e.chance, damage: e.damage, pierces: e.pierces, amount: e.amount }))(dataRow.effect)
+    this._effect = ((e: any) => ({ type: e.type, chance: e.chance, damage: e.damage, pierces: e.pierces, elementByElementId: undefined, elementId: e.elementId, elementId_F: false, amount: e.amount, band: e.band }))(dataRow.effect)
   }
 
   /** Populate field values. */
@@ -109,11 +123,11 @@ export class SkillRecord {
     let offset = 0
     this._index = dataRow[offset++]
     this._name = dataRow[offset++]
-    this._effect = { type: dataRow[offset++], chance: dataRow[offset++], damage: dataRow[offset++], pierces: dataRow[offset++], amount: dataRow[offset++] }
+    this._effect = { type: dataRow[offset++], chance: dataRow[offset++], damage: dataRow[offset++], pierces: dataRow[offset++], elementByElementId: undefined, elementId: dataRow[offset++], elementId_F: false, amount: dataRow[offset++], band: dataRow[offset++] }
   }
 }
 
-// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
 /** Skills whose effect is one of several shapes. */
 export class SkillTable {
   /** Default constructor. */
@@ -281,12 +295,30 @@ export class SkillTable {
           }
           break
         case 7:
+          tabbit.checkColumn(column, 'Skill.Effect.ElementId', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Skill.Effect.ElementId')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameI32(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._effect.elementId = value
+          }
+          break
+        case 8:
           tabbit.checkColumn(column, 'Skill.Effect.Amount', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
           cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Skill.Effect.Amount')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
               records[i]._effect.amount = value
+          }
+          break
+        case 9:
+          tabbit.checkColumn(column, 'Skill.Effect.Band', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_VARINT])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Skill.Effect.Band')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameI32(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._effect.band = value as Band
           }
           break
         default:

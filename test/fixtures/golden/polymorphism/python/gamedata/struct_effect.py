@@ -31,7 +31,7 @@ class DamageEffect(Effect):
     what lets this variant be renamed without a deployed reader reading a different one.
     """
 
-    __slots__ = ("damage", "pierces", )
+    __slots__ = ("damage", "pierces", "element_id", "element_by_element_id", )
 
     def __init__(self):
         super().__init__()
@@ -39,6 +39,9 @@ class DamageEffect(Effect):
         self.damage = None
         #: Whether it ignores armour.
         self.pierces = None
+        #: Which element it deals, as a row of that catalogue.  **A reference on a variant member is the shape a real project reaches for first** - "the reward is an item, or a currency, or a monster" is that shape - and it is a different path twice over: the blank cells of the other variants go through the reference conversion, and the built variant has to carry the resolved row rather than the key.
+        self.element_id = None
+        self.element_by_element_id = None
 
 
 class HealEffect(Effect):
@@ -48,12 +51,14 @@ class HealEffect(Effect):
     what lets this variant be renamed without a deployed reader reading a different one.
     """
 
-    __slots__ = ("amount", )
+    __slots__ = ("amount", "band", )
 
     def __init__(self):
         super().__init__()
         #: How much it gives.
         self.amount = None
+        #: How often it lands, as a band rather than a number.
+        self.band = None
 
 
 class NoEffect(Effect):

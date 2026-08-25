@@ -9,6 +9,7 @@
 
 import * as path from 'path'
 
+import { ElementTable } from './tables/element'
 import { SkillTable } from './tables/skill'
 
 /** Tables */
@@ -64,6 +65,10 @@ export class Tables {
    */
   public static verifyMac = true
 
+  /** Peroperty for table Element */
+  public get element(): ElementTable { return this._element }
+  private _element: ElementTable = new ElementTable()
+
   /** Peroperty for table Skill */
   public get skill(): SkillTable { return this._skill }
   private _skill: SkillTable = new SkillTable()
@@ -75,18 +80,22 @@ export class Tables {
    * data files were renamed after export.
    */
   public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
+    const element = new ElementTable()
+    await element.read(path.join(basePath, `Element${fileExtension}`))
     const skill = new SkillTable()
     await skill.read(path.join(basePath, `Skill${fileExtension}`))
 
-    this.publish(skill)
+    this.publish(element, skill)
   }
 
   /** Read all tables synchronously. */
   public readAllSync(basePath: string, fileExtension: string = '.json'): void {
+    const element = new ElementTable()
+    element.readSync(path.join(basePath, `Element${fileExtension}`))
     const skill = new SkillTable()
     skill.readSync(path.join(basePath, `Skill${fileExtension}`))
 
-    this.publish(skill)
+    this.publish(element, skill)
   }
 
   /**
@@ -97,10 +106,12 @@ export class Tables {
    * needs every table. Both formats produce the same values.
    */
   public readAllBinarySync(basePath: string, fileExtension: string = '.tcb'): void {
+    const element = new ElementTable()
+    element.readBinarySync(path.join(basePath, `Element${fileExtension}`))
     const skill = new SkillTable()
     skill.readBinarySync(path.join(basePath, `Skill${fileExtension}`))
 
-    this.publish(skill)
+    this.publish(element, skill)
   }
 
   /**
@@ -111,7 +122,8 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(skill: SkillTable): void {
+  private publish(element: ElementTable, skill: SkillTable): void {
+    this._element = element
     this._skill = skill
 
     this.solveCrossReferences()
@@ -125,6 +137,11 @@ export class Tables {
    * table's own read. A zero means the sheet left the cell empty and is left unresolved.
    */
   private solveCrossReferences(): void {
-    // No table references another.
+    for (const record of this._skill.records) {
+      if (record._effect.elementId > 0) {
+        record._effect.elementByElementId = this._element.getByCodeOrThrow(record._effect.elementId)
+        record._effect.elementId_F = true
+      }
+    }
   }
 }

@@ -34,9 +34,15 @@ function {{ structure.name }}.new{{ variant.type_name }}()
     kind = "{{ variant.type_name }}",
 {{~ for member in structure.base_members ~}}
     {{ member.name }} = nil,
+{{~ if member.row_name != '' ~}}
+    {{ member.row_name }} = nil,
+{{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
     {{ member.name }} = nil,
+{{~ if member.row_name != '' ~}}
+    {{ member.row_name }} = nil,
+{{~ end ~}}
 {{~ end ~}}
   }, {{ variant.type_name }}Meta)
 end

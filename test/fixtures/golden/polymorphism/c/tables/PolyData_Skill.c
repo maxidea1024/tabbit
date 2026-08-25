@@ -127,6 +127,18 @@ static bool PolyData_SkillParse(PolyData_SkillTable_t* table, tb_reader* reader)
       break;
 
     case 7:
+      (void)tb_check_column(reader, column, "Skill.Effect.ElementId", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32));
+
+      (void)tb_cursor_init(&cursor, reader, column, table->count, "Skill.Effect.ElementId");
+
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        PolyData_SkillRecord_t* record = &table->records[row];
+
+        (void)tb_cursor_next_i32(&cursor, &record->effect.element_id);
+      }
+      break;
+
+    case 8:
       (void)tb_check_column(reader, column, "Skill.Effect.Amount", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_I32) | TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
 
       (void)tb_cursor_init(&cursor, reader, column, table->count, "Skill.Effect.Amount");
@@ -135,6 +147,20 @@ static bool PolyData_SkillParse(PolyData_SkillTable_t* table, tb_reader* reader)
         PolyData_SkillRecord_t* record = &table->records[row];
 
         (void)tb_cursor_next_i32(&cursor, &record->effect.amount);
+      }
+      break;
+
+    case 9:
+      (void)tb_check_column(reader, column, "Skill.Effect.Band", TB_KIND_SCALAR, false, TB_ELEMENT_MASK(TB_ELEMENT_VARINT));
+
+      (void)tb_cursor_init(&cursor, reader, column, table->count, "Skill.Effect.Band");
+
+      for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+        PolyData_SkillRecord_t* record = &table->records[row];
+        int32_t scratch = 0;
+
+        (void)tb_cursor_next_i32(&cursor, &scratch);
+        record->effect.band = (PolyData_Band_t)scratch;
       }
       break;
 
@@ -264,6 +290,8 @@ bool PolyData_SkillEffectAsDamageEffect(
   out->chance = record->effect.chance;
   out->damage = record->effect.damage;
   out->pierces = record->effect.pierces;
+  out->element_id = record->effect.element_id;
+  out->element_by_element_id = record->effect.element_by_element_id;
   return true;
 }
 
@@ -276,6 +304,7 @@ bool PolyData_SkillEffectAsHealEffect(
 
   out->chance = record->effect.chance;
   out->amount = record->effect.amount;
+  out->band = record->effect.band;
   return true;
 }
 

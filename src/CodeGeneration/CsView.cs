@@ -826,6 +826,21 @@ internal sealed class CsStructMemberView
 
     /// <summary>The documentation lines the declaration carried.</summary>
     public required IReadOnlyList<string> Comment { get; set; }
+
+    /// <summary>
+    /// Where the row a reference member resolved to goes, or empty when the member is a value.
+    /// </summary>
+    /// <remarks>
+    /// **A reference member is two fields here, the same two a reference column is anywhere.**
+    /// The declared name is the key's - that is what the cell holds - and the row it resolves to
+    /// takes the derived one. A variant that carried only the key would hand a consumer a
+    /// string where the declaration promised a row, and one that carried only the row would
+    /// lose the key. spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
+    public string RowPropName { get; set; } = "";
+
+    /// <summary>The key's type, for a reference member.</summary>
+    public string RefKeyTypeName { get; set; } = "";
 }
 
 /// <summary>

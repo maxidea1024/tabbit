@@ -13,6 +13,7 @@ import (
 
 // Tables holds every table, loaded together so cross-table references can be resolved.
 type Tables struct {
+	Element ElementTable
 	Skill SkillTable
 }
 
@@ -75,6 +76,9 @@ func (t *Tables) ReadAll(basePath string) error {
 func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) error {
 	var loaded Tables
 
+	if err := loaded.Element.Read(filepath.Join(basePath, "Element"+fileExtension)); err != nil {
+		return err
+	}
 	if err := loaded.Skill.Read(filepath.Join(basePath, "Skill"+fileExtension)); err != nil {
 		return err
 	}
@@ -89,5 +93,10 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 // solveCrossReferences turns the stored indices into usable values, once every table is
 // in memory.
 func (t *Tables) solveCrossReferences() {
-	// No table references another.
+	for i := range t.Skill.records {
+		record := &t.Skill.records[i]
+		if target := t.Element.FindByCode(record.effect.ElementId); target != nil {
+			record.effect.ElementByElementId = target
+		}
+	}
 }

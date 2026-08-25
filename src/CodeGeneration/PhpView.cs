@@ -554,6 +554,19 @@ internal sealed class PhpVariantView
 /// </remarks>
 internal sealed class PhpStructMemberView
 {
+    /// <summary>
+    /// Where the row a reference member resolved to goes, or empty when the member is a value.
+    /// </summary>
+    /// <remarks>
+    /// **A reference member is two fields here, the same two a reference column is anywhere.**
+    /// The declared name is the key's - that is what the cell holds - and the row it resolves to
+    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
+    public string RowName { get; set; } = "";
+
+    /// <summary>The key's type, for a reference member.</summary>
+    public string KeyTypeName { get; set; } = "";
+
     /// <summary>The member's name in the generated type.</summary>
     public required string Name { get; set; }
 

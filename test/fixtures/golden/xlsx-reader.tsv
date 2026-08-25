@@ -37,7 +37,7 @@ optional-index/optional-index.xlsx	sheets=1 rows=7 cells=21 chars=185 names=0 sk
 optional/optional.xlsx	sheets=1 rows=9 cells=112 chars=717 names=0 skipped-names=0 hash=c24c73e8ac52d7d8
 packed-expanded/packed-expanded.xlsx	sheets=1 rows=9 cells=37 chars=253 names=0 skipped-names=0 hash=f2c1dd9567633209
 packed/packed.xlsx	sheets=1 rows=9 cells=26 chars=216 names=0 skipped-names=0 hash=7c60bcc4d7be2ccf
-polymorphism/polymorphism.xlsx	sheets=1 rows=11 cells=52 chars=370 names=0 skipped-names=0 hash=422f3932eb59afa3
+polymorphism/polymorphism.xlsx	sheets=1 rows=11 cells=78 chars=546 names=0 skipped-names=0 hash=c193838435370bfa
 record-ref-trim/record-ref-trim.xlsx	sheets=1 rows=9 cells=55 chars=372 names=0 skipped-names=0 hash=6d2ebb9faf2938ca
 record-ref/record-ref.xlsx	sheets=1 rows=8 cells=336 chars=3054 names=0 skipped-names=0 hash=f8ce61e9d7ab7def
 record-trim/record-trim.xlsx	sheets=1 rows=11 cells=145 chars=787 names=0 skipped-names=0 hash=1727cc06325e25c5

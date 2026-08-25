@@ -13,18 +13,21 @@ require_relative '../structs/effect'
 module GameData
   # One element of SkillRecord#effect.
   class SkillEffectEntry
-    attr_accessor :type, :chance, :damage, :pierces, :amount
+    attr_accessor :type, :chance, :damage, :pierces, :element_id, :element_by_element_id, :amount, :band
 
     def initialize
       @type = 0
       @chance = 0
       @damage = 0
       @pierces = false
+      @element_id = 0
+      @element_by_element_id = nil
       @amount = 0
+      @band = 0
     end
   end
 
-  # Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : B2
+  # Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : Polymorphism : F2
   # Skills whose effect is one of several shapes.
   class SkillRecord
     attr_accessor :index, :name, :effect
@@ -46,10 +49,13 @@ module GameData
         built.chance = effect.chance
         built.damage = effect.damage
         built.pierces = effect.pierces
+        built.element_id = effect.element_id
+        built.element_by_element_id = effect.element_by_element_id
       when 2
         built = HealEffect.new
         built.chance = effect.chance
         built.amount = effect.amount
+        built.band = effect.band
       when 3
         built = NoEffect.new
         built.chance = effect.chance
@@ -189,6 +195,17 @@ module GameData
             record.effect.pierces = cursor.next_bool
           end
         when 7
+          Tabbit.check_column(column, 'Skill.Effect.ElementId', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32])
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Skill.Effect.ElementId')
+          at = 0
+          while at < count
+            n, value = cursor.next_same_i32(count - at)
+            (at...(at + n)).each do |i|
+              records[i].effect.element_id = value
+            end
+            at += n
+          end
+        when 8
           Tabbit.check_column(column, 'Skill.Effect.Amount', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Skill.Effect.Amount')
           at = 0
@@ -196,6 +213,17 @@ module GameData
             n, value = cursor.next_same_i32(count - at)
             (at...(at + n)).each do |i|
               records[i].effect.amount = value
+            end
+            at += n
+          end
+        when 9
+          Tabbit.check_column(column, 'Skill.Effect.Band', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_VARINT])
+          cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Skill.Effect.Band')
+          at = 0
+          while at < count
+            n, value = cursor.next_same_i32(count - at)
+            (at...(at + n)).each do |i|
+              records[i].effect.band = value
             end
             at += n
           end

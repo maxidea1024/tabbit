@@ -273,10 +273,13 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         {
             var structure = BuildStruct(declared);
 
+            // The types its members name: a declared enum, and the row of a table a reference
+            // member points at. Both are re-exported from the crate root, so the path is the
+            // same one a table module writes.
             Write(structure.ModuleName, "rust-struct.sbn", new RustPartView
             {
                 AccessorName = AccessorType,
-                Uses = Array.Empty<string>(),
+                Uses = StructUses(declared).ToList(),
                 Structure = structure,
             });
         }
@@ -318,6 +321,29 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             System.IO.Path.Combine(SourceDir, module + ".rs"));
 
         StagingFiles.WriteAllTextToFile(full, TemplateEngine.Render(templateName, view));
+    }
+
+    /// <summary>The `use` lines one abstract type's module needs for the types its members name.</summary>
+    private IEnumerable<string> StructUses(Models.PolymorphicType declared)
+    {
+        var lines = new List<string>();
+
+        foreach (var field in declared.BaseMembers
+                     .Concat(declared.Variants.SelectMany(variant => variant.Members)))
+        {
+            string line = field.ElementType switch
+            {
+                ValueType.Enum => EnumUse(field.Enum),
+                ValueType.ForeignRecord when field.ResolvedRefTable is not null =>
+                    $"use crate::{field.ResolvedRefTable.Name.ToPascalCase()}Record;",
+                _ => "",
+            };
+
+            if (line.Length > 0 && !lines.Contains(line))
+                lines.Add(line);
+        }
+
+        return lines;
     }
 
     /// <summary>
@@ -840,15 +866,35 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         };
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two of these**, as a reference is anywhere: the declared name is
+    /// the key's and the row it resolves to takes the derived one. A variant carrying only the
+    /// key would hand a consumer a key where the declaration promised a row.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private RustStructMemberView StructMember(Models.Field field)
-        => new RustStructMemberView
-        {
-            Name = RustName(field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name),
-            TypeName = ToRustTypeName(field.Type, field.EnumOrNull),
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+
+        // **No second name here.** This language does not link, so a reference column is one
+        // key wearing the column's own name - the row it would resolve to does not exist to be
+        // carried. spec/reference-surface-naming.md, "링킹이 없는 언어".
+        const bool toRow = false;
+
+        return new RustStructMemberView
+        {            Name = RustName(raw),
+            TypeName = toRow
+                ? "Option<" + field.ResolvedRefTable!.Name.ToPascalCase() + "Record>"
+                : ToRustTypeName(field.Type, field.EnumOrNull),
             Comment = CommentLines(field.Comment),
+            RowName = toRow
+                ? RustName(RowAccessorName(field.ResolvedRefTable!.Name, raw))
+                : "",
+            KeyTypeName = field.IsRef
+                ? ToRustTypeName(field.RefKeyType, null)
+                : "",
         };
+    }
 
     private RustFieldView BuildRecordField(Table table, SerialField sf)
     {

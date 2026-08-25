@@ -18,12 +18,26 @@ sealed class {{ structure.name }} {
 {{~ for line in member.comment ~}}
   /// {{ line }}
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+  final {{ member.key_type_name }} {{ member.name }};
+  final {{ member.type_name }} {{ member.row_name }};
+{{~ else ~}}
   final {{ member.type_name }} {{ member.name }};
+{{~ end ~}}
 {{~ end ~}}
 
   const {{ structure.name }}({
 {{~ for member in structure.base_members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
     required this.{{ member.name }},
+    required this.{{ member.row_name }},
+{{~ else ~}}
+    required this.{{ member.name }},
+{{~ end ~}}
 {{~ end ~}}
   });
 }
@@ -38,15 +52,36 @@ final class {{ variant.type_name }} extends {{ structure.name }} {
 {{~ for line in member.comment ~}}
   /// {{ line }}
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+  final {{ member.key_type_name }} {{ member.name }};
+  final {{ member.type_name }} {{ member.row_name }};
+{{~ else ~}}
   final {{ member.type_name }} {{ member.name }};
+{{~ end ~}}
 {{~ end ~}}
 
   const {{ variant.type_name }}({
 {{~ for member in structure.base_members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+    required super.{{ member.name }},
+    required super.{{ member.row_name }},
+{{~ else ~}}
     required super.{{ member.name }},
 {{~ end ~}}
+{{~ end ~}}
 {{~ for member in variant.members ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two of these: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
     required this.{{ member.name }},
+    required this.{{ member.row_name }},
+{{~ else ~}}
+    required this.{{ member.name }},
+{{~ end ~}}
 {{~ end ~}}
   });
 }

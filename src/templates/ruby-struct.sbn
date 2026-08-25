@@ -16,7 +16,14 @@
 {{~ for line in member.comment ~}}
     # {{ line }}
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two accessors: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
     attr_accessor :{{ member.name }}
+    attr_accessor :{{ member.row_name }}
+{{~ else ~}}
+    attr_accessor :{{ member.name }}
+{{~ end ~}}
 {{~ end ~}}
   end
 {{~ for variant in structure.variants ~}}
@@ -30,7 +37,14 @@
 {{~ for line in member.comment ~}}
     # {{ line }}
 {{~ end ~}}
+{{~ if member.row_name != '' ~}}
+{{~## A reference member is two accessors: the key the cell held under its own name, and the row
+   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
     attr_accessor :{{ member.name }}
+    attr_accessor :{{ member.row_name }}
+{{~ else ~}}
+    attr_accessor :{{ member.name }}
+{{~ end ~}}
 {{~ end ~}}
   end
 {{~ end ~}}

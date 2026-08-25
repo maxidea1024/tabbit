@@ -295,12 +295,20 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         };
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two fields**, as a reference is anywhere: the declared name is
+    /// the key's and the row it resolves to takes the derived one. A variant that carried only
+    /// the key would hand a consumer a string where the declaration promised a row.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private GoStructMemberView StructMember(Models.Field field)
-        => new GoStructMemberView
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new GoStructMemberView
         {
-            FieldName = GoName(field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name),
+            FieldName = GoName(raw),
             FieldType = ToGoTypeName(
                 field.Type,
                 field.Type is Models.ValueType.Enum or Models.ValueType.EnumArray
@@ -308,7 +316,14 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                     : null,
                 field.RefTableName),
             Comment = CommentLines(field.Comment),
+            RowName = toRow
+                ? GoName(RowAccessorName(field.ResolvedRefTable!.Name, raw))
+                : "",
+            KeyTypeName = field.IsRef
+                ? ToGoTypeName(field.RefKeyType, null, null)
+                : "",
         };
+    }
 
     /// <summary>
     /// Flat rather than in `tables/`, `enums/` and `constants/` as the other targets do.

@@ -9,6 +9,7 @@ use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::sync::OnceLock;
 use crate::tabbit;
+use crate::element_table::ElementTable;
 use crate::skill_table::SkillTable;
 
 /// The key the table files were sealed with, or unset when they were not sealed.
@@ -62,6 +63,7 @@ pub static VERIFY_MAC: AtomicBool = AtomicBool::new(true);
 /// Every table, loaded together.
 #[derive(Clone, Debug, Default)]
 pub struct Tables {
+    pub element: ElementTable,
     pub skill: SkillTable,
 }
 
@@ -83,6 +85,8 @@ impl Tables {
         &mut self, base_path: &Path, file_extension: &str) -> tabbit::Result<()> {
         let mut loaded = Tables::default();
 
+        loaded.element.read(
+            &base_path.join(format!("Element{}", file_extension)))?;
         loaded.skill.read(
             &base_path.join(format!("Skill{}", file_extension)))?;
 

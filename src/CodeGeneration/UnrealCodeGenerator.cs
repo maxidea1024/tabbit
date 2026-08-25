@@ -214,15 +214,29 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             .ToList();
 
     /// <summary>One member of an abstract type or of one of its variants.</summary>
+    /// <remarks>
+    /// **A reference member is two properties**, as a reference is anywhere: the declared name
+    /// is the key's and the row it resolves to takes the derived one.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
     private UnrealStructMemberView StructMember(Models.Field field)
-        => new UnrealStructMemberView
+    {
+        string raw = field.NamePath is { Count: > 1 } ? field.NamePath[^1].Name : field.Name;
+        bool toRow = field.IsRef && field.ResolvedRefTable is not null && ResolvesToRow(field);
+
+        return new UnrealStructMemberView
         {
-            Name = (field.NamePath is { Count: > 1 }
-                ? field.NamePath[^1].Name
-                : field.Name).ToPascalCase(),
+            Name = raw.ToPascalCase(),
             TypeName = ToUnrealTypeName(field.ElementType, field.EnumOrNull),
             Comment = CommentLines(field.Comment),
+            RowName = toRow
+                ? RowAccessorName(field.ResolvedRefTable!.Name, raw).ToPascalCase()
+                : "",
+            KeyTypeName = field.IsRef
+                ? ToUnrealTypeName(field.RefKeyType, null)
+                : "",
         };
+    }
 
     private void Write(string relative, string templateName, UnrealFileView view)
     {

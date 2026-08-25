@@ -648,6 +648,15 @@ internal sealed class TsPolymorphicTypeView
     /// <summary>The module file this is written to, without its extension.</summary>
     public required string File { get; set; }
 
+    /// <summary>
+    /// The import lines this module opens with.
+    /// </summary>
+    /// <remarks>
+    /// A variant member can be a row of another table or one of a declared enum, and this
+    /// module names those types - so it brings them in the way a table module does.
+    /// </remarks>
+    public IReadOnlyList<string> Imports { get; set; } = new List<string>();
+
     /// <summary>Its own fields, which every variant carries.</summary>
     public required IReadOnlyList<TsStructMemberView> BaseMembers { get; set; }
 
@@ -671,6 +680,19 @@ internal sealed class TsVariantView
 /// <summary>One member of an abstract type or of one of its variants.</summary>
 internal sealed class TsStructMemberView
 {
+    /// <summary>
+    /// Where the row a reference member resolved to goes, or empty when the member is a value.
+    /// </summary>
+    /// <remarks>
+    /// **A reference member is two fields here, the same two a reference column is anywhere.**
+    /// The declared name is the key's - that is what the cell holds - and the row it resolves to
+    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
+    public string RowName { get; set; } = "";
+
+    /// <summary>The key's type, for a reference member.</summary>
+    public string KeyTypeName { get; set; } = "";
+
     /// <summary>The property's name.</summary>
     public required string PropName { get; set; }
 

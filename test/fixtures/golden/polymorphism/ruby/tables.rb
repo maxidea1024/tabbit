@@ -7,7 +7,11 @@
 
 require_relative 'tabbit/tcb_reader'
 
+require_relative 'enums/band'
+
 require_relative 'structs/effect'
+
+require_relative 'tables/element_table'
 
 require_relative 'tables/skill_table'
 
@@ -15,7 +19,7 @@ require_relative 'tables/skill_table'
 module GameData
   # Every table, loaded together so cross-table references can be resolved.
   class Tables
-    attr_reader :skill
+    attr_reader :element, :skill
 
     class << self
       # The key the table files were sealed with, or nil when they were not sealed.
@@ -71,6 +75,7 @@ module GameData
     end
 
     def initialize
+      @element = ElementTable.new
       @skill = SkillTable.new
     end
 
@@ -79,11 +84,14 @@ module GameData
     # the references are linked among those, so a failure part way through leaves every
     # table holding the load it already had, and no row points at a row from it.
     def read_all(base_path, file_extension = '.tcb')
+      loaded_element = ElementTable.new
+      loaded_element.read(File.join(base_path, "Element#{file_extension}"))
       loaded_skill = SkillTable.new
       loaded_skill.read(File.join(base_path, "Skill#{file_extension}"))
 
-      solve_cross_references(loaded_skill)
+      solve_cross_references(loaded_element, loaded_skill)
 
+      @element = loaded_element
       @skill = loaded_skill
     end
 
@@ -92,9 +100,11 @@ module GameData
     # Turns the stored indices into usable values, once every table is in memory.
     # The tables arrive as arguments rather than off the instance, which is how this
     # resolves the load being read rather than the one already published.
-    def solve_cross_references(skill)
-      # No table references another.
-      nil
+    def solve_cross_references(element, skill)
+      skill.records.each do |record|
+        target = element.find_by_code(record.effect.element_id)
+        record.effect.element_by_element_id = target unless target.nil?
+      end
     end
   end
 end

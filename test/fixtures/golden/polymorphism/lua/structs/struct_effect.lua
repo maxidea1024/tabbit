@@ -16,8 +16,9 @@ local Effect = {}
 ---@field chance any
 ---@field damage any
 ---@field pierces any
+---@field elementId any
 local DamageEffectMeta = tcb.strictType(
-  "a `DamageEffect`", { "kind", "chance", "damage", "pierces" })
+  "a `DamageEffect`", { "kind", "chance", "damage", "pierces", "elementId", "elementByElementId" })
 
 --- One shape of `Effect`.
 ---
@@ -30,6 +31,8 @@ function Effect.newDamageEffect()
     chance = nil,
     damage = nil,
     pierces = nil,
+    elementId = nil,
+    elementByElementId = nil,
   }, DamageEffectMeta)
 end
 
@@ -38,8 +41,9 @@ end
 ---@field kind string
 ---@field chance any
 ---@field amount any
+---@field band any
 local HealEffectMeta = tcb.strictType(
-  "a `HealEffect`", { "kind", "chance", "amount" })
+  "a `HealEffect`", { "kind", "chance", "amount", "band" })
 
 --- One shape of `Effect`.
 ---
@@ -51,6 +55,7 @@ function Effect.newHealEffect()
     kind = "HealEffect",
     chance = nil,
     amount = nil,
+    band = nil,
   }, HealEffectMeta)
 end
 

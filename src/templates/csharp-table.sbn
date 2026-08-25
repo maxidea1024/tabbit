@@ -87,7 +87,15 @@
                             {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
 {{~ end ~}}
 {{~ for member in variant.members ~}}
+{{~ if member.row_prop_name != '' ~}}
+{{~## **The row from the row, not the key from the key.** The entry carries both; assigning the
+      key into a field declared as a row does not compile, which is what this used to do.
+      spec/reference-surface-naming.md sections 4 and 5. ##~}}
                             {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
+                            {{ member.row_prop_name }} = {{ field.field_name }}.{{ member.row_prop_name }},
+{{~ else ~}}
+                            {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
+{{~ end ~}}
 {{~ end ~}}
                         };
 {{~ end ~}}
