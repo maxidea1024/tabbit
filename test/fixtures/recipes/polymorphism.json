@@ -33,6 +33,10 @@
       "AccessorName": "PolyAccessor"
     },
     {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/polymorphism/typescript"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

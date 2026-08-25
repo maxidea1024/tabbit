@@ -210,6 +210,16 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 Write($"enums/{TsFileName(enumm.Name)}.ts", "ts-enum.sbn", BuildEnum(enumm));
         }
 
+        // A struct is an entity beside a table and an enum, so it gets a module of its own -
+        // one per declaration however many tables named it. Two tables each declaring their
+        // own `Effect` would give them types that share a name and are not the same type.
+        // spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            Write($"structs/{TsFileName(declared.Name)}.ts", "ts-struct.sbn",
+                  BuildStruct(declared));
+        }
+
         if (_model.Tables.Count > 0)
         {
             foreach (var table in _model.Tables)
@@ -246,6 +256,46 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         WriteBinaryReaderRuntime();
     }
+
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// The members are columns, so their types come out of the same conversion a table's
+    /// members do. spec/polymorphism.md section 7.1.
+    /// </remarks>
+    private TsPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new TsPolymorphicTypeView
+        {
+            Name = declared.Name,
+            File = TsFileName(declared.Name),
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new TsVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private TsStructMemberView StructMember(Models.Field field)
+        => new TsStructMemberView
+        {
+            PropName = TsCamelName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            // `Enum` refuses a field that is not one, so it is only asked where the type says
+            // to ask - the same guard every other caller of this makes.
+            FieldType = ToTypescriptTypename(
+                field.Type,
+                field.Type is ValueType.Enum or ValueType.EnumArray ? field.Enum : null,
+                field.RefTableName,
+                asArray: Models.ValueTypes.IsArray(field.Type)),
+            Comment = CommentLines(field.Comment),
+        };
 
     private void GenerateIndexTs()
     {
@@ -687,6 +737,17 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             }
         }
 
+        // The abstract types this table's groups are. Declared in a module of their own -
+        // one per declaration however many tables named it - so the table brings the union
+        // in rather than declaring its own. spec/polymorphism.md section 7.1.
+        foreach (var declared in table.Fields
+                     .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
+                     .Select(field => field.AbstractTypeName!.ToPascalCase())
+                     .Distinct())
+        {
+            Add($"import {{ {declared} }} from '../structs/{TsFileName(declared)}'");
+        }
+
         return imports;
 
         void Add(string statement)
@@ -814,6 +875,16 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             IsOutermost = true,
         });
 
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it, so this looks the shared entry up rather than working it out again.
+        // spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+            .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+            ?.FirstField?.AbstractTypeName is { } abstractName
+                ? _model.PolymorphicTypes.FirstOrDefault(
+                    candidate => candidate.Name == abstractName.ToPascalCase())
+                : null;
+
         return new TsFieldView
         {
             RowPropName = sf.IsRef && sf.FirstField!.ResolvedRefTable is not null
@@ -842,6 +913,18 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
             // An array of arrays has no element type to name, so the inner array is the
             // type - see spec/nested-multi-level.md.
+            AbstractTypeName = declaredType?.Name ?? "",
+            AbstractTypeFile = declaredType is null ? "" : TsFileName(declaredType.Name),
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new TsVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+
             FieldType = sf.MembersAreAnonymous
                 ? ToTypescriptTypename(sf.Members[0].FirstField) + "[]"
                 : typeName,
@@ -2048,7 +2131,10 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         if (comment.Count(c => c == '\n') <= 1)
         {
-            text.Append(comment.Replace("\n", ""));
+            // A space, not nothing. Two lines folded onto one need a separator where the
+            // break was, and without it the last word of the first line and the first of
+            // the second arrive as one word.
+            text.Append(comment.Replace("\n", " ").Trim());
         }
         else
         {

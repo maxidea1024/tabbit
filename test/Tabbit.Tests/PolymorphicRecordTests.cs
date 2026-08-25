@@ -161,4 +161,47 @@ public class PolymorphicRecordTests
         Assert.Equal("amount=20", own["Mend"]);
         Assert.Equal("none", own["Feint"]);
     }
+
+    /// <summary>
+    /// The generated TypeScript type-checks, and `kind` narrows to each row's variant.
+    /// </summary>
+    /// <remarks>
+    /// **The type check is most of this gate.** A discriminated union only means something if
+    /// narrowing reaches each variant's own members, and the compiler is what settles that - a
+    /// generator emitting the union flat would produce something the harness cannot check
+    /// against. spec/polymorphism.md section 7.
+    /// </remarks>
+    [Fact]
+    public void The_generated_typescript_narrows_to_each_rows_variant()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        var result = TypescriptRoundTrip.Run(Scenario, driver: "ts-check-polymorphism");
+
+        Assert.True(result.Succeeded,
+            $"Reading `{Scenario}` back through the generated TypeScript failed."
+            + $"{System.Environment.NewLine}{result.Output}");
+
+        var rows = JsonDocument.Parse(result.Output).RootElement
+            .GetProperty("Skill").EnumerateArray().ToArray();
+
+        var kind = rows.ToDictionary(
+            row => row.GetProperty("name").GetString()!,
+            row => row.GetProperty("kind").GetString());
+
+        Assert.Equal("DamageEffect", kind["Slash"]);
+        Assert.Equal("HealEffect", kind["Mend"]);
+        Assert.Equal("NoEffect", kind["Feint"]);
+
+        var own = rows.ToDictionary(
+            row => row.GetProperty("name").GetString()!,
+            row => row.GetProperty("own").GetString());
+
+        Assert.Equal("damage=50,pierces=true", own["Slash"]);
+        Assert.Equal("amount=20", own["Mend"]);
+        Assert.Equal("none", own["Feint"]);
+    }
 }

@@ -493,6 +493,26 @@ internal sealed class TsRecordTypeView
 internal sealed class TsFieldView
 {
     /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// The union is declared in its own module - one per declaration - and this is what the
+    /// table needs to build a value of it: which number means which variant, and which of the
+    /// entry's fields each one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// </remarks>
+    public IReadOnlyList<TsVariantView> Variants { get; set; } = new List<TsVariantView>();
+
+    /// <summary>The abstract type the variants make up, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>The module the abstract type is declared in, without its extension.</summary>
+    public string AbstractTypeFile { get; set; } = "";
+
+    /// <summary>The members every variant carries.</summary>
+    public IReadOnlyList<TsStructMemberView> BaseMembers { get; set; }
+        = new List<TsStructMemberView>();
+
+    /// <summary>
     /// What the resolved row is called, where this column is a reference to a whole row.
     /// Empty otherwise. spec/reference-surface-naming.md section 5.
     /// </summary>
@@ -611,3 +631,52 @@ internal sealed class TsFieldView
     public required IReadOnlyList<string> FromCompactRow { get; set; }
 }
 
+/// <summary>
+/// An abstract type and its variants, as one TypeScript module.
+/// </summary>
+/// <remarks>
+/// **A discriminated union, which is this language's sum type.** Classes and `instanceof`
+/// would work and read worse: the rest of this target's row types are interfaces, and a
+/// consumer narrowing with `e.kind === 'DamageEffect'` gets the same exhaustiveness the
+/// compiler already gives every other union here. spec/polymorphism.md section 7.
+/// </remarks>
+internal sealed class TsPolymorphicTypeView
+{
+    /// <summary>The abstract type's name - the union's name.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>The module file this is written to, without its extension.</summary>
+    public required string File { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<TsStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<TsVariantView> Variants { get; set; }
+}
+
+/// <summary>One variant of a <see cref="TsPolymorphicTypeView"/>.</summary>
+internal sealed class TsVariantView
+{
+    /// <summary>The variant's declared name - the interface, and the `kind` literal.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<TsStructMemberView> Members { get; set; }
+}
+
+/// <summary>One member of an abstract type or of one of its variants.</summary>
+internal sealed class TsStructMemberView
+{
+    /// <summary>The property's name.</summary>
+    public required string PropName { get; set; }
+
+    /// <summary>Its TypeScript type.</summary>
+    public required string FieldType { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
+}

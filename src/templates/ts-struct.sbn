@@ -1,0 +1,49 @@
+{{~##
+   One module per abstract type: the union and one interface per variant.
+
+   **A union rather than classes, because that is this language's sum type.** The rest of this
+   target's row types are interfaces, and a consumer narrowing with `kind` gets the
+   exhaustiveness the compiler already gives every other union here - `instanceof` would need
+   classes nothing else in the output uses.
+
+   `kind` holds the variant's name rather than its number. The number is what the file carries;
+   this is what a consumer reads, and a name reads better than a 1. spec/polymorphism.md §7.
+##~}}
+{{ include 'ts-head.sbn' ~}}
+/**
+ * One value of {{ name }}, whichever shape it took.
+ *
+ * Narrow it on `kind`, which every variant declares as its own name.
+ */
+export type {{ name }} =
+{{~ for variant in variants ~}}
+  | {{ variant.type_name }}
+{{~ end ~}}
+
+/** What every {{ name }} carries, whichever shape it is. */
+export interface {{ name }}Base {
+{{~ for member in base_members ~}}
+{{~ for line in member.comment ~}}
+  {{ line }}
+{{~ end ~}}
+  {{ member.prop_name }}: {{ member.field_type }}
+{{~ end ~}}
+}
+{{~ for variant in variants ~}}
+
+/**
+ * One shape of {{ name }}.
+ *
+ * The file carries {{ variant.discriminator }} for it. That number rather than the name is what
+ * lets this variant be renamed without a deployed reader reading a different one.
+ */
+export interface {{ variant.type_name }} extends {{ name }}Base {
+  readonly kind: '{{ variant.type_name }}'
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+  {{ line }}
+{{~ end ~}}
+  {{ member.prop_name }}: {{ member.field_type }}
+{{~ end ~}}
+}
+{{~ end ~}}

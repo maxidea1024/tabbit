@@ -58,6 +58,31 @@ export interface {{ rt.type_name }} {
 {{~ end ~}}
 }
 
+{{~ if field.variants.size > 0 ~}}
+{{~## The union built from one entry. A `switch` so a variant the file names and this build
+   does not have is reported rather than read as a neighbour - unlike a column added later,
+   which the reader skips, an unknown variant makes the whole row uninterpretable.
+   spec/polymorphism.md section 7.2. ##~}}
+function build{{ field.prop_name | string.capitalize }}(e: {{ rt.type_name }}): {{ field.abstract_type_name }} {
+  switch (e.type) {
+{{~ for variant in field.variants ~}}
+    case {{ variant.discriminator }}:
+      return {
+        kind: '{{ variant.type_name }}',
+{{~ for member in field.base_members ~}}
+        {{ member.prop_name }}: e.{{ member.prop_name }},
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+        {{ member.prop_name }}: e.{{ member.prop_name }},
+{{~ end ~}}
+      }
+{{~ end ~}}
+  }
+
+  throw new Error(`{{ field.abstract_type_name }}: no variant is numbered ${e.type}. This build knows {{ field.variants | array.map "type_name" | array.join ", " }}.`)
+}
+
+{{~ end ~}}
 /** {{ rt.type_name }} as the .json export carries it. */
 interface {{ rt.type_name }}Json {
 {{~ for member in rt.members ~}}
@@ -120,6 +145,17 @@ export class {{ name }}Record {
 {{~ else if field.row_prop_name != '' ~}}
   public get {{ field.prop_name }}(): {{ field.ref_key_type_name }} { return this.{{ field.field_name }}_{{ field.ref_table }}_index }
   public get {{ field.row_prop_name }}(): {{ field.field_type }} { return this.{{ field.field_name }} }
+{{~ else if field.variants.size > 0 ~}}
+{{~## **The union, built once on first use.** The entry below is what the read filled - one
+   assignment per column - and which variant it is only became knowable when the discriminator
+   column arrived. Building it here rather than while reading keeps the read path and the wire
+   exactly as they were, and a row nobody looks at costs nothing.
+   spec/polymorphism.md section 7.2. ##~}}
+  public get {{ field.prop_name }}(): {{ field.abstract_type_name }} {
+    return this.{{ field.field_name }}_value ?? (this.{{ field.field_name }}_value = build{{ field.prop_name | string.capitalize }}(this.{{ field.field_name }}))
+  }
+
+  private {{ field.field_name }}_value: {{ field.abstract_type_name }} | null = null
 {{~ else ~}}
   public get {{ field.prop_name }}(): {{ field.field_type }} { return this.{{ field.field_name }} }
 {{~ end ~}}
