@@ -1,5 +1,5 @@
-:const	IdleConst	방치의 상한과 계수이다.
+:const IdleConst	방치의 상한과 계수이다.
 :field	name	type	value	desc
-	cap_hours	int	8	누적 상한
-	progress_factor	int	10000	스테이지 진척도 계수. 만분율
-	ad_double_targets	string[]	gold;food;material	2배 대상. 발견과 조각은 아니다
+	CapHours	int	8	누적 상한
+	ProgressFactor	int	10000	스테이지 진척도 계수. 만분율
+	AdDoubleTargets	string	gold;food;material	2배 대상. 발견과 조각은 아니다

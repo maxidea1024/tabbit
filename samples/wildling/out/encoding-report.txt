@@ -1,0 +1,313 @@
+TCB encoding report
+===================
+
+Totals
+  tables    30
+  columns   200
+  unencoded 247,126
+  encoded   80,668  (32.6 % of unencoded)
+  deflated  37,706  (46.7 % of encoded)  - what a compression layer over the chosen blocks would come to
+
+By encoding
+  encoding        columns        bytes    share
+  DICT_FRONT          45       61,868   76.7 %
+  ARRAY               11        6,508    8.1 %
+  DICT_SEG             8        3,885    4.8 %
+  RAW                 21        1,370    1.7 %
+  DICT_FRONT_RLE       6        1,269    1.6 %
+  BITPACK             36          994    1.2 %
+  DICT                 4          959    1.2 %
+  DELTA_RLE           18          779    1.0 %
+  RLE                 24          705    0.9 %
+  DICT_SEG_RLE         3          691    0.9 %
+  DELTA                2          623    0.8 %
+  VARINT               7          528    0.7 %
+  DICT_RLE            12          480    0.6 %
+  WHOLE                3            9    0.0 %
+
+By element
+  element         columns    unencoded        bytes    share
+  string              96      209,189       73,339   90.9 %
+  i32                 72       35,173        6,807    8.4 %
+  varint              21        1,594          343    0.4 %
+  f32                  7          728          132    0.2 %
+  i64                  1          432           37    0.0 %
+  bool                 3           10           10    0.0 %
+
+Largest columns (40 of 200)
+
+  StringTable.StringId  [string]  2305 rows
+    chosen DICT_FRONT  13,114  (37.8 % of unencoded)
+    candidates RAW 34,664  ·  DICT 39,212  ·  DICT_RLE 41,517  ·  DICT_FRONT 13,114  ·  DICT_FRONT_RLE 15,419  ·  DICT_SEG 28,632  ·  DICT_SEG_RLE 30,937
+
+  StringTable.Ko  [string]  2305 rows
+    chosen DICT_FRONT  12,826  (45.3 % of unencoded)
+    candidates RAW 28,323  ·  DICT 31,499  ·  DICT_RLE 33,804  ·  DICT_FRONT 12,826  ·  DICT_FRONT_RLE 15,131  ·  DICT_SEG 22,944  ·  DICT_SEG_RLE 25,249
+
+  StringTable.Ja  [string]  2305 rows
+    chosen DICT_FRONT  12,128  (35.3 % of unencoded)
+    candidates RAW 34,316  ·  DICT 36,536  ·  DICT_RLE 38,708  ·  DICT_FRONT 12,128  ·  DICT_FRONT_RLE 14,295  ·  DICT_SEG 22,620  ·  DICT_SEG_RLE 24,792
+
+  StringTable.En  [string]  2305 rows
+    chosen DICT_FRONT  11,815  (47.0 % of unencoded)
+    candidates RAW 25,163  ·  DICT 28,132  ·  DICT_RLE 30,437  ·  DICT_FRONT 11,815  ·  DICT_FRONT_RLE 14,120  ·  DICT_SEG 22,653  ·  DICT_SEG_RLE 24,958
+
+  SkillGrowth.Costs.Amount  [i32[]]  460 rows
+    chosen ARRAY  1,707  (41.2 % of unencoded)
+    candidates RAW 4,140  ·  ARRAY 1,707
+
+  RewardEntry.RewardGroupId  [string]  364 rows
+    chosen DICT_FRONT  1,408  (16.7 % of unencoded)
+    candidates RAW 8,451  ·  DICT 4,007  ·  DICT_RLE 4,117  ·  DICT_FRONT 1,408  ·  DICT_FRONT_RLE 1,496  ·  DICT_SEG 1,711  ·  DICT_SEG_RLE 1,821
+
+  GrowthCurve.Costs.Amount  [i32[]]  350 rows
+    chosen ARRAY  1,305  (41.4 % of unencoded)
+    candidates RAW 3,150  ·  ARRAY 1,305
+
+  RewardGroup.Note  [string?]  158 rows
+    chosen DICT_SEG  1,292  (29.3 % of unencoded)
+    candidates RAW 4,407  ·  DICT 4,030  ·  DICT_RLE 4,095  ·  DICT_FRONT 2,524  ·  DICT_FRONT_RLE 2,612  ·  DICT_SEG 1,286  ·  DICT_SEG_RLE 1,351
+
+  RewardGroup.RewardGroupId  [string]  158 rows
+    chosen DICT_FRONT  1,078  (31.1 % of unencoded)
+    candidates RAW 3,469  ·  DICT 3,723  ·  DICT_RLE 3,881  ·  DICT_FRONT 1,078  ·  DICT_FRONT_RLE 1,236  ·  DICT_SEG 1,427  ·  DICT_SEG_RLE 1,585
+
+  SkillGrowth.Costs.CurrencyId  [string[]]  460 rows
+    chosen ARRAY  936  (18.5 % of unencoded)
+    candidates RAW 5,060  ·  ARRAY 936
+
+  Monster.Name  [string]  54 rows
+    chosen RAW  777  (100.0 % of unencoded)
+    candidates RAW 777  ·  DICT 832  ·  DICT_RLE 886  ·  DICT_FRONT 785  ·  DICT_FRONT_RLE 839  ·  DICT_SEG 894  ·  DICT_SEG_RLE 948
+
+  GrowthCurve.Costs.CurrencyId  [string[]]  350 rows
+    chosen ARRAY  716  (18.6 % of unencoded)
+    candidates RAW 3,850  ·  ARRAY 716
+
+  Item.Name  [string]  92 rows
+    chosen DICT_FRONT  682  (39.2 % of unencoded)
+    candidates RAW 1,742  ·  DICT 1,864  ·  DICT_RLE 1,956  ·  DICT_FRONT 682  ·  DICT_FRONT_RLE 774  ·  DICT_SEG 755  ·  DICT_SEG_RLE 847
+
+  Monster.Tags  [string]  54 rows
+    chosen DICT_FRONT  678  (64.2 % of unencoded)
+    candidates RAW 1,056  ·  DICT 1,041  ·  DICT_RLE 1,085  ·  DICT_FRONT 678  ·  DICT_FRONT_RLE 722  ·  DICT_SEG 777  ·  DICT_SEG_RLE 821
+
+  RequirementGroup.Note  [string?]  37 rows
+    chosen DICT_SEG  608  (65.8 % of unencoded)
+    candidates RAW 924  ·  DICT 922  ·  DICT_RLE 955  ·  DICT_FRONT 785  ·  DICT_FRONT_RLE 818  ·  DICT_SEG 602  ·  DICT_SEG_RLE 635
+
+  Item.ItemId  [string]  92 rows
+    chosen DICT_FRONT  607  (41.2 % of unencoded)
+    candidates RAW 1,475  ·  DICT 1,597  ·  DICT_RLE 1,689  ·  DICT_FRONT 607  ·  DICT_FRONT_RLE 699  ·  DICT_SEG 795  ·  DICT_SEG_RLE 887
+
+  EncounterTable.Entries.MonsterId  [string[]]  5 rows
+    chosen ARRAY  605  (33.3 % of unencoded)
+    candidates RAW 1,817  ·  ARRAY 605
+
+  Stage.WaveMonsterIds  [string[]]  90 rows
+    chosen ARRAY  601  (25.2 % of unencoded)
+    candidates RAW 2,385  ·  ARRAY 601
+
+  Item.Icon  [string]  92 rows
+    chosen DICT_FRONT  598  (42.9 % of unencoded)
+    candidates RAW 1,395  ·  DICT 1,517  ·  DICT_RLE 1,609  ·  DICT_FRONT 598  ·  DICT_FRONT_RLE 690  ·  DICT_SEG 785  ·  DICT_SEG_RLE 877
+
+  MonsterSkill.MonsterId  [string]  246 rows
+    chosen DICT_FRONT_RLE  586  (18.0 % of unencoded)
+    candidates RAW 3,264  ·  DICT 962  ·  DICT_RLE 824  ·  DICT_FRONT 724  ·  DICT_FRONT_RLE 586  ·  DICT_SEG 871  ·  DICT_SEG_RLE 733
+
+  RewardEntry.Rate  [i32]  364 rows
+    chosen DELTA  580  (39.8 % of unencoded)
+    candidates RAW 1,456  ·  VARINT 897  ·  DELTA 580  ·  RLE 714  ·  DELTA_RLE 649  ·  BITPACK 641
+
+  Monster.Icon  [string]  54 rows
+    chosen DICT_FRONT  535  (61.0 % of unencoded)
+    candidates RAW 877  ·  DICT 932  ·  DICT_RLE 986  ·  DICT_FRONT 535  ·  DICT_FRONT_RLE 589  ·  DICT_SEG 738  ·  DICT_SEG_RLE 792
+
+  Monster.MonsterId  [string]  54 rows
+    chosen DICT_FRONT  532  (74.4 % of unencoded)
+    candidates RAW 715  ·  DICT 770  ·  DICT_RLE 824  ·  DICT_FRONT 532  ·  DICT_FRONT_RLE 586  ·  DICT_SEG 679  ·  DICT_SEG_RLE 733
+
+  RequirementEntry.RequirementGroupId  [string]  77 rows
+    chosen DICT_FRONT  526  (28.4 % of unencoded)
+    candidates RAW 1,854  ·  DICT 956  ·  DICT_RLE 1,033  ·  DICT_FRONT 526  ·  DICT_FRONT_RLE 603  ·  DICT_SEG 662  ·  DICT_SEG_RLE 739
+
+  MonsterSkill.SkillId  [string]  246 rows
+    chosen DICT_SEG  521  (15.3 % of unencoded)
+    candidates RAW 3,403  ·  DICT 847  ·  DICT_RLE 1,093  ·  DICT_FRONT 562  ·  DICT_FRONT_RLE 808  ·  DICT_SEG 521  ·  DICT_SEG_RLE 767
+
+  RewardEntry.Reward.Amount  [i32]  364 rows
+    chosen VARINT  498  (34.2 % of unencoded)
+    candidates RAW 1,456  ·  VARINT 498  ·  DELTA 594  ·  RLE 643  ·  DELTA_RLE 745  ·  BITPACK 595
+
+  Stage.RewardGroupId  [string]  90 rows
+    chosen DICT_FRONT  492  (22.4 % of unencoded)
+    candidates RAW 2,196  ·  DICT 2,314  ·  DICT_RLE 2,404  ·  DICT_FRONT 492  ·  DICT_FRONT_RLE 582  ·  DICT_SEG 805  ·  DICT_SEG_RLE 895
+
+  StageReward.RewardGroupId  [string]  90 rows
+    chosen DICT_FRONT  492  (22.4 % of unencoded)
+    candidates RAW 2,196  ·  DICT 2,314  ·  DICT_RLE 2,404  ·  DICT_FRONT 492  ·  DICT_FRONT_RLE 582  ·  DICT_SEG 805  ·  DICT_SEG_RLE 895
+
+  RequirementGroup.RequirementGroupId  [string]  37 rows
+    chosen DICT_FRONT  486  (55.4 % of unencoded)
+    candidates RAW 878  ·  DICT 916  ·  DICT_RLE 953  ·  DICT_FRONT 486  ·  DICT_FRONT_RLE 523  ·  DICT_SEG 622  ·  DICT_SEG_RLE 659
+
+  Stage.StageId  [string]  90 rows
+    chosen DICT_FRONT  459  (33.1 % of unencoded)
+    candidates RAW 1,386  ·  DICT 1,504  ·  DICT_RLE 1,594  ·  DICT_FRONT 459  ·  DICT_FRONT_RLE 549  ·  DICT_SEG 614  ·  DICT_SEG_RLE 704
+
+  StageReward.StageId  [string]  90 rows
+    chosen DICT_FRONT  459  (33.1 % of unencoded)
+    candidates RAW 1,386  ·  DICT 1,504  ·  DICT_RLE 1,594  ·  DICT_FRONT 459  ·  DICT_FRONT_RLE 549  ·  DICT_SEG 614  ·  DICT_SEG_RLE 704
+
+  Monster.SpeciesId  [string]  54 rows
+    chosen DICT  388  (63.9 % of unencoded)
+    candidates RAW 607  ·  DICT 388  ·  DICT_RLE 394  ·  DICT_FRONT 400  ·  DICT_FRONT_RLE 406  ·  DICT_SEG 514  ·  DICT_SEG_RLE 520
+
+  Skill.Icon  [string]  46 rows
+    chosen DICT_SEG  383  (48.7 % of unencoded)
+    candidates RAW 786  ·  DICT 833  ·  DICT_RLE 879  ·  DICT_FRONT 384  ·  DICT_FRONT_RLE 430  ·  DICT_SEG 383  ·  DICT_SEG_RLE 429
+
+  RewardEntry.Reward.CurrencyId  [string]  364 rows
+    chosen DICT  380  (29.3 % of unencoded)
+    candidates RAW 1,296  ·  DICT 380  ·  DICT_RLE 451  ·  DICT_FRONT 383  ·  DICT_FRONT_RLE 454  ·  DICT_SEG 389  ·  DICT_SEG_RLE 460
+
+  SkillGrowth.SkillId  [string]  460 rows
+    chosen DICT_SEG_RLE  379  (5.8 % of unencoded)
+    candidates RAW 6,480  ·  DICT 1,109  ·  DICT_RLE 741  ·  DICT_FRONT 795  ·  DICT_FRONT_RLE 427  ·  DICT_SEG 747  ·  DICT_SEG_RLE 379
+
+  SkillEffect.SkillId  [string]  55 rows
+    chosen DICT_SEG  342  (42.6 % of unencoded)
+    candidates RAW 802  ·  DICT 704  ·  DICT_RLE 759  ·  DICT_FRONT 390  ·  DICT_FRONT_RLE 445  ·  DICT_SEG 342  ·  DICT_SEG_RLE 397
+
+  Skill.SkillId  [string]  46 rows
+    chosen DICT_SEG  333  (51.4 % of unencoded)
+    candidates RAW 648  ·  DICT 695  ·  DICT_RLE 741  ·  DICT_FRONT 381  ·  DICT_FRONT_RLE 427  ·  DICT_SEG 333  ·  DICT_SEG_RLE 379
+
+  SkillGrowth.PowerFactor  [i32]  460 rows
+    chosen DELTA_RLE  321  (17.4 % of unencoded)
+    candidates RAW 1,840  ·  VARINT 1,380  ·  DELTA 966  ·  RLE 1,840  ·  DELTA_RLE 321  ·  BITPACK 810
+
+  Skill.Name  [string]  46 rows
+    chosen DICT_SEG  309  (47.9 % of unencoded)
+    candidates RAW 645  ·  DICT 692  ·  DICT_RLE 738  ·  DICT_FRONT 431  ·  DICT_FRONT_RLE 477  ·  DICT_SEG 309  ·  DICT_SEG_RLE 355
+
+  MonsterAwakening.RequirementGroupId  [string]  24 rows
+    chosen DICT_FRONT  307  (52.4 % of unencoded)
+    candidates RAW 586  ·  DICT 611  ·  DICT_RLE 635  ·  DICT_FRONT 307  ·  DICT_FRONT_RLE 331  ·  DICT_SEG 440  ·  DICT_SEG_RLE 464
+
+Headroom outside the encodings
+  What a column would come to if its rows' lengths and its elements were
+  each encoded, against what it costs today. Nothing here is in the format.
+
+  Array columns (always raw today)
+    columns  11
+    elements 4,112
+    today    6,508
+    encoded  6,777  (104.1 % of today) · saved -269
+
+  Float columns (dictionary only today)
+    columns  7
+    elements 182
+    today    132
+    encoded  129  (97.7 % of today) · saved 3
+
+  Of the float columns, 3 hold whole numbers in every row.
+    today 9 · as integers 6 · saved 3
+
+Bit-width packing headroom
+  What the integer columns would come to at the width their own range
+  needs, against what they cost today. Nothing here is in the format.
+
+  element     columns        today       packed        saved
+  i64               1           37           37            0
+  bool              3           10           12           -2
+  varint           21          343          497         -154
+  i32              72        6,807       10,998       -4,191
+
+  Keeping the smaller of the two per column: 7,197 → 7,125 · saved 72 over 4 of 97 columns.
+
+    width            base        today       packed  inner         column
+        7               5          189          157  RAW           Stage.WaveLevels
+       14              10          124           98  RAW           MonsterAwakening.Costs.Amount
+       10               1          183          176  RAW           EncounterTable.Entries.Weight
+        2               1           45           38  RAW           EncounterTable.Entries.EncounterSlot
+
+Presence bitmaps
+  A bit per row, saying which rows have a value. Encoded by the same choice
+  a bit-packed value block uses; `unencoded` is what a bit a row would cost.
+
+    columns    11
+    unencoded  143
+    encoded    112  (78.3 % of unencoded) · saved 31
+
+  2 of 11 bitmaps got smaller.
+
+       rows    unencoded      encoded  column
+        364           46           29  RewardEntry.ServerWeight
+        158           20            6  RewardGroup.Note
+
+String dictionary headroom
+  What the distinct values of a string column cost under each layout. Only
+  `front` is in the format; the rest are measurements, and `deflate` is the
+  floor none of them can pass.
+
+  distinct        plain        front      segment     template        delta      deflate  column
+      2305       34,666        8,568       24,086       14,982       12,946        6,091  StringTable.StringId
+      2256       27,002        8,292       18,447       12,838       11,192        5,536  StringTable.Ko
+      2210       32,044        7,631       18,128       12,039       10,393        5,530  StringTable.Ja
+      2218       23,647        7,356       18,168       11,823       10,177        5,433  StringTable.En
+       127        3,778        2,295        1,034        1,083        1,088          612  RewardGroup.Note
+       158        3,471          826        1,175        1,019        1,024          572  RewardEntry.RewardGroupId
+       158        3,471          826        1,175        1,019        1,024          572  RewardGroup.RewardGroupId
+        35          885          748          565          789          789          395  RequirementGroup.Note
+        54          778          731          840          840          840          493  Monster.Name
+        49          987          624          723          723          723          310  Monster.Tags
+        92        1,744          562          635          704          704          401  Item.Name
+        92        1,477          487          675          622          622          364  Item.ItemId
+        54          878          481          684          626          626          337  Monster.Icon
+        92        1,397          478          665          613          613          361  Item.Icon
+        54          716          478          625          623          623          333  Monster.MonsterId
+        54          716          478          625          623          623          333  MonsterSkill.MonsterId
+        48          634          460          598          599          599          317  EncounterTable.Entries.MonsterId
+        37          879          449          585          556          556          302  RequirementEntry.RequirementGroupId
+        37          879          449          585          556          556          302  RequirementGroup.RequirementGroupId
+        30          394          406          523          527          527          259  Stage.WaveMonsterIds
+        46          646          385          263          478          478          218  Skill.Name
+        90        2,198          376          689          472          472          278  Stage.RewardGroupId
+        90        2,198          376          689          472          472          278  StageReward.RewardGroupId
+        30          334          346          460          407          407          241  Monster.SpeciesId
+        90        1,388          343          498          439          439          258  Stage.StageId
+        90        1,388          343          498          439          439          258  StageReward.StageId
+        46          787          338          337          443          443          231  Skill.Icon
+        46          649          335          287          440          440          227  Skill.SkillId
+        46          649          335          287          440          440          227  SkillEffect.SkillId
+        46          649          335          287          440          440          227  SkillGrowth.SkillId
+        43          601          316          275          413          413          214  MonsterSkill.SkillId
+        24          587          283          416          362          362          206  MonsterAwakening.RequirementGroupId
+         5          280          280          189          291          291          147  Monster.Description
+        24          323          272          356          351          351          194  MonsterAwakening.FromMonsterId
+        24          323          272          356          351          351          194  MonsterAwakening.ToMonsterId
+        54          325          188          226          243          243          119  Monster.DisplayCode
+         6          172          174          101          187          187           83  Skill.Description
+        16          328          163          179          196          196          123  RewardEntry.Reward.ItemId
+        19          449          160          235          180          185          142  CodexReward.RewardGroupId
+        19          392          157          212          177          182          141  CodexReward.CodexRewardId
+
+  Over all 96 string columns:
+    plain      159,864
+    front      51,240  (32.1 % of plain)
+    segment    101,411  (197.9 % of front)
+    template   73,839  (144.1 % of front)
+    delta      66,891  (130.5 % of front)
+    deflate    35,605  (69.5 % of front)
+
+  Best per column, layout chosen per column: 49,303  (96.2 % of front)
+  Headroom against what is in the format today: 1,937
+
+  Where each layout wins, and what it saves against front coding
+    layout      columns       saved
+    segment          11       1,930
+    template          1           7
+    front            84           0
+

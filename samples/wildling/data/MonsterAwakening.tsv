@@ -1,8 +1,8 @@
-:table	MonsterAwakening	각성 관계이다. 연장 행은 소모 재화의 원소이다.
+:table MonsterAwakening	각성 관계이다. 연장 행은 소모 재화의 원소이다.
 :field	from_monster_id	to_monster_id	gain.hp	gain.attack	gain.defense	gain.speed	gain.crit_rate	gain.crit_power	requirement_group_id	costs[]
-:type	foreign Monster	foreign Monster	StatBlock						foreign RequirementGroup	Cost
+:type	foreign Monster	foreign Monster	int (min=0)	int (min=0)	int (min=0)	int (min=0)	int (min=0)	int (min=0)	foreign RequirementGroup	Cost
 :desc	각성 전	각성 후	각성으로 더해지는 값						각성 조건	소모 재화. 셀 하나에 `재화,수량`
-:target	c,s	c,s	c,s						c,s	c,s
+:target	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s
 	sprout_deer_1	sprout_deer_2	336	30	26	6	0	0	req_awaken_sprout_deer_2	shard,10
 										gold,8000
 	sprout_deer_2	sprout_deer_3	575	52	43	6	0	0	req_awaken_sprout_deer_3	shard,20

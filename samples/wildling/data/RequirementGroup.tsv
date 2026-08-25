@@ -1,4 +1,4 @@
-:table	RequirementGroup	조건 묶음이다.
+:table RequirementGroup	조건 묶음이다.
 :field	requirement_group_id	note
 :type	string	string?
 :desc	식별자	이 묶음이 무엇인지

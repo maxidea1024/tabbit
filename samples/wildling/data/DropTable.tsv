@@ -1,4 +1,4 @@
-:table	DropTable	지역별 드랍 묶음이다.
+:table DropTable	지역별 드랍 묶음이다.
 :field	drop_group_id	region_id	reward_group_id	roll_count
 :type	string	foreign Region	foreign RewardGroup	int (min=1, max=8)
 :desc	식별자	어느 지역인가	무엇이 나오는가	한 번에 몇 번 굴리는가

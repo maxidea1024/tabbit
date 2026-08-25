@@ -1,8 +1,8 @@
-:table	StringTable	번역 대조본이다.
+:table StringTable	번역 대조본이다.
 :field	string_id	ko	en	ja
 :type	string	string	string	string
 :desc	식별자	한국어	영어	일본어
-:target	c	c	c	c
+:target	c,s	c	c	c
 	monster.sprout_deer_1.name	새싹사슴	Sprout Deer 1	새싹사슴
 	monster.sprout_deer_1.desc	잎새 와일드링이다.	A leaf wildling.	Leaf のワイルドリング。
 	monster.sprout_deer_2.name	잎뿔사슴	Sprout Deer 2	잎뿔사슴

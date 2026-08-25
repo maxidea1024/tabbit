@@ -1,0 +1,36 @@
+// 테이블 여럿이 같은 멤버 조합을 쓰는 것들. 컬럼 헤더에 타입과 설명을 다시 적지 않기 위해
+// 여기 선언합니다.
+
+/// 와일드링과 수호자가 공유하는 능력치 묶음.
+struct StatBlock
+    /// 체력.
+    field hp         int (min=1)
+    /// 공격.
+    field attack     int (min=1)
+    /// 방어.
+    field defense    int (min=0)
+    /// 행동 순서. 같으면 배치 순서가 정합니다.
+    field speed      int (min=1)
+    /// 치명타 확률. 만분율.
+    field crit_rate  int (min=0, max=10000)
+    /// 치명타 배수. 만분율. 10000이 1배입니다.
+    field crit_power int (min=10000)
+
+/// 재화 하나를 얼마나 소모하는가. `sep`이 있으므로 셀 하나에 `gold,4400`으로 적을 수도 있고,
+/// 멤버를 컬럼으로 펼칠 수도 있습니다 — 와이어는 같습니다.
+struct Cost (sep=",")
+    /// 어느 재화인가.
+    field currency_id foreign Currency
+    /// 수량.
+    field amount      int (min=1)
+
+/// 출현 슬롯의 종류. `EncounterEntry`가 가리키므로 여기 있어야 합니다.
+enum EncounterSlot
+    /// 탐사 시간에 비례해 반복.
+    value Normal   = 1
+    /// 탐사 1회당 최대 1회.
+    value Rare     = 2
+    /// 스테이지 도전에서만.
+    value Guardian = 3
+    /// 조건을 만족한 탐사에서만.
+    value Hidden   = 4

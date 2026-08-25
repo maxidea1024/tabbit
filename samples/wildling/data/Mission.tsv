@@ -1,4 +1,4 @@
-:table	Mission	일일과 주간 의뢰이다.
+:table Mission	일일과 주간 의뢰이다.
 :field	mission_id	cycle	name	target_id	goal_count	requirement_group_id	reward_group_id
 :type	string	MissionCycle	string (text=Mission)	string (refs="Monster;Region;Item")	int (min=1)	foreign RequirementGroup	foreign RewardGroup
 :desc	식별자	일일인지 주간인지	표시 이름	대상. 참조가 아니라 검사이다	목표 횟수	수령 조건	보상

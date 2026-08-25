@@ -1,18 +1,15 @@
-:const	BattleConst	전투 계산의 계수이다.
+:const BattleConst	전투 계산의 계수이다.
 :field	name	type	value	desc
-	defense_factor	int	60	방어가 피해를 깎는 비율. 만분율
-	max_turn	int	30	이 턴에 결착이 없으면 체력 비율로 판정한다
-	speed_tiebreak	bool	TRUE	속도가 같으면 배치 순서
-	battle_speeds	int[]	1;2;4	배속 단계
-	neutral_affinity	int	10000	상성이 없을 때의 배수
+	DefenseFactor	int	60	방어가 피해를 깎는 비율. 만분율
+	MaxTurn	int	30	이 턴에 결착이 없으면 체력 비율로 판정한다
+	SpeedTiebreak	bool	TRUE	속도가 같으면 배치 순서
+	NeutralAffinity	int	10000	상성이 없을 때의 배수
 
-:table	ElementAffinityColumn	매트릭스의 두 번째 축이다. 컬럼 테이블과 같이 배포한다.
-:field	at	element
-:type	int (min=0)	Element
-:desc	자리	그 자리의 속성
-:target	c,s	c,s
-	0	Flame
-	1	Tide
-	2	Leaf
-	3	Arc
-	4	Umbra
+:table BattleSpeed	배속 단계이다. 전투 상수만 쓰는 작은 표라 같은 탭에 둔다.
+:field	at	multiplier	label
+:type	int (min=0, max=3)	int (min=1)	string (text=Battle)
+:desc	자리	배수	표시
+:target	c,s	c,s	c
+	0	1	1배
+	1	2	2배
+	2	4	4배

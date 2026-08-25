@@ -33,15 +33,31 @@ def emit(filename, entities):
 
 def table(name, desc, cols, rows, meta=""):
     """cols = [(field, type, desc, target)] · rows = [[값...]]"""
-    decl = ":table", name + (("(" + meta + ")") if meta else ""), desc
-    out = [list(decl)]
+    decl = ":table " + name + (("(" + meta + ")") if meta else "")
+    out = [[decl, desc]]
     out.append([":field"] + [c[0] for c in cols])
     out.append([":type"] + [c[1] for c in cols])
     out.append([":desc"] + [c[2] for c in cols])
     if any(len(c) > 3 and c[3] for c in cols):
         out.append([":target"] + [(c[3] if len(c) > 3 else "") for c in cols])
+    # 옵셔널 컬럼의 빈 칸은 `-` 로 적는다 — 빈 칸의 뜻은 정책이 정하고 기본은 오류이므로,
+    # 「이 행에는 값이 없다」는 표기가 따로 있다. 다만 **멀티 로우의 연장 행은 건드리지
+    # 않는다** — 거기서 값이 허용되는 곳은 `[]` 컬럼뿐이다.
+    optional = [i for i, c in enumerate(cols) if "?" in c[1]]
+
+    # 다형 그룹의 합집합 컬럼. 그 행의 변종이 갖지 않는 멤버는 **`-`(값 없음)** 로 적는다 —
+    # 빈 칸으로 두면 참조 컬럼에서 「값이 있다」로 읽혀 「그 변종의 것이 아닌 값」으로 걸린다.
+    groups = [c[0][:-len(".$type")] for c in cols if c[0].endswith(".$type")]
+    union = [i for i, c in enumerate(cols)
+             if any(c[0].startswith(g + ".") for g in groups)
+             and not c[0].endswith(".$type")]
     for r in rows:
-        out.append([""] + [str(v) for v in r])
+        cells = [str(v) for v in r]
+        if cells and cells[0]:
+            for i in optional + union:
+                if i < len(cells) and cells[i] == "":
+                    cells[i] = "-"
+        out.append([""] + cells)
     return out
 
 
@@ -49,7 +65,7 @@ def enum(name, desc, labels):
     """labels = [(label, value, desc)] 또는 [(label, value, desc, alias)]"""
     wide = any(len(l) > 3 for l in labels)
     head = ["label", "value", "desc"] + (["alias"] if wide else [])
-    out = [[":enum", name, desc], [":field"] + head]
+    out = [[":enum " + name, desc], [":field"] + head]
     for l in labels:
         row = [l[0], str(l[1]), l[2]] + ([l[3] if len(l) > 3 else ""] if wide else [])
         out.append([""] + row)
@@ -58,7 +74,7 @@ def enum(name, desc, labels):
 
 def const(name, desc, items):
     """items = [(name, type, value, desc)]"""
-    out = [[":const", name, desc], [":field", "name", "type", "value", "desc"]]
+    out = [[":const " + name, desc], [":field", "name", "type", "value", "desc"]]
     for it in items:
         out.append([""] + [str(v) for v in it])
     return out
@@ -172,8 +188,8 @@ def build_monster():
         ("max_stage", "int (min=1, max=3)", "이 종이 도달할 수 있는 최대 단계", "c,s"),
         ("icon", "string (asset=icon)", "기록부와 편성 화면의 아이콘", "c"),
         ("model_offset", "vec3f?", "연출 보정. 대부분의 종은 비운다", "c"),
-        ("tags", "string[]", "검색 태그", "c"),
-        ("#old_grade@7", "", "등급을 종 단위로 옮기기 전의 컬럼", ""),
+        ("tags", "string", "검색 태그", "c"),
+        ("#old_grade", "", "등급을 종 단위로 옮기기 전의 컬럼", ""),
         ("#", "", "", ""),
     ]
     rows = []
@@ -206,12 +222,12 @@ def build_awakening():
     cols = [
         ("from_monster_id", "foreign Monster", "각성 전", "c,s"),
         ("to_monster_id", "foreign Monster", "각성 후", "c,s"),
-        ("gain.hp", "StatBlock", "각성으로 더해지는 값", "c,s"),
-        ("gain.attack", "", "", ""),
-        ("gain.defense", "", "", ""),
-        ("gain.speed", "", "", ""),
-        ("gain.crit_rate", "", "", ""),
-        ("gain.crit_power", "", "", ""),
+        ("gain.hp", "int (min=0)", "각성으로 더해지는 값", "c,s"),
+        ("gain.attack", "int (min=0)", "", "c,s"),
+        ("gain.defense", "int (min=0)", "", "c,s"),
+        ("gain.speed", "int (min=0)", "", "c,s"),
+        ("gain.crit_rate", "int (min=0)", "", "c,s"),
+        ("gain.crit_power", "int (min=0)", "", "c,s"),
         ("requirement_group_id", "foreign RequirementGroup", "각성 조건", "c,s"),
         ("costs[]", "Cost", "소모 재화. 셀 하나에 `재화,수량`", "c,s"),
     ]
@@ -396,24 +412,26 @@ def build_monster_skill():
 # ---------------------------------------------------------------- 전투
 
 def build_affinity():
+    """속성 상성. 매트릭스 판독은 이름 기반 레이아웃의 기능이므로 일반 표로 적는다."""
     strong = {"Flame": ["Leaf"], "Tide": ["Flame"], "Leaf": ["Tide"],
               "Arc": ["Tide", "Leaf"], "Umbra": ["Arc"]}
     weak = {"Flame": ["Tide"], "Tide": ["Leaf"], "Leaf": ["Flame"],
             "Arc": ["Umbra"], "Umbra": []}
-    order = {el: i + 1 for i, el in enumerate(ELEMENTS)}
-    cols = [("attacker", "Element", "공격 속성", "c,s")]
-    for el in ELEMENTS:
-        cols.append((str(order[el]), "int (min=1)", "%s 상대 배수. 만분율" % ELEMENT_KO[el], "c,s"))
+    cols = [
+        ("attacker", "Element", "공격 속성", "c,s"),
+        ("defender", "Element", "방어 속성", "c,s"),
+        ("factor", "int (min=1)", "피해 배수. 만분율", "c,s"),
+        ("#", "", "", ""),
+    ]
     rows = []
     for el in ELEMENTS:
-        row = [el]
         for other in ELEMENTS:
             v = 13500 if other in strong[el] else (7500 if other in weak[el] else 10000)
-            row.append(v)
-        rows.append(row)
+            note = "유리" if v > 10000 else ("불리" if v < 10000 else "")
+            rows.append([el, other, v, note])
     return table("ElementAffinity",
-                 "속성 상성 배수이다. 컬럼 이름이 Element 의 값이므로 매트릭스로 읽힌다.",
-                 cols, rows)
+                 "속성 상성 배수이다. 조합이 키이므로 복합 기본 인덱스이다.",
+                 cols, rows, meta='key="attacker,defender"')
 
 
 BOSS_ABILITY = ["Enrage", "Shield", "Summon", "Purge", "Reflect"]
@@ -521,7 +539,6 @@ def build_stage():
         ("wave_monster_ids", "foreign Monster[]", "등장 목록. 셀 안의 참조 배열", "c,s"),
         ("wave_levels", "int[] (size=1..5)", "각 등장의 레벨", "c,s"),
         ("reward_group_id", "foreign RewardGroup", "클리어 보상", "c,s"),
-        ("boss_id", "foreign Boss?", "수호자 스테이지에만", "c,s"),
     ]
     by_region = {}
     for sid, el, grade, role, stages, names in SPECIES:
@@ -539,7 +556,6 @@ def build_stage():
                 "%s_%02d" % (rid, index), rid, index, kind,
                 ";".join(wave), ";".join([str(level)] * count),
                 "rg_%s_stage_%02d" % (rid, index),
-                "boss_%s" % rid if kind == "Guardian" else "",
             ])
     return table("Stage", "스테이지이다. 첫 키가 단일이므로 참조 대상이 된다.",
                  cols, rows, meta='key="stage_id; region_id,index"')
@@ -550,9 +566,9 @@ def build_encounter():
         ("encounter_id", "string", "식별자", "c,s"),
         ("region_id", "foreign Region", "어느 지역인가", "c,s"),
         ("requirement_group_id", "foreign RequirementGroup?", "은둔 슬롯의 조건", "c,s"),
-        ("entries[].monster_id", "EncounterEntry", "출현 목록", "c,s"),
-        ("entries[].weight", "", "", ""),
-        ("entries[].encounter_slot", "", "", ""),
+        ("entries[].monster_id", "foreign Monster", "어느 단계가 나오는가", "c,s"),
+        ("entries[].weight", "int (min=1)", "가중치", "c,s"),
+        ("entries[].encounter_slot", "EncounterSlot", "어느 슬롯에서 나오는가", "c,s"),
     ]
     by_region = {}
     for sid, el, grade, role, stages, names in SPECIES:
@@ -614,7 +630,7 @@ def build_resonance():
         ("rank", "int (min=1, max=5)", "공명 등급", "c,s"),
         ("stat_factor", "int (min=10000)", "능력치 배수. 만분율", "c,s"),
         ("shard_cost", "int (min=1)", "필요한 울림 조각", "c,s"),
-        ("unlock_note", "string (text=Growth)?", "3 · 5등급의 추가 효과", "c"),
+        ("unlock_note", "string? (text=Growth)", "3 · 5등급의 추가 효과", "c"),
     ]
     rows = []
     for grade in ["Common", "Rare", "Epic", "Legendary", "Mythic"]:
@@ -884,12 +900,14 @@ def build_currency():
 
 def build_item():
     cols = [
-        ("category", "ItemCategory", "첫 컬럼이지만 인덱스가 아니다", "c,s"),
-        ("item_id", "string", "식별자", "c,s"),
-        ("name", "string (text=Item)", "표시 이름", "c"),
-        ("grade", "Grade", "등급", "c,s"),
-        ("icon", "string (asset=icon)", "아이콘", "c"),
-        ("stack_max", "int (min=1, notDefault)", "한 칸에 쌓이는 최대", "c,s"),
+        ("category@1", "ItemCategory", "첫 컬럼이지만 인덱스가 아니다", "c,s"),
+        ("item_id@2", "string", "식별자", "c,s"),
+        ("name@3", "string (text=Item)", "표시 이름", "c"),
+        ("grade@4", "Grade", "등급", "c,s"),
+        ("icon@6", "string (asset=icon)", "아이콘", "c"),
+        ("stack_max@7", "int (min=1, notDefault)", "한 칸에 쌓이는 최대", "c,s"),
+        ("#old_price@5", "", "가격을 상점으로 옮기기 전의 컬럼. 5번을 예약한다", ""),
+        ("#", "", "", ""),
     ]
     rows = []
     for i, (rid, rname, el) in enumerate(REGIONS):
@@ -898,22 +916,22 @@ def build_item():
                                 ("sigil", "인장", "Legendary")):
             rows.append(["Material", "mat_%s_%s" % (rid, kind),
                          "%s %s" % (rname, ko), grade,
-                         "it_%s_%s" % (rid, kind), 9999])
+                         "it_%s_%s" % (rid, kind), 9999, "", ""])
     for el in ELEMENTS:
         for tier in range(1, 4):
             rows.append(["Material", "mat_awaken_%s_%d" % (el.lower(), tier),
                          "%s 각성석 %d" % (ELEMENT_KO[el], tier),
                          ["Common", "Rare", "Epic"][tier - 1],
-                         "it_awaken_%s_%d" % (el.lower(), tier), 999])
+                         "it_awaken_%s_%d" % (el.lower(), tier), 999, "", ""])
     for i in range(24):
         rows.append(["Consumable", "use_food_%02d" % i, "먹이 꾸러미 %d" % (i + 1),
-                     "Common" if i < 16 else "Rare", "it_food_%02d" % i, 999])
+                     "Common" if i < 16 else "Rare", "it_food_%02d" % i, 999, "", ""])
     for i in range(12):
         rows.append(["Ticket", "tkt_retry_%02d" % i, "재도전 표 %d" % (i + 1),
-                     "Rare", "it_ticket_%02d" % i, 99])
+                     "Rare", "it_ticket_%02d" % i, 99, "", ""])
     for i in range(16):
         rows.append(["Consumable", "use_boost_%02d" % i, "탐사 촉진제 %d" % (i + 1),
-                     "Common" if i % 2 else "Rare", "it_boost_%02d" % i, 99])
+                     "Common" if i % 2 else "Rare", "it_boost_%02d" % i, 99, "", ""])
     return table("Item", "아이템이다.", cols, rows, meta="key=item_id")
 
 
@@ -1015,18 +1033,6 @@ def build_enums():
             ("Warden", 3, "회복과 보호", "수호"),
             ("Tuner", 4, "능력치 변동과 상태 부여", "조율"),
         ]),
-        enum("EncounterSlot", "출현 슬롯의 종류이다.", [
-            ("Normal", 1, "탐사 시간에 비례해 반복"),
-            ("Rare", 2, "탐사 1회당 최대 1회"),
-            ("Guardian", 3, "스테이지 도전에서만"),
-            ("Hidden", 4, "조건을 만족한 탐사에서만"),
-        ]),
-        enum("StatusKind", "상태 효과의 종류이다.", [
-            ("Stun", 1, "행동 불가"),
-            ("Slow", 2, "행동 순서 하락"),
-            ("Blind", 3, "명중 하락"),
-            ("Burn", 4, "턴마다 피해"),
-        ]),
         enum("RegionState", "지역의 초기 상태이다.", [
             ("Locked", 0, "해금되지 않음", "잠김"),
             ("Open", 1, "해금됨", "열림"),
@@ -1072,61 +1078,63 @@ def build_enums():
 
 def build_consts():
     battle = const("BattleConst", "전투 계산의 계수이다.", [
-        ("defense_factor", "int", 60, "방어가 피해를 깎는 비율. 만분율"),
-        ("max_turn", "int", 30, "이 턴에 결착이 없으면 체력 비율로 판정한다"),
-        ("speed_tiebreak", "bool", "TRUE", "속도가 같으면 배치 순서"),
-        ("battle_speeds", "int[]", "1;2;4", "배속 단계"),
-        ("neutral_affinity", "int", 10000, "상성이 없을 때의 배수"),
+        ("DefenseFactor", "int", 60, "방어가 피해를 깎는 비율. 만분율"),
+        ("MaxTurn", "int", 30, "이 턴에 결착이 없으면 체력 비율로 판정한다"),
+        ("SpeedTiebreak", "bool", "TRUE", "속도가 같으면 배치 순서"),
+        ("NeutralAffinity", "int", 10000, "상성이 없을 때의 배수"),
     ])
-    affinity_column = table("ElementAffinityColumn",
-                            "매트릭스의 두 번째 축이다. 컬럼 테이블과 같이 배포한다.",
-                            [("at", "int (min=0)", "자리", "c,s"),
-                             ("element", "Element", "그 자리의 속성", "c,s")],
-                            [[i, el] for i, el in enumerate(ELEMENTS)])
+    battle_speed = table("BattleSpeed",
+                         "배속 단계이다. 전투 상수만 쓰는 작은 표라 같은 탭에 둔다.",
+                         [("at", "int (min=0, max=3)", "자리", "c,s"),
+                          ("multiplier", "int (min=1)", "배수", "c,s"),
+                          ("label", "string (text=Battle)", "표시", "c")],
+                         [[0, 1, "1배"], [1, 2, "2배"], [2, 4, "4배"]])
     growth = const("GrowthConst", "성장 상한이다.", [
-        ("level_cap_stage1", "int", 20, "1단의 레벨 상한"),
-        ("level_cap_stage2", "int", 40, "2단의 레벨 상한"),
-        ("level_cap_stage3", "int", 70, "3단의 레벨 상한"),
-        ("skill_level_cap", "int", 10, "스킬 레벨 상한"),
-        ("resonance_cap", "int", 5, "공명 등급 상한"),
+        ("LevelCapStage1", "int", 20, "1단의 레벨 상한"),
+        ("LevelCapStage2", "int", 40, "2단의 레벨 상한"),
+        ("LevelCapStage3", "int", 70, "3단의 레벨 상한"),
+        ("SkillLevelCap", "int", 10, "스킬 레벨 상한"),
+        ("ResonanceCap", "int", 5, "공명 등급 상한"),
     ])
     awakening = const("AwakeningConst", "각성이 늘리는 것이다.", [
-        ("active_slots_stage1", "int", 2, "1단의 액티브 슬롯"),
-        ("active_slots_stage2", "int", 3, "2단"),
-        ("passive_slots_stage2", "int", 1, "2단의 패시브 슬롯"),
-        ("passive_slots_stage3", "int", 2, "3단"),
+        ("ActiveSlotsStage1", "int", 2, "1단의 액티브 슬롯"),
+        ("ActiveSlotsStage2", "int", 3, "2단"),
+        ("PassiveSlotsStage2", "int", 1, "2단의 패시브 슬롯"),
+        ("PassiveSlotsStage3", "int", 2, "3단"),
     ])
     idle = const("IdleConst", "방치의 상한과 계수이다.", [
-        ("cap_hours", "int", 8, "누적 상한"),
-        ("progress_factor", "int", 10000, "스테이지 진척도 계수. 만분율"),
-        ("ad_double_targets", "string[]", "gold;food;material", "2배 대상. 발견과 조각은 아니다"),
+        ("CapHours", "int", 8, "누적 상한"),
+        ("ProgressFactor", "int", 10000, "스테이지 진척도 계수. 만분율"),
+        ("AdDoubleTargets", "string", "gold;food;material", "2배 대상. 발견과 조각은 아니다"),
     ])
     party = const("PartyConst", "파티의 규격이다.", [
-        ("party_size", "int", 3, "파티 인원"),
-        ("saved_parties", "int", 3, "저장 슬롯"),
-        ("allowed_columns[0]", "string", "Front", "전열"),
-        ("allowed_columns[1]", "string", "Middle", "중열"),
-        ("allowed_columns[2]", "string", "Back", "후열"),
+        ("PartySize", "int", 3, "파티 인원"),
+        ("SavedParties", "int", 3, "저장 슬롯"),
+        ("ColumnNames", "string", "Front;Middle;Back", "열의 이름. 배치 순서 그대로"),
+        ("VanguardColumns", "string", "Front", "선봉이 설 수 있는 열"),
+        ("BreakerColumns", "string", "Middle;Back", "파격"),
+        ("WardenColumns", "string", "Back", "수호"),
+        ("TunerColumns", "string", "Middle;Back", "조율"),
     ])
     codex = const("CodexConst", "기록부의 계수이다.", [
-        ("observe_cap_common", "int", GRADE_OBSERVE["Common"], "일반 등급의 관측 상한"),
-        ("observe_cap_rare", "int", GRADE_OBSERVE["Rare"], "희귀"),
-        ("observe_cap_epic", "int", GRADE_OBSERVE["Epic"], "영웅"),
-        ("observe_cap_legendary", "int", GRADE_OBSERVE["Legendary"], "전설"),
-        ("observe_cap_mythic", "int", GRADE_OBSERVE["Mythic"], "신화"),
-        ("battle_observe_factor", "int", 5000, "전투 승리의 관측 계수. 만분율"),
+        ("ObserveCapCommon", "int", GRADE_OBSERVE["Common"], "일반 등급의 관측 상한"),
+        ("ObserveCapRare", "int", GRADE_OBSERVE["Rare"], "희귀"),
+        ("ObserveCapEpic", "int", GRADE_OBSERVE["Epic"], "영웅"),
+        ("ObserveCapLegendary", "int", GRADE_OBSERVE["Legendary"], "전설"),
+        ("ObserveCapMythic", "int", GRADE_OBSERVE["Mythic"], "신화"),
+        ("BattleObserveFactor", "int", 5000, "전투 승리의 관측 계수. 만분율"),
     ])
     collection = const("CollectionConst", "수집의 계수이다.", [
-        ("unrecorded_boost", "int", 16000, "미기록 종의 가중치 보정. 만분율"),
-        ("shard_cap", "int", 9999, "조각 보유 상한"),
+        ("UnrecordedBoost", "int", 16000, "미기록 종의 가중치 보정. 만분율"),
+        ("ShardCap", "int", 9999, "조각 보유 상한"),
     ])
     mission = const("MissionConst", "의뢰의 개수와 초기화이다.", [
-        ("daily_count", "int", 3, "일일 의뢰 개수"),
-        ("weekly_count", "int", 1, "주간 의뢰 개수"),
-        ("reset_hour", "int", 5, "초기화 시각"),
+        ("DailyCount", "int", 3, "일일 의뢰 개수"),
+        ("WeeklyCount", "int", 1, "주간 의뢰 개수"),
+        ("ResetHour", "int", 5, "초기화 시각"),
     ])
     return {
-        "Const_Battle.tsv": [battle, affinity_column],
+        "Const_Battle.tsv": [battle, battle_speed],
         "Const_Growth.tsv": [growth, awakening],
         "Const_Idle.tsv": [idle],
         "Const_Party.tsv": [party],
@@ -1139,7 +1147,7 @@ def build_consts():
 
 def build_strings():
     cols = [
-        ("string_id", "string", "식별자", "c"),
+        ("string_id", "string", "식별자", "c,s"),
         ("ko", "string", "한국어", "c"),
         ("en", "string", "영어", "c"),
         ("ja", "string", "일본어", "c"),
@@ -1197,10 +1205,10 @@ def main():
     total += emit("Currency.tsv", [build_currency()])
     total += emit("Item.tsv", [build_item()])
     for t in build_shop():
-        total += emit(t[0][1] + ".tsv", [t])
+        total += emit(t[0][0].split()[1].split("(")[0] + ".tsv", [t])
     total += emit("Package.tsv", [build_package()])
     for t in build_pass_and_ads():
-        total += emit(t[0][1] + ".tsv", [t])
+        total += emit(t[0][0].split()[1].split("(")[0] + ".tsv", [t])
     total += emit("Enums.tsv", build_enums())
     for filename, entities in sorted(build_consts().items()):
         total += emit(filename, entities)

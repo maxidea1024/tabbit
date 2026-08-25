@@ -1,4 +1,4 @@
-:table	AdReward	선택형 광고 보상이다. 강제 광고는 없다.
+:table AdReward	선택형 광고 보상이다. 강제 광고는 없다.
 :field	ad_reward_id	name	daily_limit	reward_group_id	doubles_idle
 :type	string	string (text=Shop)	int (min=1, max=10)	foreign RewardGroup	bool
 :desc	식별자	표시 이름	일일 한도	보상	방치 보상을 2배로

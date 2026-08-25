@@ -1,4 +1,4 @@
-:table	Skill	스킬이다. 효과는 SkillEffect 에 있다.
+:table Skill	스킬이다. 효과는 SkillEffect 에 있다.
 :field	skill_id	name	description	element	target_scope	cooldown	icon	#
 :type	string	string (text=Skill)	string (text=Skill)	Element?	TargetScope	int (min=0, max=9)	string (asset=icon)
 :desc	식별자	표시 이름	설명	무속성 스킬은 비운다	대상 범위	재사용 대기 턴	아이콘
@@ -47,5 +47,5 @@
 	umbra_buff_def	그늘 장막	그늘 계열 스킬이다.	Umbra	AllAlly	3	sk_umbra_buff_def
 	umbra_heal	그늘 잇기	그늘 계열 스킬이다.	Umbra	OneAlly	2	sk_umbra_heal
 	umbra_status	그늘 휘감기	그늘 계열 스킬이다.	Umbra	Single	2	sk_umbra_status
-	plain_focus	집중	무속성 계열 스킬이다.		Self	3	sk_plain_focus
-	plain_guard	방비	무속성 계열 스킬이다.		AllAlly	3	sk_plain_guard
+	plain_focus	집중	무속성 계열 스킬이다.	-	Self	3	sk_plain_focus
+	plain_guard	방비	무속성 계열 스킬이다.	-	AllAlly	3	sk_plain_guard

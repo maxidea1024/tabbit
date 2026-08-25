@@ -1,7 +1,7 @@
-:table	Item(key=item_id)	아이템이다.
-:field	category	item_id	name	grade	icon	stack_max
+:table Item(key=item_id)	아이템이다.
+:field	category@1	item_id@2	name@3	grade@4	icon@6	stack_max@7	#old_price@5	#
 :type	ItemCategory	string	string (text=Item)	Grade	string (asset=icon)	int (min=1, notDefault)
-:desc	첫 컬럼이지만 인덱스가 아니다	식별자	표시 이름	등급	아이콘	한 칸에 쌓이는 최대
+:desc	첫 컬럼이지만 인덱스가 아니다	식별자	표시 이름	등급	아이콘	한 칸에 쌓이는 최대	가격을 상점으로 옮기기 전의 컬럼. 5번을 예약한다
 :target	c,s	c,s	c	c,s	c	c,s
 	Material	mat_weir_forest_resin	여울숲 수액	Common	it_weir_forest_resin	9999
 	Material	mat_weir_forest_core	여울숲 핵	Rare	it_weir_forest_core	9999

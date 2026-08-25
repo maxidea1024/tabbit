@@ -1,4 +1,4 @@
-:table	CodexReward	기록부 완성률 보상이다.
+:table CodexReward	기록부 완성률 보상이다.
 :field	codex_reward_id	codex_scope	region_id	threshold	reward_group_id
 :type	string	CodexScope	foreign Region?	int (min=1, max=100)	foreign RewardGroup
 :desc	식별자	지역별인지 전체인지	전체 보상은 비운다	완성률	보상
@@ -18,7 +18,7 @@
 	codex_sunken_temple_30	Region	sunken_temple	30	rg_codex_sunken_temple_30
 	codex_sunken_temple_60	Region	sunken_temple	60	rg_codex_sunken_temple_60
 	codex_sunken_temple_100	Region	sunken_temple	100	rg_codex_sunken_temple_100
-	codex_global_25	Global		25	rg_codex_global_25
-	codex_global_50	Global		50	rg_codex_global_50
-	codex_global_75	Global		75	rg_codex_global_75
-	codex_global_100	Global		100	rg_codex_global_100
+	codex_global_25	Global	-	25	rg_codex_global_25
+	codex_global_50	Global	-	50	rg_codex_global_50
+	codex_global_75	Global	-	75	rg_codex_global_75
+	codex_global_100	Global	-	100	rg_codex_global_100

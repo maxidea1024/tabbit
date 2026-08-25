@@ -1,4 +1,4 @@
-:table	RegionYield(key="region_id,hour_band")	지역과 시간대별 산출이다. 뒤로 갈수록 줄어든다.
+:table RegionYield(key="region_id,hour_band")	지역과 시간대별 산출이다. 뒤로 갈수록 줄어든다.
 :field	region_id	hour_band	gold_per_hour	food_per_hour	reward_group_id
 :type	foreign Region	int (min=0, max=7)	int (min=0)	int (min=0)	foreign RewardGroup
 :desc	어느 지역인가	누적 시간대	시간당 골드	시간당 먹이	재료 드랍 묶음

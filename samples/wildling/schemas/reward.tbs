@@ -1,0 +1,44 @@
+// 형태가 행마다 다른 것 둘. 변종이 대상 카탈로그를 정하고, 판별자 컬럼(`$type`)이 그 행이
+// 어느 변종인지를 담습니다.
+
+/// 무엇을 얼마나 주는가.
+abstract struct Reward
+    /// 수량. 모든 변종이 갖습니다 — 와이어에서 컬럼 하나이고 모든 행에 값이 있습니다.
+    field amount int (min=1)
+
+/// 아이템을 준다.
+struct ItemReward extends Reward @1
+    field item_id     foreign Item
+
+/// 재화를 준다.
+struct CurrencyReward extends Reward @2
+    field currency_id foreign Currency
+
+/// 와일드링을 준다. 수호자 격파 보상이 이것입니다.
+struct MonsterReward extends Reward @3
+    field monster_id  foreign Monster
+
+/// 울림 조각을 준다. 대상 종의 조각입니다. `MonsterReward`와 멤버 이름이 같으므로 시트에서
+/// 컬럼 하나를 공유합니다.
+struct ShardReward extends Reward @4
+    field monster_id  foreign Monster
+
+/// 무엇이 충족되어야 하는가. 기반에 필드가 없습니다.
+abstract struct Requirement
+
+/// 그 개체의 레벨.
+struct LevelRequirement extends Requirement @1
+    field level       int (min=1, max=70)
+
+/// 기록부의 상태.
+struct CodexRequirement extends Requirement @2
+    field codex_state CodexState
+
+/// 아이템 보유.
+struct ItemRequirement extends Requirement @3
+    field item_id     foreign Item
+    field amount      int (min=1)
+
+/// 스테이지 클리어.
+struct StageRequirement extends Requirement @4
+    field stage_id    foreign Stage

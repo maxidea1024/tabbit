@@ -1,0 +1,1368 @@
+{
+  "Comment": "Tabbit's record of the columns data was last written with. Commit it: the converter compares the schema against this and refuses a change that would break a reader already deployed. See doc/binary-format.md.",
+  "BaselineVersion": 2,
+  "Tables": {
+    "Skill": {
+      "1": {
+        "Name": "SkillId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Description",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Element",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "TargetScope",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Cooldown",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Icon",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "SkillEffect": {
+      "1": {
+        "Name": "SkillId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Order",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Effect.Type",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Effect.Chance",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Effect.Power",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Effect.Status",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Effect.Stat",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "Effect.Ratio",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "9": {
+        "Name": "Effect.Duration",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "SkillGrowth": {
+      "1": {
+        "Name": "SkillId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Level",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "PowerFactor",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Costs.CurrencyId",
+        "Element": 6,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Costs.Amount",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "ElementAffinity": {
+      "1": {
+        "Name": "Attacker",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Defender",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Factor",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "BattleSpeed": {
+      "1": {
+        "Name": "At",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Multiplier",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Label",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "Currency": {
+      "1": {
+        "Name": "CurrencyId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Icon",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Cap",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Tradable",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "Item": {
+      "1": {
+        "Name": "Category",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": true
+      },
+      "2": {
+        "Name": "ItemId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": true
+      },
+      "3": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": true
+      },
+      "4": {
+        "Name": "Grade",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": true
+      },
+      "6": {
+        "Name": "Icon",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": true
+      },
+      "7": {
+        "Name": "StackMax",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": true
+      }
+    },
+    "Shop": {
+      "1": {
+        "Name": "ShopId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "RefreshHours",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "ShopSlot": {
+      "1": {
+        "Name": "ShopSlotId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "ShopId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "SlotIndex",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Cost.CurrencyId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Cost.Amount",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Stock",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "Package": {
+      "1": {
+        "Name": "PackageId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "PriceDisplay",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "SortOrder",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "PassBenefit": {
+      "1": {
+        "Name": "BenefitId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "IdleHoursBonus",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "AdFree",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "AdReward": {
+      "1": {
+        "Name": "AdRewardId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "DailyLimit",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "DoublesIdle",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "GrowthCurve": {
+      "1": {
+        "Name": "Grade",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Level",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "HpFactor",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "AttackFactor",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "DefenseFactor",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "BonusFactor",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Costs.CurrencyId",
+        "Element": 6,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "Costs.Amount",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "ResonanceRank": {
+      "1": {
+        "Name": "Grade",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Rank",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "StatFactor",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "ShardCost",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "UnlockNote",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "CodexReward": {
+      "1": {
+        "Name": "CodexRewardId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "CodexScope",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "RegionId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Threshold",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "Mission": {
+      "1": {
+        "Name": "MissionId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Cycle",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "TargetId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "GoalCount",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "RequirementGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "Monster": {
+      "1": {
+        "Name": "MonsterId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "DisplayCode",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "SpeciesId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Stage",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Description",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Element",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "Grade",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "9": {
+        "Name": "Role",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "10": {
+        "Name": "Base.Hp",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "11": {
+        "Name": "Base.Attack",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "12": {
+        "Name": "Base.Defense",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "13": {
+        "Name": "Base.Speed",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "14": {
+        "Name": "Base.CritRate",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "15": {
+        "Name": "Base.CritPower",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "16": {
+        "Name": "Habitat",
+        "Element": 3,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "17": {
+        "Name": "MaxStage",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "18": {
+        "Name": "Icon",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "19": {
+        "Name": "ModelOffset.X",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "20": {
+        "Name": "ModelOffset.Y",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "21": {
+        "Name": "ModelOffset.Z",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "22": {
+        "Name": "Tags",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "MonsterSkill": {
+      "1": {
+        "Name": "MonsterId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "SkillId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "SlotKind",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "UnlockStage",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "MonsterAwakening": {
+      "1": {
+        "Name": "FromMonsterId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "ToMonsterId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Gain.Hp",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Gain.Attack",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Gain.Defense",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Gain.Speed",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Gain.CritRate",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "Gain.CritPower",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "9": {
+        "Name": "RequirementGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "10": {
+        "Name": "Costs.CurrencyId",
+        "Element": 6,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "11": {
+        "Name": "Costs.Amount",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "RewardGroup": {
+      "1": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Note",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "RewardEntry": {
+      "1": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Order",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Reward.Type",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Reward.Amount",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Reward.ItemId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Reward.CurrencyId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Reward.MonsterId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "Rate",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "9": {
+        "Name": "ServerWeight",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "RequirementGroup": {
+      "1": {
+        "Name": "RequirementGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Note",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "RequirementEntry": {
+      "1": {
+        "Name": "RequirementGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Order",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Req.Type",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Req.Level",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Req.CodexState",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Req.ItemId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Req.Amount",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "Req.StageId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "DropTable": {
+      "1": {
+        "Name": "DropGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "RegionId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "RollCount",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "StringTable": {
+      "1": {
+        "Name": "StringId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Ko",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "En",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Ja",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "Region": {
+      "1": {
+        "Name": "RegionId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Order",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "State",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "ThemeElement",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Background",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "FogColor.R",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "FogColor.G",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "9": {
+        "Name": "FogColor.B",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "10": {
+        "Name": "FogColor.A",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "11": {
+        "Name": "RequirementGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "RegionYield": {
+      "1": {
+        "Name": "RegionId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "HourBand",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "GoldPerHour",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "FoodPerHour",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "Stage": {
+      "1": {
+        "Name": "StageId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "RegionId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Index",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "StageKind",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "WaveMonsterIds",
+        "Element": 6,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "WaveLevels",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "StageReward": {
+      "1": {
+        "Name": "StageId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "RewardGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "FirstClearGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "EncounterTable": {
+      "1": {
+        "Name": "EncounterId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "RegionId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "RequirementGroupId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Entries.MonsterId",
+        "Element": 6,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Entries.Weight",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Entries.EncounterSlot",
+        "Element": 0,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    }
+  }
+}

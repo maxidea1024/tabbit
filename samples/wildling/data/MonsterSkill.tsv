@@ -1,4 +1,4 @@
-:table	MonsterSkill(key="monster_id,skill_id")	단계별로 사용할 수 있는 스킬이다.
+:table MonsterSkill(key="monster_id,skill_id")	단계별로 사용할 수 있는 스킬이다.
 :field	monster_id	skill_id	slot_kind	unlock_stage
 :type	foreign Monster	foreign Skill	SlotKind	int (min=1, max=3)
 :desc	어느 단계인가	어느 스킬인가	액티브인지 패시브인지	이 단계부터 사용할 수 있다

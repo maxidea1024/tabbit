@@ -1,4 +1,4 @@
-:table	Package	판매 상품이다. 표시 가격만 국가별로 갈린다.
+:table Package	판매 상품이다. 표시 가격만 국가별로 갈린다.
 :field	package_id	name	reward_group_id	price_display	price_display	price_display	sort_order
 :type	string	string (text=Shop)	foreign RewardGroup	string			int (min=0)
 :desc	식별자	표시 이름	지급 내용	표시 가격			표시 순서

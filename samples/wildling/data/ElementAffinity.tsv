@@ -1,10 +1,30 @@
-:table	ElementAffinity	속성 상성 배수이다. 컬럼 이름이 Element 의 값이므로 매트릭스로 읽힌다.
-:field	attacker	1	2	3	4	5
-:type	Element	int (min=1)	int (min=1)	int (min=1)	int (min=1)	int (min=1)
-:desc	공격 속성	불꽃 상대 배수. 만분율	물결 상대 배수. 만분율	잎새 상대 배수. 만분율	번개 상대 배수. 만분율	그늘 상대 배수. 만분율
-:target	c,s	c,s	c,s	c,s	c,s	c,s
-	Flame	10000	7500	13500	10000	10000
-	Tide	13500	10000	7500	10000	10000
-	Leaf	7500	13500	10000	10000	10000
-	Arc	10000	13500	13500	10000	7500
-	Umbra	10000	10000	10000	13500	10000
+:table ElementAffinity(key="attacker,defender")	속성 상성 배수이다. 조합이 키이므로 복합 기본 인덱스이다.
+:field	attacker	defender	factor	#
+:type	Element	Element	int (min=1)
+:desc	공격 속성	방어 속성	피해 배수. 만분율
+:target	c,s	c,s	c,s
+	Flame	Flame	10000
+	Flame	Tide	7500	불리
+	Flame	Leaf	13500	유리
+	Flame	Arc	10000
+	Flame	Umbra	10000
+	Tide	Flame	13500	유리
+	Tide	Tide	10000
+	Tide	Leaf	7500	불리
+	Tide	Arc	10000
+	Tide	Umbra	10000
+	Leaf	Flame	7500	불리
+	Leaf	Tide	13500	유리
+	Leaf	Leaf	10000
+	Leaf	Arc	10000
+	Leaf	Umbra	10000
+	Arc	Flame	10000
+	Arc	Tide	13500	유리
+	Arc	Leaf	13500	유리
+	Arc	Arc	10000
+	Arc	Umbra	7500	불리
+	Umbra	Flame	10000
+	Umbra	Tide	10000
+	Umbra	Leaf	10000
+	Umbra	Arc	13500	유리
+	Umbra	Umbra	10000

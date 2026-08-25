@@ -8,7 +8,7 @@
 첫 열이 **마커 열**이고, 나머지가 그 엔티티의 컬럼입니다.
 
 ```
-:table	Monster(key=monster_id)	종의 한 단계입니다.
+:table Monster(key=monster_id)	종의 한 단계입니다.
 :field	monster_id	stage	name
 :type	string	int (min=1, max=3)	string (text=Monster)
 :desc	식별자	각성 단계	표시 이름
@@ -18,7 +18,7 @@
 
 |줄|내용|
 |--|--|
-|`:table` · `:enum` · `:const`|선언 셀. 오른쪽 칸이 설명입니다|
+|`:table …` · `:enum …` · `:const …`|**선언 셀 하나**입니다 — 키워드와 이름을 한 칸에 적고, 오른쪽 칸이 설명입니다|
 |`:field` · `:type` · `:desc` · `:target` · `:variant`|헤더 행. 순서는 자유이고 `:field`만 필수입니다|
 |첫 칸이 빈 줄|데이터 행|
 |첫 칸이 `#`인 줄|그 행을 변환에서 제외|

@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "dgSpecHash": "pW+Zn/dyriY=",
+  "success": true,
+  "projectFilePath": "C:\\work\\tabbit\\.claude\\worktrees\\wildling\\samples\\wildling\\tools\\Authoring\\Authoring.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jhseo\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\enums.net\\5.0.0\\enums.net.5.0.0.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\extendednumerics.bigdecimal\\2025.1001.2.129\\extendednumerics.bigdecimal.2025.1001.2.129.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\mathnet.numerics.signed\\5.0.0\\mathnet.numerics.signed.5.0.0.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\microsoft.build.tasks.git\\8.0.0\\microsoft.build.tasks.git.8.0.0.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\microsoft.io.recyclablememorystream\\3.0.1\\microsoft.io.recyclablememorystream.3.0.1.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\microsoft.sourcelink.common\\8.0.0\\microsoft.sourcelink.common.8.0.0.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\microsoft.sourcelink.github\\8.0.0\\microsoft.sourcelink.github.8.0.0.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\npoi\\2.8.0\\npoi.2.8.0.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\sharpziplib\\1.4.2\\sharpziplib.1.4.2.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\skiasharp\\3.119.2\\skiasharp.3.119.2.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\skiasharp.nativeassets.linux.nodependencies\\3.119.2\\skiasharp.nativeassets.linux.nodependencies.3.119.2.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\skiasharp.nativeassets.macos\\3.119.2\\skiasharp.nativeassets.macos.3.119.2.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\skiasharp.nativeassets.win32\\3.119.2\\skiasharp.nativeassets.win32.3.119.2.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\system.security.cryptography.pkcs\\10.0.10\\system.security.cryptography.pkcs.10.0.10.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\system.security.cryptography.xml\\10.0.10\\system.security.cryptography.xml.10.0.10.nupkg.sha512",
+    "C:\\Users\\jhseo\\.nuget\\packages\\zstring\\2.6.0\\zstring.2.6.0.nupkg.sha512"
+  ],
+  "logs": []
+}

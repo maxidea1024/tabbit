@@ -1,4 +1,4 @@
-:table	RewardGroup	보상 묶음이다. 여러 테이블이 이것을 가리킨다.
+:table RewardGroup	보상 묶음이다. 여러 테이블이 이것을 가리킨다.
 :field	reward_group_id	note
 :type	string	string?
 :desc	식별자	이 묶음이 무엇인지

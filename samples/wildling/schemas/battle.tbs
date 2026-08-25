@@ -1,0 +1,82 @@
+// 스킬 효과와, 그 효과의 멤버 타입이 되는 enum들. 선언이 같은 파일에 있어야 읽는 사람이 한
+// 번에 봅니다. 나머지 enum은 `Enums.xlsx`의 탭에 있습니다 — 두 표기가 다 쓰입니다.
+
+/// 스킬 하나가 일으키는 것.
+abstract struct Effect
+    /// 발동 확률. 만분율. 10000이 항상입니다.
+    field chance int (min=1, max=10000)
+
+/// 피해.
+struct DamageEffect extends Effect @1
+    /// 공격력에 적용하는 배수. 만분율.
+    field power     int (min=1)
+
+/// 회복. `power`를 `DamageEffect`와 공유합니다.
+struct HealEffect extends Effect @2
+    /// 회복량에 적용하는 배수. 만분율.
+    field power     int (min=1)
+
+/// 상태 부여.
+struct StatusEffect extends Effect @3
+    field status    StatusKind
+    /// 지속 턴.
+    field duration  int (min=1, max=9)
+
+/// 능력치 변동.
+struct BuffEffect extends Effect @4
+    field stat      StatKind
+    /// 변동률. 만분율. 음수는 하락입니다.
+    field ratio     int
+    field duration  int (min=1, max=9)
+
+/// 속성. 상성은 순환하지 않습니다 — 번개는 유리한 상대가 둘이고 그늘은 불리한 상대가 없으며,
+/// 그 둘은 기본 능력치 총합이 낮습니다.
+enum Element
+    /// 잎새에 강하고 물결에 약합니다.
+    value Flame  = 1
+    /// 불꽃에 강하고 잎새에 약합니다.
+    value Tide   = 2
+    /// 물결에 강하고 불꽃에 약합니다.
+    value Leaf   = 3
+    /// 물결과 잎새에 강하고 그늘에 약합니다.
+    value Arc    = 4
+    /// 번개에 강하고, 불리한 상대가 없습니다.
+    value Umbra  = 5
+
+/// 희소성. 종의 성질이고 변하지 않습니다. 성장 단계와는 다른 축입니다.
+enum Grade
+    value Common    = 1
+    value Rare      = 2
+    value Epic      = 3
+    value Legendary = 4
+    value Mythic    = 5
+
+/// 기록부의 상태.
+enum CodexState
+    /// 아직 본 적이 없습니다.
+    value Unknown  = 0
+    /// 전투에서 상대로 만난 적이 있습니다.
+    value Sighted  = 1
+    /// 1회 이상 발견했습니다.
+    value Recorded = 2
+    /// 관측 횟수가 상한에 도달했습니다. 각성이 열립니다.
+    value Studied  = 3
+
+/// 능력치의 종류. `BuffEffect`가 가리킵니다.
+enum StatKind
+    value Attack   = 1
+    value Defense  = 2
+    value Speed    = 3
+    value CritRate = 4
+
+/// 상태 효과의 종류. `StatusEffect`가 가리키므로 여기 있어야 합니다 — 선언된 struct의 멤버
+/// 타입은 이 파일들 안에서 찾을 수 있어야 하고, 그래서 시트의 enum을 가리킬 수 없습니다.
+enum StatusKind
+    /// 행동 불가.
+    value Stun  = 1
+    /// 행동 순서 하락.
+    value Slow  = 2
+    /// 명중 하락.
+    value Blind = 3
+    /// 턴마다 피해.
+    value Burn  = 4

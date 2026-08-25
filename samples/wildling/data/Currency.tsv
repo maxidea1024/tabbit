@@ -1,4 +1,4 @@
-:table	Currency	재화이다. 조각은 상점에서 팔지 않는다.
+:table Currency	재화이다. 조각은 상점에서 팔지 않는다.
 :field	currency_id	name	icon	cap	tradable
 :type	string	string (text=Item)	string (asset=icon)	int (min=1)	bool
 :desc	식별자	표시 이름	아이콘	보유 상한	상점에서 살 수 있는가

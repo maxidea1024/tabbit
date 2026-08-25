@@ -1,82 +1,82 @@
-:table	RequirementEntry(key="requirement_group_id,order")	묶음 하나의 조건이다.
+:table RequirementEntry(key="requirement_group_id,order")	묶음 하나의 조건이다.
 :field	requirement_group_id	order	req.$type	req.level	req.codex_state	req.item_id	req.amount	req.stage_id
 :type	foreign RequirementGroup	int (min=0, max=7)	Requirement
 :desc	어느 묶음인가	검사 순서	이 행의 조건이 어떤 형태인가
 :target	c,s	c,s	c,s
-	req_awaken_sprout_deer_2	0	LevelRequirement	20
-	req_awaken_sprout_deer_2	1	CodexRequirement		Studied
-	req_awaken_sprout_deer_3	0	LevelRequirement	40
-	req_awaken_sprout_deer_3	1	CodexRequirement		Studied
-	req_awaken_sprout_deer_3	2	StageRequirement					ashen_crater_12
-	req_awaken_sprout_deer_3	3	ItemRequirement			mat_ashen_crater_core	4
-	req_awaken_thorn_beetle_2	0	LevelRequirement	20
-	req_awaken_thorn_beetle_2	1	CodexRequirement		Studied
-	req_awaken_vine_ape_2	0	LevelRequirement	20
-	req_awaken_vine_ape_2	1	CodexRequirement		Studied
-	req_awaken_elder_bark_2	0	LevelRequirement	20
-	req_awaken_elder_bark_2	1	CodexRequirement		Studied
-	req_awaken_ember_fox_2	0	LevelRequirement	20
-	req_awaken_ember_fox_2	1	CodexRequirement		Studied
-	req_awaken_ember_fox_3	0	LevelRequirement	40
-	req_awaken_ember_fox_3	1	CodexRequirement		Studied
-	req_awaken_ember_fox_3	2	StageRequirement					ashen_crater_12
-	req_awaken_ember_fox_3	3	ItemRequirement			mat_ashen_crater_core	4
-	req_awaken_ash_boar_2	0	LevelRequirement	20
-	req_awaken_ash_boar_2	1	CodexRequirement		Studied
-	req_awaken_magma_crab_2	0	LevelRequirement	20
-	req_awaken_magma_crab_2	1	CodexRequirement		Studied
-	req_awaken_tide_serpent_2	0	LevelRequirement	20
-	req_awaken_tide_serpent_2	1	CodexRequirement		Studied
-	req_awaken_tide_serpent_3	0	LevelRequirement	40
-	req_awaken_tide_serpent_3	1	CodexRequirement		Studied
-	req_awaken_tide_serpent_3	2	StageRequirement					ashen_crater_12
-	req_awaken_tide_serpent_3	3	ItemRequirement			mat_ashen_crater_core	4
-	req_awaken_reef_turtle_2	0	LevelRequirement	20
-	req_awaken_reef_turtle_2	1	CodexRequirement		Studied
-	req_awaken_brine_otter_2	0	LevelRequirement	20
-	req_awaken_brine_otter_2	1	CodexRequirement		Studied
-	req_awaken_bolt_lynx_2	0	LevelRequirement	20
-	req_awaken_bolt_lynx_2	1	CodexRequirement		Studied
-	req_awaken_bolt_lynx_3	0	LevelRequirement	40
-	req_awaken_bolt_lynx_3	1	CodexRequirement		Studied
-	req_awaken_bolt_lynx_3	2	StageRequirement					ashen_crater_12
-	req_awaken_bolt_lynx_3	3	ItemRequirement			mat_ashen_crater_core	4
-	req_awaken_coil_snake_2	0	LevelRequirement	20
-	req_awaken_coil_snake_2	1	CodexRequirement		Studied
-	req_awaken_storm_crane_2	0	LevelRequirement	20
-	req_awaken_storm_crane_2	1	CodexRequirement		Studied
-	req_awaken_dusk_weasel_2	0	LevelRequirement	20
-	req_awaken_dusk_weasel_2	1	CodexRequirement		Studied
-	req_awaken_gloom_spider_2	0	LevelRequirement	20
-	req_awaken_gloom_spider_2	1	CodexRequirement		Studied
-	req_awaken_gloom_spider_3	0	LevelRequirement	40
-	req_awaken_gloom_spider_3	1	CodexRequirement		Studied
-	req_awaken_gloom_spider_3	2	StageRequirement					ashen_crater_12
-	req_awaken_gloom_spider_3	3	ItemRequirement			mat_ashen_crater_core	4
-	req_awaken_night_hound_2	0	LevelRequirement	20
-	req_awaken_night_hound_2	1	CodexRequirement		Studied
-	req_awaken_umbra_owl_2	0	LevelRequirement	20
-	req_awaken_umbra_owl_2	1	CodexRequirement		Studied
-	req_awaken_void_seraph_2	0	LevelRequirement	20
-	req_awaken_void_seraph_2	1	CodexRequirement		Studied
-	req_awaken_void_seraph_3	0	LevelRequirement	40
-	req_awaken_void_seraph_3	1	CodexRequirement		Studied
-	req_awaken_void_seraph_3	2	StageRequirement					ashen_crater_12
-	req_awaken_void_seraph_3	3	ItemRequirement			mat_ashen_crater_core	4
-	req_hidden_weir_forest	0	CodexRequirement		Studied
-	req_region_salt_coast	0	StageRequirement					weir_forest_18
-	req_region_salt_coast	1	CodexRequirement		Recorded
-	req_hidden_salt_coast	0	CodexRequirement		Studied
-	req_region_ashen_crater	0	StageRequirement					salt_coast_18
-	req_region_ashen_crater	1	CodexRequirement		Recorded
-	req_hidden_ashen_crater	0	CodexRequirement		Studied
-	req_region_frost_ridge	0	StageRequirement					ashen_crater_18
-	req_region_frost_ridge	1	CodexRequirement		Recorded
-	req_hidden_frost_ridge	0	CodexRequirement		Studied
-	req_region_sunken_temple	0	StageRequirement					frost_ridge_18
-	req_region_sunken_temple	1	CodexRequirement		Recorded
-	req_hidden_sunken_temple	0	CodexRequirement		Studied
-	req_mission_daily_0	0	LevelRequirement	5
-	req_mission_daily_1	0	LevelRequirement	10
-	req_mission_daily_2	0	LevelRequirement	15
-	req_mission_weekly_0	0	LevelRequirement	5
+	req_awaken_sprout_deer_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_sprout_deer_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_sprout_deer_3	0	LevelRequirement	40	-	-	-	-
+	req_awaken_sprout_deer_3	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_sprout_deer_3	2	StageRequirement	-	-	-	-	ashen_crater_12
+	req_awaken_sprout_deer_3	3	ItemRequirement	-	-	mat_ashen_crater_core	4	-
+	req_awaken_thorn_beetle_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_thorn_beetle_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_vine_ape_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_vine_ape_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_elder_bark_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_elder_bark_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_ember_fox_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_ember_fox_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_ember_fox_3	0	LevelRequirement	40	-	-	-	-
+	req_awaken_ember_fox_3	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_ember_fox_3	2	StageRequirement	-	-	-	-	ashen_crater_12
+	req_awaken_ember_fox_3	3	ItemRequirement	-	-	mat_ashen_crater_core	4	-
+	req_awaken_ash_boar_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_ash_boar_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_magma_crab_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_magma_crab_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_tide_serpent_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_tide_serpent_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_tide_serpent_3	0	LevelRequirement	40	-	-	-	-
+	req_awaken_tide_serpent_3	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_tide_serpent_3	2	StageRequirement	-	-	-	-	ashen_crater_12
+	req_awaken_tide_serpent_3	3	ItemRequirement	-	-	mat_ashen_crater_core	4	-
+	req_awaken_reef_turtle_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_reef_turtle_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_brine_otter_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_brine_otter_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_bolt_lynx_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_bolt_lynx_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_bolt_lynx_3	0	LevelRequirement	40	-	-	-	-
+	req_awaken_bolt_lynx_3	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_bolt_lynx_3	2	StageRequirement	-	-	-	-	ashen_crater_12
+	req_awaken_bolt_lynx_3	3	ItemRequirement	-	-	mat_ashen_crater_core	4	-
+	req_awaken_coil_snake_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_coil_snake_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_storm_crane_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_storm_crane_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_dusk_weasel_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_dusk_weasel_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_gloom_spider_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_gloom_spider_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_gloom_spider_3	0	LevelRequirement	40	-	-	-	-
+	req_awaken_gloom_spider_3	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_gloom_spider_3	2	StageRequirement	-	-	-	-	ashen_crater_12
+	req_awaken_gloom_spider_3	3	ItemRequirement	-	-	mat_ashen_crater_core	4	-
+	req_awaken_night_hound_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_night_hound_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_umbra_owl_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_umbra_owl_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_void_seraph_2	0	LevelRequirement	20	-	-	-	-
+	req_awaken_void_seraph_2	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_void_seraph_3	0	LevelRequirement	40	-	-	-	-
+	req_awaken_void_seraph_3	1	CodexRequirement	-	Studied	-	-	-
+	req_awaken_void_seraph_3	2	StageRequirement	-	-	-	-	ashen_crater_12
+	req_awaken_void_seraph_3	3	ItemRequirement	-	-	mat_ashen_crater_core	4	-
+	req_hidden_weir_forest	0	CodexRequirement	-	Studied	-	-	-
+	req_region_salt_coast	0	StageRequirement	-	-	-	-	weir_forest_18
+	req_region_salt_coast	1	CodexRequirement	-	Recorded	-	-	-
+	req_hidden_salt_coast	0	CodexRequirement	-	Studied	-	-	-
+	req_region_ashen_crater	0	StageRequirement	-	-	-	-	salt_coast_18
+	req_region_ashen_crater	1	CodexRequirement	-	Recorded	-	-	-
+	req_hidden_ashen_crater	0	CodexRequirement	-	Studied	-	-	-
+	req_region_frost_ridge	0	StageRequirement	-	-	-	-	ashen_crater_18
+	req_region_frost_ridge	1	CodexRequirement	-	Recorded	-	-	-
+	req_hidden_frost_ridge	0	CodexRequirement	-	Studied	-	-	-
+	req_region_sunken_temple	0	StageRequirement	-	-	-	-	frost_ridge_18
+	req_region_sunken_temple	1	CodexRequirement	-	Recorded	-	-	-
+	req_hidden_sunken_temple	0	CodexRequirement	-	Studied	-	-	-
+	req_mission_daily_0	0	LevelRequirement	5	-	-	-	-
+	req_mission_daily_1	0	LevelRequirement	10	-	-	-	-
+	req_mission_daily_2	0	LevelRequirement	15	-	-	-	-
+	req_mission_weekly_0	0	LevelRequirement	5	-	-	-	-

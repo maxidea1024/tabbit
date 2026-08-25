@@ -1,14 +1,14 @@
-:const	GrowthConst	성장 상한이다.
+:const GrowthConst	성장 상한이다.
 :field	name	type	value	desc
-	level_cap_stage1	int	20	1단의 레벨 상한
-	level_cap_stage2	int	40	2단의 레벨 상한
-	level_cap_stage3	int	70	3단의 레벨 상한
-	skill_level_cap	int	10	스킬 레벨 상한
-	resonance_cap	int	5	공명 등급 상한
+	LevelCapStage1	int	20	1단의 레벨 상한
+	LevelCapStage2	int	40	2단의 레벨 상한
+	LevelCapStage3	int	70	3단의 레벨 상한
+	SkillLevelCap	int	10	스킬 레벨 상한
+	ResonanceCap	int	5	공명 등급 상한
 
-:const	AwakeningConst	각성이 늘리는 것이다.
+:const AwakeningConst	각성이 늘리는 것이다.
 :field	name	type	value	desc
-	active_slots_stage1	int	2	1단의 액티브 슬롯
-	active_slots_stage2	int	3	2단
-	passive_slots_stage2	int	1	2단의 패시브 슬롯
-	passive_slots_stage3	int	2	3단
+	ActiveSlotsStage1	int	2	1단의 액티브 슬롯
+	ActiveSlotsStage2	int	3	2단
+	PassiveSlotsStage2	int	1	2단의 패시브 슬롯
+	PassiveSlotsStage3	int	2	3단

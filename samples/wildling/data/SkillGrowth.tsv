@@ -1,4 +1,4 @@
-:table	SkillGrowth(key="skill_id,level")	스킬 레벨별 효과와 재료이다.
+:table SkillGrowth(key="skill_id,level")	스킬 레벨별 효과와 재료이다.
 :field	skill_id	level	power_factor	costs[0].currency_id	costs[0].amount	costs[1].currency_id	costs[1].amount
 :type	foreign Skill	int (min=1, max=10)	int (min=10000)	Cost
 :desc	어느 스킬인가	스킬 레벨	효과 배수. 만분율	소모 재화
