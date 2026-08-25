@@ -61,9 +61,9 @@ class {{ table.record_name }}:
    row whatever table it came from, and the discriminator saying which - the targets take
    separate id bands, so at most one of them ever answers.
    spec/multi-target-accessors.md. ##~}}
-
 {{~ for field in table.fields ~}}
 {{~ if field.variants.size > 0 }}
+
 {{~## **The value, built once on first use.** The entry above is what the read filled - one
    assignment per column - and which variant it is only became knowable when the discriminator
    column arrived. Building it here keeps the read path and the wire exactly as they were.

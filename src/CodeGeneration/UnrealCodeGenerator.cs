@@ -185,6 +185,45 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
     private string ModuleDir => System.IO.Path.Combine(_recipe.Path, _recipe.ModuleName);
 
+    /// <summary>
+    /// The abstract types the sheets used, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// **The discriminator + per-variant accessors shape section 7 named.** A `USTRUCT` cannot
+    /// take part in inheritance polymorphism the engine's reflection can see, so this target
+    /// falls on the same side C does: a `UENUM` says which variant a row is, and one accessor
+    /// per variant fills a caller-owned struct. spec/polymorphism.md section 7.
+    /// </remarks>
+    private IReadOnlyList<UnrealPolymorphicTypeView> BuildStructs()
+        => _model.PolymorphicTypes
+            .Select(declared => new UnrealPolymorphicTypeView
+            {
+                Name = "F" + declared.Name,
+                BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+                Variants = declared.Variants
+                    .Select(variant => new UnrealVariantView
+                    {
+                        TypeName = "F" + variant.Name,
+                        KindName = variant.Name,
+                        Suffix = variant.Name,
+                        Discriminator = variant.Discriminator,
+                        Members = variant.Members.Select(StructMember).ToList(),
+                    })
+                    .ToList(),
+            })
+            .ToList();
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private UnrealStructMemberView StructMember(Models.Field field)
+        => new UnrealStructMemberView
+        {
+            Name = (field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name).ToPascalCase(),
+            TypeName = ToUnrealTypeName(field.ElementType, field.EnumOrNull),
+            Comment = CommentLines(field.Comment),
+        };
+
     private void Write(string relative, string templateName, UnrealFileView view)
     {
         string filename = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDir, relative));
@@ -302,6 +341,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         ApiMacro = _recipe.ModuleName.ToUpperInvariant() + "_API",
         Enums = _model.Enums.Select(BuildEnum).ToList(),
         Tables = _model.Tables.Select(BuildTable).ToList(),
+        Structs = BuildStructs(),
         Accessor = new UnrealAccessorView
         {
             FileExtension = _recipe.BinaryTableFileExtension,
@@ -557,6 +597,15 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
     private UnrealFieldView BuildField(Table table, SerialField sf, ICollection<string> members)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string name = MemberName(sf.IsRecord ? sf.Members[0].FirstField : sf.FirstField, sf.Name);
 
         // No element struct for an array of arrays: its outer level has no name, so there is
@@ -580,6 +629,14 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
         return new UnrealFieldView
         {
+            AbstractTypeName = declaredType is null ? "" : "F" + declaredType.Name,
+            KindEnumName = declaredType is null ? "" : "F" + declaredType.Name + "Kind",
+            PascalName = sf.Name.ToPascalCase(),
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = declaredType is null
+                ? []
+                : BuildStructs().First(s => s.Name == "F" + declaredType.Name).Variants,
+
             Comment = CommentLines(
                 sf.IsRecord ? sf.Members[0].FirstField!.Comment : sf.FirstField!.Comment),
             Name = name,

@@ -500,6 +500,43 @@ assert(not ok and tostring(err):find('no field'), tostring(err))
             + $"{System.Environment.NewLine}{result.Output}");
     }
 
+    /// <summary>
+    /// The generated Unreal module passes the header tool.
+    /// </summary>
+    /// <remarks>
+    /// **The one gate that can say whether the engine's reflection accepts these types.** A
+    /// `USTRUCT` cannot take part in inheritance polymorphism it can see, which is why this
+    /// target takes the discriminator + per-variant accessors shape - and whether the `UENUM`
+    /// and the variant structs are reflected at all is what the header tool answers.
+    ///
+    /// Opt-in like the other Unreal gates: set `TABBIT_UE_ROOT` to an engine and it runs.
+    /// spec/polymorphism.md section 7.
+    /// </remarks>
+    [Fact]
+    public void The_generated_unreal_passes_the_header_tool()
+    {
+        string engineRoot = System.Environment.GetEnvironmentVariable("TABBIT_UE_ROOT");
+
+        if (string.IsNullOrEmpty(engineRoot))
+            return;
+
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        var result = UnrealToolchain.RunHeaderTool(
+            engineRoot,
+            System.IO.Path.Combine(
+                RepoLayout.OutputDir(Scenario), "unreal", "Polymorphism"),
+            moduleName: "Polymorphism",
+            headerName: "PolymorphismData.h");
+
+        Assert.True(result.Succeeded,
+            $"Unreal Header Tool rejected the generated module."
+            + $"{System.Environment.NewLine}{result.Output}");
+    }
+
     /// <summary>Whether a toolchain is on this machine, and why not when it is missing.</summary>
     private delegate bool Availability(out string reason);
 

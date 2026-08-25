@@ -289,11 +289,15 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // every enum a field is declared with - an enum member is a value, not a pointer.
             Write(TableHeader(pair.rendered), "cpp-table.sbn", Part(
                 Guard(pair.rendered.RawName.ToSnakeCase()),
-                new[]
-                {
-                    "<cstddef>", "<cstdint>", "<memory>", "<stdexcept>", "<string>",
-                    "<unordered_map>", "<vector>", ReaderInclude,
-                }
+                // `<memory>` and `<stdexcept>` only where a polymorphic group actually needs
+                // them - the accessor that returns a `unique_ptr` and throws is only emitted
+                // for such a group, and an include nobody needs is a golden that moved for
+                // nothing. spec/polymorphism.md section 7.2.
+                new[] { "<cstddef>", "<cstdint>", "<string>", "<unordered_map>", "<vector>" }
+                    .Concat(pair.model.Fields.Any(field => field.IsDiscriminator)
+                        ? new[] { "<memory>", "<stdexcept>" }
+                        : Array.Empty<string>())
+                    .Append(ReaderInclude)
                     .Append(ForwardHeader)
                     .Concat(TypeDependencies.EnumsNamedBy(pair.model)
                             .Select(EnumHeaderFor))

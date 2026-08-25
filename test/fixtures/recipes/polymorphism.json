@@ -90,6 +90,12 @@
       "AccessorName": "PolyAccessor"
     },
     {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/polymorphism/unreal",
+      "AccessorName": "PolymorphismData",
+      "ModuleName": "Polymorphism"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

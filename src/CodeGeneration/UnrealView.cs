@@ -18,6 +18,17 @@ internal sealed class UnrealFileView
 
     public required IReadOnlyList<UnrealEnumView> Enums { get; set; }
     public required IReadOnlyList<UnrealTableView> Tables { get; set; }
+
+    /// <summary>
+    /// The abstract types the sheets used, one entry per declaration.
+    /// </summary>
+    /// <remarks>
+    /// This target writes one header, so they sit in it beside the enums and the row structs -
+    /// but still one per declaration, not one per table that named it.
+    /// spec/polymorphism.md section 7.1.
+    /// </remarks>
+    public IReadOnlyList<UnrealPolymorphicTypeView> Structs { get; set; }
+        = new List<UnrealPolymorphicTypeView>();
     public required UnrealAccessorView Accessor { get; set; }
 }
 
@@ -151,6 +162,29 @@ internal sealed class UnrealIndexView
 
 internal sealed class UnrealFieldView
 {
+    /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// The type itself is declared once, elsewhere; this is what the table needs to build a
+    /// value of it - which number means which variant, and which of the entry's fields each
+    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// </remarks>
+    public IReadOnlyList<UnrealVariantView> Variants { get; set; } = new List<UnrealVariantView>();
+
+    /// <summary>The abstract type the variants make up, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>The `UENUM` naming which variant a value is, or empty.</summary>
+    public string KindEnumName { get; set; } = "";
+
+    /// <summary>The group's name as a function name carries it, in Pascal.</summary>
+    public string PascalName { get; set; } = "";
+
+    /// <summary>The members every variant carries.</summary>
+    public IReadOnlyList<UnrealStructMemberView> BaseMembers { get; set; }
+        = new List<UnrealStructMemberView>();
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     public required string Name { get; set; }
@@ -427,4 +461,60 @@ internal sealed class UnrealColumnView
 
     /// <summary>What an absent row's value is set to, so both read paths agree.</summary>
     public required string EmptyValue { get; set; }
+}
+
+/// <summary>
+/// An abstract type and its variants, as this target declares them.
+/// </summary>
+/// <remarks>
+/// One per declaration however many tables named it. A struct is an entity beside a table and
+/// an enum, and emitting it inside each table that used it would give them types that share a
+/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// </remarks>
+internal sealed class UnrealPolymorphicTypeView
+{
+    /// <summary>The abstract type's name.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<UnrealStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<UnrealVariantView> Variants { get; set; }
+}
+
+/// <summary>One variant of a <see cref="UnrealPolymorphicTypeView"/>.</summary>
+internal sealed class UnrealVariantView
+{
+    /// <summary>The variant's `USTRUCT` name, already carrying this target's `F`.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The enum constant naming this variant.</summary>
+    public required string KindName { get; set; }
+
+    /// <summary>The suffix a per-variant accessor is named with.</summary>
+    public required string Suffix { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<UnrealStructMemberView> Members { get; set; }
+}
+
+/// <summary>One member of an abstract type or of one of its variants.</summary>
+/// <remarks>
+/// A view of its own rather than the record member's, because none of the reference machinery
+/// applies: the model refuses a reference inside a polymorphic group.
+/// </remarks>
+internal sealed class UnrealStructMemberView
+{
+    /// <summary>The member's name in the generated type.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its type in this language.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
 }

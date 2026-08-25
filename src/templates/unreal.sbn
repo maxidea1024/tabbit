@@ -56,6 +56,60 @@ enum class {{ enumm.name }} : {{ enumm.underlying_type }}
 {{~ end ~}}
 };
 {{~ end ~}}
+{{~## **The declared abstract types: a UENUM saying which variant, and one USTRUCT per variant.**
+   A USTRUCT cannot take part in inheritance polymorphism the engine's reflection can see, so
+   this target falls on the same side C does - the discriminator is read and then the variant it
+   named is asked for. Each variant carries the base fields in its own struct, since there is
+   nothing to inherit from. spec/polymorphism.md section 7. ##~}}
+{{~ for st in structs }}
+
+/** Which shape a {{ st.name }} value took. */
+UENUM(BlueprintType)
+enum class {{ st.name }}Kind : uint8
+{
+{{~## **A zero entry, which the header tool requires of every UENUM** - a default-constructed
+   value has to name something. No variant is ever numbered 0: `@N` starts at 1 and an
+   unnumbered set counts from 1, so this can never collide with a real one.
+   spec/polymorphism.md sections 5.1.1 and 7. ##~}}
+    /** No variant. A default-constructed value, which no row ever carries. */
+    None = 0 UMETA(DisplayName = "None"),
+{{~ for variant in st.variants ~}}
+    /** The file carries {{ variant.discriminator }} for this one. */
+    {{ variant.kind_name }} = {{ variant.discriminator }} UMETA(DisplayName = "{{ variant.kind_name }}"),
+{{~ end ~}}
+};
+{{~ for variant in st.variants }}
+
+/**
+ * One shape of {{ st.name }}.
+ *
+ * The file carries {{ variant.discriminator }} for it. That number rather than the name is what
+ * lets this variant be renamed without a deployed reader reading a different one.
+ */
+USTRUCT(BlueprintType)
+struct {{ variant.type_name }}
+{
+    GENERATED_BODY()
+
+{{~ for member in st.base_members ~}}
+{{~ for line in member.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "{{ st.name }}")
+    {{ member.type_name }} {{ member.name }} = {};
+
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "{{ st.name }}")
+    {{ member.type_name }} {{ member.name }} = {};
+
+{{~ end ~}}
+};
+{{~ end ~}}
+{{~ end ~}}
 {{~ for table in tables }}
 
 // Generated from {{ table.location }}
@@ -161,6 +215,39 @@ public:
     static FString KeyOf{{ index.suffix }}({{ index.params }});
 {{~ end ~}}
 {{~ end }}
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+{{~## **The discriminator and one accessor per variant** - the shape section 7 named for the
+   languages with nothing to narrow to. The row still carries the flat entry, so the read path
+   and the wire are untouched; each ask fills a caller-owned struct and answers whether the row
+   was that variant. spec/polymorphism.md section 7.2. ##~}}
+    /** Which shape a row's {{ field.abstract_type_name }} took. */
+    static {{ field.kind_enum_name }} {{ field.pascal_name }}Kind(const {{ table.record_name }}& Row)
+    {
+        return static_cast<{{ field.kind_enum_name }}>(Row.{{ field.pascal_name }}.Type);
+    }
+{{~ for variant in field.variants }}
+
+    /** Fills Out when the row is a {{ variant.type_name }}, and answers whether it was. */
+    static bool {{ field.pascal_name }}As{{ variant.suffix }}(
+        const {{ table.record_name }}& Row, {{ variant.type_name }}& Out)
+    {
+        if (Row.{{ field.pascal_name }}.Type != {{ variant.discriminator }})
+        {
+            return false;
+        }
+
+{{~ for member in field.base_members ~}}
+        Out.{{ member.name }} = Row.{{ field.pascal_name }}.{{ member.name }};
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+        Out.{{ member.name }} = Row.{{ field.pascal_name }}.{{ member.name }};
+{{~ end ~}}
+        return true;
+    }
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
     /** Loads the table from a .tcb file written by Tabbit. */
     bool Read(const FString& Filename);
 
