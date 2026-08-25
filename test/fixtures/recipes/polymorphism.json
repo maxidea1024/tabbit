@@ -72,6 +72,10 @@
       "ModuleName": "polymorphism_data"
     },
     {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/polymorphism/ruby"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

@@ -1,0 +1,37 @@
+{{~##
+   One abstract type and its variants. `structure` is the single declaration this file is for.
+
+   **Classes and `is_a?`.** Like Python this language has inheritance, so it is not in section
+   7's third group either - the shape C# takes reads naturally here.
+
+   The read path is untouched: the file is still read into the table's flat entry and the value
+   is built from it. spec/polymorphism.md section 7.
+##~}}
+{{ include 'ruby-file-head.sbn' ~}}
+  # One value of +{{ structure.name }}+, whichever shape it took.
+  #
+  # Narrow it with +is_a?+.
+  class {{ structure.name }}
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+    # {{ line }}
+{{~ end ~}}
+    attr_accessor :{{ member.name }}
+{{~ end ~}}
+  end
+{{~ for variant in structure.variants ~}}
+
+  # One shape of +{{ structure.name }}+.
+  #
+  # The file carries +{{ variant.discriminator }}+ for it. That number rather than the name is
+  # what lets this variant be renamed without a deployed reader reading a different one.
+  class {{ variant.type_name }} < {{ structure.name }}
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+    # {{ line }}
+{{~ end ~}}
+    attr_accessor :{{ member.name }}
+{{~ end ~}}
+  end
+{{~ end ~}}
+{{ include 'ruby-file-foot.sbn' ~}}

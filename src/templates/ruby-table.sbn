@@ -50,6 +50,41 @@
       {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+{{~## **The value, built once on first use.** The entry above is what the read filled - one
+   assignment per column - and which variant it is only became knowable when the discriminator
+   column arrived. Building it here keeps the read path and the wire exactly as they were.
+   spec/polymorphism.md section 7.2. ##~}}
+
+    # What this row's {{ field.abstract_type_name }} is. Narrow it with +is_a?+.
+    def {{ field.name }}_of
+      built = @{{ field.name }}_value
+      return built unless built.nil?
+
+      case {{ field.name }}.{{ field.discriminator_name }}
+{{~ for variant in field.variants ~}}
+      when {{ variant.discriminator }}
+        built = {{ variant.type_name }}.new
+{{~ for member in field.base_members ~}}
+        built.{{ member.name }} = {{ field.name }}.{{ member.name }}
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+        built.{{ member.name }} = {{ field.name }}.{{ member.name }}
+{{~ end ~}}
+{{~ end ~}}
+      else
+{{~## An unknown number is a variant this build does not have. Unlike a column added later,
+   which the reader skips, that makes the whole row uninterpretable. ##~}}
+        raise TcbError,
+              "{{ field.abstract_type_name }}: no variant is numbered "               "#{ {{ field.name }}.{{ field.discriminator_name }} }"
+      end
+
+      @{{ field.name }}_value = built
+      built
+    end
+{{~ end ~}}
+{{~ end ~}}
 {{~## A column whose value is a row of one of several tables. One attribute for the resolved
    row whatever table it came from, and the discriminator saying which - the targets take
    separate id bands, so at most one of them ever answers.

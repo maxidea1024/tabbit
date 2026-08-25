@@ -381,6 +381,62 @@ assert rows['Slash'].effect_of() is rows['Slash'].effect_of()
             + $"{System.Environment.NewLine}{result.Output}");
     }
 
+    /// <summary>
+    /// The generated Ruby reads each row back as the variant it is.
+    /// </summary>
+    /// <remarks>
+    /// A dynamic language, so this reads the file: the class per row is what the discriminator
+    /// picked, and a build that emitted the union flat would report every row as the base type.
+    /// spec/polymorphism.md section 7.
+    /// </remarks>
+    [Fact]
+    public void The_generated_ruby_reads_each_rows_variant()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        // A hard failure rather than a skip, as with the other toolchain gates: a gate that
+        // quietly turns itself off is worse than no gate.
+        Assert.True(ConformanceHarness.RubyIsAvailable(out string why),
+            $"A Ruby interpreter is required to check the generated code. {why}");
+
+        var parsed = ConformanceHarness.CompileRuby(Scenario);
+
+        Assert.True(parsed.Succeeded,
+            $"The generated Ruby does not parse.{System.Environment.NewLine}{parsed.Output}");
+
+        string binaryDir = System.IO.Path.Combine(RepoLayout.OutputDir(Scenario), "binary");
+
+        var result = ConformanceHarness.RunRubySnippet(
+            Scenario,
+            "require_relative 'tables'\n"
+            + "accessor = GameData::Tables.new\n"
+            + "accessor.read_all(ARGV[0])\n"
+            + "rows = accessor.skill.records.to_h { |r| [r.name, r] }\n"
+            // The class per row, which is what the discriminator picked.
+            + "raise unless rows['Slash'].effect_of.class.name.end_with?('DamageEffect')\n"
+            + "raise unless rows['Mend'].effect_of.class.name.end_with?('HealEffect')\n"
+            + "raise unless rows['Feint'].effect_of.class.name.end_with?('NoEffect')\n"
+            // Every variant is the base type, which is what makes the shared field reachable.
+            + "raise unless rows['Slash'].effect_of.is_a?(GameData::Effect)\n"
+            + "raise unless rows['Slash'].effect_of.chance == 30\n"
+            + "raise unless rows['Feint'].effect_of.chance == 10\n"
+            // A member only one variant has, and the other not having it at all.
+            + "raise unless rows['Slash'].effect_of.damage == 50\n"
+            + "raise unless rows['Slash'].effect_of.pierces == true\n"
+            + "raise unless rows['Mend'].effect_of.amount == 20\n"
+            + "raise if rows['Mend'].effect_of.respond_to?(:damage)\n"
+            // Built once: the second call hands back the same object.
+            + "raise unless rows['Slash'].effect_of.equal?(rows['Slash'].effect_of)\n",
+            binaryDir);
+
+        Assert.True(result.Succeeded,
+            $"Reading `{Scenario}` back through the generated Ruby failed."
+            + $"{System.Environment.NewLine}{result.Output}");
+    }
+
     /// <summary>Whether a toolchain is on this machine, and why not when it is missing.</summary>
     private delegate bool Availability(out string reason);
 
