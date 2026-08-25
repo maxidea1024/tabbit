@@ -122,6 +122,8 @@ namespace Tabbit.Fixtures.CompositeKey
             public BeastTable Beast = new BeastTable();
             public MoveTable Move = new MoveTable();
             public BeastMoveTable BeastMove = new BeastMoveTable();
+            public BeastNoteTable BeastNote = new BeastNoteTable();
+            public MoveNoteTable MoveNote = new MoveNoteTable();
         }
 
         /// <summary>
@@ -164,6 +166,16 @@ namespace Tabbit.Fixtures.CompositeKey
         public static BeastMoveTable BeastMove => Current.BeastMove;
 
         /// <summary>
+        /// Property for BeastNote table.
+        /// </summary>
+        public static BeastNoteTable BeastNote => Current.BeastNote;
+
+        /// <summary>
+        /// Property for MoveNote table.
+        /// </summary>
+        public static MoveNoteTable MoveNote => Current.MoveNote;
+
+        /// <summary>
         /// Reads every table and links them, and hands the result back without publishing it.
         /// </summary>
         /// <remarks>
@@ -182,6 +194,8 @@ namespace Tabbit.Fixtures.CompositeKey
             tasks.Add(snapshot.Beast.ReadAsync(System.IO.Path.Combine(basePath, $"Beast{fileExtension}")));
             tasks.Add(snapshot.Move.ReadAsync(System.IO.Path.Combine(basePath, $"Move{fileExtension}")));
             tasks.Add(snapshot.BeastMove.ReadAsync(System.IO.Path.Combine(basePath, $"BeastMove{fileExtension}")));
+            tasks.Add(snapshot.BeastNote.ReadAsync(System.IO.Path.Combine(basePath, $"BeastNote{fileExtension}")));
+            tasks.Add(snapshot.MoveNote.ReadAsync(System.IO.Path.Combine(basePath, $"MoveNote{fileExtension}")));
 
             await Task.WhenAll(tasks);
 
@@ -232,6 +246,24 @@ namespace Tabbit.Fixtures.CompositeKey
                     record.SetReference_BeastId_INTERNAL(snapshot.Beast.GetByIndexOrThrow(record._beastId_Beast_index));
                     record._beastId_F = true;
                 }
+                if (record._moveId_Move_index > 0)
+                {
+                    record.SetReference_MoveId_INTERNAL(snapshot.Move.GetByIndexOrThrow(record._moveId_Move_index));
+                    record._moveId_F = true;
+                }
+            }
+
+            foreach (var record in snapshot.BeastNote.Records)
+            {
+                if (record._beastId_Beast_index is { Length: > 0 })
+                {
+                    record.SetReference_BeastId_INTERNAL(snapshot.Beast.GetByIndexOrThrow(record._beastId_Beast_index));
+                    record._beastId_F = true;
+                }
+            }
+
+            foreach (var record in snapshot.MoveNote.Records)
+            {
                 if (record._moveId_Move_index > 0)
                 {
                     record.SetReference_MoveId_INTERNAL(snapshot.Move.GetByIndexOrThrow(record._moveId_Move_index));

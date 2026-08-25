@@ -17,11 +17,7 @@
         "TableRowSets": "^(?<table>.+?)(?<set>_(Season|Package))$",
 
         // 배열 원소의 구분자. 셀 배열과 `foreign X[]` 가 이것을 씁니다.
-        "ArrayDelimiter": ";",
-
-        // 수호자의 효과가 멀티 로우 다형 배열이고, 그 조합은 아직 지원되지 않습니다
-        // (spec/polymorphism.md 의 5단계). 그 단계와 함께 이 줄이 없어집니다.
-        "ExcludeSheets": ["Boss"]
+        "ArrayDelimiter": ";"
       }
     ]
   },
@@ -42,7 +38,7 @@
     // (`cost.CurrencyId` · `costs[].Amount`)이고, 시트 작성자가 적은 이름이 하나도 없습니다.
     // enum 쪽에는 이미 `Synthesized` 예외가 있는데 필드 레벨에는 없습니다. 그 예외가 생기면
     // 이 줄이 `error` 로 돌아갑니다 — doc/변환-기록.md 에 있습니다.
-    "OnViolation": "warn"
+    "OnViolation": "error"
   },
 
   // `asset` 컬럼이 찾을 폴더. 이 섹션이 없으면 검사가 꺼집니다.

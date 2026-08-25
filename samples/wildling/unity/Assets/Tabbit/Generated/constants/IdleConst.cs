@@ -26,7 +26,7 @@ namespace Wildling.Data
         /// <summary>
         /// 2배 대상. 발견과 조각은 아니다
         /// </summary>
-        public static string AdDoubleTargets { get; }
+        public static string[] AdDoubleTargets { get; }
 
         /// <summary>
         /// Static constructor for initialize static variables.
@@ -35,7 +35,7 @@ namespace Wildling.Data
         {
             CapHours = 8;
             ProgressFactor = 10000;
-            AdDoubleTargets = "gold;food;material";
+            AdDoubleTargets = new string[] { "gold", "food", "material" };
         }
     }
 } // namespace Wildling.Data

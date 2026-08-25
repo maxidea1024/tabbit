@@ -107,14 +107,17 @@ namespace Wildling.Data
             {
                 /// 이 행의 보상이 어떤 형태인가
                 public int Type;
-                /// 수량. 모든 변종이 갖습니다 — 와이어에서 컬럼 하나이고 모든 행에 값이 있습니다.
+                /// 수량
                 public int Amount;
+                /// 아이템 보상의 대상
                 public string ItemId;
                 public ItemTable.Record ItemByItemId;
                 public bool ItemId_F;
+                /// 재화 보상의 대상
                 public string CurrencyId;
                 public CurrencyTable.Record CurrencyByCurrencyId;
                 public bool CurrencyId_F;
+                /// 와일드링 또는 조각 보상의 대상
                 public string MonsterId;
                 public MonsterTable.Record MonsterByMonsterId;
                 public bool MonsterId_F;

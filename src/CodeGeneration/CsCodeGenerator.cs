@@ -918,6 +918,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
             RefField = CsName(sf.FirstField!.RefFieldName ?? ""),
             RefKeyTypeName = ToCSharpTypeName(sf.FirstField!.RefKeyType, null, null),
+            IndexKeyType = IndexKeyType(sf),
             RefIsSet = RefIsSetSuffix(sf.FirstField!.RefKeyType),
             Kind = DeclarationKind(table, sf),
 
@@ -1998,4 +1999,18 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// </remarks>
     private string CsName(string name)
         => LanguageProfile.CSharp.MemberName(name.ToCase(_memberCase));
+
+    /// <summary>The type a single-column lookup takes.</summary>
+    /// <remarks>
+    /// **A reference column's index is keyed by the target's key, not the target's row.**
+    /// The column's own name holds the key and the derived name holds the row, so a lookup
+    /// typed by the row is one nobody can call - what a caller has is the id it read
+    /// somewhere else. `KeyComponentView.TypeOf` is the one place that decides, and the
+    /// composite path already asks it; this is the single-column path asking the same.
+    /// </remarks>
+    private string IndexKeyType(SerialField sf)
+    {
+        var (type, enumm) = KeyComponentView.TypeOf(sf);
+        return ToCSharpTypeName(type, enumm, null);
+    }
 }

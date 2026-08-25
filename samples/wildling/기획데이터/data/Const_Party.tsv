@@ -2,8 +2,8 @@
 :field	name	type	value	desc
 	PartySize	int	3	파티 인원
 	SavedParties	int	3	저장 슬롯
-	ColumnNames	string	Front;Middle;Back	열의 이름. 배치 순서 그대로
-	VanguardColumns	string	Front	선봉이 설 수 있는 열
-	BreakerColumns	string	Middle;Back	파격
-	WardenColumns	string	Back	수호
-	TunerColumns	string	Middle;Back	조율
+	ColumnNames	string[]	Front;Middle;Back	열의 이름. 배치 순서 그대로
+	VanguardColumns	string[]	Front	선봉이 설 수 있는 열
+	BreakerColumns	string[]	Middle;Back	파격
+	WardenColumns	string[]	Back	수호
+	TunerColumns	string[]	Middle;Back	조율

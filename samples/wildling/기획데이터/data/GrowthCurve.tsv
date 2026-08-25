@@ -1,8 +1,8 @@
 :table GrowthCurve(key="grade,level")	등급과 레벨별 능력치 배수와 소모 재화이다.
 :field	grade	level	hp_factor	attack_factor	defense_factor	bonus_factor	costs[0].currency_id	costs[0].amount	costs[1].currency_id	costs[1].amount
 :type	Grade	int (min=1, max=70)	int (min=10000)	int (min=10000)	int (min=10000)	int?	Cost
-:desc	등급마다 곡선이 다르다	레벨	체력 배수. 만분율	공격 배수	방어 배수	구간 보너스. 없으면 비운다	소모 재화
-:target	c,s	c,s	c,s	c,s	c,s	c,s	c,s
+:desc	등급마다 곡선이 다르다	레벨	체력 배수. 만분율	공격 배수	방어 배수	구간 보너스. 없으면 비운다	소모 재화	첫째 소모 수량	둘째 소모 재화	둘째 소모 수량
+:target	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s
 	Common	1	10000	10000	10000	-	gold	22	food	2
 	Common	2	11392	11160	11044	-	gold	88	food	2
 	Common	3	12784	12320	12088	-	gold	198	food	3

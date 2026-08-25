@@ -1809,6 +1809,48 @@ internal static class Program
             .Row("wolf", "1", "30");
 
         links.Table(13, 1, beastMove);
+        // --- a single index that is a reference ----------------------------
+        //
+        // **One column, and it is the table's identity.** The composite case above already
+        // asks what a key component carries; this asks the same of the single-column path,
+        // which is a different piece of code in every generator - the composite one builds
+        // key text and this one keys the map by the value itself.
+        //
+        // Both spellings are here: `key=` naming the column, and the first column being the
+        // index because nothing said otherwise. And both target key types, because a
+        // generator that hardcodes a number for every key passes a table whose keys are all
+        // numbers. spec/reference-surface-naming.md sections 4 and 5.
+
+        var beastNote = new TableSpec
+        {
+            Name = "BeastNote",
+            Comment = "Indexed by a reference to a string-keyed table, named with `key=`.",
+            Meta = "key=BeastId",
+        };
+        beastNote
+            .Field(FieldSpec.Of("Seq", "int", "not the index, so `key=` has something to move"))
+            .Field(FieldSpec.Of("BeastId", "foreign", "the index, and a reference", detailType: "Beast"))
+            .Field(FieldSpec.Of("Note", "string", "anything"));
+        beastNote
+            .Row("1", "deer", "grazes")
+            .Row("2", "wolf", "hunts");
+
+        links.Table(19, 1, beastNote);
+
+        var moveNote = new TableSpec
+        {
+            Name = "MoveNote",
+            Comment = "First column is the index and it is a reference to an int-keyed table.",
+        };
+        moveNote
+            .Field(FieldSpec.Of("MoveId", "foreign", "the index, and a reference", detailType: "Move"))
+            .Field(FieldSpec.Of("Note", "string", "anything"))
+            .Field(FieldSpec.Of("Pad1", "int", "padding, so every table is one width"));
+        moveNote
+            .Row("1", "shoulder first", "0")
+            .Row("2", "loud", "0");
+
+        links.Table(25, 1, moveNote);
 
         Save(workbook, path);
     }

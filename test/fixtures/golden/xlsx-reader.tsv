@@ -6,7 +6,7 @@ bitset/bitset.xlsx	sheets=1 rows=10 cells=45 chars=381 names=0 skipped-names=0 h
 blank-and-null/blank-and-null.xlsx	sheets=1 rows=11 cells=65 chars=475 names=0 skipped-names=0 hash=0efcc3853b844adb
 blank-cell/blank-cell.xlsx	sheets=1 rows=8 cells=23 chars=211 names=0 skipped-names=0 hash=e1bb478727f9438c
 composite-expanded/composite-expanded.xlsx	sheets=1 rows=9 cells=139 chars=752 names=0 skipped-names=0 hash=e0b233ab0016da8e
-composite-key/composite-key.xlsx	sheets=5 rows=45 cells=203 chars=1537 names=0 skipped-names=0 hash=c40ae7669b02c626
+composite-key/composite-key.xlsx	sheets=5 rows=45 cells=251 chars=2039 names=0 skipped-names=0 hash=5118a8d59c66db18
 composite-tagged/composite-tagged.xlsx	sheets=1 rows=8 cells=26 chars=225 names=0 skipped-names=0 hash=51d617fc20eaf1f7
 composite/composite.xlsx	sheets=1 rows=9 cells=55 chars=508 names=0 skipped-names=0 hash=bfef1f578517e9cf
 conformance-skew/conformance-skew.xlsx	sheets=1 rows=67 cells=906 chars=9776 names=0 skipped-names=0 hash=8027633b718d0b09

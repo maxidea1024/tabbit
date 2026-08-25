@@ -2,39 +2,39 @@ TCB encoding report
 ===================
 
 Totals
-  tables    30
-  columns   200
-  unencoded 247,180
-  encoded   80,460  (32.6 % of unencoded)
-  deflated  37,716  (46.9 % of encoded)  - what a compression layer over the chosen blocks would come to
+  tables    31
+  columns   227
+  unencoded 248,409
+  encoded   80,858  (32.6 % of unencoded)
+  deflated  38,102  (47.1 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
-  DICT_FRONT          44       61,190   76.1 %
-  ARRAY               12        6,978    8.7 %
+  DICT_FRONT          45       61,275   75.8 %
+  ARRAY               22        7,100    8.8 %
   DICT_SEG             8        3,885    4.8 %
-  RAW                 21        1,370    1.7 %
-  DICT_FRONT_RLE       6        1,269    1.6 %
-  BITPACK             36          994    1.2 %
-  DICT                 4          959    1.2 %
-  DELTA_RLE           18          779    1.0 %
-  RLE                 24          705    0.9 %
+  RAW                 23        1,443    1.8 %
+  DICT_FRONT_RLE       6        1,279    1.6 %
+  BITPACK             37        1,013    1.3 %
+  DICT                 4          964    1.2 %
+  DELTA_RLE           20          791    1.0 %
+  RLE                 29          734    0.9 %
   DICT_SEG_RLE         3          691    0.9 %
-  DELTA                2          623    0.8 %
-  VARINT               7          528    0.7 %
+  DELTA                2          634    0.8 %
+  VARINT               9          548    0.7 %
   DICT_RLE            12          480    0.6 %
-  WHOLE                3            9    0.0 %
+  WHOLE                7           21    0.0 %
 
 By element
   element         columns    unencoded        bytes    share
-  string              96      209,243       73,131   90.9 %
-  i32                 72       35,173        6,807    8.5 %
-  varint              21        1,594          343    0.4 %
-  f32                  7          728          132    0.2 %
+  string              98      209,637       73,299   90.7 %
+  i32                 90       35,893        7,005    8.7 %
+  varint              24        1,629          363    0.4 %
+  f32                 11          808          144    0.2 %
   i64                  1          432           37    0.0 %
   bool                 3           10           10    0.0 %
 
-Largest columns (40 of 200)
+Largest columns (40 of 227)
 
   StringTable.StringId  [string]  2305 rows
     chosen DICT_FRONT  13,114  (37.8 % of unencoded)
@@ -56,9 +56,9 @@ Largest columns (40 of 200)
     chosen ARRAY  1,707  (41.2 % of unencoded)
     candidates RAW 4,140  ·  ARRAY 1,707
 
-  RewardEntry.RewardGroupId  [string]  364 rows
-    chosen DICT_FRONT  1,408  (16.7 % of unencoded)
-    candidates RAW 8,451  ·  DICT 4,007  ·  DICT_RLE 4,117  ·  DICT_FRONT 1,408  ·  DICT_FRONT_RLE 1,496  ·  DICT_SEG 1,711  ·  DICT_SEG_RLE 1,821
+  RewardEntry.RewardGroupId  [string]  369 rows
+    chosen DICT_FRONT  1,416  (16.5 % of unencoded)
+    candidates RAW 8,573  ·  DICT 4,013  ·  DICT_RLE 4,117  ·  DICT_FRONT 1,416  ·  DICT_FRONT_RLE 1,496  ·  DICT_SEG 1,717  ·  DICT_SEG_RLE 1,821
 
   GrowthCurve.Costs.Amount  [i32[]]  350 rows
     chosen ARRAY  1,305  (41.4 % of unencoded)
@@ -108,13 +108,13 @@ Largest columns (40 of 200)
     chosen DICT_FRONT  598  (42.9 % of unencoded)
     candidates RAW 1,395  ·  DICT 1,517  ·  DICT_RLE 1,609  ·  DICT_FRONT 598  ·  DICT_FRONT_RLE 690  ·  DICT_SEG 785  ·  DICT_SEG_RLE 877
 
+  RewardEntry.Rate  [i32]  369 rows
+    chosen DELTA  591  (40.0 % of unencoded)
+    candidates RAW 1,476  ·  VARINT 912  ·  DELTA 591  ·  RLE 734  ·  DELTA_RLE 665  ·  BITPACK 650
+
   MonsterSkill.MonsterId  [string]  246 rows
     chosen DICT_FRONT_RLE  586  (18.0 % of unencoded)
     candidates RAW 3,264  ·  DICT 962  ·  DICT_RLE 824  ·  DICT_FRONT 724  ·  DICT_FRONT_RLE 586  ·  DICT_SEG 871  ·  DICT_SEG_RLE 733
-
-  RewardEntry.Rate  [i32]  364 rows
-    chosen DELTA  580  (39.8 % of unencoded)
-    candidates RAW 1,456  ·  VARINT 897  ·  DELTA 580  ·  RLE 714  ·  DELTA_RLE 649  ·  BITPACK 641
 
   Monster.Icon  [string]  54 rows
     chosen DICT_FRONT  535  (61.0 % of unencoded)
@@ -132,9 +132,9 @@ Largest columns (40 of 200)
     chosen DICT_SEG  521  (15.3 % of unencoded)
     candidates RAW 3,403  ·  DICT 847  ·  DICT_RLE 1,093  ·  DICT_FRONT 562  ·  DICT_FRONT_RLE 808  ·  DICT_SEG 521  ·  DICT_SEG_RLE 767
 
-  RewardEntry.Reward.Amount  [i32]  364 rows
-    chosen VARINT  498  (34.2 % of unencoded)
-    candidates RAW 1,456  ·  VARINT 498  ·  DELTA 594  ·  RLE 643  ·  DELTA_RLE 745  ·  BITPACK 595
+  RewardEntry.Reward.Amount  [i32]  369 rows
+    chosen VARINT  503  (34.1 % of unencoded)
+    candidates RAW 1,476  ·  VARINT 503  ·  DELTA 599  ·  RLE 643  ·  DELTA_RLE 745  ·  BITPACK 603
 
   Stage.RewardGroupId  [string]  90 rows
     chosen DICT_FRONT  492  (22.4 % of unencoded)
@@ -164,13 +164,13 @@ Largest columns (40 of 200)
     chosen DICT  388  (63.9 % of unencoded)
     candidates RAW 607  ·  DICT 388  ·  DICT_RLE 394  ·  DICT_FRONT 400  ·  DICT_FRONT_RLE 406  ·  DICT_SEG 514  ·  DICT_SEG_RLE 520
 
+  RewardEntry.Reward.CurrencyId  [string]  369 rows
+    chosen DICT  385  (29.6 % of unencoded)
+    candidates RAW 1,301  ·  DICT 385  ·  DICT_RLE 451  ·  DICT_FRONT 388  ·  DICT_FRONT_RLE 454  ·  DICT_SEG 394  ·  DICT_SEG_RLE 460
+
   Skill.Icon  [string]  46 rows
     chosen DICT_SEG  383  (48.7 % of unencoded)
     candidates RAW 786  ·  DICT 833  ·  DICT_RLE 879  ·  DICT_FRONT 384  ·  DICT_FRONT_RLE 430  ·  DICT_SEG 383  ·  DICT_SEG_RLE 429
-
-  RewardEntry.Reward.CurrencyId  [string]  364 rows
-    chosen DICT  380  (29.3 % of unencoded)
-    candidates RAW 1,296  ·  DICT 380  ·  DICT_RLE 451  ·  DICT_FRONT 383  ·  DICT_FRONT_RLE 454  ·  DICT_SEG 389  ·  DICT_SEG_RLE 460
 
   SkillGrowth.SkillId  [string]  460 rows
     chosen DICT_SEG_RLE  379  (5.8 % of unencoded)
@@ -201,19 +201,19 @@ Headroom outside the encodings
   each encoded, against what it costs today. Nothing here is in the format.
 
   Array columns (always raw today)
-    columns  12
-    elements 4,250
-    today    6,978
-    encoded  7,253  (103.9 % of today) · saved -275
+    columns  22
+    elements 4,365
+    today    7,100
+    encoded  7,405  (104.3 % of today) · saved -305
 
   Float columns (dictionary only today)
-    columns  7
-    elements 182
-    today    132
-    encoded  129  (97.7 % of today) · saved 3
+    columns  11
+    elements 202
+    today    144
+    encoded  137  (95.1 % of today) · saved 7
 
-  Of the float columns, 3 hold whole numbers in every row.
-    today 9 · as integers 6 · saved 3
+  Of the float columns, 7 hold whole numbers in every row.
+    today 21 · as integers 14 · saved 7
 
 Bit-width packing headroom
   What the integer columns would come to at the width their own range
@@ -222,29 +222,39 @@ Bit-width packing headroom
   element     columns        today       packed        saved
   i64               1           37           37            0
   bool              3           10           12           -2
-  varint           21          343          497         -154
-  i32              72        6,807       10,998       -4,191
+  varint           24          363          512         -149
+  i32              90        7,005       11,195       -4,190
 
-  Keeping the smaller of the two per column: 7,197 → 7,125 · saved 72 over 4 of 97 columns.
+  Keeping the smaller of the two per column: 7,415 → 7,311 · saved 104 over 14 of 118 columns.
 
     width            base        today       packed  inner         column
         7               5          189          157  RAW           Stage.WaveLevels
        14              10          124           98  RAW           MonsterAwakening.Costs.Amount
        10               1          183          176  RAW           EncounterTable.Entries.Weight
         2               1           45           38  RAW           EncounterTable.Entries.EncounterSlot
+        2               0           11            7  RAW           Boss.AbilityPattern.0
+        2               0           11            7  RAW           Boss.AbilityPattern.1
+        2               0           11            7  RAW           Boss.AbilityPattern.2
+        2               1           10            6  RAW           Boss.Effects.Type
+       13            3500           25           21  RAW           Boss.Effects.Chance
+        1               0            9            5  RAW           Boss.Effects.Status
+        1               0            9            5  RAW           Boss.Effects.Duration
+       15               0           24           22  RAW           Boss.Effects.Power
+        1               0            6            5  RAW           Boss.Effects.Stat
+        1               0            6            5  RAW           Boss.Effects.Ratio
 
 Presence bitmaps
   A bit per row, saying which rows have a value. Encoded by the same choice
   a bit-packed value block uses; `unencoded` is what a bit a row would cost.
 
     columns    11
-    unencoded  143
-    encoded    112  (78.3 % of unencoded) · saved 31
+    unencoded  144
+    encoded    112  (77.8 % of unencoded) · saved 32
 
   2 of 11 bitmaps got smaller.
 
        rows    unencoded      encoded  column
-        364           46           29  RewardEntry.ServerWeight
+        369           47           29  RewardEntry.ServerWeight
         158           20            6  RewardGroup.Note
 
 String dictionary headroom
@@ -294,20 +304,20 @@ String dictionary headroom
         19          449          160          235          180          185          142  CodexReward.RewardGroupId
         19          392          157          212          177          182          141  CodexReward.CodexRewardId
 
-  Over all 96 string columns:
-    plain      159,161
-    front      50,892  (32.0 % of plain)
-    segment    101,045  (198.5 % of front)
-    template   73,473  (144.4 % of front)
-    delta      66,525  (130.7 % of front)
-    deflate    35,512  (69.8 % of front)
+  Over all 98 string columns:
+    plain      159,318
+    front      51,038  (32.0 % of plain)
+    segment    101,256  (198.4 % of front)
+    template   73,651  (144.3 % of front)
+    delta      66,703  (130.7 % of front)
+    deflate    35,656  (69.9 % of front)
 
-  Best per column, layout chosen per column: 48,955  (96.2 % of front)
+  Best per column, layout chosen per column: 49,101  (96.2 % of front)
   Headroom against what is in the format today: 1,937
 
   Where each layout wins, and what it saves against front coding
     layout      columns       saved
     segment          11       1,930
     template          1           7
-    front            84           0
+    front            86           0
 

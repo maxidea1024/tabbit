@@ -26,23 +26,23 @@ namespace Wildling.Data
         /// <summary>
         /// 열의 이름. 배치 순서 그대로
         /// </summary>
-        public static string ColumnNames { get; }
+        public static string[] ColumnNames { get; }
         /// <summary>
         /// 선봉이 설 수 있는 열
         /// </summary>
-        public static string VanguardColumns { get; }
+        public static string[] VanguardColumns { get; }
         /// <summary>
         /// 파격
         /// </summary>
-        public static string BreakerColumns { get; }
+        public static string[] BreakerColumns { get; }
         /// <summary>
         /// 수호
         /// </summary>
-        public static string WardenColumns { get; }
+        public static string[] WardenColumns { get; }
         /// <summary>
         /// 조율
         /// </summary>
-        public static string TunerColumns { get; }
+        public static string[] TunerColumns { get; }
 
         /// <summary>
         /// Static constructor for initialize static variables.
@@ -51,11 +51,11 @@ namespace Wildling.Data
         {
             PartySize = 3;
             SavedParties = 3;
-            ColumnNames = "Front;Middle;Back";
-            VanguardColumns = "Front";
-            BreakerColumns = "Middle;Back";
-            WardenColumns = "Back";
-            TunerColumns = "Middle;Back";
+            ColumnNames = new string[] { "Front", "Middle", "Back" };
+            VanguardColumns = new string[] { "Front" };
+            BreakerColumns = new string[] { "Middle", "Back" };
+            WardenColumns = new string[] { "Back" };
+            TunerColumns = new string[] { "Middle", "Back" };
         }
     }
 } // namespace Wildling.Data

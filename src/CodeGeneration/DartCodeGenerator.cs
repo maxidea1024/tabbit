@@ -368,7 +368,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             {
                 Member = DartName(plan.Only.Name),
                 Suffix = suffix,
-                KeyType = plan.IsComposite ? "String" : ResolvedElementType(plan.Only),
+                KeyType = plan.IsComposite ? "String" : IndexKeyType(plan.Only),
                 MapName = "_by" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
@@ -376,7 +376,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
                 Params = plan.IsComposite
                     ? string.Join(", ", components.Select(c => c.Type + " " + c.Param))
-                    : ResolvedElementType(plan.Only) + " key",
+                    : IndexKeyType(plan.Only) + " key",
 
                 Argument = plan.IsComposite ? "_keyOf" + suffix + "(" + args + ")" : "key",
 
@@ -1471,6 +1471,20 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         }
 
         return literal.Append('\'').ToString();
+    }
+
+    /// <summary>The type a single-column lookup takes.</summary>
+    /// <remarks>
+    /// **A reference column's index is keyed by the target's key, not the target's row.**
+    /// The column's own name holds the key and the derived name holds the row, so a lookup
+    /// typed by the row is one nobody can call - what a caller has is the id it read
+    /// somewhere else. `KeyComponentView.TypeOf` is the one place that decides, and the
+    /// composite path already asks it; this is the single-column path asking the same.
+    /// </remarks>
+    private string IndexKeyType(SerialField only)
+    {
+        var (type, enumm) = KeyComponentView.TypeOf(only);
+        return ToDartTypeName(type, enumm, null);
     }
 
     // ------------------------------------------------------------- helpers

@@ -17,8 +17,8 @@ internal static class ProgressionRules
 
         foreach (var row in Tables.RequirementEntry.Records)
         {
-            if (row.Req is global::Wildling.Data.ItemRequirement item && item.ItemId is not null)
-                required.Add(item.ItemId.ItemId);
+            if (row.Req is ItemRequirement item && !string.IsNullOrEmpty(item.ItemId))
+                required.Add(item.ItemId);
         }
 
         // 아이템마다 그것을 내는 지역. 지역이 시간대마다 묶음을 가리키고, 묶음이 아이템을 냅니다.
@@ -26,7 +26,7 @@ internal static class ProgressionRules
 
         foreach (var row in Tables.RewardEntry.Records)
         {
-            if (row.Reward is not global::Wildling.Data.ItemReward reward || reward.ItemId is null)
+            if (row.Reward is not ItemReward reward || string.IsNullOrEmpty(reward.ItemId))
                 continue;
 
             if (!byGroup.TryGetValue(row.RewardGroupId, out var items))
@@ -35,7 +35,7 @@ internal static class ProgressionRules
                 byGroup[row.RewardGroupId] = items;
             }
 
-            items.Add(reward.ItemId.ItemId);
+            items.Add(reward.ItemId);
         }
 
         var regionsOf = new Dictionary<string, HashSet<string>>();

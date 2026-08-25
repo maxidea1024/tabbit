@@ -14,6 +14,7 @@ internal static class RewardEntryRules
         context.Info($"RewardEntry {Tables.RewardEntry.Records.Count:N0}행을 검사합니다.");
 
         var sums = new Dictionary<string, int>();
+        var guaranteed = new HashSet<string>();
         var orders = new Dictionary<string, HashSet<int>>();
 
         foreach (var row in Tables.RewardEntry.Records)
@@ -22,6 +23,9 @@ internal static class RewardEntryRules
 
             sums.TryGetValue(group, out int sum);
             sums[group] = sum + row.Rate;
+
+            if (row.Rate >= 10000)
+                guaranteed.Add(group);
 
             if (!orders.TryGetValue(group, out var used))
             {
@@ -34,10 +38,10 @@ internal static class RewardEntryRules
 
             // 조각 보상은 그 종의 조각입니다. 1단이 아닌 단계를 가리키면 조각의 임자가 종이
             // 아니라 단계처럼 보이게 되고, 공명 등급이 종 단위라는 규칙과 어긋납니다.
-            if (row.Reward is global::Wildling.Data.ShardReward shard)
+            if (row.Reward is ShardReward shard)
             {
                 var monster = Tables.Monster.RecordsByMonsterId.TryGetValue(
-                    shard.MonsterId?.MonsterId ?? "", out var found) ? found : null;
+                    shard.MonsterId ?? "", out var found) ? found : null;
 
                 if (monster is not null && monster.Stage != 1)
                 {
@@ -48,17 +52,26 @@ internal static class RewardEntryRules
             }
         }
 
-        foreach (var pair in sums)
+        // **합을 검사하지 않습니다.** 이 데이터의 묶음은 항목마다 독립 확률입니다 — 골드는
+        // 항상 나오고 재료는 절반, 원석은 드물게. 그런 표에서 합이 10000을 넘는 것은 정상이고,
+        // 처음에는 합을 검사했다가 90건이 울렸습니다. 도구가 「이만큼 보고하는 규칙은 보통
+        // 규칙이 틀린 것」이라고 말해 주었고, 그 말이 맞았습니다.
+        //
+        // 뜻이 있는 것은 둘입니다 — 아무것도 나오지 않을 수 있는 묶음, 그리고 가리키는 항목이
+        // 없는 묶음.
+        foreach (var group in Tables.RewardGroup.Records)
         {
-            if (pair.Value > 10000 * orders[pair.Key].Count)
-                continue;
-
-            // 확률의 합이 10000을 넘는 묶음. 항목마다 독립 확률인 표에서는 정상이므로 경고입니다.
-            if (pair.Value > 10000)
+            if (!sums.ContainsKey(group.RewardGroupId))
             {
-                context.Warn(
-                    $"묶음 `{pair.Key}` 의 확률 합이 {pair.Value}입니다 — 항목마다 독립 확률이 "
-                    + "아니라면 10000을 넘을 수 없습니다.");
+                context.Warn(group, nameof(group.RewardGroupId),
+                    "항목이 하나도 없는 묶음입니다 — 이것을 가리키는 쪽은 아무것도 받지 못합니다.");
+                continue;
+            }
+
+            if (!guaranteed.Contains(group.RewardGroupId))
+            {
+                context.Warn(group, nameof(group.RewardGroupId),
+                    "항목이 전부 확률입니다 — 아무것도 나오지 않는 경우가 생깁니다.");
             }
         }
     }

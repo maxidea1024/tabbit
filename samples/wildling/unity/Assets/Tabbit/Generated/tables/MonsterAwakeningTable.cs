@@ -64,10 +64,15 @@ namespace Wildling.Data
             {
                 /// 각성으로 더해지는 값
                 public int Hp;
+                /// 공격 증가분
                 public int Attack;
+                /// 방어 증가분
                 public int Defense;
+                /// 행동 순서 증가분
                 public int Speed;
+                /// 치명타 확률 증가분
                 public int CritRate;
+                /// 치명타 배수 증가분
                 public int CritPower;
 
                 public override string ToString()
@@ -171,8 +176,8 @@ namespace Wildling.Data
         private List<Record> _records = new List<Record>();
 
         #region Indexing by 'FromMonsterId'
-        public Dictionary<MonsterTable.Record, Record> RecordsByFromMonsterId => _recordsByFromMonsterId;
-        private Dictionary<MonsterTable.Record, Record> _recordsByFromMonsterId = new Dictionary<MonsterTable.Record, Record>();
+        public Dictionary<string, Record> RecordsByFromMonsterId => _recordsByFromMonsterId;
+        private Dictionary<string, Record> _recordsByFromMonsterId = new Dictionary<string, Record>();
 
         /// <summary>
         /// The row with this `FromMonsterId`, or null when the table has none.
@@ -182,7 +187,7 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByFromMonsterId(MonsterTable.Record key)
+        public Record FindByFromMonsterId(string key)
             => _recordsByFromMonsterId.TryGetValue(key, out Record record) ? record : null;
 
         /// <summary>
@@ -194,7 +199,7 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByFromMonsterId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByFromMonsterIdOrThrow(MonsterTable.Record key)
+        public Record GetByFromMonsterIdOrThrow(string key)
         {
             if (!_recordsByFromMonsterId.TryGetValue(key, out Record record))
                 throw new TabbitException($"There is no record in table `MonsterAwakening` that corresponds to field `FromMonsterId` value {key}");
@@ -203,7 +208,7 @@ namespace Wildling.Data
         }
 
         /// <summary>Whether the table holds a row with this `FromMonsterId`.</summary>
-        public bool ContainsFromMonsterId(MonsterTable.Record key) => _recordsByFromMonsterId.ContainsKey(key);
+        public bool ContainsFromMonsterId(string key) => _recordsByFromMonsterId.ContainsKey(key);
         #endregion // Indexing by `FromMonsterId`
 
         /// <summary>
@@ -461,7 +466,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByFromMonsterId = new Dictionary<MonsterTable.Record, Record>(count);
+            var recordsByFromMonsterId = new Dictionary<string, Record>(count);
             foreach (var record in records)
                 recordsByFromMonsterId.Add(record.FromMonsterId, record);
 

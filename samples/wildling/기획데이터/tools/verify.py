@@ -187,7 +187,20 @@ def check_validation(out):
                "도구 보고 §7 · §8")
         return
     ran = re.findall(r"\[rules/([^\]]+)\]", out)
-    report("검증 규칙이 도는가", bool(ran), "규칙 %d개가 말했습니다" % len(set(ran)))
+    summary = re.search(r"Validation: (\d+) error\(s\), (\d+) warning\(s\)", out)
+
+    # 빌드 캐시가 산 실행은 검증을 다시 돌리지 않으므로 규칙이 말하지 않습니다. 그때는 이
+    # 검사가 답할 것이 없으니 건너뜁니다 — 통과로 세면 캐시가 게이트를 통과시킵니다.
+    if not ran and not summary:
+        report("검증 규칙이 도는가", None, "캐시된 실행입니다 — `.tabbit` 을 지우고 다시")
+        return
+
+    detail = "규칙 %d개" % len(set(ran)) if ran else ""
+    if summary:
+        detail += " · 오류 %s · 경고 %s" % (summary.group(1), summary.group(2))
+
+    report("검증 규칙이 도는가", bool(ran) and summary is not None and summary.group(1) == "0",
+           detail.strip(" ·"))
 
 
 # ---------------------------------------------------------------- 3. 생성 코드

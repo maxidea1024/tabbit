@@ -15,6 +15,8 @@ import { GridTable } from './tables/grid'
 import { BeastTable } from './tables/beast'
 import { MoveTable } from './tables/move'
 import { BeastMoveTable } from './tables/beast-move'
+import { BeastNoteTable } from './tables/beast-note'
+import { MoveNoteTable } from './tables/move-note'
 
 /** Tables */
 export class Tables {
@@ -93,6 +95,14 @@ export class Tables {
   public get beastMove(): BeastMoveTable { return this._beastMove }
   private _beastMove: BeastMoveTable = new BeastMoveTable()
 
+  /** Peroperty for table BeastNote */
+  public get beastNote(): BeastNoteTable { return this._beastNote }
+  private _beastNote: BeastNoteTable = new BeastNoteTable()
+
+  /** Peroperty for table MoveNote */
+  public get moveNote(): MoveNoteTable { return this._moveNote }
+  private _moveNote: MoveNoteTable = new MoveNoteTable()
+
   /**
    * Read all tables asynchronously.
    *
@@ -112,8 +122,12 @@ export class Tables {
     await move.read(path.join(basePath, `Move${fileExtension}`))
     const beastMove = new BeastMoveTable()
     await beastMove.read(path.join(basePath, `BeastMove${fileExtension}`))
+    const beastNote = new BeastNoteTable()
+    await beastNote.read(path.join(basePath, `BeastNote${fileExtension}`))
+    const moveNote = new MoveNoteTable()
+    await moveNote.read(path.join(basePath, `MoveNote${fileExtension}`))
 
-    this.publish(loadout, route, grid, beast, move, beastMove)
+    this.publish(loadout, route, grid, beast, move, beastMove, beastNote, moveNote)
   }
 
   /** Read all tables synchronously. */
@@ -130,8 +144,12 @@ export class Tables {
     move.readSync(path.join(basePath, `Move${fileExtension}`))
     const beastMove = new BeastMoveTable()
     beastMove.readSync(path.join(basePath, `BeastMove${fileExtension}`))
+    const beastNote = new BeastNoteTable()
+    beastNote.readSync(path.join(basePath, `BeastNote${fileExtension}`))
+    const moveNote = new MoveNoteTable()
+    moveNote.readSync(path.join(basePath, `MoveNote${fileExtension}`))
 
-    this.publish(loadout, route, grid, beast, move, beastMove)
+    this.publish(loadout, route, grid, beast, move, beastMove, beastNote, moveNote)
   }
 
   /**
@@ -154,8 +172,12 @@ export class Tables {
     move.readBinarySync(path.join(basePath, `Move${fileExtension}`))
     const beastMove = new BeastMoveTable()
     beastMove.readBinarySync(path.join(basePath, `BeastMove${fileExtension}`))
+    const beastNote = new BeastNoteTable()
+    beastNote.readBinarySync(path.join(basePath, `BeastNote${fileExtension}`))
+    const moveNote = new MoveNoteTable()
+    moveNote.readBinarySync(path.join(basePath, `MoveNote${fileExtension}`))
 
-    this.publish(loadout, route, grid, beast, move, beastMove)
+    this.publish(loadout, route, grid, beast, move, beastMove, beastNote, moveNote)
   }
 
   /**
@@ -166,13 +188,15 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(loadout: LoadoutTable, route: RouteTable, grid: GridTable, beast: BeastTable, move: MoveTable, beastMove: BeastMoveTable): void {
+  private publish(loadout: LoadoutTable, route: RouteTable, grid: GridTable, beast: BeastTable, move: MoveTable, beastMove: BeastMoveTable, beastNote: BeastNoteTable, moveNote: MoveNoteTable): void {
     this._loadout = loadout
     this._route = route
     this._grid = grid
     this._beast = beast
     this._move = move
     this._beastMove = beastMove
+    this._beastNote = beastNote
+    this._moveNote = moveNote
 
     this.solveCrossReferences()
   }
@@ -192,6 +216,24 @@ export class Tables {
         record.setReference_beastId_INTERNAL(target)
         record._beastId_F = true
       }
+      if (record._moveId_Move_index > 0) {
+        const target = this._move.getByIndexOrThrow(
+          record._moveId_Move_index)
+        record.setReference_moveId_INTERNAL(target)
+        record._moveId_F = true
+      }
+    }
+
+    for (const record of this._beastNote.records) {
+      if (record._beastId_Beast_index !== "") {
+        const target = this._beast.getByIndexOrThrow(
+          record._beastId_Beast_index)
+        record.setReference_beastId_INTERNAL(target)
+        record._beastId_F = true
+      }
+    }
+
+    for (const record of this._moveNote.records) {
       if (record._moveId_Move_index > 0) {
         const target = this._move.getByIndexOrThrow(
           record._moveId_Move_index)

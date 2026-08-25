@@ -45,7 +45,7 @@ internal static class MonsterAwakeningRules
     }
 
     private static void Compare(
-        ITableContext context, Tables.MonsterAwakening.Record row,
+        ITableContext context, MonsterAwakeningTable.Record row,
         string stat, int before, int after, int gain)
     {
         if (after < before)

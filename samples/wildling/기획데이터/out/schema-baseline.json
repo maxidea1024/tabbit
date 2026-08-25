@@ -178,6 +178,197 @@
         "ExplicitTag": false
       }
     },
+    "Boss": {
+      "1": {
+        "Name": "BossId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "MonsterId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "StatFactor.Hp",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "StatFactor.Attack",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "StatFactor.Defense",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "StatFactor.Speed",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "StatFactor.CritRate",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "StatFactor.CritPower",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "9": {
+        "Name": "Ability",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "10": {
+        "Name": "AbilityPattern.0",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "11": {
+        "Name": "AbilityPattern.1",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "12": {
+        "Name": "AbilityPattern.2",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "13": {
+        "Name": "SpawnRotation.X",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "14": {
+        "Name": "SpawnRotation.Y",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "15": {
+        "Name": "SpawnRotation.Z",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "16": {
+        "Name": "SpawnRotation.W",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "17": {
+        "Name": "Tint.R",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "18": {
+        "Name": "Tint.G",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "19": {
+        "Name": "Tint.B",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "20": {
+        "Name": "Tint.A",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "21": {
+        "Name": "Effects.Type",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "22": {
+        "Name": "Effects.Chance",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "23": {
+        "Name": "Effects.Power",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "24": {
+        "Name": "Effects.Status",
+        "Element": 0,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "25": {
+        "Name": "Effects.Stat",
+        "Element": 0,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "26": {
+        "Name": "Effects.Ratio",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "27": {
+        "Name": "Effects.Duration",
+        "Element": 2,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
     "BattleSpeed": {
       "1": {
         "Name": "At",

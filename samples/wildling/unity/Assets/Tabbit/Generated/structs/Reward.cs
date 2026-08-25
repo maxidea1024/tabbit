@@ -25,7 +25,7 @@ namespace Wildling.Data
     public abstract partial class Reward
     {
         /// <summary>
-        /// 수량. 모든 변종이 갖습니다 — 와이어에서 컬럼 하나이고 모든 행에 값이 있습니다.
+        /// 수량
         /// </summary>
         public int Amount;
     }
@@ -41,6 +41,9 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class ItemReward : Reward
     {
+        /// <summary>
+        /// 아이템 보상의 대상
+        /// </summary>
         public string ItemId;
         public ItemTable.Record ItemByItemId;
     }
@@ -56,6 +59,9 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class CurrencyReward : Reward
     {
+        /// <summary>
+        /// 재화 보상의 대상
+        /// </summary>
         public string CurrencyId;
         public CurrencyTable.Record CurrencyByCurrencyId;
     }
@@ -71,6 +77,9 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class MonsterReward : Reward
     {
+        /// <summary>
+        /// 와일드링 또는 조각 보상의 대상
+        /// </summary>
         public string MonsterId;
         public MonsterTable.Record MonsterByMonsterId;
     }
@@ -86,6 +95,9 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class ShardReward : Reward
     {
+        /// <summary>
+        /// 와일드링 또는 조각 보상의 대상
+        /// </summary>
         public string MonsterId;
         public MonsterTable.Record MonsterByMonsterId;
     }

@@ -15,12 +15,14 @@ from .grid_table import GridTable
 from .beast_table import BeastTable
 from .move_table import MoveTable
 from .beast_move_table import BeastMoveTable
+from .beast_note_table import BeastNoteTable
+from .move_note_table import MoveNoteTable
 
 
 class Tables:
     """Every table, loaded together so cross-table references can be resolved."""
 
-    __slots__ = ("loadout", "route", "grid", "beast", "move", "beast_move")
+    __slots__ = ("loadout", "route", "grid", "beast", "move", "beast_move", "beast_note", "move_note")
 
     #: The key the table files were sealed with, or None when they were not sealed.
     #:
@@ -73,6 +75,8 @@ class Tables:
         self.beast = BeastTable()
         self.move = MoveTable()
         self.beast_move = BeastMoveTable()
+        self.beast_note = BeastNoteTable()
+        self.move_note = MoveNoteTable()
 
     def read_all(self, base_path, file_extension=".tcb"):
         """Reads every table from base_path, then links the references between them.
@@ -96,8 +100,12 @@ class Tables:
         loaded_move.read(os.path.join(base_path, "Move" + file_extension))
         loaded_beast_move = BeastMoveTable()
         loaded_beast_move.read(os.path.join(base_path, "BeastMove" + file_extension))
+        loaded_beast_note = BeastNoteTable()
+        loaded_beast_note.read(os.path.join(base_path, "BeastNote" + file_extension))
+        loaded_move_note = MoveNoteTable()
+        loaded_move_note.read(os.path.join(base_path, "MoveNote" + file_extension))
 
-        self._solve_cross_references(loaded_loadout, loaded_route, loaded_grid, loaded_beast, loaded_move, loaded_beast_move)
+        self._solve_cross_references(loaded_loadout, loaded_route, loaded_grid, loaded_beast, loaded_move, loaded_beast_move, loaded_beast_note, loaded_move_note)
 
         self.loadout = loaded_loadout
         self.route = loaded_route
@@ -105,8 +113,10 @@ class Tables:
         self.beast = loaded_beast
         self.move = loaded_move
         self.beast_move = loaded_beast_move
+        self.beast_note = loaded_beast_note
+        self.move_note = loaded_move_note
 
-    def _solve_cross_references(self, loadout, route, grid, beast, move, beast_move):
+    def _solve_cross_references(self, loadout, route, grid, beast, move, beast_move, beast_note, move_note):
         """Turns the stored indices into usable values, once every table is in memory.
 
         The tables arrive as arguments rather than off self, which is how this resolves the
@@ -116,6 +126,14 @@ class Tables:
             target = beast.find_by_index(record.beast_id)
             if target is not None:
                 record.beast_by_beast_id = target
+            target = move.find_by_index(record.move_id)
+            if target is not None:
+                record.move_by_move_id = target
+        for record in beast_note.records:
+            target = beast.find_by_index(record.beast_id)
+            if target is not None:
+                record.beast_by_beast_id = target
+        for record in move_note.records:
             target = move.find_by_index(record.move_id)
             if target is not None:
                 record.move_by_move_id = target

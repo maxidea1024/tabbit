@@ -113,8 +113,8 @@ namespace Wildling.Data
         private List<Record> _records = new List<Record>();
 
         #region Indexing by 'StageId'
-        public Dictionary<StageTable.Record, Record> RecordsByStageId => _recordsByStageId;
-        private Dictionary<StageTable.Record, Record> _recordsByStageId = new Dictionary<StageTable.Record, Record>();
+        public Dictionary<string, Record> RecordsByStageId => _recordsByStageId;
+        private Dictionary<string, Record> _recordsByStageId = new Dictionary<string, Record>();
 
         /// <summary>
         /// The row with this `StageId`, or null when the table has none.
@@ -124,7 +124,7 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByStageId(StageTable.Record key)
+        public Record FindByStageId(string key)
             => _recordsByStageId.TryGetValue(key, out Record record) ? record : null;
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByStageId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByStageIdOrThrow(StageTable.Record key)
+        public Record GetByStageIdOrThrow(string key)
         {
             if (!_recordsByStageId.TryGetValue(key, out Record record))
                 throw new TabbitException($"There is no record in table `StageReward` that corresponds to field `StageId` value {key}");
@@ -145,7 +145,7 @@ namespace Wildling.Data
         }
 
         /// <summary>Whether the table holds a row with this `StageId`.</summary>
-        public bool ContainsStageId(StageTable.Record key) => _recordsByStageId.ContainsKey(key);
+        public bool ContainsStageId(string key) => _recordsByStageId.ContainsKey(key);
         #endregion // Indexing by `StageId`
 
         /// <summary>
@@ -278,7 +278,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByStageId = new Dictionary<StageTable.Record, Record>(count);
+            var recordsByStageId = new Dictionary<string, Record>(count);
             foreach (var record in records)
                 recordsByStageId.Add(record.StageId, record);
 

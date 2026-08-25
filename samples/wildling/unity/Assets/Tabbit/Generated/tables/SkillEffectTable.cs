@@ -94,15 +94,17 @@ namespace Wildling.Data
             {
                 /// 이 행의 효과가 어떤 형태인가
                 public int Type;
-                /// 발동 확률. 만분율. 10000이 항상입니다.
+                /// 발동 확률. 만분율
                 public int Chance;
-                /// 공격력에 적용하는 배수. 만분율.
+                /// 피해 또는 회복 배수. 만분율
                 public int Power;
+                /// 부여하는 상태
                 public global::Wildling.Data.StatusKind Status;
+                /// 변동시키는 능력치
                 public global::Wildling.Data.StatKind Stat;
-                /// 변동률. 만분율. 음수는 하락입니다.
+                /// 변동률. 만분율. 음수는 하락
                 public int Ratio;
-                /// 지속 턴.
+                /// 지속 턴
                 public int Duration;
 
                 public override string ToString()

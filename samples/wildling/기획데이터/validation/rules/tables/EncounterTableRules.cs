@@ -31,7 +31,7 @@ internal static class EncounterTableRules
                 if (monster is not null)
                     species.Add(monster.SpeciesId);
 
-                if (entry.EncounterSlot == global::Wildling.Data.EncounterSlot.Hidden)
+                if (entry.EncounterSlot == EncounterSlot.Hidden)
                     hidden++;
 
                 if (entry.Weight <= 0)

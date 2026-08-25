@@ -29,7 +29,7 @@ internal static class StageRules
 
             // 수호자 스테이지는 지역의 마지막이어야 합니다 — 그 뒤에 스테이지가 있으면 해금
             // 순서가 성립하지 않습니다.
-            if (row.StageKind == global::Wildling.Data.StageKind.Guardian && row.Index != 18)
+            if (row.StageKind == StageKind.Guardian && row.Index != 18)
             {
                 context.Error(row, nameof(row.StageKind),
                     $"수호자 스테이지가 {row.Index}번입니다 — 지역의 마지막이어야 합니다.");

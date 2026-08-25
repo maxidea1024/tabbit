@@ -16,6 +16,8 @@
 #include "tables/CompositeKey_Beast.h"
 #include "tables/CompositeKey_Move.h"
 #include "tables/CompositeKey_BeastMove.h"
+#include "tables/CompositeKey_BeastNote.h"
+#include "tables/CompositeKey_MoveNote.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,6 +31,8 @@ typedef struct CompositeKey_t {
   CompositeKey_BeastTable_t beast;
   CompositeKey_MoveTable_t move;
   CompositeKey_BeastMoveTable_t beast_move;
+  CompositeKey_BeastNoteTable_t beast_note;
+  CompositeKey_MoveNoteTable_t move_note;
 } CompositeKey_t;
 
 /* Reads every table from base_path, then links the references between them.

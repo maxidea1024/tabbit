@@ -27,6 +27,10 @@ mod move_table;
 pub use move_table::{MoveRecord, MoveTable};
 mod beast_move_table;
 pub use beast_move_table::{BeastMoveRecord, BeastMoveTable};
+mod beast_note_table;
+pub use beast_note_table::{BeastNoteRecord, BeastNoteTable};
+mod move_note_table;
+pub use move_note_table::{MoveNoteRecord, MoveNoteTable};
 
 // The accessor.
 mod tables;

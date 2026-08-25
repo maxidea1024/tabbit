@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "473e24d9b5735502bffa1ed64e7f5dc9",
-  "TotalSize": 617,
+  "MasterHash": "37c211f6edffea104350fb3b29c1412f",
+  "TotalSize": 796,
   "Items": [
     {
       "Name": "Loadout.tcb",
@@ -37,6 +37,18 @@
       "Name": "BeastMove.tcb",
       "Size": 85,
       "Hash": "f657c9d002ce474362fa93f281e5a81c",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "BeastNote.tcb",
+      "Size": 90,
+      "Hash": "0870d63ab7aed104e852c6c7cf58828c",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "MoveNote.tcb",
+      "Size": 89,
+      "Hash": "9fca41cb786c676949ff94c2896cba8c",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

@@ -111,15 +111,15 @@ namespace Wildling.Data
             {
                 /// 1레벨 기준 능력치
                 public int Hp;
-                /// 공격.
+                /// 공격
                 public int Attack;
-                /// 방어.
+                /// 방어
                 public int Defense;
-                /// 행동 순서. 같으면 배치 순서가 정합니다.
+                /// 행동 순서
                 public int Speed;
-                /// 치명타 확률. 만분율.
+                /// 치명타 확률. 만분율
                 public int CritRate;
-                /// 치명타 배수. 만분율. 10000이 1배입니다.
+                /// 치명타 배수. 만분율
                 public int CritPower;
 
                 public override string ToString()

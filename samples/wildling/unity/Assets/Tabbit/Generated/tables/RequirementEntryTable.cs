@@ -90,12 +90,17 @@ namespace Wildling.Data
             {
                 /// 이 행의 조건이 어떤 형태인가
                 public int Type;
+                /// 요구 레벨
                 public int Level;
+                /// 요구 기록 상태
                 public global::Wildling.Data.CodexState CodexState;
+                /// 요구 아이템
                 public string ItemId;
                 public ItemTable.Record ItemByItemId;
                 public bool ItemId_F;
+                /// 요구 수량
                 public int Amount;
+                /// 요구 스테이지
                 public string StageId;
                 public StageTable.Record StageByStageId;
                 public bool StageId_F;

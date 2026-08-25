@@ -120,6 +120,7 @@ namespace Wildling.Data
             public SkillEffectTable SkillEffect = new SkillEffectTable();
             public SkillGrowthTable SkillGrowth = new SkillGrowthTable();
             public ElementAffinityTable ElementAffinity = new ElementAffinityTable();
+            public BossTable Boss = new BossTable();
             public BattleSpeedTable BattleSpeed = new BattleSpeedTable();
             public CurrencyTable Currency = new CurrencyTable();
             public ItemTable Item = new ItemTable();
@@ -176,6 +177,11 @@ namespace Wildling.Data
         /// Property for ElementAffinity table.
         /// </summary>
         public static ElementAffinityTable ElementAffinity => Current.ElementAffinity;
+
+        /// <summary>
+        /// Property for Boss table.
+        /// </summary>
+        public static BossTable Boss => Current.Boss;
 
         /// <summary>
         /// Property for BattleSpeed table.
@@ -324,6 +330,7 @@ namespace Wildling.Data
             tasks.Add(snapshot.SkillEffect.ReadAsync(System.IO.Path.Combine(basePath, $"SkillEffect{fileExtension}")));
             tasks.Add(snapshot.SkillGrowth.ReadAsync(System.IO.Path.Combine(basePath, $"SkillGrowth{fileExtension}")));
             tasks.Add(snapshot.ElementAffinity.ReadAsync(System.IO.Path.Combine(basePath, $"ElementAffinity{fileExtension}")));
+            tasks.Add(snapshot.Boss.ReadAsync(System.IO.Path.Combine(basePath, $"Boss{fileExtension}")));
             tasks.Add(snapshot.BattleSpeed.ReadAsync(System.IO.Path.Combine(basePath, $"BattleSpeed{fileExtension}")));
             tasks.Add(snapshot.Currency.ReadAsync(System.IO.Path.Combine(basePath, $"Currency{fileExtension}")));
             tasks.Add(snapshot.Item.ReadAsync(System.IO.Path.Combine(basePath, $"Item{fileExtension}")));
@@ -416,6 +423,15 @@ namespace Wildling.Data
                         record._costs[j].CurrencyByCurrencyId = snapshot.Currency.GetByCurrencyIdOrThrow(record._costs[j].CurrencyId);
                         record._costs[j].CurrencyId_F = true;
                     }
+                }
+            }
+
+            foreach (var record in snapshot.Boss.Records)
+            {
+                if (record._monsterId_Monster_index is { Length: > 0 })
+                {
+                    record.SetReference_MonsterId_INTERNAL(snapshot.Monster.GetByMonsterIdOrThrow(record._monsterId_Monster_index));
+                    record._monsterId_F = true;
                 }
             }
 

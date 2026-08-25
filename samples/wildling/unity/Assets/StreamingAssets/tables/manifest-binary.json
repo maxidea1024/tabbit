@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-08-26T00:45:57.2423763+09:00",
-  "MasterHash": "cb5f7c2dddd5ff3b456979d8c9824c0a",
-  "TotalSize": 83278,
+  "LastUpdatedDate": "2026-08-26T01:11:51.5725461+09:00",
+  "MasterHash": "c77d749fd9e2ce505a8d87f9db1ad80b",
+  "TotalSize": 83909,
   "Items": [
     {
       "Name": "Skill.bytes",
@@ -137,9 +137,9 @@
     },
     {
       "Name": "RewardEntry.bytes",
-      "Size": 3437,
-      "Hash": "764f878266a69d8aa1c8a0ae7c996a09",
-      "LastUpdatedDate": "2026-08-25T18:32:53.8227373+09:00"
+      "Size": 3497,
+      "Hash": "73c1ae5e86e00c742bc0ebab6bd2400e",
+      "LastUpdatedDate": "2026-08-26T01:11:51.5051866+09:00"
     },
     {
       "Name": "RequirementGroup.bytes",
@@ -192,8 +192,14 @@
     {
       "Name": "EncounterTable.bytes",
       "Size": 1142,
-      "Hash": "814ea85c13c8e0e9e476c711cdcbcf55",
-      "LastUpdatedDate": "2026-08-25T18:32:53.8945573+09:00"
+      "Hash": "17d31fcbc9e594126c081d84531a8b8f",
+      "LastUpdatedDate": "2026-08-26T01:10:23.7973566+09:00"
+    },
+    {
+      "Name": "Boss.bytes",
+      "Size": 571,
+      "Hash": "6edb417b2b0631d4031120afe607bc17",
+      "LastUpdatedDate": "2026-08-26T01:06:55.2975079+09:00"
     }
   ]
 }

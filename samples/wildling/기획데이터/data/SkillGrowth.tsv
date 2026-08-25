@@ -1,8 +1,8 @@
 :table SkillGrowth(key="skill_id,level")	스킬 레벨별 효과와 재료이다.
 :field	skill_id	level	power_factor	costs[0].currency_id	costs[0].amount	costs[1].currency_id	costs[1].amount
 :type	foreign Skill	int (min=1, max=10)	int (min=10000)	Cost
-:desc	어느 스킬인가	스킬 레벨	효과 배수. 만분율	소모 재화
-:target	c,s	c,s	c,s	c,s
+:desc	어느 스킬인가	스킬 레벨	효과 배수. 만분율	소모 재화	첫째 소모 수량	둘째 소모 재화	둘째 소모 수량
+:target	c,s	c,s	c,s	c,s	c,s	c,s	c,s
 	flame_damage	1	10000	gold	600	food	4
 	flame_damage	2	11200	gold	2400	food	8
 	flame_damage	3	12400	gold	5400	food	12

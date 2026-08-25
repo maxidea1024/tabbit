@@ -75,7 +75,7 @@ namespace Wildling.Data
                 public string CurrencyId;
                 public CurrencyTable.Record CurrencyByCurrencyId;
                 public bool CurrencyId_F;
-                /// 수량.
+                /// 첫째 소모 수량
                 public int Amount;
 
                 public override string ToString()

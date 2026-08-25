@@ -12,6 +12,8 @@ from .grid_table import GridRecord, GridTable
 from .beast_table import BeastRecord, BeastTable
 from .move_table import MoveRecord, MoveTable
 from .beast_move_table import BeastMoveRecord, BeastMoveTable
+from .beast_note_table import BeastNoteRecord, BeastNoteTable
+from .move_note_table import MoveNoteRecord, MoveNoteTable
 from .tables import Tables
 
 __all__ = [
@@ -28,5 +30,9 @@ __all__ = [
     "MoveTable",
     "BeastMoveRecord",
     "BeastMoveTable",
+    "BeastNoteRecord",
+    "BeastNoteTable",
+    "MoveNoteRecord",
+    "MoveNoteTable",
     "Tables",
 ]

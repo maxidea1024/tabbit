@@ -1,60 +1,60 @@
 :table SkillEffect(key="skill_id,order")	스킬 하나가 일으키는 것이다. 판별자가 그 행의 형태를 정한다.
 :field	skill_id	order	effect.$type	effect.chance	effect.power	effect.status	effect.stat	effect.ratio	effect.duration
 :type	foreign Skill	int (min=0, max=7)	Effect
-:desc	어느 스킬인가	적용 순서	이 행의 효과가 어떤 형태인가
-:target	c,s	c,s	c,s
-	flame_damage	0	DamageEffect	10000	18000	-	-	-	-
-	flame_damage_big	0	DamageEffect	10000	26000	-	-	-	-
-	flame_damage_wide	0	DamageEffect	10000	11000	-	-	-	-
-	flame_damage_wide	1	StatusEffect	2500	-	Stun	-	-	1
-	flame_buff_def	0	BuffEffect	10000	-	-	Defense	3000	2
-	flame_heal	0	HealEffect	10000	14000	-	-	-	-
-	flame_status	0	StatusEffect	6000	-	Slow	-	-	2
-	flame_buff_atk	0	BuffEffect	10000	-	-	Attack	2500	2
-	flame_damage_2	0	DamageEffect	10000	18000	-	-	-	-
-	flame_status_wide	0	StatusEffect	4000	-	Blind	-	-	2
-	flame_status_wide	1	BuffEffect	10000	-	-	Speed	-1500	2
-	flame_buff_def_2	0	BuffEffect	10000	-	-	Defense	3000	2
-	tide_damage	0	DamageEffect	10000	18000	-	-	-	-
-	tide_damage_big	0	DamageEffect	10000	26000	-	-	-	-
-	tide_damage_wide	0	DamageEffect	10000	11000	-	-	-	-
-	tide_damage_wide	1	StatusEffect	2500	-	Stun	-	-	1
-	tide_buff_def	0	BuffEffect	10000	-	-	Defense	3000	2
-	tide_heal	0	HealEffect	10000	14000	-	-	-	-
-	tide_status	0	StatusEffect	6000	-	Slow	-	-	2
-	tide_buff_atk	0	BuffEffect	10000	-	-	Attack	2500	2
-	tide_damage_2	0	DamageEffect	10000	18000	-	-	-	-
-	tide_status_wide	0	StatusEffect	4000	-	Blind	-	-	2
-	tide_status_wide	1	BuffEffect	10000	-	-	Speed	-1500	2
-	leaf_damage	0	DamageEffect	10000	18000	-	-	-	-
-	leaf_damage_big	0	DamageEffect	10000	26000	-	-	-	-
-	leaf_damage_wide	0	DamageEffect	10000	11000	-	-	-	-
-	leaf_damage_wide	1	StatusEffect	2500	-	Stun	-	-	1
-	leaf_buff_def	0	BuffEffect	10000	-	-	Defense	3000	2
-	leaf_heal	0	HealEffect	10000	14000	-	-	-	-
-	leaf_status	0	StatusEffect	6000	-	Slow	-	-	2
-	leaf_buff_atk	0	BuffEffect	10000	-	-	Attack	2500	2
-	leaf_damage_2	0	DamageEffect	10000	18000	-	-	-	-
-	leaf_status_wide	0	StatusEffect	4000	-	Blind	-	-	2
-	leaf_status_wide	1	BuffEffect	10000	-	-	Speed	-1500	2
-	leaf_buff_def_2	0	BuffEffect	10000	-	-	Defense	3000	2
-	arc_damage	0	DamageEffect	10000	18000	-	-	-	-
-	arc_damage_big	0	DamageEffect	10000	26000	-	-	-	-
-	arc_damage_wide	0	DamageEffect	10000	11000	-	-	-	-
-	arc_damage_wide	1	StatusEffect	2500	-	Stun	-	-	1
-	arc_buff_def	0	BuffEffect	10000	-	-	Defense	3000	2
-	arc_heal	0	HealEffect	10000	14000	-	-	-	-
-	arc_status	0	StatusEffect	6000	-	Slow	-	-	2
-	arc_buff_atk	0	BuffEffect	10000	-	-	Attack	2500	2
-	arc_damage_2	0	DamageEffect	10000	18000	-	-	-	-
-	arc_status_wide	0	StatusEffect	4000	-	Blind	-	-	2
-	arc_status_wide	1	BuffEffect	10000	-	-	Speed	-1500	2
-	umbra_damage	0	DamageEffect	10000	18000	-	-	-	-
-	umbra_damage_big	0	DamageEffect	10000	26000	-	-	-	-
-	umbra_damage_wide	0	DamageEffect	10000	11000	-	-	-	-
-	umbra_damage_wide	1	StatusEffect	2500	-	Stun	-	-	1
-	umbra_buff_def	0	BuffEffect	10000	-	-	Defense	3000	2
-	umbra_heal	0	HealEffect	10000	14000	-	-	-	-
-	umbra_status	0	StatusEffect	6000	-	Slow	-	-	2
-	plain_focus	0	BuffEffect	10000	-	-	Attack	2500	2
-	plain_guard	0	BuffEffect	10000	-	-	Defense	3000	2
+:desc	어느 스킬인가	적용 순서	이 행의 효과가 어떤 형태인가	발동 확률. 만분율	피해 또는 회복 배수. 만분율	부여하는 상태	변동시키는 능력치	변동률. 만분율. 음수는 하락	지속 턴
+:target	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s
+	flame_damage	0	DamageEffect	10000	18000
+	flame_damage_big	0	DamageEffect	10000	26000
+	flame_damage_wide	0	DamageEffect	10000	11000
+	flame_damage_wide	1	StatusEffect	2500		Stun			1
+	flame_buff_def	0	BuffEffect	10000			Defense	3000	2
+	flame_heal	0	HealEffect	10000	14000
+	flame_status	0	StatusEffect	6000		Slow			2
+	flame_buff_atk	0	BuffEffect	10000			Attack	2500	2
+	flame_damage_2	0	DamageEffect	10000	18000
+	flame_status_wide	0	StatusEffect	4000		Blind			2
+	flame_status_wide	1	BuffEffect	10000			Speed	-1500	2
+	flame_buff_def_2	0	BuffEffect	10000			Defense	3000	2
+	tide_damage	0	DamageEffect	10000	18000
+	tide_damage_big	0	DamageEffect	10000	26000
+	tide_damage_wide	0	DamageEffect	10000	11000
+	tide_damage_wide	1	StatusEffect	2500		Stun			1
+	tide_buff_def	0	BuffEffect	10000			Defense	3000	2
+	tide_heal	0	HealEffect	10000	14000
+	tide_status	0	StatusEffect	6000		Slow			2
+	tide_buff_atk	0	BuffEffect	10000			Attack	2500	2
+	tide_damage_2	0	DamageEffect	10000	18000
+	tide_status_wide	0	StatusEffect	4000		Blind			2
+	tide_status_wide	1	BuffEffect	10000			Speed	-1500	2
+	leaf_damage	0	DamageEffect	10000	18000
+	leaf_damage_big	0	DamageEffect	10000	26000
+	leaf_damage_wide	0	DamageEffect	10000	11000
+	leaf_damage_wide	1	StatusEffect	2500		Stun			1
+	leaf_buff_def	0	BuffEffect	10000			Defense	3000	2
+	leaf_heal	0	HealEffect	10000	14000
+	leaf_status	0	StatusEffect	6000		Slow			2
+	leaf_buff_atk	0	BuffEffect	10000			Attack	2500	2
+	leaf_damage_2	0	DamageEffect	10000	18000
+	leaf_status_wide	0	StatusEffect	4000		Blind			2
+	leaf_status_wide	1	BuffEffect	10000			Speed	-1500	2
+	leaf_buff_def_2	0	BuffEffect	10000			Defense	3000	2
+	arc_damage	0	DamageEffect	10000	18000
+	arc_damage_big	0	DamageEffect	10000	26000
+	arc_damage_wide	0	DamageEffect	10000	11000
+	arc_damage_wide	1	StatusEffect	2500		Stun			1
+	arc_buff_def	0	BuffEffect	10000			Defense	3000	2
+	arc_heal	0	HealEffect	10000	14000
+	arc_status	0	StatusEffect	6000		Slow			2
+	arc_buff_atk	0	BuffEffect	10000			Attack	2500	2
+	arc_damage_2	0	DamageEffect	10000	18000
+	arc_status_wide	0	StatusEffect	4000		Blind			2
+	arc_status_wide	1	BuffEffect	10000			Speed	-1500	2
+	umbra_damage	0	DamageEffect	10000	18000
+	umbra_damage_big	0	DamageEffect	10000	26000
+	umbra_damage_wide	0	DamageEffect	10000	11000
+	umbra_damage_wide	1	StatusEffect	2500		Stun			1
+	umbra_buff_def	0	BuffEffect	10000			Defense	3000	2
+	umbra_heal	0	HealEffect	10000	14000
+	umbra_status	0	StatusEffect	6000		Slow			2
+	plain_focus	0	BuffEffect	10000			Attack	2500	2
+	plain_guard	0	BuffEffect	10000			Defense	3000	2

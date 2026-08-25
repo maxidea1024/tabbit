@@ -25,7 +25,7 @@ namespace Wildling.Data
     public abstract partial class Effect
     {
         /// <summary>
-        /// 발동 확률. 만분율. 10000이 항상입니다.
+        /// 발동 확률. 만분율
         /// </summary>
         public int Chance;
     }
@@ -42,7 +42,7 @@ namespace Wildling.Data
     public sealed partial class DamageEffect : Effect
     {
         /// <summary>
-        /// 공격력에 적용하는 배수. 만분율.
+        /// 피해 또는 회복 배수. 만분율
         /// </summary>
         public int Power;
     }
@@ -59,7 +59,7 @@ namespace Wildling.Data
     public sealed partial class HealEffect : Effect
     {
         /// <summary>
-        /// 공격력에 적용하는 배수. 만분율.
+        /// 피해 또는 회복 배수. 만분율
         /// </summary>
         public int Power;
     }
@@ -75,9 +75,12 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class StatusEffect : Effect
     {
+        /// <summary>
+        /// 부여하는 상태
+        /// </summary>
         public global::Wildling.Data.StatusKind Status;
         /// <summary>
-        /// 지속 턴.
+        /// 지속 턴
         /// </summary>
         public int Duration;
     }
@@ -93,13 +96,16 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class BuffEffect : Effect
     {
+        /// <summary>
+        /// 변동시키는 능력치
+        /// </summary>
         public global::Wildling.Data.StatKind Stat;
         /// <summary>
-        /// 변동률. 만분율. 음수는 하락입니다.
+        /// 변동률. 만분율. 음수는 하락
         /// </summary>
         public int Ratio;
         /// <summary>
-        /// 지속 턴.
+        /// 지속 턴
         /// </summary>
         public int Duration;
     }

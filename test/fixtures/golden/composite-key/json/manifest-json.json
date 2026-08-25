@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "eaf122ee32d3364fc323a5cfad2b7514",
-  "TotalSize": 1337,
+  "MasterHash": "0e8a247e1ba74f06fdc37f14e70837fd",
+  "TotalSize": 1606,
   "Items": [
     {
       "Name": "Loadout.json",
@@ -37,6 +37,18 @@
       "Name": "BeastMove.json",
       "Size": 198,
       "Hash": "2bd30858a5a3dce80f324858f57df731",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "BeastNote.json",
+      "Size": 136,
+      "Hash": "f1e91f61f108923c0940b5a52409a98f",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "MoveNote.json",
+      "Size": 133,
+      "Hash": "b74cd7c92f83aa1789e5a93ad7a4b826",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

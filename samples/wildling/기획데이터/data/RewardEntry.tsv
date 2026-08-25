@@ -1,369 +1,374 @@
 :table RewardEntry(key="reward_group_id,order")	묶음 하나의 항목이다. 판별자가 형태를 정한다.
 :field	reward_group_id	order	reward.$type	reward.amount	reward.item_id	reward.currency_id	reward.monster_id	rate	server_weight
 :type	foreign RewardGroup	int (min=0, max=15)	Reward					int (min=1, max=10000)	int?
-:desc	어느 묶음인가	표시 순서	이 행의 보상이 어떤 형태인가					확률. 만분율	서버만 쓰는 가중치
-:target	c,s	c,s	c,s					c,s	s
-	rg_weir_forest_material	0	ItemReward	3	mat_weir_forest_resin	-	-	6000	100
-	rg_weir_forest_material	1	ItemReward	1	mat_weir_forest_core	-	-	2500	40
-	rg_weir_forest_material	2	CurrencyReward	5	-	gem	-	300	5
-	rg_weir_forest_stage_01	0	CurrencyReward	340	-	gold	-	10000	-
-	rg_weir_forest_stage_01	1	CurrencyReward	6	-	food	-	5000	-
-	rg_weir_forest_stage_01	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_02	0	CurrencyReward	380	-	gold	-	10000	-
-	rg_weir_forest_stage_02	1	CurrencyReward	6	-	food	-	5000	-
-	rg_weir_forest_stage_02	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_03	0	CurrencyReward	420	-	gold	-	10000	-
-	rg_weir_forest_stage_03	1	CurrencyReward	6	-	food	-	5000	-
-	rg_weir_forest_stage_03	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_04	0	CurrencyReward	460	-	gold	-	10000	-
-	rg_weir_forest_stage_04	1	CurrencyReward	7	-	food	-	5000	-
-	rg_weir_forest_stage_04	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_05	0	CurrencyReward	500	-	gold	-	10000	-
-	rg_weir_forest_stage_05	1	CurrencyReward	7	-	food	-	5000	-
-	rg_weir_forest_stage_05	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_06	0	CurrencyReward	540	-	gold	-	10000	-
-	rg_weir_forest_stage_06	1	CurrencyReward	7	-	food	-	5000	-
-	rg_weir_forest_stage_06	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_07	0	CurrencyReward	580	-	gold	-	10000	-
-	rg_weir_forest_stage_07	1	CurrencyReward	7	-	food	-	5000	-
-	rg_weir_forest_stage_07	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_08	0	CurrencyReward	620	-	gold	-	10000	-
-	rg_weir_forest_stage_08	1	CurrencyReward	8	-	food	-	5000	-
-	rg_weir_forest_stage_08	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_09	0	CurrencyReward	660	-	gold	-	10000	-
-	rg_weir_forest_stage_09	1	CurrencyReward	8	-	food	-	5000	-
-	rg_weir_forest_stage_09	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_10	0	CurrencyReward	700	-	gold	-	10000	-
-	rg_weir_forest_stage_10	1	CurrencyReward	8	-	food	-	5000	-
-	rg_weir_forest_stage_10	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_11	0	CurrencyReward	740	-	gold	-	10000	-
-	rg_weir_forest_stage_11	1	CurrencyReward	8	-	food	-	5000	-
-	rg_weir_forest_stage_11	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_12	0	CurrencyReward	780	-	gold	-	10000	-
-	rg_weir_forest_stage_12	1	CurrencyReward	9	-	food	-	5000	-
-	rg_weir_forest_stage_12	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_13	0	CurrencyReward	820	-	gold	-	10000	-
-	rg_weir_forest_stage_13	1	CurrencyReward	9	-	food	-	5000	-
-	rg_weir_forest_stage_13	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_14	0	CurrencyReward	860	-	gold	-	10000	-
-	rg_weir_forest_stage_14	1	CurrencyReward	9	-	food	-	5000	-
-	rg_weir_forest_stage_14	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_15	0	CurrencyReward	900	-	gold	-	10000	-
-	rg_weir_forest_stage_15	1	CurrencyReward	9	-	food	-	5000	-
-	rg_weir_forest_stage_15	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_16	0	CurrencyReward	940	-	gold	-	10000	-
-	rg_weir_forest_stage_16	1	CurrencyReward	10	-	food	-	5000	-
-	rg_weir_forest_stage_16	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_17	0	CurrencyReward	980	-	gold	-	10000	-
-	rg_weir_forest_stage_17	1	CurrencyReward	10	-	food	-	5000	-
-	rg_weir_forest_stage_17	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_stage_18	0	CurrencyReward	1020	-	gold	-	10000	-
-	rg_weir_forest_stage_18	1	CurrencyReward	10	-	food	-	5000	-
-	rg_weir_forest_stage_18	2	ItemReward	1	mat_weir_forest_dust	-	-	3000	20
-	rg_weir_forest_guardian	0	CurrencyReward	2000	-	gold	-	10000	-
-	rg_weir_forest_guardian	1	MonsterReward	1	-	-	elder_bark_1	10000	-
-	rg_weir_forest_guardian	2	CurrencyReward	80	-	gem	-	10000	-
-	rg_codex_weir_forest_30	0	CurrencyReward	900	-	gold	-	10000	-
-	rg_codex_weir_forest_60	0	CurrencyReward	1800	-	gold	-	10000	-
-	rg_codex_weir_forest_100	0	CurrencyReward	3000	-	gold	-	10000	-
-	rg_salt_coast_material	0	ItemReward	3	mat_salt_coast_resin	-	-	6000	100
-	rg_salt_coast_material	1	ItemReward	1	mat_salt_coast_core	-	-	2500	40
-	rg_salt_coast_material	2	CurrencyReward	5	-	gem	-	300	5
-	rg_salt_coast_stage_01	0	CurrencyReward	540	-	gold	-	10000	-
-	rg_salt_coast_stage_01	1	CurrencyReward	8	-	food	-	5000	-
-	rg_salt_coast_stage_01	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_02	0	CurrencyReward	580	-	gold	-	10000	-
-	rg_salt_coast_stage_02	1	CurrencyReward	8	-	food	-	5000	-
-	rg_salt_coast_stage_02	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_03	0	CurrencyReward	620	-	gold	-	10000	-
-	rg_salt_coast_stage_03	1	CurrencyReward	8	-	food	-	5000	-
-	rg_salt_coast_stage_03	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_04	0	CurrencyReward	660	-	gold	-	10000	-
-	rg_salt_coast_stage_04	1	CurrencyReward	9	-	food	-	5000	-
-	rg_salt_coast_stage_04	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_05	0	CurrencyReward	700	-	gold	-	10000	-
-	rg_salt_coast_stage_05	1	CurrencyReward	9	-	food	-	5000	-
-	rg_salt_coast_stage_05	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_06	0	CurrencyReward	740	-	gold	-	10000	-
-	rg_salt_coast_stage_06	1	CurrencyReward	9	-	food	-	5000	-
-	rg_salt_coast_stage_06	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_07	0	CurrencyReward	780	-	gold	-	10000	-
-	rg_salt_coast_stage_07	1	CurrencyReward	9	-	food	-	5000	-
-	rg_salt_coast_stage_07	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_08	0	CurrencyReward	820	-	gold	-	10000	-
-	rg_salt_coast_stage_08	1	CurrencyReward	10	-	food	-	5000	-
-	rg_salt_coast_stage_08	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_09	0	CurrencyReward	860	-	gold	-	10000	-
-	rg_salt_coast_stage_09	1	CurrencyReward	10	-	food	-	5000	-
-	rg_salt_coast_stage_09	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_10	0	CurrencyReward	900	-	gold	-	10000	-
-	rg_salt_coast_stage_10	1	CurrencyReward	10	-	food	-	5000	-
-	rg_salt_coast_stage_10	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_11	0	CurrencyReward	940	-	gold	-	10000	-
-	rg_salt_coast_stage_11	1	CurrencyReward	10	-	food	-	5000	-
-	rg_salt_coast_stage_11	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_12	0	CurrencyReward	980	-	gold	-	10000	-
-	rg_salt_coast_stage_12	1	CurrencyReward	11	-	food	-	5000	-
-	rg_salt_coast_stage_12	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_13	0	CurrencyReward	1020	-	gold	-	10000	-
-	rg_salt_coast_stage_13	1	CurrencyReward	11	-	food	-	5000	-
-	rg_salt_coast_stage_13	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_14	0	CurrencyReward	1060	-	gold	-	10000	-
-	rg_salt_coast_stage_14	1	CurrencyReward	11	-	food	-	5000	-
-	rg_salt_coast_stage_14	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_15	0	CurrencyReward	1100	-	gold	-	10000	-
-	rg_salt_coast_stage_15	1	CurrencyReward	11	-	food	-	5000	-
-	rg_salt_coast_stage_15	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_16	0	CurrencyReward	1140	-	gold	-	10000	-
-	rg_salt_coast_stage_16	1	CurrencyReward	12	-	food	-	5000	-
-	rg_salt_coast_stage_16	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_17	0	CurrencyReward	1180	-	gold	-	10000	-
-	rg_salt_coast_stage_17	1	CurrencyReward	12	-	food	-	5000	-
-	rg_salt_coast_stage_17	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_stage_18	0	CurrencyReward	1220	-	gold	-	10000	-
-	rg_salt_coast_stage_18	1	CurrencyReward	12	-	food	-	5000	-
-	rg_salt_coast_stage_18	2	ItemReward	1	mat_salt_coast_dust	-	-	3000	20
-	rg_salt_coast_guardian	0	CurrencyReward	3500	-	gold	-	10000	-
-	rg_salt_coast_guardian	1	MonsterReward	1	-	-	abyss_whale_1	10000	-
-	rg_salt_coast_guardian	2	CurrencyReward	80	-	gem	-	10000	-
-	rg_codex_salt_coast_30	0	CurrencyReward	900	-	gold	-	10000	-
-	rg_codex_salt_coast_60	0	CurrencyReward	1800	-	gold	-	10000	-
-	rg_codex_salt_coast_100	0	CurrencyReward	3000	-	gold	-	10000	-
-	rg_ashen_crater_material	0	ItemReward	3	mat_ashen_crater_resin	-	-	6000	100
-	rg_ashen_crater_material	1	ItemReward	1	mat_ashen_crater_core	-	-	2500	40
-	rg_ashen_crater_material	2	CurrencyReward	5	-	gem	-	300	5
-	rg_ashen_crater_stage_01	0	CurrencyReward	740	-	gold	-	10000	-
-	rg_ashen_crater_stage_01	1	CurrencyReward	10	-	food	-	5000	-
-	rg_ashen_crater_stage_01	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_02	0	CurrencyReward	780	-	gold	-	10000	-
-	rg_ashen_crater_stage_02	1	CurrencyReward	10	-	food	-	5000	-
-	rg_ashen_crater_stage_02	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_03	0	CurrencyReward	820	-	gold	-	10000	-
-	rg_ashen_crater_stage_03	1	CurrencyReward	10	-	food	-	5000	-
-	rg_ashen_crater_stage_03	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_04	0	CurrencyReward	860	-	gold	-	10000	-
-	rg_ashen_crater_stage_04	1	CurrencyReward	11	-	food	-	5000	-
-	rg_ashen_crater_stage_04	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_05	0	CurrencyReward	900	-	gold	-	10000	-
-	rg_ashen_crater_stage_05	1	CurrencyReward	11	-	food	-	5000	-
-	rg_ashen_crater_stage_05	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_06	0	CurrencyReward	940	-	gold	-	10000	-
-	rg_ashen_crater_stage_06	1	CurrencyReward	11	-	food	-	5000	-
-	rg_ashen_crater_stage_06	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_07	0	CurrencyReward	980	-	gold	-	10000	-
-	rg_ashen_crater_stage_07	1	CurrencyReward	11	-	food	-	5000	-
-	rg_ashen_crater_stage_07	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_08	0	CurrencyReward	1020	-	gold	-	10000	-
-	rg_ashen_crater_stage_08	1	CurrencyReward	12	-	food	-	5000	-
-	rg_ashen_crater_stage_08	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_09	0	CurrencyReward	1060	-	gold	-	10000	-
-	rg_ashen_crater_stage_09	1	CurrencyReward	12	-	food	-	5000	-
-	rg_ashen_crater_stage_09	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_10	0	CurrencyReward	1100	-	gold	-	10000	-
-	rg_ashen_crater_stage_10	1	CurrencyReward	12	-	food	-	5000	-
-	rg_ashen_crater_stage_10	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_11	0	CurrencyReward	1140	-	gold	-	10000	-
-	rg_ashen_crater_stage_11	1	CurrencyReward	12	-	food	-	5000	-
-	rg_ashen_crater_stage_11	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_12	0	CurrencyReward	1180	-	gold	-	10000	-
-	rg_ashen_crater_stage_12	1	CurrencyReward	13	-	food	-	5000	-
-	rg_ashen_crater_stage_12	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_13	0	CurrencyReward	1220	-	gold	-	10000	-
-	rg_ashen_crater_stage_13	1	CurrencyReward	13	-	food	-	5000	-
-	rg_ashen_crater_stage_13	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_14	0	CurrencyReward	1260	-	gold	-	10000	-
-	rg_ashen_crater_stage_14	1	CurrencyReward	13	-	food	-	5000	-
-	rg_ashen_crater_stage_14	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_15	0	CurrencyReward	1300	-	gold	-	10000	-
-	rg_ashen_crater_stage_15	1	CurrencyReward	13	-	food	-	5000	-
-	rg_ashen_crater_stage_15	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_16	0	CurrencyReward	1340	-	gold	-	10000	-
-	rg_ashen_crater_stage_16	1	CurrencyReward	14	-	food	-	5000	-
-	rg_ashen_crater_stage_16	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_17	0	CurrencyReward	1380	-	gold	-	10000	-
-	rg_ashen_crater_stage_17	1	CurrencyReward	14	-	food	-	5000	-
-	rg_ashen_crater_stage_17	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_stage_18	0	CurrencyReward	1420	-	gold	-	10000	-
-	rg_ashen_crater_stage_18	1	CurrencyReward	14	-	food	-	5000	-
-	rg_ashen_crater_stage_18	2	ItemReward	1	mat_ashen_crater_dust	-	-	3000	20
-	rg_ashen_crater_guardian	0	CurrencyReward	5000	-	gold	-	10000	-
-	rg_ashen_crater_guardian	1	MonsterReward	1	-	-	pyre_lion_1	10000	-
-	rg_ashen_crater_guardian	2	CurrencyReward	80	-	gem	-	10000	-
-	rg_codex_ashen_crater_30	0	CurrencyReward	900	-	gold	-	10000	-
-	rg_codex_ashen_crater_60	0	CurrencyReward	1800	-	gold	-	10000	-
-	rg_codex_ashen_crater_100	0	CurrencyReward	3000	-	gold	-	10000	-
-	rg_frost_ridge_material	0	ItemReward	3	mat_frost_ridge_resin	-	-	6000	100
-	rg_frost_ridge_material	1	ItemReward	1	mat_frost_ridge_core	-	-	2500	40
-	rg_frost_ridge_material	2	CurrencyReward	5	-	gem	-	300	5
-	rg_frost_ridge_stage_01	0	CurrencyReward	940	-	gold	-	10000	-
-	rg_frost_ridge_stage_01	1	CurrencyReward	12	-	food	-	5000	-
-	rg_frost_ridge_stage_01	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_02	0	CurrencyReward	980	-	gold	-	10000	-
-	rg_frost_ridge_stage_02	1	CurrencyReward	12	-	food	-	5000	-
-	rg_frost_ridge_stage_02	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_03	0	CurrencyReward	1020	-	gold	-	10000	-
-	rg_frost_ridge_stage_03	1	CurrencyReward	12	-	food	-	5000	-
-	rg_frost_ridge_stage_03	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_04	0	CurrencyReward	1060	-	gold	-	10000	-
-	rg_frost_ridge_stage_04	1	CurrencyReward	13	-	food	-	5000	-
-	rg_frost_ridge_stage_04	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_05	0	CurrencyReward	1100	-	gold	-	10000	-
-	rg_frost_ridge_stage_05	1	CurrencyReward	13	-	food	-	5000	-
-	rg_frost_ridge_stage_05	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_06	0	CurrencyReward	1140	-	gold	-	10000	-
-	rg_frost_ridge_stage_06	1	CurrencyReward	13	-	food	-	5000	-
-	rg_frost_ridge_stage_06	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_07	0	CurrencyReward	1180	-	gold	-	10000	-
-	rg_frost_ridge_stage_07	1	CurrencyReward	13	-	food	-	5000	-
-	rg_frost_ridge_stage_07	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_08	0	CurrencyReward	1220	-	gold	-	10000	-
-	rg_frost_ridge_stage_08	1	CurrencyReward	14	-	food	-	5000	-
-	rg_frost_ridge_stage_08	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_09	0	CurrencyReward	1260	-	gold	-	10000	-
-	rg_frost_ridge_stage_09	1	CurrencyReward	14	-	food	-	5000	-
-	rg_frost_ridge_stage_09	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_10	0	CurrencyReward	1300	-	gold	-	10000	-
-	rg_frost_ridge_stage_10	1	CurrencyReward	14	-	food	-	5000	-
-	rg_frost_ridge_stage_10	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_11	0	CurrencyReward	1340	-	gold	-	10000	-
-	rg_frost_ridge_stage_11	1	CurrencyReward	14	-	food	-	5000	-
-	rg_frost_ridge_stage_11	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_12	0	CurrencyReward	1380	-	gold	-	10000	-
-	rg_frost_ridge_stage_12	1	CurrencyReward	15	-	food	-	5000	-
-	rg_frost_ridge_stage_12	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_13	0	CurrencyReward	1420	-	gold	-	10000	-
-	rg_frost_ridge_stage_13	1	CurrencyReward	15	-	food	-	5000	-
-	rg_frost_ridge_stage_13	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_14	0	CurrencyReward	1460	-	gold	-	10000	-
-	rg_frost_ridge_stage_14	1	CurrencyReward	15	-	food	-	5000	-
-	rg_frost_ridge_stage_14	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_15	0	CurrencyReward	1500	-	gold	-	10000	-
-	rg_frost_ridge_stage_15	1	CurrencyReward	15	-	food	-	5000	-
-	rg_frost_ridge_stage_15	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_16	0	CurrencyReward	1540	-	gold	-	10000	-
-	rg_frost_ridge_stage_16	1	CurrencyReward	16	-	food	-	5000	-
-	rg_frost_ridge_stage_16	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_17	0	CurrencyReward	1580	-	gold	-	10000	-
-	rg_frost_ridge_stage_17	1	CurrencyReward	16	-	food	-	5000	-
-	rg_frost_ridge_stage_17	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_stage_18	0	CurrencyReward	1620	-	gold	-	10000	-
-	rg_frost_ridge_stage_18	1	CurrencyReward	16	-	food	-	5000	-
-	rg_frost_ridge_stage_18	2	ItemReward	1	mat_frost_ridge_dust	-	-	3000	20
-	rg_frost_ridge_guardian	0	CurrencyReward	6500	-	gold	-	10000	-
-	rg_frost_ridge_guardian	1	MonsterReward	1	-	-	thunder_stag_1	10000	-
-	rg_frost_ridge_guardian	2	CurrencyReward	80	-	gem	-	10000	-
-	rg_codex_frost_ridge_30	0	CurrencyReward	900	-	gold	-	10000	-
-	rg_codex_frost_ridge_60	0	CurrencyReward	1800	-	gold	-	10000	-
-	rg_codex_frost_ridge_100	0	CurrencyReward	3000	-	gold	-	10000	-
-	rg_sunken_temple_material	0	ItemReward	3	mat_sunken_temple_resin	-	-	6000	100
-	rg_sunken_temple_material	1	ItemReward	1	mat_sunken_temple_core	-	-	2500	40
-	rg_sunken_temple_material	2	CurrencyReward	5	-	gem	-	300	5
-	rg_sunken_temple_stage_01	0	CurrencyReward	1140	-	gold	-	10000	-
-	rg_sunken_temple_stage_01	1	CurrencyReward	14	-	food	-	5000	-
-	rg_sunken_temple_stage_01	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_02	0	CurrencyReward	1180	-	gold	-	10000	-
-	rg_sunken_temple_stage_02	1	CurrencyReward	14	-	food	-	5000	-
-	rg_sunken_temple_stage_02	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_03	0	CurrencyReward	1220	-	gold	-	10000	-
-	rg_sunken_temple_stage_03	1	CurrencyReward	14	-	food	-	5000	-
-	rg_sunken_temple_stage_03	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_04	0	CurrencyReward	1260	-	gold	-	10000	-
-	rg_sunken_temple_stage_04	1	CurrencyReward	15	-	food	-	5000	-
-	rg_sunken_temple_stage_04	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_05	0	CurrencyReward	1300	-	gold	-	10000	-
-	rg_sunken_temple_stage_05	1	CurrencyReward	15	-	food	-	5000	-
-	rg_sunken_temple_stage_05	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_06	0	CurrencyReward	1340	-	gold	-	10000	-
-	rg_sunken_temple_stage_06	1	CurrencyReward	15	-	food	-	5000	-
-	rg_sunken_temple_stage_06	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_07	0	CurrencyReward	1380	-	gold	-	10000	-
-	rg_sunken_temple_stage_07	1	CurrencyReward	15	-	food	-	5000	-
-	rg_sunken_temple_stage_07	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_08	0	CurrencyReward	1420	-	gold	-	10000	-
-	rg_sunken_temple_stage_08	1	CurrencyReward	16	-	food	-	5000	-
-	rg_sunken_temple_stage_08	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_09	0	CurrencyReward	1460	-	gold	-	10000	-
-	rg_sunken_temple_stage_09	1	CurrencyReward	16	-	food	-	5000	-
-	rg_sunken_temple_stage_09	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_10	0	CurrencyReward	1500	-	gold	-	10000	-
-	rg_sunken_temple_stage_10	1	CurrencyReward	16	-	food	-	5000	-
-	rg_sunken_temple_stage_10	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_11	0	CurrencyReward	1540	-	gold	-	10000	-
-	rg_sunken_temple_stage_11	1	CurrencyReward	16	-	food	-	5000	-
-	rg_sunken_temple_stage_11	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_12	0	CurrencyReward	1580	-	gold	-	10000	-
-	rg_sunken_temple_stage_12	1	CurrencyReward	17	-	food	-	5000	-
-	rg_sunken_temple_stage_12	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_13	0	CurrencyReward	1620	-	gold	-	10000	-
-	rg_sunken_temple_stage_13	1	CurrencyReward	17	-	food	-	5000	-
-	rg_sunken_temple_stage_13	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_14	0	CurrencyReward	1660	-	gold	-	10000	-
-	rg_sunken_temple_stage_14	1	CurrencyReward	17	-	food	-	5000	-
-	rg_sunken_temple_stage_14	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_15	0	CurrencyReward	1700	-	gold	-	10000	-
-	rg_sunken_temple_stage_15	1	CurrencyReward	17	-	food	-	5000	-
-	rg_sunken_temple_stage_15	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_16	0	CurrencyReward	1740	-	gold	-	10000	-
-	rg_sunken_temple_stage_16	1	CurrencyReward	18	-	food	-	5000	-
-	rg_sunken_temple_stage_16	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_17	0	CurrencyReward	1780	-	gold	-	10000	-
-	rg_sunken_temple_stage_17	1	CurrencyReward	18	-	food	-	5000	-
-	rg_sunken_temple_stage_17	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_stage_18	0	CurrencyReward	1820	-	gold	-	10000	-
-	rg_sunken_temple_stage_18	1	CurrencyReward	18	-	food	-	5000	-
-	rg_sunken_temple_stage_18	2	ItemReward	1	mat_sunken_temple_dust	-	-	3000	20
-	rg_sunken_temple_guardian	0	CurrencyReward	8000	-	gold	-	10000	-
-	rg_sunken_temple_guardian	1	MonsterReward	1	-	-	void_seraph_1	10000	-
-	rg_sunken_temple_guardian	2	CurrencyReward	80	-	gem	-	10000	-
-	rg_codex_sunken_temple_30	0	CurrencyReward	900	-	gold	-	10000	-
-	rg_codex_sunken_temple_60	0	CurrencyReward	1800	-	gold	-	10000	-
-	rg_codex_sunken_temple_100	0	CurrencyReward	3000	-	gold	-	10000	-
-	rg_codex_global_25	0	CurrencyReward	100	-	gem	-	10000	-
-	rg_codex_global_50	0	CurrencyReward	200	-	gem	-	10000	-
-	rg_codex_global_75	0	CurrencyReward	300	-	gem	-	10000	-
-	rg_codex_global_100	0	CurrencyReward	400	-	gem	-	10000	-
-	rg_mission_daily_0	0	CurrencyReward	800	-	gold	-	10000	-
-	rg_mission_daily_0	1	CurrencyReward	10	-	gem	-	10000	-
-	rg_mission_daily_1	0	CurrencyReward	800	-	gold	-	10000	-
-	rg_mission_daily_1	1	CurrencyReward	10	-	gem	-	10000	-
-	rg_mission_daily_2	0	CurrencyReward	800	-	gold	-	10000	-
-	rg_mission_daily_2	1	CurrencyReward	10	-	gem	-	10000	-
-	rg_mission_weekly_0	0	CurrencyReward	4000	-	gold	-	10000	-
-	rg_mission_weekly_0	1	CurrencyReward	60	-	gem	-	10000	-
-	rg_ad_idle	0	CurrencyReward	1	-	gold	-	10000	-
-	rg_ad_explore	0	CurrencyReward	1200	-	gold	-	10000	-
-	rg_ad_free	0	CurrencyReward	400	-	gold	-	10000	-
-	rg_ad_free	1	CurrencyReward	5	-	gem	-	10000	-
-	rg_ad_retry	0	CurrencyReward	1	-	gold	-	10000	-
-	rg_package_0	0	CurrencyReward	60	-	gem	-	10000	-
-	rg_package_1	0	CurrencyReward	330	-	gem	-	10000	-
-	rg_package_2	0	CurrencyReward	1100	-	gem	-	10000	-
-	rg_package_3	0	CurrencyReward	2400	-	gem	-	10000	-
-	rg_pass_daily	0	CurrencyReward	50	-	gem	-	10000	-
-	rg_pass_daily	1	CurrencyReward	20	-	food	-	10000	-
-	rg_shop_00	0	ItemReward	1	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_01	0	ItemReward	2	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_02	0	ItemReward	3	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_03	0	ItemReward	1	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_04	0	ItemReward	2	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_05	0	ItemReward	3	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_06	0	ItemReward	1	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_07	0	ItemReward	2	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_08	0	ItemReward	3	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_09	0	ItemReward	1	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_10	0	ItemReward	2	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_11	0	ItemReward	3	mat_weir_forest_resin	-	-	10000	-
-	rg_shop_season_00	0	ItemReward	2	mat_salt_coast_core	-	-	10000	-
-	rg_shop_season_01	0	ItemReward	2	mat_salt_coast_core	-	-	10000	-
-	rg_shop_season_02	0	ItemReward	2	mat_salt_coast_core	-	-	10000	-
-	rg_shop_season_03	0	ItemReward	2	mat_salt_coast_core	-	-	10000	-
-	rg_shop_season_04	0	ItemReward	2	mat_salt_coast_core	-	-	10000	-
-	rg_shop_season_05	0	ItemReward	2	mat_salt_coast_core	-	-	10000	-
-	rg_shop_season_06	0	ItemReward	2	mat_salt_coast_core	-	-	10000	-
-	rg_shop_season_07	0	ItemReward	2	mat_salt_coast_core	-	-	10000	-
-	rg_shop_package_00	0	CurrencyReward	300	-	gold	-	10000	-
-	rg_shop_package_01	0	CurrencyReward	300	-	gold	-	10000	-
-	rg_shop_package_02	0	CurrencyReward	300	-	gold	-	10000	-
-	rg_shop_package_03	0	CurrencyReward	300	-	gold	-	10000	-
-	rg_shop_package_04	0	CurrencyReward	300	-	gold	-	10000	-
-	rg_shop_package_05	0	CurrencyReward	300	-	gold	-	10000	-
+:desc	어느 묶음인가	표시 순서	이 행의 보상이 어떤 형태인가	수량	아이템 보상의 대상	재화 보상의 대상	와일드링 또는 조각 보상의 대상	확률. 만분율	서버만 쓰는 가중치
+:target	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	s
+	rg_weir_forest_material	0	ItemReward	3	mat_weir_forest_resin			10000	100
+	rg_weir_forest_material	1	ItemReward	1	mat_weir_forest_core			2500	40
+	rg_weir_forest_material	2	ItemReward	1	mat_salt_coast_core			800	12
+	rg_weir_forest_material	3	CurrencyReward	5		gem		300	5
+	rg_weir_forest_stage_01	0	CurrencyReward	340		gold		10000	-
+	rg_weir_forest_stage_01	1	CurrencyReward	6		food		5000	-
+	rg_weir_forest_stage_01	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_02	0	CurrencyReward	380		gold		10000	-
+	rg_weir_forest_stage_02	1	CurrencyReward	6		food		5000	-
+	rg_weir_forest_stage_02	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_03	0	CurrencyReward	420		gold		10000	-
+	rg_weir_forest_stage_03	1	CurrencyReward	6		food		5000	-
+	rg_weir_forest_stage_03	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_04	0	CurrencyReward	460		gold		10000	-
+	rg_weir_forest_stage_04	1	CurrencyReward	7		food		5000	-
+	rg_weir_forest_stage_04	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_05	0	CurrencyReward	500		gold		10000	-
+	rg_weir_forest_stage_05	1	CurrencyReward	7		food		5000	-
+	rg_weir_forest_stage_05	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_06	0	CurrencyReward	540		gold		10000	-
+	rg_weir_forest_stage_06	1	CurrencyReward	7		food		5000	-
+	rg_weir_forest_stage_06	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_07	0	CurrencyReward	580		gold		10000	-
+	rg_weir_forest_stage_07	1	CurrencyReward	7		food		5000	-
+	rg_weir_forest_stage_07	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_08	0	CurrencyReward	620		gold		10000	-
+	rg_weir_forest_stage_08	1	CurrencyReward	8		food		5000	-
+	rg_weir_forest_stage_08	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_09	0	CurrencyReward	660		gold		10000	-
+	rg_weir_forest_stage_09	1	CurrencyReward	8		food		5000	-
+	rg_weir_forest_stage_09	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_10	0	CurrencyReward	700		gold		10000	-
+	rg_weir_forest_stage_10	1	CurrencyReward	8		food		5000	-
+	rg_weir_forest_stage_10	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_11	0	CurrencyReward	740		gold		10000	-
+	rg_weir_forest_stage_11	1	CurrencyReward	8		food		5000	-
+	rg_weir_forest_stage_11	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_12	0	CurrencyReward	780		gold		10000	-
+	rg_weir_forest_stage_12	1	CurrencyReward	9		food		5000	-
+	rg_weir_forest_stage_12	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_13	0	CurrencyReward	820		gold		10000	-
+	rg_weir_forest_stage_13	1	CurrencyReward	9		food		5000	-
+	rg_weir_forest_stage_13	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_14	0	CurrencyReward	860		gold		10000	-
+	rg_weir_forest_stage_14	1	CurrencyReward	9		food		5000	-
+	rg_weir_forest_stage_14	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_15	0	CurrencyReward	900		gold		10000	-
+	rg_weir_forest_stage_15	1	CurrencyReward	9		food		5000	-
+	rg_weir_forest_stage_15	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_16	0	CurrencyReward	940		gold		10000	-
+	rg_weir_forest_stage_16	1	CurrencyReward	10		food		5000	-
+	rg_weir_forest_stage_16	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_17	0	CurrencyReward	980		gold		10000	-
+	rg_weir_forest_stage_17	1	CurrencyReward	10		food		5000	-
+	rg_weir_forest_stage_17	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_stage_18	0	CurrencyReward	1020		gold		10000	-
+	rg_weir_forest_stage_18	1	CurrencyReward	10		food		5000	-
+	rg_weir_forest_stage_18	2	ItemReward	1	mat_weir_forest_dust			3000	20
+	rg_weir_forest_guardian	0	CurrencyReward	2000		gold		10000	-
+	rg_weir_forest_guardian	1	MonsterReward	1			elder_bark_1	10000	-
+	rg_weir_forest_guardian	2	CurrencyReward	80		gem		10000	-
+	rg_codex_weir_forest_30	0	CurrencyReward	900		gold		10000	-
+	rg_codex_weir_forest_60	0	CurrencyReward	1800		gold		10000	-
+	rg_codex_weir_forest_100	0	CurrencyReward	3000		gold		10000	-
+	rg_salt_coast_material	0	ItemReward	3	mat_salt_coast_resin			10000	100
+	rg_salt_coast_material	1	ItemReward	1	mat_salt_coast_core			2500	40
+	rg_salt_coast_material	2	ItemReward	1	mat_ashen_crater_core			800	12
+	rg_salt_coast_material	3	CurrencyReward	5		gem		300	5
+	rg_salt_coast_stage_01	0	CurrencyReward	540		gold		10000	-
+	rg_salt_coast_stage_01	1	CurrencyReward	8		food		5000	-
+	rg_salt_coast_stage_01	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_02	0	CurrencyReward	580		gold		10000	-
+	rg_salt_coast_stage_02	1	CurrencyReward	8		food		5000	-
+	rg_salt_coast_stage_02	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_03	0	CurrencyReward	620		gold		10000	-
+	rg_salt_coast_stage_03	1	CurrencyReward	8		food		5000	-
+	rg_salt_coast_stage_03	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_04	0	CurrencyReward	660		gold		10000	-
+	rg_salt_coast_stage_04	1	CurrencyReward	9		food		5000	-
+	rg_salt_coast_stage_04	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_05	0	CurrencyReward	700		gold		10000	-
+	rg_salt_coast_stage_05	1	CurrencyReward	9		food		5000	-
+	rg_salt_coast_stage_05	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_06	0	CurrencyReward	740		gold		10000	-
+	rg_salt_coast_stage_06	1	CurrencyReward	9		food		5000	-
+	rg_salt_coast_stage_06	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_07	0	CurrencyReward	780		gold		10000	-
+	rg_salt_coast_stage_07	1	CurrencyReward	9		food		5000	-
+	rg_salt_coast_stage_07	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_08	0	CurrencyReward	820		gold		10000	-
+	rg_salt_coast_stage_08	1	CurrencyReward	10		food		5000	-
+	rg_salt_coast_stage_08	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_09	0	CurrencyReward	860		gold		10000	-
+	rg_salt_coast_stage_09	1	CurrencyReward	10		food		5000	-
+	rg_salt_coast_stage_09	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_10	0	CurrencyReward	900		gold		10000	-
+	rg_salt_coast_stage_10	1	CurrencyReward	10		food		5000	-
+	rg_salt_coast_stage_10	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_11	0	CurrencyReward	940		gold		10000	-
+	rg_salt_coast_stage_11	1	CurrencyReward	10		food		5000	-
+	rg_salt_coast_stage_11	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_12	0	CurrencyReward	980		gold		10000	-
+	rg_salt_coast_stage_12	1	CurrencyReward	11		food		5000	-
+	rg_salt_coast_stage_12	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_13	0	CurrencyReward	1020		gold		10000	-
+	rg_salt_coast_stage_13	1	CurrencyReward	11		food		5000	-
+	rg_salt_coast_stage_13	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_14	0	CurrencyReward	1060		gold		10000	-
+	rg_salt_coast_stage_14	1	CurrencyReward	11		food		5000	-
+	rg_salt_coast_stage_14	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_15	0	CurrencyReward	1100		gold		10000	-
+	rg_salt_coast_stage_15	1	CurrencyReward	11		food		5000	-
+	rg_salt_coast_stage_15	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_16	0	CurrencyReward	1140		gold		10000	-
+	rg_salt_coast_stage_16	1	CurrencyReward	12		food		5000	-
+	rg_salt_coast_stage_16	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_17	0	CurrencyReward	1180		gold		10000	-
+	rg_salt_coast_stage_17	1	CurrencyReward	12		food		5000	-
+	rg_salt_coast_stage_17	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_stage_18	0	CurrencyReward	1220		gold		10000	-
+	rg_salt_coast_stage_18	1	CurrencyReward	12		food		5000	-
+	rg_salt_coast_stage_18	2	ItemReward	1	mat_salt_coast_dust			3000	20
+	rg_salt_coast_guardian	0	CurrencyReward	3500		gold		10000	-
+	rg_salt_coast_guardian	1	MonsterReward	1			abyss_whale_1	10000	-
+	rg_salt_coast_guardian	2	CurrencyReward	80		gem		10000	-
+	rg_codex_salt_coast_30	0	CurrencyReward	900		gold		10000	-
+	rg_codex_salt_coast_60	0	CurrencyReward	1800		gold		10000	-
+	rg_codex_salt_coast_100	0	CurrencyReward	3000		gold		10000	-
+	rg_ashen_crater_material	0	ItemReward	3	mat_ashen_crater_resin			10000	100
+	rg_ashen_crater_material	1	ItemReward	1	mat_ashen_crater_core			2500	40
+	rg_ashen_crater_material	2	ItemReward	1	mat_frost_ridge_core			800	12
+	rg_ashen_crater_material	3	CurrencyReward	5		gem		300	5
+	rg_ashen_crater_stage_01	0	CurrencyReward	740		gold		10000	-
+	rg_ashen_crater_stage_01	1	CurrencyReward	10		food		5000	-
+	rg_ashen_crater_stage_01	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_02	0	CurrencyReward	780		gold		10000	-
+	rg_ashen_crater_stage_02	1	CurrencyReward	10		food		5000	-
+	rg_ashen_crater_stage_02	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_03	0	CurrencyReward	820		gold		10000	-
+	rg_ashen_crater_stage_03	1	CurrencyReward	10		food		5000	-
+	rg_ashen_crater_stage_03	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_04	0	CurrencyReward	860		gold		10000	-
+	rg_ashen_crater_stage_04	1	CurrencyReward	11		food		5000	-
+	rg_ashen_crater_stage_04	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_05	0	CurrencyReward	900		gold		10000	-
+	rg_ashen_crater_stage_05	1	CurrencyReward	11		food		5000	-
+	rg_ashen_crater_stage_05	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_06	0	CurrencyReward	940		gold		10000	-
+	rg_ashen_crater_stage_06	1	CurrencyReward	11		food		5000	-
+	rg_ashen_crater_stage_06	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_07	0	CurrencyReward	980		gold		10000	-
+	rg_ashen_crater_stage_07	1	CurrencyReward	11		food		5000	-
+	rg_ashen_crater_stage_07	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_08	0	CurrencyReward	1020		gold		10000	-
+	rg_ashen_crater_stage_08	1	CurrencyReward	12		food		5000	-
+	rg_ashen_crater_stage_08	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_09	0	CurrencyReward	1060		gold		10000	-
+	rg_ashen_crater_stage_09	1	CurrencyReward	12		food		5000	-
+	rg_ashen_crater_stage_09	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_10	0	CurrencyReward	1100		gold		10000	-
+	rg_ashen_crater_stage_10	1	CurrencyReward	12		food		5000	-
+	rg_ashen_crater_stage_10	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_11	0	CurrencyReward	1140		gold		10000	-
+	rg_ashen_crater_stage_11	1	CurrencyReward	12		food		5000	-
+	rg_ashen_crater_stage_11	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_12	0	CurrencyReward	1180		gold		10000	-
+	rg_ashen_crater_stage_12	1	CurrencyReward	13		food		5000	-
+	rg_ashen_crater_stage_12	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_13	0	CurrencyReward	1220		gold		10000	-
+	rg_ashen_crater_stage_13	1	CurrencyReward	13		food		5000	-
+	rg_ashen_crater_stage_13	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_14	0	CurrencyReward	1260		gold		10000	-
+	rg_ashen_crater_stage_14	1	CurrencyReward	13		food		5000	-
+	rg_ashen_crater_stage_14	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_15	0	CurrencyReward	1300		gold		10000	-
+	rg_ashen_crater_stage_15	1	CurrencyReward	13		food		5000	-
+	rg_ashen_crater_stage_15	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_16	0	CurrencyReward	1340		gold		10000	-
+	rg_ashen_crater_stage_16	1	CurrencyReward	14		food		5000	-
+	rg_ashen_crater_stage_16	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_17	0	CurrencyReward	1380		gold		10000	-
+	rg_ashen_crater_stage_17	1	CurrencyReward	14		food		5000	-
+	rg_ashen_crater_stage_17	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_stage_18	0	CurrencyReward	1420		gold		10000	-
+	rg_ashen_crater_stage_18	1	CurrencyReward	14		food		5000	-
+	rg_ashen_crater_stage_18	2	ItemReward	1	mat_ashen_crater_dust			3000	20
+	rg_ashen_crater_guardian	0	CurrencyReward	5000		gold		10000	-
+	rg_ashen_crater_guardian	1	MonsterReward	1			pyre_lion_1	10000	-
+	rg_ashen_crater_guardian	2	CurrencyReward	80		gem		10000	-
+	rg_codex_ashen_crater_30	0	CurrencyReward	900		gold		10000	-
+	rg_codex_ashen_crater_60	0	CurrencyReward	1800		gold		10000	-
+	rg_codex_ashen_crater_100	0	CurrencyReward	3000		gold		10000	-
+	rg_frost_ridge_material	0	ItemReward	3	mat_frost_ridge_resin			10000	100
+	rg_frost_ridge_material	1	ItemReward	1	mat_frost_ridge_core			2500	40
+	rg_frost_ridge_material	2	ItemReward	1	mat_sunken_temple_core			800	12
+	rg_frost_ridge_material	3	CurrencyReward	5		gem		300	5
+	rg_frost_ridge_stage_01	0	CurrencyReward	940		gold		10000	-
+	rg_frost_ridge_stage_01	1	CurrencyReward	12		food		5000	-
+	rg_frost_ridge_stage_01	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_02	0	CurrencyReward	980		gold		10000	-
+	rg_frost_ridge_stage_02	1	CurrencyReward	12		food		5000	-
+	rg_frost_ridge_stage_02	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_03	0	CurrencyReward	1020		gold		10000	-
+	rg_frost_ridge_stage_03	1	CurrencyReward	12		food		5000	-
+	rg_frost_ridge_stage_03	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_04	0	CurrencyReward	1060		gold		10000	-
+	rg_frost_ridge_stage_04	1	CurrencyReward	13		food		5000	-
+	rg_frost_ridge_stage_04	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_05	0	CurrencyReward	1100		gold		10000	-
+	rg_frost_ridge_stage_05	1	CurrencyReward	13		food		5000	-
+	rg_frost_ridge_stage_05	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_06	0	CurrencyReward	1140		gold		10000	-
+	rg_frost_ridge_stage_06	1	CurrencyReward	13		food		5000	-
+	rg_frost_ridge_stage_06	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_07	0	CurrencyReward	1180		gold		10000	-
+	rg_frost_ridge_stage_07	1	CurrencyReward	13		food		5000	-
+	rg_frost_ridge_stage_07	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_08	0	CurrencyReward	1220		gold		10000	-
+	rg_frost_ridge_stage_08	1	CurrencyReward	14		food		5000	-
+	rg_frost_ridge_stage_08	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_09	0	CurrencyReward	1260		gold		10000	-
+	rg_frost_ridge_stage_09	1	CurrencyReward	14		food		5000	-
+	rg_frost_ridge_stage_09	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_10	0	CurrencyReward	1300		gold		10000	-
+	rg_frost_ridge_stage_10	1	CurrencyReward	14		food		5000	-
+	rg_frost_ridge_stage_10	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_11	0	CurrencyReward	1340		gold		10000	-
+	rg_frost_ridge_stage_11	1	CurrencyReward	14		food		5000	-
+	rg_frost_ridge_stage_11	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_12	0	CurrencyReward	1380		gold		10000	-
+	rg_frost_ridge_stage_12	1	CurrencyReward	15		food		5000	-
+	rg_frost_ridge_stage_12	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_13	0	CurrencyReward	1420		gold		10000	-
+	rg_frost_ridge_stage_13	1	CurrencyReward	15		food		5000	-
+	rg_frost_ridge_stage_13	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_14	0	CurrencyReward	1460		gold		10000	-
+	rg_frost_ridge_stage_14	1	CurrencyReward	15		food		5000	-
+	rg_frost_ridge_stage_14	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_15	0	CurrencyReward	1500		gold		10000	-
+	rg_frost_ridge_stage_15	1	CurrencyReward	15		food		5000	-
+	rg_frost_ridge_stage_15	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_16	0	CurrencyReward	1540		gold		10000	-
+	rg_frost_ridge_stage_16	1	CurrencyReward	16		food		5000	-
+	rg_frost_ridge_stage_16	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_17	0	CurrencyReward	1580		gold		10000	-
+	rg_frost_ridge_stage_17	1	CurrencyReward	16		food		5000	-
+	rg_frost_ridge_stage_17	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_stage_18	0	CurrencyReward	1620		gold		10000	-
+	rg_frost_ridge_stage_18	1	CurrencyReward	16		food		5000	-
+	rg_frost_ridge_stage_18	2	ItemReward	1	mat_frost_ridge_dust			3000	20
+	rg_frost_ridge_guardian	0	CurrencyReward	6500		gold		10000	-
+	rg_frost_ridge_guardian	1	MonsterReward	1			thunder_stag_1	10000	-
+	rg_frost_ridge_guardian	2	CurrencyReward	80		gem		10000	-
+	rg_codex_frost_ridge_30	0	CurrencyReward	900		gold		10000	-
+	rg_codex_frost_ridge_60	0	CurrencyReward	1800		gold		10000	-
+	rg_codex_frost_ridge_100	0	CurrencyReward	3000		gold		10000	-
+	rg_sunken_temple_material	0	ItemReward	3	mat_sunken_temple_resin			10000	100
+	rg_sunken_temple_material	1	ItemReward	1	mat_sunken_temple_core			2500	40
+	rg_sunken_temple_material	2	ItemReward	1	mat_weir_forest_core			800	12
+	rg_sunken_temple_material	3	CurrencyReward	5		gem		300	5
+	rg_sunken_temple_stage_01	0	CurrencyReward	1140		gold		10000	-
+	rg_sunken_temple_stage_01	1	CurrencyReward	14		food		5000	-
+	rg_sunken_temple_stage_01	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_02	0	CurrencyReward	1180		gold		10000	-
+	rg_sunken_temple_stage_02	1	CurrencyReward	14		food		5000	-
+	rg_sunken_temple_stage_02	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_03	0	CurrencyReward	1220		gold		10000	-
+	rg_sunken_temple_stage_03	1	CurrencyReward	14		food		5000	-
+	rg_sunken_temple_stage_03	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_04	0	CurrencyReward	1260		gold		10000	-
+	rg_sunken_temple_stage_04	1	CurrencyReward	15		food		5000	-
+	rg_sunken_temple_stage_04	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_05	0	CurrencyReward	1300		gold		10000	-
+	rg_sunken_temple_stage_05	1	CurrencyReward	15		food		5000	-
+	rg_sunken_temple_stage_05	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_06	0	CurrencyReward	1340		gold		10000	-
+	rg_sunken_temple_stage_06	1	CurrencyReward	15		food		5000	-
+	rg_sunken_temple_stage_06	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_07	0	CurrencyReward	1380		gold		10000	-
+	rg_sunken_temple_stage_07	1	CurrencyReward	15		food		5000	-
+	rg_sunken_temple_stage_07	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_08	0	CurrencyReward	1420		gold		10000	-
+	rg_sunken_temple_stage_08	1	CurrencyReward	16		food		5000	-
+	rg_sunken_temple_stage_08	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_09	0	CurrencyReward	1460		gold		10000	-
+	rg_sunken_temple_stage_09	1	CurrencyReward	16		food		5000	-
+	rg_sunken_temple_stage_09	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_10	0	CurrencyReward	1500		gold		10000	-
+	rg_sunken_temple_stage_10	1	CurrencyReward	16		food		5000	-
+	rg_sunken_temple_stage_10	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_11	0	CurrencyReward	1540		gold		10000	-
+	rg_sunken_temple_stage_11	1	CurrencyReward	16		food		5000	-
+	rg_sunken_temple_stage_11	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_12	0	CurrencyReward	1580		gold		10000	-
+	rg_sunken_temple_stage_12	1	CurrencyReward	17		food		5000	-
+	rg_sunken_temple_stage_12	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_13	0	CurrencyReward	1620		gold		10000	-
+	rg_sunken_temple_stage_13	1	CurrencyReward	17		food		5000	-
+	rg_sunken_temple_stage_13	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_14	0	CurrencyReward	1660		gold		10000	-
+	rg_sunken_temple_stage_14	1	CurrencyReward	17		food		5000	-
+	rg_sunken_temple_stage_14	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_15	0	CurrencyReward	1700		gold		10000	-
+	rg_sunken_temple_stage_15	1	CurrencyReward	17		food		5000	-
+	rg_sunken_temple_stage_15	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_16	0	CurrencyReward	1740		gold		10000	-
+	rg_sunken_temple_stage_16	1	CurrencyReward	18		food		5000	-
+	rg_sunken_temple_stage_16	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_17	0	CurrencyReward	1780		gold		10000	-
+	rg_sunken_temple_stage_17	1	CurrencyReward	18		food		5000	-
+	rg_sunken_temple_stage_17	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_stage_18	0	CurrencyReward	1820		gold		10000	-
+	rg_sunken_temple_stage_18	1	CurrencyReward	18		food		5000	-
+	rg_sunken_temple_stage_18	2	ItemReward	1	mat_sunken_temple_dust			3000	20
+	rg_sunken_temple_guardian	0	CurrencyReward	8000		gold		10000	-
+	rg_sunken_temple_guardian	1	MonsterReward	1			void_seraph_1	10000	-
+	rg_sunken_temple_guardian	2	CurrencyReward	80		gem		10000	-
+	rg_codex_sunken_temple_30	0	CurrencyReward	900		gold		10000	-
+	rg_codex_sunken_temple_60	0	CurrencyReward	1800		gold		10000	-
+	rg_codex_sunken_temple_100	0	CurrencyReward	3000		gold		10000	-
+	rg_codex_global_25	0	CurrencyReward	100		gem		10000	-
+	rg_codex_global_50	0	CurrencyReward	200		gem		10000	-
+	rg_codex_global_75	0	CurrencyReward	300		gem		10000	-
+	rg_codex_global_100	0	CurrencyReward	400		gem		10000	-
+	rg_mission_daily_0	0	CurrencyReward	800		gold		10000	-
+	rg_mission_daily_0	1	CurrencyReward	10		gem		10000	-
+	rg_mission_daily_1	0	CurrencyReward	800		gold		10000	-
+	rg_mission_daily_1	1	CurrencyReward	10		gem		10000	-
+	rg_mission_daily_2	0	CurrencyReward	800		gold		10000	-
+	rg_mission_daily_2	1	CurrencyReward	10		gem		10000	-
+	rg_mission_weekly_0	0	CurrencyReward	4000		gold		10000	-
+	rg_mission_weekly_0	1	CurrencyReward	60		gem		10000	-
+	rg_ad_idle	0	CurrencyReward	1		gold		10000	-
+	rg_ad_explore	0	CurrencyReward	1200		gold		10000	-
+	rg_ad_free	0	CurrencyReward	400		gold		10000	-
+	rg_ad_free	1	CurrencyReward	5		gem		10000	-
+	rg_ad_retry	0	CurrencyReward	1		gold		10000	-
+	rg_package_0	0	CurrencyReward	60		gem		10000	-
+	rg_package_1	0	CurrencyReward	330		gem		10000	-
+	rg_package_2	0	CurrencyReward	1100		gem		10000	-
+	rg_package_3	0	CurrencyReward	2400		gem		10000	-
+	rg_pass_daily	0	CurrencyReward	50		gem		10000	-
+	rg_pass_daily	1	CurrencyReward	20		food		10000	-
+	rg_shop_00	0	ItemReward	1	mat_weir_forest_resin			10000	-
+	rg_shop_01	0	ItemReward	2	mat_weir_forest_resin			10000	-
+	rg_shop_02	0	ItemReward	3	mat_weir_forest_resin			10000	-
+	rg_shop_03	0	ItemReward	1	mat_weir_forest_resin			10000	-
+	rg_shop_04	0	ItemReward	2	mat_weir_forest_resin			10000	-
+	rg_shop_05	0	ItemReward	3	mat_weir_forest_resin			10000	-
+	rg_shop_06	0	ItemReward	1	mat_weir_forest_resin			10000	-
+	rg_shop_07	0	ItemReward	2	mat_weir_forest_resin			10000	-
+	rg_shop_08	0	ItemReward	3	mat_weir_forest_resin			10000	-
+	rg_shop_09	0	ItemReward	1	mat_weir_forest_resin			10000	-
+	rg_shop_10	0	ItemReward	2	mat_weir_forest_resin			10000	-
+	rg_shop_11	0	ItemReward	3	mat_weir_forest_resin			10000	-
+	rg_shop_season_00	0	ItemReward	2	mat_salt_coast_core			10000	-
+	rg_shop_season_01	0	ItemReward	2	mat_salt_coast_core			10000	-
+	rg_shop_season_02	0	ItemReward	2	mat_salt_coast_core			10000	-
+	rg_shop_season_03	0	ItemReward	2	mat_salt_coast_core			10000	-
+	rg_shop_season_04	0	ItemReward	2	mat_salt_coast_core			10000	-
+	rg_shop_season_05	0	ItemReward	2	mat_salt_coast_core			10000	-
+	rg_shop_season_06	0	ItemReward	2	mat_salt_coast_core			10000	-
+	rg_shop_season_07	0	ItemReward	2	mat_salt_coast_core			10000	-
+	rg_shop_package_00	0	CurrencyReward	300		gold		10000	-
+	rg_shop_package_01	0	CurrencyReward	300		gold		10000	-
+	rg_shop_package_02	0	CurrencyReward	300		gold		10000	-
+	rg_shop_package_03	0	CurrencyReward	300		gold		10000	-
+	rg_shop_package_04	0	CurrencyReward	300		gold		10000	-
+	rg_shop_package_05	0	CurrencyReward	300		gold		10000	-

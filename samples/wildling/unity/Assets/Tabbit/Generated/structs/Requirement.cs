@@ -37,6 +37,9 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class LevelRequirement : Requirement
     {
+        /// <summary>
+        /// 요구 레벨
+        /// </summary>
         public int Level;
     }
 
@@ -51,6 +54,9 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class CodexRequirement : Requirement
     {
+        /// <summary>
+        /// 요구 기록 상태
+        /// </summary>
         public global::Wildling.Data.CodexState CodexState;
     }
 
@@ -65,8 +71,14 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class ItemRequirement : Requirement
     {
+        /// <summary>
+        /// 요구 아이템
+        /// </summary>
         public string ItemId;
         public ItemTable.Record ItemByItemId;
+        /// <summary>
+        /// 요구 수량
+        /// </summary>
         public int Amount;
     }
 
@@ -81,6 +93,9 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class StageRequirement : Requirement
     {
+        /// <summary>
+        /// 요구 스테이지
+        /// </summary>
         public string StageId;
         public StageTable.Record StageByStageId;
     }

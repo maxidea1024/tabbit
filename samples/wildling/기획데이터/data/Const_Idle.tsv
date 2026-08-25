@@ -2,4 +2,4 @@
 :field	name	type	value	desc
 	CapHours	int	8	누적 상한
 	ProgressFactor	int	10000	스테이지 진척도 계수. 만분율
-	AdDoubleTargets	string	gold;food;material	2배 대상. 발견과 조각은 아니다
+	AdDoubleTargets	string[]	gold;food;material	2배 대상. 발견과 조각은 아니다

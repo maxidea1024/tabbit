@@ -510,6 +510,13 @@ internal sealed class CsRecordTypeView
 /// </summary>
 internal sealed class CsFieldView
 {
+    /// <summary>The type a lookup on this column takes, where it is an index.</summary>
+    /// <remarks>
+    /// **A reference column is keyed by the target's key, not the target's row.** Empty on
+    /// a column that is not an index. spec/reference-surface-naming.md sections 4 and 5.
+    /// </remarks>
+    public string IndexKeyType { get; set; } = "";
+
     /// <summary>
     /// What the resolved row is called, where this column is a reference to a whole row.
     /// </summary>

@@ -19,6 +19,8 @@ type Tables struct {
 	Beast BeastTable
 	Move MoveTable
 	BeastMove BeastMoveTable
+	BeastNote BeastNoteTable
+	MoveNote MoveNoteTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not
@@ -98,6 +100,12 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 	if err := loaded.BeastMove.Read(filepath.Join(basePath, "BeastMove"+fileExtension)); err != nil {
 		return err
 	}
+	if err := loaded.BeastNote.Read(filepath.Join(basePath, "BeastNote"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.MoveNote.Read(filepath.Join(basePath, "MoveNote"+fileExtension)); err != nil {
+		return err
+	}
 
 	loaded.solveCrossReferences()
 
@@ -114,6 +122,18 @@ func (t *Tables) solveCrossReferences() {
 		if target := t.Beast.FindByIndex(record.BeastId); target != nil {
 			record.BeastByBeastId = target
 		}
+		if target := t.Move.FindByIndex(record.MoveId); target != nil {
+			record.MoveByMoveId = target
+		}
+	}
+	for i := range t.BeastNote.records {
+		record := &t.BeastNote.records[i]
+		if target := t.Beast.FindByIndex(record.BeastId); target != nil {
+			record.BeastByBeastId = target
+		}
+	}
+	for i := range t.MoveNote.records {
+		record := &t.MoveNote.records[i]
 		if target := t.Move.FindByIndex(record.MoveId); target != nil {
 			record.MoveByMoveId = target
 		}

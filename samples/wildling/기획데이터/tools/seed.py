@@ -54,7 +54,7 @@ def table(name, desc, cols, rows, meta=""):
     for r in rows:
         cells = [str(v) for v in r]
         if cells and cells[0]:
-            for i in optional + union:
+            for i in optional:
                 if i < len(cells) and cells[i] == "":
                     cells[i] = "-"
         out.append([""] + cells)
@@ -179,11 +179,11 @@ def build_monster():
         ("grade", "Grade", "희소성. 종의 성질이고 변하지 않는다", "c,s"),
         ("role", "Role", "전투에서의 역할", "c,s"),
         ("base.hp", "StatBlock", "1레벨 기준 능력치", "c,s"),
-        ("base.attack", "", "", ""),
-        ("base.defense", "", "", ""),
-        ("base.speed", "", "", ""),
-        ("base.crit_rate", "", "", ""),
-        ("base.crit_power", "", "", ""),
+        ("base.attack", "", "공격", "c,s"),
+        ("base.defense", "", "방어", "c,s"),
+        ("base.speed", "", "행동 순서", "c,s"),
+        ("base.crit_rate", "", "치명타 확률. 만분율", "c,s"),
+        ("base.crit_power", "", "치명타 배수. 만분율", "c,s"),
         ("habitat", "bitset", "서식 지역 플래그", "c,s"),
         ("max_stage", "int (min=1, max=3)", "이 종이 도달할 수 있는 최대 단계", "c,s"),
         ("icon", "string (asset=icon)", "기록부와 편성 화면의 아이콘", "c"),
@@ -223,11 +223,11 @@ def build_awakening():
         ("from_monster_id", "foreign Monster", "각성 전", "c,s"),
         ("to_monster_id", "foreign Monster", "각성 후", "c,s"),
         ("gain.hp", "int (min=0)", "각성으로 더해지는 값", "c,s"),
-        ("gain.attack", "int (min=0)", "", "c,s"),
-        ("gain.defense", "int (min=0)", "", "c,s"),
-        ("gain.speed", "int (min=0)", "", "c,s"),
-        ("gain.crit_rate", "int (min=0)", "", "c,s"),
-        ("gain.crit_power", "int (min=0)", "", "c,s"),
+        ("gain.attack", "int (min=0)", "공격 증가분", "c,s"),
+        ("gain.defense", "int (min=0)", "방어 증가분", "c,s"),
+        ("gain.speed", "int (min=0)", "행동 순서 증가분", "c,s"),
+        ("gain.crit_rate", "int (min=0)", "치명타 확률 증가분", "c,s"),
+        ("gain.crit_power", "int (min=0)", "치명타 배수 증가분", "c,s"),
         ("requirement_group_id", "foreign RequirementGroup", "각성 조건", "c,s"),
         ("costs[]", "Cost", "소모 재화. 셀 하나에 `재화,수량`", "c,s"),
     ]
@@ -332,12 +332,12 @@ def build_skill_effect():
         ("skill_id", "foreign Skill", "어느 스킬인가", "c,s"),
         ("order", "int (min=0, max=7)", "적용 순서", "c,s"),
         ("effect.$type", "Effect", "이 행의 효과가 어떤 형태인가", "c,s"),
-        ("effect.chance", "", "", ""),
-        ("effect.power", "", "", ""),
-        ("effect.status", "", "", ""),
-        ("effect.stat", "", "", ""),
-        ("effect.ratio", "", "", ""),
-        ("effect.duration", "", "", ""),
+        ("effect.chance", "", "발동 확률. 만분율", "c,s"),
+        ("effect.power", "", "피해 또는 회복 배수. 만분율", "c,s"),
+        ("effect.status", "", "부여하는 상태", "c,s"),
+        ("effect.stat", "", "변동시키는 능력치", "c,s"),
+        ("effect.ratio", "", "변동률. 만분율. 음수는 하락", "c,s"),
+        ("effect.duration", "", "지속 턴", "c,s"),
     ]
     rows = []
     for sid, el, name, role, scope, cd, kind in SKILLS:
@@ -359,9 +359,9 @@ def build_skill_growth():
         ("level", "int (min=1, max=10)", "스킬 레벨", "c,s"),
         ("power_factor", "int (min=10000)", "효과 배수. 만분율", "c,s"),
         ("costs[0].currency_id", "Cost", "소모 재화", "c,s"),
-        ("costs[0].amount", "", "", ""),
-        ("costs[1].currency_id", "", "", ""),
-        ("costs[1].amount", "", "", ""),
+        ("costs[0].amount", "", "첫째 소모 수량", "c,s"),
+        ("costs[1].currency_id", "", "둘째 소모 재화", "c,s"),
+        ("costs[1].amount", "", "둘째 소모 수량", "c,s"),
     ]
     rows = []
     for sid, el, name, role, scope, cd, kind in SKILLS:
@@ -442,30 +442,30 @@ def build_boss():
         ("boss_id", "string", "식별자", "c,s"),
         ("monster_id", "foreign Monster", "외형과 기본 능력치의 출처", "c,s"),
         ("stat_factor.hp", "StatBlock", "계수. 만분율", "c,s"),
-        ("stat_factor.attack", "", "", ""),
-        ("stat_factor.defense", "", "", ""),
-        ("stat_factor.speed", "", "", ""),
-        ("stat_factor.crit_rate", "", "", ""),
-        ("stat_factor.crit_power", "", "", ""),
+        ("stat_factor.attack", "", "공격 계수", "c,s"),
+        ("stat_factor.defense", "", "방어 계수", "c,s"),
+        ("stat_factor.speed", "", "행동 순서 계수", "c,s"),
+        ("stat_factor.crit_rate", "", "치명타 확률 계수", "c,s"),
+        ("stat_factor.crit_power", "", "치명타 배수 계수", "c,s"),
         ("ability", "BossAbility", "특수 능력", "c,s"),
         ("ability_pattern[0][0]", "int (min=0, max=3)", "페이즈별 행동 순서", "c,s"),
-        ("ability_pattern[0][1]", "", "", ""),
-        ("ability_pattern[0][2]", "", "", ""),
-        ("ability_pattern[1][0]", "", "", ""),
-        ("ability_pattern[1][1]", "", "", ""),
-        ("ability_pattern[1][2]", "", "", ""),
-        ("ability_pattern[2][0]", "", "", ""),
-        ("ability_pattern[2][1]", "", "", ""),
-        ("ability_pattern[2][2]", "", "", ""),
+        ("ability_pattern[0][1]", "", "1페이즈 2번째 행동", "c,s"),
+        ("ability_pattern[0][2]", "", "1페이즈 3번째 행동", "c,s"),
+        ("ability_pattern[1][0]", "", "2페이즈 1번째 행동", "c,s"),
+        ("ability_pattern[1][1]", "", "2페이즈 2번째 행동", "c,s"),
+        ("ability_pattern[1][2]", "", "2페이즈 3번째 행동", "c,s"),
+        ("ability_pattern[2][0]", "", "3페이즈 1번째 행동", "c,s"),
+        ("ability_pattern[2][1]", "", "3페이즈 2번째 행동", "c,s"),
+        ("ability_pattern[2][2]", "", "3페이즈 3번째 행동", "c,s"),
         ("spawn_rotation", "quat?", "등장 연출의 회전", "c"),
         ("tint", "color32", "실루엣 색", "c"),
         ("effects[].$type", "Effect", "특수 능력의 효과. 원소가 행에서 온다", "c,s"),
-        ("effects[].chance", "", "", ""),
-        ("effects[].power", "", "", ""),
-        ("effects[].status", "", "", ""),
-        ("effects[].stat", "", "", ""),
-        ("effects[].ratio", "", "", ""),
-        ("effects[].duration", "", "", ""),
+        ("effects[].chance", "", "발동 확률. 만분율", "c,s"),
+        ("effects[].power", "", "피해 또는 회복 배수", "c,s"),
+        ("effects[].status", "", "부여하는 상태", "c,s"),
+        ("effects[].stat", "", "변동시키는 능력치", "c,s"),
+        ("effects[].ratio", "", "변동률. 만분율", "c,s"),
+        ("effects[].duration", "", "지속 턴", "c,s"),
     ]
     guardians = ["elder_bark_2", "abyss_whale_1", "pyre_lion_1", "thunder_stag_1", "void_seraph_3"]
     tints = ["#3E7A45FF", "#2F6E8CFF", "#A63A22FF", "#5C7FA8FF", "#3B2A5AFF"]
@@ -576,12 +576,19 @@ def build_encounter():
     rows = []
     for i, (rid, rname, el) in enumerate(REGIONS):
         pool = list(by_region.get(i, []))
+        order = ["Mythic", "Legendary", "Epic", "Rare", "Common"]
+        rarest = min(pool, key=lambda e: order.index(e[1]))[0] if pool else ""
         for n in (1, 2, 3):
             pool += [(a, b, 1) for a, b, c in by_region.get((i + n) % 5, [])]
         first = True
         for sid, grade, stages in pool:
             slot = {"Common": "Normal", "Rare": "Normal", "Epic": "Rare",
                     "Legendary": "Rare", "Mythic": "Hidden"}[grade]
+
+            # 그 지역에서 가장 희귀한 종을 은둔 슬롯으로. 등급만으로 정하면 그 등급의 종이
+            # 없는 지역에는 은둔이 하나도 없게 됩니다 — 기획서 §11.3이 요구하는 것입니다.
+            if sid == rarest:
+                slot = "Hidden"
             head = ["enc_%s" % rid, rid, "req_hidden_%s" % rid] if first else ["", "", ""]
             rows.append(head + [monster_id(sid, 1), GRADE_WEIGHT[grade], slot])
             first = False
@@ -604,9 +611,9 @@ def build_growth_curve():
         ("defense_factor", "int (min=10000)", "방어 배수", "c,s"),
         ("bonus_factor", "int?", "구간 보너스. 없으면 비운다", "c,s"),
         ("costs[0].currency_id", "Cost", "소모 재화", "c,s"),
-        ("costs[0].amount", "", "", ""),
-        ("costs[1].currency_id", "", "", ""),
-        ("costs[1].amount", "", "", ""),
+        ("costs[0].amount", "", "첫째 소모 수량", "c,s"),
+        ("costs[1].currency_id", "", "둘째 소모 재화", "c,s"),
+        ("costs[1].amount", "", "둘째 소모 수량", "c,s"),
     ]
     slope = {"Common": 116, "Rare": 128, "Epic": 140, "Legendary": 154, "Mythic": 170}
     rows = []
@@ -663,8 +670,13 @@ def build_rewards():
                        "thunder_stag_1", "void_seraph_1"]
     for i, (rid, rname, el) in enumerate(REGIONS):
         add_reward("rg_%s_material" % rid, "%s의 재료 드랍" % rname, [
-            ["ItemReward", 3, "mat_%s_resin" % rid, "", "", 6000, 100],
+            # 수액은 확정입니다 — 재료 묶음에 확정 항목이 하나도 없으면 방치 보상이 빈 채로 나옵니다.
+            ["ItemReward", 3, "mat_%s_resin" % rid, "", "", 10000, 100],
             ["ItemReward", 1, "mat_%s_core" % rid, "", "", 2500, 40],
+            # 각성 재료는 **최소 2개 지역**에서 나옵니다 — 기획서 §10.4. 한 지역에만 나오면
+            # 그 지역을 반복하는 것 외에 할 일이 없어집니다.
+            ["ItemReward", 1,
+             "mat_%s_core" % REGIONS[(i + 1) % len(REGIONS)][0], "", "", 800, 12],
             ["CurrencyReward", 5, "", "gem", "", 300, 5],
         ])
         for index in range(1, 19):
@@ -727,10 +739,10 @@ def build_rewards():
         ("reward_group_id", "foreign RewardGroup", "어느 묶음인가", "c,s"),
         ("order", "int (min=0, max=15)", "표시 순서", "c,s"),
         ("reward.$type", "Reward", "이 행의 보상이 어떤 형태인가", "c,s"),
-        ("reward.amount", "", "", ""),
-        ("reward.item_id", "", "", ""),
-        ("reward.currency_id", "", "", ""),
-        ("reward.monster_id", "", "", ""),
+        ("reward.amount", "", "수량", "c,s"),
+        ("reward.item_id", "", "아이템 보상의 대상", "c,s"),
+        ("reward.currency_id", "", "재화 보상의 대상", "c,s"),
+        ("reward.monster_id", "", "와일드링 또는 조각 보상의 대상", "c,s"),
         ("rate", "int (min=1, max=10000)", "확률. 만분율", "c,s"),
         ("server_weight", "int?", "서버만 쓰는 가중치", "s"),
     ]
@@ -785,11 +797,11 @@ def build_requirements():
         ("requirement_group_id", "foreign RequirementGroup", "어느 묶음인가", "c,s"),
         ("order", "int (min=0, max=7)", "검사 순서", "c,s"),
         ("req.$type", "Requirement", "이 행의 조건이 어떤 형태인가", "c,s"),
-        ("req.level", "", "", ""),
-        ("req.codex_state", "", "", ""),
-        ("req.item_id", "", "", ""),
-        ("req.amount", "", "", ""),
-        ("req.stage_id", "", "", ""),
+        ("req.level", "", "요구 레벨", "c,s"),
+        ("req.codex_state", "", "요구 기록 상태", "c,s"),
+        ("req.item_id", "", "요구 아이템", "c,s"),
+        ("req.amount", "", "요구 수량", "c,s"),
+        ("req.stage_id", "", "요구 스테이지", "c,s"),
     ]
     # 컬럼 순서를 선언과 맞춘다 — level · codex_state · item_id · amount · stage_id
     entries = []
@@ -1105,16 +1117,16 @@ def build_consts():
     idle = const("IdleConst", "방치의 상한과 계수이다.", [
         ("CapHours", "int", 8, "누적 상한"),
         ("ProgressFactor", "int", 10000, "스테이지 진척도 계수. 만분율"),
-        ("AdDoubleTargets", "string", "gold;food;material", "2배 대상. 발견과 조각은 아니다"),
+        ("AdDoubleTargets", "string[]", "gold;food;material", "2배 대상. 발견과 조각은 아니다"),
     ])
     party = const("PartyConst", "파티의 규격이다.", [
         ("PartySize", "int", 3, "파티 인원"),
         ("SavedParties", "int", 3, "저장 슬롯"),
-        ("ColumnNames", "string", "Front;Middle;Back", "열의 이름. 배치 순서 그대로"),
-        ("VanguardColumns", "string", "Front", "선봉이 설 수 있는 열"),
-        ("BreakerColumns", "string", "Middle;Back", "파격"),
-        ("WardenColumns", "string", "Back", "수호"),
-        ("TunerColumns", "string", "Middle;Back", "조율"),
+        ("ColumnNames", "string[]", "Front;Middle;Back", "열의 이름. 배치 순서 그대로"),
+        ("VanguardColumns", "string[]", "Front", "선봉이 설 수 있는 열"),
+        ("BreakerColumns", "string[]", "Middle;Back", "파격"),
+        ("WardenColumns", "string[]", "Back", "수호"),
+        ("TunerColumns", "string[]", "Middle;Back", "조율"),
     ])
     codex = const("CodexConst", "기록부의 계수이다.", [
         ("ObserveCapCommon", "int", GRADE_OBSERVE["Common"], "일반 등급의 관측 상한"),
