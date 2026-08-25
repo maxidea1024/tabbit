@@ -41,6 +41,14 @@
       "Path": "test/fixtures/output/polymorphism/go"
     },
     {
+      "Type": "java",
+      "Path": "test/fixtures/output/polymorphism/java"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/polymorphism/kotlin"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

@@ -187,6 +187,14 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             Write(System.IO.Path.Combine("enums", enumm.Name + ".kt"),
                   "kotlin-enum.sbn", Part(enumm: enumm));
 
+        // A struct is an entity beside a table and an enum, so it gets a file of its own -
+        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            Write(System.IO.Path.Combine("structs", declared.Name + ".kt"),
+                  "kotlin-struct.sbn", Part(structure: BuildStruct(declared)));
+        }
+
         foreach (var set in view.ConstantSets)
             Write(System.IO.Path.Combine("constants", set.Name + ".kt"),
                   "kotlin-constants.sbn", Part(set: set));
@@ -199,7 +207,8 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         new[] { _recipe.Path }.Concat(_recipe.PackageName.Split('.')).ToArray());
 
     private KotlinPartView Part(
-        KotlinTableView? table = null, KotlinEnumView? enumm = null, KotlinConstantSetView? set = null)
+        KotlinTableView? table = null, KotlinEnumView? enumm = null,
+        KotlinConstantSetView? set = null, KotlinPolymorphicTypeView? structure = null)
         => new KotlinPartView
         {
             PackageName = _recipe.PackageName,
@@ -207,6 +216,46 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             Table = table,
             Enumm = enumm,
             Set = set,
+            Structure = structure,
+        };
+
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// A `sealed class`, which is this language's sum type and the one shape here that gets
+    /// exhaustiveness for free: a `when` over it that misses a variant does not compile.
+    /// spec/polymorphism.md section 7.
+    /// </remarks>
+    private KotlinPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new KotlinPolymorphicTypeView
+        {
+            Name = declared.Name,
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new KotlinVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private KotlinStructMemberView StructMember(Models.Field field)
+        => new KotlinStructMemberView
+        {
+            Name = KotlinName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = ToKotlinTypeName(
+                field.Type,
+                field.Type is Models.ValueType.Enum or Models.ValueType.EnumArray
+                    ? field.Enum
+                    : null,
+                field.RefTableName),
+            Comment = CommentLines(field.Comment),
         };
 
     private void Write(string relative, string templateName, object view)
@@ -508,6 +557,15 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
     private KotlinFieldView BuildRecordField(Table table, SerialField sf)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string name = KotlinName(sf.Name);
         string entry = sf.Name.ToPascalCase() + "Entry";
 
@@ -547,6 +605,17 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
         return new KotlinFieldView
         {
+            AbstractTypeName = declaredType?.Name ?? "",
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new KotlinVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+
             // A record has no header cell of its own, so the first member's column comment is
             // the nearest thing the sheet said about the group.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),

@@ -87,4 +87,46 @@ public final class {{ table.record_name }} {
 {{~ end ~}}
 {{~ end ~}}
 
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+
+{{~## **The variant, built once on first use.** The entry above is what the read filled - one
+   assignment per column - and which variant it is only became knowable when the discriminator
+   column arrived. Building it here rather than while reading keeps the read path and the wire
+   exactly as they were, and a row nobody looks at costs nothing.
+   spec/polymorphism.md section 7.2. ##~}}
+    private {{ field.abstract_type_name }} {{ field.name }}Value;
+
+    /**
+     * What this row's {{ field.abstract_type_name }} is. Narrow it with {@code instanceof}.
+     */
+    public {{ field.abstract_type_name }} {{ field.name }}() {
+        if ({{ field.name }}Value != null) {
+            return {{ field.name }}Value;
+        }
+
+        switch ({{ field.name }}.type) {
+{{~ for variant in field.variants ~}}
+            case {{ variant.discriminator }}: {
+                {{ field.abstract_type_name }}.{{ variant.type_name }} built =
+                    new {{ field.abstract_type_name }}.{{ variant.type_name }}();
+{{~ for member in field.base_members ~}}
+                built.{{ member.name }} = {{ field.name }}.{{ member.name }};
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+                built.{{ member.name }} = {{ field.name }}.{{ member.name }};
+{{~ end ~}}
+                {{ field.name }}Value = built;
+                return built;
+            }
+{{~ end ~}}
+        }
+
+{{~## An unknown number is a variant this build does not have. Unlike a column added later,
+   which the reader skips, that makes the whole row uninterpretable. ##~}}
+        throw new IllegalStateException(
+            "{{ field.abstract_type_name }}: no variant is numbered " + {{ field.name }}.type);
+    }
+{{~ end ~}}
+{{~ end ~}}
 }

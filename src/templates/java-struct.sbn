@@ -1,0 +1,44 @@
+{{~##
+   One abstract type and its variants, as a top level type of its own.
+
+   **The variants are nested classes rather than files of their own.** This language allows one
+   public type per file, and a set whose members are scattered over four files is a set nothing
+   holds together - `Effect.DamageEffect` says which set it belongs to at every use.
+
+   Classes and `instanceof`, which is this language's way of narrowing. The read path is
+   untouched: the file is still read into the table's flat entry and the variant is built from
+   it, which is why the wire does not move. spec/polymorphism.md section 7.
+##~}}
+{{ include 'java-file-head.sbn' ~}}
+/**
+ * One value of {@code {{ structure.name }}}, whichever shape it took.
+ *
+ * <p>Narrow it with {@code instanceof}. Every variant is nested here, so the set is what this
+ * file holds.
+ */
+public abstract class {{ structure.name }} {
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    public {{ member.type_name }} {{ member.name }};
+{{~ end ~}}
+{{~ for variant in structure.variants ~}}
+
+    /**
+     * One shape of {@code {{ structure.name }}}.
+     *
+     * <p>The file carries {@code {{ variant.discriminator }}} for it. That number rather than
+     * the name is what lets this variant be renamed without a deployed reader reading a
+     * different one.
+     */
+    public static final class {{ variant.type_name }} extends {{ structure.name }} {
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+        /** {{ line }} */
+{{~ end ~}}
+        public {{ member.type_name }} {{ member.name }};
+{{~ end ~}}
+    }
+{{~ end ~}}
+}

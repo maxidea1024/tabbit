@@ -1,0 +1,50 @@
+{{~##
+   One abstract type and its variants, as a sealed class.
+
+   **A `sealed class`, which is this language's sum type - and the one shape in this repository
+   that gets exhaustiveness for free.** A `when` over it that misses a variant does not compile,
+   so a variant added to the declaration is a compile error at every consumer rather than a
+   silent fall-through.
+
+   The base fields are constructor parameters on the sealed class, so a consumer holding the
+   base type reads them without narrowing. The read path is untouched: the file is still read
+   into the table's flat entry and the value is built from it. spec/polymorphism.md section 7.
+##~}}
+{{ include 'kotlin-file-head.sbn' ~}}
+/**
+ * One value of `{{ structure.name }}`, whichever shape it took.
+ *
+ * Narrow it with `when`, which is exhaustive over a sealed class.
+ */
+sealed class {{ structure.name }}(
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    val {{ member.name }}: {{ member.type_name }},
+{{~ end ~}}
+)
+{{~ for variant in structure.variants ~}}
+
+/**
+ * One shape of `{{ structure.name }}`.
+ *
+ * The file carries `{{ variant.discriminator }}` for it. That number rather than the name is
+ * what lets this variant be renamed without a deployed reader reading a different one.
+ */
+class {{ variant.type_name }}(
+{{~ for member in structure.base_members ~}}
+    {{ member.name }}: {{ member.type_name }},
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    val {{ member.name }}: {{ member.type_name }},
+{{~ end ~}}
+) : {{ structure.name }}(
+{{~ for member in structure.base_members ~}}
+    {{ member.name }},
+{{~ end ~}}
+)
+{{~ end ~}}

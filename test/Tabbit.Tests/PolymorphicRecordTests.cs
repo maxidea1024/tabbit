@@ -215,23 +215,52 @@ public class PolymorphicRecordTests
     /// satisfy the interface, or a base field the embedding did not promote, fails here.
     /// spec/polymorphism.md section 7.
     /// </remarks>
-    [Fact]
-    public void The_generated_go_compiles()
+    /// <summary>
+    /// The generated code of every language that has to declare the variants compiles.
+    /// </summary>
+    /// <remarks>
+    /// **Compiling is the whole of these.** Whichever shape a language takes - classes and
+    /// `instanceof`, a sealed interface, a sum type - it is a claim about generated code that
+    /// only a compiler settles: a variant that does not belong to the set, or a base field the
+    /// inheritance does not carry, fails here and nowhere else. spec/polymorphism.md section 7.
+    /// </remarks>
+    [Theory]
+    [InlineData("Go")]
+    [InlineData("Java")]
+    [InlineData("Kotlin")]
+    public void The_generated_code_compiles(string language)
     {
         var conversion = TabbitRunner.Convert(Scenario);
 
         Assert.True(conversion.Succeeded,
             $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
 
+        var (available, compile) = Toolchain(language);
+
         // A hard failure rather than a skip, as with the other toolchain gates: a gate that
         // quietly turns itself off is worse than no gate.
-        Assert.True(ConformanceHarness.GoIsAvailable(out string why),
-            $"A Go toolchain is required to check the generated code. {why}");
+        Assert.True(available(out string why),
+            $"A {language} toolchain is required to check the generated code. {why}");
 
-        var result = ConformanceHarness.CompileGo(Scenario);
+        var result = compile(Scenario);
 
         Assert.True(result.Succeeded,
-            $"Generated Go for a polymorphic group does not compile."
+            $"Generated {language} for a polymorphic group does not compile."
             + $"{System.Environment.NewLine}{result.Output}");
     }
+
+    /// <summary>Whether a toolchain is on this machine, and why not when it is missing.</summary>
+    private delegate bool Availability(out string reason);
+
+    /// <summary>How to ask for one language's toolchain and how to run it.</summary>
+    private static (Availability Available, System.Func<string, ToolResult> Compile)
+        Toolchain(string language)
+        => language switch
+        {
+            "Go" => (ConformanceHarness.GoIsAvailable, ConformanceHarness.CompileGo),
+            "Java" => (ConformanceHarness.JavaIsAvailable, ConformanceHarness.CompileJava),
+            "Kotlin" => (ConformanceHarness.KotlinIsAvailable, ConformanceHarness.CompileKotlin),
+            _ => throw new System.ArgumentOutOfRangeException(nameof(language), language, null),
+        };
+
 }

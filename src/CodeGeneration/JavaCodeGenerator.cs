@@ -221,6 +221,21 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             });
         }
 
+        // A struct is an entity beside a table and an enum, so it gets a file of its own - one
+        // per declaration however many tables named it. The variants are nested classes rather
+        // than files of their own: this language allows one public type per file, and a set
+        // whose members are scattered over four files is a set nothing holds together.
+        // spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            Write(declared.Name, "java-struct.sbn", new JavaPartView
+            {
+                PackageName = _recipe.PackageName,
+                Imports = Array.Empty<string>(),
+                Structure = BuildStruct(declared),
+            });
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             // A constant set names an enum when one of its constants is typed with one -
@@ -339,6 +354,44 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             }).ToList(),
         };
     }
+
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// The members are columns, so their types come out of the same conversion a table's do.
+    /// spec/polymorphism.md section 7.1.
+    /// </remarks>
+    private JavaPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new JavaPolymorphicTypeView
+        {
+            Name = declared.Name,
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new JavaVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private JavaStructMemberView StructMember(Models.Field field)
+        => new JavaStructMemberView
+        {
+            Name = JavaName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = ToJavaTypeName(
+                field.Type,
+                field.Type is Models.ValueType.Enum or Models.ValueType.EnumArray
+                    ? field.Enum
+                    : null,
+                field.RefTableName),
+            Comment = CommentLines(field.Comment),
+        };
 
     private JavaConstantSetView BuildConstantSet(ConstantSet constantSet) => new JavaConstantSetView
     {
@@ -615,6 +668,15 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// </remarks>
     private JavaFieldView BuildRecordField(Table table, SerialField sf)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string name = JavaName(sf.Name);
         string entry = sf.Name.ToPascalCase() + "Entry";
         bool fixedArray = sf.IsArray && !table.TrimTrailingArrayElements;
@@ -648,6 +710,17 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
         return new JavaFieldView
         {
+            AbstractTypeName = declaredType?.Name ?? "",
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new JavaVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+
             // A record has no header cell of its own, so the first member's column comment is
             // the nearest thing the sheet said about the group.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),
