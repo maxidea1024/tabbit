@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/Enums.xlsx : Enums : A1
+    // Generated from samples/wildling/기획데이터/Enums.xlsx : Enums : A1
     /// <summary>
     /// 전투에서의 역할이다.
     /// </summary>

@@ -4,14 +4,14 @@ TCB encoding report
 Totals
   tables    30
   columns   200
-  unencoded 247,126
-  encoded   80,668  (32.6 % of unencoded)
-  deflated  37,706  (46.7 % of encoded)  - what a compression layer over the chosen blocks would come to
+  unencoded 247,180
+  encoded   80,460  (32.6 % of unencoded)
+  deflated  37,716  (46.9 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
-  DICT_FRONT          45       61,868   76.7 %
-  ARRAY               11        6,508    8.1 %
+  DICT_FRONT          44       61,190   76.1 %
+  ARRAY               12        6,978    8.7 %
   DICT_SEG             8        3,885    4.8 %
   RAW                 21        1,370    1.7 %
   DICT_FRONT_RLE       6        1,269    1.6 %
@@ -27,8 +27,8 @@ By encoding
 
 By element
   element         columns    unencoded        bytes    share
-  string              96      209,189       73,339   90.9 %
-  i32                 72       35,173        6,807    8.4 %
+  string              96      209,243       73,131   90.9 %
+  i32                 72       35,173        6,807    8.5 %
   varint              21        1,594          343    0.4 %
   f32                  7          728          132    0.2 %
   i64                  1          432           37    0.0 %
@@ -87,10 +87,6 @@ Largest columns (40 of 200)
   Item.Name  [string]  92 rows
     chosen DICT_FRONT  682  (39.2 % of unencoded)
     candidates RAW 1,742  ·  DICT 1,864  ·  DICT_RLE 1,956  ·  DICT_FRONT 682  ·  DICT_FRONT_RLE 774  ·  DICT_SEG 755  ·  DICT_SEG_RLE 847
-
-  Monster.Tags  [string]  54 rows
-    chosen DICT_FRONT  678  (64.2 % of unencoded)
-    candidates RAW 1,056  ·  DICT 1,041  ·  DICT_RLE 1,085  ·  DICT_FRONT 678  ·  DICT_FRONT_RLE 722  ·  DICT_SEG 777  ·  DICT_SEG_RLE 821
 
   RequirementGroup.Note  [string?]  37 rows
     chosen DICT_SEG  608  (65.8 % of unencoded)
@@ -152,6 +148,10 @@ Largest columns (40 of 200)
     chosen DICT_FRONT  486  (55.4 % of unencoded)
     candidates RAW 878  ·  DICT 916  ·  DICT_RLE 953  ·  DICT_FRONT 486  ·  DICT_FRONT_RLE 523  ·  DICT_SEG 622  ·  DICT_SEG_RLE 659
 
+  Monster.Tags  [string[]]  54 rows
+    chosen ARRAY  470  (42.3 % of unencoded)
+    candidates RAW 1,110  ·  ARRAY 470
+
   Stage.StageId  [string]  90 rows
     chosen DICT_FRONT  459  (33.1 % of unencoded)
     candidates RAW 1,386  ·  DICT 1,504  ·  DICT_RLE 1,594  ·  DICT_FRONT 459  ·  DICT_FRONT_RLE 549  ·  DICT_SEG 614  ·  DICT_SEG_RLE 704
@@ -201,10 +201,10 @@ Headroom outside the encodings
   each encoded, against what it costs today. Nothing here is in the format.
 
   Array columns (always raw today)
-    columns  11
-    elements 4,112
-    today    6,508
-    encoded  6,777  (104.1 % of today) · saved -269
+    columns  12
+    elements 4,250
+    today    6,978
+    encoded  7,253  (103.9 % of today) · saved -275
 
   Float columns (dictionary only today)
     columns  7
@@ -262,7 +262,6 @@ String dictionary headroom
        158        3,471          826        1,175        1,019        1,024          572  RewardGroup.RewardGroupId
         35          885          748          565          789          789          395  RequirementGroup.Note
         54          778          731          840          840          840          493  Monster.Name
-        49          987          624          723          723          723          310  Monster.Tags
         92        1,744          562          635          704          704          401  Item.Name
         92        1,477          487          675          622          622          364  Item.ItemId
         54          878          481          684          626          626          337  Monster.Icon
@@ -286,6 +285,7 @@ String dictionary headroom
         43          601          316          275          413          413          214  MonsterSkill.SkillId
         24          587          283          416          362          362          206  MonsterAwakening.RequirementGroupId
          5          280          280          189          291          291          147  Monster.Description
+        40          284          276          357          357          357          217  Monster.Tags
         24          323          272          356          351          351          194  MonsterAwakening.FromMonsterId
         24          323          272          356          351          351          194  MonsterAwakening.ToMonsterId
         54          325          188          226          243          243          119  Monster.DisplayCode
@@ -295,14 +295,14 @@ String dictionary headroom
         19          392          157          212          177          182          141  CodexReward.CodexRewardId
 
   Over all 96 string columns:
-    plain      159,864
-    front      51,240  (32.1 % of plain)
-    segment    101,411  (197.9 % of front)
-    template   73,839  (144.1 % of front)
-    delta      66,891  (130.5 % of front)
-    deflate    35,605  (69.5 % of front)
+    plain      159,161
+    front      50,892  (32.0 % of plain)
+    segment    101,045  (198.5 % of front)
+    template   73,473  (144.4 % of front)
+    delta      66,525  (130.7 % of front)
+    deflate    35,512  (69.8 % of front)
 
-  Best per column, layout chosen per column: 49,303  (96.2 % of front)
+  Best per column, layout chosen per column: 48,955  (96.2 % of front)
   Headroom against what is in the format today: 1,937
 
   Where each layout wins, and what it saves against front coding

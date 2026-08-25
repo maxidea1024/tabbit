@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-08-25T18:32:53.8950368+09:00",
-  "MasterHash": "0addf3d4e1d43e5649678ae3b149bab8",
-  "TotalSize": 83486,
+  "LastUpdatedDate": "2026-08-26T00:45:57.2423763+09:00",
+  "MasterHash": "cb5f7c2dddd5ff3b456979d8c9824c0a",
+  "TotalSize": 83278,
   "Items": [
     {
       "Name": "Skill.bytes",
@@ -113,9 +113,9 @@
     },
     {
       "Name": "Monster.bytes",
-      "Size": 4108,
-      "Hash": "225c2f20cb11b446476ea6f2fc2bbc58",
-      "LastUpdatedDate": "2026-08-25T18:32:53.8123837+09:00"
+      "Size": 3900,
+      "Hash": "1f5a2bb2d8f1c7d7a9a9aab2dc897459",
+      "LastUpdatedDate": "2026-08-26T00:45:57.159329+09:00"
     },
     {
       "Name": "MonsterSkill.bytes",

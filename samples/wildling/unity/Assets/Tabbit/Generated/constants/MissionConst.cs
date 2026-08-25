@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/Const.xlsx : Const_Mission : A1
+    // Generated from samples/wildling/기획데이터/Const.xlsx : Const_Mission : A1
     /// <summary>
     /// 의뢰의 개수와 초기화이다.
     /// </summary>

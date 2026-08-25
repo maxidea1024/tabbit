@@ -57,24 +57,28 @@ namespace Wildling.Data
                         {
                             Amount = _reward.Amount,
                             ItemId = _reward.ItemId,
+                            ItemByItemId = _reward.ItemByItemId,
                         };
                     case 2:
                         return new CurrencyReward
                         {
                             Amount = _reward.Amount,
                             CurrencyId = _reward.CurrencyId,
+                            CurrencyByCurrencyId = _reward.CurrencyByCurrencyId,
                         };
                     case 3:
                         return new MonsterReward
                         {
                             Amount = _reward.Amount,
                             MonsterId = _reward.MonsterId,
+                            MonsterByMonsterId = _reward.MonsterByMonsterId,
                         };
                     case 4:
                         return new ShardReward
                         {
                             Amount = _reward.Amount,
                             MonsterId = _reward.MonsterId,
+                            MonsterByMonsterId = _reward.MonsterByMonsterId,
                         };
                 }
 
@@ -192,11 +196,11 @@ namespace Wildling.Data
         private Dictionary<string, Record> _recordsByRewardGroupIdAndOrder = new Dictionary<string, Record>();
 
         /// <summary>Joins the columns of the `RewardGroupId and Order` key into the text the map is keyed by.</summary>
-        private static string KeyOfRewardGroupIdAndOrder(RewardGroupTable.Record rewardGroupIdKey, int orderKey)
+        private static string KeyOfRewardGroupIdAndOrder(string rewardGroupIdKey, int orderKey)
         {
             var parts = new string[]
             {
-                rewardGroupIdKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                rewardGroupIdKey,
                 orderKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
             };
 
@@ -216,14 +220,14 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRewardGroupIdAndOrder(RewardGroupTable.Record rewardGroupIdKey, int orderKey)
+        public Record FindByRewardGroupIdAndOrder(string rewardGroupIdKey, int orderKey)
             => _recordsByRewardGroupIdAndOrder.TryGetValue(KeyOfRewardGroupIdAndOrder(rewardGroupIdKey, orderKey), out Record record) ? record : null;
 
         /// <summary>
         /// The row with this `RewardGroupId and Order`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByRewardGroupIdAndOrderOrThrow(RewardGroupTable.Record rewardGroupIdKey, int orderKey)
+        public Record GetByRewardGroupIdAndOrderOrThrow(string rewardGroupIdKey, int orderKey)
         {
             if (!_recordsByRewardGroupIdAndOrder.TryGetValue(KeyOfRewardGroupIdAndOrder(rewardGroupIdKey, orderKey), out Record record))
                 throw new TabbitException($"There is no record in table `RewardEntry` that corresponds to field `RewardGroupId and Order` value ({rewardGroupIdKey}, {orderKey})");
@@ -232,7 +236,7 @@ namespace Wildling.Data
         }
 
         /// <summary>Whether the table holds a row with this `RewardGroupId and Order`.</summary>
-        public bool ContainsRewardGroupIdAndOrder(RewardGroupTable.Record rewardGroupIdKey, int orderKey) => _recordsByRewardGroupIdAndOrder.ContainsKey(KeyOfRewardGroupIdAndOrder(rewardGroupIdKey, orderKey));
+        public bool ContainsRewardGroupIdAndOrder(string rewardGroupIdKey, int orderKey) => _recordsByRewardGroupIdAndOrder.ContainsKey(KeyOfRewardGroupIdAndOrder(rewardGroupIdKey, orderKey));
         #endregion // Indexing by `RewardGroupId and Order`
 
         /// <summary>

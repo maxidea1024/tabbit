@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/Enums.xlsx : Enums : A24
+    // Generated from samples/wildling/기획데이터/Enums.xlsx : Enums : A24
     /// <summary>
     /// 스킬 슬롯의 종류이다.
     /// </summary>

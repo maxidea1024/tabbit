@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/Enums.xlsx : Enums : A35
+    // Generated from samples/wildling/기획데이터/Enums.xlsx : Enums : A35
     /// <summary>
     /// 스킬의 대상 범위이다.
     /// </summary>

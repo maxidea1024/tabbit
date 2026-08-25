@@ -801,7 +801,7 @@
       "22": {
         "Name": "Tags",
         "Element": 6,
-        "Kind": 0,
+        "Kind": 1,
         "Retired": false,
         "ExplicitTag": false
       }

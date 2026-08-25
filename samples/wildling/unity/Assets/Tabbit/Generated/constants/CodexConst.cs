@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/Const.xlsx : Const_Codex : A1
+    // Generated from samples/wildling/기획데이터/Const.xlsx : Const_Codex : A1
     /// <summary>
     /// 기록부의 계수이다.
     /// </summary>

@@ -123,11 +123,11 @@ namespace Wildling.Data
         private Dictionary<string, Record> _recordsByRegionIdAndHourBand = new Dictionary<string, Record>();
 
         /// <summary>Joins the columns of the `RegionId and HourBand` key into the text the map is keyed by.</summary>
-        private static string KeyOfRegionIdAndHourBand(RegionTable.Record regionIdKey, int hourBandKey)
+        private static string KeyOfRegionIdAndHourBand(string regionIdKey, int hourBandKey)
         {
             var parts = new string[]
             {
-                regionIdKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                regionIdKey,
                 hourBandKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
             };
 
@@ -147,14 +147,14 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRegionIdAndHourBand(RegionTable.Record regionIdKey, int hourBandKey)
+        public Record FindByRegionIdAndHourBand(string regionIdKey, int hourBandKey)
             => _recordsByRegionIdAndHourBand.TryGetValue(KeyOfRegionIdAndHourBand(regionIdKey, hourBandKey), out Record record) ? record : null;
 
         /// <summary>
         /// The row with this `RegionId and HourBand`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByRegionIdAndHourBandOrThrow(RegionTable.Record regionIdKey, int hourBandKey)
+        public Record GetByRegionIdAndHourBandOrThrow(string regionIdKey, int hourBandKey)
         {
             if (!_recordsByRegionIdAndHourBand.TryGetValue(KeyOfRegionIdAndHourBand(regionIdKey, hourBandKey), out Record record))
                 throw new TabbitException($"There is no record in table `RegionYield` that corresponds to field `RegionId and HourBand` value ({regionIdKey}, {hourBandKey})");
@@ -163,7 +163,7 @@ namespace Wildling.Data
         }
 
         /// <summary>Whether the table holds a row with this `RegionId and HourBand`.</summary>
-        public bool ContainsRegionIdAndHourBand(RegionTable.Record regionIdKey, int hourBandKey) => _recordsByRegionIdAndHourBand.ContainsKey(KeyOfRegionIdAndHourBand(regionIdKey, hourBandKey));
+        public bool ContainsRegionIdAndHourBand(string regionIdKey, int hourBandKey) => _recordsByRegionIdAndHourBand.ContainsKey(KeyOfRegionIdAndHourBand(regionIdKey, hourBandKey));
         #endregion // Indexing by `RegionId and HourBand`
 
         /// <summary>

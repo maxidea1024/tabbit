@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/Enums.xlsx : Enums : A43
+    // Generated from samples/wildling/기획데이터/Enums.xlsx : Enums : A43
     /// <summary>
     /// 수호자의 특수 능력이다.
     /// </summary>

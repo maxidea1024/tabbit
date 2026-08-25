@@ -102,7 +102,7 @@ namespace Wildling.Data
             /// <summary>
             /// 검색 태그
             /// </summary>
-            public string Tags => _tags;
+            public string[] Tags => _tags;
             #endregion
 
             /// <summary>One element of <see cref="Base"/>.</summary>
@@ -173,7 +173,7 @@ namespace Wildling.Data
             internal int _maxStage;
             internal string _icon = "";
             internal ModelOffsetEntry _modelOffset;
-            internal string _tags = "";
+            internal string[] _tags = System.Array.Empty<string>();
             #endregion
 
             #region ToString
@@ -668,18 +668,18 @@ namespace Wildling.Data
                         break;
 
                     case 22:
-                        TcbTable.CheckColumn(column, "Monster.Tags", TcbTable.KindScalar, false, TcbTable.ElementString);
+                        TcbTable.CheckColumn(column, "Monster.Tags", TcbTable.KindArray, false, TcbTable.ElementString);
                         cursor = new TcbColumnCursor(reader, column, count, "Monster.Tags");
-                        for (int i = 0; i < count; )
+                        for (int i = 0; i < count; i++)
                         {
-                            // One call per run of equal values, not one per row - over a
-                            // run-length encoded column this is most of the decode.
-                            int n = cursor.NextSameString(count - i, out var value);
-                            do
+                            var record = records[i];
+                            int elementCount;
+                            elementCount = cursor.NextLength();
+                            record._tags = new string[elementCount];
+                            for (int j = 0; j < elementCount; ++j)
                             {
-                                var record = records[i++];
-                                record._tags = value;
-                            } while (--n > 0);
+                                record._tags[j] = cursor.NextString();
+                            }
                         }
                         break;
 

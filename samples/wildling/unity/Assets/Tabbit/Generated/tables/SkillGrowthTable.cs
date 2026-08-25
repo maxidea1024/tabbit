@@ -133,11 +133,11 @@ namespace Wildling.Data
         private Dictionary<string, Record> _recordsBySkillIdAndLevel = new Dictionary<string, Record>();
 
         /// <summary>Joins the columns of the `SkillId and Level` key into the text the map is keyed by.</summary>
-        private static string KeyOfSkillIdAndLevel(SkillTable.Record skillIdKey, int levelKey)
+        private static string KeyOfSkillIdAndLevel(string skillIdKey, int levelKey)
         {
             var parts = new string[]
             {
-                skillIdKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                skillIdKey,
                 levelKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
             };
 
@@ -157,14 +157,14 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBySkillIdAndLevel(SkillTable.Record skillIdKey, int levelKey)
+        public Record FindBySkillIdAndLevel(string skillIdKey, int levelKey)
             => _recordsBySkillIdAndLevel.TryGetValue(KeyOfSkillIdAndLevel(skillIdKey, levelKey), out Record record) ? record : null;
 
         /// <summary>
         /// The row with this `SkillId and Level`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetBySkillIdAndLevelOrThrow(SkillTable.Record skillIdKey, int levelKey)
+        public Record GetBySkillIdAndLevelOrThrow(string skillIdKey, int levelKey)
         {
             if (!_recordsBySkillIdAndLevel.TryGetValue(KeyOfSkillIdAndLevel(skillIdKey, levelKey), out Record record))
                 throw new TabbitException($"There is no record in table `SkillGrowth` that corresponds to field `SkillId and Level` value ({skillIdKey}, {levelKey})");
@@ -173,7 +173,7 @@ namespace Wildling.Data
         }
 
         /// <summary>Whether the table holds a row with this `SkillId and Level`.</summary>
-        public bool ContainsSkillIdAndLevel(SkillTable.Record skillIdKey, int levelKey) => _recordsBySkillIdAndLevel.ContainsKey(KeyOfSkillIdAndLevel(skillIdKey, levelKey));
+        public bool ContainsSkillIdAndLevel(string skillIdKey, int levelKey) => _recordsBySkillIdAndLevel.ContainsKey(KeyOfSkillIdAndLevel(skillIdKey, levelKey));
         #endregion // Indexing by `SkillId and Level`
 
         /// <summary>

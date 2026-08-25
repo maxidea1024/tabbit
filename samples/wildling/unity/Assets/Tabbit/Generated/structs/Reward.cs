@@ -41,7 +41,8 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class ItemReward : Reward
     {
-        public ItemTable.Record ItemId;
+        public string ItemId;
+        public ItemTable.Record ItemByItemId;
     }
 
     /// <summary>
@@ -55,7 +56,8 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class CurrencyReward : Reward
     {
-        public CurrencyTable.Record CurrencyId;
+        public string CurrencyId;
+        public CurrencyTable.Record CurrencyByCurrencyId;
     }
 
     /// <summary>
@@ -69,7 +71,8 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class MonsterReward : Reward
     {
-        public MonsterTable.Record MonsterId;
+        public string MonsterId;
+        public MonsterTable.Record MonsterByMonsterId;
     }
 
     /// <summary>
@@ -83,6 +86,7 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class ShardReward : Reward
     {
-        public MonsterTable.Record MonsterId;
+        public string MonsterId;
+        public MonsterTable.Record MonsterByMonsterId;
     }
 } // namespace Wildling.Data

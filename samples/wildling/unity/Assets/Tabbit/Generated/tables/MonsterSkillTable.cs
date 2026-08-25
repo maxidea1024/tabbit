@@ -116,12 +116,12 @@ namespace Wildling.Data
         private Dictionary<string, Record> _recordsByMonsterIdAndSkillId = new Dictionary<string, Record>();
 
         /// <summary>Joins the columns of the `MonsterId and SkillId` key into the text the map is keyed by.</summary>
-        private static string KeyOfMonsterIdAndSkillId(MonsterTable.Record monsterIdKey, SkillTable.Record skillIdKey)
+        private static string KeyOfMonsterIdAndSkillId(string monsterIdKey, string skillIdKey)
         {
             var parts = new string[]
             {
-                monsterIdKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                skillIdKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                monsterIdKey,
+                skillIdKey,
             };
 
             var text = new StringBuilder();
@@ -140,14 +140,14 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByMonsterIdAndSkillId(MonsterTable.Record monsterIdKey, SkillTable.Record skillIdKey)
+        public Record FindByMonsterIdAndSkillId(string monsterIdKey, string skillIdKey)
             => _recordsByMonsterIdAndSkillId.TryGetValue(KeyOfMonsterIdAndSkillId(monsterIdKey, skillIdKey), out Record record) ? record : null;
 
         /// <summary>
         /// The row with this `MonsterId and SkillId`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByMonsterIdAndSkillIdOrThrow(MonsterTable.Record monsterIdKey, SkillTable.Record skillIdKey)
+        public Record GetByMonsterIdAndSkillIdOrThrow(string monsterIdKey, string skillIdKey)
         {
             if (!_recordsByMonsterIdAndSkillId.TryGetValue(KeyOfMonsterIdAndSkillId(monsterIdKey, skillIdKey), out Record record))
                 throw new TabbitException($"There is no record in table `MonsterSkill` that corresponds to field `MonsterId and SkillId` value ({monsterIdKey}, {skillIdKey})");
@@ -156,7 +156,7 @@ namespace Wildling.Data
         }
 
         /// <summary>Whether the table holds a row with this `MonsterId and SkillId`.</summary>
-        public bool ContainsMonsterIdAndSkillId(MonsterTable.Record monsterIdKey, SkillTable.Record skillIdKey) => _recordsByMonsterIdAndSkillId.ContainsKey(KeyOfMonsterIdAndSkillId(monsterIdKey, skillIdKey));
+        public bool ContainsMonsterIdAndSkillId(string monsterIdKey, string skillIdKey) => _recordsByMonsterIdAndSkillId.ContainsKey(KeyOfMonsterIdAndSkillId(monsterIdKey, skillIdKey));
         #endregion // Indexing by `MonsterId and SkillId`
 
         /// <summary>

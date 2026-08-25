@@ -65,7 +65,8 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class ItemRequirement : Requirement
     {
-        public ItemTable.Record ItemId;
+        public string ItemId;
+        public ItemTable.Record ItemByItemId;
         public int Amount;
     }
 
@@ -80,6 +81,7 @@ namespace Wildling.Data
     [System.Serializable]
     public sealed partial class StageRequirement : Requirement
     {
-        public StageTable.Record StageId;
+        public string StageId;
+        public StageTable.Record StageByStageId;
     }
 } // namespace Wildling.Data

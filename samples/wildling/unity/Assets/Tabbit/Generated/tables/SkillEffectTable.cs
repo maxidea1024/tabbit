@@ -179,11 +179,11 @@ namespace Wildling.Data
         private Dictionary<string, Record> _recordsBySkillIdAndOrder = new Dictionary<string, Record>();
 
         /// <summary>Joins the columns of the `SkillId and Order` key into the text the map is keyed by.</summary>
-        private static string KeyOfSkillIdAndOrder(SkillTable.Record skillIdKey, int orderKey)
+        private static string KeyOfSkillIdAndOrder(string skillIdKey, int orderKey)
         {
             var parts = new string[]
             {
-                skillIdKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                skillIdKey,
                 orderKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
             };
 
@@ -203,14 +203,14 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBySkillIdAndOrder(SkillTable.Record skillIdKey, int orderKey)
+        public Record FindBySkillIdAndOrder(string skillIdKey, int orderKey)
             => _recordsBySkillIdAndOrder.TryGetValue(KeyOfSkillIdAndOrder(skillIdKey, orderKey), out Record record) ? record : null;
 
         /// <summary>
         /// The row with this `SkillId and Order`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetBySkillIdAndOrderOrThrow(SkillTable.Record skillIdKey, int orderKey)
+        public Record GetBySkillIdAndOrderOrThrow(string skillIdKey, int orderKey)
         {
             if (!_recordsBySkillIdAndOrder.TryGetValue(KeyOfSkillIdAndOrder(skillIdKey, orderKey), out Record record))
                 throw new TabbitException($"There is no record in table `SkillEffect` that corresponds to field `SkillId and Order` value ({skillIdKey}, {orderKey})");
@@ -219,7 +219,7 @@ namespace Wildling.Data
         }
 
         /// <summary>Whether the table holds a row with this `SkillId and Order`.</summary>
-        public bool ContainsSkillIdAndOrder(SkillTable.Record skillIdKey, int orderKey) => _recordsBySkillIdAndOrder.ContainsKey(KeyOfSkillIdAndOrder(skillIdKey, orderKey));
+        public bool ContainsSkillIdAndOrder(string skillIdKey, int orderKey) => _recordsBySkillIdAndOrder.ContainsKey(KeyOfSkillIdAndOrder(skillIdKey, orderKey));
         #endregion // Indexing by `SkillId and Order`
 
         /// <summary>

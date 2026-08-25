@@ -66,12 +66,14 @@ namespace Wildling.Data
                         return new ItemRequirement
                         {
                             ItemId = _req.ItemId,
+                            ItemByItemId = _req.ItemByItemId,
                             Amount = _req.Amount,
                         };
                     case 4:
                         return new StageRequirement
                         {
                             StageId = _req.StageId,
+                            StageByStageId = _req.StageByStageId,
                         };
                 }
 
@@ -171,11 +173,11 @@ namespace Wildling.Data
         private Dictionary<string, Record> _recordsByRequirementGroupIdAndOrder = new Dictionary<string, Record>();
 
         /// <summary>Joins the columns of the `RequirementGroupId and Order` key into the text the map is keyed by.</summary>
-        private static string KeyOfRequirementGroupIdAndOrder(RequirementGroupTable.Record requirementGroupIdKey, int orderKey)
+        private static string KeyOfRequirementGroupIdAndOrder(string requirementGroupIdKey, int orderKey)
         {
             var parts = new string[]
             {
-                requirementGroupIdKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                requirementGroupIdKey,
                 orderKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
             };
 
@@ -195,14 +197,14 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRequirementGroupIdAndOrder(RequirementGroupTable.Record requirementGroupIdKey, int orderKey)
+        public Record FindByRequirementGroupIdAndOrder(string requirementGroupIdKey, int orderKey)
             => _recordsByRequirementGroupIdAndOrder.TryGetValue(KeyOfRequirementGroupIdAndOrder(requirementGroupIdKey, orderKey), out Record record) ? record : null;
 
         /// <summary>
         /// The row with this `RequirementGroupId and Order`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByRequirementGroupIdAndOrderOrThrow(RequirementGroupTable.Record requirementGroupIdKey, int orderKey)
+        public Record GetByRequirementGroupIdAndOrderOrThrow(string requirementGroupIdKey, int orderKey)
         {
             if (!_recordsByRequirementGroupIdAndOrder.TryGetValue(KeyOfRequirementGroupIdAndOrder(requirementGroupIdKey, orderKey), out Record record))
                 throw new TabbitException($"There is no record in table `RequirementEntry` that corresponds to field `RequirementGroupId and Order` value ({requirementGroupIdKey}, {orderKey})");
@@ -211,7 +213,7 @@ namespace Wildling.Data
         }
 
         /// <summary>Whether the table holds a row with this `RequirementGroupId and Order`.</summary>
-        public bool ContainsRequirementGroupIdAndOrder(RequirementGroupTable.Record requirementGroupIdKey, int orderKey) => _recordsByRequirementGroupIdAndOrder.ContainsKey(KeyOfRequirementGroupIdAndOrder(requirementGroupIdKey, orderKey));
+        public bool ContainsRequirementGroupIdAndOrder(string requirementGroupIdKey, int orderKey) => _recordsByRequirementGroupIdAndOrder.ContainsKey(KeyOfRequirementGroupIdAndOrder(requirementGroupIdKey, orderKey));
         #endregion // Indexing by `RequirementGroupId and Order`
 
         /// <summary>

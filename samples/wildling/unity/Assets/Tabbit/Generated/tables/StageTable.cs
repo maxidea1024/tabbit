@@ -177,11 +177,11 @@ namespace Wildling.Data
         private Dictionary<string, Record> _recordsByRegionIdAndIndex = new Dictionary<string, Record>();
 
         /// <summary>Joins the columns of the `RegionId and Index` key into the text the map is keyed by.</summary>
-        private static string KeyOfRegionIdAndIndex(RegionTable.Record regionIdKey, int indexKey)
+        private static string KeyOfRegionIdAndIndex(string regionIdKey, int indexKey)
         {
             var parts = new string[]
             {
-                regionIdKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                regionIdKey,
                 indexKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
             };
 
@@ -201,14 +201,14 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRegionIdAndIndex(RegionTable.Record regionIdKey, int indexKey)
+        public Record FindByRegionIdAndIndex(string regionIdKey, int indexKey)
             => _recordsByRegionIdAndIndex.TryGetValue(KeyOfRegionIdAndIndex(regionIdKey, indexKey), out Record record) ? record : null;
 
         /// <summary>
         /// The row with this `RegionId and Index`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByRegionIdAndIndexOrThrow(RegionTable.Record regionIdKey, int indexKey)
+        public Record GetByRegionIdAndIndexOrThrow(string regionIdKey, int indexKey)
         {
             if (!_recordsByRegionIdAndIndex.TryGetValue(KeyOfRegionIdAndIndex(regionIdKey, indexKey), out Record record))
                 throw new TabbitException($"There is no record in table `Stage` that corresponds to field `RegionId and Index` value ({regionIdKey}, {indexKey})");
@@ -217,7 +217,7 @@ namespace Wildling.Data
         }
 
         /// <summary>Whether the table holds a row with this `RegionId and Index`.</summary>
-        public bool ContainsRegionIdAndIndex(RegionTable.Record regionIdKey, int indexKey) => _recordsByRegionIdAndIndex.ContainsKey(KeyOfRegionIdAndIndex(regionIdKey, indexKey));
+        public bool ContainsRegionIdAndIndex(string regionIdKey, int indexKey) => _recordsByRegionIdAndIndex.ContainsKey(KeyOfRegionIdAndIndex(regionIdKey, indexKey));
         #endregion // Indexing by `RegionId and Index`
 
         /// <summary>

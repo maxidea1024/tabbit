@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/Const.xlsx : Const_Growth : A1
+    // Generated from samples/wildling/기획데이터/Const.xlsx : Const_Growth : A1
     /// <summary>
     /// 성장 상한이다.
     /// </summary>

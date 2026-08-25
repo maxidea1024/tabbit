@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/Const.xlsx : Const_Battle : A1
+    // Generated from samples/wildling/기획데이터/Const.xlsx : Const_Battle : A1
     /// <summary>
     /// 전투 계산의 계수이다.
     /// </summary>
