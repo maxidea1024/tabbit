@@ -566,6 +566,8 @@ def build_encounter():
         ("encounter_id", "string", "식별자", "c,s"),
         ("region_id", "foreign Region", "어느 지역인가", "c,s"),
         ("requirement_group_id", "foreign RequirementGroup?", "은둔 슬롯의 조건", "c,s"),
+        # **멀티 로우 그룹에 DSL struct 이름을 붙이면 컬럼 대응이 어긋납니다** — 거절은
+        # 없어졌지만 값을 다른 칸에서 읽습니다(도구 보고 §5). 그래서 멤버를 인라인으로 적습니다.
         ("entries[].monster_id", "foreign Monster", "어느 단계가 나오는가", "c,s"),
         ("entries[].weight", "int (min=1)", "가중치", "c,s"),
         ("entries[].encounter_slot", "EncounterSlot", "어느 슬롯에서 나오는가", "c,s"),
