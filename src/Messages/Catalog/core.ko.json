@@ -97,7 +97,7 @@
   "cook.index-field-optional": "인덱스 필드는 옵셔널일 수 없습니다: 모든 행이 인덱스를 가져야 하므로 인덱스 필드에 `int?`는 허용되지 않습니다.",
   "cook.index-field-target-side": "인덱스 필드의 타깃 사이드는 CS여야 합니다.",
   "cook.wire-tag-on-serial-member": "필드 `{Table}.{Field}`은 시리얼 필드 `{Serial}`의 일부인데 와이어 태그 {Tag:를} 달고 있습니다. 시리얼 필드는 와이어에서 컬럼 하나이므로, 태그는 첫 멤버에만 붙습니다.",
-  "cook.wire-tag-only-on-tombstone": "테이블 `{Table}`에 `#`으로 제외된 컬럼이 와이어 태그를 예약하고 있는데, 살아 있는 필드 중에는 태그를 든 것이 없습니다. 태그는 테이블 단위로 전부이거나 전무입니다: 모든 필드에 `@N`을 주거나, 그 묘비에서 태그를 지우십시오.",
+  "cook.wire-tag-only-on-tombstone": "테이블 `{Table}`에 `#`으로 제외된 컬럼이 와이어 태그를 예약하고 있는데, 살아 있는 필드 중에는 태그를 든 것이 없습니다. 태그는 테이블 단위로 전부이거나 전무입니다: 모든 필드에 `@N`을 주거나, 그 Tombstone에서 태그를 지우십시오.",
   "cook.wire-tags-partial": "테이블 `{Table}`이 일부 필드에만 태그를 달았습니다: {Untagged}에 `@N`이 없습니다. 태그는 테이블 단위로 전부이거나 전무입니다 — 절반만 태그된 테이블은 어느 방식의 보장도 받지 못합니다.",
   "cook.wire-tag-reused": "필드 `{Table}.{Field}`이 와이어 태그 {Tag:를} 선언했는데, {Holder:가} 이미 그것을 쓰고 있습니다. 태그는 데이터가 사는 동안 컬럼을 지목하므로 나눠 쓰거나 재사용할 수 없습니다.",
   "validate.rule-has-no-entry": "[{File}]에 실행할 것이 없습니다. 규칙 파일은 `public static void {Entry}({Context} context)`를 가진 클래스이고, 보고는 그 context로 합니다. 진입점이 없는 도우미는 `{SharedPath}/`에 둡니다 — 그곳은 모든 규칙과 함께 컴파일되지만 혼자 실행되지 않습니다.",
