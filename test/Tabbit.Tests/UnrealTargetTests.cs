@@ -116,6 +116,57 @@ public class UnrealTargetTests
     }
 
     /// <summary>
+    /// The constant sets reach the module, in the engine's types.
+    /// </summary>
+    /// <remarks>
+    /// **This target emitted no constants at all until now** - every other one did, and a set
+    /// a sheet declared simply did not appear. Compiling says the literals are accepted; this
+    /// says what they are, which compiling cannot: an array constant is a brace list either
+    /// way and a `TArray<FString>` of the wrong strings compiles as happily as the right one.
+    ///
+    /// Not reflected, deliberately. A constant is a value the generated code hands over, not
+    /// a row a designer edits, so a `UCLASS` of getters would be a second surface for every
+    /// set. spec/primary-layout.md section 8.5.
+    /// </remarks>
+    [Fact]
+    public void The_constant_sets_reach_the_module()
+    {
+        TabbitRunner.Convert(Scenario);
+
+        string header = File.ReadAllText(Path.Combine(
+            ModuleDir(Scenario, "TabbitCore"), "Public", "FTabbitCore.h"));
+
+        Assert.Contains("struct FGameConfig", header);
+
+        // A scalar of each shape that is not just a number: the engine's string, its date,
+        // and a label that names its enum rather than casting to a number.
+        Assert.Contains("static inline const int32 MaxLevel = 100;", header);
+        Assert.Contains("static inline const FDateTime SeasonStart = FDateTime(", header);
+        Assert.Contains("EGrade DefaultGrade = EGrade::Rare;", header);
+
+        // `FGuid` takes four words and not text, and they are the words the reader folds the
+        // wire bytes into - so a constant and a column holding one uuid are one value.
+        Assert.Contains("FGuid BuildId = FGuid(0x6f9619ffu, 0x8b86d011u,", header);
+
+        // And the arrays, which are what a brace list is for.
+        Assert.Contains(
+            "static inline const TArray<FString> Tiers = "
+            + "{ TEXT(\"bronze\"), TEXT(\"silver\"), TEXT(\"gold\") };",
+            header);
+
+        Assert.Contains("static inline const TArray<int32> Thresholds = { 10, 50, 100 };", header);
+
+        // One element, where a separator has nowhere to go.
+        Assert.Contains("static inline const TArray<int32> Single = { 1 };", header);
+
+        // An enum element names its label here too.
+        Assert.Contains(
+            "static inline const TArray<EGrade> Ladder = "
+            + "{ EGrade::Common, EGrade::Rare, EGrade::Epic };",
+            header);
+    }
+
+    /// <summary>
     /// Nothing in the module throws.
     ///
     /// Unreal builds a module with exceptions disabled unless its Build.cs asks

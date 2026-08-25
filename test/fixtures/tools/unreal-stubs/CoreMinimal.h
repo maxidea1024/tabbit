@@ -37,6 +37,7 @@
 #include <string>
 #include <type_traits>
 #include <unordered_map>
+#include <initializer_list>
 #include <vector>
 
 // --------------------------------------------------------------------- integers
@@ -242,6 +243,12 @@ template <typename T>
 class TArray
 {
 public:
+    TArray() = default;
+
+    // The engine's `TArray` takes a brace list, and a generated constant is written as one -
+    // an array constant is a list of literals and there is nothing else to write it as.
+    TArray(std::initializer_list<T> Values) : Storage(Values) {}
+
     int32 Num() const { return static_cast<int32>(Storage.size()); }
 
     T* GetData() { return Storage.data(); }

@@ -29,7 +29,38 @@ internal sealed class UnrealFileView
     /// </remarks>
     public IReadOnlyList<UnrealPolymorphicTypeView> Structs { get; set; }
         = new List<UnrealPolymorphicTypeView>();
+
+    /// <summary>
+    /// The constant sets, which this target did not emit at all until now.
+    /// </summary>
+    /// <remarks>
+    /// **Not reflected.** A constant is a value the generated code hands over, not a row a
+    /// designer edits in the editor, and a `UCLASS` of getters would be a second surface for
+    /// every set - so these are plain `static inline const` members, the shape the C++ target
+    /// writes. spec/primary-layout.md section 8.5.
+    /// </remarks>
+    public IReadOnlyList<UnrealConstantSetView> ConstantSets { get; set; }
+        = new List<UnrealConstantSetView>();
+
     public required UnrealAccessorView Accessor { get; set; }
+}
+
+/// <summary>One constant set, as this target's single header holds it.</summary>
+internal sealed class UnrealConstantSetView
+{
+    public required string Name { get; set; }
+    public required string Location { get; set; }
+    public required IReadOnlyList<string> Comment { get; set; }
+    public required IReadOnlyList<UnrealConstantView> Constants { get; set; }
+}
+
+/// <summary>One constant.</summary>
+internal sealed class UnrealConstantView
+{
+    public required string Name { get; set; }
+    public required string Type { get; set; }
+    public required string Value { get; set; }
+    public required IReadOnlyList<string> Comment { get; set; }
 }
 
 internal sealed class UnrealEnumView

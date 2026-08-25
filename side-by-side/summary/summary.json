@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-25T23:45:51.0256803+09:00",
+    "generatedAt": "2026-08-26T00:18:21.2812799+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "b2bec7f9560281d911ec0c35bd2ea08b2ef7a672",
-      "shortHash": "b2bec7f95602",
+      "hash": "cf4e30de2bd00e6ce3252013f58ae33ac3c0bca8",
+      "shortHash": "cf4e30de2bd0",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-25T22:31:07.0000000+09:00",
-      "subject": "docs: 「묘비」를 Tombstone으로",
+      "committedAt": "2026-08-26T00:02:02.0000000+09:00",
+      "subject": "fix: wildling 보고의 남은 항목 — 참조·상수·검사가 가리키는 곳",
       "origin": "git",
       "dirty": true,
       "attributable": false

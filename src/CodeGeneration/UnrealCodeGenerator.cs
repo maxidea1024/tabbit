@@ -356,6 +356,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         Enums = _model.Enums.Select(BuildEnum).ToList(),
         Tables = _model.Tables.Select(BuildTable).ToList(),
         Structs = BuildStructs(),
+        ConstantSets = _model.ConstantSets.Select(BuildConstantSet).ToList(),
         Accessor = new UnrealAccessorView
         {
             FileExtension = _recipe.BinaryTableFileExtension,
@@ -1201,6 +1202,196 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// The Unreal type a field's values have. A reference's is the key it carries rather
     /// than the record it presents. spec/reference-key-types.md.
     /// </summary>
+    private UnrealConstantSetView BuildConstantSet(ConstantSet set) => new UnrealConstantSetView
+    {
+        Name = "F" + set.Name.ToPascalCase(),
+        Location = set.Location.ToString(),
+        Comment = CommentLines(set.Comment),
+        Constants = set.Constants.Select(constant => new UnrealConstantView
+        {
+            Name = constant.Name.ToPascalCase(),
+            Type = ConstantTypeName(constant),
+            Value = RenderConstantValue(constant),
+            Comment = CommentLines(constant.Comment),
+        }).ToList(),
+    };
+
+    /// <summary>
+    /// How a constant's type is spelled, arrays included.
+    /// </summary>
+    /// <remarks>
+    /// The type functions answer for an element and let the caller add the brackets, exactly
+    /// as a field's do - so an array constant asks for the element and wraps it here.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
+    private string ConstantTypeName(ConstantSet.Constant constant)
+    {
+        string element = ToUnrealTypeName(
+            ValueTypes.ElementOf(constant.Type), constant.Enum);
+
+        return ValueTypes.IsArray(constant.Type)
+            ? LanguageProfile.Unreal.ArrayOf(element)
+            : element;
+    }
+
+    /// <summary>
+    /// The literal a constant is written as.
+    /// </summary>
+    /// <remarks>
+    /// **An array constant is its elements in a brace list**, which is what `TArray` takes.
+    /// The element spelling is the scalar one, so this wraps rather than repeats it.
+    ///
+    /// A constant never reaches the file, so there is no wire question here: what a language
+    /// needs is an expression its compiler accepts in the place a constant is declared.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
+    private string RenderConstantValue(ConstantSet.Constant constant)
+    {
+        if (!ValueTypes.IsArray(constant.Type))
+            return RenderConstantScalar(constant, constant.Type, constant.Value);
+
+        var element = ValueTypes.ElementOf(constant.Type);
+
+        string joined = string.Join(", ",
+            ((System.Array)constant.Value!).Cast<object?>()
+                .Select(value => RenderConstantScalar(constant, element, value)));
+
+        return "{ " + joined + " }";
+    }
+
+    /// <summary>One element, or a constant that is one value.</summary>
+    private string RenderConstantScalar(
+        ConstantSet.Constant constant, ValueType type, object? value)
+    {
+        switch (type)
+        {
+            case ValueType.String:
+                return "TEXT(\"" + EscapeUnrealString((string)value!) + "\")";
+
+            case ValueType.Bool:
+                return (bool)value! ? "true" : "false";
+
+            case ValueType.Int32:
+                return ((int)value!).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            case ValueType.Int64:
+                return ((long)value!).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                       + "LL";
+
+            case ValueType.Float:
+                return ((float)value!).ToString(
+                    "R", System.Globalization.CultureInfo.InvariantCulture) + "f";
+
+            case ValueType.Double:
+                return ((double)value!).ToString(
+                    "R", System.Globalization.CultureInfo.InvariantCulture);
+
+            // Ticks, and named: the reader constructs these the same way
+            // (`Out = FDateTime(Ticks)`), and neither type converts from an integer on its
+            // own. A bare `LL` compiles nowhere.
+            case ValueType.DateTime:
+                return "FDateTime(" + ((System.DateTime)value!).Ticks.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture) + "LL)";
+
+            case ValueType.TimeSpan:
+                return "FTimespan(" + ((System.TimeSpan)value!).Ticks.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture) + "LL)";
+
+            // **The four words, computed the way the reader computes them.** `FGuid` has no
+            // constructor from text, and the one from four `uint32` is the shape both the
+            // engine and the stub carry - so a constant is built from the same bytes and in
+            // the same order as a column, and the two agree by construction rather than by
+            // both being right on their own.
+            case ValueType.Uuid:
+                return UnrealGuidLiteral((System.Guid)value!);
+
+            case ValueType.Enum:
+            {
+                var label = constant.Enum.GetLabel(value!, constant.Location);
+
+                return EnumName(constant.Enum) + "::" + label.Name.ToPascalCase();
+            }
+
+            default:
+                throw new TabbitException(constant.Location,
+                    Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
+                        ("Name", constant.Name), ("Type", type),
+                        ("Generator", "unreal")));
+        }
+    }
+
+    /// <summary>
+    /// A uuid as `FGuid(A, B, C, D)`, in the words the reader assembles from the wire bytes.
+    /// </summary>
+    /// <remarks>
+    /// The file carries the sixteen bytes .NET writes, and `TabbitTcbReader` folds them into
+    /// four words: the first is the low four bytes little-endian, the second is the next two
+    /// pairs each little-endian and packed high-then-low, and the last two are four bytes each
+    /// big-endian. Repeated here rather than approximated, because a constant and a column
+    /// holding the same uuid have to be the same value.
+    /// </remarks>
+    private static string UnrealGuidLiteral(System.Guid value)
+    {
+        byte[] bytes = value.ToByteArray();
+
+        uint a = (uint)bytes[0] | (uint)bytes[1] << 8 | (uint)bytes[2] << 16 | (uint)bytes[3] << 24;
+
+        uint data2 = (uint)bytes[4] | (uint)bytes[5] << 8;
+        uint data3 = (uint)bytes[6] | (uint)bytes[7] << 8;
+        uint b = data2 << 16 | data3;
+
+        uint c = (uint)bytes[8] << 24 | (uint)bytes[9] << 16
+                 | (uint)bytes[10] << 8 | bytes[11];
+
+        uint d = (uint)bytes[12] << 24 | (uint)bytes[13] << 16
+                 | (uint)bytes[14] << 8 | bytes[15];
+
+        string Word(uint word)
+            => "0x" + word.ToString("x8", System.Globalization.CultureInfo.InvariantCulture)
+               + "u";
+
+        return $"FGuid({Word(a)}, {Word(b)}, {Word(c)}, {Word(d)})";
+    }
+
+    /// <summary>
+    /// A string as a `TEXT(...)` literal's body.
+    /// </summary>
+    /// <remarks>
+    /// The same set the C++ target escapes, and for the same reason: non-ASCII passes through
+    /// because the file is UTF-8, and a control character would otherwise end the literal or
+    /// be invisible in it.
+    /// </remarks>
+    private static string EscapeUnrealString(string input)
+    {
+        var literal = new System.Text.StringBuilder(input.Length + 2);
+
+        foreach (char c in input)
+        {
+            switch (c)
+            {
+                case '"': literal.Append("\\\""); break;
+                case '\\': literal.Append(@"\\"); break;
+                case '\n': literal.Append(@"\n"); break;
+                case '\r': literal.Append(@"\r"); break;
+                case '\t': literal.Append(@"\t"); break;
+                default:
+                    if (c < 0x20)
+                    {
+                        literal.Append(@"\x").Append(((int)c).ToString(
+                            "x2", System.Globalization.CultureInfo.InvariantCulture));
+                    }
+                    else
+                    {
+                        literal.Append(c);
+                    }
+
+                    break;
+            }
+        }
+
+        return literal.ToString();
+    }
+
     private string ToUnrealTypeName(Field? field)
         => ValueTypes.ElementOf(field!.ElementType) == ValueType.ForeignRecord
             ? ToUnrealTypeName(field!.RefKeyType, field.ResolvedRefTable?.PrimaryIndexField?.EnumOrNull)

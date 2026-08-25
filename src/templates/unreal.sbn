@@ -56,6 +56,26 @@ enum class {{ enumm.name }} : {{ enumm.underlying_type }}
 {{~ end ~}}
 };
 {{~ end ~}}
+{{~## **The constant sets.** Not reflected: a constant is a value the generated code hands
+   over, not a row a designer edits in the editor, and a UCLASS of getters would be a second
+   surface for every set. So a plain struct of `static inline const` members, which is the
+   shape the C++ target writes. spec/primary-layout.md section 8.5. ##~}}
+{{~ for set in constant_sets }}
+
+/* Generated from {{ set.location }} */
+{{~ for line in set.comment ~}}
+/** {{ line }} */
+{{~ end ~}}
+struct {{ set.name }}
+{
+{{~ for constant in set.constants ~}}
+{{~ for line in constant.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+    static inline const {{ constant.type }} {{ constant.name }} = {{ constant.value }};
+{{~ end ~}}
+};
+{{~ end ~}}
 {{~## **The declared abstract types: a UENUM saying which variant, and one USTRUCT per variant.**
    A USTRUCT cannot take part in inheritance polymorphism the engine's reflection can see, so
    this target falls on the same side C does - the discriminator is read and then the variant it
