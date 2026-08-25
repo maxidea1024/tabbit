@@ -110,6 +110,8 @@ foreach ($data->vectors->records as $r) {
     // The reference indices, which is what the exporter writes for a foreign field.
     $row .= ',"owner":' . $r->ownerIndex;
     $row .= ',"tier":' . $r->tierIndex;
+    // And one reference per element, printed as the stored index each came in as.
+    $row .= ',"owners":[' . \implode(',', \array_map('strval', $r->ownersIndex)) . ']';
     // The three the v104 encodings win on.
     $row .= ',"count":' . number($r->count);
     $row .= ',"route":' . quoted($r->route);

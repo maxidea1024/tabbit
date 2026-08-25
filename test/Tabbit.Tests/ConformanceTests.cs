@@ -68,6 +68,12 @@ public class ConformanceTests
         // or does not load, and never arrives here.
         { "owner", "int" },
         { "tier", "int" },
+
+        // And a reference per element, whose length is the row's. The one column whose
+        // reader has to allocate the resolved slots rather than assign into a record it
+        // already sized - which is the whole of what `ForeignRecordArray` costs a target.
+        // spec/polymorphism.md section 4.
+        { "owners", "int[]" },
     };
 
     [Fact]

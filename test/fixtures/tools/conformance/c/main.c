@@ -217,6 +217,17 @@ int main(int argc, char** argv)
         printf("],\"owner\":%d,\"tier\":%d,",
                (int)r->owner_index, (int)r->tier_index);
 
+        /* And one reference per element, printed as the stored index each came in as. */
+        fputs("\"owners\":[", stdout);
+        for (i = 0; i < r->owners_count; ++i) {
+            if (i > 0)
+                putchar(',');
+
+            printf("%d", (int)r->owners_index[i]);
+        }
+
+        fputs("],", stdout);
+
         /* The three the v104 encodings win on. */
         fputs("\"count\":", stdout);
         print_number(r->count);

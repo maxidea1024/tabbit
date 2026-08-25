@@ -93,6 +93,9 @@ const rows = table.records.map(r => ({
     owner: r._owner_Owners_index,
     tier: r._tier_Owners_index,
 
+    // And one reference per element, printed as the stored index each came in as.
+    owners: r._owners_Owners_index,
+
     // The three the v104 encodings win on.
     count: r.count,
     route: r.route,

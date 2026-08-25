@@ -108,6 +108,16 @@ fn main() {
         json.push_str(&format!(",\"owner\":{}", record.owner_index));
         json.push_str(&format!(",\"tier\":{}", record.tier_index));
 
+        // And one reference per element, printed as the stored index each came in as.
+        json.push_str(",\"owners\":[");
+        for (k, index) in record.owners_index.iter().enumerate() {
+            if k > 0 {
+                json.push(',');
+            }
+            json.push_str(&index.to_string());
+        }
+        json.push(']');
+
         // The three the v104 encodings win on.
         json.push_str(&format!(",\"count\":{:e}", record.count));
         json.push_str(&format!(",\"route\":{}", quote(&record.route)));

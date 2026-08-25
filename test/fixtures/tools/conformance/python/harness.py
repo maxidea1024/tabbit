@@ -73,6 +73,9 @@ def main():
             "owner": record.owner_index,
             "tier": record.tier_index,
 
+            # And one reference per element, printed as the stored index each came in as.
+            "owners": list(record.owners_index),
+
             # The three the v104 encodings win on.
             "count": record.count,
             "route": record.route,

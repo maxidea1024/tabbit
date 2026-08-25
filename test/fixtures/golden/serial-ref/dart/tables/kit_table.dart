@@ -101,6 +101,7 @@ class KitTable {
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
             record.slotIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.slot = List.filled(elementCount, null);
           }
           break;
         case 3:
@@ -109,6 +110,7 @@ class KitTable {
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
             record.tierIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.tier = List.filled(elementCount, null);
           }
           break;
         default:

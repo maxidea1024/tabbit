@@ -91,6 +91,9 @@ func main() {
 			"owner": r.OwnerIndex,
 			"tier":  r.TierIndex,
 
+			// And one reference per element, printed as the stored index each came in as.
+			"owners": r.OwnersIndex,
+
 			// The three the v104 encodings win on.
 			"count": r.Count,
 			"route": r.Route,

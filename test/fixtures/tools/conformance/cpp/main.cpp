@@ -139,6 +139,12 @@ int main(int argc, char** argv) {
     json << ",\"owner\":" << r.owner_index;
     json << ",\"tier\":" << r.tier_index;
 
+    // And one reference per element, printed as the stored index each came in as.
+    json << ",\"owners\":[";
+    for (std::size_t k = 0; k < r.owners_index.size(); ++k)
+        json << (k > 0 ? "," : "") << r.owners_index[k];
+    json << "]";
+
     // The three the v104 encodings win on.
     json << ",\"count\":" << number(r.count);
     json << ",\"route\":" << quote(r.route);

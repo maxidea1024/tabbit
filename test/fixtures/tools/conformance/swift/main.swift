@@ -95,6 +95,9 @@ do {
         json += ",\"owner\":\(r.ownerIndex)"
         json += ",\"tier\":\(r.tierIndex)"
 
+        // And one reference per element, printed as the stored index each came in as.
+        json += ",\"owners\":[" + r.ownersIndex.map { String($0) }.joined(separator: ",") + "]"
+
         // The three the v104 encodings win on.
         json += ",\"count\":\(r.count)"
         json += ",\"route\":\(quote(r.route))"

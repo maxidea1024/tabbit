@@ -8,8 +8,8 @@ blank-cell/blank-cell.xlsx	sheets=1 rows=8 cells=23 chars=211 names=0 skipped-na
 composite-expanded/composite-expanded.xlsx	sheets=1 rows=9 cells=139 chars=752 names=0 skipped-names=0 hash=e0b233ab0016da8e
 composite-key/composite-key.xlsx	sheets=4 rows=36 cells=128 chars=897 names=0 skipped-names=0 hash=3c687b72b11b83ae
 composite/composite.xlsx	sheets=1 rows=9 cells=55 chars=508 names=0 skipped-names=0 hash=bfef1f578517e9cf
-conformance-skew/conformance-skew.xlsx	sheets=1 rows=67 cells=847 chars=9294 names=0 skipped-names=0 hash=a8247147fbe9d3b3
-conformance/conformance.xlsx	sheets=1 rows=67 cells=807 chars=9077 names=0 skipped-names=0 hash=d44aee154e233809
+conformance-skew/conformance-skew.xlsx	sheets=1 rows=67 cells=878 chars=9429 names=0 skipped-names=0 hash=06c013c9f02a6064
+conformance/conformance.xlsx	sheets=1 rows=67 cells=838 chars=9212 names=0 skipped-names=0 hash=7fb946ae946532d0
 core/core.xlsx	sheets=7 rows=62 cells=405 chars=3394 names=0 skipped-names=0 hash=25ee85e3e63fc457
 declared-expanded/declared-expanded.xlsx	sheets=1 rows=9 cells=67 chars=604 names=0 skipped-names=0 hash=d59cbe470ecf4070
 declared/declared.xlsx	sheets=1 rows=9 cells=58 chars=374 names=0 skipped-names=0 hash=a1668e5f73f9e6a8

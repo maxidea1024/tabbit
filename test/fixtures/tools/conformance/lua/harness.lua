@@ -100,6 +100,9 @@ local ok, err = pcall(function()
       .. ",\"owner\":" .. number(record.ownerIndex)
       .. ",\"tier\":" .. number(record.tierIndex)
 
+      -- And one reference per element, printed as the stored index each came in as.
+      .. ",\"owners\":" .. array(record.ownersIndex, number)
+
       .. ",\"count\":" .. number(record.count)
       .. ",\"route\":" .. escaped(record.route)
       .. ",\"zone\":" .. escaped(record.zone)

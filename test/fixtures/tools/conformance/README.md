@@ -24,12 +24,21 @@ is not at the mercy of how a language renders a date.
 | `uuid` | JSON string, lower case with hyphens |
 | `enum` | JSON number |
 | `foreign` | JSON number - the **stored index**, which is what the exporter writes |
+| `foreign[]` | JSON array of those indices |
 | any array | JSON array of the above |
 
-The corpus carries two references into a second table, `owner` pointing at a whole row and
-`tier` at one of that row's fields. They are compared as the index each came in as, because
+The corpus carries three references into a second table: `owner` pointing at a whole row,
+`tier` at one of that row's fields, and `owners` holding a row per element with the length
+each row's own. They are compared as the index each came in as, because
 that is what the exporter has to compare against - it writes the stored index, not the value
 a reference resolves to.
+
+`owners` is the one that costs a target something the others do not: the resolved slots are
+sized from the row's element count rather than assigned into a record the reader already
+sized. Adding it found two generators that had never been run against the shape - one that
+never sized the slots and one that read into a member its own header does not declare - and
+both were wrong for the folded form of the same thing, whose gate compiles the header and
+not the body.
 
 What they are really for is the loading. Splitting each target's output into a file per table
 gave every language a question it did not have before - how does one table's file reach

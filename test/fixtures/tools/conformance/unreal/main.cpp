@@ -166,6 +166,12 @@ int main(int argc, char** argv) {
     json << ",\"owner\":" << r.OwnerIndex;
     json << ",\"tier\":" << r.TierIndex;
 
+    // And one reference per element, printed as the stored index each came in as.
+    json << ",\"owners\":[";
+    for (int32 k = 0; k < r.OwnersIndex.Num(); ++k)
+        json << (k > 0 ? "," : "") << r.OwnersIndex[k];
+    json << "]";
+
     // The three the v104 encodings win on.
     json << ",\"count\":" << number(r.Count);
     json << ",\"route\":" << quote(r.Route.ToUtf8());

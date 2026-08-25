@@ -78,6 +78,12 @@ internal static class Program
             json.Append(",\"owner\":").Append(r._owner_Owners_index);
             json.Append(",\"tier\":").Append(r._tier_Owners_index);
 
+            // And one reference per element, printed as the stored index each came in as.
+            json.Append(",\"owners\":[");
+            for (int k = 0; k < r._owners_Owners_index.Length; k++)
+                json.Append(k > 0 ? "," : "").Append(r._owners_Owners_index[k]);
+            json.Append(']');
+
             // The three the v104 encodings win on.
             json.Append(",\"count\":").Append(Number(r.Count));
             json.Append(",\"route\":").Append(Quote(r.Route));

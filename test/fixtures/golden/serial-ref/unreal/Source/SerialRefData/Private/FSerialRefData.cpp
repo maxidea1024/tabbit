@@ -340,7 +340,15 @@ bool FKitTable::Read(const FString& Filename)
 
             for (FKitRow& Record : Loaded)
             {
-                Cursor.NextAs(Column.Element, Record.Slot);
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.SlotIndex.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.SlotIndex.Num() < ElementCount && !Reader.HasFailed())
+                {
+                    Cursor.NextAs(Column.Element, Record.SlotIndex.AddDefaulted_GetRef());
+                }
             }
 
             break;
@@ -351,7 +359,15 @@ bool FKitTable::Read(const FString& Filename)
 
             for (FKitRow& Record : Loaded)
             {
-                Cursor.NextAs(Column.Element, Record.Tier);
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.TierIndex.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.TierIndex.Num() < ElementCount && !Reader.HasFailed())
+                {
+                    Cursor.NextAs(Column.Element, Record.TierIndex.AddDefaulted_GetRef());
+                }
             }
 
             break;
@@ -728,7 +744,25 @@ bool FTrimKitTable::Read(const FString& Filename)
 
             for (FTrimKitRow& Record : Loaded)
             {
-                Cursor.NextAs(Column.Element, Record.Slot);
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.SlotIndex.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.SlotIndex.Num() < ElementCount && !Reader.HasFailed())
+                {
+                    Cursor.NextAs(Column.Element, Record.SlotIndex.AddDefaulted_GetRef());
+                }
+                Record.bHasSlotAt.Empty(
+                    Tabbit::ReserveBound(ElementCount));
+
+                for (int32 ElementIndex = 0; ElementIndex < ElementCount; ++ElementIndex)
+                {
+                    Record.bHasSlotAt.Add(
+                        Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
+                }
+
+                ElementAt += ElementCount;
             }
 
             break;
@@ -743,7 +777,25 @@ bool FTrimKitTable::Read(const FString& Filename)
 
             for (FTrimKitRow& Record : Loaded)
             {
-                Cursor.NextAs(Column.Element, Record.Tier);
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.TierIndex.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.TierIndex.Num() < ElementCount && !Reader.HasFailed())
+                {
+                    Cursor.NextAs(Column.Element, Record.TierIndex.AddDefaulted_GetRef());
+                }
+                Record.bHasTierAt.Empty(
+                    Tabbit::ReserveBound(ElementCount));
+
+                for (int32 ElementIndex = 0; ElementIndex < ElementCount; ++ElementIndex)
+                {
+                    Record.bHasTierAt.Add(
+                        Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
+                }
+
+                ElementAt += ElementCount;
             }
 
             break;

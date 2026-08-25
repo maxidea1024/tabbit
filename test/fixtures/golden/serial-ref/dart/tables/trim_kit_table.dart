@@ -109,6 +109,7 @@ class TrimKitTable {
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
             record.slotIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.slot = List.filled(elementCount, null);
             record.hasSlotAt =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
             elementAt += elementCount;
@@ -124,6 +125,7 @@ class TrimKitTable {
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
             record.tierIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.tier = List.filled(elementCount, null);
             record.hasTierAt =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
             elementAt += elementCount;

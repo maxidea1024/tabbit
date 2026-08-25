@@ -95,6 +95,12 @@ public final class Harness {
             json.append(",\"owner\":").append(r.ownerIndex);
             json.append(",\"tier\":").append(r.tierIndex);
 
+            // And one reference per element, printed as the stored index each came in as.
+            json.append(",\"owners\":[");
+            for (int k = 0; k < r.ownersIndex.length; k++)
+                json.append(k > 0 ? "," : "").append(r.ownersIndex[k]);
+            json.append(']');
+
             // The three the v104 encodings win on.
             json.append(",\"count\":").append(r.count);
             json.append(",\"route\":").append(quote(r.route));

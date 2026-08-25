@@ -68,6 +68,14 @@ void main(List<String> args) {
     json.write(',"owner":${r.ownerIndex}');
     json.write(',"tier":${r.tierIndex}');
 
+    // And one reference per element, printed as the stored index each came in as.
+    json.write(',"owners":[');
+    for (var k = 0; k < r.ownersIndex.length; k++) {
+      json.write(k > 0 ? ',' : '');
+      json.write(r.ownersIndex[k]);
+    }
+    json.write(']');
+
     // The three the v104 encodings win on.
     json.write(',"count":${r.count}');
     json.write(',"route":${quote(r.route)}');

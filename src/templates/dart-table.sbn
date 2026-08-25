@@ -245,9 +245,15 @@ class {{ table.table_name }} {
 {{~ end ~}}
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys are the list this row's length builds; the
-   resolved values are filled by the linking pass. spec/variable-length-record-arrays.md. ##~}}
+   resolved values are filled by the linking pass. spec/variable-length-record-arrays.md.
+
+   **The slots are built here and not there.** The linking assigns into them by position, and
+   Dart's growable list refuses an index it has no element at - so a list left empty makes the
+   first row with a reference throw at load rather than resolve. Every slot is nullable, which
+   is what says "not resolved yet", so filling with null is also the right starting value. ##~}}
             final elementCount = {{ column_view.length_read }};
             record.{{ column_view.name }}Index = List.generate(elementCount, (_) => {{ column_view.read_element }});
+            record.{{ column_view.name }} = List.filled(elementCount, null);
 {{~ if column_view.has_optional_elements ~}}
             record.{{ column_view.element_presence_member }} =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));

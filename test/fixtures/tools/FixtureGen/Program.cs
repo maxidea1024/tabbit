@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NPOI.XSSF.UserModel;
 
 namespace Tabbit.FixtureGen;
@@ -3133,6 +3134,13 @@ internal static class Program
             .Field(FieldSpec.Of("tier", "foreign", "one field of another table's row",
                                 detailType: "Owners.rank"))
 
+            // A reference per element, with the length the row's. This is the one column
+            // whose reader has to allocate the resolved slots rather than assign into a
+            // record it already sized, so it is the only place `ForeignRecordArray` is read.
+            // spec/polymorphism.md section 4.
+            .Field(FieldSpec.Of("owners", "foreign[]", "a row of another table per element",
+                                detailType: "Owners"))
+
             // The three columns the v104 encodings need somewhere to win.
             //
             // A spreadsheet has one kind of number, so a column of counts arrives as
@@ -3152,30 +3160,30 @@ internal static class Program
             // paths at length zero.
             .Row("1", "0", "0", "0", "0", "", "N",
                  "0001-01-01 00:00:00", "00:00:00", "00000000-0000-0000-0000-000000000000",
-                 "None", "", "", "", "", "0", "0", "0", "", "")
+                 "None", "", "", "", "", "0", "0", "", "0", "", "")
 
             // The value a double cannot hold, and one varint byte short of two.
             .Row("2", "63", "9007199254740993", "0.1", "0.1", "ascii", "Y",
                  "2022-03-01 09:00:00", "0.00:05:00", "6f9619ff-8b86-d011-b42d-00c04fc964ff",
-                 "One", "0;1;-1", "a;b", "One", "6f9619ff-8b86-d011-b42d-00c04fc964ff", "1", "1",
+                 "One", "0;1;-1", "a;b", "One", "6f9619ff-8b86-d011-b42d-00c04fc964ff", "1", "1", "1",
                  "1", "north_gate_small_leg_north_gate", "north_gate_small_leg_north_gate")
 
             // Its negative, and the zig-zag boundary either side of zero.
             .Row("3", "-64", "-9007199254740993", "-0.1", "-0.1", "é한Ａ", "N",
                  "9999-12-31 23:59:59", "-0.00:05:00", "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                 "Negative", "-2147483648;2147483647", "", "Negative;Large", "00000000-0000-0000-0000-000000000000;ffffffff-ffff-ffff-ffff-ffffffffffff", "2", "2",
+                 "Negative", "-2147483648;2147483647", "", "Negative;Large", "00000000-0000-0000-0000-000000000000;ffffffff-ffff-ffff-ffff-ffffffffffff", "2", "2", "2;3",
                  "-1", "south_wall_large_leg_south_wall", "north_gate_small_leg_north_gate")
 
             // Three varint bytes, and both 32-bit extremes.
             .Row("4", "1048576", "-1", "3.4028235E+38", "1.7976931348623157E+308", "  spaced  ", "Y",
                  "1970-01-01 00:00:00", "10675199.02:48:05", "01020304-0506-0708-090a-0b0c0d0e0f10",
-                 "Large", "1048576", "one;;three", "None;One;Large", "01020304-0506-0708-090a-0b0c0d0e0f10", "3", "3",
+                 "Large", "1048576", "one;;three", "None;One;Large", "01020304-0506-0708-090a-0b0c0d0e0f10", "3", "3", "1;2;3",
                  "2", "east_tower_small_leg_east_tower", "north_gate_small_leg_north_gate")
 
             // Five varint bytes each way.
             .Row("5", "2147483647", "9223372036854775807", "1.4E-45", "5E-324", "tail", "N",
                  "2038-01-19 03:14:07", "00:00:00.0000001", "ffffffff-0000-ffff-0000-ffffffffffff",
-                 "None", "134217728;-134217729", "z", "Large", "ffffffff-0000-ffff-0000-ffffffffffff", "1", "3",
+                 "None", "134217728;-134217729", "z", "Large", "ffffffff-0000-ffff-0000-ffffffffffff", "1", "3", "3",
                  "3", "west_gate_large_leg_west_gate", "south_wall_large_leg_south_wall")
 
             // Negative zero is deliberately not here: JSON has no such value, so the
@@ -3184,7 +3192,7 @@ internal static class Program
             // does survive the round trip.
             .Row("6", "-2147483648", "-9223372036854775808", "-1.4E-45", "-5E-324", "", "Y",
                  "2000-02-29 12:00:00", "1.00:00:00", "80000000-0000-0000-0000-000000000001",
-                 "One", "", "é", "", "80000000-0000-0000-0000-000000000001", "3", "1",
+                 "One", "", "é", "", "80000000-0000-0000-0000-000000000001", "3", "1", "2;1",
                  "-2", "upper_wall_small_leg_upper_wall", "south_wall_large_leg_south_wall");
 
         // The encoding rows: enough of each shape that every column encoding of
@@ -3260,6 +3268,14 @@ internal static class Program
                 // are not dense, so this is the ordinary case rather than a contrived one.
                 at == 7 ? "1000" : pattern[at % pattern.Length].ToString(),
                 pattern[(at + 3) % pattern.Length].ToString(),
+
+                // The reference array, with a length that varies and an empty row among
+                // them - so the reader allocates a different number of slots per row and
+                // has to get zero right as well.
+                at % 4 == 0
+                    ? ""
+                    : string.Join(";", Enumerable.Range(1, at % 4)
+                        .Select(n => pattern[(at + n) % pattern.Length].ToString())),
 
                 // Whole numbers stepping by one, which the integer encodings flatten to a
                 // run of deltas once the column says its values are integers.
