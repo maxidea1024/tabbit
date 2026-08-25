@@ -59,6 +59,42 @@ type {{ table.record_name }} struct {
    id bands, so at most one of them ever answers and a member per target would be permanently
    nil. spec/multi-target-accessors.md. ##~}}
 }
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+
+{{~## **The interface, built once per call from the flat entry.** Which variant a row is only
+   became knowable when the discriminator column arrived, so the entry is read as it always was
+   and the value is built from it here - which is why the read path and the wire are untouched.
+
+   A method rather than a field, because the group's own name is what a consumer should write
+   and a field already holding the entry cannot share it. spec/polymorphism.md section 7.2. ##~}}
+// {{ field.name }} is what this row's {{ field.abstract_type_name }} is. Narrow it with a type
+// switch: the interface is sealed, so the variants in this package are the whole list.
+func (r *{{ table.record_name }}) {{ field.name }}() {{ field.abstract_type_name }} {
+	switch r.{{ field.entry_field_name }}.Type {
+{{~ for variant in field.variants ~}}
+	case {{ variant.discriminator }}:
+		return {{ variant.type_name }}{
+			{{ field.abstract_base_name }}: {{ field.abstract_base_name }}{
+{{~ for member in field.base_members ~}}
+				{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
+{{~ end ~}}
+			},
+{{~ for member in variant.members ~}}
+			{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
+{{~ end ~}}
+		}
+{{~ end ~}}
+	}
+
+{{~## An unknown number is a variant this build does not have. Unlike a column added later,
+   which the reader skips, that makes the whole row uninterpretable - so it is reported rather
+   than read as a neighbour. ##~}}
+	panic(fmt.Sprintf(
+		"{{ field.abstract_type_name }}: no variant is numbered %d", r.{{ field.entry_field_name }}.Type))
+}
+{{~ end ~}}
+{{~ end ~}}
 
 // {{ table.table_name }} holds every row of {{ table.raw_name }}.
 type {{ table.table_name }} struct {

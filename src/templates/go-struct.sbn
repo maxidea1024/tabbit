@@ -1,0 +1,60 @@
+{{~## One abstract type and its variants. `structure` is the single declaration this file is for.
+
+   **A sealed interface, which is this language's sum type.** There is no inheritance here, so
+   the abstract type is an interface with an unexported method: only this package can satisfy it,
+   which is what makes the set closed - a consumer narrows with a type switch and the compiler
+   knows the list is complete.
+
+   The base fields are an embedded struct rather than repeated per variant, so `d.Chance` works
+   on any variant by promotion. And the interface carries one `Base()` so a consumer holding the
+   interface can read them without switching at all - one method rather than one getter per
+   field, because the field list is the declaration's and grows. spec/polymorphism.md section 7.
+##~}}
+{{ include 'go-file-head.sbn' ~}}
+// {{ structure.name }} is one value of the declared type, whichever shape it took.
+//
+// Narrow it with a type switch. The interface is sealed by {{ structure.seal_name }}, so this
+// package's variants are the whole list:
+//
+//\tswitch v := effect.(type) {
+//\tcase {{ structure.variants[0].type_name }}:
+//\t\t_ = v
+//\t}
+type {{ structure.name }} interface {
+	{{ structure.seal_name }}()
+
+	// Base is what every variant carries, reachable without narrowing.
+	Base() {{ structure.base_name }}
+}
+
+// {{ structure.base_name }} holds what every {{ structure.name }} carries.
+type {{ structure.base_name }} struct {
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+	// {{ line }}
+{{~ end ~}}
+	{{ member.field_name }} {{ member.field_type }}
+{{~ end ~}}
+}
+
+// Base returns the fields every variant shares.
+func (b {{ structure.base_name }}) Base() {{ structure.base_name }} { return b }
+{{~ for variant in structure.variants ~}}
+
+// {{ variant.type_name }} is one shape of {{ structure.name }}.
+//
+// The file carries {{ variant.discriminator }} for it. That number rather than the name is what
+// lets this variant be renamed without a deployed reader reading a different one.
+type {{ variant.type_name }} struct {
+	{{ structure.base_name }}
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+
+	// {{ line }}
+{{~ end ~}}
+	{{ member.field_name }} {{ member.field_type }}
+{{~ end ~}}
+}
+
+func ({{ variant.type_name }}) {{ structure.seal_name }}() {}
+{{~ end ~}}

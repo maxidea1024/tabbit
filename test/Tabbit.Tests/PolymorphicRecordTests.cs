@@ -204,4 +204,34 @@ public class PolymorphicRecordTests
         Assert.Equal("amount=20", own["Mend"]);
         Assert.Equal("none", own["Feint"]);
     }
+
+    /// <summary>
+    /// The generated Go compiles: a sealed interface and one struct per variant.
+    /// </summary>
+    /// <remarks>
+    /// **Compiling is the whole of this one.** There is no inheritance in this language, so the
+    /// abstract type is an interface sealed by an unexported method and every variant embeds the
+    /// base struct - and all of that is a claim the compiler settles. A variant that did not
+    /// satisfy the interface, or a base field the embedding did not promote, fails here.
+    /// spec/polymorphism.md section 7.
+    /// </remarks>
+    [Fact]
+    public void The_generated_go_compiles()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        // A hard failure rather than a skip, as with the other toolchain gates: a gate that
+        // quietly turns itself off is worse than no gate.
+        Assert.True(ConformanceHarness.GoIsAvailable(out string why),
+            $"A Go toolchain is required to check the generated code. {why}");
+
+        var result = ConformanceHarness.CompileGo(Scenario);
+
+        Assert.True(result.Succeeded,
+            $"Generated Go for a polymorphic group does not compile."
+            + $"{System.Environment.NewLine}{result.Output}");
+    }
 }

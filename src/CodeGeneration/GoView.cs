@@ -41,6 +41,9 @@ internal sealed class GoPartView
     /// <summary>The enum this file is for, when it is an enum file.</summary>
     public GoEnumView? Enumm { get; set; }
 
+    /// <summary>The abstract type this file declares, when it declares one.</summary>
+    public GoPolymorphicTypeView? Structure { get; set; }
+
     /// <summary>The constant set this file is for, when it is a constants file.</summary>
     public GoConstantSetView? Set { get; set; }
 
@@ -157,6 +160,38 @@ internal sealed class GoIndexView
 /// </summary>
 internal sealed class GoFieldView
 {
+    /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// The interface is declared in a file of its own - one per declaration - and this is what
+    /// the record needs to build a value of it: which number means which variant, and which of
+    /// the entry's fields each one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// </remarks>
+    public IReadOnlyList<GoVariantView> Variants { get; set; } = new List<GoVariantView>();
+
+    /// <summary>The interface the variants satisfy, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>The embedded struct holding what every variant carries, or empty.</summary>
+    public string AbstractBaseName { get; set; } = "";
+
+    /// <summary>The members every variant carries.</summary>
+    public IReadOnlyList<GoStructMemberView> BaseMembers { get; set; }
+        = new List<GoStructMemberView>();
+
+    /// <summary>
+    /// What the flat entry is called on the record.
+    /// </summary>
+    /// <remarks>
+    /// Unexported for a polymorphic group, because there the entry is what the read fills and
+    /// not what a consumer wants - the method carrying the group's own name is. A field and a
+    /// method cannot share a name in this language, so one of the two has to give, and the one
+    /// that gives is the one nobody outside the package should be reading.
+    /// spec/polymorphism.md section 7.2.
+    /// </remarks>
+    public string EntryFieldName { get; set; } = "";
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     public required string Name { get; set; }
@@ -518,4 +553,62 @@ internal sealed class GoReferenceFieldView
 
     public required string Value { get; set; }
     public required bool IsArray { get; set; }
+}
+
+/// <summary>
+/// An abstract type and its variants, as one Go file.
+/// </summary>
+/// <remarks>
+/// **A sealed interface, which is this language's sum type.** There is no inheritance here, so
+/// the abstract type is an interface with an unexported method - only this package can satisfy
+/// it, which is what makes the set closed - and a consumer narrows with a type switch.
+///
+/// The base fields are an embedded struct rather than repeated per variant, so `d.Chance`
+/// works on any variant by promotion; and the interface carries one `Base()` method so a
+/// consumer holding the interface can read them without switching at all. One method rather
+/// than one getter per field, because the field list is the declaration's and grows.
+/// spec/polymorphism.md section 7.
+/// </remarks>
+internal sealed class GoPolymorphicTypeView
+{
+    /// <summary>The abstract type's name - the interface's name.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>The unexported method that seals the interface.</summary>
+    public required string SealName { get; set; }
+
+    /// <summary>The embedded struct holding what every variant carries.</summary>
+    public required string BaseName { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<GoStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<GoVariantView> Variants { get; set; }
+}
+
+/// <summary>One variant of a <see cref="GoPolymorphicTypeView"/>.</summary>
+internal sealed class GoVariantView
+{
+    /// <summary>The variant's declared name - the struct a consumer asserts to.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<GoStructMemberView> Members { get; set; }
+}
+
+/// <summary>One member of an abstract type or of one of its variants.</summary>
+internal sealed class GoStructMemberView
+{
+    /// <summary>The field's name.</summary>
+    public required string FieldName { get; set; }
+
+    /// <summary>Its Go type.</summary>
+    public required string FieldType { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
 }

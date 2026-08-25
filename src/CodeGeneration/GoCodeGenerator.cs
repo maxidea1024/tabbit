@@ -241,6 +241,20 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             });
         }
 
+        // A struct is an entity beside a table and an enum, so it gets a file of its own - one
+        // per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            Write("struct_" + declared.Name.ToSnakeCase() + ".go", "go-struct.sbn",
+                  new GoPartView
+                  {
+                      AccessorName = AccessorType,
+                      PackageName = _recipe.PackageName,
+                      Imports = Imports(System.Array.Empty<string>(), reader: false),
+                      Structure = BuildStruct(declared),
+                  });
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             // A constant set names no standard library type, and reaches the reader only
@@ -255,6 +269,46 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                   });
         }
     }
+
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// The members are columns, so their types come out of the same conversion a table's do.
+    /// spec/polymorphism.md section 7.1.
+    /// </remarks>
+    private GoPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new GoPolymorphicTypeView
+        {
+            Name = GoName(declared.Name),
+            SealName = "is" + GoName(declared.Name),
+            BaseName = GoName(declared.Name) + "Base",
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new GoVariantView
+                {
+                    TypeName = GoName(variant.Name),
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private GoStructMemberView StructMember(Models.Field field)
+        => new GoStructMemberView
+        {
+            FieldName = GoName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            FieldType = ToGoTypeName(
+                field.Type,
+                field.Type is Models.ValueType.Enum or Models.ValueType.EnumArray
+                    ? field.Enum
+                    : null,
+                field.RefTableName),
+            Comment = CommentLines(field.Comment),
+        };
 
     /// <summary>
     /// Flat rather than in `tables/`, `enums/` and `constants/` as the other targets do.
@@ -643,6 +697,21 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         string name = GoName(sf.Name);
         string elementType = RecordTypeName(table, sf);
 
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
+        // The entry steps aside for a polymorphic group: the name belongs to the method that
+        // hands back the interface, and a field cannot share it. spec/polymorphism.md 7.2.
+        string entryName = declaredType is null
+            ? name
+            : char.ToLowerInvariant(name[0]) + name.Substring(1);
+
         // Innermost first, so a struct is declared before the one naming it.
         var recordTypes = new List<GoRecordTypeView>();
         var members = BuildRecordMembers(sf.Members, elementType, table, sf, recordTypes);
@@ -668,9 +737,22 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             Declarations = new[]
             {
                 sf.MembersAreAnonymous
-                    ? $"{name} [][]{ToGoTypeName(sf.Members[0].FirstField!.ElementType, sf.Members[0].FirstField!.EnumOrNull, null)}"
-                    : sf.IsArray ? $"{name} []{elementType}" : $"{name} {elementType}",
+                    ? $"{entryName} [][]{ToGoTypeName(sf.Members[0].FirstField!.ElementType, sf.Members[0].FirstField!.EnumOrNull, null)}"
+                    : sf.IsArray ? $"{entryName} []{elementType}" : $"{entryName} {elementType}",
             },
+
+            EntryFieldName = entryName,
+            AbstractTypeName = declaredType is null ? "" : GoName(declaredType.Name),
+            AbstractBaseName = declaredType is null ? "" : GoName(declaredType.Name) + "Base",
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new GoVariantView
+                {
+                    TypeName = GoName(variant.Name),
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
             IsRecord = true,
             RecordTypeName = elementType,
 
@@ -703,9 +785,28 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// columns each fill one field of the generated element type, which is the whole of the
     /// difference - see spec/nested-fields.md.
     /// </remarks>
-    private GoColumnView BuildColumn(Table table, WireColumn wire)
+    /// <summary>
+    /// What a group's flat entry is called on the record.
+    /// </summary>
+    /// <remarks>
+    /// Unexported for a polymorphic group: there the group's own name belongs to the method
+    /// that hands back the interface, and a field cannot share it with a method. Every read
+    /// target has to agree with the declaration, so both ask this.
+    /// spec/polymorphism.md section 7.2.
+    /// </remarks>
+    private string EntryName(WireColumn wire)
     {
         string name = GoName(wire.Group.Name);
+
+        bool polymorphic = wire.Group.Members.Any(
+            member => member.IsLeaf && member.FirstField is { IsDiscriminator: true });
+
+        return polymorphic ? char.ToLowerInvariant(name[0]) + name.Substring(1) : name;
+    }
+
+    private GoColumnView BuildColumn(Table table, WireColumn wire)
+    {
+        string name = EntryName(wire);
 
         // A record's member column assigns one field of the element rather than the member
         // itself: `r.Slot[j].Id` instead of `r.Slot[j]`. Everything else about reading it is
@@ -1058,7 +1159,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         if (RunCall(wire).Length == 0)
             return "";
 
-        string name = GoName(wire.Group.Name);
+        string name = EntryName(wire);
         string memberAccess = (wire.Member is null) ? "" : string.Concat(wire.MemberPath.Select(part => "." + GoName(part)));
 
         // Only the stored index is on the wire; the value is filled in once every table
@@ -1146,7 +1247,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// </remarks>
     private GoRecordReferenceView BuildRecordReference(WireColumn wire)
     {
-        string name = GoName(wire.Group.Name);
+        string name = EntryName(wire);
         string member = string.Concat(wire.MemberPath.Select(part => "." + GoName(part)));
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
