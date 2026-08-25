@@ -12,6 +12,7 @@
 #include "enums/PolyData_EnumBand.h"
 #include "tables/PolyData_Element.h"
 #include "tables/PolyData_Skill.h"
+#include "tables/PolyData_Combo.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,6 +22,7 @@ extern "C" {
 typedef struct PolyData_t {
   PolyData_ElementTable_t element;
   PolyData_SkillTable_t skill;
+  PolyData_ComboTable_t combo;
 } PolyData_t;
 
 /* Reads every table from base_path, then links the references between them.

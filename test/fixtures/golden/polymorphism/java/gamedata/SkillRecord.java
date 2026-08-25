@@ -52,41 +52,44 @@ public final class SkillRecord {
      * What this row's Effect is. Narrow it with {@code instanceof}.
      */
     public Effect effect() {
-        if (effectValue != null) {
-            return effectValue;
+        if (effectValue == null) {
+            effectValue = effectElement(effect);
         }
 
-        switch (effect.type) {
+        return effectValue;
+    }
+
+    /** Builds one value from the entry the read filled. */
+    private static Effect effectElement(
+            EffectEntry entry) {
+        switch (entry.type) {
             case 1: {
                 Effect.DamageEffect built =
                     new Effect.DamageEffect();
-                built.chance = effect.chance;
-                built.damage = effect.damage;
-                built.pierces = effect.pierces;
-                built.elementId = effect.elementId;
-                built.elementByElementId = effect.elementByElementId;
-                effectValue = built;
+                built.chance = entry.chance;
+                built.damage = entry.damage;
+                built.pierces = entry.pierces;
+                built.elementId = entry.elementId;
+                built.elementByElementId = entry.elementByElementId;
                 return built;
             }
             case 2: {
                 Effect.HealEffect built =
                     new Effect.HealEffect();
-                built.chance = effect.chance;
-                built.amount = effect.amount;
-                built.band = effect.band;
-                effectValue = built;
+                built.chance = entry.chance;
+                built.amount = entry.amount;
+                built.band = entry.band;
                 return built;
             }
             case 3: {
                 Effect.NoEffect built =
                     new Effect.NoEffect();
-                built.chance = effect.chance;
-                effectValue = built;
+                built.chance = entry.chance;
                 return built;
             }
         }
 
         throw new IllegalStateException(
-            "Effect: no variant is numbered " + effect.type);
+            "Effect: no variant is numbered " + entry.type);
     }
 }

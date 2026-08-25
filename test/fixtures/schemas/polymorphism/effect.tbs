@@ -49,3 +49,15 @@ struct HealEffect extends Effect @2
 /// Here because a variant with no fields has to work: what is left is the name, and the
 /// discriminator is the whole of what the row carries. spec/polymorphism.md section 3.
 struct NoEffect extends Effect @3
+
+/// A variant that was dropped, kept as a tombstone so that `@4` is not handed to another one.
+///
+/// **This is what the notation is for and this fixture is where it is exercised end to end.**
+/// A reader built while this variant existed still reads 4 as this shape, and rows written then
+/// still carry it - so a new variant given 4 would be read as this one, with no error anywhere.
+/// Nothing is generated for it: `PolymorphicRecordTests` asserts the name appears in no output
+/// file, which is what says a tombstone declares nothing. spec/polymorphism.md section 5.1.1.
+struct BurnEffect extends Effect @4 (removed)
+    /// Kept below the line it was dropped on, which is the point of the notation: `(removed)`
+    /// goes on the declaration and nothing else in the file moves.
+    field burnTurns int

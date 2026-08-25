@@ -141,7 +141,29 @@ export class {{ name }}Record {
    go stale. Where several columns fill one array the length is still a number this code has
    to know, and there it is written into the allocation rather than published.
    spec/nullable-array-elements.md. ##~}}
-{{~ if field.kind == 'array_of_arrays' ~}}
+{{~ if field.variants.size > 0 ~}}
+{{~## **The union, built once on first use.** The entry below is what the read filled - one
+   assignment per column - and which variant it is only became knowable when the discriminator
+   column arrived. Building it here rather than while reading keeps the read path and the wire
+   exactly as they were, and a row nobody looks at costs nothing.
+   spec/polymorphism.md section 7.2.
+
+   This comes before the array branches on purpose: a polymorphic column is read as entries
+   either way, and what a consumer wants is the union - one of it, or a list of it. ##~}}
+{{~ if field.variants_are_array ~}}
+  public get {{ field.prop_name }}(): {{ field.abstract_type_name }}[] {
+    return this.{{ field.field_name }}_value ?? (this.{{ field.field_name }}_value = this.{{ field.field_name }}.map(build{{ field.prop_name | string.capitalize }}))
+  }
+
+  private {{ field.field_name }}_value: {{ field.abstract_type_name }}[] | null = null
+{{~ else ~}}
+  public get {{ field.prop_name }}(): {{ field.abstract_type_name }} {
+    return this.{{ field.field_name }}_value ?? (this.{{ field.field_name }}_value = build{{ field.prop_name | string.capitalize }}(this.{{ field.field_name }}))
+  }
+
+  private {{ field.field_name }}_value: {{ field.abstract_type_name }} | null = null
+{{~ end ~}}
+{{~ else if field.kind == 'array_of_arrays' ~}}
 {{~## The declared type is already the inner array, so the accessor is that array's array.
    spec/nested-multi-level.md. ##~}}
   public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
@@ -156,17 +178,6 @@ export class {{ name }}Record {
 {{~ else if field.row_prop_name != '' ~}}
   public get {{ field.prop_name }}(): {{ field.ref_key_type_name }} { return this.{{ field.field_name }}_{{ field.ref_table }}_index }
   public get {{ field.row_prop_name }}(): {{ field.field_type }} { return this.{{ field.field_name }} }
-{{~ else if field.variants.size > 0 ~}}
-{{~## **The union, built once on first use.** The entry below is what the read filled - one
-   assignment per column - and which variant it is only became knowable when the discriminator
-   column arrived. Building it here rather than while reading keeps the read path and the wire
-   exactly as they were, and a row nobody looks at costs nothing.
-   spec/polymorphism.md section 7.2. ##~}}
-  public get {{ field.prop_name }}(): {{ field.abstract_type_name }} {
-    return this.{{ field.field_name }}_value ?? (this.{{ field.field_name }}_value = build{{ field.prop_name | string.capitalize }}(this.{{ field.field_name }}))
-  }
-
-  private {{ field.field_name }}_value: {{ field.abstract_type_name }} | null = null
 {{~ else ~}}
   public get {{ field.prop_name }}(): {{ field.field_type }} { return this.{{ field.field_name }} }
 {{~ end ~}}

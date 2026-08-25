@@ -530,6 +530,56 @@ public class SchemaParserTests
     public void A_discriminator_on_a_struct_that_extends_nothing_is_refused()
         => Assert.Contains("extends nothing", Refusal("struct Reward @2"));
 
+    /// <summary>
+    /// A dropped variant, written the way a dropped member is - `(removed)` on the line.
+    /// </summary>
+    /// <remarks>
+    /// The number is the whole of what it holds, and the fields left below it are what makes
+    /// the notation an editing gesture rather than a rewrite: `(removed)` goes on the line and
+    /// nothing else moves. spec/polymorphism.md section 5.1.1.
+    /// </remarks>
+    [Fact]
+    public void A_dropped_variant_is_written_with_removed()
+    {
+        var file = Parse("""
+            abstract struct Effect
+            struct DamageEffect extends Effect @1
+            struct HealEffect extends Effect @2 (removed)
+                field amount int
+            """);
+
+        var gone = file.Structs[2];
+
+        Assert.True(gone.IsRemoved);
+        Assert.Equal("Effect", gone.BaseName);
+        Assert.Equal(2, gone.VariantDiscriminator);
+
+        // The live one beside it is untouched, which is what says `(removed)` is read off the
+        // line it is on and nothing else.
+        Assert.False(file.Structs[1].IsRemoved);
+    }
+
+    [Fact]
+    public void A_dropped_variant_extending_nothing_is_refused()
+        => Assert.Contains("extends nothing", Refusal("struct Gone @2 (removed)"));
+
+    [Fact]
+    public void A_dropped_variant_with_no_discriminator_is_refused()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            struct Gone extends Effect (removed)
+            """);
+
+        Assert.Contains("carries no `@N`", reported);
+    }
+
+    [Fact]
+    public void An_abstract_struct_marked_removed_is_refused()
+        => Assert.Contains(
+            "is the set rather than a member of it",
+            Refusal("abstract struct Effect (removed)"));
+
     [Fact]
     public void A_member_outside_a_struct_is_refused()
         => Assert.Contains("no `struct` above it", Refusal("field itemId int"));

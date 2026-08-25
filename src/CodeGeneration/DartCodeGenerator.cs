@@ -656,6 +656,8 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         return new DartFieldView
         {
+            VariantsAreArray = declaredType is not null && sf.IsArray,
+            EntryAccess = "entry",
             AbstractTypeName = declaredType?.Name ?? "",
             BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
             Variants = (declaredType?.Variants ?? [])

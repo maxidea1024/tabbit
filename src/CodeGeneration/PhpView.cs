@@ -206,6 +206,13 @@ internal sealed class PhpFieldView
     /// <summary>The abstract type the variants make up, or empty.</summary>
     public string AbstractTypeName { get; set; } = "";
 
+    /// <summary>
+    /// Whether the polymorphic group is an array, so each element carries its own
+    /// discriminator and what a consumer reads is a list of the abstract type.
+    /// spec/polymorphism.md section 5.3.
+    /// </summary>
+    public bool VariantsAreArray { get; set; }
+
     /// <summary>The members every variant carries.</summary>
     public IReadOnlyList<PhpStructMemberView> BaseMembers { get; set; }
         = new List<PhpStructMemberView>();

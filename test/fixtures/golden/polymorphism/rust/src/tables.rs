@@ -11,6 +11,7 @@ use std::sync::OnceLock;
 use crate::tabbit;
 use crate::element_table::ElementTable;
 use crate::skill_table::SkillTable;
+use crate::combo_table::ComboTable;
 
 /// The key the table files were sealed with, or unset when they were not sealed.
 ///
@@ -65,6 +66,7 @@ pub static VERIFY_MAC: AtomicBool = AtomicBool::new(true);
 pub struct Tables {
     pub element: ElementTable,
     pub skill: SkillTable,
+    pub combo: ComboTable,
 }
 
 impl Tables {
@@ -89,6 +91,8 @@ impl Tables {
             &base_path.join(format!("Element{}", file_extension)))?;
         loaded.skill.read(
             &base_path.join(format!("Skill{}", file_extension)))?;
+        loaded.combo.read(
+            &base_path.join(format!("Combo{}", file_extension)))?;
 
         *self = loaded;
 

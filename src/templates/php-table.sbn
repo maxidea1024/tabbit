@@ -74,36 +74,71 @@ final class {{ table.record_name }}
    assignment per column - and which variant it is only became knowable when the discriminator
    column arrived. Building it here keeps the read path and the wire exactly as they were.
    spec/polymorphism.md section 7.2. ##~}}
-    private ?{{ field.abstract_type_name }} ${{ field.name }}Value = null;
+{{~ if field.variants_are_array ~}}
+{{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
+   shapes inside one row may differ, and what a consumer reads is a list of the abstract type.
+   The method that builds one is below and is the same either way. ##~}}
+    /** @var ?list<{{ field.abstract_type_name }}> */
+    private ?array ${{ field.name }}Value = null;
 
-    /** What this row's {{ field.abstract_type_name }} is. Narrow it with `instanceof`. */
-    public function {{ field.name }}Of(): {{ field.abstract_type_name }}
+    /**
+     * What this row's {{ field.abstract_type_name }}s are, one per element.
+     *
+     * @return list<{{ field.abstract_type_name }}>
+     */
+    public function {{ field.name }}Of(): array
     {
         if ($this->{{ field.name }}Value !== null) {
             return $this->{{ field.name }}Value;
         }
 
-        switch ($this->{{ field.name }}->type) {
+        $all = [];
+
+        foreach ($this->{{ field.name }} as $entry) {
+            $all[] = self::{{ field.name }}Element($entry);
+        }
+
+        $this->{{ field.name }}Value = $all;
+        return $all;
+    }
+{{~ else ~}}
+    private ?{{ field.abstract_type_name }} ${{ field.name }}Value = null;
+
+    /** What this row's {{ field.abstract_type_name }} is. Narrow it with `instanceof`. */
+    public function {{ field.name }}Of(): {{ field.abstract_type_name }}
+    {
+        if ($this->{{ field.name }}Value === null) {
+            $this->{{ field.name }}Value = self::{{ field.name }}Element($this->{{ field.name }});
+        }
+
+        return $this->{{ field.name }}Value;
+    }
+{{~ end ~}}
+
+    /** Builds one value from the entry the read filled. */
+    private static function {{ field.name }}Element(
+        {{ field.record_type_name }} $entry): {{ field.abstract_type_name }}
+    {
+        switch ($entry->type) {
 {{~ for variant in field.variants ~}}
             case {{ variant.discriminator }}:
                 $built = new {{ variant.type_name }}();
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
-                $built->{{ member.name }} = $this->{{ field.name }}->{{ member.name }};
-                $built->{{ member.row_name }} = $this->{{ field.name }}->{{ member.row_name }};
+                $built->{{ member.name }} = $entry->{{ member.name }};
+                $built->{{ member.row_name }} = $entry->{{ member.row_name }};
 {{~ else ~}}
-                $built->{{ member.name }} = $this->{{ field.name }}->{{ member.name }};
+                $built->{{ member.name }} = $entry->{{ member.name }};
 {{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
-                $built->{{ member.name }} = $this->{{ field.name }}->{{ member.name }};
-                $built->{{ member.row_name }} = $this->{{ field.name }}->{{ member.row_name }};
+                $built->{{ member.name }} = $entry->{{ member.name }};
+                $built->{{ member.row_name }} = $entry->{{ member.row_name }};
 {{~ else ~}}
-                $built->{{ member.name }} = $this->{{ field.name }}->{{ member.name }};
+                $built->{{ member.name }} = $entry->{{ member.name }};
 {{~ end ~}}
 {{~ end ~}}
-                $this->{{ field.name }}Value = $built;
                 return $built;
 {{~ end ~}}
         }
@@ -112,7 +147,7 @@ final class {{ table.record_name }}
    which the reader skips, that makes the whole row uninterpretable. ##~}}
         throw new \RuntimeException(
             '{{ field.abstract_type_name }}: no variant is numbered '
-            . $this->{{ field.name }}->type);
+            . $entry->type);
     }
 {{~ end ~}}
 {{~ end ~}}

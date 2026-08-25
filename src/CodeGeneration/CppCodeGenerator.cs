@@ -835,6 +835,8 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         return new CppFieldView
         {
+            VariantsAreArray = declaredType is not null && sf.IsArray,
+            EntryAccess = "entry",
             AbstractTypeName = declaredType?.Name ?? "",
             DiscriminatorName = declaredType is null
                 ? ""

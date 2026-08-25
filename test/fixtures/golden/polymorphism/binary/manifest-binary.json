@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "934114fd5ac6c8fb21112e941303961c",
-  "TotalSize": 247,
+  "MasterHash": "dff6f396260916f4a79c52140b252a22",
+  "TotalSize": 447,
   "Items": [
     {
       "Name": "Element.tcb",
@@ -13,6 +13,12 @@
       "Name": "Skill.tcb",
       "Size": 178,
       "Hash": "4c7cf165d858daf798c099a7053ec2ab",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Combo.tcb",
+      "Size": 200,
+      "Hash": "8ac5d26f661426bc87822c822b4513ec",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

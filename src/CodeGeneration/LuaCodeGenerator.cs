@@ -638,6 +638,8 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         return new LuaFieldView
         {
+            VariantsAreArray = declaredType is not null && sf.IsArray,
+            EntryAccess = "entry",
             AbstractTypeName = declaredType?.Name ?? "",
             DiscriminatorName = declaredType is null
                 ? ""

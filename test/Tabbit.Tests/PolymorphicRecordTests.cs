@@ -214,6 +214,27 @@ public class PolymorphicRecordTests
         Assert.Equal("damage=50,pierces=true", own["Slash"]);
         Assert.Equal("amount=20", own["Mend"]);
         Assert.Equal("none", own["Feint"]);
+
+        // And the array of them, where each element is its own shape. The narrowing is the
+        // same function the scalar column used, which is what says the getter hands back a
+        // list of the union rather than a list of entries. Section 5.3.
+        var combo = JsonDocument.Parse(result.Output).RootElement
+            .GetProperty("Combo").EnumerateArray().ToArray();
+
+        var kinds = combo.ToDictionary(
+            row => row.GetProperty("name").GetString()!,
+            row => row.GetProperty("kinds").GetString());
+
+        Assert.Equal("DamageEffect,HealEffect", kinds["Flurry"]);
+        Assert.Equal("DamageEffect", kinds["Jab"]);
+        Assert.Equal("NoEffect,DamageEffect,HealEffect", kinds["Chain"]);
+
+        var comboOwn = combo.ToDictionary(
+            row => row.GetProperty("name").GetString()!,
+            row => row.GetProperty("own").GetString());
+
+        Assert.Equal("damage=50,pierces=true,amount=20", comboOwn["Flurry"]);
+        Assert.Equal("none,damage=5,pierces=true,amount=3", comboOwn["Chain"]);
     }
 
     /// <summary>
@@ -322,7 +343,23 @@ public class PolymorphicRecordTests
             + "assert($named['Slash']->effectOf()->damage === 50); "
             + "assert($named['Slash']->effectOf()->pierces === true); "
             + "assert($named['Mend']->effectOf()->amount === 20); "
-            + "assert(!property_exists($named['Mend']->effectOf(), 'damage'));",
+            + "assert(!property_exists($named['Mend']->effectOf(), 'damage')); "
+
+            // And the array of them, where each element is its own shape. Section 5.3.
+            + "$combo = []; "
+            + "foreach ($accessor->combo->records as $r) { $combo[$r->name] = $r; } "
+            + "$named_of = static function ($value) { "
+            + "    return (new \\ReflectionClass($value))->getShortName(); "
+            + "}; "
+            + "$kinds = static function ($row) use ($named_of) { "
+            + "    return implode(',', array_map($named_of, $row->effectsOf())); "
+            + "}; "
+            + "assert($kinds($combo['Flurry']) === 'DamageEffect,HealEffect'); "
+            + "assert($kinds($combo['Jab']) === 'DamageEffect'); "
+            + "assert($kinds($combo['Chain']) === 'NoEffect,DamageEffect,HealEffect'); "
+            + "assert($combo['Chain']->effectsOf()[0]->chance === 10); "
+            + "assert($combo['Chain']->effectsOf()[1]->damage === 5); "
+            + "assert($combo['Chain']->effectsOf()[2]->amount === 3);",
             binaryDir);
 
         Assert.True(result.Succeeded,
@@ -386,6 +423,21 @@ assert not hasattr(rows['Mend'].effect_of(), 'damage')
 
 # Built once: the second call hands back the same object.
 assert rows['Slash'].effect_of() is rows['Slash'].effect_of()
+
+# And the array of them, where each element is its own shape. Section 5.3.
+combo = {r.name: r for r in t.combo.records}
+
+
+def kinds(row):
+    return ','.join(type(e).__name__ for e in row.effects_of())
+
+
+assert kinds(combo['Flurry']) == 'DamageEffect,HealEffect'
+assert kinds(combo['Jab']) == 'DamageEffect'
+assert kinds(combo['Chain']) == 'NoEffect,DamageEffect,HealEffect'
+assert combo['Chain'].effects_of()[0].chance == 10
+assert combo['Chain'].effects_of()[1].damage == 5
+assert combo['Chain'].effects_of()[2].amount == 3
 ",
             binaryDir);
 
@@ -442,7 +494,16 @@ assert rows['Slash'].effect_of() is rows['Slash'].effect_of()
             + "raise unless rows['Mend'].effect_of.amount == 20\n"
             + "raise if rows['Mend'].effect_of.respond_to?(:damage)\n"
             // Built once: the second call hands back the same object.
-            + "raise unless rows['Slash'].effect_of.equal?(rows['Slash'].effect_of)\n",
+            + "raise unless rows['Slash'].effect_of.equal?(rows['Slash'].effect_of)\n"
+            // And the array of them, where each element is its own shape. Section 5.3.
+            + "combo = accessor.combo.records.to_h { |r| [r.name, r] }\n"
+            + "kinds = ->(row) { row.effects_of.map { |e| e.class.name.split('::').last }.join(',') }\n"
+            + "raise unless kinds[combo['Flurry']] == 'DamageEffect,HealEffect'\n"
+            + "raise unless kinds[combo['Jab']] == 'DamageEffect'\n"
+            + "raise unless kinds[combo['Chain']] == 'NoEffect,DamageEffect,HealEffect'\n"
+            + "raise unless combo['Chain'].effects_of[0].chance == 10\n"
+            + "raise unless combo['Chain'].effects_of[1].damage == 5\n"
+            + "raise unless combo['Chain'].effects_of[2].amount == 3\n",
             binaryDir);
 
         Assert.True(result.Succeeded,
@@ -504,6 +565,25 @@ assert(not ok and tostring(err):find('no field'), tostring(err))
 -- A misspelling too, which is the same guard the rows themselves get.
 ok, err = pcall(function() return skill.effectOf(rows['Slash']).chnace end)
 assert(not ok and tostring(err):find('no field'), tostring(err))
+
+-- And the array of them, where each element is its own shape. Section 5.3.
+local combo = {}
+for _, r in ipairs(t.combo.records) do combo[r.name] = r end
+
+local comboTable = require('tables.combo_table')
+
+local function kinds(row)
+  local names = {}
+  for i, effect in ipairs(comboTable.effectsOf(row)) do names[i] = effect.kind end
+  return table.concat(names, ',')
+end
+
+assert(kinds(combo['Flurry']) == 'DamageEffect,HealEffect', kinds(combo['Flurry']))
+assert(kinds(combo['Jab']) == 'DamageEffect')
+assert(kinds(combo['Chain']) == 'NoEffect,DamageEffect,HealEffect')
+assert(comboTable.effectsOf(combo['Chain'])[1].chance == 10)
+assert(comboTable.effectsOf(combo['Chain'])[2].damage == 5)
+assert(comboTable.effectsOf(combo['Chain'])[3].amount == 3)
 ", binaryDir);
 
         Assert.True(result.Succeeded,
@@ -546,6 +626,44 @@ assert(not ok and tostring(err):find('no field'), tostring(err))
         Assert.True(result.Succeeded,
             $"Unreal Header Tool rejected the generated module."
             + $"{System.Environment.NewLine}{result.Output}");
+    }
+
+    /// <summary>
+    /// A dropped variant declares nothing: its name is in no generated file of any language.
+    /// </summary>
+    /// <remarks>
+    /// **The end-to-end half of the tombstone notation.** What the unit tests settle is that
+    /// the number stays reserved; what this settles is the other half - that a tombstone is
+    /// not a variant. It is not in the kind enum, no type is emitted for it, and the member it
+    /// still declares reaches no column. A build that read `(removed)` as decoration would
+    /// leave the name in 15 targets at once, and every one of them would compile.
+    ///
+    /// The fixture's `BurnEffect` holds `@4` and nothing uses 4, which is the whole point:
+    /// a reservation is invisible in the output and load-bearing in the schema.
+    /// spec/polymorphism.md section 5.1.1.
+    /// </remarks>
+    [Fact]
+    public void A_dropped_variant_reaches_no_generated_file()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        string root = RepoLayout.OutputDir(Scenario);
+
+        var found = System.IO.Directory
+            .EnumerateFiles(root, "*", System.IO.SearchOption.AllDirectories)
+            .Where(path => System.IO.File
+                .ReadAllText(path)
+                .Contains("Burn", System.StringComparison.OrdinalIgnoreCase))
+            .Select(path => System.IO.Path.GetRelativePath(root, path))
+            .OrderBy(path => path, System.StringComparer.Ordinal)
+            .ToList();
+
+        Assert.True(found.Count == 0,
+            "A dropped variant reached the output: "
+            + string.Join(" · ", found));
     }
 
     /// <summary>Whether a toolchain is on this machine, and why not when it is missing.</summary>

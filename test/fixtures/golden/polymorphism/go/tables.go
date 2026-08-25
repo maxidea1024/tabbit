@@ -15,6 +15,7 @@ import (
 type Tables struct {
 	Element ElementTable
 	Skill SkillTable
+	Combo ComboTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not
@@ -82,6 +83,9 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 	if err := loaded.Skill.Read(filepath.Join(basePath, "Skill"+fileExtension)); err != nil {
 		return err
 	}
+	if err := loaded.Combo.Read(filepath.Join(basePath, "Combo"+fileExtension)); err != nil {
+		return err
+	}
 
 	loaded.solveCrossReferences()
 
@@ -97,6 +101,14 @@ func (t *Tables) solveCrossReferences() {
 		record := &t.Skill.records[i]
 		if target := t.Element.FindByCode(record.effect.ElementId); target != nil {
 			record.effect.ElementByElementId = target
+		}
+	}
+	for i := range t.Combo.records {
+		record := &t.Combo.records[i]
+		for k := range record.effects {
+			if target := t.Element.FindByCode(record.effects[k].ElementId); target != nil {
+				record.effects[k].ElementByElementId = target
+			}
 		}
 	}
 }

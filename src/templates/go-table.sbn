@@ -68,29 +68,60 @@ type {{ table.record_name }} struct {
 
    A method rather than a field, because the group's own name is what a consumer should write
    and a field already holding the entry cannot share it. spec/polymorphism.md section 7.2. ##~}}
+{{~ if field.variants_are_array ~}}
+// {{ field.name }} is what this row's {{ field.abstract_type_name }}s are, one per element.
+//
+// Each element carries its own variant - section 5.3 - so the shapes inside one row may
+// differ. Narrow each with a type switch.
+func (r *{{ table.record_name }}) {{ field.name }}() []{{ field.abstract_type_name }} {
+	built := make([]{{ field.abstract_type_name }}, len(r.{{ field.entry_field_name }}))
+
+	for at := range r.{{ field.entry_field_name }} {
+		built[at] = r.{{ field.entry_field_name }}Element(&r.{{ field.entry_field_name }}[at])
+	}
+
+	return built
+}
+
+{{~## A method rather than a package function, and unexported. Two tables may both hold a
+   group of this name, and a package function would then be declared twice. ##~}}
+// {{ field.entry_field_name }}Element builds one element's value from the entry the read filled.
+func (r *{{ table.record_name }}) {{ field.entry_field_name }}Element(
+	entry *{{ field.record_type_name }}) {{ field.abstract_type_name }} {
+	switch entry.Type {
+{{~ else ~}}
 // {{ field.name }} is what this row's {{ field.abstract_type_name }} is. Narrow it with a type
 // switch: the interface is sealed, so the variants in this package are the whole list.
 func (r *{{ table.record_name }}) {{ field.name }}() {{ field.abstract_type_name }} {
-	switch r.{{ field.entry_field_name }}.Type {
+	return r.{{ field.entry_field_name }}Element(&r.{{ field.entry_field_name }})
+}
+
+{{~## A method rather than a package function, and unexported. Two tables may both hold a
+   group of this name, and a package function would then be declared twice. ##~}}
+// {{ field.entry_field_name }}Element builds one value from the entry the read filled.
+func (r *{{ table.record_name }}) {{ field.entry_field_name }}Element(
+	entry *{{ field.record_type_name }}) {{ field.abstract_type_name }} {
+	switch entry.Type {
+{{~ end ~}}
 {{~ for variant in field.variants ~}}
 	case {{ variant.discriminator }}:
 		return {{ variant.type_name }}{
 			{{ field.abstract_base_name }}: {{ field.abstract_base_name }}{
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
-				{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
-				{{ member.row_name }}: r.{{ field.entry_field_name }}.{{ member.row_name }},
+				{{ member.field_name }}: {{ field.entry_access }}.{{ member.field_name }},
+				{{ member.row_name }}: {{ field.entry_access }}.{{ member.row_name }},
 {{~ else ~}}
-				{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
+				{{ member.field_name }}: {{ field.entry_access }}.{{ member.field_name }},
 {{~ end ~}}
 {{~ end ~}}
 			},
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
-			{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
-			{{ member.row_name }}: r.{{ field.entry_field_name }}.{{ member.row_name }},
+			{{ member.field_name }}: {{ field.entry_access }}.{{ member.field_name }},
+			{{ member.row_name }}: {{ field.entry_access }}.{{ member.row_name }},
 {{~ else ~}}
-			{{ member.field_name }}: r.{{ field.entry_field_name }}.{{ member.field_name }},
+			{{ member.field_name }}: {{ field.entry_access }}.{{ member.field_name }},
 {{~ end ~}}
 {{~ end ~}}
 		}
@@ -101,7 +132,7 @@ func (r *{{ table.record_name }}) {{ field.name }}() {{ field.abstract_type_name
    which the reader skips, that makes the whole row uninterpretable - so it is reported rather
    than read as a neighbour. ##~}}
 	panic(fmt.Sprintf(
-		"{{ field.abstract_type_name }}: no variant is numbered %d", r.{{ field.entry_field_name }}.Type))
+		"{{ field.abstract_type_name }}: no variant is numbered %d", {{ field.entry_access }}.Type))
 }
 {{~ end ~}}
 {{~ end ~}}

@@ -954,6 +954,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
             // An array of arrays has no element type to name, so the inner array is the
             // type - see spec/nested-multi-level.md.
+            VariantsAreArray = declaredType is not null && sf.IsArray,
+            EntryAccess = "e",
             AbstractTypeName = declaredType?.Name ?? "",
             AbstractTypeFile = declaredType is null ? "" : TsFileName(declaredType.Name),
             BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),

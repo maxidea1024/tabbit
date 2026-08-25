@@ -47,6 +47,19 @@ public static class SchemaMessages
     /// <summary>Two variants of one abstract struct carrying the same discriminator.</summary>
     public const string VariantDiscriminatorsCollide = "schema.variant-discriminators-collide";
 
+    /// <summary>A variant claiming a discriminator a tombstone holds.</summary>
+    public const string VariantDiscriminatorReserved = "schema.variant-discriminator-reserved";
+
+    /// <summary>`(removed)` on a struct that extends nothing.</summary>
+    public const string RemovedVariantWithoutBase = "schema.removed-variant-without-base";
+
+    /// <summary>`(removed)` on a variant carrying no `@N`.</summary>
+    public const string RemovedVariantWithoutDiscriminator =
+        "schema.removed-variant-without-discriminator";
+
+    /// <summary>`(removed)` on an `abstract struct`.</summary>
+    public const string AbstractCannotBeRemoved = "schema.abstract-cannot-be-removed";
+
     /// <summary>Some variants of one abstract struct numbered and some not.</summary>
     public const string VariantDiscriminatorsPartial = "schema.variant-discriminators-partial";
 

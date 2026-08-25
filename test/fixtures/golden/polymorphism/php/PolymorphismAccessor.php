@@ -16,6 +16,7 @@ require_once __DIR__ . '/enums/Band.php';
 require_once __DIR__ . '/structs/Effect.php';
 require_once __DIR__ . '/tables/ElementTable.php';
 require_once __DIR__ . '/tables/SkillTable.php';
+require_once __DIR__ . '/tables/ComboTable.php';
 
 use Tabbit\TcbReader;
 use Tabbit\TcbColumnCursor;
@@ -27,11 +28,13 @@ final class PolymorphismAccessor
 {
     public ElementTable $element;
     public SkillTable $skill;
+    public ComboTable $combo;
 
     public function __construct()
     {
         $this->element = new ElementTable();
         $this->skill = new SkillTable();
+        $this->combo = new ComboTable();
     }
 
     /**
@@ -95,11 +98,14 @@ final class PolymorphismAccessor
         $loadedElementTable->read($basePath . \DIRECTORY_SEPARATOR . 'Element' . $fileExtension);
         $loadedSkillTable = new SkillTable();
         $loadedSkillTable->read($basePath . \DIRECTORY_SEPARATOR . 'Skill' . $fileExtension);
+        $loadedComboTable = new ComboTable();
+        $loadedComboTable->read($basePath . \DIRECTORY_SEPARATOR . 'Combo' . $fileExtension);
 
-        $this->solveCrossReferences($loadedElementTable, $loadedSkillTable);
+        $this->solveCrossReferences($loadedElementTable, $loadedSkillTable, $loadedComboTable);
 
         $this->element = $loadedElementTable;
         $this->skill = $loadedSkillTable;
+        $this->combo = $loadedComboTable;
     }
 
     /**
@@ -108,13 +114,22 @@ final class PolymorphismAccessor
      * The tables arrive as arguments rather than off $this, which is how this resolves the
      * load being read rather than the one already published.
      */
-    private function solveCrossReferences(ElementTable $element, SkillTable $skill): void
+    private function solveCrossReferences(ElementTable $element, SkillTable $skill, ComboTable $combo): void
     {
         foreach ($skill->records as $record) {
             $target = $element->findByCode($record->effect->elementId);
 
             if ($target !== null) {
                 $record->effect->elementByElementId = $target;
+            }
+        }
+        foreach ($combo->records as $record) {
+            for ($j = 0; $j < \count($record->effects); $j++) {
+                $target = $element->findByCode($record->effects[$j]->elementId);
+
+                if ($target !== null) {
+                    $record->effects[$j]->elementByElementId = $target;
+                }
             }
         }
     }

@@ -405,6 +405,83 @@ public class SchemaDeclarationsTests
         Assert.Contains("both extend `Effect` under `@1`", reported);
     }
 
+    /// <summary>
+    /// The number a dropped variant holds is not handed to a new one.
+    /// </summary>
+    /// <remarks>
+    /// **The whole reason the notation exists.** A reader built while the dropped variant was
+    /// there still reads that number as that shape, and rows written then still carry it - so
+    /// a new variant given the number would be read as the old one, with no error anywhere.
+    /// spec/polymorphism.md section 5.1.1.
+    /// </remarks>
+    [Fact]
+    public void A_discriminator_a_tombstone_holds_is_refused()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            struct HealEffect extends Effect @2 (removed)
+            struct ShieldEffect extends Effect @2
+            """);
+
+        Assert.Contains("holds that number as a tombstone", reported);
+    }
+
+    /// <summary>
+    /// And the tombstone written after the variant that reaches for its number, which is the
+    /// order a declaration file is more likely to be in.
+    /// </summary>
+    [Fact]
+    public void A_tombstone_reserves_its_number_whichever_order_it_is_written_in()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            struct ShieldEffect extends Effect @2
+            struct HealEffect extends Effect @2 (removed)
+            """);
+
+        Assert.Contains("holds that number as a tombstone", reported);
+    }
+
+    /// <summary>A tombstone is not a variant: nothing may hold it and nothing is generated.</summary>
+    [Fact]
+    public void A_tombstone_is_not_a_member_of_its_set()
+    {
+        var gathered = Gather("""
+            abstract struct Effect
+            struct DamageEffect extends Effect @1
+            struct HealEffect extends Effect @2 (removed)
+            """);
+
+        var live = Assert.Single(gathered.Declarations.VariantsOf("Effect"));
+        Assert.Equal("DamageEffect", live.Name);
+
+        // Not a type either - a column naming it finds nothing.
+        Assert.Null(gathered.Declarations.FindStruct("HealEffect"));
+
+        var gone = Assert.Single(gathered.Declarations.RemovedVariants);
+        Assert.Equal("HealEffect", gone.Name);
+    }
+
+    /// <summary>
+    /// A set whose only numbers are on tombstones still numbers its live variants.
+    /// </summary>
+    /// <remarks>
+    /// The all-or-none rule reads the tombstones too. Left out, a set with one dropped variant
+    /// and one unnumbered live one would let the live one take 1 from its position - which is
+    /// the number the dropped one may have been holding. Section 5.1.1.
+    /// </remarks>
+    [Fact]
+    public void A_tombstone_makes_the_set_a_numbered_one()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            struct DamageEffect extends Effect
+            struct HealEffect extends Effect @2 (removed)
+            """);
+
+        Assert.Contains("Number all of them or none", reported);
+    }
+
     [Fact]
     public void A_set_numbering_some_variants_and_not_others_is_refused()
     {

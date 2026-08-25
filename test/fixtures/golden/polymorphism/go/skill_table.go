@@ -53,35 +53,41 @@ type SkillRecord struct {
 // Effect is what this row's Effect is. Narrow it with a type
 // switch: the interface is sealed, so the variants in this package are the whole list.
 func (r *SkillRecord) Effect() Effect {
-	switch r.effect.Type {
+	return r.effectElement(&r.effect)
+}
+
+// effectElement builds one value from the entry the read filled.
+func (r *SkillRecord) effectElement(
+	entry *SkillEffectEntry) Effect {
+	switch entry.Type {
 	case 1:
 		return DamageEffect{
 			EffectBase: EffectBase{
-				Chance: r.effect.Chance,
+				Chance: entry.Chance,
 			},
-			Damage: r.effect.Damage,
-			Pierces: r.effect.Pierces,
-			ElementId: r.effect.ElementId,
-			ElementByElementId: r.effect.ElementByElementId,
+			Damage: entry.Damage,
+			Pierces: entry.Pierces,
+			ElementId: entry.ElementId,
+			ElementByElementId: entry.ElementByElementId,
 		}
 	case 2:
 		return HealEffect{
 			EffectBase: EffectBase{
-				Chance: r.effect.Chance,
+				Chance: entry.Chance,
 			},
-			Amount: r.effect.Amount,
-			Band: r.effect.Band,
+			Amount: entry.Amount,
+			Band: entry.Band,
 		}
 	case 3:
 		return NoEffect{
 			EffectBase: EffectBase{
-				Chance: r.effect.Chance,
+				Chance: entry.Chance,
 			},
 		}
 	}
 
 	panic(fmt.Sprintf(
-		"Effect: no variant is numbered %d", r.effect.Type))
+		"Effect: no variant is numbered %d", entry.Type))
 }
 
 // SkillTable holds every row of Skill.

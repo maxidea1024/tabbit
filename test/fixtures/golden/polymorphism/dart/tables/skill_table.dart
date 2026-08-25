@@ -49,27 +49,35 @@ class SkillRecord {
     final cached = _effectValue;
     if (cached != null) return cached;
 
-    final built = switch (effect.type) {
-      1 => DamageEffect(
-        chance: effect.chance,
-        damage: effect.damage,
-        pierces: effect.pierces,
-        elementId: effect.elementId,
-        elementByElementId: effect.elementByElementId,
-      ),
-      2 => HealEffect(
-        chance: effect.chance,
-        amount: effect.amount,
-        band: effect.band,
-      ),
-      3 => NoEffect(
-        chance: effect.chance,
-      ),
-      _ => throw StateError(
-          'Effect: no variant is numbered ${ effect.type }'),
-    };
+    final built = _effectElement(effect);
 
     _effectValue = built;
+    return built;
+  }
+
+  /// Builds one value from the entry the read filled.
+  static Effect _effectElement(
+      SkillEffectEntry entry) {
+    final built = switch (entry.type) {
+      1 => DamageEffect(
+        chance: entry.chance,
+        damage: entry.damage,
+        pierces: entry.pierces,
+        elementId: entry.elementId,
+        elementByElementId: entry.elementByElementId,
+      ),
+      2 => HealEffect(
+        chance: entry.chance,
+        amount: entry.amount,
+        band: entry.band,
+      ),
+      3 => NoEffect(
+        chance: entry.chance,
+      ),
+      _ => throw StateError(
+          'Effect: no variant is numbered ${ entry.type }'),
+    };
+
     return built;
   }
 

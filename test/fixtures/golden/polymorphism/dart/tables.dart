@@ -14,6 +14,7 @@ import 'tabbit/tcb_reader.dart';
 
 part 'tables/element_table.dart';
 part 'tables/skill_table.dart';
+part 'tables/combo_table.dart';
 part 'enums/band.dart';
 part 'structs/effect.dart';
 
@@ -21,6 +22,7 @@ part 'structs/effect.dart';
 class Tables {
   ElementTable element = ElementTable();
   SkillTable skill = SkillTable();
+  ComboTable combo = ComboTable();
 
   /// The key the table files were sealed with, or null when they were not sealed.
   ///
@@ -78,22 +80,31 @@ class Tables {
     loadedElementTable.read('$basePath${Platform.pathSeparator}Element$fileExtension');
     final loadedSkillTable = SkillTable();
     loadedSkillTable.read('$basePath${Platform.pathSeparator}Skill$fileExtension');
+    final loadedComboTable = ComboTable();
+    loadedComboTable.read('$basePath${Platform.pathSeparator}Combo$fileExtension');
 
-    _solveCrossReferences(loadedElementTable, loadedSkillTable);
+    _solveCrossReferences(loadedElementTable, loadedSkillTable, loadedComboTable);
 
     element = loadedElementTable;
     skill = loadedSkillTable;
+    combo = loadedComboTable;
   }
 
   /// Turns the stored indices into usable values, once every table is in memory.
   ///
   /// The tables arrive as arguments and shadow the fields of the same name, which is how
   /// this resolves the load being read rather than the one already published.
-  void _solveCrossReferences(ElementTable element, SkillTable skill) {
+  void _solveCrossReferences(ElementTable element, SkillTable skill, ComboTable combo) {
     for (final record in skill.records) {
       {
         final target = element.findByCode(record.effect.elementId);
         if (target != null) record.effect.elementByElementId = target;
+      }
+    }
+    for (final record in combo.records) {
+      for (var i = 0; i < record.effects.length; i++) {
+        final target = element.findByCode(record.effects[i].elementId);
+        if (target != null) record.effects[i].elementByElementId = target;
       }
     }
   }

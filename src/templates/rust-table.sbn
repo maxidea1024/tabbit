@@ -64,8 +64,22 @@ impl {{ table.record_name }} {
    accessor would be worse than a clone of a small struct. spec/polymorphism.md section 7.2. ##~}}
 
     /// What this row's [`{{ field.abstract_type_name }}`] is. `match` over it is exhaustive.
+{{~ if field.variants_are_array ~}}
+{{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
+   shapes inside one row may differ, and what a consumer reads is a sequence of the abstract
+   type. The function that builds one is the same either way. ##~}}
+    pub fn {{ field.name }}_of(&self) -> Vec<{{ field.abstract_type_name }}> {
+        self.{{ field.name }}.iter().map(Self::{{ field.name }}_element).collect()
+    }
+{{~ else ~}}
     pub fn {{ field.name }}_of(&self) -> {{ field.abstract_type_name }} {
-        match self.{{ field.name }}.{{ field.discriminator_name }} {
+        Self::{{ field.name }}_element(&self.{{ field.name }})
+    }
+{{~ end ~}}
+
+    /// Builds one value from the entry the read filled.
+    fn {{ field.name }}_element(entry: &{{ field.record_type_name }}) -> {{ field.abstract_type_name }} {
+        match entry.{{ field.discriminator_name }} {
 {{~ for variant in field.variants ~}}
             {{ variant.discriminator }} => {{ field.abstract_type_name }}::{{ variant.type_name }}(
                 {{ variant.type_name }} {
@@ -73,20 +87,20 @@ impl {{ table.record_name }} {
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-                    {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
-                    {{ member.row_name }}: self.{{ field.name }}.{{ member.row_name }}.clone(),
+                    {{ member.name }}: entry.{{ member.name }}.clone(),
+                    {{ member.row_name }}: entry.{{ member.row_name }}.clone(),
 {{~ else ~}}
-                    {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
+                    {{ member.name }}: entry.{{ member.name }}.clone(),
 {{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-                    {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
-                    {{ member.row_name }}: self.{{ field.name }}.{{ member.row_name }}.clone(),
+                    {{ member.name }}: entry.{{ member.name }}.clone(),
+                    {{ member.row_name }}: entry.{{ member.row_name }}.clone(),
 {{~ else ~}}
-                    {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
+                    {{ member.name }}: entry.{{ member.name }}.clone(),
 {{~ end ~}}
 {{~ end ~}}
                 }),

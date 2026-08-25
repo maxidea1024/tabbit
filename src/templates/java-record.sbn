@@ -95,17 +95,50 @@ public final class {{ table.record_name }} {
    column arrived. Building it here rather than while reading keeps the read path and the wire
    exactly as they were, and a row nobody looks at costs nothing.
    spec/polymorphism.md section 7.2. ##~}}
+{{~ if field.variants_are_array ~}}
+{{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
+   shapes inside one row may differ, and what a consumer reads is a list of the abstract type.
+   The body that fills one variant is below and is the same either way. ##~}}
+    private java.util.List<{{ field.abstract_type_name }}> {{ field.name }}Value;
+
+    /**
+     * What this row's {{ field.abstract_type_name }}s are, one per element. Narrow each with
+     * {@code instanceof}.
+     */
+    public java.util.List<{{ field.abstract_type_name }}> {{ field.name }}() {
+        if ({{ field.name }}Value != null) {
+            return {{ field.name }}Value;
+        }
+
+        java.util.List<{{ field.abstract_type_name }}> all =
+            new java.util.ArrayList<>({{ field.name }}.length);
+
+        for ({{ field.record_type_name }} element : {{ field.name }}) {
+            all.add({{ field.name }}Element(element));
+        }
+
+        {{ field.name }}Value = all;
+        return all;
+    }
+{{~ else ~}}
     private {{ field.abstract_type_name }} {{ field.name }}Value;
 
     /**
      * What this row's {{ field.abstract_type_name }} is. Narrow it with {@code instanceof}.
      */
     public {{ field.abstract_type_name }} {{ field.name }}() {
-        if ({{ field.name }}Value != null) {
-            return {{ field.name }}Value;
+        if ({{ field.name }}Value == null) {
+            {{ field.name }}Value = {{ field.name }}Element({{ field.name }});
         }
 
-        switch ({{ field.name }}.type) {
+        return {{ field.name }}Value;
+    }
+{{~ end ~}}
+
+    /** Builds one value from the entry the read filled. */
+    private static {{ field.abstract_type_name }} {{ field.name }}Element(
+            {{ field.record_type_name }} entry) {
+        switch (entry.type) {
 {{~ for variant in field.variants ~}}
             case {{ variant.discriminator }}: {
                 {{ field.abstract_type_name }}.{{ variant.type_name }} built =
@@ -114,23 +147,22 @@ public final class {{ table.record_name }} {
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-                built.{{ member.name }} = {{ field.name }}.{{ member.name }};
-                built.{{ member.row_name }} = {{ field.name }}.{{ member.row_name }};
+                built.{{ member.name }} = {{ field.entry_access }}.{{ member.name }};
+                built.{{ member.row_name }} = {{ field.entry_access }}.{{ member.row_name }};
 {{~ else ~}}
-                built.{{ member.name }} = {{ field.name }}.{{ member.name }};
+                built.{{ member.name }} = {{ field.entry_access }}.{{ member.name }};
 {{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-                built.{{ member.name }} = {{ field.name }}.{{ member.name }};
-                built.{{ member.row_name }} = {{ field.name }}.{{ member.row_name }};
+                built.{{ member.name }} = {{ field.entry_access }}.{{ member.name }};
+                built.{{ member.row_name }} = {{ field.entry_access }}.{{ member.row_name }};
 {{~ else ~}}
-                built.{{ member.name }} = {{ field.name }}.{{ member.name }};
+                built.{{ member.name }} = {{ field.entry_access }}.{{ member.name }};
 {{~ end ~}}
 {{~ end ~}}
-                {{ field.name }}Value = built;
                 return built;
             }
 {{~ end ~}}
@@ -139,7 +171,7 @@ public final class {{ table.record_name }} {
 {{~## An unknown number is a variant this build does not have. Unlike a column added later,
    which the reader skips, that makes the whole row uninterpretable. ##~}}
         throw new IllegalStateException(
-            "{{ field.abstract_type_name }}: no variant is numbered " + {{ field.name }}.type);
+            "{{ field.abstract_type_name }}: no variant is numbered " + entry.type);
     }
 {{~ end ~}}
 {{~ end ~}}

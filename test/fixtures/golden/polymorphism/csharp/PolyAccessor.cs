@@ -115,6 +115,7 @@ public partial class PolyAccessor
     {
         public ElementTable Element = new ElementTable();
         public SkillTable Skill = new SkillTable();
+        public ComboTable Combo = new ComboTable();
     }
 
     /// <summary>
@@ -137,6 +138,11 @@ public partial class PolyAccessor
     public static SkillTable Skill => Current.Skill;
 
     /// <summary>
+    /// Property for Combo table.
+    /// </summary>
+    public static ComboTable Combo => Current.Combo;
+
+    /// <summary>
     /// Reads every table and links them, and hands the result back without publishing it.
     /// </summary>
     /// <remarks>
@@ -151,6 +157,7 @@ public partial class PolyAccessor
         var tasks = new List<Task>();
         tasks.Add(snapshot.Element.ReadAsync(System.IO.Path.Combine(basePath, $"Element{fileExtension}")));
         tasks.Add(snapshot.Skill.ReadAsync(System.IO.Path.Combine(basePath, $"Skill{fileExtension}")));
+        tasks.Add(snapshot.Combo.ReadAsync(System.IO.Path.Combine(basePath, $"Combo{fileExtension}")));
 
         await Task.WhenAll(tasks);
 
@@ -200,6 +207,18 @@ public partial class PolyAccessor
             {
                 record._effect.ElementByElementId = snapshot.Element.GetByCodeOrThrow(record._effect.ElementId);
                 record._effect.ElementId_F = true;
+            }
+        }
+
+        foreach (var record in snapshot.Combo.Records)
+        {
+            for (int j = 0; j < record._effects.Length; j++)
+            {
+                if (record._effects[j].ElementId > 0)
+                {
+                    record._effects[j].ElementByElementId = snapshot.Element.GetByCodeOrThrow(record._effects[j].ElementId);
+                    record._effects[j].ElementId_F = true;
+                }
             }
         }
     }

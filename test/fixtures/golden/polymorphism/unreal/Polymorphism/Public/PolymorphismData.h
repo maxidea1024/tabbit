@@ -219,6 +219,70 @@ struct POLYMORPHISM_API FSkillRow
 };
 
 
+// Generated from test/fixtures/xlsx/polymorphism/polymorphism.xlsx : PolymorphicArray : B2
+/** One element of FComboRow::Effects. */
+USTRUCT(BlueprintType)
+struct POLYMORPHISM_API FComboEffectsEntry
+{
+    GENERATED_BODY()
+
+    /** which shape this element's effect is */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    int32 Type = 0;
+
+    /** How likely it is to land, in percent. Every variant carries it, so it is one column and */
+    /** every row fills it. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    int32 Chance = 0;
+
+    /** How much it takes. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    int32 Damage = 0;
+
+    /** Whether it ignores armour. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    bool bPierces = false;
+
+    /** Which element it deals, as a row of that catalogue. */
+    /**  */
+    /** **A reference on a variant member is the shape a real project reaches for first** - "the */
+    /** reward is an item, or a currency, or a monster" is that shape - and it is a different */
+    /** path twice over: the blank cells of the other variants go through the reference */
+    /** conversion, and the built variant has to carry the resolved row rather than the key. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    int32 ElementId = 0;
+
+    /** How much it gives. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    int32 Amount = 0;
+
+    /** How often it lands, as a band rather than a number. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    EBand Band = static_cast<EBand>(0);
+
+};
+
+/** Skills whose effects are a list, each element its own shape. */
+USTRUCT(BlueprintType)
+struct POLYMORPHISM_API FComboRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    int32 Index = 0;
+
+    /** plain column, outside the group */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    FString Name;
+
+    /** which shape this element's effect is */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combo")
+    TArray<FComboEffectsEntry> Effects;
+
+};
+
+
 /** Every row of Element. */
 class POLYMORPHISM_API FElementTable
 {
@@ -274,16 +338,18 @@ public:
     static bool EffectAsDamageEffect(
         const FSkillRow& Row, FDamageEffect& Out)
     {
-        if (Row.Effect.Type != 1)
+        const FSkillEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 1)
         {
             return false;
         }
 
-        Out.Chance = Row.Effect.Chance;
-        Out.Damage = Row.Effect.Damage;
-        Out.Pierces = Row.Effect.Pierces;
-        Out.ElementId = Row.Effect.ElementId;
-        Out.ElementByElementId = Row.Effect.ElementByElementId;
+        Out.Chance = Entry.Chance;
+        Out.Damage = Entry.Damage;
+        Out.Pierces = Entry.Pierces;
+        Out.ElementId = Entry.ElementId;
+        Out.ElementByElementId = Entry.ElementByElementId;
         return true;
     }
 
@@ -292,14 +358,16 @@ public:
     static bool EffectAsHealEffect(
         const FSkillRow& Row, FHealEffect& Out)
     {
-        if (Row.Effect.Type != 2)
+        const FSkillEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 2)
         {
             return false;
         }
 
-        Out.Chance = Row.Effect.Chance;
-        Out.Amount = Row.Effect.Amount;
-        Out.Band = Row.Effect.Band;
+        Out.Chance = Entry.Chance;
+        Out.Amount = Entry.Amount;
+        Out.Band = Entry.Band;
         return true;
     }
 
@@ -308,12 +376,14 @@ public:
     static bool EffectAsNoEffect(
         const FSkillRow& Row, FNoEffect& Out)
     {
-        if (Row.Effect.Type != 3)
+        const FSkillEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 3)
         {
             return false;
         }
 
-        Out.Chance = Row.Effect.Chance;
+        Out.Chance = Entry.Chance;
         return true;
     }
     /** Loads the table from a .tcb file written by Tabbit. */
@@ -321,6 +391,99 @@ public:
 
 private:
     TArray<FSkillRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Combo. */
+class POLYMORPHISM_API FComboTable
+{
+public:
+    const TArray<FComboRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FComboRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+
+    /** How many FEffects a row has. */
+    static int32 EffectsNum(const FComboRow& Row)
+    {
+        return Row.Effects.Num();
+    }
+
+    /** Which shape one element's FEffect took. */
+    static FEffectKind EffectsKind(
+        const FComboRow& Row, int32 At)
+    {
+        return static_cast<FEffectKind>(Row.Effects[At].Type);
+    }
+
+
+    /** Fills Out when that element is a FDamageEffect, and answers whether it was. */
+    static bool EffectsAsDamageEffect(
+        const FComboRow& Row, int32 At, FDamageEffect& Out)
+    {
+        const FComboEffectsEntry& Entry = Row.Effects[At];
+
+        if (Entry.Type != 1)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        Out.Damage = Entry.Damage;
+        Out.Pierces = Entry.Pierces;
+        Out.ElementId = Entry.ElementId;
+        Out.ElementByElementId = Entry.ElementByElementId;
+        return true;
+    }
+
+
+    /** Fills Out when that element is a FHealEffect, and answers whether it was. */
+    static bool EffectsAsHealEffect(
+        const FComboRow& Row, int32 At, FHealEffect& Out)
+    {
+        const FComboEffectsEntry& Entry = Row.Effects[At];
+
+        if (Entry.Type != 2)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        Out.Amount = Entry.Amount;
+        Out.Band = Entry.Band;
+        return true;
+    }
+
+
+    /** Fills Out when that element is a FNoEffect, and answers whether it was. */
+    static bool EffectsAsNoEffect(
+        const FComboRow& Row, int32 At, FNoEffect& Out)
+    {
+        const FComboEffectsEntry& Entry = Row.Effects[At];
+
+        if (Entry.Type != 3)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        return true;
+    }
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FComboRow> RecordsStorage;
     TMap<int32, int32> ByIndex;
 };
 
@@ -336,6 +499,7 @@ class POLYMORPHISM_API PolymorphismData
 public:
     static const FElementTable& Element() { return ElementStorage; }
     static const FSkillTable& Skill() { return SkillStorage; }
+    static const FComboTable& Combo() { return ComboStorage; }
 
     /**
      * Reads every table from BasePath. Returns false if any of them could not be read.
@@ -400,6 +564,7 @@ public:
 private:
     static FElementTable ElementStorage;
     static FSkillTable SkillStorage;
+    static FComboTable ComboStorage;
 };
 
 /**
@@ -477,6 +642,34 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|Skill",
               meta = (DisplayName = "Get Skill Row At"))
     static FSkillRow GetSkillRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Combo row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Combo",
+              meta = (DisplayName = "Get Combo Row"))
+    static FComboRow GetComboRow(int32 Key, bool& bFound);
+
+    /** How many Combo rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Combo",
+              meta = (DisplayName = "Get Combo Row Count"))
+    static int32 GetComboRowCount();
+
+    /**
+     * The Combo row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Combo",
+              meta = (DisplayName = "Get Combo Row At"))
+    static FComboRow GetComboRowAt(int32 Position, bool& bFound);
 
     /**
      * Reads every table from BasePath, as PolymorphismData::ReadAll does.

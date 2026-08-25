@@ -22,6 +22,8 @@ public final class Tables {
 
     public private(set) var skill: SkillTable = SkillTable()
 
+    public private(set) var combo: ComboTable = ComboTable()
+
     /// The key the table files were sealed with, or nil when they were not sealed.
     ///
     /// Beside `readAll` because it is the same kind of thing: one decision the consuming
@@ -92,19 +94,32 @@ public final class Tables {
             base.appendingPathComponent("Skill" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
-        Tables.solveCrossReferences(element: loadedElementTable, skill: loadedSkillTable)
+        let loadedComboTable = ComboTable()
+        try loadedComboTable.read(
+            base.appendingPathComponent("Combo" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        Tables.solveCrossReferences(element: loadedElementTable, skill: loadedSkillTable, combo: loadedComboTable)
         element = loadedElementTable
         skill = loadedSkillTable
+        combo = loadedComboTable
     }
 
     /// Turns the stored keys into usable values, once every table is in memory.
     ///
     /// The tables arrive as arguments rather than being read off the instance, which is how
     /// this resolves the load being read rather than the one already published.
-    private static func solveCrossReferences(element: ElementTable, skill: SkillTable) {
+    private static func solveCrossReferences(element: ElementTable, skill: SkillTable, combo: ComboTable) {
         for record in skill.records {
             if let target = element.findByCode(record.effect.elementId) {
                 record.effect.elementByElementId = target
+            }
+        }
+        for record in combo.records {
+            for i in 0 ..< record.effects.count {
+                if let target = element.findByCode(record.effects[i].elementId) {
+                    record.effects[i].elementByElementId = target
+                }
             }
         }
     }

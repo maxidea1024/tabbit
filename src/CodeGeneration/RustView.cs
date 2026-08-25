@@ -177,6 +177,28 @@ internal sealed class RustIndexView
 internal sealed class RustFieldView
 {
     /// <summary>
+    /// How the builder reaches the entry it reads from: the row's own member, or the element it
+    /// was handed.
+    /// </summary>
+    /// <remarks>
+    /// One name for both shapes, so the body that fills a variant is written once. A
+    /// polymorphic array's builder takes an element; a scalar group's reads the row.
+    /// spec/polymorphism.md section 5.3.
+    /// </remarks>
+    public string EntryAccess { get; set; } = "";
+
+    /// <summary>
+    /// Whether the polymorphic group is an array, so each element carries its own variant.
+    /// </summary>
+    /// <remarks>
+    /// Asked rather than worked out from the read kind, which is spelled differently in every
+    /// generator - and the two shapes differ in more than one line: the accessor loops, and
+    /// the value it hands back is an array of the abstract type.
+    /// spec/polymorphism.md section 5.3.
+    /// </remarks>
+    public bool VariantsAreArray { get; set; }
+
+    /// <summary>
     /// The variants of a polymorphic group, or empty when the group is one fixed shape.
     /// </summary>
     /// <remarks>

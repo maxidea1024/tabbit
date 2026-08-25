@@ -757,6 +757,8 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             },
 
             EntryFieldName = entryName,
+            VariantsAreArray = declaredType is not null && sf.IsArray,
+            EntryAccess = "entry",
             AbstractTypeName = declaredType is null ? "" : GoName(declaredType.Name),
             AbstractBaseName = declaredType is null ? "" : GoName(declaredType.Name) + "Base",
             BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),

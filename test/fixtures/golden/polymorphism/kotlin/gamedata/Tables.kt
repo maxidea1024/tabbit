@@ -40,6 +40,8 @@ object Tables {
         private set
     var skill: SkillTable = SkillTable()
         private set
+    var combo: ComboTable = ComboTable()
+        private set
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -101,11 +103,14 @@ object Tables {
         loadedElementTable.read(File(basePath, "Element$fileExtension").path)
         val loadedSkillTable = SkillTable()
         loadedSkillTable.read(File(basePath, "Skill$fileExtension").path)
+        val loadedComboTable = ComboTable()
+        loadedComboTable.read(File(basePath, "Combo$fileExtension").path)
 
-        solveCrossReferences(loadedElementTable, loadedSkillTable)
+        solveCrossReferences(loadedElementTable, loadedSkillTable, loadedComboTable)
 
         element = loadedElementTable
         skill = loadedSkillTable
+        combo = loadedComboTable
     }
 
     /**
@@ -114,10 +119,17 @@ object Tables {
      * The tables arrive as arguments and shadow the properties of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private fun solveCrossReferences(element: ElementTable, skill: SkillTable) {
+    private fun solveCrossReferences(element: ElementTable, skill: SkillTable, combo: ComboTable) {
         for (record in skill.records) {
             element.findByCode(record.effect.elementId)?.let { target ->
                 record.effect.elementByElementId = target
+            }
+        }
+        for (record in combo.records) {
+            for (i in 0 until record.effects.size) {
+                element.findByCode(record.effects[i].elementId)?.let { target ->
+                    record.effects[i].elementByElementId = target
+                }
             }
         }
     }

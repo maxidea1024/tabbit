@@ -9,6 +9,7 @@ local _root = (...):match("^(.-)[^%.]*$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 local ElementTable = require(_root .. "tables.element_table")
 local SkillTable = require(_root .. "tables.skill_table")
+local ComboTable = require(_root .. "tables.combo_table")
 
 -- Every table, loaded together so cross-table references can be resolved.
 ---@class tables
@@ -33,12 +34,13 @@ tables.macKey = nil
 -- is not a security boundary.
 tables.verifyMac = true
 
-local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "element", "skill" })
+local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "element", "skill", "combo" })
 
 function tables.new()
   return setmetatable({
     element = ElementTable.new(),
     skill = SkillTable.new(),
+    combo = ComboTable.new(),
   }, instanceMeta)
 end
 
@@ -68,6 +70,9 @@ function tables:readAll(source, fileExtension)
   local loadedSkill = SkillTable.new()
   loadedSkill:readBytes(bytesOf(source, "Skill", fileExtension))
 
+  local loadedCombo = ComboTable.new()
+  loadedCombo:readBytes(bytesOf(source, "Combo", fileExtension))
+
   -- Turns loadedSkill's stored keys into rows, now that every table is in
   -- memory.
   for _, record in ipairs(loadedSkill.records) do
@@ -80,9 +85,22 @@ function tables:readAll(source, fileExtension)
     end
   end
 
+  -- Turns loadedCombo's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedCombo.records) do
+    for i = 1, #record.effects do
+      local target = loadedElement:findByCode(record.effects[i].elementId)
+
+      if target ~= nil then
+        record.effects[i].elementByElementId = target
+      end
+    end
+  end
+
   -- Published, now that every table read and linked.
   self.element = loadedElement
   self.skill = loadedSkill
+  self.combo = loadedCombo
 end
 
 return setmetatable(tables, tcb.strictType(

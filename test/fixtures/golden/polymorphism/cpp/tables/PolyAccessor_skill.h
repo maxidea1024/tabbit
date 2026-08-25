@@ -60,33 +60,39 @@ struct SkillRecord {
 
   /// What this row's Effect is. Narrow it with `dynamic_cast`.
   std::unique_ptr<Effect> effect_of() const {
-    switch (effect.type) {
+    return effect_element(effect);
+  }
+
+  /// Builds one value from the entry the read filled.
+  static std::unique_ptr<Effect> effect_element(
+      const SkillRecord_effect_entry& entry) {
+    switch (entry.type) {
       case 1: {
         auto built = std::make_unique<DamageEffect>();
-        built->chance = effect.chance;
-        built->damage = effect.damage;
-        built->pierces = effect.pierces;
-        built->element_id = effect.element_id;
-        built->element_by_element_id = effect.element_by_element_id;
+        built->chance = entry.chance;
+        built->damage = entry.damage;
+        built->pierces = entry.pierces;
+        built->element_id = entry.element_id;
+        built->element_by_element_id = entry.element_by_element_id;
         return built;
       }
       case 2: {
         auto built = std::make_unique<HealEffect>();
-        built->chance = effect.chance;
-        built->amount = effect.amount;
-        built->band = effect.band;
+        built->chance = entry.chance;
+        built->amount = entry.amount;
+        built->band = entry.band;
         return built;
       }
       case 3: {
         auto built = std::make_unique<NoEffect>();
-        built->chance = effect.chance;
+        built->chance = entry.chance;
         return built;
       }
     }
 
     throw std::runtime_error(
         "Effect: no variant is numbered "
-        + std::to_string(effect.type));
+        + std::to_string(entry.type));
   }
 };
 

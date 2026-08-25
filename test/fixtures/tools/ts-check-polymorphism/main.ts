@@ -54,7 +54,16 @@ function main(): void {
         own: own(row.effect),
     }))
 
-    console.log(JSON.stringify({ Skill: rows }))
+    // And the array of them, where each element is its own shape. The getter hands back a
+    // list of the union, so `own` - which narrows - takes each element unchanged.
+    // spec/polymorphism.md section 5.3.
+    const combos = tables.combo.records.map(row => ({
+        name: row.name,
+        kinds: row.effects.map(effect => effect.kind).join(','),
+        own: row.effects.map(own).join(','),
+    }))
+
+    console.log(JSON.stringify({ Skill: rows, Combo: combos }))
 }
 
 try {

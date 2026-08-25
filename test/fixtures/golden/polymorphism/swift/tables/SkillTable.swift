@@ -30,34 +30,43 @@ public final class SkillRecord {
         get {
             if let built = effectValue { return built }
 
-            let built: Effect
-            switch effect.type {
-            case 1:
-                built = .damageEffect(DamageEffect(
-                    chance: effect.chance,
-                    damage: effect.damage,
-                    pierces: effect.pierces,
-                    elementId: effect.elementId,
-                    elementByElementId: effect.elementByElementId,
-                ))
-            case 2:
-                built = .healEffect(HealEffect(
-                    chance: effect.chance,
-                    amount: effect.amount,
-                    band: effect.band,
-                ))
-            case 3:
-                built = .noEffect(NoEffect(
-                    chance: effect.chance,
-                ))
-            default:
-                fatalError(
-                    "Effect: no variant is numbered \(effect.type)")
-            }
+            let built = Self.effectElement(effect)
 
             effectValue = built
             return built
         }
+    }
+
+    /// Builds one value from the entry the read filled.
+    private static func effectElement(
+        _ entry: EffectEntry
+    ) -> Effect {
+            let built: Effect
+            switch entry.type {
+            case 1:
+                built = .damageEffect(DamageEffect(
+                    chance: entry.chance,
+                    damage: entry.damage,
+                    pierces: entry.pierces,
+                    elementId: entry.elementId,
+                    elementByElementId: entry.elementByElementId,
+                ))
+            case 2:
+                built = .healEffect(HealEffect(
+                    chance: entry.chance,
+                    amount: entry.amount,
+                    band: entry.band,
+                ))
+            case 3:
+                built = .noEffect(NoEffect(
+                    chance: entry.chance,
+                ))
+            default:
+                fatalError(
+                    "Effect: no variant is numbered \(entry.type)")
+            }
+
+            return built
     }
 
     /// One element of effect.

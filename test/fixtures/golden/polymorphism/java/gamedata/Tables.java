@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 public final class Tables {
     public ElementTable element = new ElementTable();
     public SkillTable skill = new SkillTable();
+    public ComboTable combo = new ComboTable();
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -84,11 +85,14 @@ public final class Tables {
         loadedElementTable.read(Paths.get(basePath, "Element" + fileExtension));
         SkillTable loadedSkillTable = new SkillTable();
         loadedSkillTable.read(Paths.get(basePath, "Skill" + fileExtension));
+        ComboTable loadedComboTable = new ComboTable();
+        loadedComboTable.read(Paths.get(basePath, "Combo" + fileExtension));
 
-        solveCrossReferences(loadedElementTable, loadedSkillTable);
+        solveCrossReferences(loadedElementTable, loadedSkillTable, loadedComboTable);
 
         element = loadedElementTable;
         skill = loadedSkillTable;
+        combo = loadedComboTable;
     }
 
     /**
@@ -97,12 +101,20 @@ public final class Tables {
      * <p>The tables arrive as arguments and shadow the fields of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private void solveCrossReferences(ElementTable element, SkillTable skill) {
+    private void solveCrossReferences(ElementTable element, SkillTable skill, ComboTable combo) {
         for (SkillRecord record : skill.records()) {
             {
                 ElementRecord target = element.findByCode(record.effect.elementId);
                 if (target != null) {
                     record.effect.elementByElementId = target;
+                }
+            }
+        }
+        for (ComboRecord record : combo.records()) {
+            for (int i = 0; i < record.effects.length; i++) {
+                ElementRecord target = element.findByCode(record.effects[i].elementId);
+                if (target != null) {
+                    record.effects[i].elementByElementId = target;
                 }
             }
         }

@@ -57,12 +57,36 @@
    column arrived. Building it here keeps the read path and the wire exactly as they were.
    spec/polymorphism.md section 7.2. ##~}}
 
+{{~ if field.variants_are_array ~}}
+{{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
+   shapes inside one row may differ, and what a consumer reads is an array of the abstract type.
+   The method that builds one is below and is the same either way. ##~}}
+    # What this row's {{ field.abstract_type_name }}s are, one per element.
+    def {{ field.name }}_of
+      all_of = @{{ field.name }}_value
+      return all_of unless all_of.nil?
+
+      all_of = {{ field.name }}.map { |entry| {{ field.name }}_element(entry) }
+
+      @{{ field.name }}_value = all_of
+      all_of
+    end
+{{~ else ~}}
     # What this row's {{ field.abstract_type_name }} is. Narrow it with +is_a?+.
     def {{ field.name }}_of
       built = @{{ field.name }}_value
       return built unless built.nil?
 
-      case {{ field.name }}.{{ field.discriminator_name }}
+      built = {{ field.name }}_element({{ field.name }})
+
+      @{{ field.name }}_value = built
+      built
+    end
+{{~ end ~}}
+
+    # Builds one value from the entry the read filled.
+    def {{ field.name }}_element(entry)
+      case entry.{{ field.discriminator_name }}
 {{~ for variant in field.variants ~}}
       when {{ variant.discriminator }}
         built = {{ variant.type_name }}.new
@@ -70,20 +94,20 @@
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-        built.{{ member.name }} = {{ field.name }}.{{ member.name }}
-        built.{{ member.row_name }} = {{ field.name }}.{{ member.row_name }}
+        built.{{ member.name }} = entry.{{ member.name }}
+        built.{{ member.row_name }} = entry.{{ member.row_name }}
 {{~ else ~}}
-        built.{{ member.name }} = {{ field.name }}.{{ member.name }}
+        built.{{ member.name }} = entry.{{ member.name }}
 {{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-        built.{{ member.name }} = {{ field.name }}.{{ member.name }}
-        built.{{ member.row_name }} = {{ field.name }}.{{ member.row_name }}
+        built.{{ member.name }} = entry.{{ member.name }}
+        built.{{ member.row_name }} = entry.{{ member.row_name }}
 {{~ else ~}}
-        built.{{ member.name }} = {{ field.name }}.{{ member.name }}
+        built.{{ member.name }} = entry.{{ member.name }}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -91,10 +115,9 @@
 {{~## An unknown number is a variant this build does not have. Unlike a column added later,
    which the reader skips, that makes the whole row uninterpretable. ##~}}
         raise TcbError,
-              "{{ field.abstract_type_name }}: no variant is numbered "               "#{ {{ field.name }}.{{ field.discriminator_name }} }"
+              "{{ field.abstract_type_name }}: no variant is numbered "               "#{ entry.{{ field.discriminator_name }} }"
       end
 
-      @{{ field.name }}_value = built
       built
     end
 {{~ end ~}}

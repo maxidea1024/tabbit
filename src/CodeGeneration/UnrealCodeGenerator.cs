@@ -643,6 +643,8 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
         return new UnrealFieldView
         {
+            VariantsAreArray = declaredType is not null && sf.IsArray,
+            EntryAccess = "Entry",
             AbstractTypeName = declaredType is null ? "" : "F" + declaredType.Name,
             KindEnumName = declaredType is null ? "" : "F" + declaredType.Name + "Kind",
             PascalName = sf.Name.ToPascalCase(),

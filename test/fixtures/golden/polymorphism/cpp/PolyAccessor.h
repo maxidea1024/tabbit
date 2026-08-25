@@ -16,11 +16,13 @@
 #include "enums/PolyAccessor_enum_band.h"
 #include "tables/PolyAccessor_element.h"
 #include "tables/PolyAccessor_skill.h"
+#include "tables/PolyAccessor_combo.h"
 /// Every table, loaded together so cross-table references can be resolved.
 class PolyAccessor {
  public:
   const ElementTable& element() const { return element_; }
   const SkillTable& skill() const { return skill_; }
+  const ComboTable& combo() const { return combo_; }
 
   /// Reads every table from `base_path`, then links the references between them.
   ///
@@ -32,11 +34,14 @@ class PolyAccessor {
     loaded_element.read(base_path + "/Element" + file_extension);
     SkillTable loaded_skill;
     loaded_skill.read(base_path + "/Skill" + file_extension);
+    ComboTable loaded_combo;
+    loaded_combo.read(base_path + "/Combo" + file_extension);
 
-    solve_cross_references(loaded_element, loaded_skill);
+    solve_cross_references(loaded_element, loaded_skill, loaded_combo);
 
     element_ = std::move(loaded_element);
     skill_ = std::move(loaded_skill);
+    combo_ = std::move(loaded_combo);
   }
 
  private:
@@ -48,17 +53,24 @@ class PolyAccessor {
   /// compiler: the gate builds with `-Wextra -Werror`, and a model where nothing
   /// references anything - which is most of them - otherwise fails to compile on the
   /// unused parameters.
-  void solve_cross_references([[maybe_unused]] ElementTable& loaded_element, [[maybe_unused]] SkillTable& loaded_skill) {
+  void solve_cross_references([[maybe_unused]] ElementTable& loaded_element, [[maybe_unused]] SkillTable& loaded_skill, [[maybe_unused]] ComboTable& loaded_combo) {
     for (auto& record : loaded_skill.records_) {
       {
         const auto* target = loaded_element.find_by_code(record.effect.element_id);
         if (target != nullptr) record.effect.element_by_element_id = target;
       }
     }
+    for (auto& record : loaded_combo.records_) {
+      for (std::size_t i = 0; i < record.effects.size(); ++i) {
+        const auto* target = loaded_element.find_by_code(record.effects[i].element_id);
+        if (target != nullptr) record.effects[i].element_by_element_id = target;
+      }
+    }
   }
 
   ElementTable element_;
   SkillTable skill_;
+  ComboTable combo_;
 };
 
 #endif  // TABBIT_GENERATED_POLYACCESSOR_H

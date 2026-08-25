@@ -81,6 +81,21 @@ public sealed class SchemaStruct : SchemaDeclaration
     /// </remarks>
     public int VariantDiscriminator { get; init; }
 
+    /// <summary>
+    /// Whether this declaration is a gravestone - a variant that was dropped, kept so that
+    /// its discriminator is not handed to another one.
+    /// </summary>
+    /// <remarks>
+    /// **Written the way a dropped member is** - `(removed)` on the declaration line - because
+    /// it is the same thing one level up: a number that a deployed reader still asks for, and
+    /// which a new variant given it would answer with the old variant's shape.
+    ///
+    /// A tombstone declares nothing. It is not a type a column may hold, no code is generated
+    /// for it, and it is not a member of its set - all it holds is the number.
+    /// spec/polymorphism.md section 5.1.1.
+    /// </remarks>
+    public bool IsRemoved => Meta.Has("removed");
+
     /// <summary>Members, in the order they were declared.</summary>
     /// <remarks>
     /// The order is not decoration. A struct whose members carry no wire tag takes its tags

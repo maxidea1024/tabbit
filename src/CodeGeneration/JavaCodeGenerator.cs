@@ -726,6 +726,8 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
         return new JavaFieldView
         {
+            VariantsAreArray = declaredType is not null && sf.IsArray,
+            EntryAccess = "entry",
             AbstractTypeName = declaredType?.Name ?? "",
             BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
             Variants = (declaredType?.Variants ?? [])

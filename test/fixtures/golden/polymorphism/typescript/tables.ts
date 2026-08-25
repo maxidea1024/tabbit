@@ -11,6 +11,7 @@ import * as path from 'path'
 
 import { ElementTable } from './tables/element'
 import { SkillTable } from './tables/skill'
+import { ComboTable } from './tables/combo'
 
 /** Tables */
 export class Tables {
@@ -73,6 +74,10 @@ export class Tables {
   public get skill(): SkillTable { return this._skill }
   private _skill: SkillTable = new SkillTable()
 
+  /** Peroperty for table Combo */
+  public get combo(): ComboTable { return this._combo }
+  private _combo: ComboTable = new ComboTable()
+
   /**
    * Read all tables asynchronously.
    *
@@ -84,8 +89,10 @@ export class Tables {
     await element.read(path.join(basePath, `Element${fileExtension}`))
     const skill = new SkillTable()
     await skill.read(path.join(basePath, `Skill${fileExtension}`))
+    const combo = new ComboTable()
+    await combo.read(path.join(basePath, `Combo${fileExtension}`))
 
-    this.publish(element, skill)
+    this.publish(element, skill, combo)
   }
 
   /** Read all tables synchronously. */
@@ -94,8 +101,10 @@ export class Tables {
     element.readSync(path.join(basePath, `Element${fileExtension}`))
     const skill = new SkillTable()
     skill.readSync(path.join(basePath, `Skill${fileExtension}`))
+    const combo = new ComboTable()
+    combo.readSync(path.join(basePath, `Combo${fileExtension}`))
 
-    this.publish(element, skill)
+    this.publish(element, skill, combo)
   }
 
   /**
@@ -110,8 +119,10 @@ export class Tables {
     element.readBinarySync(path.join(basePath, `Element${fileExtension}`))
     const skill = new SkillTable()
     skill.readBinarySync(path.join(basePath, `Skill${fileExtension}`))
+    const combo = new ComboTable()
+    combo.readBinarySync(path.join(basePath, `Combo${fileExtension}`))
 
-    this.publish(element, skill)
+    this.publish(element, skill, combo)
   }
 
   /**
@@ -122,9 +133,10 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(element: ElementTable, skill: SkillTable): void {
+  private publish(element: ElementTable, skill: SkillTable, combo: ComboTable): void {
     this._element = element
     this._skill = skill
+    this._combo = combo
 
     this.solveCrossReferences()
   }
@@ -141,6 +153,15 @@ export class Tables {
       if (record._effect.elementId > 0) {
         record._effect.elementByElementId = this._element.getByCodeOrThrow(record._effect.elementId)
         record._effect.elementId_F = true
+      }
+    }
+
+    for (const record of this._combo.records) {
+      for (let i = 0; i < record._effects.length; i++) {
+        if (record._effects[i].elementId > 0) {
+          record._effects[i].elementByElementId = this._element.getByCodeOrThrow(record._effects[i].elementId)
+          record._effects[i].elementId_F = true
+        }
       }
     }
   }

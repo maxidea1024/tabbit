@@ -749,6 +749,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         return new PhpFieldView
         {
+            VariantsAreArray = declaredType is not null && sf.IsArray,
             AbstractTypeName = declaredType?.Name ?? "",
             BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
             Variants = (declaredType?.Variants ?? [])

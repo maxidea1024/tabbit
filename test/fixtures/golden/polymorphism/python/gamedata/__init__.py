@@ -8,6 +8,7 @@
 from .enum_band import Band
 from .element_table import ElementRecord, ElementTable
 from .skill_table import SkillRecord, SkillTable, SkillEffectEntry
+from .combo_table import ComboRecord, ComboTable, ComboEffectsEntry
 from .polymorphism_data import Tables
 
 __all__ = [
@@ -17,5 +18,8 @@ __all__ = [
     "SkillRecord",
     "SkillTable",
     "SkillEffectEntry",
+    "ComboRecord",
+    "ComboTable",
+    "ComboEffectsEntry",
     "Tables",
 ]

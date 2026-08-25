@@ -41,11 +41,19 @@ public sealed class SchemaDeclarations
     private readonly Dictionary<string, List<SchemaStruct>> _variants =
         new(System.StringComparer.OrdinalIgnoreCase);
 
+    // The tombstones, kept apart from the sets above. A dropped variant is not a member of
+    // its set - nothing is generated for it and no column may hold it - and the one thing it
+    // is here for is that its number stays taken. spec/polymorphism.md section 5.1.1.
+    private readonly List<SchemaStruct> _removed = [];
+
     /// <summary>Every struct, by the name generated code will spell it with.</summary>
     public IReadOnlyDictionary<string, SchemaStruct> Structs => _structs;
 
     /// <summary>Every enum, by the name generated code will spell it with.</summary>
     public IReadOnlyDictionary<string, SchemaEnum> Enums => _enums;
+
+    /// <summary>The dropped variants, which declare nothing and hold a number each.</summary>
+    public IReadOnlyList<SchemaStruct> RemovedVariants => _removed;
 
     /// <summary>Whether the recipe read any declarations at all.</summary>
     public bool IsEmpty => _structs.Count == 0 && _enums.Count == 0;
@@ -120,7 +128,15 @@ public sealed class SchemaDeclarations
 
             foreach (var declared in parsed.Structs)
             {
-                if (gathered.Claim(taken, declared, diagnostics))
+                if (!gathered.Claim(taken, declared, diagnostics))
+                    continue;
+
+                // The name is claimed either way - a tombstone's name staying taken is half
+                // of what it is for - but a dropped variant is not a type, so it never
+                // reaches the table that every lookup reads.
+                if (declared.IsRemoved)
+                    gathered._removed.Add(declared);
+                else
                     gathered._structs[declared.Name.ToPascalCase()] = declared;
             }
 
@@ -149,7 +165,10 @@ public sealed class SchemaDeclarations
     /// </remarks>
     private void LinkVariants(Diagnostics diagnostics)
     {
-        foreach (var declared in _structs.Values)
+        var reserved = new Dictionary<string, List<SchemaStruct>>(
+            System.StringComparer.OrdinalIgnoreCase);
+
+        foreach (var declared in _structs.Values.Concat(_removed))
         {
             if (declared.BaseName is not { Length: > 0 } written)
                 continue;
@@ -179,14 +198,26 @@ public sealed class SchemaDeclarations
                 continue;
             }
 
-            if (!_variants.TryGetValue(found.Name.ToPascalCase(), out var set))
-                _variants[found.Name.ToPascalCase()] = set = [];
+            var into = declared.IsRemoved ? reserved : _variants;
+
+            if (!into.TryGetValue(found.Name.ToPascalCase(), out var set))
+                into[found.Name.ToPascalCase()] = set = [];
 
             set.Add(declared);
         }
 
-        foreach (var (name, set) in _variants)
-            CheckVariantDiscriminators(name, set, diagnostics);
+        // Every set that has either a live variant or a tombstone. A set of tombstones alone
+        // is checked too, and then reported empty by `RefuseEmptyVariantSets` - which is the
+        // right report: the abstract type has no shape left to hold.
+        foreach (string name in _variants.Keys.Concat(reserved.Keys).Distinct(
+            System.StringComparer.OrdinalIgnoreCase))
+        {
+            CheckVariantDiscriminators(
+                name,
+                _variants.TryGetValue(name, out var live) ? live : [],
+                reserved.TryGetValue(name, out var gone) ? gone : [],
+                diagnostics);
+        }
     }
 
     /// <summary>The abstract structs a mistyped `extends` could have meant.</summary>
@@ -206,14 +237,19 @@ public sealed class SchemaDeclarations
     /// twice.
     /// </summary>
     private static void CheckVariantDiscriminators(
-        string baseName, List<SchemaStruct> set, Diagnostics diagnostics)
+        string baseName,
+        List<SchemaStruct> set,
+        List<SchemaStruct> removed,
+        Diagnostics diagnostics)
     {
         // Any number at all makes the set a numbered one - not the first variant's. Reading
         // only the first took a set whose first variant carried no number for an unnumbered
         // set and left the rest unexamined, and that is the order that collides: the untagged
         // one takes 1 from its position while a tagged sibling takes 1 from its `@1`.
         // spec/polymorphism.md section 5.1.1.
-        bool numbered = set.Any(variant => variant.VariantDiscriminator > 0);
+        // A tombstone always carries one, which the parser enforces - so a set with one in it
+        // is a numbered set, and an unnumbered live variant beside it is the partial case.
+        bool numbered = set.Concat(removed).Any(variant => variant.VariantDiscriminator > 0);
 
         if (numbered)
         {
@@ -227,12 +263,18 @@ public sealed class SchemaDeclarations
 
         var byTag = new Dictionary<int, SchemaStruct>();
 
-        foreach (var variant in set.Where(variant => variant.VariantDiscriminator > 0))
+        // The tombstones first, so a live variant reaching for a number a dropped one holds
+        // is reported as what it is - the reservation being ignored - rather than as two
+        // variants happening to collide. That is the mistake the notation exists to catch.
+        foreach (var variant in removed.Concat(set)
+            .Where(variant => variant.VariantDiscriminator > 0))
         {
             if (byTag.TryGetValue(variant.VariantDiscriminator, out var first))
             {
                 diagnostics.Error(variant.Location, Message.Of(
-                    SchemaMessages.VariantDiscriminatorsCollide,
+                    first.IsRemoved || variant.IsRemoved
+                        ? SchemaMessages.VariantDiscriminatorReserved
+                        : SchemaMessages.VariantDiscriminatorsCollide,
                     ("Struct", variant.Name),
                     ("Other", first.Name),
                     ("Base", baseName),

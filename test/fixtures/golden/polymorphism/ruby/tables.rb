@@ -15,11 +15,13 @@ require_relative 'tables/element_table'
 
 require_relative 'tables/skill_table'
 
+require_relative 'tables/combo_table'
+
 
 module GameData
   # Every table, loaded together so cross-table references can be resolved.
   class Tables
-    attr_reader :element, :skill
+    attr_reader :element, :skill, :combo
 
     class << self
       # The key the table files were sealed with, or nil when they were not sealed.
@@ -77,6 +79,7 @@ module GameData
     def initialize
       @element = ElementTable.new
       @skill = SkillTable.new
+      @combo = ComboTable.new
     end
 
     # Reads every table from base_path, then links the references between them.
@@ -88,11 +91,14 @@ module GameData
       loaded_element.read(File.join(base_path, "Element#{file_extension}"))
       loaded_skill = SkillTable.new
       loaded_skill.read(File.join(base_path, "Skill#{file_extension}"))
+      loaded_combo = ComboTable.new
+      loaded_combo.read(File.join(base_path, "Combo#{file_extension}"))
 
-      solve_cross_references(loaded_element, loaded_skill)
+      solve_cross_references(loaded_element, loaded_skill, loaded_combo)
 
       @element = loaded_element
       @skill = loaded_skill
+      @combo = loaded_combo
     end
 
     private
@@ -100,10 +106,16 @@ module GameData
     # Turns the stored indices into usable values, once every table is in memory.
     # The tables arrive as arguments rather than off the instance, which is how this
     # resolves the load being read rather than the one already published.
-    def solve_cross_references(element, skill)
+    def solve_cross_references(element, skill, combo)
       skill.records.each do |record|
         target = element.find_by_code(record.effect.element_id)
         record.effect.element_by_element_id = target unless target.nil?
+      end
+      combo.records.each do |record|
+        record.effects.each_index do |i|
+          target = element.find_by_code(record.effects[i].element_id)
+          record.effects[i].element_by_element_id = target unless target.nil?
+        end
       end
     end
   end

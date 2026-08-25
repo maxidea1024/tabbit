@@ -53,29 +53,36 @@ class SkillRecord {
         get() {
             effectValue?.let { return it }
 
-            val built = when (effect.type) {
-                1 -> DamageEffect(
-                    effect.chance,
-                    effect.damage,
-                    effect.pierces,
-                    effect.elementId,
-                    effect.elementByElementId,
-                )
-                2 -> HealEffect(
-                    effect.chance,
-                    effect.amount,
-                    effect.band,
-                )
-                3 -> NoEffect(
-                    effect.chance,
-                )
-                else -> throw TcbException(
-                    "Effect: no variant is numbered ${ effect.type }")
-            }
+            val built = effectElement(effect)
 
             effectValue = built
             return built
         }
+
+    /** Builds one value from the entry the read filled. */
+    private fun effectElement(entry: EffectEntry): Effect {
+            val built = when (entry.type) {
+                1 -> DamageEffect(
+                    entry.chance,
+                    entry.damage,
+                    entry.pierces,
+                    entry.elementId,
+                    entry.elementByElementId,
+                )
+                2 -> HealEffect(
+                    entry.chance,
+                    entry.amount,
+                    entry.band,
+                )
+                3 -> NoEffect(
+                    entry.chance,
+                )
+                else -> throw TcbException(
+                    "Effect: no variant is numbered ${ entry.type }")
+            }
+
+            return built
+    }
 
     /** One element of effect. */
     class EffectEntry {

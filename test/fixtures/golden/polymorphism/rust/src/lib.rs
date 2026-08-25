@@ -26,6 +26,8 @@ mod element_table;
 pub use element_table::{ElementRecord, ElementTable};
 mod skill_table;
 pub use skill_table::{SkillRecord, SkillTable, SkillEffectEntry};
+mod combo_table;
+pub use combo_table::{ComboRecord, ComboTable, ComboEffectsEntry};
 
 // The accessor.
 mod tables;

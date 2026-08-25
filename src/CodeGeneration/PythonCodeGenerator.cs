@@ -796,6 +796,8 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         return new PythonFieldView
         {
+            VariantsAreArray = declaredType is not null && sf.IsArray,
+            EntryAccess = "entry",
             AbstractTypeName = declaredType?.Name ?? "",
             DiscriminatorName = declaredType is null
                 ? ""

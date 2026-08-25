@@ -14,6 +14,7 @@
 #include <vector>
 struct ElementRecord;
 struct SkillRecord;
+struct ComboRecord;
 
 /// The key the table files were sealed with, or empty when they were not sealed.
 ///

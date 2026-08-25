@@ -405,6 +405,36 @@ public static class SchemaParser
             };
 
             EndLine();
+
+            // **A tombstone holds a number and nothing else**, so the two things it needs are
+            // the set the number belongs to and the number. Reported here rather than in the
+            // resolver because both are on this line - and a `(removed)` that reserves nothing
+            // is worse than no line at all: it reads as a reservation that is not one.
+            // spec/polymorphism.md section 5.1.1.
+            if (declared.IsRemoved)
+            {
+                if (isAbstract)
+                {
+                    Report(SchemaMessages.AbstractCannotBeRemoved, keyword,
+                        ("Struct", declared.Name));
+                    return null;
+                }
+
+                if (baseName is null)
+                {
+                    Report(SchemaMessages.RemovedVariantWithoutBase, keyword,
+                        ("Struct", declared.Name));
+                    return null;
+                }
+
+                if (tag <= 0)
+                {
+                    Report(SchemaMessages.RemovedVariantWithoutDiscriminator, keyword,
+                        ("Struct", declared.Name), ("Base", baseName));
+                    return null;
+                }
+            }
+
             return declared;
         }
 

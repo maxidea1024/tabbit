@@ -283,38 +283,44 @@ PolyData_StructEffectKind PolyData_SkillEffectKind(
 bool PolyData_SkillEffectAsDamageEffect(
   const PolyData_SkillRecord_t* record, PolyData_StructDamageEffect* out)
 {
-  if (record->effect.type != 1) {
+  const struct PolyData_SkillRecord_t_effect_entry* entry = &record->effect;
+
+  if (entry->type != 1) {
     return false;
   }
 
-  out->chance = record->effect.chance;
-  out->damage = record->effect.damage;
-  out->pierces = record->effect.pierces;
-  out->element_id = record->effect.element_id;
-  out->element_by_element_id = record->effect.element_by_element_id;
+  out->chance = entry->chance;
+  out->damage = entry->damage;
+  out->pierces = entry->pierces;
+  out->element_id = entry->element_id;
+  out->element_by_element_id = entry->element_by_element_id;
   return true;
 }
 
 bool PolyData_SkillEffectAsHealEffect(
   const PolyData_SkillRecord_t* record, PolyData_StructHealEffect* out)
 {
-  if (record->effect.type != 2) {
+  const struct PolyData_SkillRecord_t_effect_entry* entry = &record->effect;
+
+  if (entry->type != 2) {
     return false;
   }
 
-  out->chance = record->effect.chance;
-  out->amount = record->effect.amount;
-  out->band = record->effect.band;
+  out->chance = entry->chance;
+  out->amount = entry->amount;
+  out->band = entry->band;
   return true;
 }
 
 bool PolyData_SkillEffectAsNoEffect(
   const PolyData_SkillRecord_t* record, PolyData_StructNoEffect* out)
 {
-  if (record->effect.type != 3) {
+  const struct PolyData_SkillRecord_t_effect_entry* entry = &record->effect;
+
+  if (entry->type != 3) {
     return false;
   }
 
-  out->chance = record->effect.chance;
+  out->chance = entry->chance;
   return true;
 }

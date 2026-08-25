@@ -43,28 +43,35 @@ module GameData
       built = @effect_value
       return built unless built.nil?
 
-      case effect.type
-      when 1
-        built = DamageEffect.new
-        built.chance = effect.chance
-        built.damage = effect.damage
-        built.pierces = effect.pierces
-        built.element_id = effect.element_id
-        built.element_by_element_id = effect.element_by_element_id
-      when 2
-        built = HealEffect.new
-        built.chance = effect.chance
-        built.amount = effect.amount
-        built.band = effect.band
-      when 3
-        built = NoEffect.new
-        built.chance = effect.chance
-      else
-        raise TcbError,
-              "Effect: no variant is numbered "               "#{ effect.type }"
-      end
+      built = effect_element(effect)
 
       @effect_value = built
+      built
+    end
+
+    # Builds one value from the entry the read filled.
+    def effect_element(entry)
+      case entry.type
+      when 1
+        built = DamageEffect.new
+        built.chance = entry.chance
+        built.damage = entry.damage
+        built.pierces = entry.pierces
+        built.element_id = entry.element_id
+        built.element_by_element_id = entry.element_by_element_id
+      when 2
+        built = HealEffect.new
+        built.chance = entry.chance
+        built.amount = entry.amount
+        built.band = entry.band
+      when 3
+        built = NoEffect.new
+        built.chance = entry.chance
+      else
+        raise TcbError,
+              "Effect: no variant is numbered "               "#{ entry.type }"
+      end
+
       built
     end
     end

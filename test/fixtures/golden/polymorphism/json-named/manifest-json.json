@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "ce244cf4ba3fc461ff4cc1109f49c213",
-  "TotalSize": 1121,
+  "MasterHash": "09448e028cf3c61492c9e902cfbc7017",
+  "TotalSize": 2337,
   "Items": [
     {
       "Name": "Element.json",
@@ -13,6 +13,12 @@
       "Name": "Skill.json",
       "Size": 1033,
       "Hash": "7d0b1ac5b2a86c7585ed953c76269c10",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Combo.json",
+      "Size": 1216,
+      "Hash": "c67104dabdbc661272479496f9a67dee",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

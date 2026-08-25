@@ -68,37 +68,41 @@ final class SkillRecord
     /** What this row's Effect is. Narrow it with `instanceof`. */
     public function effectOf(): Effect
     {
-        if ($this->effectValue !== null) {
-            return $this->effectValue;
+        if ($this->effectValue === null) {
+            $this->effectValue = self::effectElement($this->effect);
         }
 
-        switch ($this->effect->type) {
+        return $this->effectValue;
+    }
+
+    /** Builds one value from the entry the read filled. */
+    private static function effectElement(
+        SkillEffectEntry $entry): Effect
+    {
+        switch ($entry->type) {
             case 1:
                 $built = new DamageEffect();
-                $built->chance = $this->effect->chance;
-                $built->damage = $this->effect->damage;
-                $built->pierces = $this->effect->pierces;
-                $built->elementId = $this->effect->elementId;
-                $built->elementByElementId = $this->effect->elementByElementId;
-                $this->effectValue = $built;
+                $built->chance = $entry->chance;
+                $built->damage = $entry->damage;
+                $built->pierces = $entry->pierces;
+                $built->elementId = $entry->elementId;
+                $built->elementByElementId = $entry->elementByElementId;
                 return $built;
             case 2:
                 $built = new HealEffect();
-                $built->chance = $this->effect->chance;
-                $built->amount = $this->effect->amount;
-                $built->band = $this->effect->band;
-                $this->effectValue = $built;
+                $built->chance = $entry->chance;
+                $built->amount = $entry->amount;
+                $built->band = $entry->band;
                 return $built;
             case 3:
                 $built = new NoEffect();
-                $built->chance = $this->effect->chance;
-                $this->effectValue = $built;
+                $built->chance = $entry->chance;
                 return $built;
         }
 
         throw new \RuntimeException(
             'Effect: no variant is numbered '
-            . $this->effect->type);
+            . $entry->type);
     }
 
 

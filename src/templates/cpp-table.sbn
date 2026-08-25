@@ -83,8 +83,30 @@ struct {{ table.record_name }} {
    A `unique_ptr` because the base is what a caller holds and the variant is what was made; the
    virtual destructor on the base is what makes that safe. spec/polymorphism.md section 7.2. ##~}}
   /// What this row's {{ field.abstract_type_name }} is. Narrow it with `dynamic_cast`.
+{{~ if field.variants_are_array ~}}
+{{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
+   shapes inside one row may differ, and what a consumer reads is a sequence of the abstract
+   type. The function that builds one is the same either way. ##~}}
+  std::vector<std::unique_ptr<{{ field.abstract_type_name }}>> {{ field.name }}_of() const {
+    std::vector<std::unique_ptr<{{ field.abstract_type_name }}>> all;
+    all.reserve({{ field.name }}.size());
+
+    for (const auto& element : {{ field.name }}) {
+      all.push_back({{ field.name }}_element(element));
+    }
+
+    return all;
+  }
+{{~ else ~}}
   std::unique_ptr<{{ field.abstract_type_name }}> {{ field.name }}_of() const {
-    switch ({{ field.name }}.{{ field.discriminator_name }}) {
+    return {{ field.name }}_element({{ field.name }});
+  }
+{{~ end ~}}
+
+  /// Builds one value from the entry the read filled.
+  static std::unique_ptr<{{ field.abstract_type_name }}> {{ field.name }}_element(
+      const {{ field.record_type_name }}& entry) {
+    switch (entry.{{ field.discriminator_name }}) {
 {{~ for variant in field.variants ~}}
       case {{ variant.discriminator }}: {
         auto built = std::make_unique<{{ variant.type_name }}>();
@@ -92,20 +114,20 @@ struct {{ table.record_name }} {
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-        built->{{ member.name }} = {{ field.name }}.{{ member.name }};
-        built->{{ member.row_name }} = {{ field.name }}.{{ member.row_name }};
+        built->{{ member.name }} = entry.{{ member.name }};
+        built->{{ member.row_name }} = entry.{{ member.row_name }};
 {{~ else ~}}
-        built->{{ member.name }} = {{ field.name }}.{{ member.name }};
+        built->{{ member.name }} = entry.{{ member.name }};
 {{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-        built->{{ member.name }} = {{ field.name }}.{{ member.name }};
-        built->{{ member.row_name }} = {{ field.name }}.{{ member.row_name }};
+        built->{{ member.name }} = entry.{{ member.name }};
+        built->{{ member.row_name }} = entry.{{ member.row_name }};
 {{~ else ~}}
-        built->{{ member.name }} = {{ field.name }}.{{ member.name }};
+        built->{{ member.name }} = entry.{{ member.name }};
 {{~ end ~}}
 {{~ end ~}}
         return built;
@@ -117,7 +139,7 @@ struct {{ table.record_name }} {
    which the reader skips, that makes the whole row uninterpretable. ##~}}
     throw std::runtime_error(
         "{{ field.abstract_type_name }}: no variant is numbered "
-        + std::to_string({{ field.name }}.{{ field.discriminator_name }}));
+        + std::to_string(entry.{{ field.discriminator_name }}));
   }
 {{~ end ~}}
 {{~ end ~}}

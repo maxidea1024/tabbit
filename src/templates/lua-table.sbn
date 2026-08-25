@@ -322,10 +322,31 @@ end
    A function on the table rather than a field on the row, because the row's strict metatable
    declares its fields and a lazily added one would be an error to write.
    spec/polymorphism.md section 7.2. ##~}}
+{{~ if field.variants_are_array ~}}
+{{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
+   shapes inside one row may differ, and what a consumer reads is a list of the abstract type.
+   The function that builds one is below and is the same either way. ##~}}
+--- What one row's {{ field.abstract_type_name }}s are, one per element. Narrow each on `.kind`.
+---@param row {{ table.record_name }}
+function {{ table.table_name }}.{{ field.name }}Of(row)
+  local all = {}
+
+  for element = 1, #row.{{ field.name }} do
+    all[element] = {{ table.table_name }}.{{ field.name }}Element(row.{{ field.name }}[element])
+  end
+
+  return all
+end
+{{~ else ~}}
 --- What one row's {{ field.abstract_type_name }} is. Narrow it on `.kind`.
 ---@param row {{ table.record_name }}
 function {{ table.table_name }}.{{ field.name }}Of(row)
-  local entry = row.{{ field.name }}
+  return {{ table.table_name }}.{{ field.name }}Element(row.{{ field.name }})
+end
+{{~ end ~}}
+
+--- Builds one value from the entry the read filled.
+function {{ table.table_name }}.{{ field.name }}Element(entry)
   local built
 
 {{~ for variant in field.variants ~}}

@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-25T15:50:57.1971768+09:00",
+    "generatedAt": "2026-08-25T20:21:48.6679435+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "61b589dab5d52a9fb0f9b5a5737591315e67f129",
-      "shortHash": "61b589dab5d5",
-      "branch": "polymorphism-spec",
+      "hash": "aac839495880c63146fa4bd267bb508acc2c397d",
+      "shortHash": "aac839495880",
+      "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-25T12:52:02.0000000+09:00",
-      "subject": "refactor: 다중 대상 참조를 걷어낸다 — 셀렉터는 검사이지 참조가 아니다",
+      "committedAt": "2026-08-25T19:33:25.0000000+09:00",
+      "subject": "feat: 다형 배열(5단계) — 표기·모델·검증과 C#의 표면",
       "origin": "git",
       "dirty": true,
       "attributable": false

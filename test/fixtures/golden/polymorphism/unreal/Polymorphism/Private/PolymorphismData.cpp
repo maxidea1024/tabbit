@@ -525,8 +525,359 @@ bool FSkillTable::Read(const FString& Filename)
     return true;
 }
 
+
+const FComboRow* FComboTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FComboTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FComboTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever PolymorphismData::EncryptionKey and
+    // PolymorphismData::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, PolymorphismData::EncryptionKey, Bytes, OpenError,
+            PolymorphismData::MacKey, PolymorphismData::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FComboRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Combo.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Combo.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Combo.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Combo.Name"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Name = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Combo.Effects.Type"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Combo.Effects.Type"));
+
+            for (FComboRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Effects.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Effects.SetNum(ElementCount);
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.Effects[ElementAt].Type);
+                }
+            }
+
+            break;
+
+        case 4:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Combo.Effects.Chance"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Combo.Effects.Chance"));
+
+            for (FComboRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Effects.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Combo.Effects: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.Effects[ElementAt].Chance);
+                }
+            }
+
+            break;
+
+        case 5:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Combo.Effects.Damage"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Combo.Effects.Damage"));
+
+            for (FComboRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Effects.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Combo.Effects: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.Effects[ElementAt].Damage);
+                }
+            }
+
+            break;
+
+        case 6:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Combo.Effects.Pierces"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementBool));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Combo.Effects.Pierces"));
+
+            for (FComboRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.bEffects.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Combo.bEffects: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.bEffects[ElementAt].bPierces);
+                }
+            }
+
+            break;
+
+        case 7:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Combo.Effects.ElementId"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Combo.Effects.ElementId"));
+
+            for (FComboRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Effects.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Combo.Effects: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.Effects[ElementAt].ElementId);
+                }
+            }
+
+            break;
+
+        case 8:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Combo.Effects.Amount"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Combo.Effects.Amount"));
+
+            for (FComboRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Effects.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Combo.Effects: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.Effects[ElementAt].Amount);
+                }
+            }
+
+            break;
+
+        case 9:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Combo.Effects.Band"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Combo.Effects.Band"));
+
+            for (FComboRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Effects.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Combo.Effects: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextEnumAs(Column.Element, Record.Effects[ElementAt].Band);
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
 FElementTable PolymorphismData::ElementStorage;
 FSkillTable PolymorphismData::SkillStorage;
+FComboTable PolymorphismData::ComboStorage;
 
 TArray<uint8> PolymorphismData::EncryptionKey;
 TArray<uint8> PolymorphismData::MacKey;
@@ -586,6 +937,32 @@ FSkillRow UPolymorphismDataLibrary::GetSkillRowAt(int32 Position, bool& bFound)
 }
 
 
+FComboRow UPolymorphismDataLibrary::GetComboRow(int32 Key, bool& bFound)
+{
+    const FComboRow* Found = PolymorphismData::Combo().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FComboRow();
+}
+
+int32 UPolymorphismDataLibrary::GetComboRowCount()
+{
+    return PolymorphismData::Combo().Records().Num();
+}
+
+FComboRow UPolymorphismDataLibrary::GetComboRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FComboRow>& Rows = PolymorphismData::Combo().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FComboRow();
+}
+
+
 bool UPolymorphismDataLibrary::ReadAll(const FString& BasePath, const FString& FileExtension)
 {
     return PolymorphismData::ReadAll(BasePath, FileExtension);
@@ -608,9 +985,16 @@ bool PolymorphismData::ReadAll(const FString& BasePath, const FString& FileExten
     {
         return false;
     }
+    FComboTable LoadedCombo;
+
+    if (!LoadedCombo.Read(FPaths::Combine(BasePath, TEXT("Combo") + FileExtension)))
+    {
+        return false;
+    }
 
     ElementStorage = MoveTemp(LoadedElement);
     SkillStorage = MoveTemp(LoadedSkill);
+    ComboStorage = MoveTemp(LoadedCombo);
 
     return true;
 }

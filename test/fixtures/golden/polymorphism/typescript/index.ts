@@ -16,5 +16,7 @@ export { ElementRecord } from './tables/element'
 export { ElementTable } from './tables/element'
 export { SkillRecord } from './tables/skill'
 export { SkillTable } from './tables/skill'
+export { ComboRecord } from './tables/combo'
+export { ComboTable } from './tables/combo'
 
 export { Tables } from './tables'

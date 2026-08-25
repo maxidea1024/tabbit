@@ -594,34 +594,57 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
 {{~ for field in table.fields ~}}
 {{~ if field.variants.size > 0 }}
 
+{{~ if field.variants_are_array ~}}
+size_t {{ table.function_prefix }}{{ field.pascal_name }}Count(
+  const {{ table.record_name }}* record)
+{
+  return record->{{ field.name }}_count;
+}
+
+{{ field.kind_enum_name }} {{ table.function_prefix }}{{ field.pascal_name }}Kind(
+  const {{ table.record_name }}* record, size_t at)
+{
+  return ({{ field.kind_enum_name }})record->{{ field.name }}[at].{{ field.discriminator_name }};
+}
+{{~ else ~}}
 {{ field.kind_enum_name }} {{ table.function_prefix }}{{ field.pascal_name }}Kind(
   const {{ table.record_name }}* record)
 {
   return ({{ field.kind_enum_name }})record->{{ field.name }}.{{ field.discriminator_name }};
 }
+{{~ end ~}}
 {{~ for variant in field.variants ~}}
 
+{{~ if field.variants_are_array ~}}
+bool {{ table.function_prefix }}{{ field.pascal_name }}As{{ variant.suffix }}(
+  const {{ table.record_name }}* record, size_t at, {{ variant.type_name }}* out)
+{
+  const struct {{ field.record_type_name }}* entry = &record->{{ field.name }}[at];
+{{~ else ~}}
 bool {{ table.function_prefix }}{{ field.pascal_name }}As{{ variant.suffix }}(
   const {{ table.record_name }}* record, {{ variant.type_name }}* out)
 {
-  if (record->{{ field.name }}.{{ field.discriminator_name }} != {{ variant.discriminator }}) {
+  const struct {{ field.record_type_name }}* entry = &record->{{ field.name }};
+{{~ end ~}}
+
+  if (entry->{{ field.discriminator_name }} != {{ variant.discriminator }}) {
     return false;
   }
 
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
-  out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
-  out->{{ member.row_name }} = record->{{ field.name }}.{{ member.row_name }};
+  out->{{ member.name }} = entry->{{ member.name }};
+  out->{{ member.row_name }} = entry->{{ member.row_name }};
 {{~ else ~}}
-  out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
+  out->{{ member.name }} = entry->{{ member.name }};
 {{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
-  out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
-  out->{{ member.row_name }} = record->{{ field.name }}.{{ member.row_name }};
+  out->{{ member.name }} = entry->{{ member.name }};
+  out->{{ member.row_name }} = entry->{{ member.row_name }};
 {{~ else ~}}
-  out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
+  out->{{ member.name }} = entry->{{ member.name }};
 {{~ end ~}}
 {{~ end ~}}
   return true;

@@ -56,23 +56,28 @@ impl SkillRecord {
 
     /// What this row's [`Effect`] is. `match` over it is exhaustive.
     pub fn effect_of(&self) -> Effect {
-        match self.effect.type_ {
+        Self::effect_element(&self.effect)
+    }
+
+    /// Builds one value from the entry the read filled.
+    fn effect_element(entry: &SkillEffectEntry) -> Effect {
+        match entry.type_ {
             1 => Effect::DamageEffect(
                 DamageEffect {
-                    chance: self.effect.chance.clone(),
-                    damage: self.effect.damage.clone(),
-                    pierces: self.effect.pierces.clone(),
-                    element_id: self.effect.element_id.clone(),
+                    chance: entry.chance.clone(),
+                    damage: entry.damage.clone(),
+                    pierces: entry.pierces.clone(),
+                    element_id: entry.element_id.clone(),
                 }),
             2 => Effect::HealEffect(
                 HealEffect {
-                    chance: self.effect.chance.clone(),
-                    amount: self.effect.amount.clone(),
-                    band: self.effect.band.clone(),
+                    chance: entry.chance.clone(),
+                    amount: entry.amount.clone(),
+                    band: entry.band.clone(),
                 }),
             3 => Effect::NoEffect(
                 NoEffect {
-                    chance: self.effect.chance.clone(),
+                    chance: entry.chance.clone(),
                 }),
             other => panic!(
                 "Effect: no variant is numbered {}", other),

@@ -36,6 +36,22 @@ static void PolyData_SolveCrossReferences(PolyData_t* data) {
         record->effect.element_by_element_id = target;
     }
   }
+
+  for (row = 0; row < data->combo.count; ++row) {
+    PolyData_ComboRecord_t* record = &data->combo.records[row];
+
+    {
+      int32_t element;
+
+      for (element = 0; element < record->effects_count; ++element) {
+        const PolyData_ElementRecord_t* target = PolyData_ElementFindByCode(
+          &data->element, record->effects[element].element_id);
+
+        if (target != NULL)
+          record->effects[element].element_by_element_id = target;
+      }
+    }
+  }
 }
 
 bool PolyData_LoadAll(PolyData_t* data, const char* base_path,
@@ -84,6 +100,20 @@ bool PolyData_LoadAllWithExtension(PolyData_t* data, const char* base_path,
     return false;
   }
 
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Combo", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    PolyData_Free(&loaded);
+    return false;
+  }
+
+  if (!PolyData_ComboLoad(&loaded.combo, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    PolyData_Free(&loaded);
+    return false;
+  }
+
   /* Linked among the tables of this load, so no row points into the previous one. */
   PolyData_SolveCrossReferences(&loaded);
 
@@ -97,4 +127,5 @@ bool PolyData_LoadAllWithExtension(PolyData_t* data, const char* base_path,
 void PolyData_Free(PolyData_t* data) {
   PolyData_ElementFree(&data->element);
   PolyData_SkillFree(&data->skill);
+  PolyData_ComboFree(&data->combo);
 }

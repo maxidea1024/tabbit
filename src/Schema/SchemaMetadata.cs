@@ -34,6 +34,10 @@ internal static class SchemaMetadata
         // The one-cell notation, which widens the composite value types' expansion pass to
         // a declared struct - section 7.3.
         ["sep"] = MetaKey.Carried,
+
+        // A gravestone one level up from a member's: a dropped variant, kept so that its
+        // discriminator is not handed to another one. spec/polymorphism.md section 5.1.1.
+        ["removed"] = MetaKey.Carried,
     };
 
     /// <summary>Keys a member may carry.</summary>
@@ -98,7 +102,10 @@ internal static class SchemaMetadata
     /// </summary>
     public static void Check(SchemaDeclarations declarations, Diagnostics diagnostics)
     {
-        foreach (var declared in declarations.Structs.Values)
+        // The tombstones too, which are not in `Structs`: a typo in the brackets of a
+        // declaration nothing generates is still a typo, and the number it holds is the
+        // reason the line is there at all.
+        foreach (var declared in declarations.Structs.Values.Concat(declarations.RemovedVariants))
         {
             Check(declared.Meta, OnStruct, declared.Name, declared.Name, diagnostics);
 

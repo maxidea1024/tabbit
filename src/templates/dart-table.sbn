@@ -53,6 +53,23 @@ class {{ table.record_name }} {
    assignment per column - and which variant it is only became knowable when the discriminator
    column arrived. Building it here keeps the read path and the wire exactly as they were.
    spec/polymorphism.md section 7.2. ##~}}
+{{~ if field.variants_are_array ~}}
+{{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
+   shapes inside one row may differ, and what a consumer reads is an array of the abstract type.
+   The function that builds one is below and is the same either way. ##~}}
+  List<{{ field.abstract_type_name }}>? _{{ field.name }}Value;
+
+  /// What this row's [{{ field.abstract_type_name }}]s are, one per element.
+  List<{{ field.abstract_type_name }}> get {{ field.name }}Of {
+    final cached = _{{ field.name }}Value;
+    if (cached != null) return cached;
+
+    final all = {{ field.name }}.map(_{{ field.name }}Element).toList();
+
+    _{{ field.name }}Value = all;
+    return all;
+  }
+{{~ else ~}}
   {{ field.abstract_type_name }}? _{{ field.name }}Value;
 
   /// What this row's [{{ field.abstract_type_name }}] is. `switch` over it is exhaustive.
@@ -60,27 +77,37 @@ class {{ table.record_name }} {
     final cached = _{{ field.name }}Value;
     if (cached != null) return cached;
 
-    final built = switch ({{ field.name }}.type) {
+    final built = _{{ field.name }}Element({{ field.name }});
+
+    _{{ field.name }}Value = built;
+    return built;
+  }
+{{~ end ~}}
+
+  /// Builds one value from the entry the read filled.
+  static {{ field.abstract_type_name }} _{{ field.name }}Element(
+      {{ field.record_type_name }} entry) {
+    final built = switch (entry.type) {
 {{~ for variant in field.variants ~}}
       {{ variant.discriminator }} => {{ variant.type_name }}(
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-        {{ member.name }}: {{ field.name }}.{{ member.name }},
-        {{ member.row_name }}: {{ field.name }}.{{ member.row_name }},
+        {{ member.name }}: entry.{{ member.name }},
+        {{ member.row_name }}: entry.{{ member.row_name }},
 {{~ else ~}}
-        {{ member.name }}: {{ field.name }}.{{ member.name }},
+        {{ member.name }}: entry.{{ member.name }},
 {{~ end ~}}
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
    it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
-        {{ member.name }}: {{ field.name }}.{{ member.name }},
-        {{ member.row_name }}: {{ field.name }}.{{ member.row_name }},
+        {{ member.name }}: entry.{{ member.name }},
+        {{ member.row_name }}: entry.{{ member.row_name }},
 {{~ else ~}}
-        {{ member.name }}: {{ field.name }}.{{ member.name }},
+        {{ member.name }}: entry.{{ member.name }},
 {{~ end ~}}
 {{~ end ~}}
       ),
@@ -88,10 +115,9 @@ class {{ table.record_name }} {
 {{~## An unknown number is a variant this build does not have. Unlike a column added later,
    which the reader skips, that makes the whole row uninterpretable. ##~}}
       _ => throw StateError(
-          '{{ field.abstract_type_name }}: no variant is numbered ${ {{ field.name }}.type }'),
+          '{{ field.abstract_type_name }}: no variant is numbered ${ entry.type }'),
     };
 
-    _{{ field.name }}Value = built;
     return built;
   }
 {{~ end ~}}

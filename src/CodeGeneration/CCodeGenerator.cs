@@ -831,6 +831,8 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         return new CFieldView
         {
+            VariantsAreArray = declaredType is not null && sf.IsArray,
+            EntryAccess = "entry",
             AbstractTypeName = declaredType is null ? "" : FileBase + "_Struct" + declaredType.Name,
             KindEnumName = declaredType is null
                 ? ""

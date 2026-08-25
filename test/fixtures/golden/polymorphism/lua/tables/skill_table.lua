@@ -263,7 +263,11 @@ end
 --- What one row's Effect is. Narrow it on `.kind`.
 ---@param row SkillRecord
 function SkillTable.effectOf(row)
-  local entry = row.effect
+  return SkillTable.effectElement(row.effect)
+end
+
+--- Builds one value from the entry the read filled.
+function SkillTable.effectElement(entry)
   local built
 
   if entry.type == 1 then

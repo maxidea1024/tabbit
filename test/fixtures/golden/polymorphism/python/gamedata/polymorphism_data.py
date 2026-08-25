@@ -11,12 +11,13 @@ import os
 from . import tabbit
 from .element_table import ElementTable
 from .skill_table import SkillTable
+from .combo_table import ComboTable
 
 
 class Tables:
     """Every table, loaded together so cross-table references can be resolved."""
 
-    __slots__ = ("element", "skill")
+    __slots__ = ("element", "skill", "combo")
 
     #: The key the table files were sealed with, or None when they were not sealed.
     #:
@@ -65,6 +66,7 @@ class Tables:
     def __init__(self):
         self.element = ElementTable()
         self.skill = SkillTable()
+        self.combo = ComboTable()
 
     def read_all(self, base_path, file_extension=".tcb"):
         """Reads every table from base_path, then links the references between them.
@@ -80,13 +82,16 @@ class Tables:
         loaded_element.read(os.path.join(base_path, "Element" + file_extension))
         loaded_skill = SkillTable()
         loaded_skill.read(os.path.join(base_path, "Skill" + file_extension))
+        loaded_combo = ComboTable()
+        loaded_combo.read(os.path.join(base_path, "Combo" + file_extension))
 
-        self._solve_cross_references(loaded_element, loaded_skill)
+        self._solve_cross_references(loaded_element, loaded_skill, loaded_combo)
 
         self.element = loaded_element
         self.skill = loaded_skill
+        self.combo = loaded_combo
 
-    def _solve_cross_references(self, element, skill):
+    def _solve_cross_references(self, element, skill, combo):
         """Turns the stored indices into usable values, once every table is in memory.
 
         The tables arrive as arguments rather than off self, which is how this resolves the
@@ -96,3 +101,8 @@ class Tables:
             target = element.find_by_code(record.effect.element_id)
             if target is not None:
                 record.effect.element_by_element_id = target
+        for record in combo.records:
+            for i in range(len(record.effects)):
+                target = element.find_by_code(record.effects[i].element_id)
+                if target is not None:
+                    record.effects[i].element_by_element_id = target

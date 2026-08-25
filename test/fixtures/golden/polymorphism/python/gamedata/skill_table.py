@@ -53,27 +53,33 @@ class SkillRecord:
         if built is not None:
             return built
 
-        if self.effect.type_ == 1:
+        built = self._effect_element(self.effect)
+
+        self._effect_value = built
+        return built
+
+    def _effect_element(self, entry):
+        """Builds one value from the entry the read filled."""
+        if entry.type_ == 1:
             built = DamageEffect()
-            built.chance = self.effect.chance
-            built.damage = self.effect.damage
-            built.pierces = self.effect.pierces
-            built.element_id = self.effect.element_id
-            built.element_by_element_id = self.effect.element_by_element_id
-        elif self.effect.type_ == 2:
+            built.chance = entry.chance
+            built.damage = entry.damage
+            built.pierces = entry.pierces
+            built.element_id = entry.element_id
+            built.element_by_element_id = entry.element_by_element_id
+        elif entry.type_ == 2:
             built = HealEffect()
-            built.chance = self.effect.chance
-            built.amount = self.effect.amount
-            built.band = self.effect.band
-        elif self.effect.type_ == 3:
+            built.chance = entry.chance
+            built.amount = entry.amount
+            built.band = entry.band
+        elif entry.type_ == 3:
             built = NoEffect()
-            built.chance = self.effect.chance
+            built.chance = entry.chance
         else:
             raise ValueError(
                 "Effect: no variant is numbered %r"
-                % (self.effect.type_,))
+                % (entry.type_,))
 
-        self._effect_value = built
         return built
 
     def __repr__(self):

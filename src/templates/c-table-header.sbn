@@ -113,6 +113,44 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
    one. The row still carries the flat entry, so the read path and the wire are untouched.
    spec/polymorphism.md section 7.2. ##~}}
 
+{{~ if field.variants_are_array ~}}
+{{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
+   element number is what these take beside the row, and `Count` is how many there are. ##~}}
+/* How many {{ field.abstract_type_name }}s this row has. */
+size_t {{ table.function_prefix }}{{ field.pascal_name }}Count(
+  const {{ table.record_name }}* record);
+
+/* Which shape one element's {{ field.abstract_type_name }} took. */
+{{ field.kind_enum_name }} {{ table.function_prefix }}{{ field.pascal_name }}Kind(
+  const {{ table.record_name }}* record, size_t at);
+{{~ for variant in field.variants ~}}
+
+/* Fills `out` when that element is a {{ variant.type_name }}, and answers whether it was.
+ *
+ * The file carries {{ variant.discriminator }} for that variant. */
+bool {{ table.function_prefix }}{{ field.pascal_name }}As{{ variant.suffix }}(
+  const {{ table.record_name }}* record, size_t at, {{ variant.type_name }}* out);
+{{~ end ~}}
+{{~ else ~}}
+{{~ if field.variants_are_array ~}}
+{{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
+   element number is what these take beside the row, and `Count` is how many there are. ##~}}
+/* How many {{ field.abstract_type_name }}s this row has. */
+size_t {{ table.function_prefix }}{{ field.pascal_name }}Count(
+  const {{ table.record_name }}* record);
+
+/* Which shape one element's {{ field.abstract_type_name }} took. */
+{{ field.kind_enum_name }} {{ table.function_prefix }}{{ field.pascal_name }}Kind(
+  const {{ table.record_name }}* record, size_t at);
+{{~ for variant in field.variants ~}}
+
+/* Fills `out` when that element is a {{ variant.type_name }}, and answers whether it was.
+ *
+ * The file carries {{ variant.discriminator }} for that variant. */
+bool {{ table.function_prefix }}{{ field.pascal_name }}As{{ variant.suffix }}(
+  const {{ table.record_name }}* record, size_t at, {{ variant.type_name }}* out);
+{{~ end ~}}
+{{~ else ~}}
 /* Which shape this row's {{ field.abstract_type_name }} took. */
 {{ field.kind_enum_name }} {{ table.function_prefix }}{{ field.pascal_name }}Kind(
   const {{ table.record_name }}* record);
@@ -123,6 +161,8 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
  * The file carries {{ variant.discriminator }} for that variant. */
 bool {{ table.function_prefix }}{{ field.pascal_name }}As{{ variant.suffix }}(
   const {{ table.record_name }}* record, {{ variant.type_name }}* out);
+{{~ end ~}}
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
