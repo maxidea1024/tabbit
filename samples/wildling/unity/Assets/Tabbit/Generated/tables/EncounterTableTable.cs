@@ -49,7 +49,7 @@ namespace Wildling.Data
             public bool HasRequirementGroupId => _requirementGroupIdHasValue;
 
             /// <summary>
-            /// 어느 단계가 나오는가
+            /// 어느 단계가 나오는가.
             /// </summary>
             public EntriesEntry[] Entries => _entries;
             #endregion
@@ -58,13 +58,13 @@ namespace Wildling.Data
             [System.Serializable]
             public struct EntriesEntry
             {
-                /// 어느 단계가 나오는가
+                /// 어느 단계가 나오는가.
                 public string MonsterId;
                 public MonsterTable.Record MonsterByMonsterId;
                 public bool MonsterId_F;
-                /// 가중치
+                /// 가중치. 등급 기본값에 지역 계수를 적용한 값입니다.
                 public int Weight;
-                /// 어느 슬롯에서 나오는가
+                /// 어느 슬롯에서 나오는가.
                 public global::Wildling.Data.EncounterSlot EncounterSlot;
 
                 public override string ToString()

@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from common.tbs(28,6)
+    // Generated from common.tbs(39,6)
     /// <summary>
     /// 출현 슬롯의 종류. `EncounterEntry`가 가리키므로 여기 있어야 합니다.
     /// </summary>

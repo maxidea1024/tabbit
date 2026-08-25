@@ -16,6 +16,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/기획데이
 |--|--|
 |기획 데이터 전부|[기획데이터/](기획데이터/) — 워크북 9개 · 격자 40개 · `.tbs` 3개 · 검증 규칙 8개 · recipe|
 |유니티 프로젝트|[unity/](unity/) — 생성 C#, `.bytes`, 그리고 그림|
+|읽는 산출물|[기획데이터/out/](기획데이터/out/) — HTML 문서 · 인코딩 보고서 · 스키마 기준선. **유니티 애셋이 아닌 것들**|
 |문서|[doc/](doc/)|
 
 기획 데이터를 폴더 하나에 모은 것은 **그것이 게임의 한 부분**이기 때문입니다. 그림은 기획
@@ -28,7 +29,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/기획데이
 |--|--|
 |[기획서](doc/기획서.md)|시스템 기획서 20절. **데이터가 왜 그 형태여야 하는지의 근거**입니다|
 |[데이터 설계](doc/데이터-설계.md)|테이블 40개 · `.tbs` 선언 · **기능 배치표**|
-|[도구 보고](doc/도구-보고.md)|변환에서 찾은 것 **10건**과 그 결말. **9건이 닫혔습니다**|
+|[도구 보고](doc/도구-보고.md)|변환에서 찾은 것 **11건**과 그 결말. **전부 닫혔습니다**|
 |[적용 기록](doc/적용-기록.md)|데이터 쪽에서 고친 9건. 전부 규격을 잘못 읽은 것입니다|
 
 ## 이 샘플의 목적
@@ -49,6 +50,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/기획데이
         ↓  recipe.jsonc
 unity/Assets/Tabbit/Generated       C#
 unity/Assets/StreamingAssets/tables `.bytes`
+기획데이터/out/html                  사람이 읽는 문서
 ```
 
 `.tsv` 하나가 **시트 하나의 격자 그대로**입니다. 저작기는 값을 계산하지 않으므로 밸런스 수정이
@@ -93,8 +95,7 @@ python samples/wildling/기획데이터/tools/verify.py
 |통과|**10**|
 |실패|**0**|
 
-**우회가 하나도 남지 않았습니다.** [도구 보고](doc/도구-보고.md)의 10건 중 **9건이 닫혔고**,
-남은 하나는 멀티 로우와 DSL struct의 조합이어서 막지 않습니다 — 멤버를 인라인으로 적으면 됩니다.
+**우회가 하나도 남지 않았습니다.** [도구 보고](doc/도구-보고.md)의 **11건이 전부 닫혔습니다.**
 
 ---
 

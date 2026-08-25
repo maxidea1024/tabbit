@@ -1174,18 +1174,20 @@ internal static class Program
                 fromSchema ? "Bonus" : "int",
                 Said("Which stat it raises.")))
 
-            // Typed on both sides, like `Slot1.Count` above: what this group is here to
-            // exercise is the first column naming the struct, not a second blank cell.
-            .Field(FieldSpec.Of("Bonus[].Amount", "int", Said("By how much.")));
+            // **Blank on the declared side, written out on the twin.** A group names its
+            // struct on the first member column and leaves the rest empty - that is the
+            // notation, and it was the one shape this fixture skipped. The pair is what says
+            // the declaration fills those cells: two workbooks, one file.
+            .Field(FieldSpec.Of("Bonus[].Amount", fromSchema ? "" : "int", Said("By how much.")));
 
-        // Every record the same number of rows. A record with fewer would leave the last
-        // element's cells blank, and the declaration says those members are required - which
-        // is a question about variable-length groups and not about this notation.
+        // **Records of different lengths.** Two rows, then one, then two - because the group
+        // is as wide as the longest record and a shorter one has no cells for the elements
+        // past its end. Every record being the same length is the shape that hides whether
+        // the elements a record does have are read from its own rows.
         multi
             .Row("1", "1", "5")
             .Row("", "2", "7")
             .Row("2", "3", "9")
-            .Row("", "4", "11")
             // A run of equal values, which is what the column encodings read.
             .Row("3", "3", "9")
             .Row("", "4", "11");

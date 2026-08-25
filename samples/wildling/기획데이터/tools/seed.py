@@ -566,11 +566,13 @@ def build_encounter():
         ("encounter_id", "string", "식별자", "c,s"),
         ("region_id", "foreign Region", "어느 지역인가", "c,s"),
         ("requirement_group_id", "foreign RequirementGroup?", "은둔 슬롯의 조건", "c,s"),
-        # **멀티 로우 그룹에 DSL struct 이름을 붙이면 컬럼 대응이 어긋납니다** — 거절은
-        # 없어졌지만 값을 다른 칸에서 읽습니다(도구 보고 §5). 그래서 멤버를 인라인으로 적습니다.
-        ("entries[].monster_id", "foreign Monster", "어느 단계가 나오는가", "c,s"),
-        ("entries[].weight", "int (min=1)", "가중치", "c,s"),
-        ("entries[].encounter_slot", "EncounterSlot", "어느 슬롯에서 나오는가", "c,s"),
+        # DSL struct 그룹은 **첫 멤버 컬럼이 정본**입니다 — 타입도 설명도 거기 적고 나머지
+        # 멤버 칸은 비웁니다. 반복 기재를 없애는 것이 선언의 본 효과입니다.
+        # 타입도 설명도 **선언이 답합니다.** 첫 멤버에만 설명을 적으면 그것이 정본이 되고
+        # 선언의 `///` 이 오지 않습니다 — 그룹 전체를 비우는 것이 이 표기의 뜻입니다.
+        ("entries[].monster_id", "EncounterEntry", "", "c,s"),
+        ("entries[].weight", "", "", ""),
+        ("entries[].encounter_slot", "", "", ""),
     ]
     by_region = {}
     for sid, el, grade, role, stages, names in SPECIES:

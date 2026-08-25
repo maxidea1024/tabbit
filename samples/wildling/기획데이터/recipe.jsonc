@@ -74,6 +74,12 @@
       "WriteUpdater": true
     },
     {
+      // 값이 제대로 들어갔는지 눈으로 보는 자리. **유니티 애셋이 아니므로 프로젝트 밖입니다** —
+      // 게임이 로드하지 않고 사람이 읽습니다.
+      "Type": "html",
+      "Path": "samples/wildling/기획데이터/out/html"
+    },
+    {
       "Type": "binary",
       "Path": "samples/wildling/unity/Assets/StreamingAssets/tables",
       "FileExtension": ".bytes",

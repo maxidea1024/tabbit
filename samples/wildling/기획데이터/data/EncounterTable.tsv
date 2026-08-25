@@ -1,8 +1,8 @@
 :table EncounterTable(side=s)	지역별 출현 목록이다. 확률은 클라이언트가 알 필요가 없다.
 :field	encounter_id	region_id	requirement_group_id	entries[].monster_id	entries[].weight	entries[].encounter_slot
-:type	string	foreign Region	foreign RequirementGroup?	foreign Monster	int (min=1)	EncounterSlot
-:desc	식별자	어느 지역인가	은둔 슬롯의 조건	어느 단계가 나오는가	가중치	어느 슬롯에서 나오는가
-:target	c,s	c,s	c,s	c,s	c,s	c,s
+:type	string	foreign Region	foreign RequirementGroup?	EncounterEntry
+:desc	식별자	어느 지역인가	은둔 슬롯의 조건
+:target	c,s	c,s	c,s	c,s
 	enc_weir_forest	weir_forest	req_hidden_weir_forest	sprout_deer_1	1000	Normal
 				sprout_deer_2	166	Normal
 				moss_toad_1	1000	Normal
