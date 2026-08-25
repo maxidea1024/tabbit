@@ -62,6 +62,41 @@ class {{ table.record_name }}:
    separate id bands, so at most one of them ever answers.
    spec/multi-target-accessors.md. ##~}}
 
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+{{~## **The value, built once on first use.** The entry above is what the read filled - one
+   assignment per column - and which variant it is only became knowable when the discriminator
+   column arrived. Building it here keeps the read path and the wire exactly as they were.
+   spec/polymorphism.md section 7.2. ##~}}
+
+    def {{ field.name }}_of(self):
+        """What this row's {{ field.abstract_type_name }} is. Narrow it with ``isinstance``."""
+        built = getattr(self, "_{{ field.name }}_value", None)
+        if built is not None:
+            return built
+
+{{~ for variant in field.variants ~}}
+        {{ if for.first }}if{{ else }}elif{{ end }} self.{{ field.name }}.{{ field.discriminator_name }} == {{ variant.discriminator }}:
+            built = {{ variant.type_name }}()
+{{~ for member in field.base_members ~}}
+            built.{{ member.name }} = self.{{ field.name }}.{{ member.name }}
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+            built.{{ member.name }} = self.{{ field.name }}.{{ member.name }}
+{{~ end ~}}
+{{~ end ~}}
+        else:
+{{~## An unknown number is a variant this build does not have. Unlike a column added later,
+   which the reader skips, that makes the whole row uninterpretable. ##~}}
+            raise ValueError(
+                "{{ field.abstract_type_name }}: no variant is numbered %r"
+                % (self.{{ field.name }}.{{ field.discriminator_name }},))
+
+        self._{{ field.name }}_value = built
+        return built
+{{~ end ~}}
+{{~ end ~}}
+
     def __repr__(self):
         return "{{ table.record_name }}({{ table.repr_format }})" % ({{ table.repr_values }})
 

@@ -67,6 +67,11 @@
       "AccessorName": "PolymorphismAccessor"
     },
     {
+      "Type": "python",
+      "Path": "test/fixtures/output/polymorphism/python",
+      "ModuleName": "polymorphism_data"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

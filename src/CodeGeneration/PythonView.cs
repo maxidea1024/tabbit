@@ -49,6 +49,9 @@ internal sealed class PythonPartView
     /// <summary>The constant set this file is for, when it is a constants file.</summary>
     public PythonConstantSetView? Set { get; set; }
 
+    /// <summary>The abstract type this module declares, when it declares one.</summary>
+    public PythonPolymorphicTypeView? Structure { get; set; }
+
     /// <summary>The accessor's own shape, for the accessor file.</summary>
     public PythonAccessorView? Accessor { get; set; }
 }
@@ -174,6 +177,33 @@ internal sealed class PythonIndexView
 
 internal sealed class PythonFieldView
 {
+    /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// The type itself is declared once, elsewhere; this is what the table needs to build a
+    /// value of it - which number means which variant, and which of the entry's fields each
+    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// </remarks>
+    public IReadOnlyList<PythonVariantView> Variants { get; set; } = new List<PythonVariantView>();
+
+    /// <summary>The abstract type the variants make up, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>
+    /// What the discriminator member is called on the flat entry.
+    /// </summary>
+    /// <remarks>
+    /// Asked rather than assumed: `type` is a keyword in several of these languages, so the
+    /// name-escaping rule has already renamed it and a template spelling it by hand would be
+    /// spelling a field that is not there.
+    /// </remarks>
+    public string DiscriminatorName { get; set; } = "";
+
+    /// <summary>The members every variant carries.</summary>
+    public IReadOnlyList<PythonStructMemberView> BaseMembers { get; set; }
+        = new List<PythonStructMemberView>();
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     public required string Name { get; set; }
@@ -471,3 +501,55 @@ internal sealed class PythonReferenceFieldView
     public required bool IsArray { get; set; }
 }
 
+/// <summary>
+/// An abstract type and its variants, as this target declares them.
+/// </summary>
+/// <remarks>
+/// One per declaration however many tables named it. A struct is an entity beside a table and
+/// an enum, and emitting it inside each table that used it would give them types that share a
+/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// </remarks>
+internal sealed class PythonPolymorphicTypeView
+{
+    /// <summary>The abstract type's name.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>The module the type lives in, which this language spells in snake case.</summary>
+    public required string ModuleName { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<PythonStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<PythonVariantView> Variants { get; set; }
+}
+
+/// <summary>One variant of a <see cref="PythonPolymorphicTypeView"/>.</summary>
+internal sealed class PythonVariantView
+{
+    /// <summary>The variant's declared name - the type a consumer narrows to.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<PythonStructMemberView> Members { get; set; }
+}
+
+/// <summary>One member of an abstract type or of one of its variants.</summary>
+/// <remarks>
+/// A view of its own rather than the record member's, because none of the reference machinery
+/// applies: the model refuses a reference inside a polymorphic group.
+/// </remarks>
+internal sealed class PythonStructMemberView
+{
+    /// <summary>The member's name in the generated type.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its type in this language.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
+}

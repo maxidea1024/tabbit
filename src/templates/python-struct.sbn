@@ -1,0 +1,47 @@
+{{~##
+   One abstract type and its variants. `structure` is the single declaration this module is for.
+
+   **Classes and `isinstance`.** This language is not in section 7's third group after all - it
+   has inheritance, so the shape C# takes reads naturally here.
+
+   `__slots__` for the same reason every other generated class here has them: a table of twenty
+   thousand rows should not carry a dict per value. The read path is untouched - the file is
+   still read into the table's flat entry and the value is built from it.
+   spec/polymorphism.md section 7.
+##~}}
+{{ include 'python-file-head.sbn' ~}}
+class {{ structure.name }}:
+    """One value of ``{{ structure.name }}``, whichever shape it took.
+
+    Narrow it with ``isinstance``.
+    """
+
+    __slots__ = ({{ for member in structure.base_members }}"{{ member.name }}", {{ end }})
+
+    def __init__(self):
+{{~ for member in structure.base_members ~}}
+        #: {{ for line in member.comment }}{{ line }} {{ end }}
+        self.{{ member.name }} = None
+{{~ end ~}}
+{{~ if structure.base_members.size == 0 ~}}
+        pass
+{{~ end ~}}
+{{~ for variant in structure.variants ~}}
+
+
+class {{ variant.type_name }}({{ structure.name }}):
+    """One shape of ``{{ structure.name }}``.
+
+    The file carries ``{{ variant.discriminator }}`` for it. That number rather than the name is
+    what lets this variant be renamed without a deployed reader reading a different one.
+    """
+
+    __slots__ = ({{ for member in variant.members }}"{{ member.name }}", {{ end }})
+
+    def __init__(self):
+        super().__init__()
+{{~ for member in variant.members ~}}
+        #: {{ for line in member.comment }}{{ line }} {{ end }}
+        self.{{ member.name }} = None
+{{~ end ~}}
+{{~ end ~}}

@@ -202,7 +202,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             {
                 AccessorName = AccessorType,
                 Imports = TypeDependencies.EnumsNamedBy(pair.model)
-                                          .Select(EnumImport).ToList(),
+                                          .Select(EnumImport)
+                                          .Concat(PolymorphicImports(pair.model))
+                                          .ToList(),
                 AccessorModule = _recipe.ModuleName,
                 Table = pair.rendered,
             });
@@ -216,6 +218,20 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 AccessorName = AccessorType,
                 Imports = Array.Empty<string>(),
                 Enumm = pair.rendered,
+            });
+        }
+
+        // A struct is an entity beside a table and an enum, so it gets a module of its own -
+        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            var structure = BuildStruct(declared);
+
+            Write(structure.ModuleName + ".py", "python-struct.sbn", new PythonPartView
+            {
+                AccessorName = AccessorType,
+                Imports = Array.Empty<string>(),
+                Structure = structure,
             });
         }
 
@@ -434,6 +450,15 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             // spec/reference-surface-naming.md sections 4 and 5.
             slots.Add(PythonName(sf.Name));
 
+            // Where the built variant is kept, so a row read twice builds once. A slot rather
+            // than a dict entry, because `__slots__` is what keeps a row from carrying one.
+            // spec/polymorphism.md section 7.2.
+            if (sf.IsRecord && sf.Members.Any(
+                    m => m.IsLeaf && m.FirstField is { IsDiscriminator: true }))
+            {
+                slots.Add("_" + PythonName(sf.Name) + "_value");
+            }
+
             if (sf.IsRef)
                 slots.Add(ResolvesToRow(sf.FirstField!)
                     ? PythonName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
@@ -648,8 +673,80 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         return result;
     }
 
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// Classes and `isinstance`. This language is not in section 7's third group after all - it
+    /// has inheritance, so the same shape C# takes reads naturally here.
+    /// spec/polymorphism.md section 7.
+    /// </remarks>
+    /// <summary>
+    /// The imports a table needs for the abstract types its groups are.
+    /// </summary>
+    /// <remarks>
+    /// The variants and not the base: the built value names each variant, and the base is only
+    /// what they inherit. spec/polymorphism.md section 7.1.
+    /// </remarks>
+    private IEnumerable<string> PolymorphicImports(Table table)
+    {
+        foreach (string name in table.Fields
+                     .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
+                     .Select(field => field.AbstractTypeName!.ToPascalCase())
+                     .Distinct())
+        {
+            var declared = _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == name);
+
+            if (declared is null)
+                continue;
+
+            string module = "struct_" + declared.Name.ToSnakeCase();
+            string names = string.Join(
+                ", ", new[] { name }.Concat(declared.Variants.Select(v => v.Name)));
+
+            yield return $"from .{module} import {names}";
+        }
+    }
+
+    private PythonPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new PythonPolymorphicTypeView
+        {
+            Name = declared.Name,
+            ModuleName = "struct_" + declared.Name.ToSnakeCase(),
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new PythonVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private PythonStructMemberView StructMember(Models.Field field)
+        => new PythonStructMemberView
+        {
+            Name = PythonName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = "",
+            Comment = CommentLines(field.Comment),
+        };
+
     private PythonFieldView BuildRecordField(Table table, SerialField sf)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string name = PythonName(sf.Name);
         string entry = RecordTypeName(table, sf);
 
@@ -685,6 +782,22 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         return new PythonFieldView
         {
+            AbstractTypeName = declaredType?.Name ?? "",
+            DiscriminatorName = declaredType is null
+                ? ""
+                : PythonName(sf.Members
+                    .First(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                    .Name),
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new PythonVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+
             // A record has no header cell of its own, so the first member's column comment is
             // the nearest thing the sheet said about the group.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),

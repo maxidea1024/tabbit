@@ -317,6 +317,70 @@ public class PolymorphicRecordTests
             + $"{System.Environment.NewLine}{result.Output}");
     }
 
+    /// <summary>
+    /// The generated Python reads each row back as the variant it is.
+    /// </summary>
+    /// <remarks>
+    /// Another dynamic language, so this reads the file rather than compiling: the class per row
+    /// is what the discriminator picked, and a build that emitted the union flat would report
+    /// every row as the base type. spec/polymorphism.md section 7.
+    /// </remarks>
+    [Fact]
+    public void The_generated_python_reads_each_rows_variant()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded,
+            $"Converting `{Scenario}` failed.{System.Environment.NewLine}{conversion.Describe()}");
+
+        // A hard failure rather than a skip, as with the other toolchain gates: a gate that
+        // quietly turns itself off is worse than no gate.
+        Assert.True(ConformanceHarness.PythonIsAvailable(out string why),
+            $"A Python interpreter is required to check the generated code. {why}");
+
+        var compiled = ConformanceHarness.CompilePython(Scenario);
+
+        Assert.True(compiled.Succeeded,
+            $"The generated Python does not compile.{System.Environment.NewLine}{compiled.Output}");
+
+        string binaryDir = System.IO.Path.Combine(RepoLayout.OutputDir(Scenario), "binary");
+
+        var result = ConformanceHarness.RunPythonSnippet(
+            Scenario,
+            "import sys\n"
+            + "from gamedata import Tables\n"
+            + "from gamedata.struct_effect import Effect\n"
+            + @"
+t = Tables()
+t.read_all(sys.argv[1])
+rows = {r.name: r for r in t.skill.records}
+
+# The class per row, which is what the discriminator picked.
+assert type(rows['Slash'].effect_of()).__name__ == 'DamageEffect'
+assert type(rows['Mend'].effect_of()).__name__ == 'HealEffect'
+assert type(rows['Feint'].effect_of()).__name__ == 'NoEffect'
+
+# Every variant is the base type, which is what makes the shared field reachable.
+assert isinstance(rows['Slash'].effect_of(), Effect)
+assert rows['Slash'].effect_of().chance == 30
+assert rows['Feint'].effect_of().chance == 10
+
+# A member only one variant has, and the other variant not having it at all.
+assert rows['Slash'].effect_of().damage == 50
+assert rows['Slash'].effect_of().pierces is True
+assert rows['Mend'].effect_of().amount == 20
+assert not hasattr(rows['Mend'].effect_of(), 'damage')
+
+# Built once: the second call hands back the same object.
+assert rows['Slash'].effect_of() is rows['Slash'].effect_of()
+",
+            binaryDir);
+
+        Assert.True(result.Succeeded,
+            $"Reading `{Scenario}` back through the generated Python failed."
+            + $"{System.Environment.NewLine}{result.Output}");
+    }
+
     /// <summary>Whether a toolchain is on this machine, and why not when it is missing.</summary>
     private delegate bool Availability(out string reason);
 
