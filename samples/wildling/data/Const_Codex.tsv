@@ -1,0 +1,13 @@
+:const	CodexConst	기록부의 계수이다.
+:field	name	type	value	desc
+	observe_cap_common	int	8	일반 등급의 관측 상한
+	observe_cap_rare	int	12	희귀
+	observe_cap_epic	int	16	영웅
+	observe_cap_legendary	int	24	전설
+	observe_cap_mythic	int	32	신화
+	battle_observe_factor	int	5000	전투 승리의 관측 계수. 만분율
+
+:const	CollectionConst	수집의 계수이다.
+:field	name	type	value	desc
+	unrecorded_boost	int	16000	미기록 종의 가중치 보정. 만분율
+	shard_cap	int	9999	조각 보유 상한

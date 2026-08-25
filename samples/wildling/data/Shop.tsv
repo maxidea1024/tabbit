@@ -1,0 +1,8 @@
+:table	Shop	상점이다.
+:field	shop_id	name	refresh_hours
+:type	string	string (text=Shop)	int (min=0)
+:desc	식별자	표시 이름	갱신 주기. 0이면 갱신하지 않는다
+:target	c,s	c	c,s
+	shop_main	상시 상점	24
+	shop_season	시즌 상점	168
+	shop_package	패키지	0

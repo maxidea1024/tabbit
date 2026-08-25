@@ -1,0 +1,30 @@
+:table	ResonanceRank(key="grade,rank")	공명 등급별 배수와 필요 조각이다.
+:field	grade	rank	stat_factor	shard_cost	unlock_note
+:type	Grade	int (min=1, max=5)	int (min=10000)	int (min=1)	string (text=Growth)?
+:desc	등급	공명 등급	능력치 배수. 만분율	필요한 울림 조각	3 · 5등급의 추가 효과
+:target	c,s	c,s	c,s	c,s	c
+	Common	1	10900	6
+	Common	2	11800	12
+	Common	3	12700	18	액티브 슬롯 하나가 열린다.
+	Common	4	13600	24
+	Common	5	14500	30	패시브 슬롯 하나가 열린다.
+	Rare	1	10900	18
+	Rare	2	11800	36
+	Rare	3	12700	54	액티브 슬롯 하나가 열린다.
+	Rare	4	13600	72
+	Rare	5	14500	90	패시브 슬롯 하나가 열린다.
+	Epic	1	10900	48
+	Epic	2	11800	96
+	Epic	3	12700	144	액티브 슬롯 하나가 열린다.
+	Epic	4	13600	192
+	Epic	5	14500	240	패시브 슬롯 하나가 열린다.
+	Legendary	1	10900	120
+	Legendary	2	11800	240
+	Legendary	3	12700	360	액티브 슬롯 하나가 열린다.
+	Legendary	4	13600	480
+	Legendary	5	14500	600	패시브 슬롯 하나가 열린다.
+	Mythic	1	10900	300
+	Mythic	2	11800	600
+	Mythic	3	12700	900	액티브 슬롯 하나가 열린다.
+	Mythic	4	13600	1200
+	Mythic	5	14500	1500	패시브 슬롯 하나가 열린다.

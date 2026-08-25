@@ -1,0 +1,97 @@
+:table	Item(key=item_id)	아이템이다.
+:field	category	item_id	name	grade	icon	stack_max
+:type	ItemCategory	string	string (text=Item)	Grade	string (asset=icon)	int (min=1, notDefault)
+:desc	첫 컬럼이지만 인덱스가 아니다	식별자	표시 이름	등급	아이콘	한 칸에 쌓이는 최대
+:target	c,s	c,s	c	c,s	c	c,s
+	Material	mat_weir_forest_resin	여울숲 수액	Common	it_weir_forest_resin	9999
+	Material	mat_weir_forest_core	여울숲 핵	Rare	it_weir_forest_core	9999
+	Material	mat_weir_forest_relic	여울숲 유물	Epic	it_weir_forest_relic	9999
+	Material	mat_weir_forest_dust	여울숲 가루	Common	it_weir_forest_dust	9999
+	Material	mat_weir_forest_sigil	여울숲 인장	Legendary	it_weir_forest_sigil	9999
+	Material	mat_salt_coast_resin	소금해안 수액	Common	it_salt_coast_resin	9999
+	Material	mat_salt_coast_core	소금해안 핵	Rare	it_salt_coast_core	9999
+	Material	mat_salt_coast_relic	소금해안 유물	Epic	it_salt_coast_relic	9999
+	Material	mat_salt_coast_dust	소금해안 가루	Common	it_salt_coast_dust	9999
+	Material	mat_salt_coast_sigil	소금해안 인장	Legendary	it_salt_coast_sigil	9999
+	Material	mat_ashen_crater_resin	재의 화구 수액	Common	it_ashen_crater_resin	9999
+	Material	mat_ashen_crater_core	재의 화구 핵	Rare	it_ashen_crater_core	9999
+	Material	mat_ashen_crater_relic	재의 화구 유물	Epic	it_ashen_crater_relic	9999
+	Material	mat_ashen_crater_dust	재의 화구 가루	Common	it_ashen_crater_dust	9999
+	Material	mat_ashen_crater_sigil	재의 화구 인장	Legendary	it_ashen_crater_sigil	9999
+	Material	mat_frost_ridge_resin	서릿능선 수액	Common	it_frost_ridge_resin	9999
+	Material	mat_frost_ridge_core	서릿능선 핵	Rare	it_frost_ridge_core	9999
+	Material	mat_frost_ridge_relic	서릿능선 유물	Epic	it_frost_ridge_relic	9999
+	Material	mat_frost_ridge_dust	서릿능선 가루	Common	it_frost_ridge_dust	9999
+	Material	mat_frost_ridge_sigil	서릿능선 인장	Legendary	it_frost_ridge_sigil	9999
+	Material	mat_sunken_temple_resin	잠긴 신전 수액	Common	it_sunken_temple_resin	9999
+	Material	mat_sunken_temple_core	잠긴 신전 핵	Rare	it_sunken_temple_core	9999
+	Material	mat_sunken_temple_relic	잠긴 신전 유물	Epic	it_sunken_temple_relic	9999
+	Material	mat_sunken_temple_dust	잠긴 신전 가루	Common	it_sunken_temple_dust	9999
+	Material	mat_sunken_temple_sigil	잠긴 신전 인장	Legendary	it_sunken_temple_sigil	9999
+	Material	mat_awaken_flame_1	불꽃 각성석 1	Common	it_awaken_flame_1	999
+	Material	mat_awaken_flame_2	불꽃 각성석 2	Rare	it_awaken_flame_2	999
+	Material	mat_awaken_flame_3	불꽃 각성석 3	Epic	it_awaken_flame_3	999
+	Material	mat_awaken_tide_1	물결 각성석 1	Common	it_awaken_tide_1	999
+	Material	mat_awaken_tide_2	물결 각성석 2	Rare	it_awaken_tide_2	999
+	Material	mat_awaken_tide_3	물결 각성석 3	Epic	it_awaken_tide_3	999
+	Material	mat_awaken_leaf_1	잎새 각성석 1	Common	it_awaken_leaf_1	999
+	Material	mat_awaken_leaf_2	잎새 각성석 2	Rare	it_awaken_leaf_2	999
+	Material	mat_awaken_leaf_3	잎새 각성석 3	Epic	it_awaken_leaf_3	999
+	Material	mat_awaken_arc_1	번개 각성석 1	Common	it_awaken_arc_1	999
+	Material	mat_awaken_arc_2	번개 각성석 2	Rare	it_awaken_arc_2	999
+	Material	mat_awaken_arc_3	번개 각성석 3	Epic	it_awaken_arc_3	999
+	Material	mat_awaken_umbra_1	그늘 각성석 1	Common	it_awaken_umbra_1	999
+	Material	mat_awaken_umbra_2	그늘 각성석 2	Rare	it_awaken_umbra_2	999
+	Material	mat_awaken_umbra_3	그늘 각성석 3	Epic	it_awaken_umbra_3	999
+	Consumable	use_food_00	먹이 꾸러미 1	Common	it_food_00	999
+	Consumable	use_food_01	먹이 꾸러미 2	Common	it_food_01	999
+	Consumable	use_food_02	먹이 꾸러미 3	Common	it_food_02	999
+	Consumable	use_food_03	먹이 꾸러미 4	Common	it_food_03	999
+	Consumable	use_food_04	먹이 꾸러미 5	Common	it_food_04	999
+	Consumable	use_food_05	먹이 꾸러미 6	Common	it_food_05	999
+	Consumable	use_food_06	먹이 꾸러미 7	Common	it_food_06	999
+	Consumable	use_food_07	먹이 꾸러미 8	Common	it_food_07	999
+	Consumable	use_food_08	먹이 꾸러미 9	Common	it_food_08	999
+	Consumable	use_food_09	먹이 꾸러미 10	Common	it_food_09	999
+	Consumable	use_food_10	먹이 꾸러미 11	Common	it_food_10	999
+	Consumable	use_food_11	먹이 꾸러미 12	Common	it_food_11	999
+	Consumable	use_food_12	먹이 꾸러미 13	Common	it_food_12	999
+	Consumable	use_food_13	먹이 꾸러미 14	Common	it_food_13	999
+	Consumable	use_food_14	먹이 꾸러미 15	Common	it_food_14	999
+	Consumable	use_food_15	먹이 꾸러미 16	Common	it_food_15	999
+	Consumable	use_food_16	먹이 꾸러미 17	Rare	it_food_16	999
+	Consumable	use_food_17	먹이 꾸러미 18	Rare	it_food_17	999
+	Consumable	use_food_18	먹이 꾸러미 19	Rare	it_food_18	999
+	Consumable	use_food_19	먹이 꾸러미 20	Rare	it_food_19	999
+	Consumable	use_food_20	먹이 꾸러미 21	Rare	it_food_20	999
+	Consumable	use_food_21	먹이 꾸러미 22	Rare	it_food_21	999
+	Consumable	use_food_22	먹이 꾸러미 23	Rare	it_food_22	999
+	Consumable	use_food_23	먹이 꾸러미 24	Rare	it_food_23	999
+	Ticket	tkt_retry_00	재도전 표 1	Rare	it_ticket_00	99
+	Ticket	tkt_retry_01	재도전 표 2	Rare	it_ticket_01	99
+	Ticket	tkt_retry_02	재도전 표 3	Rare	it_ticket_02	99
+	Ticket	tkt_retry_03	재도전 표 4	Rare	it_ticket_03	99
+	Ticket	tkt_retry_04	재도전 표 5	Rare	it_ticket_04	99
+	Ticket	tkt_retry_05	재도전 표 6	Rare	it_ticket_05	99
+	Ticket	tkt_retry_06	재도전 표 7	Rare	it_ticket_06	99
+	Ticket	tkt_retry_07	재도전 표 8	Rare	it_ticket_07	99
+	Ticket	tkt_retry_08	재도전 표 9	Rare	it_ticket_08	99
+	Ticket	tkt_retry_09	재도전 표 10	Rare	it_ticket_09	99
+	Ticket	tkt_retry_10	재도전 표 11	Rare	it_ticket_10	99
+	Ticket	tkt_retry_11	재도전 표 12	Rare	it_ticket_11	99
+	Consumable	use_boost_00	탐사 촉진제 1	Rare	it_boost_00	99
+	Consumable	use_boost_01	탐사 촉진제 2	Common	it_boost_01	99
+	Consumable	use_boost_02	탐사 촉진제 3	Rare	it_boost_02	99
+	Consumable	use_boost_03	탐사 촉진제 4	Common	it_boost_03	99
+	Consumable	use_boost_04	탐사 촉진제 5	Rare	it_boost_04	99
+	Consumable	use_boost_05	탐사 촉진제 6	Common	it_boost_05	99
+	Consumable	use_boost_06	탐사 촉진제 7	Rare	it_boost_06	99
+	Consumable	use_boost_07	탐사 촉진제 8	Common	it_boost_07	99
+	Consumable	use_boost_08	탐사 촉진제 9	Rare	it_boost_08	99
+	Consumable	use_boost_09	탐사 촉진제 10	Common	it_boost_09	99
+	Consumable	use_boost_10	탐사 촉진제 11	Rare	it_boost_10	99
+	Consumable	use_boost_11	탐사 촉진제 12	Common	it_boost_11	99
+	Consumable	use_boost_12	탐사 촉진제 13	Rare	it_boost_12	99
+	Consumable	use_boost_13	탐사 촉진제 14	Common	it_boost_13	99
+	Consumable	use_boost_14	탐사 촉진제 15	Rare	it_boost_14	99
+	Consumable	use_boost_15	탐사 촉진제 16	Common	it_boost_15	99

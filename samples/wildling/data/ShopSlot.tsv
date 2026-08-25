@@ -1,0 +1,17 @@
+:table	ShopSlot	상시 상점의 판매 항목이다.
+:field	shop_slot_id	shop_id	slot_index	reward_group_id	cost	stock
+:type	string	foreign Shop	int (min=0, max=11)	foreign RewardGroup	Cost	int (min=1, max=99)
+:desc	식별자	어느 상점인가	표시 자리	판매 내용	가격. 셀 하나에 `재화,수량`	재고
+:target	c,s	c,s	c,s	c,s	c,s	c,s
+	slot_main_00	shop_main	0	rg_shop_00	gold,500	3
+	slot_main_01	shop_main	1	rg_shop_01	gold,750	4
+	slot_main_02	shop_main	2	rg_shop_02	gold,1000	5
+	slot_main_03	shop_main	3	rg_shop_03	gold,1250	6
+	slot_main_04	shop_main	4	rg_shop_04	gold,1500	3
+	slot_main_05	shop_main	5	rg_shop_05	gold,1750	4
+	slot_main_06	shop_main	6	rg_shop_06	gold,2000	5
+	slot_main_07	shop_main	7	rg_shop_07	gold,2250	6
+	slot_main_08	shop_main	8	rg_shop_08	gold,2500	3
+	slot_main_09	shop_main	9	rg_shop_09	gold,2750	4
+	slot_main_10	shop_main	10	rg_shop_10	gold,3000	5
+	slot_main_11	shop_main	11	rg_shop_11	gold,3250	6

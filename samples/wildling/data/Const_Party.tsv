@@ -1,0 +1,7 @@
+:const	PartyConst	파티의 규격이다.
+:field	name	type	value	desc
+	party_size	int	3	파티 인원
+	saved_parties	int	3	저장 슬롯
+	allowed_columns[0]	string	Front	전열
+	allowed_columns[1]	string	Middle	중열
+	allowed_columns[2]	string	Back	후열

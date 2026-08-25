@@ -1,0 +1,9 @@
+:table	Currency	재화이다. 조각은 상점에서 팔지 않는다.
+:field	currency_id	name	icon	cap	tradable
+:type	string	string (text=Item)	string (asset=icon)	int (min=1)	bool
+:desc	식별자	표시 이름	아이콘	보유 상한	상점에서 살 수 있는가
+:target	c,s	c	c	c,s	c,s
+	gold	은편	cur_gold	999999999	TRUE
+	gem	원석	cur_gem	999999	TRUE
+	food	먹이	cur_food	99999	TRUE
+	shard	울림 조각	cur_shard	99999	FALSE

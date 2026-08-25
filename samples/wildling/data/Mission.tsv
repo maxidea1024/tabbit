@@ -1,0 +1,41 @@
+:table	Mission	일일과 주간 의뢰이다.
+:field	mission_id	cycle	name	target_id	goal_count	requirement_group_id	reward_group_id
+:type	string	MissionCycle	string (text=Mission)	string (refs="Monster;Region;Item")	int (min=1)	foreign RequirementGroup	foreign RewardGroup
+:desc	식별자	일일인지 주간인지	표시 이름	대상. 참조가 아니라 검사이다	목표 횟수	수령 조건	보상
+:target	c,s	c,s	c	c,s	c,s	c,s	c,s
+	mission_daily_00	Daily	일일 의뢰 1	sprout_deer_1	3	req_mission_daily_0	rg_mission_daily_0
+	mission_daily_01	Daily	일일 의뢰 2	weir_forest	5	req_mission_daily_1	rg_mission_daily_1
+	mission_daily_02	Daily	일일 의뢰 3	mat_weir_forest_resin	7	req_mission_daily_2	rg_mission_daily_2
+	mission_daily_03	Daily	일일 의뢰 4	ember_fox_1	9	req_mission_daily_0	rg_mission_daily_0
+	mission_daily_04	Daily	일일 의뢰 5	salt_coast	11	req_mission_daily_1	rg_mission_daily_1
+	mission_daily_05	Daily	일일 의뢰 6	mat_salt_coast_core	3	req_mission_daily_2	rg_mission_daily_2
+	mission_daily_06	Daily	일일 의뢰 7	sprout_deer_1	5	req_mission_daily_0	rg_mission_daily_0
+	mission_daily_07	Daily	일일 의뢰 8	weir_forest	7	req_mission_daily_1	rg_mission_daily_1
+	mission_daily_08	Daily	일일 의뢰 9	mat_weir_forest_resin	9	req_mission_daily_2	rg_mission_daily_2
+	mission_daily_09	Daily	일일 의뢰 10	ember_fox_1	11	req_mission_daily_0	rg_mission_daily_0
+	mission_daily_10	Daily	일일 의뢰 11	salt_coast	3	req_mission_daily_1	rg_mission_daily_1
+	mission_daily_11	Daily	일일 의뢰 12	mat_salt_coast_core	5	req_mission_daily_2	rg_mission_daily_2
+	mission_daily_12	Daily	일일 의뢰 13	sprout_deer_1	7	req_mission_daily_0	rg_mission_daily_0
+	mission_daily_13	Daily	일일 의뢰 14	weir_forest	9	req_mission_daily_1	rg_mission_daily_1
+	mission_daily_14	Daily	일일 의뢰 15	mat_weir_forest_resin	11	req_mission_daily_2	rg_mission_daily_2
+	mission_daily_15	Daily	일일 의뢰 16	ember_fox_1	3	req_mission_daily_0	rg_mission_daily_0
+	mission_daily_16	Daily	일일 의뢰 17	salt_coast	5	req_mission_daily_1	rg_mission_daily_1
+	mission_daily_17	Daily	일일 의뢰 18	mat_salt_coast_core	7	req_mission_daily_2	rg_mission_daily_2
+	mission_daily_18	Daily	일일 의뢰 19	sprout_deer_1	9	req_mission_daily_0	rg_mission_daily_0
+	mission_daily_19	Daily	일일 의뢰 20	weir_forest	11	req_mission_daily_1	rg_mission_daily_1
+	mission_daily_20	Daily	일일 의뢰 21	mat_weir_forest_resin	3	req_mission_daily_2	rg_mission_daily_2
+	mission_daily_21	Daily	일일 의뢰 22	ember_fox_1	5	req_mission_daily_0	rg_mission_daily_0
+	mission_daily_22	Daily	일일 의뢰 23	salt_coast	7	req_mission_daily_1	rg_mission_daily_1
+	mission_daily_23	Daily	일일 의뢰 24	mat_salt_coast_core	9	req_mission_daily_2	rg_mission_daily_2
+	mission_daily_24	Daily	일일 의뢰 25	sprout_deer_1	11	req_mission_daily_0	rg_mission_daily_0
+	mission_daily_25	Daily	일일 의뢰 26	weir_forest	3	req_mission_daily_1	rg_mission_daily_1
+	mission_daily_26	Daily	일일 의뢰 27	mat_weir_forest_resin	5	req_mission_daily_2	rg_mission_daily_2
+	mission_weekly_00	Weekly	주간 의뢰 1	ember_fox_1	3	req_mission_weekly_0	rg_mission_weekly_0
+	mission_weekly_01	Weekly	주간 의뢰 2	salt_coast	5	req_mission_weekly_0	rg_mission_weekly_0
+	mission_weekly_02	Weekly	주간 의뢰 3	mat_salt_coast_core	7	req_mission_weekly_0	rg_mission_weekly_0
+	mission_weekly_03	Weekly	주간 의뢰 4	sprout_deer_1	9	req_mission_weekly_0	rg_mission_weekly_0
+	mission_weekly_04	Weekly	주간 의뢰 5	weir_forest	11	req_mission_weekly_0	rg_mission_weekly_0
+	mission_weekly_05	Weekly	주간 의뢰 6	mat_weir_forest_resin	3	req_mission_weekly_0	rg_mission_weekly_0
+	mission_weekly_06	Weekly	주간 의뢰 7	ember_fox_1	5	req_mission_weekly_0	rg_mission_weekly_0
+	mission_weekly_07	Weekly	주간 의뢰 8	salt_coast	7	req_mission_weekly_0	rg_mission_weekly_0
+	mission_weekly_08	Weekly	주간 의뢰 9	mat_salt_coast_core	9	req_mission_weekly_0	rg_mission_weekly_0

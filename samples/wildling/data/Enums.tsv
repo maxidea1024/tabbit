@@ -1,0 +1,68 @@
+:enum	Role	전투에서의 역할이다.
+:field	label	value	desc	alias
+	Vanguard	1	피해를 받는 자리	선봉
+	Breaker	2	단일 대상 피해	파격
+	Warden	3	회복과 보호	수호
+	Tuner	4	능력치 변동과 상태 부여	조율
+
+:enum	EncounterSlot	출현 슬롯의 종류이다.
+:field	label	value	desc
+	Normal	1	탐사 시간에 비례해 반복
+	Rare	2	탐사 1회당 최대 1회
+	Guardian	3	스테이지 도전에서만
+	Hidden	4	조건을 만족한 탐사에서만
+
+:enum	StatusKind	상태 효과의 종류이다.
+:field	label	value	desc
+	Stun	1	행동 불가
+	Slow	2	행동 순서 하락
+	Blind	3	명중 하락
+	Burn	4	턴마다 피해
+
+:enum	RegionState	지역의 초기 상태이다.
+:field	label	value	desc	alias
+	Locked	0	해금되지 않음	잠김
+	Open	1	해금됨	열림
+
+:enum	MissionCycle	의뢰의 주기이다.
+:field	label	value	desc
+	Daily	1	매일 05:00 초기화
+	Weekly	2	월요일 05:00 초기화
+
+:enum	ItemCategory	아이템의 분류이다.
+:field	label	value	desc
+	Material	1	성장 재료
+	Consumable	2	소모품
+	Ticket	3	입장권과 재도전 표
+
+:enum	SlotKind	스킬 슬롯의 종류이다.
+:field	label	value	desc
+	Active	1	턴마다 순환해 사용
+	Passive	2	상시 적용
+
+:enum	StageKind	스테이지의 종류이다.
+:field	label	value	desc
+	Normal	1	일반
+	Observation	2	클리어 시 미기록 종 1종이 목격 상태가 된다
+	Guardian	3	수호자
+
+:enum	TargetScope	스킬의 대상 범위이다.
+:field	label	value	desc
+	Single	1	적 1
+	AllEnemy	2	적 전체
+	OneAlly	3	아군 1
+	AllAlly	4	아군 전체
+	Self	5	자신
+
+:enum	BossAbility	수호자의 특수 능력이다.
+:field	label	value	desc
+	Enrage	1	체력 50% 이하에서 공격 상승
+	Shield	2	일정 턴마다 피해 흡수막
+	Summon	3	하위 개체 1체 소환
+	Purge	4	아군 상태 효과 제거
+	Reflect	5	받은 피해의 일부 반사
+
+:enum	CodexScope	기록부 보상의 범위이다.
+:field	label	value	desc
+	Region	1	지역별
+	Global	2	전체

@@ -1,0 +1,15 @@
+:table	Boss	지역 수호자이다. 효과가 멀티 로우 다형 배열이므로 5단계를 기다린다.
+:field	boss_id	monster_id	stat_factor.hp	stat_factor.attack	stat_factor.defense	stat_factor.speed	stat_factor.crit_rate	stat_factor.crit_power	ability	ability_pattern[0][0]	ability_pattern[0][1]	ability_pattern[0][2]	ability_pattern[1][0]	ability_pattern[1][1]	ability_pattern[1][2]	ability_pattern[2][0]	ability_pattern[2][1]	ability_pattern[2][2]	spawn_rotation	tint	effects[].$type	effects[].chance	effects[].power	effects[].status	effects[].stat	effects[].ratio	effects[].duration
+:type	string	foreign Monster	StatBlock						BossAbility	int (min=0, max=3)									quat?	color32	Effect
+:desc	식별자	외형과 기본 능력치의 출처	계수. 만분율						특수 능력	페이즈별 행동 순서									등장 연출의 회전	실루엣 색	특수 능력의 효과. 원소가 행에서 온다
+:target	c,s	c,s	c,s						c,s	c,s									c	c	c,s
+	boss_weir_forest	elder_bark_2	18000	13000	14000	11000	10000	10000	Enrage	0	1	2	1	2	0	2	0	1	(0,0,0,1)	#3E7A45FF	DamageEffect	10000	22000
+																					StatusEffect	3500		Stun			1
+	boss_salt_coast	abyss_whale_1	20000	14000	14000	11000	10000	10000	Shield	0	1	2	1	2	0	2	0	1		#2F6E8CFF	DamageEffect	10000	24000
+																					StatusEffect	3500		Stun			1
+	boss_ashen_crater	pyre_lion_1	22000	15000	14000	11000	10000	10000	Summon	0	1	2	1	2	0	2	0	1	(0,0,0,1)	#A63A22FF	DamageEffect	10000	26000
+																					StatusEffect	3500		Stun			1
+	boss_frost_ridge	thunder_stag_1	24000	16000	14000	11000	10000	10000	Purge	0	1	2	1	2	0	2	0	1		#5C7FA8FF	DamageEffect	10000	28000
+																					StatusEffect	3500		Stun			1
+	boss_sunken_temple	void_seraph_3	26000	17000	14000	11000	10000	10000	Reflect	0	1	2	1	2	0	2	0	1	(0,0,0,1)	#3B2A5AFF	DamageEffect	10000	30000
+																					StatusEffect	3500		Stun			1
