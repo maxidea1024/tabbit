@@ -85,6 +85,11 @@
       "AccessorName": "PolyData"
     },
     {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/polymorphism/cpp",
+      "AccessorName": "PolyAccessor"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

@@ -255,6 +255,18 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 part => part.Enumm = pair.rendered));
         }
 
+        // A struct is an entity beside a table and an enum, so it gets a header of its own -
+        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            var structure = BuildStruct(declared);
+
+            Write(StructHeader(declared), "cpp-struct.sbn", Part(
+                Guard("STRUCT_" + declared.Name.ToSnakeCase()),
+                new[] { "<cstdint>", "<string>" },
+                part => part.Structure = structure));
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             // A constant set names the types of its own constants: an integer type, a string,
@@ -277,10 +289,18 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // every enum a field is declared with - an enum member is a value, not a pointer.
             Write(TableHeader(pair.rendered), "cpp-table.sbn", Part(
                 Guard(pair.rendered.RawName.ToSnakeCase()),
-                new[] { "<cstddef>", "<cstdint>", "<string>", "<unordered_map>", "<vector>", ReaderInclude }
+                new[]
+                {
+                    "<cstddef>", "<cstdint>", "<memory>", "<stdexcept>", "<string>",
+                    "<unordered_map>", "<vector>", ReaderInclude,
+                }
                     .Append(ForwardHeader)
                     .Concat(TypeDependencies.EnumsNamedBy(pair.model)
-                            .Select(EnumHeaderFor)),
+                            .Select(EnumHeaderFor))
+                    // And the abstract types its groups are: the base is what the accessor
+                    // hands back, so an incomplete type will not do.
+                    // spec/polymorphism.md section 7.1.
+                    .Concat(PolymorphicHeaders(pair.model)),
                 part => part.Table = pair.rendered));
         }
 
@@ -322,6 +342,55 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// two Tabbit outputs on one include path from colliding, and a directory does not
     /// take that over: `tables/template.h` from two of them is the same path twice.
     /// </remarks>
+    /// <summary>Where one declared abstract type's header goes.</summary>
+    private string StructHeader(Models.PolymorphicType declared)
+        => $"structs/{_cppRecipe.AccessorName}_struct_{declared.Name.ToSnakeCase()}.h";
+
+    /// <summary>The headers a table needs for the abstract types its groups are.</summary>
+    private IEnumerable<string> PolymorphicHeaders(Table table)
+        => table.Fields
+            .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
+            .Select(field => field.AbstractTypeName!.ToPascalCase())
+            .Distinct()
+            .Select(name => _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == name))
+            .Where(declared => declared is not null)
+            .Select(declared => "\"" + StructHeader(declared!) + "\"");
+
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// Classes and `dynamic_cast`. This language has inheritance, so it is in section 7's first
+    /// group rather than the third one C sits in - which is the split that section drew and this
+    /// is the side of it C++ falls on. spec/polymorphism.md section 7.
+    /// </remarks>
+    private CppPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new CppPolymorphicTypeView
+        {
+            Name = declared.Name,
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new CppVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private CppStructMemberView StructMember(Models.Field field)
+        => new CppStructMemberView
+        {
+            Name = CppName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = ToCppTypeName(field),
+            Comment = CommentLines(field.Comment),
+        };
+
     private string EnumHeader(CppEnumView enumm) => $"enums/{_cppRecipe.AccessorName}_enum_{enumm.Name.ToSnakeCase()}.h";
     private string EnumHeaderFor(Models.Enum enumm) => $"enums/{_cppRecipe.AccessorName}_enum_{enumm.Name.ToSnakeCase()}.h";
 
@@ -720,6 +789,15 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
     private CppFieldView BuildField(Table table, SerialField sf)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string name = CppName(sf.Name);
 
         var recordTypes = new List<CppRecordTypeView>();
@@ -741,6 +819,22 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         return new CppFieldView
         {
+            AbstractTypeName = declaredType?.Name ?? "",
+            DiscriminatorName = declaredType is null
+                ? ""
+                : CppName(sf.Members
+                    .First(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                    .Name),
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new CppVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+
             // A record group has no header cell of its own, so the first member's column
             // comment is the nearest thing the sheet said about the group.
             Comment = CommentLines(sf.IsRecord ? sf.Members[0].FirstField!.Comment : sf.FirstField!.Comment),

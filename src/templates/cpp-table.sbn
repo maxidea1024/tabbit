@@ -73,6 +73,40 @@ struct {{ table.record_name }} {
    discriminator was set by the same assignment that filled the slot, and casting from `void*`
    asks nothing of the target type - the forward header this file already includes is enough.
    spec/multi-target-accessors.md. ##~}}
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+
+{{~## **The value, built on call from the flat entry.** Which variant a row is only became
+   knowable when the discriminator column arrived, so the entry is read as it always was and the
+   value is built from it here - which is why the read path and the wire are untouched.
+
+   A `unique_ptr` because the base is what a caller holds and the variant is what was made; the
+   virtual destructor on the base is what makes that safe. spec/polymorphism.md section 7.2. ##~}}
+  /// What this row's {{ field.abstract_type_name }} is. Narrow it with `dynamic_cast`.
+  std::unique_ptr<{{ field.abstract_type_name }}> {{ field.name }}_of() const {
+    switch ({{ field.name }}.{{ field.discriminator_name }}) {
+{{~ for variant in field.variants ~}}
+      case {{ variant.discriminator }}: {
+        auto built = std::make_unique<{{ variant.type_name }}>();
+{{~ for member in field.base_members ~}}
+        built->{{ member.name }} = {{ field.name }}.{{ member.name }};
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+        built->{{ member.name }} = {{ field.name }}.{{ member.name }};
+{{~ end ~}}
+        return built;
+      }
+{{~ end ~}}
+    }
+
+{{~## An unknown number is a variant this build does not have. Unlike a column added later,
+   which the reader skips, that makes the whole row uninterpretable. ##~}}
+    throw std::runtime_error(
+        "{{ field.abstract_type_name }}: no variant is numbered "
+        + std::to_string({{ field.name }}.{{ field.discriminator_name }}));
+  }
+{{~ end ~}}
+{{~ end ~}}
 };
 
 {{~ for line in table.comment ~}}

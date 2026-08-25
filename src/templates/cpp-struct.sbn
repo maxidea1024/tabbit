@@ -1,0 +1,40 @@
+{{~##
+   One abstract type and its variants. `structure` is the single declaration this header is for.
+
+   **Classes and `dynamic_cast`.** This language has inheritance, so it falls on section 7's
+   first side rather than the third one C sits on - the same split, the other answer.
+
+   A virtual destructor, because a consumer holds the base and the variant is what was made. The
+   read path is untouched: the file is still read into the table's flat entry and the value is
+   built from it. spec/polymorphism.md section 7.
+##~}}
+{{ include 'cpp-file-head.sbn' ~}}
+/// One value of `{{ structure.name }}`, whichever shape it took.
+///
+/// Narrow it with `dynamic_cast`.
+struct {{ structure.name }} {
+  virtual ~{{ structure.name }}() = default;
+
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+  {{ member.type_name }} {{ member.name }}{};
+{{~ end ~}}
+};
+{{~ for variant in structure.variants ~}}
+
+/// One shape of `{{ structure.name }}`.
+///
+/// The file carries `{{ variant.discriminator }}` for it. That number rather than the name is
+/// what lets this variant be renamed without a deployed reader reading a different one.
+struct {{ variant.type_name }} final : {{ structure.name }} {
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+  {{ member.type_name }} {{ member.name }}{};
+{{~ end ~}}
+};
+{{~ end ~}}
+{{ include 'cpp-file-foot.sbn' ~}}

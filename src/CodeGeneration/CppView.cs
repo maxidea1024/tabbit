@@ -67,6 +67,9 @@ internal sealed class CppPartView
     /// <summary>The constant set this file is for, when it is a constants header.</summary>
     public CppConstantSetView? Set { get; set; }
 
+    /// <summary>The abstract type this header declares, when it declares one.</summary>
+    public CppPolymorphicTypeView? Structure { get; set; }
+
     /// <summary>The accessor's own shape, for the accessor header.</summary>
     public CppAccessorView? Accessor { get; set; }
     /// <summary>What the accessor type is called, for the files that name it.</summary>
@@ -195,6 +198,26 @@ internal sealed class CppIndexView
 /// </summary>
 internal sealed class CppFieldView
 {
+    /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// The type itself is declared once, elsewhere; this is what the table needs to build a
+    /// value of it - which number means which variant, and which of the entry's fields each
+    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// </remarks>
+    public IReadOnlyList<CppVariantView> Variants { get; set; } = new List<CppVariantView>();
+
+    /// <summary>The abstract type the variants make up, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>What the discriminator member is called on the flat entry.</summary>
+    public string DiscriminatorName { get; set; } = "";
+
+    /// <summary>The members every variant carries.</summary>
+    public IReadOnlyList<CppStructMemberView> BaseMembers { get; set; }
+        = new List<CppStructMemberView>();
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     /// <summary>
@@ -527,3 +550,52 @@ internal sealed class CppColumnView
     public required string EmptyValue { get; set; }
 }
 
+/// <summary>
+/// An abstract type and its variants, as this target declares them.
+/// </summary>
+/// <remarks>
+/// One per declaration however many tables named it. A struct is an entity beside a table and
+/// an enum, and emitting it inside each table that used it would give them types that share a
+/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// </remarks>
+internal sealed class CppPolymorphicTypeView
+{
+    /// <summary>The abstract type's name.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<CppStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<CppVariantView> Variants { get; set; }
+}
+
+/// <summary>One variant of a <see cref="CppPolymorphicTypeView"/>.</summary>
+internal sealed class CppVariantView
+{
+    /// <summary>The variant's declared name - the type a consumer narrows to.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<CppStructMemberView> Members { get; set; }
+}
+
+/// <summary>One member of an abstract type or of one of its variants.</summary>
+/// <remarks>
+/// A view of its own rather than the record member's, because none of the reference machinery
+/// applies: the model refuses a reference inside a polymorphic group.
+/// </remarks>
+internal sealed class CppStructMemberView
+{
+    /// <summary>The member's name in the generated type.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its type in this language.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
+}
