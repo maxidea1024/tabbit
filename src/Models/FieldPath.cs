@@ -43,6 +43,19 @@ public sealed class FieldPathStep
     /// <summary>Whether this level is reached by number rather than by name.</summary>
     public bool IsAnonymous => Name.Length == 0;
 
+    /// <summary>
+    /// Whether this level is the `$type` column of a polymorphic group rather than a member
+    /// of it.
+    /// </summary>
+    /// <remarks>
+    /// A flag rather than a spelling to compare, because the name it carries is an ordinary
+    /// one - a sheet writes `effect.$type` and the step is called `Type`. Anything asking
+    /// "is this the discriminator" has to ask this, not the name: a group is free to have a
+    /// member actually called `type`, and the two are different columns.
+    /// spec/polymorphism.md section 5.2.
+    /// </remarks>
+    public bool IsDiscriminator { get; set; }
+
     /// <summary>Whether this level repeats, so the thing above it holds several.</summary>
     public bool IsIndexed => Index.HasValue;
 

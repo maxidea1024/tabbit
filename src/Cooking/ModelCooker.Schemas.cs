@@ -104,10 +104,22 @@ public partial class ModelCooker
         var declared = declarations.FindStruct(naming[0].TypeName)!;
 
         foreach (var field in group)
-        {
             claimed.Add(field);
-            BindColumn(context, table, field, declared, declarations, diagnostics);
+
+        // An abstract type says the group's rows are not all one shape, and then the columns
+        // are the union of its variants' rather than one struct's members. A different pass,
+        // because every question below - which member, is it required, is a missing column a
+        // problem - has a different answer there. spec/polymorphism.md section 5.2.
+        if (declared.IsAbstract)
+        {
+            BindPolymorphicGroup(
+                context, table, group, naming[0], declared, declarations, diagnostics);
+
+            return;
         }
+
+        foreach (var field in group)
+            BindColumn(context, table, field, declared, declarations, diagnostics);
 
         RefuseMembersWithNoColumn(table, group, declared, diagnostics);
     }

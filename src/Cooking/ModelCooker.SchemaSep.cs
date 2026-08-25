@@ -70,7 +70,7 @@ public partial class ModelCooker
             // Ordinal tags were positions in a column list that no longer exists. A table
             // that wrote its tags out has been refused above.
             foreach (var field in table.Fields)
-                field.Tag = null;
+                field.WireTag = null;
 
             context.AssignTags(table);
         }

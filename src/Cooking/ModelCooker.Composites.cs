@@ -70,7 +70,7 @@ public partial class ModelCooker
             // rather than adjusted, because an ordinal tag has no identity to preserve - and
             // a table whose sheet wrote its tags out has already been refused above.
             foreach (var field in table.Fields)
-                field.Tag = null;
+                field.WireTag = null;
 
             context.AssignTags(table);
         }

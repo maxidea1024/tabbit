@@ -194,7 +194,7 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 
 		switch column.Tag {
 {{~ for column_view in table.columns ~}}
-		case {{ column_view.tag }}:
+		case {{ column_view.wire_tag }}:
 			if {{ column_view.column_check }} {
 {{~ if column_view.is_nullable ~}}
 				// The bitmap is at the front of the block, so it is read before the values.

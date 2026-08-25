@@ -793,7 +793,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         return new CppColumnView
         {
-            Tag = wire.TagCarrier.Tag!.Value,
+            WireTag = wire.TagCarrier.WireTag!.Value,
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),
             LengthRead = UsesCursor(wire)

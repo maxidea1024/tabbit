@@ -481,7 +481,7 @@ internal sealed class CColumnView
     /// </summary>
     public string RowName { get; set; } = "";
 
-    public required int Tag { get; set; }
+    public required int WireTag { get; set; }
 
     /// <summary>Which read shape applies.</summary>
     public required string Kind { get; set; }

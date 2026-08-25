@@ -813,7 +813,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     {
         return new RustColumnView
         {
-            Tag = wire.TagCarrier.Tag!.Value,
+            WireTag = wire.TagCarrier.WireTag!.Value,
             Kind = ReadKind(wire),
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),

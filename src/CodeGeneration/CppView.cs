@@ -419,7 +419,7 @@ internal sealed class CppColumnView
 
     public string RowMemberAccess { get; set; } = "";
 
-    public required int Tag { get; set; }
+    public required int WireTag { get; set; }
 
     /// <summary>The rendered check_column call.</summary>
     public required string ColumnCheck { get; set; }

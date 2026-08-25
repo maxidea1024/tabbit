@@ -534,7 +534,7 @@
       thing for every table without a record group, and a record group is one column
       per member - so the switch loops over `table.columns`. ##~}}
 {{~ for column in table.columns ~}}
-                    case {{ column.tag }}:
+                    case {{ column.wire_tag }}:
                         {{ column.column_check }}
 {{~ if column.is_nullable ~}}
 {{~## The bitmap sits at the front of the block, so it is read before the values. The

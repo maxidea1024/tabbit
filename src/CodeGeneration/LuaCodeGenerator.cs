@@ -597,7 +597,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         return new LuaColumnView
         {
-            Tag = wire.TagCarrier.Tag!.Value,
+            WireTag = wire.TagCarrier.WireTag!.Value,
             Kind = kind,
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),

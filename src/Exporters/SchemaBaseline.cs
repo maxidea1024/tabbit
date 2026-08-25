@@ -269,7 +269,7 @@ public class SchemaBaseline
         // member's tag and describe the other members as columns that had vanished.
         foreach (var column in table.WireColumns)
         {
-            columns[column.TagCarrier.Tag!.Value.ToString()] = new Column
+            columns[column.TagCarrier.WireTag!.Value.ToString()] = new Column
             {
                 Name = column.Name,
                 Element = TcbFormat.ElementFor(column),

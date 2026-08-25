@@ -580,7 +580,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     {
         return new KotlinColumnView
         {
-            Tag = wire.TagCarrier.Tag!.Value,
+            WireTag = wire.TagCarrier.WireTag!.Value,
             Kind = ReadKind(wire),
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),

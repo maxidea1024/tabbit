@@ -776,7 +776,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 ? CName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
                 : CName(wire.Group.Name),
 
-            Tag = wire.TagCarrier.Tag!.Value,
+            WireTag = wire.TagCarrier.WireTag!.Value,
             Kind = ReadKind(wire),
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),

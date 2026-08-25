@@ -92,10 +92,10 @@ public class SchemaParserTests
 
         Assert.False(declared[1].IsAbstract);
         Assert.Equal("Effect", declared[1].BaseName);
-        Assert.Equal(1, declared[1].VariantTag);
+        Assert.Equal(1, declared[1].VariantDiscriminator);
         Assert.Equal(["damage"], declared[1].Fields.Select(member => member.Name));
 
-        Assert.Equal(2, declared[2].VariantTag);
+        Assert.Equal(2, declared[2].VariantDiscriminator);
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public class SchemaParserTests
             """);
 
         Assert.Equal("Effect", file.Structs[1].BaseName);
-        Assert.Equal(0, file.Structs[1].VariantTag);
+        Assert.Equal(0, file.Structs[1].VariantDiscriminator);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class SchemaParserTests
                 field damage int
             """);
 
-        Assert.Equal(1, file.Structs[1].VariantTag);
+        Assert.Equal(1, file.Structs[1].VariantDiscriminator);
         Assert.Equal(",", file.Structs[1].Meta.Value("sep"));
     }
 

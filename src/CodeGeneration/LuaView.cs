@@ -199,7 +199,7 @@ internal sealed class LuaRecordMemberView
 /// </summary>
 internal sealed class LuaColumnView
 {
-    public required int Tag { get; set; }
+    public required int WireTag { get; set; }
 
     /// <summary>
     /// Which read shape applies: `scalar`, `scalar_ref`, `serial`, `serial_ref`,

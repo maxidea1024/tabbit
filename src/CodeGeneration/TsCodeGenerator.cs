@@ -578,7 +578,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         return new TsColumnView
         {
-            Tag = wire.TagCarrier.Tag!.Value,
+            WireTag = wire.TagCarrier.WireTag!.Value,
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),
             LengthRead = UsesCursor(wire) ? "cursor.nextLength()" : "reader.readCounter32()",

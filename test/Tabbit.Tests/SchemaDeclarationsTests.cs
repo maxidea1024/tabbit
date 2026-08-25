@@ -319,7 +319,7 @@ public class SchemaDeclarationsTests
 
         var variants = read.Declarations.VariantsOf("Effect");
         Assert.Equal(["HealEffect", "DamageEffect"], variants.Select(v => v.Name));
-        Assert.Equal([2, 1], variants.Select(read.Declarations.TagOfVariant));
+        Assert.Equal([2, 1], variants.Select(read.Declarations.DiscriminatorOf));
     }
 
     /// <summary>
@@ -338,7 +338,7 @@ public class SchemaDeclarationsTests
         Assert.Equal(0, read.Diagnostics.Count);
         Assert.Equal(
             [1, 2],
-            read.Declarations.VariantsOf("Effect").Select(read.Declarations.TagOfVariant));
+            read.Declarations.VariantsOf("Effect").Select(read.Declarations.DiscriminatorOf));
     }
 
     [Fact]

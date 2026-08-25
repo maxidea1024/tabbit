@@ -740,7 +740,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                 ? ToCSharpTypeName(wire.RefKeyType, null, null)
                 : "",
 
-            Tag = wire.TagCarrier.Tag!.Value,
+            WireTag = wire.TagCarrier.WireTag!.Value,
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             ReadKind = readKind,
             IsFirstMember = wire.IsFirstMember,

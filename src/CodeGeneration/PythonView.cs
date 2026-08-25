@@ -296,7 +296,7 @@ internal sealed class PythonColumnView
     public string RowName { get; set; } = "";
 
     /// <summary>The column's wire tag.</summary>
-    public required int Tag { get; set; }
+    public required int WireTag { get; set; }
 
     /// <summary>
     /// Which read shape applies: `record_var`, `record_serial`, `var_array`, `serial_ref`,

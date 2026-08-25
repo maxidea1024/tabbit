@@ -609,7 +609,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     {
         return new DartColumnView
         {
-            Tag = wire.TagCarrier.Tag!.Value,
+            WireTag = wire.TagCarrier.WireTag!.Value,
             Kind = ReadKind(wire),
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),

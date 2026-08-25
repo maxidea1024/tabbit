@@ -83,10 +83,10 @@ public sealed class SchemaDeclarations
     /// either numbers every variant or numbers none, which <see cref="LinkVariants"/> enforces,
     /// so the two halves of this expression never disagree within one set.
     /// </remarks>
-    public int TagOfVariant(SchemaStruct variant)
+    public int DiscriminatorOf(SchemaStruct variant)
     {
-        if (variant.VariantTag > 0)
-            return variant.VariantTag;
+        if (variant.VariantDiscriminator > 0)
+            return variant.VariantDiscriminator;
 
         var siblings = VariantsOf(variant.BaseName);
 
@@ -186,7 +186,7 @@ public sealed class SchemaDeclarations
         }
 
         foreach (var (name, set) in _variants)
-            CheckVariantTags(name, set, diagnostics);
+            CheckVariantDiscriminators(name, set, diagnostics);
     }
 
     /// <summary>The abstract structs a mistyped `extends` could have meant.</summary>
@@ -205,7 +205,7 @@ public sealed class SchemaDeclarations
     /// Checks that one set numbers every variant or numbers none, and that no number is used
     /// twice.
     /// </summary>
-    private static void CheckVariantTags(
+    private static void CheckVariantDiscriminators(
         string baseName, List<SchemaStruct> set, Diagnostics diagnostics)
     {
         // Any number at all makes the set a numbered one - not the first variant's. Reading
@@ -213,35 +213,35 @@ public sealed class SchemaDeclarations
         // set and left the rest unexamined, and that is the order that collides: the untagged
         // one takes 1 from its position while a tagged sibling takes 1 from its `@1`.
         // spec/polymorphism.md section 5.1.1.
-        bool numbered = set.Any(variant => variant.VariantTag > 0);
+        bool numbered = set.Any(variant => variant.VariantDiscriminator > 0);
 
         if (numbered)
         {
-            foreach (var variant in set.Where(variant => variant.VariantTag <= 0))
+            foreach (var variant in set.Where(variant => variant.VariantDiscriminator <= 0))
             {
                 diagnostics.Error(variant.Location, Message.Of(
-                    SchemaMessages.VariantTagsPartial,
+                    SchemaMessages.VariantDiscriminatorsPartial,
                     ("Struct", variant.Name), ("Base", baseName)));
             }
         }
 
         var byTag = new Dictionary<int, SchemaStruct>();
 
-        foreach (var variant in set.Where(variant => variant.VariantTag > 0))
+        foreach (var variant in set.Where(variant => variant.VariantDiscriminator > 0))
         {
-            if (byTag.TryGetValue(variant.VariantTag, out var first))
+            if (byTag.TryGetValue(variant.VariantDiscriminator, out var first))
             {
                 diagnostics.Error(variant.Location, Message.Of(
-                    SchemaMessages.VariantTagsCollide,
+                    SchemaMessages.VariantDiscriminatorsCollide,
                     ("Struct", variant.Name),
                     ("Other", first.Name),
                     ("Base", baseName),
-                    ("Tag", variant.VariantTag)));
+                    ("Tag", variant.VariantDiscriminator)));
 
                 continue;
             }
 
-            byTag[variant.VariantTag] = variant;
+            byTag[variant.VariantDiscriminator] = variant;
         }
     }
 

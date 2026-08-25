@@ -102,6 +102,11 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// </remarks>
     private static readonly string[] ReservedColumnNames = ["$type", "$key", "$value"];
 
+    /// <summary>
+    /// The reserved name this layout now reads: the discriminator of a polymorphic group.
+    /// </summary>
+    private const string DiscriminatorName = "$type";
+
     /// <summary>The columns of an enum, by the name written in `:field`.</summary>
     private const string EnumColumnLabel = "label";
     private const string EnumColumnValue = "value";
@@ -873,8 +878,11 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
         tail = tail.Trim();
 
-        return ReservedColumnNames.FirstOrDefault(
-            name => string.Equals(name, tail, StringComparison.OrdinalIgnoreCase));
+        // `$type` is read now - section 5.2 of the polymorphism spec - so only the two the
+        // design still holds are refused here.
+        return ReservedColumnNames
+            .Where(name => !string.Equals(name, DiscriminatorName, StringComparison.Ordinal))
+            .FirstOrDefault(name => string.Equals(name, tail, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -994,7 +1002,18 @@ public sealed class TabbitLayoutParser : ILayoutParser
         var steps = new List<FieldPathStep>();
         bool anyBrackets = false;
 
-        foreach (string part in written.Split('.'))
+        // The discriminator is written on its group's path - `effect.$type` - and it is not a
+        // member of that group. Taken off here so nothing below has to know the spelling: the
+        // step keeps an ordinary name and carries the flag instead.
+        // spec/polymorphism.md section 5.2.
+        var parts = written.Split('.').ToList();
+        bool discriminator = parts.Count > 1
+            && string.Equals(parts[^1].Trim(), DiscriminatorName, StringComparison.OrdinalIgnoreCase);
+
+        if (discriminator)
+            parts[^1] = DiscriminatorName.TrimStart('$');
+
+        foreach (string part in parts)
         {
             string text = part.Trim();
 
@@ -1069,6 +1088,9 @@ public sealed class TabbitLayoutParser : ILayoutParser
             }
         }
 
+
+        if (discriminator && steps.Count > 0)
+            steps[^1].IsDiscriminator = true;
 
         if (header.Indexing && anyBrackets)
         {
@@ -1439,7 +1461,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
             // The tag names a wire column, and a member of a multi-row group is one wire
             // column however many elements a record holds - so it goes on element zero and
             // the later elements are the same column seen again.
-            Tag = element is null or 0 ? header.WireTag : null,
+            WireTag = element is null or 0 ? header.WireTag : null,
 
             NamePath = path,
 

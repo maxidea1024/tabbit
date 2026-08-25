@@ -136,6 +136,40 @@ public class Field
     public bool IsRecordMember => NamePath is not null && NamePath.Count > 1;
 
     /// <summary>
+    /// Whether this column carries which variant each row of its group is.
+    /// </summary>
+    /// <remarks>
+    /// The `$type` column. What the cell holds is a variant name and what the file carries is
+    /// that variant's `@N`, which is the same relation an enum column has to its labels -
+    /// and the reason no enum is generated for it. spec/polymorphism.md sections 5.2 and 7.1.
+    /// </remarks>
+    public bool IsDiscriminator
+        => NamePath is not null && NamePath.Count > 0 && NamePath[^1].IsDiscriminator;
+
+    /// <summary>
+    /// The variants that declare this member, for a column inside a polymorphic group.
+    /// </summary>
+    /// <remarks>
+    /// **Empty means the abstract type's own field** - a base field, present in every row of
+    /// the group, which is why it is a plain column and not an optional one. A member several
+    /// variants declare is here once per variant: the column is shared, and a row may fill it
+    /// only if its own variant is in this list. spec/polymorphism.md sections 5.1 and 5.2.
+    /// </remarks>
+    public List<string> VariantsDeclaringThis { get; set; } = new List<string>();
+
+    /// <summary>
+    /// The variants of the abstract type this column discriminates, in declaration order.
+    /// </summary>
+    /// <remarks>
+    /// Only on the `$type` column. Held here rather than looked up again from the schema
+    /// because the exporters and the generators read the model and not the declarations.
+    /// </remarks>
+    public List<PolymorphicVariant> Variants { get; set; } = new List<PolymorphicVariant>();
+
+    /// <summary>The abstract type a `$type` column names, or null.</summary>
+    public string? AbstractTypeName { get; set; }
+
+    /// <summary>
     /// Whether this column is one element of an array of plain values.
     /// </summary>
     /// <remarks>
@@ -321,8 +355,13 @@ public class Field
     ///
     /// For a serial field, the tag lives on the first column and identifies the whole
     /// logical column; the other members must not carry one.
+    ///
+    /// **`WireTag` rather than `Tag`, because "tag" is about to mean something else too** -
+    /// the recipe's include/exclude tags, which select what a build carries and have nothing
+    /// to do with a column's identity in the file. A variant's `@N` is a third number and is
+    /// called a discriminator for the same reason. spec/polymorphism.md section 5.1.1.
     /// </remarks>
-    public int? Tag { get; set; }
+    public int? WireTag { get; set; }
 
     /// <summary>
     /// Whether this field's cells hold a delimited list.

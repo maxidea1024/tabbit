@@ -79,7 +79,7 @@ public sealed class SchemaStruct : SchemaDeclaration
     /// somebody reorders the declarations, and a reader built before that reordering would
     /// then read one variant as another - spec/polymorphism.md section 5.1.
     /// </remarks>
-    public int VariantTag { get; init; }
+    public int VariantDiscriminator { get; init; }
 
     /// <summary>Members, in the order they were declared.</summary>
     /// <remarks>

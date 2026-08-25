@@ -387,7 +387,7 @@ public static class SchemaParser
             // number on it would be a number nothing reads.
             if (tag > 0 && baseName is null)
             {
-                Report(SchemaMessages.VariantTagWithoutBase, tagAt,
+                Report(SchemaMessages.VariantDiscriminatorWithoutBase, tagAt,
                     ("Struct", name.Value.Text), ("Tag", tag));
                 tag = 0;
             }
@@ -400,7 +400,7 @@ public static class SchemaParser
                 IsAbstract = isAbstract,
                 BaseName = baseName,
                 BaseLocation = baseAt,
-                VariantTag = tag,
+                VariantDiscriminator = tag,
                 Meta = ReadMeta(),
             };
 

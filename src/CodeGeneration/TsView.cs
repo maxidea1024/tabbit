@@ -288,7 +288,7 @@ internal sealed class TsTableView
 internal sealed class TsColumnView
 {
     /// <summary>The column's wire tag.</summary>
-    public required int Tag { get; set; }
+    public required int WireTag { get; set; }
 
     /// <summary>The rendered checkColumn call.</summary>
     public required string ColumnCheck { get; set; }

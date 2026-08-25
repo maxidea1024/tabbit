@@ -217,7 +217,7 @@ internal sealed class CsColumnView
     public string MemberAccess { get; init; } = "";
 
     /// <summary>The column's wire tag, which is how the read matches it in a file.</summary>
-    public required int Tag { get; set; }
+    public required int WireTag { get; set; }
 
     /// <summary>
     /// The rendered CheckColumn call: kind, count and the elements this column accepts -

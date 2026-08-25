@@ -1702,7 +1702,6 @@ public class TabbitLayoutTests
     #region Reserved columns - section 7
 
     [Theory]
-    [InlineData("$type")]
     [InlineData("$key")]
     [InlineData("$value")]
     public void A_reserved_column_name_is_refused_by_name(string reserved)
@@ -1729,10 +1728,9 @@ public class TabbitLayoutTests
     /// spec/polymorphism.md section 5.2.
     /// </remarks>
     [Theory]
-    [InlineData("effect.$type")]
-    [InlineData("rig.core.$type")]
-    [InlineData("effects[].$type")]
     [InlineData("prices.$key")]
+    [InlineData("rig.core.$value")]
+    [InlineData("prices[].$key")]
     public void A_reserved_name_on_a_path_is_refused_too(string written)
     {
         var problem = Refuses(Sheet(

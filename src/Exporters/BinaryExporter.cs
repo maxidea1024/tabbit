@@ -512,7 +512,7 @@ public class BinaryExporter : Target<BinaryRecipe>
         {
             var column = columns[at];
 
-            writer.WriteCounter32(column.TagCarrier.Tag!.Value);
+            writer.WriteCounter32(column.TagCarrier.WireTag!.Value);
             writer.Write(TcbFormat.Wire(
                 TcbFormat.ElementFor(column), TcbFormat.KindFor(column), TcbFormat.NullableFor(column),
                 TcbFormat.ElementNullableFor(column)));

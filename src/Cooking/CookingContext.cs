@@ -1568,12 +1568,12 @@ public sealed class CookingContext
         {
             foreach (var extra in sf.NonTagCarryingFields)
             {
-                if (extra.Tag is not null)
+                if (extra.WireTag is not null)
                 {
                         throw new TabbitException(extra.NameLocation,
                             Message.Of(CookingMessages.WireTagOnSerialMember,
                                 ("Table", table.Name), ("Field", extra.Name),
-                                ("Serial", sf.Name), ("Tag", extra.Tag)));
+                                ("Serial", sf.Name), ("WireTag", extra.WireTag)));
                 }
             }
         }
@@ -1586,7 +1586,7 @@ public sealed class CookingContext
         // deciding separately what a tag identifies is how they come to disagree.
         var columns = table.WireColumns;
 
-        var tagged = columns.Where(c => c.TagCarrier.Tag is not null).ToList();
+        var tagged = columns.Where(c => c.TagCarrier.WireTag is not null).ToList();
 
         if (tagged.Count == 0)
         {
@@ -1602,7 +1602,7 @@ public sealed class CookingContext
             table.HasExplicitTags = false;
 
             for (int position = 0; position < columns.Count; position++)
-                columns[position].TagCarrier.Tag = position + 1;
+                columns[position].TagCarrier.WireTag = position + 1;
 
             return;
         }
@@ -1610,7 +1610,7 @@ public sealed class CookingContext
         if (tagged.Count != columns.Count)
         {
             var untagged = columns
-                .Where(c => c.TagCarrier.Tag is null)
+                .Where(c => c.TagCarrier.WireTag is null)
                 .Select(c => c.Name);
 
                 throw new TabbitException(table.Location,
@@ -1627,7 +1627,7 @@ public sealed class CookingContext
         foreach (var column in columns)
         {
             var field = column.TagCarrier;
-            int tag = field.Tag!.Value;
+            int tag = field.WireTag!.Value;
             string name = column.Name;
 
             if (seen.TryGetValue(tag, out string? holder))

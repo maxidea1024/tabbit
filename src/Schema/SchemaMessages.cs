@@ -33,7 +33,7 @@ public static class SchemaMessages
     public const string AbstractCannotExtend = "schema.abstract-cannot-extend";
 
     /// <summary>`@N` on a struct that extends nothing.</summary>
-    public const string VariantTagWithoutBase = "schema.variant-tag-without-base";
+    public const string VariantDiscriminatorWithoutBase = "schema.variant-discriminator-without-base";
 
     /// <summary>`extends` naming something that is not declared anywhere.</summary>
     public const string BaseUnknown = "schema.base-unknown";
@@ -45,10 +45,10 @@ public static class SchemaMessages
     public const string AbstractWithoutVariants = "schema.abstract-without-variants";
 
     /// <summary>Two variants of one abstract struct carrying the same discriminator.</summary>
-    public const string VariantTagsCollide = "schema.variant-tags-collide";
+    public const string VariantDiscriminatorsCollide = "schema.variant-discriminators-collide";
 
     /// <summary>Some variants of one abstract struct numbered and some not.</summary>
-    public const string VariantTagsPartial = "schema.variant-tags-partial";
+    public const string VariantDiscriminatorsPartial = "schema.variant-discriminators-partial";
 
     /// <summary>An `abstract struct` written where a column's type belongs.</summary>
     public const string AbstractTypeNotEmbeddable = "schema.abstract-type-not-embeddable";
@@ -234,6 +234,17 @@ public static class SchemaMessages
     public const string AllowedIntersectionEmpty = "schema.allowed-intersection-empty";
 
     /// <summary>`refs` with no table in it.</summary>
+    /// <summary>
+    /// An abstract type written on a member column rather than on the group's `$type` one.
+    /// </summary>
+    public const string AbstractTypeOnAMemberColumn = "schema.abstract-type-on-a-member-column";
+
+    /// <summary>A member column no variant of the abstract type declares.</summary>
+    public const string MemberNoVariantDeclares = "schema.member-no-variant-declares";
+
+    /// <summary>One member name declared with two types by two variants.</summary>
+    public const string MemberTypeVariesByVariant = "schema.member-type-varies-by-variant";
+
     public const string RefsEmpty = "schema.refs-empty";
 
     /// <summary>A sheet's table list and a declaration's with nothing in common.</summary>

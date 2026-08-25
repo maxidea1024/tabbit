@@ -189,7 +189,7 @@ class {{ table.table_name }} {
 {{~## One case per column of the file, not per declared member. They are the same thing for
    every table without a record group, and a record group is one column per member. ##~}}
 {{~ for column_view in table.columns ~}}
-        case {{ column_view.tag }}: {
+        case {{ column_view.wire_tag }}: {
           {{ column_view.column_check }}
 {{~ if column_view.is_nullable ~}}
 {{~## The bitmap sits at the front of the block, so it is read before the values. The values
