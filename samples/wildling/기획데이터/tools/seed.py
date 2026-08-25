@@ -188,7 +188,7 @@ def build_monster():
         ("max_stage", "int (min=1, max=3)", "이 종이 도달할 수 있는 최대 단계", "c,s"),
         ("icon", "string (asset=icon)", "기록부와 편성 화면의 아이콘", "c"),
         ("model_offset", "vec3f?", "연출 보정. 대부분의 종은 비운다", "c"),
-        ("tags", "string", "검색 태그", "c"),
+        ("tags", "string[]", "검색 태그", "c"),
         ("#old_grade", "", "등급을 종 단위로 옮기기 전의 컬럼", ""),
         ("#", "", "", ""),
     ]

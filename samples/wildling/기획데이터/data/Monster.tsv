@@ -1,6 +1,6 @@
 :table Monster	종의 한 단계이다. 같은 종의 1단과 2단은 다른 행이다.
 :field	monster_id	*display_code	species_id	stage	name	description	element	grade	role	base.hp	base.attack	base.defense	base.speed	base.crit_rate	base.crit_power	habitat	max_stage	icon	model_offset	tags	#old_grade	#
-:type	string	string (regex="^[a-z]{2}[0-9]{3}$")	string	int (min=1, max=3)	string (text=Monster)	string (text=Monster, namespace=Codex)	Element	Grade	Role	StatBlock						bitset	int (min=1, max=3)	string (asset=icon)	vec3f?	string
+:type	string	string (regex="^[a-z]{2}[0-9]{3}$")	string	int (min=1, max=3)	string (text=Monster)	string (text=Monster, namespace=Codex)	Element	Grade	Role	StatBlock						bitset	int (min=1, max=3)	string (asset=icon)	vec3f?	string[]
 :desc	종과 단계를 함께 가리키는 식별자	운영 도구가 쓰는 짧은 코드	같은 종을 묶는 식별자	각성 단계	표시 이름	기록부 설명	속성	희소성. 종의 성질이고 변하지 않는다	전투에서의 역할	1레벨 기준 능력치						서식 지역 플래그	이 종이 도달할 수 있는 최대 단계	기록부와 편성 화면의 아이콘	연출 보정. 대부분의 종은 비운다	검색 태그	등급을 종 단위로 옮기기 전의 컬럼
 :target	c,s	c,s	c,s	c,s	c	c	c,s	c,s	c,s	c,s						c,s	c,s	c	c	c
 	sprout_deer_1	lf001	sprout_deer	1	새싹사슴	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Common	Vanguard	420	38	32	44	500	15000	0b00011	3	wl_sprout_deer_1	-	잎새;사슴;초기형
