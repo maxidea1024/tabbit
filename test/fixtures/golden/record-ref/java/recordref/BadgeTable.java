@@ -112,7 +112,7 @@ public final class BadgeTable {
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameString(count - i);
                         for (; n > 0; n--, i++) {
-                            loaded.get(i).mark.clipIdIndex = cursor.runSameText;
+                            loaded.get(i).mark.clipId = cursor.runSameText;
                         }
                     }
                     break;
@@ -120,7 +120,7 @@ public final class BadgeTable {
                 case 3: {
                     TcbReader.checkColumn(column, "Badge.Mark.SealId", TcbReader.KIND_SCALAR, false, TcbReader.ELEMENT_UUID);
                     for (BadgeRecord record : loaded) {
-                        record.mark.sealIdIndex = reader.readUuid();
+                        record.mark.sealId = reader.readUuid();
                     }
                     break;
                 }

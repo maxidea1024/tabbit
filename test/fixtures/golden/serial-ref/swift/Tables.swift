@@ -119,12 +119,12 @@ public final class Tables {
     /// this resolves the load being read rather than the one already published.
     private static func solveCrossReferences(piece: PieceTable, kit: KitTable, bit: BitTable, trimKit: TrimKitTable) {
         for record in kit.records {
-            record.slot = []
-            record.slot.reserveCapacity(record.slotIndex.count)
+            record.pieceBySlot = []
+            record.pieceBySlot.reserveCapacity(record.slot.count)
 
-            for index in record.slotIndex {
+            for index in record.slot {
                 guard let target = piece.findByIndex(index) else { continue }
-                record.slot.append(target)
+                record.pieceBySlot.append(target)
             }
             record.tier = []
             record.tier.reserveCapacity(record.tierIndex.count)
@@ -135,12 +135,12 @@ public final class Tables {
             }
         }
         for record in trimKit.records {
-            record.slot = []
-            record.slot.reserveCapacity(record.slotIndex.count)
+            record.bitBySlot = []
+            record.bitBySlot.reserveCapacity(record.slot.count)
 
-            for index in record.slotIndex {
+            for index in record.slot {
                 guard let target = bit.findByIndex(index) else { continue }
-                record.slot.append(target)
+                record.bitBySlot.append(target)
             }
             record.tier = []
             record.tier.reserveCapacity(record.tierIndex.count)

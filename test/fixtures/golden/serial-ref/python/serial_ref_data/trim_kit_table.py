@@ -17,15 +17,15 @@ class TrimKitRecord:
     Numbered reference columns folded into an array the row's length.
     """
 
-    __slots__ = ("index", "slot", "slot_index", "has_slot_at", "tier", "tier_index", "has_tier_at")
+    __slots__ = ("index", "slot", "bit_by_slot", "has_slot_at", "tier", "tier_index", "has_tier_at")
 
     def __init__(self):
         self.index = 0
         self.slot = []
-        self.slot_index = []
+        self.bit_by_slot = []
         self.has_slot_at = []
-        self.tier = []
         self.tier_index = []
+        self.tier = []
         self.has_tier_at = []
 
     def __repr__(self):
@@ -114,8 +114,8 @@ class TrimKitTable:
                 cursor = tabbit.ColumnCursor(reader, column, count, "TrimKit.Slot")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.slot_index = [cursor.next_i32() for _ in range(element_count)]
-                    record.slot = [None] * element_count
+                    record.slot = [cursor.next_i32() for _ in range(element_count)]
+                    record.bit_by_slot = [None] * element_count
                     record.has_slot_at = [
                         tabbit.is_present(element_presence, element_at + at)
                         for at in range(element_count)]

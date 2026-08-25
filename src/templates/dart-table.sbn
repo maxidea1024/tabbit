@@ -213,8 +213,8 @@ class {{ table.table_name }} {
    first row with a reference throw at load rather than resolve. Every slot is nullable, which
    is what says "not resolved yet", so filling with null is also the right starting value. ##~}}
             final elementCount = {{ column_view.length_read }};
-            record.{{ column_view.name }}Index = List.generate(elementCount, (_) => {{ column_view.read_element }});
-            record.{{ column_view.name }} = List.filled(elementCount, null);
+            record.{{ column_view.name }} = List.generate(elementCount, (_) => {{ column_view.read_element }});
+            record.{{ column_view.row_name }} = List.filled(elementCount, null);
 {{~ if column_view.has_optional_elements ~}}
             record.{{ column_view.element_presence_member }} =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
@@ -251,7 +251,7 @@ class {{ table.table_name }} {
             record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
                 List.generate(elementCount, (_) => {{ column_view.read_element }});
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-            record.{{ column_view.name }}Index = {{ column_view.read_element }};
+            record.{{ column_view.name }} = {{ column_view.read_element }};
 {{~ else ~}}
             record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
 {{~ end ~}}

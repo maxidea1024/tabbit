@@ -21,8 +21,8 @@ import { ItemRecord } from './item'
 /** One element of HolderRecord.main. */
 export interface MainEntry {
   /** the reference, in a record of one */
-  itemId: ItemRecord | undefined
-  itemId_index: number
+  itemId: number
+  itemByItemId: ItemRecord | undefined
   itemId_F: boolean
   /** an ordinary member beside it */
   count: number
@@ -62,14 +62,14 @@ export class HolderRecord {
   public get pad2(): number { return this._pad2 }
 
   public _index: number = 0
-  public _main: MainEntry = { itemId: undefined, itemId_index: 0, itemId_F: false, count: 0 }
+  public _main: MainEntry = { itemByItemId: undefined, itemId: 0, itemId_F: false, count: 0 }
   public _pad: number = 0
   public _pad2: number = 0
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._main = ((e: any) => ({ itemId: undefined, itemId_index: e.itemId, itemId_F: false, count: e.count }))(dataRow.main)
+    this._main = ((e: any) => ({ itemByItemId: undefined, itemId: e.itemId, itemId_F: false, count: e.count }))(dataRow.main)
     this._pad = dataRow.pad
     this._pad2 = dataRow.pad2
   }
@@ -78,7 +78,7 @@ export class HolderRecord {
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
     this._index = dataRow[offset++]
-    this._main = { itemId: undefined, itemId_index: dataRow[offset++], itemId_F: false, count: dataRow[offset++] }
+    this._main = { itemByItemId: undefined, itemId: dataRow[offset++], itemId_F: false, count: dataRow[offset++] }
     this._pad = dataRow[offset++]
     this._pad2 = dataRow[offset++]
   }
@@ -213,7 +213,7 @@ export class HolderTable {
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
-              records[i]._main.itemId_index = value
+              records[i]._main.itemId = value
           }
           break
         case 3:

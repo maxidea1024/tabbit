@@ -200,6 +200,15 @@ internal sealed class CsTableView
 /// </remarks>
 internal sealed class CsColumnView
 {
+    /// <summary>
+    /// The member access ending in the row's derived name, for a whole-row reference member.
+    /// The plain access otherwise. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowMemberAccess { get; set; } = "";
+
+    /// <summary>The key's own type, where this column is a reference member.</summary>
+    public string MemberKeyType { get; set; } = "";
+
     /// <summary>The dotted path from the group to this member, empty for a plain column.</summary>
     /// <remarks>
     /// What the allocation of a member-owned array is written against - the read of a record
@@ -341,6 +350,12 @@ internal sealed class CsColumnView
 /// </summary>
 internal sealed class CsRecordMemberView
 {
+    /// <summary>
+    /// What the resolved row is called, where this member is a whole-row reference. Empty
+    /// otherwise. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowPropName { get; set; } = "";
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     /// <summary>Field name on the element type.</summary>
@@ -475,6 +490,16 @@ internal sealed class CsRecordTypeView
 /// </summary>
 internal sealed class CsFieldView
 {
+    /// <summary>
+    /// What the resolved row is called, where this column is a reference to a whole row.
+    /// </summary>
+    /// <remarks>
+    /// Empty on everything else, including a dotted reference: that one hands back a value
+    /// out of the target rather than the row, so the column's name stays on it and there is
+    /// no second name to give. spec/reference-surface-naming.md sections 5 and 9.
+    /// </remarks>
+    public string RowPropName { get; set; } = "";
+
     /// <summary>
     /// Whether this field is a record group, so the template declares an element type for
     /// it and the member is of that type rather than a primitive.

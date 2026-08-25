@@ -475,16 +475,24 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                     string row = member.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record";
                     string key = ToDartTypeName(member.FirstField!.RefKeyType, null, null);
 
-                    declarations.Add(member.IsArray
-                        ? $"List<{row}?> {DartName(member.Name)} = "
-                          + $"List.filled({member.Fields.Count}, null);"
-                        : $"{row}? {DartName(member.Name)};");
+                    // The member's own name is the key's; the row takes the derived one.
+                    // spec/reference-surface-naming.md sections 4 and 5.
+                    bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? DartName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : DartName(member.Name);
+                    string keyName = toRow ? DartName(member.Name) : DartName(member.Name) + "Index";
 
                     declarations.Add(member.IsArray
-                        ? $"List<{key}> {DartName(member.Name)}Index = "
+                        ? $"List<{key}> {DartName(member.Name)} = "
                           + $"List.filled({member.Fields.Count}, {RefKeyDefault(member.FirstField!.RefKeyType)});"
-                        : $"{key} {DartName(member.Name)}Index = "
+                        : $"{key} {DartName(member.Name)} = "
                           + RefKeyDefault(member.FirstField!.RefKeyType) + ";");
+
+                    declarations.Add(member.IsArray
+                        ? $"List<{row}?> {rowName} = "
+                          + $"List.filled({member.Fields.Count}, null);"
+                        : $"{row}? {rowName};");
                 }
                 else
                 {
@@ -615,7 +623,12 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
             // is an array holds one key per element. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "Index" : "",
+            MemberRefSuffix = "",
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? DartName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                : DartName(wire.Group.Name),
             MemberAt = wire.MemberAt,
 
             RecordTypeName = wire.Group.IsRecord ? RecordTypeName(table, wire.Group) : "",
@@ -846,9 +859,14 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         // like every other member's does. spec/references-in-records.md.
         if (wire.IsRef)
         {
+            // A dotted reference resolves to a value rather than a row, so there the column's
+            // own name belongs to the value and the key takes the derived one.
+            // spec/reference-surface-naming.md section 9.
+            string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "Index";
+
             return (wire.Member is null)
-                ? $"loaded[i].{name}Index = value;"
-                : $"loaded[i].{name}{memberAccess}Index = value;";
+                ? $"loaded[i].{name}{keySuffix} = value;"
+                : $"loaded[i].{name}{memberAccess}{keySuffix} = value;";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -870,16 +888,24 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         if (sf.IsRef)
         {
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? DartName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "Index";
+
             return sf.IsArray
                 ? new[]
                 {
-                    $"List<{elementType}?> {name} = [];",
-                    $"List<int> {name}Index = [];",
+                    $"List<int> {keyName} = [];",
+                    $"List<{elementType}?> {rowName} = [];",
                 }
                 : new[]
                 {
-                    $"{elementType}? {name};",
-                    $"int {name}Index = 0;",
+                    $"int {keyName} = 0;",
+                    $"{elementType}? {rowName};",
                 };
         }
 
@@ -1038,7 +1064,14 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                 Table = DartName(x.Table.Name),
                 Fields = x.Fields.Select(sf => new DartReferenceFieldView
                 {
-                    Name = DartName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? DartName(sf.Name)
+                        : DartName(sf.Name) + "Index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? DartName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : DartName(sf.Name),
+
                     RefTable = DartName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = sf.ElementType == ValueType.ForeignRecord
@@ -1068,6 +1101,21 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         bool isArray = wire.IsArray;
 
+        string rowLeaf = wire.Member is not null
+            ? DartName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : DartName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + DartName(part))) + "." + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{name}{rowMember}"
+                : $"record.{name}[i]{rowMember}")
+            : $"record.{rowLeaf}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
@@ -1075,13 +1123,13 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         return new DartRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "Index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever list holds the elements. Its own length rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}Index.length" : $"record.{name}.length")
+                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{name}.length")
                 : "",
 
             RefTable = DartName(refTable!.Name),

@@ -716,9 +716,18 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             MemberAt = wire.MemberAt,
 
             // A reference member reads into the key beside the row it will resolve to, and
-            // the suffix goes on the member rather than after the subscript - `itemIdIndex[$j]`
-            // rather than `itemId[$j]Index`. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "Index" : "",
+            // the suffix goes on the member rather than after the subscript - `itemId[$j]`
+            // rather than the member's own name. spec/references-in-records.md.
+            MemberRefSuffix = "",
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? PhpName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                : PhpName(wire.Group.Name),
+
+            KeyName = wire.IsRef && !ResolvesToRow(wire.TagCarrier)
+                ? PhpName(wire.Group.Name) + "Index"
+                : PhpName(wire.Group.Name),
 
             RecordTypeName = wire.Group.IsRecord ? RecordTypeName(table, wire.Group) : "",
             IsFirstMember = wire.IsFirstMember,
@@ -775,21 +784,29 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             string row = member.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record";
             string key = LanguageProfile.Php.ScalarTypeName(member.FirstField!.RefKeyType);
 
+            // The member's own name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? PhpName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : PhpName(member.Name);
+                    string keyName = toRow ? PhpName(member.Name) : PhpName(member.Name) + "Index";
+
             return member.IsArray
                 ? new[]
                 {
-                    $"/** @var list<?{row}> */",
-                    $"public array ${name} = [];",
-                    "",
                     $"/** @var list<{key}> */",
-                    $"public array ${name}Index = [];",
+                    $"public array ${keyName} = [];",
+                    "",
+                    $"/** @var list<?{row}> */",
+                    $"public array ${rowName} = [];",
                 }
                 : new[]
                 {
-                    $"public ?{row} ${name} = null;",
-                    "",
-                    $"public {RefKeyDeclaration(member.FirstField!.RefKeyType, key)} ${name}Index"
+                    $"public {RefKeyDeclaration(member.FirstField!.RefKeyType, key)} ${keyName}"
                         + $"{RefKeyInitializer(member.FirstField!.RefKeyType)};",
+                    "",
+                    $"public ?{row} ${rowName} = null;",
                 };
         }
 
@@ -1006,9 +1023,14 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         // like every other member's does. spec/references-in-records.md.
         if (wire.IsRef)
         {
+            // A dotted reference resolves to a value rather than a row, so there the column's
+            // own name belongs to the value and the key takes the derived one.
+            // spec/reference-surface-naming.md section 9.
+            string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "Index";
+
             return (wire.Member is null)
-                ? $"$records[$i]->{name}Index = $value;"
-                : $"$records[$i]->{name}{memberAccess}Index = $value;";
+                ? $"$records[$i]->{name}{keySuffix} = $value;"
+                : $"$records[$i]->{name}{memberAccess}{keySuffix} = $value;";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -1034,20 +1056,28 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             // record it resolves to once every table is loaded. The resolved one is
             // nullable because a reference into a row that is not there stays null
             // rather than inventing a record.
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? PhpName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "Index";
+
             return sf.IsArray
                 ? new[]
                 {
-                    $"/** @var list<?{elementType}> */",
-                    $"public array ${name} = [];",
-                    "",
                     "/** @var list<int> */",
-                    $"public array ${name}Index = [];",
+                    $"public array ${keyName} = [];",
+                    "",
+                    $"/** @var list<?{elementType}> */",
+                    $"public array ${rowName} = [];",
                 }
                 : new[]
                 {
-                    $"public ?{elementType} ${name} = null;",
+                    $"public int ${keyName} = 0;",
                     "",
-                    $"public int ${name}Index = 0;",
+                    $"public ?{elementType} ${rowName} = null;",
                 };
         }
 
@@ -1222,7 +1252,14 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                 Table = PhpName(x.Table.Name),
                 Fields = x.Fields.Select(sf => new PhpReferenceFieldView
                 {
-                    Name = PhpName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? PhpName(sf.Name)
+                        : PhpName(sf.Name) + "Index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? PhpName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : PhpName(sf.Name),
+
                     RefTable = PhpName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = sf.ElementType == ValueType.ForeignRecord
@@ -1254,6 +1291,21 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         // Where the element number goes is the whole difference between the record shapes -
         // the group's array, the member's, or neither. spec/nested-multi-level.md.
+        string rowLeaf = wire.Member is not null
+            ? PhpName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : PhpName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "->" + PhpName(part))) + "->" + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"$record->{name}{rowMember}"
+                : $"$record->{name}[$j]{rowMember}")
+            : $"$record->{rowLeaf}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"$record->{name}{member}"
             : $"$record->{name}[$j]{member}";
@@ -1261,8 +1313,8 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         return new PhpRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "Index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever list holds the elements. `count` rather than the column count,
             // because a trimming group's rows differ in how many they carry.

@@ -112,10 +112,10 @@ public final class BagTable {
                     for (BagRecord record : loaded) {
                         int elementCount;
                         elementCount = cursor.nextLength();
-                        record.slots.itemId = new ItemRecord[elementCount];
-                        record.slots.itemIdIndex = new int[elementCount];
+                        record.slots.itemByItemId = new ItemRecord[elementCount];
+                        record.slots.itemId = new int[elementCount];
                         for (int j = 0; j < elementCount; j++) {
-                            record.slots.itemIdIndex[j] = cursor.nextI32();
+                            record.slots.itemId[j] = cursor.nextI32();
                         }
                     }
                     break;

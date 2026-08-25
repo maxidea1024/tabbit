@@ -53,11 +53,11 @@ struct SERIALREFDATA_API FKitRow
 
     /** element 1 - the row it points at */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Kit")
-    TArray<int32> SlotIndex;
+    TArray<int32> Slot;
 
     /** element 1 - the target's own value */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Kit")
-    TArray<int32> TierIndex;
+    TArray<int32> Tier;
 
 };
 
@@ -97,7 +97,7 @@ struct SERIALREFDATA_API FTrimKitRow
 
     /** element 1 - the row it points at */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TrimKit")
-    TArray<int32> SlotIndex;
+    TArray<int32> Slot;
 
     /** Which of Slot's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
@@ -106,7 +106,7 @@ struct SERIALREFDATA_API FTrimKitRow
 
     /** element 1 - the target's own value */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TrimKit")
-    TArray<int32> TierIndex;
+    TArray<int32> Tier;
 
     /** Which of Tier's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.

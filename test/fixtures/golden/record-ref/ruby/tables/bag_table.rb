@@ -11,11 +11,11 @@ require_relative '../tabbit/tcb_reader'
 module RecordRef
   # One element of BagRecord#slots.
   class BagSlotsEntry
-    attr_accessor :item_id, :item_id_index, :count
+    attr_accessor :item_id, :item_by_item_id, :count
 
     def initialize
-      @item_id = Array.new(2)
-      @item_id_index = Array.new(2) { 0 }
+      @item_id = Array.new(2) { 0 }
+      @item_by_item_id = Array.new(2)
       @count = Array.new(2) { 0 }
     end
   end
@@ -110,7 +110,7 @@ module RecordRef
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Bag.Slots.ItemId')
           records.each do |record|
             element_count = cursor.next_length
-            record.slots.item_id_index =
+            record.slots.item_id =
               Array.new(element_count) { cursor.next_i32 }
           end
         when 3

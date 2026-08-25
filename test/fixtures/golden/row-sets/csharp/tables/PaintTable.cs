@@ -37,12 +37,14 @@ namespace Tabbit.Fixtures.RowSets
             /// <summary>
             /// the same set first
             /// </summary>
-            public ColourTable.Record ColourId => _colourId;
+            public int ColourId => _colourId_Colour_index;
+            public ColourTable.Record ColourByColourId => _colourId;
 
             /// <summary>
             /// falls back to the one set
             /// </summary>
-            public BrushTable.Record BrushId => _brushId;
+            public int BrushId => _brushId_Brush_index;
+            public BrushTable.Record BrushByBrushId => _brushId;
             #endregion
 
             #region Reference wiring
@@ -53,10 +55,10 @@ namespace Tabbit.Fixtures.RowSets
             #region Storage
             internal int _index;
             internal ColourTable.Record _colourId;
-            public int _colourId_Colour_index;
+            internal int _colourId_Colour_index;
             public bool _colourId_F = false;
             internal BrushTable.Record _brushId;
-            public int _brushId_Brush_index;
+            internal int _brushId_Brush_index;
             public bool _brushId_F = false;
             #endregion
 

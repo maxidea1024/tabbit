@@ -22,11 +22,11 @@ public final class BadgeRecord {
     /** One element of mark. */
     public static final class MarkEntry {
         /** a string key, on the run path */
-        public ClipRecord clipId;
-        public String clipIdIndex;
+        public String clipId;
+        public ClipRecord clipByClipId;
         /** a uuid key, on the run path */
-        public SealRecord sealId;
-        public TcbReader.Uuid sealIdIndex;
+        public TcbReader.Uuid sealId;
+        public SealRecord sealBySealId;
         /** an ordinary member beside them */
         public int rank;
     }

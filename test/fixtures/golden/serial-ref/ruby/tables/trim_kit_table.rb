@@ -12,15 +12,15 @@ module SerialRef
   # Generated from test/fixtures/xlsx/serial-ref-trim/serial-ref-trim.xlsx : Refs : J2
   # Numbered reference columns folded into an array the row's length.
   class TrimKitRecord
-    attr_accessor :index, :slot, :slot_index, :has_slot_at, :tier, :tier_index, :has_tier_at
+    attr_accessor :index, :slot, :bit_by_slot, :has_slot_at, :tier, :tier_index, :has_tier_at
 
     def initialize
       @index = 0
       @slot = []
-      @slot_index = []
+      @bit_by_slot = []
       @has_slot_at = []
-      @tier = []
       @tier_index = []
+      @tier = []
       @has_tier_at = []
     end
 
@@ -108,8 +108,8 @@ module SerialRef
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'TrimKit.Slot')
           records.each do |record|
             element_count = cursor.next_length
-            record.slot_index = Array.new(element_count) { cursor.next_i32 }
-            record.slot = Array.new(element_count)
+            record.slot = Array.new(element_count) { cursor.next_i32 }
+            record.bit_by_slot = Array.new(element_count)
             record.has_slot_at = Array.new(element_count) do |at|
               Tabbit.present?(element_presence, element_at + at)
             end

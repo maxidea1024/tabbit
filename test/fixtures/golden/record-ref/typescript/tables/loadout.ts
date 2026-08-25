@@ -21,12 +21,12 @@ import { ItemRecord } from './item'
 /** One element of LoadoutRecord.slot. */
 export interface SlotEntry {
   /** element 1, the reference */
-  itemId: ItemRecord | undefined
-  itemId_index: number
+  itemId: number
+  itemByItemId: ItemRecord | undefined
   itemId_F: boolean
   /** element 1, a second reference to the same table */
-  swapId: ItemRecord | undefined
-  swapId_index: number
+  swapId: number
+  itemBySwapId: ItemRecord | undefined
   swapId_F: boolean
   /** element 1, an ordinary member */
   count: number
@@ -64,7 +64,7 @@ export class LoadoutRecord {
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._slot = dataRow.slot.map(e => ({ itemId: undefined, itemId_index: e.itemId, itemId_F: false, swapId: undefined, swapId_index: e.swapId, swapId_F: false, count: e.count }))
+    this._slot = dataRow.slot.map(e => ({ itemByItemId: undefined, itemId: e.itemId, itemId_F: false, itemBySwapId: undefined, swapId: e.swapId, swapId_F: false, count: e.count }))
   }
 
   /** Populate field values. */
@@ -77,7 +77,7 @@ export class LoadoutRecord {
     offset += 2
     const _slot_count = dataRow.slice(offset, offset + 2)
     offset += 2
-    this._slot = Array.from({ length: 2 }, (_, k) => ({ itemId: undefined, itemId_index: _slot_itemId[k], itemId_F: false, swapId: undefined, swapId_index: _slot_swapId[k], swapId_F: false, count: _slot_count[k] }))
+    this._slot = Array.from({ length: 2 }, (_, k) => ({ itemByItemId: undefined, itemId: _slot_itemId[k], itemId_F: false, itemBySwapId: undefined, swapId: _slot_swapId[k], swapId_F: false, count: _slot_count[k] }))
   }
 }
 
@@ -210,9 +210,9 @@ export class LoadoutTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._slot = Array.from({ length: elementCount }, () => ({ itemId: undefined, itemId_index: 0, itemId_F: false, swapId: undefined, swapId_index: 0, swapId_F: false, count: 0 }))
+            record._slot = Array.from({ length: elementCount }, () => ({ itemByItemId: undefined, itemId: 0, itemId_F: false, itemBySwapId: undefined, swapId: 0, swapId_F: false, count: 0 }))
             for (let j = 0; j < elementCount; ++j)
-              record._slot[j].itemId_index = cursor.nextI32()
+              record._slot[j].itemId = cursor.nextI32()
           }
           break
         case 3:
@@ -224,7 +224,7 @@ export class LoadoutTable {
             if (record._slot.length !== elementCount)
               throw new Error(`Loadout.Slot: the file gives this row ${elementCount} elements for one member of the record and ${record._slot.length} for another. Every member of a record carries the same element count, so the file is damaged.`)
             for (let j = 0; j < elementCount; ++j)
-              record._slot[j].swapId_index = cursor.nextI32()
+              record._slot[j].swapId = cursor.nextI32()
           }
           break
         case 4:

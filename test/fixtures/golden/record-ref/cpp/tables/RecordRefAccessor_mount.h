@@ -24,8 +24,8 @@ namespace record_ref {
 /// A record inside MountRecord::rig.
 struct MountRecord_rig_entryCore {
   /// element 1, two levels in
-  const ItemRecord* item_id = nullptr;
-  std::int32_t item_id_index = 0;
+  std::int32_t item_id = 0;
+  const ItemRecord* item_by_item_id = nullptr;
   /// its sibling at that level
   std::int32_t count = 0;
 };
@@ -132,7 +132,7 @@ class MountTable {
             const std::int32_t element_count = cursor.next_length();
             record.rig.assign(static_cast<std::size_t>(element_count), MountRecord_rig_entry());
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.rig[static_cast<std::size_t>(j)].core.item_id_index = cursor.next_i32();
+              record.rig[static_cast<std::size_t>(j)].core.item_id = cursor.next_i32();
             }
           }
           break;

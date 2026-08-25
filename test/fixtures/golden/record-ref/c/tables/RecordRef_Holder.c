@@ -64,7 +64,7 @@ static bool RecordRef_HolderParse(RecordRef_HolderTable_t* table, tb_reader* rea
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         RecordRef_HolderRecord_t* record = &table->records[row];
 
-        (void)tb_cursor_next_i32(&cursor, &record->main.item_id_index);
+        (void)tb_cursor_next_i32(&cursor, &record->main.item_id);
       }
       break;
 

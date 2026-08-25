@@ -23,9 +23,9 @@ use Tabbit\Uuid;
 final class PoseStepEntry
 {
     /** element 1, a string key */
-    public ?ClipRecord $clipId = null;
+    public string $clipId = '';
 
-    public string $clipIdIndex = '';
+    public ?ClipRecord $clipByClipId = null;
     /** element 1, an ordinary member */
     public int $weight = 0;
 }
@@ -160,7 +160,7 @@ final class PoseTable
                             $record->step[] = new PoseStepEntry();
                         }
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->step[$j]->clipIdIndex = $cursor->nextString();
+                            $record->step[$j]->clipId = $cursor->nextString();
                         }
                     }
                     break;

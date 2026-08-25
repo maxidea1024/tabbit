@@ -568,13 +568,16 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                     : "";
                 string slice = member.IsArray ? "[]" : "";
 
-                var declarations = new List<string>
-                {
-                    $"{GoName(member.Name)} {slice}{memberType}",
-                };
-
-                if (member.IsRef)
-                    declarations.Add($"{GoName(member.Name)}Index {slice}{keyType}");
+                // The member's own name is the key's, because the key is what the cell
+                // holds; the row is linked after loading and takes a derived name.
+                // spec/reference-surface-naming.md sections 4 and 5.
+                var declarations = member.IsRef
+                    ? new List<string>
+                    {
+                        $"{GoName(member.Name)} {slice}{keyType}",
+                        $"{GoName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))} {slice}{memberType}",
+                    }
+                    : new List<string> { $"{GoName(member.Name)} {slice}{memberType}" };
 
 
                 result.Add(new GoRecordMemberView
@@ -588,6 +591,10 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                     SliceType = member.IsArray ? "[]" + memberType : "",
                     ElementCount = member.IsArray ? member.Fields.Count : 0,
                     RefKeySliceType = (member.IsRef && member.IsArray) ? "[]" + keyType : "",
+
+                    RowName = member.IsRef && ResolvesToRow(member.FirstField!)
+                        ? GoName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : "",
                 });
 
                 continue;
@@ -724,10 +731,22 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             Name = name,
             MemberAccess = memberAccess,
 
-            // A reference member reads into the key beside the row it will resolve to, and
-            // the suffix goes on the member rather than after the subscript.
-            // spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "Index" : "",
+            // The key carries the member's own name now, so nothing is appended.
+            // spec/reference-surface-naming.md section 4.
+            MemberRefSuffix = "",
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? GoName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                : GoName(wire.Group.Name) + "Index",
+
+            RowMemberAccess = (wire.Member is not null && wire.IsRef
+                               && ResolvesToRow(wire.TagCarrier))
+                ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                    .Select(part => "." + GoName(part)))
+                  + "." + GoName(RowAccessorName(
+                        wire.TagCarrier.ResolvedRefTable!.Name, wire.MemberPath[^1]))
+                : "",
             MemberAt = wire.MemberAt,
             ElementCount = wire.Cells.Count,
             ArrayType = arrayType,
@@ -808,9 +827,17 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             // spec/reference-key-types.md.
             string keyType = ToGoTypeName(sf.FirstField!.RefKeyType, null, null);
 
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? GoName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "Index";
+
             return sf.IsArray
-                ? new[] { $"{name} []{elementType}", $"{name}Index []{keyType}" }
-                : new[] { $"{name} {elementType}", $"{name}Index {keyType}" };
+                ? new[] { $"{keyName} []{keyType}", $"{rowName} []{elementType}" }
+                : new[] { $"{keyName} {keyType}", $"{rowName} {elementType}" };
         }
 
         return sf.IsArray
@@ -1043,8 +1070,8 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         if (wire.IsRef)
         {
             return (wire.Member is null)
-                ? $"records[i].{name}Index = value"
-                : $"records[i].{name}{memberAccess}Index = value";
+                ? $"records[i].{name}{(ResolvesToRow(wire.TagCarrier) ? "" : "Index")} = value"
+                : $"records[i].{name}{memberAccess}{(ResolvesToRow(wire.TagCarrier) ? "" : "Index")} = value";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -1090,7 +1117,14 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 Table = GoName(x.Table.Name),
                 Fields = x.Fields.Select(sf => new GoReferenceFieldView
                 {
-                    Name = GoName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? GoName(sf.Name)
+                        : GoName(sf.Name) + "Index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? GoName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : GoName(sf.Name),
+
                     RefTable = GoName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = ReferenceValueExpression(sf),
@@ -1118,20 +1152,36 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
         bool isArray = wire.IsArray;
 
-        string path = !isArray || wire.Group.MembersAreArrays
+        string rowLeaf = wire.Member is not null
+            ? GoName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : GoName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + GoName(part))) + "." + rowLeaf
+            : "";
+
+        string keyPath = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
             : $"record.{name}[k]{member}";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{name}{rowMember}"
+                : $"record.{name}[k]{rowMember}")
+            : $"record.{rowLeaf}";
+
         string subscript = (isArray && wire.Group.MembersAreArrays) ? "[k]" : "";
 
         return new GoRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "Index" + subscript,
+            Access = rowPath + subscript,
+            Key = keyPath + subscript,
 
             // Whichever slice holds the elements - ranged rather than counted, because a
             // trimming group's rows differ in how many they carry.
             Range = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}Index" : $"record.{name}")
+                ? (wire.Group.MembersAreArrays ? keyPath : $"record.{name}")
                 : "",
 
             RefTable = GoName(refTable!.Name),

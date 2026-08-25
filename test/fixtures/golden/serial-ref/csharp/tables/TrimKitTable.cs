@@ -37,7 +37,8 @@ namespace Tabbit.Fixtures.SerialRef
             /// <summary>
             /// element 1 - the row it points at
             /// </summary>
-            public BitTable.Record[] Slot => _slot;
+            public int[] Slot => _slot_Bit_index;
+            public BitTable.Record[] BitBySlot => _slot;
             /// <summary>Whether element <paramref name="index"/> of <see cref="Slot"/> has a value.</summary>
             public bool HasSlotAt(int index)
                 => _slotHasValueAt == null
@@ -63,7 +64,7 @@ namespace Tabbit.Fixtures.SerialRef
             #region Storage
             internal int _index;
             internal BitTable.Record[] _slot = System.Array.Empty<BitTable.Record>();
-            public int[] _slot_Bit_index = System.Array.Empty<int>();
+            internal int[] _slot_Bit_index = System.Array.Empty<int>();
             public bool[] _slot_F = System.Array.Empty<bool>();
             internal bool[] _slotHasValueAt;
             internal int[] _tier = System.Array.Empty<int>();

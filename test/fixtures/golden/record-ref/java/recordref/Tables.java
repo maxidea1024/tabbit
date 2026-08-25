@@ -132,69 +132,69 @@ public final class Tables {
     private void solveCrossReferences(ItemTable item, LoadoutTable loadout, HolderTable holder, BagTable bag, MountTable mount, ClipTable clip, PoseTable pose, SealTable seal, BadgeTable badge, KitTable kit) {
         for (LoadoutRecord record : loadout.records()) {
             for (int i = 0; i < record.slot.length; i++) {
-                ItemRecord target = item.findByIndex(record.slot[i].itemIdIndex);
+                ItemRecord target = item.findByIndex(record.slot[i].itemId);
                 if (target != null) {
-                    record.slot[i].itemId = target;
+                    record.slot[i].itemByItemId = target;
                 }
             }
             for (int i = 0; i < record.slot.length; i++) {
-                ItemRecord target = item.findByIndex(record.slot[i].swapIdIndex);
+                ItemRecord target = item.findByIndex(record.slot[i].swapId);
                 if (target != null) {
-                    record.slot[i].swapId = target;
+                    record.slot[i].itemBySwapId = target;
                 }
             }
         }
         for (HolderRecord record : holder.records()) {
             {
-                ItemRecord target = item.findByIndex(record.main.itemIdIndex);
+                ItemRecord target = item.findByIndex(record.main.itemId);
                 if (target != null) {
-                    record.main.itemId = target;
+                    record.main.itemByItemId = target;
                 }
             }
         }
         for (BagRecord record : bag.records()) {
-            for (int i = 0; i < record.slots.itemIdIndex.length; i++) {
-                ItemRecord target = item.findByIndex(record.slots.itemIdIndex[i]);
+            for (int i = 0; i < record.slots.itemId.length; i++) {
+                ItemRecord target = item.findByIndex(record.slots.itemId[i]);
                 if (target != null) {
-                    record.slots.itemId[i] = target;
+                    record.slots.itemByItemId[i] = target;
                 }
             }
         }
         for (MountRecord record : mount.records()) {
             for (int i = 0; i < record.rig.length; i++) {
-                ItemRecord target = item.findByIndex(record.rig[i].core.itemIdIndex);
+                ItemRecord target = item.findByIndex(record.rig[i].core.itemId);
                 if (target != null) {
-                    record.rig[i].core.itemId = target;
+                    record.rig[i].core.itemByItemId = target;
                 }
             }
         }
         for (PoseRecord record : pose.records()) {
             for (int i = 0; i < record.step.length; i++) {
-                ClipRecord target = clip.findByIndex(record.step[i].clipIdIndex);
+                ClipRecord target = clip.findByIndex(record.step[i].clipId);
                 if (target != null) {
-                    record.step[i].clipId = target;
+                    record.step[i].clipByClipId = target;
                 }
             }
         }
         for (BadgeRecord record : badge.records()) {
             {
-                ClipRecord target = clip.findByIndex(record.mark.clipIdIndex);
+                ClipRecord target = clip.findByIndex(record.mark.clipId);
                 if (target != null) {
-                    record.mark.clipId = target;
+                    record.mark.clipByClipId = target;
                 }
             }
             {
-                SealRecord target = seal.findByIndex(record.mark.sealIdIndex);
+                SealRecord target = seal.findByIndex(record.mark.sealId);
                 if (target != null) {
-                    record.mark.sealId = target;
+                    record.mark.sealBySealId = target;
                 }
             }
         }
         for (KitRecord record : kit.records()) {
             for (int i = 0; i < record.part.length; i++) {
-                ItemRecord target = item.findByIndex(record.part[i].itemIdIndex);
+                ItemRecord target = item.findByIndex(record.part[i].itemId);
                 if (target != null) {
-                    record.part[i].itemId = target;
+                    record.part[i].itemByItemId = target;
                 }
             }
         }

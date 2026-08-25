@@ -79,7 +79,7 @@ static bool RecordRef_PoseParse(RecordRef_PoseTable_t* table, tb_reader* reader)
           return tb_fail_with(reader, "out of memory allocating a record array");
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
-          (void)tb_cursor_next_string(&cursor, &record->step[element].clip_id_index);
+          (void)tb_cursor_next_string(&cursor, &record->step[element].clip_id);
       }
       break;
 

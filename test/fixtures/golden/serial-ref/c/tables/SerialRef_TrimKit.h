@@ -25,15 +25,15 @@ struct SerialRef_TrimKitRecord_t {
   /* primary index */
   int32_t index;
   /* element 1 - the row it points at */
-  const SerialRef_BitRecord_t** slot;
-  int32_t* slot_index;
+  int32_t* slot;
+  const SerialRef_BitRecord_t** bit_by_slot;
   int32_t slot_count;
   /* Which of slot's elements have a value, one bool per element, or NULL where
    * the file did not carry the column. spec/nullable-array-elements.md. */
   const bool* has_slot_at;
   /* element 1 - the target's own value */
-  int32_t* tier;
   int32_t* tier_index;
+  int32_t* tier;
   int32_t tier_count;
   /* Which of tier's elements have a value, one bool per element, or NULL where
    * the file did not carry the column. spec/nullable-array-elements.md. */

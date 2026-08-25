@@ -303,6 +303,19 @@ internal sealed class PhpRecordTypeView
 /// </summary>
 internal sealed class PhpColumnView
 {
+    /// <summary>
+    /// Where the resolved rows go for a whole-row reference, or the column's own name for a
+    /// dotted one. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
+    /// <summary>
+    /// Where the keys off the wire go: the column's own name for a whole-row reference, and
+    /// the `Index` one for a dotted reference. spec/reference-surface-naming.md sections 5
+    /// and 9.
+    /// </summary>
+    public string KeyName { get; set; } = "";
+
     /// <summary>The column wire tag.</summary>
     public required int Tag { get; set; }
 
@@ -367,7 +380,7 @@ internal sealed class PhpColumnView
     /// </summary>
     /// <remarks>
     /// On the member and before any subscript, because a member that is an array holds one
-    /// key per element: `itemIdIndex[$j]`, not `itemId[$j]Index`.
+    /// key per element: `itemId[$j]`, not the member's own name.
     /// spec/references-in-records.md.
     /// </remarks>
     public required string MemberRefSuffix { get; set; }
@@ -464,6 +477,13 @@ internal sealed class PhpRecordReferenceView
 
 internal sealed class PhpReferenceFieldView
 {
+    /// <summary>
+    /// Where the resolved row goes - the derived name for a whole-row reference, the
+    /// column's own name for a dotted one.
+    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required string Name { get; set; }
     public required string RefTable { get; set; }
 

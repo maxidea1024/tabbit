@@ -105,12 +105,12 @@ fn main() {
         json.push(']');
 
         // The reference indices, which is what the exporter writes for a foreign field.
-        json.push_str(&format!(",\"owner\":{}", record.owner_index));
-        json.push_str(&format!(",\"tier\":{}", record.tier_index));
+        json.push_str(&format!(",\"owner\":{}", record.owner));
+        json.push_str(&format!(",\"tier\":{}", record.tier));
 
         // And one reference per element, printed as the stored index each came in as.
         json.push_str(",\"owners\":[");
-        for (k, index) in record.owners_index.iter().enumerate() {
+        for (k, index) in record.owners.iter().enumerate() {
             if k > 0 {
                 json.push(',');
             }

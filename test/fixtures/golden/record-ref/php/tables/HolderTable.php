@@ -23,9 +23,9 @@ use Tabbit\Uuid;
 final class HolderMainEntry
 {
     /** the reference, in a record of one */
-    public ?ItemRecord $itemId = null;
+    public int $itemId = 0;
 
-    public int $itemIdIndex = 0;
+    public ?ItemRecord $itemByItemId = null;
     /** an ordinary member beside it */
     public int $count = 0;
 }
@@ -154,7 +154,7 @@ final class HolderTable
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
                         for (; $n > 0; $n--, $i++) {
-                            $records[$i]->main->itemIdIndex = $value;
+                            $records[$i]->main->itemId = $value;
                         }
                     }
                     break;

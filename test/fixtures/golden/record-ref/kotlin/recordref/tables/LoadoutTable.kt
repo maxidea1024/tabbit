@@ -46,11 +46,11 @@ class LoadoutRecord {
     /** One element of slot. */
     class SlotEntry {
         /** element 1, the reference */
-        var itemId: ItemRecord? = null
-        var itemIdIndex: Int = 0
+        var itemId: Int = 0
+        var itemByItemId: ItemRecord? = null
         /** element 1, a second reference to the same table */
-        var swapId: ItemRecord? = null
-        var swapIdIndex: Int = 0
+        var swapId: Int = 0
+        var itemBySwapId: ItemRecord? = null
         /** element 1, an ordinary member */
         var count: Int = 0
     }
@@ -147,7 +147,7 @@ class LoadoutTable {
                         record.slot =
                             MutableList(elementCount.coerceAtLeast(0)) { LoadoutRecord.SlotEntry() }
                         for (element in 0 until elementCount) {
-                            record.slot[element].itemIdIndex = cursor.nextI32()
+                            record.slot[element].itemId = cursor.nextI32()
                         }
                     }
                 }
@@ -162,7 +162,7 @@ class LoadoutTable {
                                     "this record a different element count than another")
                         }
                         for (element in 0 until elementCount) {
-                            record.slot[element].swapIdIndex = cursor.nextI32()
+                            record.slot[element].swapId = cursor.nextI32()
                         }
                     }
                 }

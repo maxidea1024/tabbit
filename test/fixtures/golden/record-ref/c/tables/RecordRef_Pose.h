@@ -24,7 +24,7 @@ extern "C" {
 /* One element of RecordRef_PoseRecord_t::step. */
 struct RecordRef_PoseRecord_t_step_entry {
   /* element 1, a string key */
-  const RecordRef_ClipRecord_t* clip_id; const char* clip_id_index;
+  const char* clip_id; const RecordRef_ClipRecord_t* clip_by_clip_id;
   /* element 1, an ordinary member */
   int32_t weight;
 };

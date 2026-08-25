@@ -46,8 +46,8 @@ class BagRecord {
     /** One element of slots. */
     class SlotsEntry {
         /** element 1 of the member */
-        var itemId: MutableList<ItemRecord?> = MutableList(2) { null }
-        var itemIdIndex: MutableList<Int> = MutableList(2) { 0 }
+        var itemId: MutableList<Int> = MutableList(2) { 0 }
+        var itemByItemId: MutableList<ItemRecord?> = MutableList(2) { null }
         /** element 1 of the member beside it */
         var count: MutableList<Int> = MutableList(2) { 0 }
     }
@@ -138,10 +138,10 @@ class BagTable {
                     val cursor = ColumnCursor(reader, column, count, "Bag.Slots.ItemId")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.slots.itemIdIndex =
+                        record.slots.itemId =
                             ArrayList(elementCount.coerceAtLeast(0))
                         for (element in 0 until elementCount) {
-                            record.slots.itemIdIndex[element] = cursor.nextI32()
+                            record.slots.itemId[element] = cursor.nextI32()
                         }
                     }
                 }

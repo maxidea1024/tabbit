@@ -137,7 +137,8 @@ int main(int argc, char** argv) {
                   << quote("index") << ":" << r.index << ","
                   << quote("name") << ":" << quote(r.name) << ","
                   << quote("categoryName") << ":"
-                  << quote(r.category_id != nullptr ? r.category_id->name : std::string("<unresolved>"))
+                  << quote(r.item_category_by_category_id != nullptr
+                            ? r.item_category_by_category_id->name : std::string("<unresolved>"))
                   << "}";
       }
       std::cout << "]";

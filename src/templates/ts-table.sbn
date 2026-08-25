@@ -45,13 +45,15 @@ export interface {{ rt.type_name }} {
 {{~ for line in member.comment ~}}
   {{ line }}
 {{~ end ~}}
-  {{ member.prop_name }}: {{ member.field_type }}
 {{~ if member.ref_key_type_name != '' ~}}
-{{~## A reference member carries three things: the row it resolved to, the key that came
-   off the wire, and whether the resolution happened. All three inside the element, because
-   a group may hold more than one reference. spec/references-in-records.md. ##~}}
-  {{ member.prop_name }}_index: {{ member.ref_key_type_name }}
+{{~## A reference member carries three things: the key that came off the wire under the
+   member's own name, the row it resolved to under the derived one, and whether the
+   resolution happened. spec/reference-surface-naming.md sections 4 and 5. ##~}}
+  {{ member.prop_name }}: {{ member.ref_key_type_name }}
+  {{ member.row_prop_name }}: {{ member.field_type }}
   {{ member.prop_name }}_F: {{ member.ref_flag_type_name }}
+{{~ else ~}}
+  {{ member.prop_name }}: {{ member.field_type }}
 {{~ end ~}}
 {{~ end ~}}
 }
@@ -107,8 +109,17 @@ export class {{ name }}Record {
 {{~## The declared type is already the inner array, so the accessor is that array's array.
    spec/nested-multi-level.md. ##~}}
   public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
+{{~ else if field.is_array && field.row_prop_name != '' ~}}
+{{~## The column's name is the key's, because the key is what the cell holds. The rows are
+   linked after loading and take a derived name.
+   spec/reference-surface-naming.md sections 4 and 5. ##~}}
+  public get {{ field.prop_name }}(): {{ field.ref_key_type_name }}[] { return this.{{ field.field_name }}_{{ field.ref_table }}_index }
+  public get {{ field.row_prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
 {{~ else if field.is_array ~}}
   public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
+{{~ else if field.row_prop_name != '' ~}}
+  public get {{ field.prop_name }}(): {{ field.ref_key_type_name }} { return this.{{ field.field_name }}_{{ field.ref_table }}_index }
+  public get {{ field.row_prop_name }}(): {{ field.field_type }} { return this.{{ field.field_name }} }
 {{~ else ~}}
   public get {{ field.prop_name }}(): {{ field.field_type }} { return this.{{ field.field_name }} }
 {{~ end ~}}

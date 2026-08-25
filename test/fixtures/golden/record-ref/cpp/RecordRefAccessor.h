@@ -92,52 +92,52 @@ class RecordRefAccessor {
   void solve_cross_references([[maybe_unused]] ItemTable& loaded_item, [[maybe_unused]] LoadoutTable& loaded_loadout, [[maybe_unused]] HolderTable& loaded_holder, [[maybe_unused]] BagTable& loaded_bag, [[maybe_unused]] MountTable& loaded_mount, [[maybe_unused]] ClipTable& loaded_clip, [[maybe_unused]] PoseTable& loaded_pose, [[maybe_unused]] SealTable& loaded_seal, [[maybe_unused]] BadgeTable& loaded_badge, [[maybe_unused]] KitTable& loaded_kit) {
     for (auto& record : loaded_loadout.records_) {
       for (std::size_t i = 0; i < record.slot.size(); ++i) {
-        const auto* target = loaded_item.find_by_index(record.slot[i].item_id_index);
-        if (target != nullptr) record.slot[i].item_id = target;
+        const auto* target = loaded_item.find_by_index(record.slot[i].item_id);
+        if (target != nullptr) record.slot[i].item_by_item_id = target;
       }
       for (std::size_t i = 0; i < record.slot.size(); ++i) {
-        const auto* target = loaded_item.find_by_index(record.slot[i].swap_id_index);
-        if (target != nullptr) record.slot[i].swap_id = target;
+        const auto* target = loaded_item.find_by_index(record.slot[i].swap_id);
+        if (target != nullptr) record.slot[i].item_by_swap_id = target;
       }
     }
     for (auto& record : loaded_holder.records_) {
       {
-        const auto* target = loaded_item.find_by_index(record.main.item_id_index);
-        if (target != nullptr) record.main.item_id = target;
+        const auto* target = loaded_item.find_by_index(record.main.item_id);
+        if (target != nullptr) record.main.item_by_item_id = target;
       }
     }
     for (auto& record : loaded_bag.records_) {
-      for (std::size_t i = 0; i < record.slots.item_id_index.size(); ++i) {
-        const auto* target = loaded_item.find_by_index(record.slots.item_id_index[i]);
-        if (target != nullptr) record.slots.item_id[i] = target;
+      for (std::size_t i = 0; i < record.slots.item_id.size(); ++i) {
+        const auto* target = loaded_item.find_by_index(record.slots.item_id[i]);
+        if (target != nullptr) record.slots.item_by_item_id[i] = target;
       }
     }
     for (auto& record : loaded_mount.records_) {
       for (std::size_t i = 0; i < record.rig.size(); ++i) {
-        const auto* target = loaded_item.find_by_index(record.rig[i].core.item_id_index);
-        if (target != nullptr) record.rig[i].core.item_id = target;
+        const auto* target = loaded_item.find_by_index(record.rig[i].core.item_id);
+        if (target != nullptr) record.rig[i].core.item_by_item_id = target;
       }
     }
     for (auto& record : loaded_pose.records_) {
       for (std::size_t i = 0; i < record.step.size(); ++i) {
-        const auto* target = loaded_clip.find_by_index(record.step[i].clip_id_index);
-        if (target != nullptr) record.step[i].clip_id = target;
+        const auto* target = loaded_clip.find_by_index(record.step[i].clip_id);
+        if (target != nullptr) record.step[i].clip_by_clip_id = target;
       }
     }
     for (auto& record : loaded_badge.records_) {
       {
-        const auto* target = loaded_clip.find_by_index(record.mark.clip_id_index);
-        if (target != nullptr) record.mark.clip_id = target;
+        const auto* target = loaded_clip.find_by_index(record.mark.clip_id);
+        if (target != nullptr) record.mark.clip_by_clip_id = target;
       }
       {
-        const auto* target = loaded_seal.find_by_index(record.mark.seal_id_index);
-        if (target != nullptr) record.mark.seal_id = target;
+        const auto* target = loaded_seal.find_by_index(record.mark.seal_id);
+        if (target != nullptr) record.mark.seal_by_seal_id = target;
       }
     }
     for (auto& record : loaded_kit.records_) {
       for (std::size_t i = 0; i < record.part.size(); ++i) {
-        const auto* target = loaded_item.find_by_index(record.part[i].item_id_index);
-        if (target != nullptr) record.part[i].item_id = target;
+        const auto* target = loaded_item.find_by_index(record.part[i].item_id);
+        if (target != nullptr) record.part[i].item_by_item_id = target;
       }
     }
   }

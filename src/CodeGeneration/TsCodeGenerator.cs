@@ -409,6 +409,21 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         // Where the element number goes is the whole difference between the record shapes -
         // the group's array, the member's, or neither. spec/nested-multi-level.md.
+        string rowLeaf = wire.Member is not null
+            ? TsName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : TsName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + TsName(part))) + "." + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{field}{rowMember}"
+                : $"record.{field}[i]{rowMember}")
+            : $"record.{field}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{field}{member}"
             : $"record.{field}[i]{member}";
@@ -416,8 +431,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         return new TsRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "_index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
             Flag = path + "_F" + subscript,
 
             // Whichever array holds the elements. `length` rather than the column count,
@@ -578,7 +593,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript - `itemId_index[j]`
             // rather than `itemId[j]_index`. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "_index" : "",
+            MemberRefSuffix = "",
             ElementCount = wire.Cells.Count,
             RefTable = wire.TagCarrier.RefTableName.ToPascalCase() ?? "",
             IsFirstMember = wire.IsFirstMember,
@@ -730,6 +745,11 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         return new TsFieldView
         {
+            RowPropName = sf.IsRef && sf.FirstField!.ResolvedRefTable is not null
+                           && sf.FirstField!.ResolvedRefField is null
+                ? TsName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : "",
+
             IsRecord = false,
             IsNullable = sf.RowMayBeAbsent,
             HasOptionalElements = sf.ElementMayBeAbsent,
@@ -796,6 +816,11 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         return new TsFieldView
         {
+            RowPropName = sf.IsRef && sf.FirstField!.ResolvedRefTable is not null
+                           && sf.FirstField!.ResolvedRefField is null
+                ? TsName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : "",
+
             IsRecord = true,
 
             // A record group has no presence of its own: absence inside one is the array's
@@ -896,6 +921,11 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
                 result.Add(new TsRecordMemberView
                 {
+            RowPropName = member.IsRef && member.FirstField!.ResolvedRefTable is not null
+                           && ResolvesToRow(member.FirstField!)
+                ? TsName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                : "",
+
                     Comment = CommentLines(member.FirstField!.Comment),
                     PropName = TsName(member.Name),
 
@@ -947,6 +977,11 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
             result.Add(new TsRecordMemberView
             {
+            RowPropName = member.IsRef && member.FirstField!.ResolvedRefTable is not null
+                           && ResolvesToRow(member.FirstField!)
+                ? TsName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                : "",
+
                 Comment = CommentLines(member.FirstField!.Comment),
                 PropName = TsName(member.Name),
                 FieldType = typeName,
@@ -979,11 +1014,15 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// </remarks>
     private static IEnumerable<string> MemberLiteralParts(TsRecordMemberView member)
     {
-        yield return $"{member.PropName}: {member.DefaultValue}";
+        // The member's own name is the key's, where it is a reference; the row is under the
+        // derived name. spec/reference-surface-naming.md sections 4 and 5.
+        yield return member.RowPropName.Length > 0
+            ? $"{member.RowPropName}: {member.DefaultValue}"
+            : $"{member.PropName}: {member.DefaultValue}";
 
         if (member.RefKeyTypeName.Length > 0)
         {
-            yield return $"{member.PropName}_index: {member.RefKeyDefault}";
+            yield return $"{member.PropName}: {member.RefKeyDefault}";
             yield return $"{member.PropName}_F: {member.RefFlagDefault}";
         }
 
@@ -1021,6 +1060,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         var parts = members.SelectMany(member =>
         {
             string prop = TsName(member.Name);
+            string rowProp = member.IsRef && member.FirstField!.ResolvedRefTable is not null
+                ? TsName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                : prop;
 
             if (!member.IsLeaf)
                 return new[] { $"{prop}: {NamedRowLiteral(member.Members, $"{accessor}.{prop}")}" };
@@ -1036,14 +1078,14 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 return member.IsArray
                     ? new[]
                     {
-                        $"{prop}: {accessor}.{prop}.map(() => undefined)",
-                        $"{prop}_index: {accessor}.{prop}.map((v: any) => {key})",
+                        $"{rowProp}: {accessor}.{prop}.map(() => undefined)",
+                        $"{prop}: {accessor}.{prop}.map((v: any) => {key})",
                         $"{prop}_F: {accessor}.{prop}.map(() => false)",
                     }
                     : new[]
                     {
-                        $"{prop}: undefined",
-                        $"{prop}_index: "
+                        $"{rowProp}: undefined",
+                        $"{prop}: "
                             + FromJsonExpressionOf(member.FirstField!.RefKeyType, $"{accessor}.{prop}"),
                         $"{prop}_F: false",
                     };
@@ -1089,6 +1131,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             string zip = "{ " + string.Join(", ", sf.Members.SelectMany((member, at) =>
             {
                 string prop = members[at].PropName;
+                string rowProp = members[at].RowPropName.Length > 0 ? members[at].RowPropName : prop;
                 string source = $"{field}_{prop}[k]";
 
                 // A reference member: the entry is the key, and the row it names is filled in
@@ -1096,8 +1139,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 return member.IsRef
                     ? new[]
                     {
-                        $"{prop}: undefined",
-                        $"{prop}_index: {FromJsonExpressionOf(member.FirstField!.RefKeyType, source)}",
+                        $"{rowProp}: undefined",
+                        $"{prop}: {FromJsonExpressionOf(member.FirstField!.RefKeyType, source)}",
                         $"{prop}_F: false",
                     }
                     : new[] { $"{prop}: {FromJsonExpressionOf(member.ElementType, source)}" };
@@ -1132,6 +1175,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             var taken = sf.Members.SelectMany((member, at) =>
             {
                 string prop = members[at].PropName;
+                string rowProp = members[at].RowPropName.Length > 0 ? members[at].RowPropName : prop;
                 string slice = $"dataRow.slice(offset + {at * sf.RecordElementCount}, "
                              + $"offset + {(at + 1) * sf.RecordElementCount})";
 
@@ -1143,8 +1187,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
                     return new[]
                     {
-                        $"{prop}: {slice}.map(() => undefined)",
-                        $"{prop}_index: {slice}.map((v: any) => {key})",
+                        $"{rowProp}: {slice}.map(() => undefined)",
+                        $"{prop}: {slice}.map((v: any) => {key})",
                         $"{prop}_F: {slice}.map(() => false)",
                     };
                 }
@@ -1190,6 +1234,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         var parts = members.SelectMany(member =>
         {
             string prop = TsName(member.Name);
+            string rowProp = member.IsRef && member.FirstField!.ResolvedRefTable is not null
+                ? TsName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                : prop;
 
             if (!member.IsLeaf)
                 return new[] { $"{prop}: {CompactRowLiteral(member.Members)}" };
@@ -1200,8 +1247,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             {
                 return new[]
                 {
-                    $"{prop}: undefined",
-                    $"{prop}_index: "
+                    $"{rowProp}: undefined",
+                    $"{prop}: "
                         + FromJsonExpressionOf(member.FirstField!.RefKeyType, "dataRow[offset++]"),
                     $"{prop}_F: false",
                 };
@@ -1230,6 +1277,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         foreach (var member in members)
         {
             string prop = TsName(member.Name);
+            string rowProp = member.IsRef && member.FirstField!.ResolvedRefTable is not null
+                ? TsName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                : prop;
 
             if (!member.IsLeaf)
             {
@@ -1250,6 +1300,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         var parts = members.SelectMany(member =>
         {
             string prop = TsName(member.Name);
+            string rowProp = member.IsRef && member.FirstField!.ResolvedRefTable is not null
+                ? TsName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                : prop;
 
             if (!member.IsLeaf)
                 return new[] { $"{prop}: {CompactZipLiteral(member.Members, field, prefix + prop + "_")}" };
@@ -1260,8 +1313,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             {
                 return new[]
                 {
-                    $"{prop}: undefined",
-                    $"{prop}_index: "
+                    $"{rowProp}: undefined",
+                    $"{prop}: "
                         + FromJsonExpressionOf(member.FirstField!.RefKeyType, $"{field}_{prefix}{prop}[k]"),
                     $"{prop}_F: false",
                 };
@@ -1673,7 +1726,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         {
             return (wire.Member is null)
                 ? $"records[i].{fieldName}_{wire.TagCarrier.RefTableName.ToPascalCase()}_index = value"
-                : $"records[i].{fieldName}{memberAccess}_index = value";
+                : $"records[i].{fieldName}{memberAccess} = value";
         }
 
         if (wire.ElementType == ValueType.Enum)

@@ -24,8 +24,8 @@ namespace record_ref {
 /// One element of KitRecord::part.
 struct KitRecord_part_entry {
   /// element 1, the reference
-  const ItemRecord* item_id = nullptr;
-  std::int32_t item_id_index = 0;
+  std::int32_t item_id = 0;
+  const ItemRecord* item_by_item_id = nullptr;
   /// element 1, an ordinary member
   std::int32_t count = 0;
 };
@@ -126,7 +126,7 @@ class KitTable {
             const std::int32_t element_count = cursor.next_length();
             record.part.assign(static_cast<std::size_t>(element_count), KitRecord_part_entry());
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.part[static_cast<std::size_t>(j)].item_id_index = cursor.next_i32();
+              record.part[static_cast<std::size_t>(j)].item_id = cursor.next_i32();
             }
           }
           break;

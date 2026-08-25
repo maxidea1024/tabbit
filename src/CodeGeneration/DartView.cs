@@ -267,6 +267,12 @@ internal sealed class DartRecordTypeView
 /// </summary>
 internal sealed class DartColumnView
 {
+    /// <summary>
+    /// Where the resolved rows go for a whole-row reference, or the column's own name for a
+    /// dotted one. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     /// <summary>The column wire tag.</summary>
     public required int Tag { get; set; }
 
@@ -419,6 +425,13 @@ internal sealed class DartRecordReferenceView
 
 internal sealed class DartReferenceFieldView
 {
+    /// <summary>
+    /// Where the resolved row goes - the derived name where the reference is to a whole row,
+    /// and the column's own name where it is dotted.
+    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required string Name { get; set; }
     public required string RefTable { get; set; }
 

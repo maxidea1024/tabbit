@@ -328,6 +328,13 @@ internal sealed class CppRecordReferenceView
 
 internal sealed class CppReferenceFieldView
 {
+    /// <summary>
+    /// Where the resolved row goes - the derived name for a whole-row reference, the
+    /// column's own name for a dotted one.
+    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required string Name { get; set; }
 
     /// <summary>Escaped accessor member of the table being pointed at.</summary>
@@ -401,6 +408,17 @@ internal sealed class CppRecordTypeView
 /// </remarks>
 internal sealed class CppColumnView
 {
+    /// <summary>Whether this column is a reference at all.</summary>
+    public bool IsReference { get; set; }
+
+    /// <summary>
+    /// Where the resolved rows go for a whole-row reference, and the member access ending in
+    /// that name for a member. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
+    public string RowMemberAccess { get; set; } = "";
+
     public required int Tag { get; set; }
 
     /// <summary>The rendered check_column call.</summary>

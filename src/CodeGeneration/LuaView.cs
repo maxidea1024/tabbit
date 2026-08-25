@@ -192,7 +192,7 @@ internal sealed class LuaRecordMemberView
 /// <summary>
 /// One column of a data file, as the read's tag chain sees it.
 ///
-/// The assignment targets arrive whole - `record.slots[element].itemIdIndex` - because
+/// The assignment targets arrive whole - `record.slots[element].itemId` - because
 /// three things vary inside them: bracket against dotted access, where the element
 /// subscript sits, and whether a reference's key name replaces the member's. The loop
 /// variables they mention are the ones the template declares: `record`, `element`, `i`.

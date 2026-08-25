@@ -119,11 +119,11 @@ public final class TrimKitTable {
                     for (TrimKitRecord record : loaded) {
                         int elementCount;
                         elementCount = cursor.nextLength();
-                        record.slot = new BitRecord[elementCount];
-                        record.slotIndex = new int[elementCount];
+                        record.bitBySlot = new BitRecord[elementCount];
+                        record.slot = new int[elementCount];
                         record.hasSlotAt = new boolean[elementCount];
                         for (int j = 0; j < elementCount; j++) {
-                            record.slotIndex[j] = cursor.nextI32();
+                            record.slot[j] = cursor.nextI32();
                             record.hasSlotAt[j] =
                                 TcbReader.isPresent(elementPresence, elementAt++);
                         }

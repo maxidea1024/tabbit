@@ -24,19 +24,19 @@ static void {{ accessor.name }}_SolveCrossReferences({{ accessor.type_name }}* d
 
       for (element = 0; element < {{ field.count_expression }}; ++element) {
         const {{ field.ref_record_name }}* target = {{ field.ref_lookup }}(
-          &data->{{ field.ref_table }}, record->{{ field.name }}_index[element]);
+          &data->{{ field.ref_table }}, record->{{ field.name }}[element]);
 
         if (target != NULL)
-          record->{{ field.name }}[element] = {{ field.value }};
+          record->{{ field.row_name }}[element] = {{ field.value }};
       }
     }
 {{~ else ~}}
     {
       const {{ field.ref_record_name }}* target = {{ field.ref_lookup }}(
-        &data->{{ field.ref_table }}, record->{{ field.name }}_index);
+        &data->{{ field.ref_table }}, record->{{ field.name }});
 
       if (target != NULL)
-        record->{{ field.name }} = {{ field.value }};
+        record->{{ field.row_name }} = {{ field.value }};
     }
 {{~ end ~}}
 {{~ end ~}}

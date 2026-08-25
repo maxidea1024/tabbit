@@ -430,10 +430,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         var slots = new List<string>();
         foreach (var sf in table.SerialFields)
         {
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
             slots.Add(PythonName(sf.Name));
 
             if (sf.IsRef)
-                slots.Add(PythonName(sf.Name) + "_index");
+                slots.Add(ResolvesToRow(sf.FirstField!)
+                    ? PythonName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                    : PythonName(sf.Name) + "_index");
 
             if (sf.RowMayBeAbsent)
                 slots.Add(PresenceMember(sf));
@@ -731,7 +735,16 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
             // is an array holds one key per element. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "_index" : "",
+            MemberRefSuffix = "",
+
+            KeyName = wire.IsRef && !ResolvesToRow(wire.TagCarrier)
+                ? PythonName(wire.Group.Name) + "_index"
+                : PythonName(wire.Group.Name),
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? PythonName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                : PythonName(wire.Group.Name),
             MemberAt = wire.MemberAt,
 
             RecordTypeName = wire.Group.IsRecord ? RecordTypeName(table, wire.Group) : "",
@@ -796,16 +809,24 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         {
             string key = RefKeyDefault(member.FirstField!.RefKeyType);
 
+            // The member's own name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? PythonName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : PythonName(member.Name);
+                    string keyName = toRow ? PythonName(member.Name) : PythonName(member.Name) + "_index";
+
             return member.IsArray
                 ? new[]
                 {
-                    $"self.{name} = [None] * {member.Fields.Count}",
-                    $"self.{name}_index = [{key}] * {member.Fields.Count}",
+                    $"self.{keyName} = [{key}] * {member.Fields.Count}",
+                    $"self.{rowName} = [None] * {member.Fields.Count}",
                 }
                 : new[]
                 {
-                    $"self.{name} = None",
-                    $"self.{name}_index = {key}",
+                    $"self.{keyName} = {key}",
+                    $"self.{rowName} = None",
                 };
         }
 
@@ -843,6 +864,21 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         bool isArray = wire.IsArray;
 
+        string rowLeaf = wire.Member is not null
+            ? PythonName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : PythonName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + PythonName(part))) + "." + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{name}{rowMember}"
+                : $"record.{name}[i]{rowMember}")
+            : $"record.{rowLeaf}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
@@ -850,14 +886,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         return new PythonRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "_index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever list holds the elements. Its own length rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Range = isArray
                 ? (wire.Group.MembersAreArrays
-                    ? $"range(len({path}_index))"
+                    ? $"range(len({path}))"
                     : $"range(len(record.{name}))")
                 : "",
 
@@ -884,7 +920,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             result.Add(PythonName(member.Name));
 
             if (member.IsLeaf && member.IsRef)
-                result.Add(PythonName(member.Name) + "_index");
+                result.Add(ResolvesToRow(member.FirstField!)
+                    ? PythonName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                    : PythonName(member.Name) + "_index");
         }
 
         return result;
@@ -1053,9 +1091,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // like every other member's does. spec/references-in-records.md.
         if (wire.IsRef)
         {
+            // A dotted reference resolves to a value rather than a row, so there the column's
+            // own name belongs to the value and the key takes the `_index` one.
+            // spec/reference-surface-naming.md section 9.
+            string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "_index";
+
             return (wire.Member is null)
-                ? $"records[i].{name}_index = value"
-                : $"records[i].{name}{memberAccess}_index = value";
+                ? $"records[i].{name}{keySuffix} = value"
+                : $"records[i].{name}{memberAccess}{keySuffix} = value";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -1116,9 +1159,15 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     {
         if (sf.IsRef)
         {
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? PythonName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "_index";
+
             return sf.IsArray
-                ? new[] { $"self.{name} = []", $"self.{name}_index = []" }
-                : new[] { $"self.{name} = None", $"self.{name}_index = 0" };
+                ? new[] { $"self.{keyName} = []", $"self.{rowName} = []" }
+                : new[] { $"self.{keyName} = 0", $"self.{rowName} = None" };
         }
 
         if (sf.IsArray)
@@ -1278,7 +1327,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 RecordFields = x.RecordFields,
                 Fields = x.Fields.Select(sf => new PythonReferenceFieldView
                 {
-                    Name = PythonName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? PythonName(sf.Name)
+                        : PythonName(sf.Name) + "_index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? PythonName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : PythonName(sf.Name),
+
                     RefTable = PythonName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = sf.ElementType == ValueType.ForeignRecord

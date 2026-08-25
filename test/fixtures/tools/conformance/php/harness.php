@@ -108,10 +108,10 @@ foreach ($data->vectors->records as $r) {
     $row .= ',"labels":[' . \implode(',', \array_map(static fn ($v) => $v->value, $r->labels)) . ']';
     $row .= ',"uids":[' . \implode(',', \array_map(static fn ($v) => quoted((string)$v), $r->uids)) . ']';
     // The reference indices, which is what the exporter writes for a foreign field.
-    $row .= ',"owner":' . $r->ownerIndex;
+    $row .= ',"owner":' . $r->owner;
     $row .= ',"tier":' . $r->tierIndex;
     // And one reference per element, printed as the stored index each came in as.
-    $row .= ',"owners":[' . \implode(',', \array_map('strval', $r->ownersIndex)) . ']';
+    $row .= ',"owners":[' . \implode(',', \array_map('strval', $r->owners)) . ']';
     // The three the v104 encodings win on.
     $row .= ',"count":' . number($r->count);
     $row .= ',"route":' . quoted($r->route);

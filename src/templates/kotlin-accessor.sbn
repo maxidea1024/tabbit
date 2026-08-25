@@ -96,14 +96,14 @@ object {{ accessor_name }} {
         for (record in {{ reference.table }}.records) {
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-            record.{{ field.name }} = ArrayList(record.{{ field.name }}Index.size)
-            for (index in record.{{ field.name }}Index) {
+            record.{{ field.row_name }} = ArrayList(record.{{ field.name }}.size)
+            for (index in record.{{ field.name }}) {
                 val target = {{ field.ref_table }}.{{ field.ref_lookup }}(index) ?: continue
-                record.{{ field.name }}.add({{ field.value }})
+                record.{{ field.row_name }}.add({{ field.value }})
             }
 {{~ else ~}}
-            {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index)?.let { target ->
-                record.{{ field.name }} = {{ field.value }}
+            {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }})?.let { target ->
+                record.{{ field.row_name }} = {{ field.value }}
             }
 {{~ end ~}}
 {{~ end ~}}

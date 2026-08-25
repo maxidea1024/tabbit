@@ -317,14 +317,14 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
 {{~ if column_view.key_type != '' }}
 {{~## A reference member holds one row pointer per element as well as one key, and the read
    writes into the key - so both are made. spec/references-in-records.md. ##~}}
-        record->{{ column_view.name }}{{ column_view.member_access }} = ({{ column_view.reference_type }}*)tb_arena_alloc(
+        record->{{ column_view.name }}{{ column_view.row_member_access }} = ({{ column_view.reference_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.row_member_access }});
+        record->{{ column_view.name }}{{ column_view.member_access }} = ({{ column_view.key_type }}*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.member_access }});
-        record->{{ column_view.name }}{{ column_view.member_access }}_index = ({{ column_view.key_type }}*)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.member_access }}_index);
 
         if (element_count > 0
-            && (record->{{ column_view.name }}{{ column_view.member_access }} == NULL
-                || record->{{ column_view.name }}{{ column_view.member_access }}_index == NULL))
+            && (record->{{ column_view.name }}{{ column_view.row_member_access }} == NULL
+                || record->{{ column_view.name }}{{ column_view.member_access }} == NULL))
           return tb_fail_with(reader, "out of memory allocating a member array");
 {{~ else }}
         record->{{ column_view.name }}{{ column_view.member_access }} = ({{ column_view.element_type }}*)tb_arena_alloc(
@@ -363,13 +363,13 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
 {{~ end ~}}
 
         record->{{ column_view.name }}_count = element_count;
-        record->{{ column_view.name }} = ({{ column_view.reference_type }}*)tb_arena_alloc(
+        record->{{ column_view.row_name }} = ({{ column_view.reference_type }}*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.row_name }});
+        record->{{ column_view.name }} = ({{ column_view.key_type }}*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }});
-        record->{{ column_view.name }}_index = ({{ column_view.key_type }}*)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}_index);
 
         if (element_count > 0
-            && (record->{{ column_view.name }} == NULL || record->{{ column_view.name }}_index == NULL))
+            && (record->{{ column_view.row_name }} == NULL || record->{{ column_view.name }} == NULL))
           return tb_fail_with(reader, "out of memory allocating an array");
 
 {{~ if column_view.has_optional_elements ~}}

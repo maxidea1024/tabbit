@@ -20,11 +20,11 @@ public final class LoadoutRecord {
     /** One element of slot. */
     public static final class SlotEntry {
         /** element 1, the reference */
-        public ItemRecord itemId;
-        public int itemIdIndex;
+        public int itemId;
+        public ItemRecord itemByItemId;
         /** element 1, a second reference to the same table */
-        public ItemRecord swapId;
-        public int swapIdIndex;
+        public int swapId;
+        public ItemRecord itemBySwapId;
         /** element 1, an ordinary member */
         public int count;
     }

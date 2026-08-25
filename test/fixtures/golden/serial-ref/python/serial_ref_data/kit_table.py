@@ -17,14 +17,14 @@ class KitRecord:
     Numbered reference columns, folded into arrays.
     """
 
-    __slots__ = ("index", "slot", "slot_index", "tier", "tier_index")
+    __slots__ = ("index", "slot", "piece_by_slot", "tier", "tier_index")
 
     def __init__(self):
         self.index = 0
         self.slot = []
-        self.slot_index = []
-        self.tier = []
+        self.piece_by_slot = []
         self.tier_index = []
+        self.tier = []
 
     def __repr__(self):
         return "KitRecord(index=%r, slot=%r, tier=%r)" % (self.index, self.slot, self.tier)
@@ -107,8 +107,8 @@ class KitTable:
                 cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Slot")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.slot_index = [cursor.next_i32() for _ in range(element_count)]
-                    record.slot = [None] * element_count
+                    record.slot = [cursor.next_i32() for _ in range(element_count)]
+                    record.piece_by_slot = [None] * element_count
             elif column.tag == 3:
                 tabbit.check_column(column, "Kit.Tier", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Tier")

@@ -16,8 +16,8 @@ import (
 // BagSlotsEntry is one element of BagRecord.Slots.
 type BagSlotsEntry struct {
 	// element 1 of the member
-	ItemId []*ItemRecord
-	ItemIdIndex []int32
+	ItemId []int32
+	ItemByItemId []*ItemRecord
 	// element 1 of the member beside it
 	Count []int32
 }
@@ -112,8 +112,8 @@ func (t *BagTable) Read(filename string) error {
 	// Empty rather than the sheet's column count, because the length is the file's since
 	// v107 and a number from here would be one the data need not agree with.
 	for i := int32(0); i < count; i++ {
-		records[i].Slots.ItemId = make([]*ItemRecord, 0)
-		records[i].Slots.ItemIdIndex = make([]int32, 0)
+		records[i].Slots.ItemId = make([]int32, 0)
+		records[i].Slots.ItemByItemId = make([]*ItemRecord, 0)
 		records[i].Slots.Count = make([]int32, 0)
 	}
 
@@ -138,10 +138,10 @@ func (t *BagTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Slots.ItemId = make([]*ItemRecord, elementCount)
-					r.Slots.ItemIdIndex = make([]int32, elementCount)
+					r.Slots.ItemId = make([]int32, elementCount)
+					r.Slots.ItemByItemId = make([]*ItemRecord, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.Slots.ItemIdIndex[j] = cursor.NextI32()
+						r.Slots.ItemId[j] = cursor.NextI32()
 					}
 				}
 			}

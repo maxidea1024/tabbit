@@ -12,20 +12,20 @@ local tcb = require(_root .. "tabbit.tcb_reader")
 -- Numbered reference columns, folded into arrays.
 ---@class KitRecord
 ---@field index integer
----@field slot PieceRecord[]
----@field slotIndex integer[]
----@field tier PieceRecord[]
+---@field slot integer[]
+---@field pieceBySlot PieceRecord[]
 ---@field tierIndex integer[]
-local KitRecordMeta = tcb.strictType("a `Kit` row", { "index", "slot", "slotIndex", "tier", "tierIndex" })
+---@field tier integer[]
+local KitRecordMeta = tcb.strictType("a `Kit` row", { "index", "slot", "pieceBySlot", "tierIndex", "tier" })
 
 ---@return KitRecord
 local function newKitRecord()
   return setmetatable({
     index = 0,
     slot = {},
-    slotIndex = {},
-    tier = {},
+    pieceBySlot = {},
     tierIndex = {},
+    tier = {},
   }, KitRecordMeta)
 end
 
@@ -120,8 +120,8 @@ function KitTable:readBytes(data)
           values[element] = cursor:nextI32()
         end
 
-        record.slotIndex = values
-        record.slot = {}
+        record.slot = values
+        record.pieceBySlot = {}
       end
     elseif column.tag == 3 then
       tcb.checkColumn(column, "Kit.Tier", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 })

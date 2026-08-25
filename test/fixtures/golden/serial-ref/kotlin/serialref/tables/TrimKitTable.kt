@@ -41,16 +41,16 @@ class TrimKitRecord {
     /** primary index */
     var index: Int = 0
     /** element 1 - the row it points at */
-    var slot: MutableList<BitRecord> = ArrayList()
-    var slotIndex: MutableList<Int> = ArrayList()
+    var slot: MutableList<Int> = ArrayList()
+    var bitBySlot: MutableList<BitRecord> = ArrayList()
     /**
      * Which of slot's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
      */
     var hasSlotAt: MutableList<Boolean> = mutableListOf()
     /** element 1 - the target's own value */
-    var tier: MutableList<Int> = ArrayList()
     var tierIndex: MutableList<Int> = ArrayList()
+    var tier: MutableList<Int> = ArrayList()
     /**
      * Which of tier's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
@@ -148,11 +148,11 @@ class TrimKitTable {
                     val cursor = ColumnCursor(reader, column, count, "TrimKit.Slot")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.slotIndex = ArrayList(elementCount.coerceAtLeast(0))
+                        record.slot = ArrayList(elementCount.coerceAtLeast(0))
                         record.hasSlotAt =
                             ArrayList(elementCount.coerceAtLeast(0))
                         repeat(elementCount) {
-                            record.slotIndex.add(cursor.nextI32())
+                            record.slot.add(cursor.nextI32())
                             record.hasSlotAt
                                 .add(isPresent(elementPresence, elementAt))
                             elementAt++
@@ -169,11 +169,11 @@ class TrimKitTable {
                     val cursor = ColumnCursor(reader, column, count, "TrimKit.Tier")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.tierIndex = ArrayList(elementCount.coerceAtLeast(0))
+                        record.tier = ArrayList(elementCount.coerceAtLeast(0))
                         record.hasTierAt =
                             ArrayList(elementCount.coerceAtLeast(0))
                         repeat(elementCount) {
-                            record.tierIndex.add(cursor.nextI32())
+                            record.tier.add(cursor.nextI32())
                             record.hasTierAt
                                 .add(isPresent(elementPresence, elementAt))
                             elementAt++

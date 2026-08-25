@@ -23,13 +23,13 @@ use Tabbit\Uuid;
 final class LoadoutSlotEntry
 {
     /** element 1, the reference */
-    public ?ItemRecord $itemId = null;
+    public int $itemId = 0;
 
-    public int $itemIdIndex = 0;
+    public ?ItemRecord $itemByItemId = null;
     /** element 1, a second reference to the same table */
-    public ?ItemRecord $swapId = null;
+    public int $swapId = 0;
 
-    public int $swapIdIndex = 0;
+    public ?ItemRecord $itemBySwapId = null;
     /** element 1, an ordinary member */
     public int $count = 0;
 }
@@ -164,7 +164,7 @@ final class LoadoutTable
                             $record->slot[] = new LoadoutSlotEntry();
                         }
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->slot[$j]->itemIdIndex = $cursor->nextI32();
+                            $record->slot[$j]->itemId = $cursor->nextI32();
                         }
                     }
                     break;
@@ -180,7 +180,7 @@ final class LoadoutTable
                                 . 'this record a different element count than another.');
                         }
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->slot[$j]->swapIdIndex = $cursor->nextI32();
+                            $record->slot[$j]->swapId = $cursor->nextI32();
                         }
                     }
                     break;

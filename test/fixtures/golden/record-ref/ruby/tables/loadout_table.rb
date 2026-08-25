@@ -11,13 +11,13 @@ require_relative '../tabbit/tcb_reader'
 module RecordRef
   # One element of LoadoutRecord#slot.
   class LoadoutSlotEntry
-    attr_accessor :item_id, :item_id_index, :swap_id, :swap_id_index, :count
+    attr_accessor :item_id, :item_by_item_id, :swap_id, :item_by_swap_id, :count
 
     def initialize
-      @item_id = nil
-      @item_id_index = 0
-      @swap_id = nil
-      @swap_id_index = 0
+      @item_id = 0
+      @item_by_item_id = nil
+      @swap_id = 0
+      @item_by_swap_id = nil
       @count = 0
     end
   end
@@ -117,7 +117,7 @@ module RecordRef
             # would shift every value after it.
             record.slot = Array.new(element_count) { LoadoutSlotEntry.new }
             element_count.times do |element|
-              record.slot[element].item_id_index = cursor.next_i32
+              record.slot[element].item_id = cursor.next_i32
             end
           end
         when 3
@@ -131,7 +131,7 @@ module RecordRef
                     'record a different element count than another'
             end
             element_count.times do |element|
-              record.slot[element].swap_id_index = cursor.next_i32
+              record.slot[element].swap_id = cursor.next_i32
             end
           end
         when 4

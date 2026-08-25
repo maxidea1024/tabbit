@@ -285,6 +285,16 @@ internal sealed class PythonRecordTypeView
 /// </summary>
 internal sealed class PythonColumnView
 {
+    /// <summary>Where the keys read off the wire go, which is the column's own name unless
+    /// the reference is dotted. spec/reference-surface-naming.md sections 4 and 9.</summary>
+    public string KeyName { get; set; } = "";
+
+    /// <summary>
+    /// Where the resolved rows go for a whole-row reference, or the column's own name for a
+    /// dotted one. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     /// <summary>The column's wire tag.</summary>
     public required int Tag { get; set; }
 
@@ -444,6 +454,13 @@ internal sealed class PythonRecordReferenceView
 
 internal sealed class PythonReferenceFieldView
 {
+    /// <summary>
+    /// Where the resolved row goes - the derived name for a whole-row reference, the
+    /// column's own name for a dotted one.
+    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required string Name { get; set; }
     public required string RefTable { get; set; }
 

@@ -9,15 +9,16 @@ local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
 ---@class BagSlotsEntry
----@field itemId ItemRecord[]
+---@field itemId integer[]
+---@field itemByItemId ItemRecord[]
 ---@field count integer[]
-local BagSlotsEntryMeta = tcb.strictType("an element of BagRecord.slots", { "itemId", "itemIdIndex", "count" })
+local BagSlotsEntryMeta = tcb.strictType("an element of BagRecord.slots", { "itemId", "itemByItemId", "count" })
 
 ---@return BagSlotsEntry
 local function newBagSlotsEntry()
   return setmetatable({
-    itemId = {},
-    itemIdIndex = tcb.repeated(2, 0),
+    itemByItemId = {},
+    itemId = tcb.repeated(2, 0),
     count = tcb.repeated(2, 0),
   }, BagSlotsEntryMeta)
 end
@@ -122,9 +123,9 @@ function BagTable:readBytes(data)
       for i = 1, count do
         local record = records[i]
         local elementCount = cursor:nextLength()
-        record.slots.itemIdIndex = {}
+        record.slots.itemId = {}
         for element = 1, elementCount do
-          record.slots.itemIdIndex[element] = cursor:nextI32()
+          record.slots.itemId[element] = cursor:nextI32()
         end
       end
     elseif column.tag == 3 then

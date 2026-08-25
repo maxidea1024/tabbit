@@ -36,7 +36,8 @@ export class TrimKitRecord {
   public get index(): number { return this._index }
 
   /** element 1 - the row it points at */
-  public get slot(): BitRecord[] { return this._slot }
+  public get slot(): number[] { return this._slot_Bit_index }
+  public get bitBySlot(): BitRecord[] { return this._slot }
   /** Whether element `index` of `slot` has a value. */
   public hasSlotAt(index: number): boolean {
     return this._slotHasValueAt === null

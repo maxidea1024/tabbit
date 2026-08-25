@@ -13,7 +13,7 @@ use crate::tabbit;
 #[derive(Clone, Debug, Default)]
 pub struct KitPartEntry {
     /// element 1, the reference
-    pub item_id_index: i32,
+    pub item_id: i32,
     /// element 1, an ordinary member
     pub count: i32,
 }
@@ -141,7 +141,7 @@ impl KitTable {
                         // two counts would shift every value after it.
                         record.part = vec![KitPartEntry::default(); element_count];
                         for element in 0..element_count {
-                            record.part[element].item_id_index = cursor.next_i32()?;
+                            record.part[element].item_id = cursor.next_i32()?;
                         }
                     }
                 }

@@ -16,8 +16,8 @@ import (
 // HolderMainEntry is one element of HolderRecord.Main.
 type HolderMainEntry struct {
 	// the reference, in a record of one
-	ItemId *ItemRecord
-	ItemIdIndex int32
+	ItemId int32
+	ItemByItemId *ItemRecord
 	// an ordinary member beside it
 	Count int32
 }
@@ -131,7 +131,7 @@ func (t *HolderTable) Read(filename string) error {
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
 					for ; n > 0; n-- {
-						records[i].Main.ItemIdIndex = value
+						records[i].Main.ItemId = value
 						i++
 					}
 				}

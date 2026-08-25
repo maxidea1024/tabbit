@@ -13,7 +13,7 @@ use crate::tabbit;
 #[derive(Clone, Debug, Default)]
 pub struct HolderMainEntry {
     /// the reference, in a record of one
-    pub item_id_index: i32,
+    pub item_id: i32,
     /// an ordinary member beside it
     pub count: i32,
 }
@@ -132,7 +132,7 @@ impl HolderTable {
                     while at < records.len() {
                         let (n, value) = cursor.next_same_i32((records.len() - at) as i32)?;
                         for _ in 0..n {
-                            records[at].main.item_id_index = value;
+                            records[at].main.item_id = value;
                             at += 1;
                         }
                     }

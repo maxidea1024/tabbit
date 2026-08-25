@@ -110,9 +110,9 @@ module SerialRef
     # resolves the load being read rather than the one already published.
     def solve_cross_references(piece, kit, bit, trim_kit)
       kit.records.each do |record|
-        record.slot_index.each_with_index do |index, position|
+        record.slot.each_with_index do |index, position|
           target = piece.find_by_index(index)
-          record.slot[position] = target unless target.nil?
+          record.piece_by_slot[position] = target unless target.nil?
         end
         record.tier_index.each_with_index do |index, position|
           target = piece.find_by_index(index)
@@ -120,9 +120,9 @@ module SerialRef
         end
       end
       trim_kit.records.each do |record|
-        record.slot_index.each_with_index do |index, position|
+        record.slot.each_with_index do |index, position|
           target = bit.find_by_index(index)
-          record.slot[position] = target unless target.nil?
+          record.bit_by_slot[position] = target unless target.nil?
         end
         record.tier_index.each_with_index do |index, position|
           target = bit.find_by_index(index)

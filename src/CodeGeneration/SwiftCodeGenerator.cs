@@ -486,17 +486,25 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                     string row = member.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record";
                     string key = ToSwiftTypeName(member.FirstField!.RefKeyType, null, null);
 
-                    declarations.Add(member.IsArray
-                        ? $"public var {SwiftName(member.Name)}: [{row}?] = "
-                          + $"[{row}?](repeating: nil, count: {member.Fields.Count})"
-                        : $"public var {SwiftName(member.Name)}: {row}? = nil");
+                    // The member's own name is the key's; the row takes the derived one.
+                    // spec/reference-surface-naming.md sections 4 and 5.
+                    bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? SwiftName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : SwiftName(member.Name);
+                    string keyName = toRow ? SwiftName(member.Name) : SwiftName(member.Name) + "Index";
 
                     declarations.Add(member.IsArray
-                        ? $"public var {SwiftName(member.Name)}Index: [{key}] = "
+                        ? $"public var {SwiftName(member.Name)}: [{key}] = "
                           + $"[{key}](repeating: {RefKeyDefault(member.FirstField!.RefKeyType)}, "
                           + $"count: {member.Fields.Count})"
-                        : $"public var {SwiftName(member.Name)}Index: {key} = "
+                        : $"public var {SwiftName(member.Name)}: {key} = "
                           + RefKeyDefault(member.FirstField!.RefKeyType));
+
+                    declarations.Add(member.IsArray
+                        ? $"public var {rowName}: [{row}?] = "
+                          + $"[{row}?](repeating: nil, count: {member.Fields.Count})"
+                        : $"public var {rowName}: {row}? = nil");
                 }
                 else
                 {
@@ -634,7 +642,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
             // is an array holds one key per element. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "Index" : "",
+            MemberRefSuffix = "",
             MemberAt = wire.MemberAt,
 
             // Qualified, because the element struct is nested in the record and this is read
@@ -737,16 +745,24 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         {
             string key = ToSwiftTypeName(sf.FirstField!.RefKeyType, null, null);
 
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? SwiftName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "Index";
+
             return sf.IsArray
                 ? new[]
                 {
-                    $"public var {name}: [{elementType}] = []",
-                    $"public var {name}Index: [{key}] = []",
+                    $"public var {keyName}: [{key}] = []",
+                    $"public var {rowName}: [{elementType}] = []",
                 }
                 : new[]
                 {
-                    $"public var {name}: {elementType}? = nil",
-                    $"public var {name}Index: {key} = {RefKeyDefault(sf.FirstField!.RefKeyType)}",
+                    $"public var {keyName}: {key} = {RefKeyDefault(sf.FirstField!.RefKeyType)}",
+                    $"public var {rowName}: {elementType}? = nil",
                 };
         }
 
@@ -926,9 +942,14 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         {
             string local = wire.RefKeyType == ValueType.String ? "runSameText" : "runSameValue";
 
+            // A dotted reference resolves to a value rather than a row, so there the column's
+            // own name belongs to the value and the key takes the derived one.
+            // spec/reference-surface-naming.md section 9.
+            string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "Index";
+
             return (wire.Member is null)
-                ? $"loaded[i].{name}Index = cursor.{local}"
-                : $"loaded[i].{name}{memberAccess}Index = cursor.{local}";
+                ? $"loaded[i].{name}{keySuffix} = cursor.{local}"
+                : $"loaded[i].{name}{memberAccess}{keySuffix} = cursor.{local}";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -1003,7 +1024,14 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                 Table = SwiftName(x.Table.Name),
                 Fields = x.Fields.Select(sf => new SwiftReferenceFieldView
                 {
-                    Name = SwiftName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? SwiftName(sf.Name)
+                        : SwiftName(sf.Name) + "Index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? SwiftName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : SwiftName(sf.Name),
+
                     RefTable = SwiftName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = sf.ElementType == ValueType.ForeignRecord
@@ -1025,6 +1053,21 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
         bool isArray = wire.IsArray;
 
+        string rowLeaf = wire.Member is not null
+            ? SwiftName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : SwiftName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + SwiftName(part))) + "." + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{name}{rowMember}"
+                : $"record.{name}[i]{rowMember}")
+            : $"record.{rowLeaf}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
@@ -1032,13 +1075,13 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
         return new SwiftRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "Index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever array holds the elements. Its own size rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}Index.count" : $"record.{name}.count")
+                ? (wire.Group.MembersAreArrays ? $"{path}.count" : $"record.{name}.count")
                 : "",
 
             RefTable = SwiftName(refTable!.Name),

@@ -24,7 +24,7 @@ extern "C" {
 /* One element of RecordRef_KitRecord_t::part. */
 struct RecordRef_KitRecord_t_part_entry {
   /* element 1, the reference */
-  const RecordRef_ItemRecord_t* item_id; int32_t item_id_index;
+  int32_t item_id; const RecordRef_ItemRecord_t* item_by_item_id;
   /* element 1, an ordinary member */
   int32_t count;
 };

@@ -28,12 +28,12 @@ public final class BadgeRecord {
         public init() {}
 
         /// a string key, on the run path
-        public var clipId: ClipRecord? = nil
-        public var clipIdIndex: String = ""
+        public var clipId: String = ""
+        public var clipByClipId: ClipRecord? = nil
 
         /// a uuid key, on the run path
-        public var sealId: SealRecord? = nil
-        public var sealIdIndex: Tcb.Uuid = Tcb.Uuid()
+        public var sealId: Tcb.Uuid = Tcb.Uuid()
+        public var sealBySealId: SealRecord? = nil
 
         /// an ordinary member beside them
         public var rank: Int32 = 0
@@ -143,7 +143,7 @@ public final class BadgeTable {
                     var n = try cursor.nextSameString(count - at)
                     while n > 0 {
                         let i = at
-                        loaded[i].mark.clipIdIndex = cursor.runSameText
+                        loaded[i].mark.clipId = cursor.runSameText
                         at += 1
                         n -= 1
                     }
@@ -151,7 +151,7 @@ public final class BadgeTable {
             case 3:
                 try Tcb.checkColumn(column, "Badge.Mark.SealId", Tcb.kindScalar, false, Tcb.elementUuid)
                 for record in loaded {
-                    record.mark.sealIdIndex = try reader.readUuid()
+                    record.mark.sealId = try reader.readUuid()
                 }
             case 4:
                 try Tcb.checkColumn(column, "Badge.Mark.Rank", Tcb.kindScalar, false, Tcb.elementI32, Tcb.elementVarint)

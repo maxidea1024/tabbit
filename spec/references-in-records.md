@@ -45,7 +45,7 @@ the key as a plain `int` for now.
 |507개의 대상 개수|선언|
 |--|--|
 |**하나** — 이 문서가 여는 것|**452**|
-|둘 — [대상별 프로퍼티](multi-target-references.md)를 기다립니다|55|
+|둘 — **참조가 아니라 검사가 됩니다.** [참조가 내는 이름 §6](reference-surface-naming.md)|55|
 
 **452개가 이 개정으로 곧바로 레코드 프로퍼티를 얻습니다.**
 

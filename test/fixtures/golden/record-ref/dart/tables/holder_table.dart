@@ -9,8 +9,8 @@ part of '../tables.dart';
 /// One element of [HolderRecord.main].
 class HolderMainEntry {
   /// the reference, in a record of one
-  ItemRecord? itemId;
-  int itemIdIndex = 0;
+  int itemId = 0;
+  ItemRecord? itemByItemId;
   /// an ordinary member beside it
   int count = 0;
 }
@@ -110,7 +110,7 @@ class HolderTable {
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
             for (var left = n; left > 0; left--, i++) {
-              loaded[i].main.itemIdIndex = value;
+              loaded[i].main.itemId = value;
             }
           }
           break;

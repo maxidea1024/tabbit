@@ -136,13 +136,13 @@ int main(int argc, char** argv) {
     json << ']';
 
     // The reference indices, which is what the exporter writes for a foreign field.
-    json << ",\"owner\":" << r.owner_index;
+    json << ",\"owner\":" << r.owner;
     json << ",\"tier\":" << r.tier_index;
 
     // And one reference per element, printed as the stored index each came in as.
     json << ",\"owners\":[";
-    for (std::size_t k = 0; k < r.owners_index.size(); ++k)
-        json << (k > 0 ? "," : "") << r.owners_index[k];
+    for (std::size_t k = 0; k < r.owners.size(); ++k)
+        json << (k > 0 ? "," : "") << r.owners[k];
     json << "]";
 
     // The three the v104 encodings win on.

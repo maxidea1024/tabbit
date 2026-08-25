@@ -90,11 +90,11 @@ const rows = table.records.map(r => ({
     uids: r.uids.map((value) => value.toLowerCase()),
 
     // The reference indices, which is what the exporter writes for a foreign field.
-    owner: r._owner_Owners_index,
+    owner: r.owner,
     tier: r._tier_Owners_index,
 
     // And one reference per element, printed as the stored index each came in as.
-    owners: r._owners_Owners_index,
+    owners: r.owners,
 
     // The three the v104 encodings win on.
     count: r.count,

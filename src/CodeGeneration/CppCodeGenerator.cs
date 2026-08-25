@@ -685,16 +685,24 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             string row = "const " + RecordName(member.FirstField!.ResolvedRefTable) + "*";
             string key = ToCppTypeName(member.FirstField!.RefKeyType, null);
 
+            // The member's own name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? CppName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : CppName(member.Name);
+                    string keyName = toRow ? CppName(member.Name) : CppName(member.Name) + "_index";
+
             return member.IsArray
                 ? new[]
                 {
-                    $"std::vector<{row}> {name};",
-                    $"std::vector<{key}> {name}_index;",
+                    $"std::vector<{key}> {keyName};",
+                    $"std::vector<{row}> {rowName};",
                 }
                 : new[]
                 {
-                    $"{row} {name} = nullptr;",
-                    $"{key} {name}_index{RefKeyInitializer(member.FirstField!.RefKeyType)};",
+                    $"{key} {keyName}{RefKeyInitializer(member.FirstField!.RefKeyType)};",
+                    $"{row} {rowName} = nullptr;",
                 };
         }
 
@@ -803,7 +811,22 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // row, so both are sized before the read - the read writes into the key, and
             // sizing only the row left it writing past the end.
             // spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "_index" : "",
+            MemberRefSuffix = "",
+
+            IsReference = wire.IsRef,
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? CppName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                : CppName(wire.Group.Name),
+
+            RowMemberAccess = (wire.Member is not null && wire.IsRef
+                                   && ResolvesToRow(wire.TagCarrier))
+                ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                    .Select(part => "." + CppName(part)))
+                  + "." + CppName(RowAccessorName(
+                        wire.TagCarrier.ResolvedRefTable!.Name, wire.MemberPath[^1]))
+                : string.Concat(wire.MemberPath.Select(part => "." + CppName(part))),
             OuterCount = wire.Group.IsRecord ? wire.Group.Members.Count : 0,
             ElementCount = wire.Cells.Count,
             RefDefault = RefDefault(wire.Group),
@@ -812,7 +835,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // Only the stored index of a reference is on the wire, so that is what an
             // element read fills; the value it resolves to is assigned once every table is
             // loaded. A record member keeps that key on the member and before any subscript -
-            // `slots.item_id_index[j]` rather than `slots.item_id[j]_index`, which is not an
+            // `slots.item_id[j]` rather than a name built from the group, which is not an
             // expression at all. spec/references-in-records.md.
             ReadElement = ReadElementExpression(wire, ElementTarget(wire, name, member, "j")),
             ReadVarElement = ReadElementExpression(
@@ -859,16 +882,24 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         {
             string resolved = ResolvedRefTypeName(sf);
 
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? CppName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "_index";
+
             return sf.IsArray
                 ? new[]
                 {
-                    $"std::vector<{resolved}> {name};",
-                    $"std::vector<std::int32_t> {name}_index;",
+                    $"std::vector<std::int32_t> {keyName};",
+                    $"std::vector<{resolved}> {rowName};",
                 }
                 : new[]
                 {
-                    $"{resolved} {name} = {RefDefault(sf)};",
-                    $"std::int32_t {name}_index = 0;",
+                    $"std::int32_t {keyName} = 0;",
+                    $"{resolved} {rowName} = {RefDefault(sf)};",
                 };
         }
 
@@ -962,7 +993,14 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 Table = CppName(x.Table.Name),
                 Fields = x.Fields.Select(sf => new CppReferenceFieldView
                 {
-                    Name = CppName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? CppName(sf.Name)
+                        : CppName(sf.Name) + "_index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? CppName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : CppName(sf.Name),
+
                     RefTable = CppName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = ReferenceValueExpression(sf, "target"),
@@ -991,6 +1029,21 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         bool isArray = wire.IsArray;
 
+        string rowLeaf = wire.Member is not null
+            ? CppName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : CppName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + CppName(part))) + "." + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{name}{rowMember}"
+                : $"record.{name}[i]{rowMember}")
+            : $"record.{rowLeaf}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
@@ -998,13 +1051,13 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         return new CppRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "_index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever vector holds the elements. Its own size rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}_index.size()" : $"record.{name}.size()")
+                ? (wire.Group.MembersAreArrays ? $"{path}.size()" : $"record.{name}.size()")
                 : "",
 
             RefTable = CppName(refTable!.Name),
@@ -1144,9 +1197,14 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         // like every other member's does. spec/references-in-records.md.
         if (wire.IsRef)
         {
+            // A dotted reference resolves to a value rather than a row, so there the column's
+            // own name belongs to the value and the key takes the derived one.
+            // spec/reference-surface-naming.md section 9.
+            string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "_index";
+
             return (wire.Member is null)
-                ? $"records[i].{name}_index = value;"
-                : $"records[i].{name}{memberAccess}_index = value;";
+                ? $"records[i].{name}{keySuffix} = value;"
+                : $"records[i].{name}{memberAccess}{keySuffix} = value;";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -1161,7 +1219,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// on the wire.
     /// </summary>
     private string ScalarReadExpression(WireColumn wire, string target)
-        => ReadElementExpression(wire, wire.IsRef ? target + "_index" : target);
+        => ReadElementExpression(wire, target);
 
     /// <summary>
     /// Where one element of a row's array lands.
@@ -1196,11 +1254,18 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             subscript = "";
         }
 
-        return wire.IsRef
-            ? (wire.Member is null
-                ? $"record.{name}_index[{element}]"
-                : path + "_index" + subscript)
-            : path + subscript;
+        // The column's own name is the key's now, and the key is what the wire carries. A
+        // dotted reference is the exception: the name stays on the value it hands back, so
+        // the key keeps the one it had. spec/reference-surface-naming.md sections 4 and 9.
+        if (!wire.IsRef)
+            return path + subscript;
+
+        if (wire.Member is null)
+            return $"record.{name}{(ResolvesToRow(wire.TagCarrier) ? "" : "_index")}[{element}]";
+
+        return ResolvesToRow(wire.TagCarrier)
+            ? path + subscript
+            : $"record.{name}{member}_index" + subscript;
     }
 
     /// <summary>

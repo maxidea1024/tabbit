@@ -223,8 +223,15 @@
    length - which is what `serial_ref` below does from the column count.
    spec/variable-length-record-arrays.md. ##~}}
             {{ column_view.length_read }}
+{{~ if column_view.row_name != '' ~}}
+            record.{{ column_view.name }} = Array.new(element_count) { {{ column_view.read_element }} }
+            record.{{ column_view.row_name }} = Array.new(element_count)
+{{~ else ~}}
+{{~## A dotted reference: the column's name stays on the value it hands back, and the key
+   keeps the name it had. spec/reference-surface-naming.md section 9. ##~}}
             record.{{ column_view.name }}_index = Array.new(element_count) { {{ column_view.read_element }} }
             record.{{ column_view.name }} = Array.new(element_count)
+{{~ end ~}}
 {{~ if column_view.has_optional_elements ~}}
             record.{{ column_view.element_presence_member }} = Array.new(element_count) do |at|
               Tabbit.present?(element_presence, element_at + at)
@@ -232,7 +239,7 @@
             element_at += element_count
 {{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-            record.{{ column_view.name }}_index = {{ column_view.read_scalar }}
+            record.{{ column_view.name }} = {{ column_view.read_scalar }}
 {{~ else ~}}
             record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_scalar }}
 {{~ end ~}}

@@ -17,12 +17,12 @@ public final class KitRecord {
     public var index: Int32 = 0
 
     /// element 1 - the row it points at
-    public var slot: [PieceRecord] = []
-    public var slotIndex: [Int32] = []
+    public var slot: [Int32] = []
+    public var pieceBySlot: [PieceRecord] = []
 
     /// element 1 - the target's own value
-    public var tier: [Int32] = []
     public var tierIndex: [Int32] = []
+    public var tier: [Int32] = []
 }
 
 /// Every row of Kit.
@@ -125,11 +125,11 @@ public final class KitTable {
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Slot")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.slotIndex = []
-                    record.slotIndex.reserveCapacity(elementCount)
+                    record.slot = []
+                    record.slot.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.slotIndex.append(try cursor.nextI32())
+                        record.slot.append(try cursor.nextI32())
                     }
                 }
             case 3:
@@ -137,11 +137,11 @@ public final class KitTable {
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Kit.Tier")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.tierIndex = []
-                    record.tierIndex.reserveCapacity(elementCount)
+                    record.tier = []
+                    record.tier.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.tierIndex.append(try cursor.nextI32())
+                        record.tier.append(try cursor.nextI32())
                     }
                 }
             default:

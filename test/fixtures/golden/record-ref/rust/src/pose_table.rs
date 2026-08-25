@@ -13,7 +13,7 @@ use crate::tabbit;
 #[derive(Clone, Debug, Default)]
 pub struct PoseStepEntry {
     /// element 1, a string key
-    pub clip_id_index: String,
+    pub clip_id: String,
     /// element 1, an ordinary member
     pub weight: i32,
 }
@@ -149,7 +149,7 @@ impl PoseTable {
                         // two counts would shift every value after it.
                         record.step = vec![PoseStepEntry::default(); element_count];
                         for element in 0..element_count {
-                            record.step[element].clip_id_index = cursor.next_string()?;
+                            record.step[element].clip_id = cursor.next_string()?;
                         }
                     }
                 }

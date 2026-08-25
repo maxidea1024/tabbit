@@ -312,7 +312,7 @@ internal sealed class KotlinColumnView
     /// </summary>
     /// <remarks>
     /// On the member and before any subscript, because a member that is an array holds one
-    /// key per element: `itemIdIndex[element]`, not `itemId[element]Index`.
+    /// key per element: `itemId[element]`, which is the member's own name.
     /// spec/references-in-records.md.
     /// </remarks>
     public required string MemberRefSuffix { get; set; }
@@ -409,6 +409,13 @@ internal sealed class KotlinRecordReferenceView
 
 internal sealed class KotlinReferenceFieldView
 {
+    /// <summary>
+    /// Where the resolved row goes - the derived name for a whole-row reference, the
+    /// column's own name for a dotted one.
+    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required string Name { get; set; }
     public required string RefTable { get; set; }
 

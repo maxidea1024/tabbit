@@ -9,14 +9,15 @@ local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
 ---@class KitPartEntry
----@field itemId ItemRecord|nil
+---@field itemId integer
+---@field itemByItemId ItemRecord|nil
 ---@field count integer
-local KitPartEntryMeta = tcb.strictType("an element of KitRecord.part", { "itemId", "itemIdIndex", "count" })
+local KitPartEntryMeta = tcb.strictType("an element of KitRecord.part", { "itemId", "itemByItemId", "count" })
 
 ---@return KitPartEntry
 local function newKitPartEntry()
   return setmetatable({
-    itemIdIndex = 0,
+    itemId = 0,
     count = 0,
   }, KitPartEntryMeta)
 end
@@ -127,7 +128,7 @@ function KitTable:readBytes(data)
         record.part = tcb.filledArray(elementCount, newKitPartEntry)
 
         for element = 1, elementCount do
-          record.part[element].itemIdIndex = cursor:nextI32()
+          record.part[element].itemId = cursor:nextI32()
         end
       end
     elseif column.tag == 3 then

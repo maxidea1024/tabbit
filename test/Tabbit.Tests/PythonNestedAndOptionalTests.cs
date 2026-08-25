@@ -162,16 +162,16 @@ for row in rows[1:]:
 t = Tables()
 t.read_all(sys.argv[1])
 rows = t.loadout.records
-assert rows[0].slot[0].item_id.name == 'sword', rows[0].slot[0]
-assert rows[0].slot[1].item_id.name == 'shield', rows[0].slot[1]
-assert rows[0].slot[0].swap_id.name == 'shield', rows[0].slot[0]
-assert rows[1].slot[1].item_id is None, rows[1].slot[1]
-assert t.holder.records[0].main.item_id.name == 'shield', t.holder.records[0].main
-assert t.bag.records[0].slots.item_id[0].name == 'sword', t.bag.records[0].slots
-assert t.mount.records[0].rig[0].core.item_id.name == 'sword', t.mount.records[0].rig[0]
-assert t.pose.records[0].step[0].clip_id.index == 'Idle_01', t.pose.records[0].step[0]
+assert rows[0].slot[0].item_by_item_id.name == 'sword', rows[0].slot[0]
+assert rows[0].slot[1].item_by_item_id.name == 'shield', rows[0].slot[1]
+assert rows[0].slot[0].item_by_swap_id.name == 'shield', rows[0].slot[0]
+assert rows[1].slot[1].item_by_item_id is None, rows[1].slot[1]
+assert t.holder.records[0].main.item_by_item_id.name == 'shield', t.holder.records[0].main
+assert t.bag.records[0].slots.item_by_item_id[0].name == 'sword', t.bag.records[0].slots
+assert t.mount.records[0].rig[0].core.item_by_item_id.name == 'sword', t.mount.records[0].rig[0]
+assert t.pose.records[0].step[0].clip_by_clip_id.index == 'Idle_01', t.pose.records[0].step[0]
 assert [len(r.part) for r in t.kit.records] == [3, 2, 0], [len(r.part) for r in t.kit.records]
-assert t.kit.records[1].part[0].item_id.name == 'shield', t.kit.records[1].part[0]
+assert t.kit.records[1].part[0].item_by_item_id.name == 'shield', t.kit.records[1].part[0]
 ");
 
     /// <summary>
@@ -191,16 +191,16 @@ t = Tables()
 t.read_all(sys.argv[1])
 rows = t.kit.records
 assert [len(r.slot) for r in rows] == [2, 2, 2]
-assert rows[0].slot[0].name == 'sword'
-assert rows[0].slot[1].name == 'shield'
-assert rows[1].slot[0].name == 'ring'
-assert rows[2].slot[1] is None
+assert rows[0].piece_by_slot[0].name == 'sword'
+assert rows[0].piece_by_slot[1].name == 'shield'
+assert rows[1].piece_by_slot[0].name == 'ring'
+assert rows[2].piece_by_slot[1] is None
 assert rows[0].tier == [3, 5]
 assert rows[2].tier[1] is None
 trimmed = t.trim_kit.records
 assert [len(r.slot) for r in trimmed] == [3, 2, 0]
-assert trimmed[0].slot[2].name == 'ring'
-assert trimmed[1].slot[0].name == 'ring'
+assert trimmed[0].bit_by_slot[2].name == 'ring'
+assert trimmed[1].bit_by_slot[0].name == 'ring'
 assert trimmed[0].tier[2] == 8
 ");
 

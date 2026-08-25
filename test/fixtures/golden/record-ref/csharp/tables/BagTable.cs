@@ -45,8 +45,8 @@ namespace Tabbit.Fixtures.RecordRef
             public struct SlotsEntry
             {
                 /// element 1 of the member
-                public ItemTable.Record[] ItemId;
-                public int[] ItemId_index;
+                public int[] ItemId;
+                public ItemTable.Record[] ItemByItemId;
                 public bool[] ItemId_F;
                 /// element 1 of the member beside it
                 public int[] Count;
@@ -64,8 +64,8 @@ namespace Tabbit.Fixtures.RecordRef
             private static SlotsEntry NewSlotsEntry()
             {
                 var result = default(SlotsEntry);
-                result.ItemId = new ItemTable.Record[2];
-                result.ItemId_index = new int[2];
+                result.ItemByItemId = new ItemTable.Record[2];
+                result.ItemId = new int[2];
                 result.ItemId_F = new bool[2];
                 result.Count = new int[2];
                 return result;
@@ -231,11 +231,13 @@ namespace Tabbit.Fixtures.RecordRef
                             int elementCount;
                             elementCount = cursor.NextLength();
                             record._slots.ItemId =
+                                new int[elementCount];
+                            record._slots.ItemByItemId =
                                 new ItemTable.Record[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._slots.ItemId_index[j] = cursor.NextI32();
-                                record._slots.ItemId[j] = default(ItemTable.Record); // will be assigned.
+                                record._slots.ItemId[j] = cursor.NextI32();
+                                record._slots.ItemByItemId[j] = default(ItemTable.Record); // will be assigned.
                                 record._slots.ItemId_F[j] = false;
                             }
                         }

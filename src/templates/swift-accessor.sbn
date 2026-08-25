@@ -108,16 +108,16 @@ public final class {{ accessor_name }} {
         for record in {{ reference.table }}.records {
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-            record.{{ field.name }} = []
-            record.{{ field.name }}.reserveCapacity(record.{{ field.name }}Index.count)
+            record.{{ field.row_name }} = []
+            record.{{ field.row_name }}.reserveCapacity(record.{{ field.name }}.count)
 
-            for index in record.{{ field.name }}Index {
+            for index in record.{{ field.name }} {
                 guard let target = {{ field.ref_table }}.{{ field.ref_lookup }}(index) else { continue }
-                record.{{ field.name }}.append({{ field.value }})
+                record.{{ field.row_name }}.append({{ field.value }})
             }
 {{~ else ~}}
-            if let target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index) {
-                record.{{ field.name }} = {{ field.value }}
+            if let target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}) {
+                record.{{ field.row_name }} = {{ field.value }}
             }
 {{~ end ~}}
 {{~ end ~}}

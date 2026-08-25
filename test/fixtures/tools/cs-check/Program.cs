@@ -66,7 +66,8 @@ internal static class Program
                 {
                     ["index"] = r.Index,
                     ["name"] = r.Name,
-                    ["categoryName"] = r.CategoryId != null ? r.CategoryId.Name : "<unresolved>",
+                    ["categoryName"] = r.ItemCategoryByCategoryId != null
+                        ? r.ItemCategoryByCategoryId.Name : "<unresolved>",
                 }).ToList(),
             };
 

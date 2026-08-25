@@ -22,12 +22,12 @@ import { SealRecord } from './seal'
 /** One element of BadgeRecord.mark. */
 export interface MarkEntry {
   /** a string key, on the run path */
-  clipId: ClipRecord | undefined
-  clipId_index: string
+  clipId: string
+  clipByClipId: ClipRecord | undefined
   clipId_F: boolean
   /** a uuid key, on the run path */
-  sealId: SealRecord | undefined
-  sealId_index: string
+  sealId: string
+  sealBySealId: SealRecord | undefined
   sealId_F: boolean
   /** an ordinary member beside them */
   rank: number
@@ -64,13 +64,13 @@ export class BadgeRecord {
   public get pad(): number { return this._pad }
 
   public _index: number = 0
-  public _mark: MarkEntry = { clipId: undefined, clipId_index: "", clipId_F: false, sealId: undefined, sealId_index: "", sealId_F: false, rank: 0 }
+  public _mark: MarkEntry = { clipByClipId: undefined, clipId: "", clipId_F: false, sealBySealId: undefined, sealId: "", sealId_F: false, rank: 0 }
   public _pad: number = 0
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._mark = ((e: any) => ({ clipId: undefined, clipId_index: e.clipId, clipId_F: false, sealId: undefined, sealId_index: e.sealId, sealId_F: false, rank: e.rank }))(dataRow.mark)
+    this._mark = ((e: any) => ({ clipByClipId: undefined, clipId: e.clipId, clipId_F: false, sealBySealId: undefined, sealId: e.sealId, sealId_F: false, rank: e.rank }))(dataRow.mark)
     this._pad = dataRow.pad
   }
 
@@ -78,7 +78,7 @@ export class BadgeRecord {
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
     this._index = dataRow[offset++]
-    this._mark = { clipId: undefined, clipId_index: dataRow[offset++], clipId_F: false, sealId: undefined, sealId_index: dataRow[offset++], sealId_F: false, rank: dataRow[offset++] }
+    this._mark = { clipByClipId: undefined, clipId: dataRow[offset++], clipId_F: false, sealBySealId: undefined, sealId: dataRow[offset++], sealId_F: false, rank: dataRow[offset++] }
     this._pad = dataRow[offset++]
   }
 }
@@ -212,14 +212,14 @@ export class BadgeTable {
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameString(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
-              records[i]._mark.clipId_index = value
+              records[i]._mark.clipId = value
           }
           break
         case 3:
           tabbit.checkColumn(column, 'Badge.Mark.SealId', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_UUID])
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
-            record._mark.sealId_index = reader.readUuid()
+            record._mark.sealId = reader.readUuid()
           }
           break
         case 4:

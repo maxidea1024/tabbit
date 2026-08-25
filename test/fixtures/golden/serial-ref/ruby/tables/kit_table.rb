@@ -12,14 +12,14 @@ module SerialRef
   # Generated from test/fixtures/xlsx/serial-ref/serial-ref.xlsx : Refs : J2
   # Numbered reference columns, folded into arrays.
   class KitRecord
-    attr_accessor :index, :slot, :slot_index, :tier, :tier_index
+    attr_accessor :index, :slot, :piece_by_slot, :tier, :tier_index
 
     def initialize
       @index = 0
       @slot = []
-      @slot_index = []
-      @tier = []
+      @piece_by_slot = []
       @tier_index = []
+      @tier = []
     end
 
   end
@@ -102,8 +102,8 @@ module SerialRef
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Kit.Slot')
           records.each do |record|
             element_count = cursor.next_length
-            record.slot_index = Array.new(element_count) { cursor.next_i32 }
-            record.slot = Array.new(element_count)
+            record.slot = Array.new(element_count) { cursor.next_i32 }
+            record.piece_by_slot = Array.new(element_count)
           end
         when 3
           Tabbit.check_column(column, 'Kit.Tier', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32])

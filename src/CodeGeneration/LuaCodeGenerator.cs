@@ -283,15 +283,27 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         foreach (var sf in table.SerialFields)
         {
-            known.Add(LuaName(sf.Name));
-            annotations.Add(FieldAnnotation(table, sf));
-
             if (sf.IsRef)
             {
-                known.Add(RefIndexName(sf.Name));
-                annotations.Add($"---@field {RefIndexName(sf.Name)} "
+                // Two fields: the keys off the wire, and what the linking pass resolved
+                // them to. A dotted reference hands back a value rather than a row, so
+                // there the column's own name stays on the value and the keys take the
+                // `Index` one. spec/reference-surface-naming.md sections 4, 5 and 9.
+                string keyName = RefIndexName(sf.FirstField!, sf.Name);
+                string rowName = RefRowName(sf.FirstField!, sf.Name);
+
+                known.Add(keyName);
+                annotations.Add($"---@field {keyName} "
                     + (sf.IsArray ? KeyAnnotation(sf.FirstField!.RefKeyType) + "[]"
                                   : KeyAnnotation(sf.FirstField!.RefKeyType)));
+
+                known.Add(rowName);
+                annotations.Add(FieldAnnotation(table, sf, rowName));
+            }
+            else
+            {
+                known.Add(LuaName(sf.Name));
+                annotations.Add(FieldAnnotation(table, sf));
             }
 
             if (sf.RowMayBeAbsent)
@@ -457,7 +469,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 IsOutermost = false,
                 Owner = $"{table.Name.ToPascalCase()}Record{Access(LuaName(group.Name))}",
                 FieldNames = QuotedList(MemberFieldNames(member.Members)),
-                Annotations = member.Members.Select(m => MemberAnnotation(m, typeName)).ToList(),
+                Annotations = member.Members.SelectMany(m => MemberAnnotations(m, typeName)).ToList(),
             });
 
             result.Add(new LuaRecordMemberView
@@ -486,7 +498,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             IsOutermost = true,
             Owner = $"{table.Name.ToPascalCase()}Record{Access(LuaName(sf.Name))}",
             FieldNames = QuotedList(MemberFieldNames(sf.Members)),
-            Annotations = sf.Members.Select(m => MemberAnnotation(m, entry)).ToList(),
+            Annotations = sf.Members.SelectMany(m => MemberAnnotations(m, entry)).ToList(),
         });
 
         // A list with its elements already made, where the length is the sheet's column
@@ -544,14 +556,14 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             var path = wire.MemberPath.ToList();
             memberKeyAccess = string.Concat(
                 path.Take(path.Count - 1).Select(part => Access(LuaName(part))))
-                + Access(RefIndexName(path[^1]));
+                + Access(RefIndexName(wire.TagCarrier, path[^1]));
         }
 
         string memberTarget = wire.IsRef ? memberKeyAccess : memberAccess;
 
         // The whole assignment targets, loop variables baked in - see LuaColumnView.
         string scalarTarget = wire.Member is null
-            ? (wire.IsRef ? "record" + Access(RefIndexName(wire.Group.Name)) : "record" + groupAccess)
+            ? (wire.IsRef ? "record" + Access(RefIndexName(wire.TagCarrier, wire.Group.Name)) : "record" + groupAccess)
             : "record" + groupAccess + memberTarget;
 
         string elementTarget = kind switch
@@ -579,7 +591,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             // A reference array reads keys, so what the read fills is the key list and the
             // value list is cleared for the linking pass. Trimmed or not, only the length
             // differs. spec/variable-length-record-arrays.md.
-            "serial_ref" or "var_array_ref" => "record" + Access(RefIndexName(wire.Group.Name)),
+            "serial_ref" or "var_array_ref" => "record" + Access(RefIndexName(wire.TagCarrier, wire.Group.Name)),
             _ => "",
         };
 
@@ -594,8 +606,10 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             ScalarTarget = scalarTarget,
             ElementTarget = elementTarget,
             ValuesTarget = valuesTarget,
+            // The rows the linking pass fills go under the derived name; the keys read
+            // above wear the column's own. spec/reference-surface-naming.md sections 4 and 9.
             SecondaryClear = kind is "serial_ref" or "var_array_ref"
-                ? $"record{groupAccess} = {{}}"
+                ? $"record{Access(RefRowName(wire.TagCarrier, wire.Group.Name))} = {{}}"
                 : "",
             GroupTarget = "record" + groupAccess,
             ElementContainer = elementContainer,
@@ -626,12 +640,25 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     private string ElementPresenceName(SerialField sf)
         => sf.IsRecord ? "" : LuaName("has_" + sf.Name + "_at");
 
-    /// <summary>The field a reference's stored key lands in: `ownerIndex`.</summary>
+    /// <summary>The field a reference's stored key lands in: the column's own name.</summary>
     /// <remarks>
-    /// Built from the camel name and never bracketed: appending `Index` takes any keyword
+    /// The column's name is the key's, because the key is what the cell holds - the row is
+    /// linked after loading and takes a derived name.
+    /// spec/reference-surface-naming.md sections 4 and 5. Never bracketed: the name
     /// out of keyword-hood, so the composite is always a plain identifier.
     /// </remarks>
-    private string RefIndexName(string name) => LuaName(name) + "Index";
+    private string RefIndexName(Models.Field field, string name)
+        => ResolvesToRow(field) ? LuaName(name) : LuaName(name) + "Index";
+
+    /// <summary>
+    /// The field a reference resolves into: the derived name for a whole row, and the
+    /// column's own for a dotted reference - which hands back a value, so the name the
+    /// sheet wrote is what it belongs on. spec/reference-surface-naming.md section 9.
+    /// </summary>
+    private string RefRowName(Models.Field field, string name)
+        => ResolvesToRow(field)
+            ? LuaName(RowAccessorName(field.ResolvedRefTable!.Name, name))
+            : LuaName(name);
 
     private IReadOnlyList<string> MemberInitializers(RecordMember member)
     {
@@ -639,18 +666,21 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         if (member.IsRef)
         {
+            key = Key(RefIndexName(member.FirstField!, member.Name));
             string keyDefault = RefKeyDefault(member.FirstField!.RefKeyType);
 
             // The resolved row starts nil - a nil table entry is no entry, so only the
             // key gets a line; the strict metatable's declared list is what keeps the
             // value field readable. spec/references-in-records.md.
+            string rowKey = Key(RefRowName(member.FirstField!, member.Name));
+
             return member.IsArray
                 ? new[]
                 {
-                    $"{key} = {{}},",
-                    $"{Key(RefIndexName(member.Name))} = tcb.repeated({member.Fields.Count}, {keyDefault}),",
+                    $"{rowKey} = {{}},",
+                    $"{key} = tcb.repeated({member.Fields.Count}, {keyDefault}),",
                 }
-                : new[] { $"{Key(RefIndexName(member.Name))} = {keyDefault}," };
+                : new[] { $"{key} = {keyDefault}," };
         }
 
 
@@ -672,19 +702,28 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     {
         string group = Access(LuaName(wire.Group.Name));
 
-        string member = string.Concat(wire.MemberPath.Select(part => Access(LuaName(part))));
         var path = wire.MemberPath.ToList();
+        var refTable = wire.TagCarrier.ResolvedRefTable;
+
+        // The member's own name is the key's; the row takes the derived one.
+        // spec/reference-surface-naming.md sections 4 and 5.
         string memberKey = string.Concat(
             path.Take(path.Count - 1).Select(part => Access(LuaName(part))))
-            + Access(RefIndexName(path[^1]));
+            + (path.Count > 0 ? Access(RefIndexName(wire.TagCarrier, path[^1])) : "");
 
-        var refTable = wire.TagCarrier.ResolvedRefTable;
+        string member = path.Count > 0
+            ? string.Concat(path.Take(path.Count - 1).Select(part => Access(LuaName(part))))
+              + Access(RefRowName(wire.TagCarrier, path[^1]))
+            : Access(RefRowName(wire.TagCarrier, wire.Group.Name));
+
+        string groupRow = path.Count > 0 ? group : Access(RefRowName(wire.TagCarrier, wire.Group.Name));
+        string memberRow = path.Count > 0 ? member : "";
 
         bool isArray = wire.IsArray;
 
         string access = !isArray || wire.Group.MembersAreArrays
-            ? $"record{group}{member}"
-            : $"record{group}[i]{member}";
+            ? $"record{groupRow}{memberRow}"
+            : $"record{groupRow}[i]{memberRow}";
         string key = !isArray || wire.Group.MembersAreArrays
             ? $"record{group}{memberKey}"
             : $"record{group}[i]{memberKey}";
@@ -712,10 +751,15 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         foreach (var member in members)
         {
-            result.Add(LuaName(member.Name));
-
             if (member.IsLeaf && member.IsRef)
-                result.Add(RefIndexName(member.Name));
+            {
+                result.Add(RefIndexName(member.FirstField!, member.Name));
+                result.Add(RefRowName(member.FirstField!, member.Name));
+            }
+            else
+            {
+                result.Add(LuaName(member.Name));
+            }
         }
 
         return result;
@@ -851,12 +895,12 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         if (wire.IsRef)
         {
             if (wire.Member is null)
-                return $"records[i]{Access(RefIndexName(wire.Group.Name))} = value";
+                return $"records[i]{Access(RefIndexName(wire.TagCarrier, wire.Group.Name))} = value";
 
             var path = wire.MemberPath.ToList();
             string memberKey = string.Concat(
                 path.Take(path.Count - 1).Select(part => Access(LuaName(part))))
-                + Access(RefIndexName(path[^1]));
+                + Access(RefIndexName(wire.TagCarrier, path[^1]));
 
             return $"records[i]{groupAccess}{memberKey} = value";
         }
@@ -901,12 +945,18 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         if (sf.IsRef)
         {
+            key = Key(RefIndexName(sf.FirstField!, sf.Name));
+
             // The resolved row starts nil, which in Lua is no entry at all - so only the
             // key list gets a line, and the strict metatable's declared list is what
             // keeps `row.owner` a nil rather than an error.
+            // The column's own name is the key's, and the row it resolves to takes the
+            // derived one. spec/reference-surface-naming.md sections 4 and 5.
+            string rowKey = Key(RefRowName(sf.FirstField!, sf.Name));
+
             return sf.IsArray
-                ? new[] { $"{key} = {{}},", $"{Key(RefIndexName(sf.Name))} = {{}}," }
-                : new[] { $"{Key(RefIndexName(sf.Name))} = 0," };
+                ? new[] { $"{key} = {{}},", $"{rowKey} = {{}}," }
+                : new[] { $"{key} = 0," };
         }
 
         if (sf.IsArray)
@@ -1042,8 +1092,8 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 RecordFields = x.RecordFields,
                 Fields = x.Fields.Select(sf => new LuaReferenceFieldView
                 {
-                    Access = "record" + Access(LuaName(sf.Name)),
-                    KeyAccess = "record" + Access(RefIndexName(sf.Name)),
+                    Access = "record" + Access(RefRowName(sf.FirstField!, sf.Name)),
+                    KeyAccess = "record" + Access(RefIndexName(sf.FirstField!, sf.Name)),
                     RefTable = "loaded" + sf.FirstField!.ResolvedRefTable!.Name.ToPascalCase(),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = sf.ElementType == ValueType.ForeignRecord
@@ -1153,9 +1203,9 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
     // -------------------------------------------------------- annotations
 
-    private string FieldAnnotation(Table table, SerialField sf)
+    private string FieldAnnotation(Table table, SerialField sf, string? rename = null)
     {
-        string name = LuaName(sf.Name);
+        string name = rename ?? LuaName(sf.Name);
 
         if (sf.IsRecord)
         {
@@ -1168,6 +1218,16 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         if (sf.IsRef)
         {
+            // A dotted reference hands back one of the target's values rather than the row,
+            // so what this column holds is that value's type.
+            // spec/reference-surface-naming.md section 9.
+            if (!ResolvesToRow(sf.FirstField!))
+            {
+                string value = ScalarAnnotation(sf.FirstField!.ResolvedRefField!.Type);
+
+                return $"---@field {name} {(sf.IsArray ? value + "[]" : value)}";
+            }
+
             string row = sf.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record";
 
             return sf.IsArray
@@ -1178,6 +1238,33 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         string scalar = ScalarAnnotation(sf.ElementType);
 
         return $"---@field {name} {(sf.IsArray ? scalar + "[]" : scalar)}";
+    }
+
+    private IEnumerable<string> MemberAnnotations(RecordMember member, string prefix)
+    {
+        if (!member.IsLeaf || !member.IsRef)
+        {
+            yield return MemberAnnotation(member, prefix);
+            yield break;
+        }
+
+        // The member's own name is the key's; the row takes the derived one.
+        // spec/reference-surface-naming.md sections 4 and 5.
+        string keyName = RefIndexName(member.FirstField!, member.Name);
+        string rowName = RefRowName(member.FirstField!, member.Name);
+        bool toRow = ResolvesToRow(member.FirstField!);
+        string rowType = toRow
+            ? member.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record"
+            : ScalarAnnotation(member.FirstField!.ResolvedRefField!.Type);
+        string keyType = KeyAnnotation(member.FirstField!.RefKeyType);
+
+        yield return member.IsArray
+            ? $"---@field {keyName} {keyType}[]"
+            : $"---@field {keyName} {keyType}";
+
+        yield return member.IsArray
+            ? $"---@field {rowName} {rowType}[]"
+            : $"---@field {rowName} {(toRow ? rowType + "|nil" : rowType)}";
     }
 
     private string MemberAnnotation(RecordMember member, string prefix)

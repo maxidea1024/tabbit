@@ -24,7 +24,7 @@ extern "C" {
 /* One element of RecordRef_HolderRecord_t::main. */
 struct RecordRef_HolderRecord_t_main_entry {
   /* the reference, in a record of one */
-  const RecordRef_ItemRecord_t* item_id; int32_t item_id_index;
+  int32_t item_id; const RecordRef_ItemRecord_t* item_by_item_id;
   /* an ordinary member beside it */
   int32_t count;
 };

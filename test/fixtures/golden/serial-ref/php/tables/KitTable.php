@@ -29,17 +29,17 @@ final class KitRecord
     /** primary index */
     public int $index = 0;
     /** element 1 - the row it points at */
-    /** @var list<?PieceRecord> */
+    /** @var list<int> */
     public array $slot = [];
 
-    /** @var list<int> */
-    public array $slotIndex = [];
+    /** @var list<?PieceRecord> */
+    public array $pieceBySlot = [];
     /** element 1 - the target's own value */
-    /** @var list<?int> */
-    public array $tier = [];
-
     /** @var list<int> */
     public array $tierIndex = [];
+
+    /** @var list<?int> */
+    public array $tier = [];
 }
 
 /** Every row of Kit. */
@@ -136,11 +136,11 @@ final class KitTable
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Kit.Slot');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->slotIndex = [];
+                        $record->slot = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->slotIndex[] = $cursor->nextI32();
+                            $record->slot[] = $cursor->nextI32();
                         }
-                        $record->slot = $elementCount > 0
+                        $record->pieceBySlot = $elementCount > 0
                             ? \array_fill(0, $elementCount, null)
                             : [];
                     }

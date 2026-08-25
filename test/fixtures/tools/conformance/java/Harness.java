@@ -92,13 +92,13 @@ public final class Harness {
             json.append(']');
 
             // The reference indices, which is what the exporter writes for a foreign field.
-            json.append(",\"owner\":").append(r.ownerIndex);
+            json.append(",\"owner\":").append(r.owner);
             json.append(",\"tier\":").append(r.tierIndex);
 
             // And one reference per element, printed as the stored index each came in as.
             json.append(",\"owners\":[");
-            for (int k = 0; k < r.ownersIndex.length; k++)
-                json.append(k > 0 ? "," : "").append(r.ownersIndex[k]);
+            for (int k = 0; k < r.owners.length; k++)
+                json.append(k > 0 ? "," : "").append(r.owners[k]);
             json.append(']');
 
             // The three the v104 encodings win on.

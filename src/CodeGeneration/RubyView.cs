@@ -249,6 +249,9 @@ internal sealed class RubyRecordTypeView
 /// </summary>
 internal sealed class RubyColumnView
 {
+    /// <summary>Where the resolved rows go, for a reference column. Empty otherwise.</summary>
+    public string RowName { get; set; } = "";
+
     /// <summary>The column wire tag.</summary>
     public required int Tag { get; set; }
 
@@ -408,6 +411,13 @@ internal sealed class RubyRecordReferenceView
 
 internal sealed class RubyReferenceFieldView
 {
+    /// <summary>
+    /// Where the resolved row goes - the derived name for a whole-row reference, the
+    /// column's own name for a dotted one.
+    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required string Name { get; set; }
     public required string RefTable { get; set; }
 

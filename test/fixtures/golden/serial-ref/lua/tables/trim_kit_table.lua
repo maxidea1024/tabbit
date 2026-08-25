@@ -12,23 +12,23 @@ local tcb = require(_root .. "tabbit.tcb_reader")
 -- Numbered reference columns folded into an array the row's length.
 ---@class TrimKitRecord
 ---@field index integer
----@field slot BitRecord[]
----@field slotIndex integer[]
+---@field slot integer[]
+---@field bitBySlot BitRecord[]
 ---@field hasSlotAt boolean[]
----@field tier BitRecord[]
 ---@field tierIndex integer[]
+---@field tier integer[]
 ---@field hasTierAt boolean[]
-local TrimKitRecordMeta = tcb.strictType("a `TrimKit` row", { "index", "slot", "slotIndex", "hasSlotAt", "tier", "tierIndex", "hasTierAt" })
+local TrimKitRecordMeta = tcb.strictType("a `TrimKit` row", { "index", "slot", "bitBySlot", "hasSlotAt", "tierIndex", "tier", "hasTierAt" })
 
 ---@return TrimKitRecord
 local function newTrimKitRecord()
   return setmetatable({
     index = 0,
     slot = {},
-    slotIndex = {},
+    bitBySlot = {},
     hasSlotAt = {},
-    tier = {},
     tierIndex = {},
+    tier = {},
     hasTierAt = {},
   }, TrimKitRecordMeta)
 end
@@ -128,8 +128,8 @@ function TrimKitTable:readBytes(data)
           values[element] = cursor:nextI32()
         end
 
-        record.slotIndex = values
-        record.slot = {}
+        record.slot = values
+        record.bitBySlot = {}
         local answers = {}
 
         for element = 1, elementCount do

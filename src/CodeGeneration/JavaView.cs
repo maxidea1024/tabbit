@@ -289,6 +289,15 @@ internal sealed class JavaRecordTypeView
 /// </summary>
 internal sealed class JavaColumnView
 {
+    /// <summary>
+    /// The member access ending in the row's derived name, where this column is a reference
+    /// member. spec/reference-surface-naming.md section 5.
+    /// </summary>
+    public string RowMemberAccess { get; set; } = "";
+
+    /// <summary>The row's derived name, where this column is a reference.</summary>
+    public string RowName { get; set; } = "";
+
     /// <summary>The column wire tag.</summary>
     public required int Tag { get; set; }
 
@@ -360,7 +369,7 @@ internal sealed class JavaColumnView
     /// </summary>
     /// <remarks>
     /// On the member and before any subscript, because a member that is an array holds one
-    /// key per element: `itemIdIndex[j]`, not `itemId[j]Index`.
+    /// key per element: `itemId[j]`, which is the member's own name.
     /// spec/references-in-records.md.
     /// </remarks>
     public required string MemberRefSuffix { get; set; }
@@ -467,6 +476,13 @@ internal sealed class JavaRecordReferenceView
 
 internal sealed class JavaReferenceFieldView
 {
+    /// <summary>
+    /// Where the resolved row goes - the derived name for a whole-row reference, the
+    /// column's own name for a dotted one.
+    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required string Name { get; set; }
     public required string RefTable { get; set; }
 

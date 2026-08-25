@@ -16,11 +16,11 @@ import (
 // BadgeMarkEntry is one element of BadgeRecord.Mark.
 type BadgeMarkEntry struct {
 	// a string key, on the run path
-	ClipId *ClipRecord
-	ClipIdIndex string
+	ClipId string
+	ClipByClipId *ClipRecord
 	// a uuid key, on the run path
-	SealId *SealRecord
-	SealIdIndex tabbit.UUID
+	SealId tabbit.UUID
+	SealBySealId *SealRecord
 	// an ordinary member beside them
 	Rank int32
 }
@@ -132,7 +132,7 @@ func (t *BadgeTable) Read(filename string) error {
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameString(count - i)
 					for ; n > 0; n-- {
-						records[i].Mark.ClipIdIndex = value
+						records[i].Mark.ClipId = value
 						i++
 					}
 				}
@@ -141,7 +141,7 @@ func (t *BadgeTable) Read(filename string) error {
 			if tabbit.CheckColumn(reader, column, "Badge.Mark.SealId", tabbit.KindScalar, false, tabbit.ElementUUID) {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
-					r.Mark.SealIdIndex = reader.ReadUUID()
+					r.Mark.SealId = reader.ReadUUID()
 				}
 			}
 		case 4:

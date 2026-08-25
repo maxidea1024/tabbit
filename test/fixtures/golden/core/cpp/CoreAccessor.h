@@ -82,8 +82,8 @@ class CoreAccessor {
   void solve_cross_references([[maybe_unused]] TestFieldTypesTable& loaded_test_field_types, [[maybe_unused]] ItemCategoryTable& loaded_item_category, [[maybe_unused]] ItemTable& loaded_item, [[maybe_unused]] LocalizationTable& loaded_localization, [[maybe_unused]] ArrayTypesTable& loaded_array_types, [[maybe_unused]] ServerTuningTable& loaded_server_tuning, [[maybe_unused]] ClientStringsTable& loaded_client_strings) {
     for (auto& record : loaded_item.records_) {
       {
-        const auto* target = loaded_item_category.find_by_index(record.category_id_index);
-        if (target != nullptr) record.category_id = target;
+        const auto* target = loaded_item_category.find_by_index(record.category_id);
+        if (target != nullptr) record.item_category_by_category_id = target;
       }
     }
   }

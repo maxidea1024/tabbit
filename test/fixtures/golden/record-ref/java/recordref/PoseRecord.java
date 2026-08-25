@@ -20,8 +20,8 @@ public final class PoseRecord {
     /** One element of step. */
     public static final class StepEntry {
         /** element 1, a string key */
-        public ClipRecord clipId;
-        public String clipIdIndex;
+        public String clipId;
+        public ClipRecord clipByClipId;
         /** element 1, an ordinary member */
         public int weight;
     }

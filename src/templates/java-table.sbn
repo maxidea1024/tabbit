@@ -186,13 +186,20 @@ public final class {{ table.table_name }} {
    spec/variable-length-record-arrays.md. ##~}}
                         int elementCount;
                         {{ column_view.length_read }}
+{{~ if column_view.row_name != '' ~}}
+                        record.{{ column_view.row_name }} = new {{ column_view.element_type }}[elementCount];
+                        record.{{ column_view.name }} = new {{ column_view.ref_key_type }}[elementCount];
+{{~ else ~}}
+{{~## A dotted reference: the column's name stays on the value it hands back, and the key
+   keeps the name it had. spec/reference-surface-naming.md section 9. ##~}}
                         record.{{ column_view.name }} = new {{ column_view.element_type }}[elementCount];
                         record.{{ column_view.name }}Index = new {{ column_view.ref_key_type }}[elementCount];
+{{~ end ~}}
 {{~ if column_view.has_optional_elements ~}}
                         record.{{ column_view.element_presence_member }} = new boolean[elementCount];
 {{~ end ~}}
                         for (int j = 0; j < elementCount; j++) {
-                            record.{{ column_view.name }}Index[j] = {{ column_view.read_element }};
+                            record.{{ column_view.name }}{{ if column_view.row_name == '' }}Index{{ end }}[j] = {{ column_view.read_element }};
 {{~ if column_view.has_optional_elements ~}}
                             record.{{ column_view.element_presence_member }}[j] =
                                 TcbReader.isPresent(elementPresence, elementAt++);
@@ -236,11 +243,12 @@ public final class {{ table.table_name }} {
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
                         int elementCount;
                         {{ column_view.length_read }}
-{{~ if column_view.member_ref_suffix != '' ~}}
+{{~ if column_view.row_member_access != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
-   into the key - so both are made. spec/references-in-records.md. ##~}}
-                        record.{{ column_view.name }}{{ column_view.member_access }} = new {{ column_view.element_type }}[elementCount];
-                        record.{{ column_view.name }}{{ column_view.member_access }}Index = new {{ column_view.ref_key_type }}[elementCount];
+   into the key - so both are made. The member's own name is the key's.
+   spec/reference-surface-naming.md section 4. ##~}}
+                        record.{{ column_view.name }}{{ column_view.row_member_access }} = new {{ column_view.element_type }}[elementCount];
+                        record.{{ column_view.name }}{{ column_view.member_access }} = new {{ column_view.ref_key_type }}[elementCount];
 {{~ else ~}}
                         record.{{ column_view.name }}{{ column_view.member_access }} = new {{ column_view.element_type }}[elementCount];
 {{~ end ~}}
@@ -248,7 +256,7 @@ public final class {{ table.table_name }} {
                             record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_element }};
                         }
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-                        record.{{ column_view.name }}Index = {{ column_view.read_element }};
+                        record.{{ column_view.name }}{{ if column_view.row_name == '' }}Index{{ end }} = {{ column_view.read_element }};
 {{~ else ~}}
                         record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_scalar }};
 {{~ end ~}}

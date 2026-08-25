@@ -126,10 +126,10 @@ object Tables {
      */
     private fun solveCrossReferences(piece: PieceTable, kit: KitTable, bit: BitTable, trimKit: TrimKitTable) {
         for (record in kit.records) {
-            record.slot = ArrayList(record.slotIndex.size)
-            for (index in record.slotIndex) {
+            record.pieceBySlot = ArrayList(record.slot.size)
+            for (index in record.slot) {
                 val target = piece.findByIndex(index) ?: continue
-                record.slot.add(target)
+                record.pieceBySlot.add(target)
             }
             record.tier = ArrayList(record.tierIndex.size)
             for (index in record.tierIndex) {
@@ -138,10 +138,10 @@ object Tables {
             }
         }
         for (record in trimKit.records) {
-            record.slot = ArrayList(record.slotIndex.size)
-            for (index in record.slotIndex) {
+            record.bitBySlot = ArrayList(record.slot.size)
+            for (index in record.slot) {
                 val target = bit.findByIndex(index) ?: continue
-                record.slot.add(target)
+                record.bitBySlot.add(target)
             }
             record.tier = ArrayList(record.tierIndex.size)
             for (index in record.tierIndex) {

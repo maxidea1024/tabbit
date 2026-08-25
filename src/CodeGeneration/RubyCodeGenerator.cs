@@ -310,10 +310,14 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         foreach (var sf in table.SerialFields)
         {
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
             accessors.Add(RubyName(sf.Name));
 
             if (sf.IsRef)
-                accessors.Add(RubyName(sf.Name) + "_index");
+                accessors.Add(ResolvesToRow(sf.FirstField!)
+                    ? RubyName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                    : RubyName(sf.Name) + "_index");
 
             if (sf.RowMayBeAbsent)
                 accessors.Add(PresenceMember(sf));
@@ -595,7 +599,14 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
             // is an array holds one key per element. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "_index" : "",
+            MemberRefSuffix = "",
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? (ResolvesToRow(wire.TagCarrier)
+                    ? RubyName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                    : RubyName(wire.Group.Name) + "_index")
+                : "",
             MemberAt = wire.MemberAt,
 
             RecordTypeName = wire.Group.IsRecord ? RecordTypeName(table, wire.Group) : "",
@@ -657,16 +668,24 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         {
             string key = RefKeyDefault(member.FirstField!.RefKeyType);
 
+            // The member's own name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? RubyName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : RubyName(member.Name);
+                    string keyName = toRow ? RubyName(member.Name) : RubyName(member.Name) + "_index";
+
             return member.IsArray
                 ? new[]
                 {
-                    $"@{name} = Array.new({member.Fields.Count})",
-                    $"@{name}_index = Array.new({member.Fields.Count}) {{ {key} }}",
+                    $"@{keyName} = Array.new({member.Fields.Count}) {{ {key} }}",
+                    $"@{rowName} = Array.new({member.Fields.Count})",
                 }
                 : new[]
                 {
-                    $"@{name} = nil",
-                    $"@{name}_index = {key}",
+                    $"@{keyName} = {key}",
+                    $"@{rowName} = nil",
                 };
         }
 
@@ -704,6 +723,21 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         bool isArray = wire.IsArray;
 
+        string rowLeaf = wire.Member is not null
+            ? RubyName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : RubyName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + RubyName(part))) + "." + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{name}{rowMember}"
+                : $"record.{name}[i]{rowMember}")
+            : $"record.{rowLeaf}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
@@ -711,14 +745,14 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         return new RubyRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "_index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever array holds the elements. Its own length rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Range = isArray
                 ? (wire.Group.MembersAreArrays
-                    ? $"{path}_index.each_index"
+                    ? $"{path}.each_index"
                     : $"record.{name}.each_index")
                 : "",
 
@@ -744,7 +778,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             result.Add(RubyName(member.Name));
 
             if (member.IsLeaf && member.IsRef)
-                result.Add(RubyName(member.Name) + "_index");
+                result.Add(ResolvesToRow(member.FirstField!)
+                    ? RubyName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                    : RubyName(member.Name) + "_index");
         }
 
         return result;
@@ -798,9 +834,15 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     {
         if (sf.IsRef)
         {
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? RubyName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "_index";
+
             return sf.IsArray
-                ? new[] { $"@{name} = []", $"@{name}_index = []" }
-                : new[] { $"@{name} = nil", $"@{name}_index = 0" };
+                ? new[] { $"@{keyName} = []", $"@{rowName} = []" }
+                : new[] { $"@{keyName} = 0", $"@{rowName} = nil" };
         }
 
         if (sf.IsArray)
@@ -958,7 +1000,14 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                 Table = RubyName(x.Table.Name),
                 Fields = x.Fields.Select(sf => new RubyReferenceFieldView
                 {
-                    Name = RubyName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? RubyName(sf.Name)
+                        : RubyName(sf.Name) + "_index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? RubyName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : RubyName(sf.Name),
+
                     RefTable = RubyName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = sf.ElementType == ValueType.ForeignRecord
@@ -1096,8 +1145,8 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         if (wire.IsRef)
         {
             return (wire.Member is null)
-                ? $"records[i].{name}_index = value"
-                : $"records[i].{name}{memberAccess}_index = value";
+                ? $"records[i].{name}{(ResolvesToRow(wire.TagCarrier) ? "" : "_index")} = value"
+                : $"records[i].{name}{memberAccess}{(ResolvesToRow(wire.TagCarrier) ? "" : "_index")} = value";
         }
 
         if (wire.ElementType == ValueType.Enum)

@@ -70,11 +70,11 @@ def main():
             "uids": [str(value) for value in record.uids],
 
             # The reference indices, which is what the exporter writes for a foreign field.
-            "owner": record.owner_index,
+            "owner": record.owner,
             "tier": record.tier_index,
 
             # And one reference per element, printed as the stored index each came in as.
-            "owners": list(record.owners_index),
+            "owners": list(record.owners),
 
             # The three the v104 encodings win on.
             "count": record.count,

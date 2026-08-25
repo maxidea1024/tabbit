@@ -119,7 +119,7 @@ public final class MountTable {
 
                         for (int j = 0; j < elementCount; j++) {
                             record.rig[j] = new MountRecord.RigEntry();
-                            record.rig[j].core.itemIdIndex = cursor.nextI32();
+                            record.rig[j].core.itemId = cursor.nextI32();
                         }
                     }
                     break;

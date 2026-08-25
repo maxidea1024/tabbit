@@ -47,15 +47,15 @@ class {{ accessor_name }} {
     for (auto& record : loaded_{{ reference.table }}.records_) {
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-      record.{{ field.name }}.resize(record.{{ field.name }}_index.size(), {{ field.ref_default }});
-      for (std::size_t i = 0; i < record.{{ field.name }}_index.size(); ++i) {
-        const auto* target = loaded_{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}_index[i]);
-        if (target != nullptr) record.{{ field.name }}[i] = {{ field.value }};
+      record.{{ field.row_name }}.resize(record.{{ field.name }}.size(), {{ field.ref_default }});
+      for (std::size_t i = 0; i < record.{{ field.name }}.size(); ++i) {
+        const auto* target = loaded_{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}[i]);
+        if (target != nullptr) record.{{ field.row_name }}[i] = {{ field.value }};
       }
 {{~ else ~}}
       {
-        const auto* target = loaded_{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}_index);
-        if (target != nullptr) record.{{ field.name }} = {{ field.value }};
+        const auto* target = loaded_{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }});
+        if (target != nullptr) record.{{ field.row_name }} = {{ field.value }};
       }
 {{~ end ~}}
 {{~ end ~}}

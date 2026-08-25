@@ -152,16 +152,16 @@ foreach ([$rows[1], $rows[2]] as $row) {
     public void A_reference_inside_a_record_reads()
         => AssertReads("record-ref", "RecordRefAccessor", @"
 $rows = $accessor->loadout->records;
-assert($rows[0]->slot[0]->itemId->name === 'sword');
-assert($rows[0]->slot[1]->itemId->name === 'shield');
-assert($rows[0]->slot[0]->swapId->name === 'shield');
-assert($rows[1]->slot[1]->itemId === null);
-assert($accessor->holder->records[0]->main->itemId->name === 'shield');
-assert($accessor->bag->records[0]->slots->itemId[0]->name === 'sword');
-assert($accessor->mount->records[0]->rig[0]->core->itemId->name === 'sword');
-assert($accessor->pose->records[0]->step[0]->clipId->index === 'Idle_01');
+assert($rows[0]->slot[0]->itemByItemId->name === 'sword');
+assert($rows[0]->slot[1]->itemByItemId->name === 'shield');
+assert($rows[0]->slot[0]->itemBySwapId->name === 'shield');
+assert($rows[1]->slot[1]->itemByItemId === null);
+assert($accessor->holder->records[0]->main->itemByItemId->name === 'shield');
+assert($accessor->bag->records[0]->slots->itemByItemId[0]->name === 'sword');
+assert($accessor->mount->records[0]->rig[0]->core->itemByItemId->name === 'sword');
+assert($accessor->pose->records[0]->step[0]->clipByClipId->index === 'Idle_01');
 assert(array_map(fn($r) => count($r->part), $accessor->kit->records) === [3, 2, 0]);
-assert($accessor->kit->records[1]->part[0]->itemId->name === 'shield');
+assert($accessor->kit->records[1]->part[0]->itemByItemId->name === 'shield');
 ");
 
     /// <summary>
@@ -179,10 +179,10 @@ assert($accessor->kit->records[1]->part[0]->itemId->name === 'shield');
         => AssertReads("serial-ref", "SerialRefAccessor", @"
 $rows = $accessor->kit->records;
 assert(array_map(fn($r) => count($r->slot), $rows) === [2, 2, 2]);
-assert($rows[0]->slot[0]->name === 'sword');
-assert($rows[0]->slot[1]->name === 'shield');
-assert($rows[1]->slot[0]->name === 'ring');
-assert($rows[2]->slot[1] === null);
+assert($rows[0]->pieceBySlot[0]->name === 'sword');
+assert($rows[0]->pieceBySlot[1]->name === 'shield');
+assert($rows[1]->pieceBySlot[0]->name === 'ring');
+assert($rows[2]->pieceBySlot[1] === null);
 assert($rows[0]->tier === [3, 5]);
 assert($rows[2]->tier[1] === null);
 ");

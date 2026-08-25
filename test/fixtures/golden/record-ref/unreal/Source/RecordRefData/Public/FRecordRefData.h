@@ -57,11 +57,11 @@ struct RECORDREFDATA_API FLoadoutSlotEntry
 
     /** element 1, the reference */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
-    int32 ItemIdIndex = 0;
+    int32 ItemId = 0;
 
     /** element 1, a second reference to the same table */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
-    int32 SwapIdIndex = 0;
+    int32 SwapId = 0;
 
     /** element 1, an ordinary member */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
@@ -95,7 +95,7 @@ struct RECORDREFDATA_API FHolderMainEntry
 
     /** the reference, in a record of one */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Holder")
-    int32 ItemIdIndex = 0;
+    int32 ItemId = 0;
 
     /** an ordinary member beside it */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Holder")
@@ -137,7 +137,7 @@ struct RECORDREFDATA_API FBagSlotsEntry
 
     /** element 1 of the member */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bag")
-    TArray<int32> ItemIdIndex;
+    TArray<int32> ItemId;
 
     /** element 1 of the member beside it */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bag")
@@ -171,7 +171,7 @@ struct RECORDREFDATA_API FMountRigEntryCore
 
     /** element 1, two levels in */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mount")
-    int32 ItemIdIndex = 0;
+    int32 ItemId = 0;
 
     /** its sibling at that level */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mount")
@@ -247,7 +247,7 @@ struct RECORDREFDATA_API FPoseStepEntry
 
     /** element 1, a string key */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pose")
-    FString ClipIdIndex;
+    FString ClipId;
 
     /** element 1, an ordinary member */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pose")
@@ -311,11 +311,11 @@ struct RECORDREFDATA_API FBadgeMarkEntry
 
     /** a string key, on the run path */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Badge")
-    FString ClipIdIndex;
+    FString ClipId;
 
     /** a uuid key, on the run path */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Badge")
-    FGuid SealIdIndex;
+    FGuid SealId;
 
     /** an ordinary member beside them */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Badge")
@@ -353,7 +353,7 @@ struct RECORDREFDATA_API FKitPartEntry
 
     /** element 1, the reference */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Kit")
-    int32 ItemIdIndex = 0;
+    int32 ItemId = 0;
 
     /** element 1, an ordinary member */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Kit")

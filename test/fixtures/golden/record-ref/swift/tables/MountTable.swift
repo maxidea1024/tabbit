@@ -25,8 +25,8 @@ public final class MountRecord {
         public init() {}
 
         /// element 1, two levels in
-        public var itemId: ItemRecord? = nil
-        public var itemIdIndex: Int32 = 0
+        public var itemId: Int32 = 0
+        public var itemByItemId: ItemRecord? = nil
 
         /// its sibling at that level
         public var count: Int32 = 0
@@ -148,7 +148,7 @@ public final class MountTable {
                         repeating: MountRecord.RigEntry(), count: elementCount)
 
                     for element in 0 ..< elementCount {
-                        record.rig[element].core.itemIdIndex = try cursor.nextI32()
+                        record.rig[element].core.itemId = try cursor.nextI32()
                     }
                 }
             case 3:

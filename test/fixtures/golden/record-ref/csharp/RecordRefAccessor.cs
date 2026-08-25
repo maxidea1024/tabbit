@@ -257,17 +257,17 @@ namespace Tabbit.Fixtures.RecordRef
             {
                 for (int j = 0; j < record._slot.Length; j++)
                 {
-                    if (record._slot[j].ItemId_index > 0)
+                    if (record._slot[j].ItemId > 0)
                     {
-                        record._slot[j].ItemId = snapshot.Item.GetByIndexOrThrow(record._slot[j].ItemId_index);
+                        record._slot[j].ItemByItemId = snapshot.Item.GetByIndexOrThrow(record._slot[j].ItemId);
                         record._slot[j].ItemId_F = true;
                     }
                 }
                 for (int j = 0; j < record._slot.Length; j++)
                 {
-                    if (record._slot[j].SwapId_index > 0)
+                    if (record._slot[j].SwapId > 0)
                     {
-                        record._slot[j].SwapId = snapshot.Item.GetByIndexOrThrow(record._slot[j].SwapId_index);
+                        record._slot[j].ItemBySwapId = snapshot.Item.GetByIndexOrThrow(record._slot[j].SwapId);
                         record._slot[j].SwapId_F = true;
                     }
                 }
@@ -275,9 +275,9 @@ namespace Tabbit.Fixtures.RecordRef
 
             foreach (var record in snapshot.Holder.Records)
             {
-                if (record._main.ItemId_index > 0)
+                if (record._main.ItemId > 0)
                 {
-                    record._main.ItemId = snapshot.Item.GetByIndexOrThrow(record._main.ItemId_index);
+                    record._main.ItemByItemId = snapshot.Item.GetByIndexOrThrow(record._main.ItemId);
                     record._main.ItemId_F = true;
                 }
             }
@@ -286,9 +286,9 @@ namespace Tabbit.Fixtures.RecordRef
             {
                 for (int j = 0; j < record._slots.ItemId.Length; j++)
                 {
-                    if (record._slots.ItemId_index[j] > 0)
+                    if (record._slots.ItemId[j] > 0)
                     {
-                        record._slots.ItemId[j] = snapshot.Item.GetByIndexOrThrow(record._slots.ItemId_index[j]);
+                        record._slots.ItemByItemId[j] = snapshot.Item.GetByIndexOrThrow(record._slots.ItemId[j]);
                         record._slots.ItemId_F[j] = true;
                     }
                 }
@@ -298,9 +298,9 @@ namespace Tabbit.Fixtures.RecordRef
             {
                 for (int j = 0; j < record._rig.Length; j++)
                 {
-                    if (record._rig[j].Core.ItemId_index > 0)
+                    if (record._rig[j].Core.ItemId > 0)
                     {
-                        record._rig[j].Core.ItemId = snapshot.Item.GetByIndexOrThrow(record._rig[j].Core.ItemId_index);
+                        record._rig[j].Core.ItemByItemId = snapshot.Item.GetByIndexOrThrow(record._rig[j].Core.ItemId);
                         record._rig[j].Core.ItemId_F = true;
                     }
                 }
@@ -310,9 +310,9 @@ namespace Tabbit.Fixtures.RecordRef
             {
                 for (int j = 0; j < record._step.Length; j++)
                 {
-                    if (record._step[j].ClipId_index is { Length: > 0 })
+                    if (record._step[j].ClipId is { Length: > 0 })
                     {
-                        record._step[j].ClipId = snapshot.Clip.GetByIndexOrThrow(record._step[j].ClipId_index);
+                        record._step[j].ClipByClipId = snapshot.Clip.GetByIndexOrThrow(record._step[j].ClipId);
                         record._step[j].ClipId_F = true;
                     }
                 }
@@ -320,14 +320,14 @@ namespace Tabbit.Fixtures.RecordRef
 
             foreach (var record in snapshot.Badge.Records)
             {
-                if (record._mark.ClipId_index is { Length: > 0 })
+                if (record._mark.ClipId is { Length: > 0 })
                 {
-                    record._mark.ClipId = snapshot.Clip.GetByIndexOrThrow(record._mark.ClipId_index);
+                    record._mark.ClipByClipId = snapshot.Clip.GetByIndexOrThrow(record._mark.ClipId);
                     record._mark.ClipId_F = true;
                 }
-                if (record._mark.SealId_index != System.Guid.Empty)
+                if (record._mark.SealId != System.Guid.Empty)
                 {
-                    record._mark.SealId = snapshot.Seal.GetByIndexOrThrow(record._mark.SealId_index);
+                    record._mark.SealBySealId = snapshot.Seal.GetByIndexOrThrow(record._mark.SealId);
                     record._mark.SealId_F = true;
                 }
             }
@@ -336,9 +336,9 @@ namespace Tabbit.Fixtures.RecordRef
             {
                 for (int j = 0; j < record._part.Length; j++)
                 {
-                    if (record._part[j].ItemId_index > 0)
+                    if (record._part[j].ItemId > 0)
                     {
-                        record._part[j].ItemId = snapshot.Item.GetByIndexOrThrow(record._part[j].ItemId_index);
+                        record._part[j].ItemByItemId = snapshot.Item.GetByIndexOrThrow(record._part[j].ItemId);
                         record._part[j].ItemId_F = true;
                     }
                 }

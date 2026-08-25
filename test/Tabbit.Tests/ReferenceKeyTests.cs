@@ -91,9 +91,15 @@ public class ReferenceKeyTests
 
         string clip = Generated("csharp", "tables", "ClipTable.cs");
 
-        Assert.Contains("public string _anim_Animation_index;", clip);
-        Assert.Contains("public long _entry_Ledger_index;", clip);
-        Assert.Contains("public System.Guid _cover_Art_index;", clip);
+        // The key is behind a property of the column's own name now, so the storage is
+        // internal. spec/reference-surface-naming.md section 4.
+        Assert.Contains("internal string _anim_Animation_index;", clip);
+        Assert.Contains("internal long _entry_Ledger_index;", clip);
+        Assert.Contains("internal System.Guid _cover_Art_index;", clip);
+
+        Assert.Contains("public string Anim => _anim_Animation_index;", clip);
+        Assert.Contains("public long Entry => _entry_Ledger_index;", clip);
+        Assert.Contains("public System.Guid Cover => _cover_Art_index;", clip);
     }
 
     /// <summary>

@@ -13,9 +13,9 @@ use crate::tabbit;
 #[derive(Clone, Debug, Default)]
 pub struct BadgeMarkEntry {
     /// a string key, on the run path
-    pub clip_id_index: String,
+    pub clip_id: String,
     /// a uuid key, on the run path
-    pub seal_id_index: tabbit::Uuid,
+    pub seal_id: tabbit::Uuid,
     /// an ordinary member beside them
     pub rank: i32,
 }
@@ -132,7 +132,7 @@ impl BadgeTable {
                     while at < records.len() {
                         let (n, value) = cursor.next_same_string((records.len() - at) as i32)?;
                         for _ in 0..n {
-                            records[at].mark.clip_id_index = value.clone();
+                            records[at].mark.clip_id = value.clone();
                             at += 1;
                         }
                     }
@@ -140,7 +140,7 @@ impl BadgeTable {
                 3 => {
                     tabbit::check_column(column, "Badge.Mark.SealId", tabbit::KIND_SCALAR, false, &[tabbit::ELEMENT_UUID])?;
                     for record in records.iter_mut() {
-                        record.mark.seal_id_index = reader.read_uuid()?;
+                        record.mark.seal_id = reader.read_uuid()?;
                     }
                 }
                 4 => {

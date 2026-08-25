@@ -393,6 +393,12 @@ internal sealed class CRecordReferenceView
 
 internal sealed class CReferenceFieldView
 {
+    /// <summary>
+    /// Where the resolved row is stored - the derived name, where this reference is to a
+    /// whole row. spec/reference-surface-naming.md section 5.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required string Name { get; set; }
     public required string RefTable { get; set; }
     public required string RefFunctionPrefix { get; set; }
@@ -463,6 +469,18 @@ internal sealed class CRecordTypeView
 /// </summary>
 internal sealed class CColumnView
 {
+    /// <summary>
+    /// The member access ending in the row's derived name, for a reference member.
+    /// spec/reference-surface-naming.md section 5.
+    /// </summary>
+    public string RowMemberAccess { get; set; } = "";
+
+    /// <summary>
+    /// Where the resolved rows go - the derived name for a whole-row reference, the column's
+    /// own name for a dotted one. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required int Tag { get; set; }
 
     /// <summary>Which read shape applies.</summary>

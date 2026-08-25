@@ -1091,6 +1091,41 @@ public class TabbitLayoutTests
         Assert.Equal(ValueType.Int32, field.Type);
     }
 
+    /// <summary>
+    /// And the check runs: a value no named table has a row for is reported at the cell.
+    /// </summary>
+    /// <remarks>
+    /// The check itself has its own gates, but they are written in a layout that reads the
+    /// target list out of a project's own row. This one writes the same thing in the core
+    /// notation, which is the point of `refs=` - the check no longer needs a project's
+    /// workbook to be exercised. spec/reference-surface-naming.md section 6.
+    /// </remarks>
+    [Fact]
+    public void Refs_reports_a_value_none_of_the_tables_has()
+    {
+        string reported = Reported(
+            Sheet(
+                [":table Item", "a catalogue"],
+                [":field", "code"],
+                [":type", "int"],
+                ["", "10"]),
+            Sheet(
+                [":table Mount", "another catalogue"],
+                [":field", "code"],
+                [":type", "int"],
+                ["", "20"]),
+            Sheet(
+                [":table Shop", "what a shop sells"],
+                [":field", "code", "rewardId"],
+                [":type", "int", "int (refs=Item;Mount)"],
+                ["", "1", "10"],
+                ["", "2", "999"]));
+
+        Assert.Contains("999", reported);
+        Assert.Contains("Item", reported);
+        Assert.Contains("Mount", reported);
+    }
+
     #endregion
 
     #region The declaration's brackets - section 3.4

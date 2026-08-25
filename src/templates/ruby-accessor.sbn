@@ -101,13 +101,13 @@
       {{ reference.table }}.records.each do |record|
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-        record.{{ field.name }}_index.each_with_index do |index, position|
+        record.{{ field.name }}.each_with_index do |index, position|
           target = {{ field.ref_table }}.{{ field.ref_lookup }}(index)
-          record.{{ field.name }}[position] = {{ field.value }} unless target.nil?
+          record.{{ field.row_name }}[position] = {{ field.value }} unless target.nil?
         end
 {{~ else ~}}
-        target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}_index)
-        record.{{ field.name }} = {{ field.value }} unless target.nil?
+        target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }})
+        record.{{ field.row_name }} = {{ field.value }} unless target.nil?
 {{~ end ~}}
 {{~ end ~}}
 {{~## A reference that is a member of a record resolves inside the element, so the array is

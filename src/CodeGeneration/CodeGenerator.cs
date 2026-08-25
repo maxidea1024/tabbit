@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Tabbit.Extensions;
 using Tabbit.Helpers;
 using Tabbit.Targets;
 
@@ -36,6 +37,38 @@ namespace Tabbit.CodeGeneration;
 public abstract class CodeGenerator<TRecipe> : Target<TRecipe>
     where TRecipe : class, IOutputRecipe
 {
+    /// <summary>
+    /// What a reference column's resolved row is called, in the model's own casing.
+    /// </summary>
+    /// <remarks>
+    /// **The column's name belongs to the key**, which is what the cell holds; the row is
+    /// something this tool linked after loading and it takes a derived name. Derived rather
+    /// than shortened: every short form has to leave the column's name out, and leaving it
+    /// out is what makes two names collide - a table with a `mail` column and a `mailId`
+    /// reference has two things wanting to be called `Mail`.
+    ///
+    /// The target comes first because that is what a reader browsing a record looks for,
+    /// and it is the form the several-target accessors used before those went away.
+    ///
+    /// Each generator hands the result through its own casing pass, so `MailByMailId` is
+    /// `mail_by_mail_id` where that is the language's spelling.
+    /// spec/reference-surface-naming.md section 5.
+    /// </remarks>
+    protected static string RowAccessorName(string target, string column)
+        => target.ToPascalCase() + "By" + column.ToPascalCase();
+
+    /// <summary>
+    /// Whether a reference hands back a row, which is what the naming rule is about.
+    /// </summary>
+    /// <remarks>
+    /// A dotted reference (`foreign Item.Name`) hands back a value out of the target rather
+    /// than the row, so the column's name stays on that value and the key keeps the name it
+    /// had. There is no row for a derived name to belong to.
+    /// spec/reference-surface-naming.md section 9.
+    /// </remarks>
+    protected static bool ResolvesToRow(Models.Field field)
+        => field.ResolvedRefField is null;
+
     /// <summary>
     /// A sheet comment split into the lines a comment block needs.
     ///

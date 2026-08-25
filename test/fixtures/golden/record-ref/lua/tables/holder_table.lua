@@ -9,14 +9,15 @@ local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
 ---@class HolderMainEntry
----@field itemId ItemRecord|nil
+---@field itemId integer
+---@field itemByItemId ItemRecord|nil
 ---@field count integer
-local HolderMainEntryMeta = tcb.strictType("an element of HolderRecord.main", { "itemId", "itemIdIndex", "count" })
+local HolderMainEntryMeta = tcb.strictType("an element of HolderRecord.main", { "itemId", "itemByItemId", "count" })
 
 ---@return HolderMainEntry
 local function newHolderMainEntry()
   return setmetatable({
-    itemIdIndex = 0,
+    itemId = 0,
     count = 0,
   }, HolderMainEntryMeta)
 end
@@ -128,7 +129,7 @@ function HolderTable:readBytes(data)
         local n, value = cursor:nextSameI32(count - at)
 
         for i = at + 1, at + n do
-          records[i].main.itemIdIndex = value
+          records[i].main.itemId = value
         end
 
         at = at + n

@@ -271,11 +271,19 @@ class {{ table.table_name }} {
 {{~## The member is the vector: it is sized and indexed rather than the record. Same
    columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
             {{ column_view.length_read }}
-{{~ if column_view.member_ref_suffix != '' ~}}
+{{~ if column_view.row_member_access != column_view.member_access ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
-   into the key - so both are sized. spec/references-in-records.md. ##~}}
-            record.{{ column_view.name }}{{ column_view.member_access }}.assign(
+   into the key - so both are sized. The member's own name is the key's.
+   spec/reference-surface-naming.md sections 4 and 9. ##~}}
+            record.{{ column_view.name }}{{ column_view.row_member_access }}.assign(
                 static_cast<std::size_t>(element_count), nullptr);
+            record.{{ column_view.name }}{{ column_view.member_access }}.resize(
+                static_cast<std::size_t>(element_count));
+{{~ else if column_view.is_reference ~}}
+{{~## A dotted reference member: the column's name stays on the value it hands back and the
+   key keeps the name it had. spec/reference-surface-naming.md section 9. ##~}}
+            record.{{ column_view.name }}{{ column_view.member_access }}.assign(
+                static_cast<std::size_t>(element_count), {{ column_view.ref_default }});
             record.{{ column_view.name }}{{ column_view.member_access }}_index.resize(
                 static_cast<std::size_t>(element_count));
 {{~ else ~}}
@@ -289,9 +297,9 @@ class {{ table.table_name }} {
             {{ column_view.read_scalar }};
 {{~ else if column_view.kind == "var_array_ref" ~}}
             {{ column_view.length_read }}
-            record.{{ column_view.name }}.assign(
+            record.{{ column_view.row_name }}.assign(
                 static_cast<std::size_t>(element_count), {{ column_view.ref_default }});
-            record.{{ column_view.name }}_index.resize(static_cast<std::size_t>(element_count));
+            record.{{ column_view.name }}.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
               {{ column_view.read_var_element }};
             }

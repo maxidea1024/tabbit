@@ -300,22 +300,22 @@ final class {{ table.table_name }}
    length - which is what `serial_ref` below does from the column count.
    spec/variable-length-record-arrays.md. ##~}}
                         {{ column_view.length_read }}
-                        $record->{{ column_view.name }}Index = [];
+                        $record->{{ column_view.key_name }} = [];
 {{~ if column_view.has_optional_elements ~}}
                         $record->{{ column_view.element_presence_member }} = [];
 {{~ end ~}}
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->{{ column_view.name }}Index[] = {{ column_view.read_element }};
+                            $record->{{ column_view.key_name }}[] = {{ column_view.read_element }};
 {{~ if column_view.has_optional_elements ~}}
                             $record->{{ column_view.element_presence_member }}[] =
                                 TcbReader::isPresent($elementPresence, $elementAt++);
 {{~ end ~}}
                         }
-                        $record->{{ column_view.name }} = $elementCount > 0
+                        $record->{{ column_view.row_name }} = $elementCount > 0
                             ? \array_fill(0, $elementCount, null)
                             : [];
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-                        $record->{{ column_view.name }}Index = {{ column_view.read_element }};
+                        $record->{{ column_view.key_name }} = {{ column_view.read_element }};
 {{~ else ~}}
                         $record->{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
 {{~ end ~}}

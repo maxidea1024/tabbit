@@ -97,14 +97,16 @@ tabbit --recipe my-recipe.json
 ```csharp
 public int Index => _index;
 public string Name => _name;
-public ItemCategoryTable.Record CategoryId => _categoryId;   // int 가 아닙니다
+public int CategoryId => ...;                                // 셀에 적힌 키
+public ItemCategoryTable.Record ItemCategoryByCategoryId => ...;  // 그것이 가리키는 행
 public Grade GradeField => _gradeField;
 public SkillType SkillField => _skillField;
 public string Description => _description;
 public int Price => _price;                                  // 서버 빌드에만
 ```
 
-`CategoryId`의 타입이 `int`가 아니라 `ItemCategoryTable.Record`입니다.
+`CategoryId`는 셀에 적힌 키 그대로이고, 그것이 가리키는 행은 이름이 따로 있습니다 —
+`<대상>By<컬럼>`입니다 ([참조가 내는 이름](../spec/reference-surface-naming.md)).
 
 파일에는 인덱스로 저장되고, `ReadAllAsync`가 모든 테이블을 읽은 뒤 실제 레코드로 연결합니다.
 
@@ -115,7 +117,7 @@ await GameData.ReadAllAsync("./data");
 
 var sword = GameData.Item.FindByIndex(1);
 Console.WriteLine(sword.Name);                  // Short Sword
-Console.WriteLine(sword.CategoryId.Name);       // Weapon   ← 조회를 한 번 더 하지 않습니다
+Console.WriteLine(sword.ItemCategoryByCategoryId.Name);  // Weapon   ← 조회를 한 번 더 하지 않습니다
 Console.WriteLine(sword.GradeField);            // Common
 ```
 

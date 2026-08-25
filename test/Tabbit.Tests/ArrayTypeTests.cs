@@ -184,8 +184,11 @@ public class ArrayTypeTests
             RepoLayout.OutputDir("array-foreign"), "csharp", "tables", "HolderTable.cs"));
 
         // A row per element for the whole-row form, and one of that row's values for the
-        // dotted one - the same two shapes a scalar reference takes.
-        Assert.Contains("public TargetTable.Record[] Targets => _targets;", cs);
+        // dotted one - the same two shapes a scalar reference takes. The column's name is
+        // the key's either way; only the whole-row form has a second name for the rows.
+        // spec/reference-surface-naming.md sections 4, 5 and 9.
+        Assert.Contains("public int[] Targets => _targets_Target_index;", cs);
+        Assert.Contains("public TargetTable.Record[] TargetByTargets => _targets;", cs);
         Assert.Contains("public string[] Notes => _notes;", cs);
 
         // Allocated from the row's own element count rather than a constant, which is what

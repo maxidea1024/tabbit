@@ -20,8 +20,8 @@ public final class MountRecord {
     /** A record inside rig. */
     public static final class RigEntryCore {
         /** element 1, two levels in */
-        public ItemRecord itemId;
-        public int itemIdIndex;
+        public int itemId;
+        public ItemRecord itemByItemId;
         /** its sibling at that level */
         public int count;
     }

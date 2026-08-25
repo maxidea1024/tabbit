@@ -728,6 +728,18 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
         return new CsColumnView
         {
+            RowMemberAccess = (wire.Member is not null && wire.IsRef
+                                   && ResolvesToRow(wire.TagCarrier))
+                ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                    .Select(part => "." + CsName(part)))
+                  + "." + CsName(RowAccessorName(
+                        wire.TagCarrier.ResolvedRefTable!.Name, wire.MemberPath[^1]))
+                : string.Concat(wire.MemberPath.Select(part => "." + CsName(part))),
+
+            MemberKeyType = wire.IsRef
+                ? ToCSharpTypeName(wire.RefKeyType, null, null)
+                : "",
+
             Tag = wire.TagCarrier.Tag!.Value,
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
             ReadKind = readKind,
@@ -815,6 +827,14 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             NeedsElementInit = false,
             Comment = CommentLines(sf.FirstField!.Comment),
             PropName = CsName(sf.Name),
+
+            // Only a reference to a whole row: the column's name is the key's and this is
+            // what the row takes.
+            RowPropName = sf.IsRef && refTable.Length > 0
+                           && sf.FirstField!.ResolvedRefField is null
+                ? CsName(RowAccessorName(refTable, sf.Name))
+                : "",
+
             PascalName = sf.Name.ToPascalCase(),
             FieldName = fieldName,
             FieldType = fieldType,
@@ -939,10 +959,23 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
         var (path, subscript) = MemberPlace(wire, fieldName, memberAccess);
 
+        // The member's own name is the key's; the row takes the derived one.
+        // spec/reference-surface-naming.md sections 4, 5 and 9.
+        bool toRow = ResolvesToRow(wire.TagCarrier);
+
+        string rowAccess = toRow
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + CsName(part)))
+              + "." + CsName(RowAccessorName(
+                    wire.TagCarrier.ResolvedRefTable!.Name, wire.MemberPath[^1]))
+            : memberAccess;
+
+        var (rowPath, rowSubscript) = MemberPlace(wire, fieldName, rowAccess);
+
         return new CsRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "_index" + subscript,
+            Access = rowPath + rowSubscript,
+            Key = toRow ? path + subscript : path + "_index" + subscript,
             Flag = path + "_F" + subscript,
 
             // The member's own array when the number is on the member, the group's when it
@@ -1004,6 +1037,11 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                 result.Add(new CsRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
+                    RowPropName = member.IsRef && member.FirstField!.ResolvedRefTable is not null
+                                   && ResolvesToRow(member.FirstField!)
+                        ? CsName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : "",
+
                     PropName = CsName(member.Name),
                     PascalName = member.Name.ToPascalCase(),
                     FieldType = ToCSharpTypeName(member.FirstField) + (member.IsArray ? "[]" : ""),
@@ -1063,6 +1101,11 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             result.Add(new CsRecordMemberView
             {
                 Comment = CommentLines(member.FirstField!.Comment),
+                RowPropName = member.IsRef && member.FirstField!.ResolvedRefTable is not null
+                               && ResolvesToRow(member.FirstField!)
+                    ? CsName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                    : "",
+
                 PropName = CsName(member.Name),
                 PascalName = member.Name.ToPascalCase(),
                 FieldType = typeName,
@@ -1424,7 +1467,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// The lines assigning one row from `value`, a run's decoded value, inside the loop
     /// the template builds around <see cref="RunCall"/>.
     /// </summary>
-    private static IReadOnlyList<string> RunReadLines(
+    private IReadOnlyList<string> RunReadLines(
         WireColumn wire, string fieldName, string fieldType, string refTable, string memberAccess)
     {
         if (RunCall(wire).Length == 0)
@@ -1440,18 +1483,30 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // of a record of one. Its key lives on the member like every other member's
             // does; naming the group alone wrote into a field nothing declared.
             // spec/references-in-records.md.
-            string target = (wire.Member is null)
+            string key = (wire.Member is null)
                 ? $"record.{fieldName}"
                 : $"record.{fieldName}{memberAccess}";
+
+            // The member's own name is the key's, and the row sits beside it under the
+            // derived one. spec/reference-surface-naming.md sections 4, 5 and 9.
+            string rowAccess = (wire.Member is not null && ResolvesToRow(wire.TagCarrier))
+                ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                    .Select(part => "." + CsName(part)))
+                  + "." + CsName(RowAccessorName(
+                        wire.TagCarrier.ResolvedRefTable!.Name, wire.MemberPath[^1]))
+                : memberAccess;
+
+            string target = $"record.{fieldName}{rowAccess}";
+
             string index = (wire.Member is null)
                 ? $"record.{fieldName}_{refTable}_index"
-                : target + "_index";
+                : ResolvesToRow(wire.TagCarrier) ? key : key + "_index";
 
             return new[]
             {
                 $"{index} = value;",
                 $"{target} = default({fieldType}); // will be assigned.",
-                $"{target}_F = false;",
+                $"{key}_F = false;",
             };
         }
 
@@ -1469,7 +1524,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// Same columns, same loop, same wire - see spec/nested-multi-level.md.
     ///
     /// The two are kept apart because a reference member declares its key and its flag on
-    /// the member rather than on the element it holds: `Slots.ItemId_index[j]`, not
+    /// the member rather than on the element it holds: `Slots.ItemId[j]`, not
     /// `Slots.ItemId[j]_index`. spec/references-in-records.md.
     /// </remarks>
     private static (string Path, string Subscript) MemberPlace(
@@ -1487,7 +1542,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         return ($"record.{fieldName}[j]{memberAccess}", "");
     }
 
-    private static IReadOnlyList<string> ElementReadLines(
+    private IReadOnlyList<string> ElementReadLines(
         WireColumn wire, string fieldName, string fieldType, string refTable, string memberAccess)
     {
         bool isArray = wire.IsArray;
@@ -1496,7 +1551,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         string target = path + subscript;
 
         // A record member keeps its key and flag inside the element, beside the row they
-        // belong to - `record._slot[j].ItemId_index` rather than a parallel array named
+        // belong to - `record._slot[j].ItemId` rather than a parallel array named
         // after the group, which two members pointing at one table would collide in.
         // spec/references-in-records.md.
         string flag;
@@ -1505,7 +1560,26 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         if (wire.Member is not null)
         {
             flag = path + "_F" + subscript;
-            index = path + "_index" + subscript;
+
+            // The member's own name is the key's, and the row it resolves to sits beside it
+            // under the derived one. spec/reference-surface-naming.md sections 4, 5 and 9.
+            if (wire.IsRef && ResolvesToRow(wire.TagCarrier))
+            {
+                index = path + subscript;
+
+                string rowAccess = string.Concat(
+                        wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                            .Select(part => "." + CsName(part)))
+                    + "." + CsName(RowAccessorName(
+                        wire.TagCarrier.ResolvedRefTable!.Name, wire.MemberPath[^1]));
+
+                var (rowPath, rowSubscript) = MemberPlace(wire, fieldName, rowAccess);
+                target = rowPath + rowSubscript;
+            }
+            else
+            {
+                index = path + "_index" + subscript;
+            }
         }
         else
         {

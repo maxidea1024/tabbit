@@ -241,6 +241,15 @@ internal sealed class GoFieldView
 /// <summary>One member of a record group's generated struct.</summary>
 internal sealed class GoRecordMemberView
 {
+    /// <summary>
+    /// What the resolved row is called, where this member is a reference. Empty otherwise.
+    /// </summary>
+    /// <remarks>
+    /// The member's own name is the key's - that is what the cell holds - and this is the
+    /// derived name the row takes. spec/reference-surface-naming.md section 5.
+    /// </remarks>
+    public string RowName { get; set; } = "";
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     /// <summary>
@@ -303,6 +312,18 @@ internal sealed class GoRecordTypeView
 /// </summary>
 internal sealed class GoColumnView
 {
+    /// <summary>
+    /// Where the resolved rows go for a whole-row reference, or the key's own name for a
+    /// dotted one. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
+    /// <summary>
+    /// The member access ending in the row's derived name, where this column is a reference
+    /// member. Empty otherwise. spec/reference-surface-naming.md section 5.
+    /// </summary>
+    public string RowMemberAccess { get; set; } = "";
+
     /// <summary>The column's wire tag.</summary>
     public required int Tag { get; set; }
 
@@ -482,6 +503,13 @@ internal sealed class GoRecordReferenceView
 
 internal sealed class GoReferenceFieldView
 {
+    /// <summary>
+    /// Where the resolved row goes - the derived name for a whole-row reference, the
+    /// column's own name for a dotted one.
+    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowName { get; set; } = "";
+
     public required string Name { get; set; }
     public required string RefTable { get; set; }
 

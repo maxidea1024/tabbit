@@ -13,9 +13,9 @@ use crate::tabbit;
 #[derive(Clone, Debug, Default)]
 pub struct LoadoutSlotEntry {
     /// element 1, the reference
-    pub item_id_index: i32,
+    pub item_id: i32,
     /// element 1, a second reference to the same table
-    pub swap_id_index: i32,
+    pub swap_id: i32,
     /// element 1, an ordinary member
     pub count: i32,
 }
@@ -151,7 +151,7 @@ impl LoadoutTable {
                         // two counts would shift every value after it.
                         record.slot = vec![LoadoutSlotEntry::default(); element_count];
                         for element in 0..element_count {
-                            record.slot[element].item_id_index = cursor.next_i32()?;
+                            record.slot[element].item_id = cursor.next_i32()?;
                         }
                     }
                 }
@@ -168,7 +168,7 @@ impl LoadoutTable {
                             });
                         }
                         for element in 0..element_count {
-                            record.slot[element].swap_id_index = cursor.next_i32()?;
+                            record.slot[element].swap_id = cursor.next_i32()?;
                         }
                     }
                 }

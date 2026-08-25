@@ -23,11 +23,11 @@ use Tabbit\Uuid;
 final class BagSlotsEntry
 {
     /** element 1 of the member */
-    /** @var list<?ItemRecord> */
+    /** @var list<int> */
     public array $itemId = [];
 
-    /** @var list<int> */
-    public array $itemIdIndex = [];
+    /** @var list<?ItemRecord> */
+    public array $itemByItemId = [];
     /** element 1 of the member beside it */
     /** @var int[] */
     public array $count = [];
@@ -164,9 +164,9 @@ final class BagTable
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'Bag.Slots.ItemId');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->slots->itemIdIndex = [];
+                        $record->slots->itemId = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->slots->itemIdIndex[$j] = $cursor->nextI32();
+                            $record->slots->itemId[$j] = $cursor->nextI32();
                         }
                     }
                     break;

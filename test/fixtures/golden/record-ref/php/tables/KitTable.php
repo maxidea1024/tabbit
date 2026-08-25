@@ -23,9 +23,9 @@ use Tabbit\Uuid;
 final class KitPartEntry
 {
     /** element 1, the reference */
-    public ?ItemRecord $itemId = null;
+    public int $itemId = 0;
 
-    public int $itemIdIndex = 0;
+    public ?ItemRecord $itemByItemId = null;
     /** element 1, an ordinary member */
     public int $count = 0;
 }
@@ -157,7 +157,7 @@ final class KitTable
                             $record->part[] = new KitPartEntry();
                         }
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->part[$j]->itemIdIndex = $cursor->nextI32();
+                            $record->part[$j]->itemId = $cursor->nextI32();
                         }
                     }
                     break;

@@ -283,8 +283,8 @@ validation/
 foreach (var row in context.Tables.Item.Records)
 {
     // 참조는 해석된 상태로 옵니다. 저장된 키가 아니라 레코드입니다.
-    if (row.CategoryId is null)
-        context.Error(row, nameof(row.CategoryId), "모든 아이템은 카테고리에 속해야 합니다.");
+    if (row.ItemCategoryByCategoryId is null)
+        context.Error(row, nameof(row.ItemCategoryByCategoryId), "모든 아이템은 카테고리에 속해야 합니다.");
 
     // enum 컬럼은 생성된 enum이므로 숫자가 아니라 라벨로 비교합니다.
     if (row.GradeField == Grade.Epic && row.Price <= 0)
@@ -299,7 +299,7 @@ var buff = context.Tables.WorldBuff.FindByIndex(row.BuffId);
 |--|
 |`context.Tables.Itme`이나 `row.MaxStak`은 실행 중의 드러나지 않는 미스가 아니라 **파일·줄 번호가 찍힌 컴파일 오류**입니다|
 |`row.Price`는 `int`, `row.GradeField`는 생성된 enum입니다|
-|**참조가 해석되어 있습니다** — 리더가 연결 단계를 수행하므로 `row.CategoryId.Name`처럼 따라갑니다|
+|**참조가 해석되어 있습니다** — 리더가 연결 단계를 수행하므로 `row.ItemCategoryByCategoryId.Name`처럼 따라갑니다|
 |자동 완성이 무엇이 있는지 알려줍니다. 테이블 275개의 컬럼을 기억할 필요가 없습니다|
 
 이것이 가능한 이유는 검증이 프로젝트의 C#을 실제로 생성해서 컴파일하기 때문입니다.

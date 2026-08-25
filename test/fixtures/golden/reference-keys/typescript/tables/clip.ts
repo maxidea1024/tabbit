@@ -39,13 +39,16 @@ export class ClipRecord {
   public get index(): number { return this._index }
 
   /** a string-keyed target */
-  public get anim(): AnimationRecord { return this._anim }
+  public get anim(): string { return this._anim_Animation_index }
+  public get animationByAnim(): AnimationRecord { return this._anim }
 
   /** a bigint-keyed target */
-  public get entry(): LedgerRecord { return this._entry }
+  public get entry(): bigint { return this._entry_Ledger_index }
+  public get ledgerByEntry(): LedgerRecord { return this._entry }
 
   /** a uuid-keyed target */
-  public get cover(): ArtRecord { return this._cover }
+  public get cover(): string { return this._cover_Art_index }
+  public get artByCover(): ArtRecord { return this._cover }
 
   public setReference_anim_INTERNAL(value: AnimationRecord) { this._anim = value; }
   public setReference_entry_INTERNAL(value: LedgerRecord) { this._entry = value; }

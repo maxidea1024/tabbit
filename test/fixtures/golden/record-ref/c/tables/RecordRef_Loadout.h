@@ -24,9 +24,9 @@ extern "C" {
 /* One element of RecordRef_LoadoutRecord_t::slot. */
 struct RecordRef_LoadoutRecord_t_slot_entry {
   /* element 1, the reference */
-  const RecordRef_ItemRecord_t* item_id; int32_t item_id_index;
+  int32_t item_id; const RecordRef_ItemRecord_t* item_by_item_id;
   /* element 1, a second reference to the same table */
-  const RecordRef_ItemRecord_t* swap_id; int32_t swap_id_index;
+  int32_t swap_id; const RecordRef_ItemRecord_t* item_by_swap_id;
   /* element 1, an ordinary member */
   int32_t count;
 };

@@ -81,13 +81,13 @@ fun main(args: Array<String>) {
         json.append(']')
 
         // The reference indices, which is what the exporter writes for a foreign field.
-        json.append(",\"owner\":").append(r.ownerIndex)
+        json.append(",\"owner\":").append(r.owner)
         json.append(",\"tier\":").append(r.tierIndex)
 
         // And one reference per element, printed as the stored index each came in as.
         json.append(",\"owners\":[")
-        for (k in r.ownersIndex.indices)
-            json.append(if (k > 0) "," else "").append(r.ownersIndex[k])
+        for (k in r.owners.indices)
+            json.append(if (k > 0) "," else "").append(r.owners[k])
         json.append(']')
 
         // The three the v104 encodings win on.

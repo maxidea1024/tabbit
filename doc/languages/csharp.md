@@ -86,7 +86,7 @@ var sword = GameData.Item.FindByIndex(1);
 if (sword != null)
 {
     // 참조는 로드 후 실제 레코드로 연결되어 있습니다.
-    Debug.Log($"{sword.Name} / {sword.CategoryId.Name}");
+    Debug.Log($"{sword.Name} / {sword.ItemCategoryByCategoryId.Name}");
 }
 
 foreach (var row in GameData.Item.Records)

@@ -64,7 +64,7 @@ static bool RecordRef_BadgeParse(RecordRef_BadgeTable_t* table, tb_reader* reade
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         RecordRef_BadgeRecord_t* record = &table->records[row];
 
-        (void)tb_cursor_next_string(&cursor, &record->mark.clip_id_index);
+        (void)tb_cursor_next_string(&cursor, &record->mark.clip_id);
       }
       break;
 
@@ -74,7 +74,7 @@ static bool RecordRef_BadgeParse(RecordRef_BadgeTable_t* table, tb_reader* reade
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         RecordRef_BadgeRecord_t* record = &table->records[row];
 
-        (void)tb_read_uuid(reader, &record->mark.seal_id_index);
+        (void)tb_read_uuid(reader, &record->mark.seal_id);
       }
       break;
 

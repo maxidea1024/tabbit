@@ -763,6 +763,19 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         return new CColumnView
         {
+            RowMemberAccess = (wire.Member is not null && wire.IsRef
+                                   && ResolvesToRow(wire.TagCarrier))
+                ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                    .Select(part => "." + CName(part)))
+                  + "." + CName(RowAccessorName(
+                        wire.TagCarrier.ResolvedRefTable!.Name, wire.MemberPath[^1]))
+                : string.Concat(wire.MemberPath.Select(part => "." + CName(part))),
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? CName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                : CName(wire.Group.Name),
+
             Tag = wire.TagCarrier.Tag!.Value,
             Kind = ReadKind(wire),
             ColumnCheck = ColumnCheck(wire, table.Name.ToPascalCase()),
@@ -827,7 +840,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     {
         if (wire.IsArray)
         {
-            string keys = wire.IsRef ? $" {target}_index = NULL;" : "";
+            string keys = wire.IsRef ? $" {target} = NULL;" : "";
 
             return $"{{ {target} = NULL;{keys} {target}_count = 0; }}";
         }
@@ -1051,8 +1064,8 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         if (wire.IsRef)
         {
             return (wire.Member is null)
-                ? $"table->records[row].{name}_index = value;"
-                : $"table->records[row].{name}{member}_index = value;";
+                ? $"table->records[row].{name} = value;"
+                : $"table->records[row].{name}{member} = value;";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -1072,7 +1085,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// spec/nested-multi-level.md.
     ///
     /// The two are kept apart because a reference member declares its key on the member
-    /// rather than on the element it holds: `slots.item_id_index[element]`, not
+    /// rather than on the element it holds: `slots.item_id[element]`, not
     /// `slots.item_id[element]_index`. spec/references-in-records.md.
     /// </remarks>
     private static (string Path, string Subscript) MemberPlace(
@@ -1098,7 +1111,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// file carries the target's index, and the pointer beside it is filled in once every
     /// table is loaded. spec/reference-key-types.md.
     ///
-    /// A record member keeps that key inside the element - `main.item_id_index` rather than
+    /// A record member keeps that key inside the element - `main.item_id` rather than
     /// a name built from the group, which nothing declares. A scalar column of a record
     /// group is a group holding one record, so there is no element number here at all.
     /// spec/references-in-records.md.
@@ -1108,9 +1121,14 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         if (!wire.IsRef)
             return $"&record->{name}{member}";
 
+        // A dotted reference resolves to a value rather than a row, so there the column's own
+        // name belongs to the value and the key takes the `_index` one.
+        // spec/reference-surface-naming.md section 9.
+        string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "_index";
+
         return (wire.Member is null)
-            ? $"&record->{name}_index"
-            : $"&record->{name}{member}_index";
+            ? $"&record->{name}{keySuffix}"
+            : $"&record->{name}{member}{keySuffix}";
     }
 
     /// <summary>
@@ -1131,8 +1149,8 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         // inside an element type.
         string address = wire.IsRef
             ? (wire.Member is null
-                ? $"&record->{name}_index[element]"
-                : $"&{path}_index{subscript}")
+                ? $"&record->{name}{(ResolvesToRow(wire.TagCarrier) ? "" : "_index")}[element]"
+                : $"&{path}{subscript}")
             : $"&{path}{subscript}";
 
         return UsesCursor(wire) ? CursorReadCall(wire, address) : ReadCall(wire, address);
@@ -1239,17 +1257,25 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // A pointer and a count, for the reason below: how many elements a row holds
             // is what the file states. Both arrays are the same length, so one count answers
             // for the pair.
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? CName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "_index";
+
             return sf.IsArray
                 ? new[]
                 {
-                    $"{resolved}* {name};",
-                    $"{keyType}* {name}_index;",
+                    $"{keyType}* {keyName};",
+                    $"{resolved}* {rowName};",
                     $"int32_t {name}_count;",
                 }
                 : new[]
                 {
-                    $"{resolved} {name};",
-                    $"{keyType} {name}_index;",
+                    $"{keyType} {keyName};",
+                    $"{resolved} {rowName};",
                 };
         }
 
@@ -1360,10 +1386,20 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         var (path, subscript) = MemberPlace(wire, name, member, "element");
 
+        // The member's own name is the key's; the row takes the derived one.
+        // spec/reference-surface-naming.md sections 4 and 5.
+        string rowMember = ResolvesToRow(wire.TagCarrier)
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + CName(part)))
+              + "." + CName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : member;
+
+        var (rowPath, rowSubscript) = MemberPlace(wire, name, rowMember, "element");
+
         return new CRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "_index" + subscript,
+            Access = rowPath + rowSubscript,
+            Key = path + subscript,
 
             // Whichever array holds the elements, and its count sits beside it. The group
             // owns the array when the number is on the group, the member owns it when the
@@ -1388,7 +1424,16 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         return new CReferenceFieldView
         {
-            Name = name,
+            // The column's name is the key's; the row is written under the derived one. A
+            // dotted reference has no row to name, so there the value keeps the column's
+            // name and the key takes the `_index` one.
+            // spec/reference-surface-naming.md sections 4, 5 and 9.
+            Name = sf.ElementType == ValueType.ForeignRecord ? name : name + "_index",
+
+            RowName = sf.ElementType == ValueType.ForeignRecord
+                ? CName(RowAccessorName(refTable!.Name, sf.Name))
+                : name,
+
             RefTable = CName(refTable!.Name),
             RefFunctionPrefix = FunctionPrefix(refTable),
             RefLookup = PrimaryLookup(refTable),
@@ -1482,9 +1527,17 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             string row = $"const {RecordName(member.FirstField!.ResolvedRefTable)}*";
             string key = ScalarTypeName(member.FirstField!.RefKeyType, null);
 
+            // The member's own name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? CName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : CName(member.Name);
+                    string keyName = toRow ? CName(member.Name) : CName(member.Name) + "_index";
+
             return member.IsArray
-                ? $"{row}* {name}; {key}* {name}_index; int32_t {name}_count;"
-                : $"{row} {name}; {key} {name}_index;";
+                ? $"{key}* {keyName}; {row}* {rowName}; int32_t {name}_count;"
+                : $"{key} {keyName}; {row} {rowName};";
         }
 
         string type = ScalarTypeName(member.ElementType, member.FirstField!.EnumOrNull);

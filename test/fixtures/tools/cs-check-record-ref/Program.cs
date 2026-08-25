@@ -48,10 +48,10 @@ internal static class Program
                     // land in the first one's - which is why the key lives in the element.
                     ["slots"] = r.Slot.Select(s => new Dictionary<string, object>
                     {
-                        ["key"] = s.ItemId_index,
-                        ["resolved"] = s.ItemId_F ? s.ItemId.Name : "<unresolved>",
-                        ["swapKey"] = s.SwapId_index,
-                        ["swap"] = s.SwapId_F ? s.SwapId.Name : "<unresolved>",
+                        ["key"] = s.ItemId,
+                        ["resolved"] = s.ItemId_F ? s.ItemByItemId.Name : "<unresolved>",
+                        ["swapKey"] = s.SwapId,
+                        ["swap"] = s.SwapId_F ? s.ItemBySwapId.Name : "<unresolved>",
                         ["count"] = s.Count,
                     }).ToList(),
                 }).ToList(),
@@ -61,8 +61,8 @@ internal static class Program
                 ["Holder"] = RecordRefAccessor.Holder.Records.Select(r => new Dictionary<string, object>
                 {
                     ["index"] = r.Index,
-                    ["key"] = r.Main.ItemId_index,
-                    ["resolved"] = r.Main.ItemId_F ? r.Main.ItemId.Name : "<unresolved>",
+                    ["key"] = r.Main.ItemId,
+                    ["resolved"] = r.Main.ItemId_F ? r.Main.ItemByItemId.Name : "<unresolved>",
                     ["count"] = r.Main.Count,
                 }).ToList(),
 
@@ -71,12 +71,12 @@ internal static class Program
                 ["Bag"] = RecordRefAccessor.Bag.Records.Select(r => new Dictionary<string, object>
                 {
                     ["index"] = r.Index,
-                    ["slots"] = Enumerable.Range(0, r.Slots.ItemId.Length)
+                    ["slots"] = Enumerable.Range(0, r.Slots.ItemByItemId.Length)
                                           .Select(k => new Dictionary<string, object>
                                           {
-                                              ["key"] = r.Slots.ItemId_index[k],
+                                              ["key"] = r.Slots.ItemId[k],
                                               ["resolved"] = r.Slots.ItemId_F[k]
-                                                  ? r.Slots.ItemId[k].Name
+                                                  ? r.Slots.ItemByItemId[k].Name
                                                   : "<unresolved>",
                                               ["count"] = r.Slots.Count[k],
                                           }).ToList(),
@@ -89,8 +89,8 @@ internal static class Program
                     ["index"] = r.Index,
                     ["rigs"] = r.Rig.Select(g => new Dictionary<string, object>
                     {
-                        ["key"] = g.Core.ItemId_index,
-                        ["resolved"] = g.Core.ItemId_F ? g.Core.ItemId.Name : "<unresolved>",
+                        ["key"] = g.Core.ItemId,
+                        ["resolved"] = g.Core.ItemId_F ? g.Core.ItemByItemId.Name : "<unresolved>",
                         ["count"] = g.Core.Count,
                     }).ToList(),
                 }).ToList(),
@@ -102,8 +102,8 @@ internal static class Program
                     ["index"] = r.Index,
                     ["steps"] = r.Step.Select(s => new Dictionary<string, object>
                     {
-                        ["key"] = s.ClipId_index,
-                        ["resolved"] = s.ClipId_F ? s.ClipId.Index : "<unresolved>",
+                        ["key"] = s.ClipId,
+                        ["resolved"] = s.ClipId_F ? s.ClipByClipId.Index : "<unresolved>",
                         ["weight"] = s.Weight,
                     }).ToList(),
                 }).ToList(),
@@ -116,8 +116,8 @@ internal static class Program
                     ["length"] = r.Part.Length,
                     ["parts"] = r.Part.Select(p => new Dictionary<string, object>
                     {
-                        ["key"] = p.ItemId_index,
-                        ["resolved"] = p.ItemId_F ? p.ItemId.Name : "<unresolved>",
+                        ["key"] = p.ItemId,
+                        ["resolved"] = p.ItemId_F ? p.ItemByItemId.Name : "<unresolved>",
                         ["count"] = p.Count,
                     }).ToList(),
                 }).ToList(),

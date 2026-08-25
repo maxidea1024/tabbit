@@ -37,7 +37,8 @@ namespace Tabbit.Fixtures.X
             /// <summary>
             /// a list of rows
             /// </summary>
-            public TargetTable.Record[] Targets => _targets;
+            public int[] Targets => _targets_Target_index;
+            public TargetTable.Record[] TargetByTargets => _targets;
 
             /// <summary>
             /// a list of one of that row's values
@@ -58,7 +59,7 @@ namespace Tabbit.Fixtures.X
             #region Storage
             internal int _index;
             internal TargetTable.Record[] _targets = System.Array.Empty<TargetTable.Record>();
-            public int[] _targets_Target_index = System.Array.Empty<int>();
+            internal int[] _targets_Target_index = System.Array.Empty<int>();
             public bool[] _targets_F = System.Array.Empty<bool>();
             internal string[] _notes = System.Array.Empty<string>();
             public int[] _notes_Target_index = System.Array.Empty<int>();

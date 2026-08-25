@@ -412,6 +412,12 @@ internal sealed class TsColumnView
 /// </summary>
 internal sealed class TsRecordMemberView
 {
+    /// <summary>
+    /// What the resolved row is called, where this member is a reference. Empty otherwise.
+    /// spec/reference-surface-naming.md section 5.
+    /// </summary>
+    public string RowPropName { get; set; } = "";
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     /// <summary>Property name on the element interface, camelCase and escaped.</summary>
@@ -486,6 +492,12 @@ internal sealed class TsRecordTypeView
 /// </summary>
 internal sealed class TsFieldView
 {
+    /// <summary>
+    /// What the resolved row is called, where this column is a reference to a whole row.
+    /// Empty otherwise. spec/reference-surface-naming.md section 5.
+    /// </summary>
+    public string RowPropName { get; set; } = "";
+
     /// <summary>
     /// Whether the sheet marked this field optional, so a row may have no value for it.
     /// </summary>

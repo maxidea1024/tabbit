@@ -50,8 +50,8 @@ class HolderRecord {
     /** One element of main. */
     class MainEntry {
         /** the reference, in a record of one */
-        var itemId: ItemRecord? = null
-        var itemIdIndex: Int = 0
+        var itemId: Int = 0
+        var itemByItemId: ItemRecord? = null
         /** an ordinary member beside it */
         var count: Int = 0
     }
@@ -145,7 +145,7 @@ class HolderTable {
                         var n = cursor.nextSameI32(count - at)
                         while (n > 0) {
                             val i = at
-                            loaded[i].main.itemIdIndex = cursor.runSameValue
+                            loaded[i].main.itemId = cursor.runSameValue
                             at++
                             n--
                         }

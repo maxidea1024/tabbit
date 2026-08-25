@@ -24,11 +24,11 @@ namespace record_ref {
 /// One element of LoadoutRecord::slot.
 struct LoadoutRecord_slot_entry {
   /// element 1, the reference
-  const ItemRecord* item_id = nullptr;
-  std::int32_t item_id_index = 0;
+  std::int32_t item_id = 0;
+  const ItemRecord* item_by_item_id = nullptr;
   /// element 1, a second reference to the same table
-  const ItemRecord* swap_id = nullptr;
-  std::int32_t swap_id_index = 0;
+  std::int32_t swap_id = 0;
+  const ItemRecord* item_by_swap_id = nullptr;
   /// element 1, an ordinary member
   std::int32_t count = 0;
 };
@@ -129,7 +129,7 @@ class LoadoutTable {
             const std::int32_t element_count = cursor.next_length();
             record.slot.assign(static_cast<std::size_t>(element_count), LoadoutRecord_slot_entry());
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.slot[static_cast<std::size_t>(j)].item_id_index = cursor.next_i32();
+              record.slot[static_cast<std::size_t>(j)].item_id = cursor.next_i32();
             }
           }
           break;
@@ -147,7 +147,7 @@ class LoadoutTable {
                   "record carries the same count, so the file is damaged");
             }
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.slot[static_cast<std::size_t>(j)].swap_id_index = cursor.next_i32();
+              record.slot[static_cast<std::size_t>(j)].swap_id = cursor.next_i32();
             }
           }
           break;

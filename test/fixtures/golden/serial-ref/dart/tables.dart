@@ -99,9 +99,9 @@ class Tables {
   /// this resolves the load being read rather than the one already published.
   void _solveCrossReferences(PieceTable piece, KitTable kit, BitTable bit, TrimKitTable trimKit) {
     for (final record in kit.records) {
-      for (var i = 0; i < record.slotIndex.length; i++) {
-        final target = piece.findByIndex(record.slotIndex[i]);
-        if (target != null) record.slot[i] = target;
+      for (var i = 0; i < record.slot.length; i++) {
+        final target = piece.findByIndex(record.slot[i]);
+        if (target != null) record.pieceBySlot[i] = target;
       }
       for (var i = 0; i < record.tierIndex.length; i++) {
         final target = piece.findByIndex(record.tierIndex[i]);
@@ -109,9 +109,9 @@ class Tables {
       }
     }
     for (final record in trimKit.records) {
-      for (var i = 0; i < record.slotIndex.length; i++) {
-        final target = bit.findByIndex(record.slotIndex[i]);
-        if (target != null) record.slot[i] = target;
+      for (var i = 0; i < record.slot.length; i++) {
+        final target = bit.findByIndex(record.slot[i]);
+        if (target != null) record.bitBySlot[i] = target;
       }
       for (var i = 0; i < record.tierIndex.length; i++) {
         final target = bit.findByIndex(record.tierIndex[i]);

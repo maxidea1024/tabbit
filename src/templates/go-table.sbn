@@ -175,11 +175,14 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~## One record, and the slices are its members - so each of them is made here for the
    same reason. ##~}}
 {{~ for member in field.members ~}}
-		records[i].{{ field.name }}.{{ member.name }} = make({{ member.slice_type }}, 0)
 {{~ if member.ref_key_slice_type != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
-   into the key - so both are made. spec/references-in-records.md. ##~}}
-		records[i].{{ field.name }}.{{ member.name }}Index = make({{ member.ref_key_slice_type }}, 0)
+   into the key - so both are made. The member's own name is the key's.
+   spec/reference-surface-naming.md section 4. ##~}}
+		records[i].{{ field.name }}.{{ member.name }} = make({{ member.ref_key_slice_type }}, 0)
+		records[i].{{ field.name }}.{{ member.row_name }} = make({{ member.slice_type }}, 0)
+{{~ else ~}}
+		records[i].{{ field.name }}.{{ member.name }} = make({{ member.slice_type }}, 0)
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -246,13 +249,13 @@ func (t *{{ table.table_name }}) Read(filename string) error {
    beside them, which is what `serial_ref` does from the column count.
    spec/variable-length-record-arrays.md. ##~}}
 					{{ column_view.length_read }}
-					r.{{ column_view.name }} = make({{ column_view.array_type }}, elementCount)
-					r.{{ column_view.name }}Index = make([]{{ column_view.ref_key_type }}, elementCount)
+					r.{{ column_view.row_name }} = make({{ column_view.array_type }}, elementCount)
+					r.{{ column_view.name }} = make([]{{ column_view.ref_key_type }}, elementCount)
 {{~ if column_view.has_optional_elements ~}}
 					r.{{ column_view.element_presence_member }} = make([]bool, elementCount)
 {{~ end ~}}
 					for j := 0; j < elementCount; j++ {
-						r.{{ column_view.name }}Index[j] = {{ column_view.read_value }}
+						r.{{ column_view.name }}[j] = {{ column_view.read_value }}
 {{~ if column_view.has_optional_elements ~}}
 						r.{{ column_view.element_presence_member }}[j] =
 							tabbit.IsPresent(elementPresence, elementAt)
@@ -287,11 +290,12 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~## The member is the array: the index goes after its name rather than before, and its
    length is this row's - see spec/nested-multi-level.md. ##~}}
 					{{ column_view.length_read }}
-{{~ if column_view.member_ref_suffix != '' ~}}
+{{~ if column_view.row_member_access != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
-   into the key - so both are made. spec/references-in-records.md. ##~}}
-					r.{{ column_view.name }}{{ column_view.member_access }} = make({{ column_view.element_slice_type }}, elementCount)
-					r.{{ column_view.name }}{{ column_view.member_access }}Index = make([]{{ column_view.ref_key_type }}, elementCount)
+   into the key - so both are made. The member's own name is the key's.
+   spec/reference-surface-naming.md section 4. ##~}}
+					r.{{ column_view.name }}{{ column_view.member_access }} = make([]{{ column_view.ref_key_type }}, elementCount)
+					r.{{ column_view.name }}{{ column_view.row_member_access }} = make({{ column_view.element_slice_type }}, elementCount)
 {{~ else ~}}
 					r.{{ column_view.name }}{{ column_view.member_access }} = make({{ column_view.element_slice_type }}, elementCount)
 {{~ end ~}}
@@ -299,7 +303,7 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 						r.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}[j] = {{ column_view.read_value }}
 					}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-					r.{{ column_view.name }}Index = {{ column_view.read_value }}
+					r.{{ column_view.name }} = {{ column_view.read_value }}
 {{~ else ~}}
 					r.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_value }}
 {{~ end ~}}

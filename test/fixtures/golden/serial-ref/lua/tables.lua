@@ -81,11 +81,11 @@ function tables:readAll(source, fileExtension)
   -- Turns loadedKit's stored keys into rows, now that every table is in
   -- memory.
   for _, record in ipairs(loadedKit.records) do
-    for position = 1, #record.slotIndex do
-      local target = loadedPiece:findByIndex(record.slotIndex[position])
+    for position = 1, #record.slot do
+      local target = loadedPiece:findByIndex(record.slot[position])
 
       if target ~= nil then
-        record.slot[position] = target
+        record.pieceBySlot[position] = target
       end
     end
     for position = 1, #record.tierIndex do
@@ -100,11 +100,11 @@ function tables:readAll(source, fileExtension)
   -- Turns loadedTrimKit's stored keys into rows, now that every table is in
   -- memory.
   for _, record in ipairs(loadedTrimKit.records) do
-    for position = 1, #record.slotIndex do
-      local target = loadedBit:findByIndex(record.slotIndex[position])
+    for position = 1, #record.slot do
+      local target = loadedBit:findByIndex(record.slot[position])
 
       if target ~= nil then
-        record.slot[position] = target
+        record.bitBySlot[position] = target
       end
     end
     for position = 1, #record.tierIndex do

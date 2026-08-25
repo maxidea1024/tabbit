@@ -11,13 +11,13 @@ require_relative '../tabbit/tcb_reader'
 module RecordRef
   # One element of BadgeRecord#mark.
   class BadgeMarkEntry
-    attr_accessor :clip_id, :clip_id_index, :seal_id, :seal_id_index, :rank
+    attr_accessor :clip_id, :clip_by_clip_id, :seal_id, :seal_by_seal_id, :rank
 
     def initialize
-      @clip_id = nil
-      @clip_id_index = ""
-      @seal_id = nil
-      @seal_id_index = ""
+      @clip_id = ""
+      @clip_by_clip_id = nil
+      @seal_id = ""
+      @seal_by_seal_id = nil
       @rank = 0
     end
   end
@@ -115,14 +115,14 @@ module RecordRef
           while at < count
             n, value = cursor.next_same_string(count - at)
             (at...(at + n)).each do |i|
-              records[i].mark.clip_id_index = value
+              records[i].mark.clip_id = value
             end
             at += n
           end
         when 3
           Tabbit.check_column(column, 'Badge.Mark.SealId', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_UUID])
           records.each do |record|
-            record.mark.seal_id_index = reader.read_uuid
+            record.mark.seal_id = reader.read_uuid
           end
         when 4
           Tabbit.check_column(column, 'Badge.Mark.Rank', Tabbit::KIND_SCALAR, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT])

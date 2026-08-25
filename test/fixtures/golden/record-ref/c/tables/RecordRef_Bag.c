@@ -70,19 +70,19 @@ static bool RecordRef_BagParse(RecordRef_BagTable_t* table, tb_reader* reader) {
 
         record->slots.item_id_count = element_count;
 
-        record->slots.item_id = (const RecordRef_ItemRecord_t**)tb_arena_alloc(
+        record->slots.item_by_item_id = (const RecordRef_ItemRecord_t**)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->slots.item_by_item_id);
+        record->slots.item_id = (int32_t*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->slots.item_id);
-        record->slots.item_id_index = (int32_t*)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->slots.item_id_index);
 
         if (element_count > 0
-            && (record->slots.item_id == NULL
-                || record->slots.item_id_index == NULL))
+            && (record->slots.item_by_item_id == NULL
+                || record->slots.item_id == NULL))
           return tb_fail_with(reader, "out of memory allocating a member array");
 
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
-          (void)tb_cursor_next_i32(&cursor, &record->slots.item_id_index[element]);
+          (void)tb_cursor_next_i32(&cursor, &record->slots.item_id[element]);
       }
       break;
 

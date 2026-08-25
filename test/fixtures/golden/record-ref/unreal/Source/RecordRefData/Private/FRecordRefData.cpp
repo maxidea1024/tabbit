@@ -396,7 +396,7 @@ bool FLoadoutTable::Read(const FString& Filename)
 
                 for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
-                    Cursor.NextAs(Column.Element, Record.Slot[ElementAt].ItemIdIndex);
+                    Cursor.NextAs(Column.Element, Record.Slot[ElementAt].ItemId);
                 }
             }
 
@@ -421,7 +421,7 @@ bool FLoadoutTable::Read(const FString& Filename)
 
                 for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
-                    Cursor.NextAs(Column.Element, Record.Slot[ElementAt].SwapIdIndex);
+                    Cursor.NextAs(Column.Element, Record.Slot[ElementAt].SwapId);
                 }
             }
 
@@ -625,7 +625,7 @@ bool FHolderTable::Read(const FString& Filename)
 
                     for (; RunLength > 0; --RunLength, ++Row)
                     {
-                        Loaded[Row].Main.ItemIdIndex = RunValue;
+                        Loaded[Row].Main.ItemId = RunValue;
                     }
                 }
             }
@@ -869,11 +869,11 @@ bool FBagTable::Read(const FString& Filename)
                 int32 ElementCount = 0;
                 Cursor.NextLength(ElementCount);
 
-                Record.Slots.ItemIdIndex.SetNum(
+                Record.Slots.ItemId.SetNum(
                     Tabbit::ReserveBound(ElementCount));
                 for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
-                    Cursor.NextAs(Column.Element, Record.Slots.ItemIdIndex[ElementAt]);
+                    Cursor.NextAs(Column.Element, Record.Slots.ItemId[ElementAt]);
                 }
             }
 
@@ -1068,7 +1068,7 @@ bool FMountTable::Read(const FString& Filename)
 
                 for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
-                    Cursor.NextAs(Column.Element, Record.Rig[ElementAt].Core.ItemIdIndex);
+                    Cursor.NextAs(Column.Element, Record.Rig[ElementAt].Core.ItemId);
                 }
             }
 
@@ -1521,7 +1521,7 @@ bool FPoseTable::Read(const FString& Filename)
 
                 for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
-                    Cursor.NextAs(Column.Element, Record.Step[ElementAt].ClipIdIndex);
+                    Cursor.NextAs(Column.Element, Record.Step[ElementAt].ClipId);
                 }
             }
 
@@ -1963,7 +1963,7 @@ bool FBadgeTable::Read(const FString& Filename)
 
                     for (; RunLength > 0; --RunLength, ++Row)
                     {
-                        Loaded[Row].Mark.ClipIdIndex = RunText;
+                        Loaded[Row].Mark.ClipId = RunText;
                     }
                 }
             }
@@ -1975,7 +1975,7 @@ bool FBadgeTable::Read(const FString& Filename)
 
             for (FBadgeRow& Record : Loaded)
             {
-                Reader.ReadAs(Column.Element, Record.Mark.SealIdIndex);
+                Reader.ReadAs(Column.Element, Record.Mark.SealId);
             }
 
             break;
@@ -2198,7 +2198,7 @@ bool FKitTable::Read(const FString& Filename)
 
                 for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
                 {
-                    Cursor.NextAs(Column.Element, Record.Part[ElementAt].ItemIdIndex);
+                    Cursor.NextAs(Column.Element, Record.Part[ElementAt].ItemId);
                 }
             }
 

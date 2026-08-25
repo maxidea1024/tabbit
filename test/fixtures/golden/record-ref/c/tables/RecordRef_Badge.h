@@ -24,9 +24,9 @@ extern "C" {
 /* One element of RecordRef_BadgeRecord_t::mark. */
 struct RecordRef_BadgeRecord_t_mark_entry {
   /* a string key, on the run path */
-  const RecordRef_ClipRecord_t* clip_id; const char* clip_id_index;
+  const char* clip_id; const RecordRef_ClipRecord_t* clip_by_clip_id;
   /* a uuid key, on the run path */
-  const RecordRef_SealRecord_t* seal_id; tb_uuid seal_id_index;
+  tb_uuid seal_id; const RecordRef_SealRecord_t* seal_by_seal_id;
   /* an ordinary member beside them */
   int32_t rank;
 };

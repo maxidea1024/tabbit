@@ -343,11 +343,11 @@ bool FKitTable::Read(const FString& Filename)
                 int32 ElementCount = 0;
                 Cursor.NextLength(ElementCount);
 
-                Record.SlotIndex.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Slot.Empty(Tabbit::ReserveBound(ElementCount));
 
-                while (Record.SlotIndex.Num() < ElementCount && !Reader.HasFailed())
+                while (Record.Slot.Num() < ElementCount && !Reader.HasFailed())
                 {
-                    Cursor.NextAs(Column.Element, Record.SlotIndex.AddDefaulted_GetRef());
+                    Cursor.NextAs(Column.Element, Record.Slot.AddDefaulted_GetRef());
                 }
             }
 
@@ -362,11 +362,11 @@ bool FKitTable::Read(const FString& Filename)
                 int32 ElementCount = 0;
                 Cursor.NextLength(ElementCount);
 
-                Record.TierIndex.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Tier.Empty(Tabbit::ReserveBound(ElementCount));
 
-                while (Record.TierIndex.Num() < ElementCount && !Reader.HasFailed())
+                while (Record.Tier.Num() < ElementCount && !Reader.HasFailed())
                 {
-                    Cursor.NextAs(Column.Element, Record.TierIndex.AddDefaulted_GetRef());
+                    Cursor.NextAs(Column.Element, Record.Tier.AddDefaulted_GetRef());
                 }
             }
 
@@ -747,11 +747,11 @@ bool FTrimKitTable::Read(const FString& Filename)
                 int32 ElementCount = 0;
                 Cursor.NextLength(ElementCount);
 
-                Record.SlotIndex.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Slot.Empty(Tabbit::ReserveBound(ElementCount));
 
-                while (Record.SlotIndex.Num() < ElementCount && !Reader.HasFailed())
+                while (Record.Slot.Num() < ElementCount && !Reader.HasFailed())
                 {
-                    Cursor.NextAs(Column.Element, Record.SlotIndex.AddDefaulted_GetRef());
+                    Cursor.NextAs(Column.Element, Record.Slot.AddDefaulted_GetRef());
                 }
                 Record.bHasSlotAt.Empty(
                     Tabbit::ReserveBound(ElementCount));
@@ -780,11 +780,11 @@ bool FTrimKitTable::Read(const FString& Filename)
                 int32 ElementCount = 0;
                 Cursor.NextLength(ElementCount);
 
-                Record.TierIndex.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Tier.Empty(Tabbit::ReserveBound(ElementCount));
 
-                while (Record.TierIndex.Num() < ElementCount && !Reader.HasFailed())
+                while (Record.Tier.Num() < ElementCount && !Reader.HasFailed())
                 {
-                    Cursor.NextAs(Column.Element, Record.TierIndex.AddDefaulted_GetRef());
+                    Cursor.NextAs(Column.Element, Record.Tier.AddDefaulted_GetRef());
                 }
                 Record.bHasTierAt.Empty(
                     Tabbit::ReserveBound(ElementCount));

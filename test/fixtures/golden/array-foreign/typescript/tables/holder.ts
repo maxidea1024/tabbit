@@ -37,7 +37,8 @@ export class HolderRecord {
   public get index(): number { return this._index }
 
   /** a list of rows */
-  public get targets(): TargetRecord[] { return this._targets }
+  public get targets(): number[] { return this._targets_Target_index }
+  public get targetByTargets(): TargetRecord[] { return this._targets }
 
   /** a list of one of that row's values */
   public get notes(): string[] { return this._notes }

@@ -215,7 +215,7 @@ int main(int argc, char** argv)
 
         /* The reference indices, which is what the exporter writes for a foreign field. */
         printf("],\"owner\":%d,\"tier\":%d,",
-               (int)r->owner_index, (int)r->tier_index);
+               (int)r->owner, (int)r->tier_index);
 
         /* And one reference per element, printed as the stored index each came in as. */
         fputs("\"owners\":[", stdout);
@@ -223,7 +223,7 @@ int main(int argc, char** argv)
             if (i > 0)
                 putchar(',');
 
-            printf("%d", (int)r->owners_index[i]);
+            printf("%d", (int)r->owners[i]);
         }
 
         fputs("],", stdout);

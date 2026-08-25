@@ -71,7 +71,7 @@ data:readAll("./data")
 local sword = data.item:findByIndex(1)
 if sword ~= nil then
   -- 참조는 로드 후 실제 레코드로 연결됩니다.
-  print(sword.name, sword.categoryId.name)
+  print(sword.name, sword.itemCategoryByCategoryId.name)
 end
 ```
 

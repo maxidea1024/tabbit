@@ -89,14 +89,14 @@ class {{ accessor_name }} {
     for (final record in {{ reference.table }}.records) {
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-      for (var i = 0; i < record.{{ field.name }}Index.length; i++) {
-        final target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index[i]);
-        if (target != null) record.{{ field.name }}[i] = {{ field.value }};
+      for (var i = 0; i < record.{{ field.name }}.length; i++) {
+        final target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}[i]);
+        if (target != null) record.{{ field.row_name }}[i] = {{ field.value }};
       }
 {{~ else ~}}
       {
-        final target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index);
-        if (target != null) record.{{ field.name }} = {{ field.value }};
+        final target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }});
+        if (target != null) record.{{ field.row_name }} = {{ field.value }};
       }
 {{~ end ~}}
 {{~ end ~}}

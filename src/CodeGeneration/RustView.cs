@@ -365,7 +365,7 @@ internal sealed class RustColumnView
     /// </summary>
     /// <remarks>
     /// On the member and before any subscript, because a member that is an array holds one
-    /// key per element: `item_id_index[element]`, not `item_id[element]_index`.
+    /// key per element: `item_id[element]`, not `item_id[element]_index`.
     /// spec/references-in-records.md.
     /// </remarks>
     public required string MemberRefSuffix { get; set; }

@@ -23,13 +23,13 @@ use Tabbit\Uuid;
 final class BadgeMarkEntry
 {
     /** a string key, on the run path */
-    public ?ClipRecord $clipId = null;
+    public string $clipId = '';
 
-    public string $clipIdIndex = '';
+    public ?ClipRecord $clipByClipId = null;
     /** a uuid key, on the run path */
-    public ?SealRecord $sealId = null;
+    public ?Uuid $sealId = null;
 
-    public ?Uuid $sealIdIndex = null;
+    public ?SealRecord $sealBySealId = null;
     /** an ordinary member beside them */
     public int $rank = 0;
 }
@@ -156,7 +156,7 @@ final class BadgeTable
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameString($count - $i);
                         for (; $n > 0; $n--, $i++) {
-                            $records[$i]->mark->clipIdIndex = $value;
+                            $records[$i]->mark->clipId = $value;
                         }
                     }
                     break;
@@ -164,7 +164,7 @@ final class BadgeTable
                 case 3:
                     TcbReader::checkColumn($column, 'Badge.Mark.SealId', TcbReader::KIND_SCALAR, false, [TcbReader::ELEMENT_UUID]);
                     foreach ($records as $record) {
-                        $record->mark->sealIdIndex = $reader->readUuid();
+                        $record->mark->sealId = $reader->readUuid();
                     }
                     break;
 

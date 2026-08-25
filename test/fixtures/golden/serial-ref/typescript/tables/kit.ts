@@ -36,7 +36,8 @@ export class KitRecord {
   public get index(): number { return this._index }
 
   /** element 1 - the row it points at */
-  public get slot(): PieceRecord[] { return this._slot }
+  public get slot(): number[] { return this._slot_Piece_index }
+  public get pieceBySlot(): PieceRecord[] { return this._slot }
 
   /** element 1 - the target's own value */
   public get tier(): number[] { return this._tier }

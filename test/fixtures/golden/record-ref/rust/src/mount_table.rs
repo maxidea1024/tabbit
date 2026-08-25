@@ -13,7 +13,7 @@ use crate::tabbit;
 #[derive(Clone, Debug, Default)]
 pub struct MountRigEntryCore {
     /// element 1, two levels in
-    pub item_id_index: i32,
+    pub item_id: i32,
     /// its sibling at that level
     pub count: i32,
 }
@@ -156,7 +156,7 @@ impl MountTable {
                         // two counts would shift every value after it.
                         record.rig = vec![MountRigEntry::default(); element_count];
                         for element in 0..element_count {
-                            record.rig[element].core.item_id_index = cursor.next_i32()?;
+                            record.rig[element].core.item_id = cursor.next_i32()?;
                         }
                     }
                 }

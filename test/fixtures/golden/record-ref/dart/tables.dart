@@ -130,52 +130,52 @@ class Tables {
   void _solveCrossReferences(ItemTable item, LoadoutTable loadout, HolderTable holder, BagTable bag, MountTable mount, ClipTable clip, PoseTable pose, SealTable seal, BadgeTable badge, KitTable kit) {
     for (final record in loadout.records) {
       for (var i = 0; i < record.slot.length; i++) {
-        final target = item.findByIndex(record.slot[i].itemIdIndex);
-        if (target != null) record.slot[i].itemId = target;
+        final target = item.findByIndex(record.slot[i].itemId);
+        if (target != null) record.slot[i].itemByItemId = target;
       }
       for (var i = 0; i < record.slot.length; i++) {
-        final target = item.findByIndex(record.slot[i].swapIdIndex);
-        if (target != null) record.slot[i].swapId = target;
+        final target = item.findByIndex(record.slot[i].swapId);
+        if (target != null) record.slot[i].itemBySwapId = target;
       }
     }
     for (final record in holder.records) {
       {
-        final target = item.findByIndex(record.main.itemIdIndex);
-        if (target != null) record.main.itemId = target;
+        final target = item.findByIndex(record.main.itemId);
+        if (target != null) record.main.itemByItemId = target;
       }
     }
     for (final record in bag.records) {
-      for (var i = 0; i < record.slots.itemIdIndex.length; i++) {
-        final target = item.findByIndex(record.slots.itemIdIndex[i]);
-        if (target != null) record.slots.itemId[i] = target;
+      for (var i = 0; i < record.slots.itemId.length; i++) {
+        final target = item.findByIndex(record.slots.itemId[i]);
+        if (target != null) record.slots.itemByItemId[i] = target;
       }
     }
     for (final record in mount.records) {
       for (var i = 0; i < record.rig.length; i++) {
-        final target = item.findByIndex(record.rig[i].core.itemIdIndex);
-        if (target != null) record.rig[i].core.itemId = target;
+        final target = item.findByIndex(record.rig[i].core.itemId);
+        if (target != null) record.rig[i].core.itemByItemId = target;
       }
     }
     for (final record in pose.records) {
       for (var i = 0; i < record.step.length; i++) {
-        final target = clip.findByIndex(record.step[i].clipIdIndex);
-        if (target != null) record.step[i].clipId = target;
+        final target = clip.findByIndex(record.step[i].clipId);
+        if (target != null) record.step[i].clipByClipId = target;
       }
     }
     for (final record in badge.records) {
       {
-        final target = clip.findByIndex(record.mark.clipIdIndex);
-        if (target != null) record.mark.clipId = target;
+        final target = clip.findByIndex(record.mark.clipId);
+        if (target != null) record.mark.clipByClipId = target;
       }
       {
-        final target = seal.findByIndex(record.mark.sealIdIndex);
-        if (target != null) record.mark.sealId = target;
+        final target = seal.findByIndex(record.mark.sealId);
+        if (target != null) record.mark.sealBySealId = target;
       }
     }
     for (final record in kit.records) {
       for (var i = 0; i < record.part.length; i++) {
-        final target = item.findByIndex(record.part[i].itemIdIndex);
-        if (target != null) record.part[i].itemId = target;
+        final target = item.findByIndex(record.part[i].itemId);
+        if (target != null) record.part[i].itemByItemId = target;
       }
     }
   }

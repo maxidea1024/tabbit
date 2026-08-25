@@ -24,7 +24,7 @@ extern "C" {
 /* A record inside RecordRef_MountRecord_t::rig. */
 struct RecordRef_MountRecord_t_rig_entryCore {
   /* element 1, two levels in */
-  const RecordRef_ItemRecord_t* item_id; int32_t item_id_index;
+  int32_t item_id; const RecordRef_ItemRecord_t* item_by_item_id;
   /* its sibling at that level */
   int32_t count;
 };

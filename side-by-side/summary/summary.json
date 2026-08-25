@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-23T03:34:49.8297550+09:00",
+    "generatedAt": "2026-08-25T15:50:57.1971768+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "b7b3c12206a202c5ad8324b6c0ed24b068200908",
-      "shortHash": "b7b3c12206a2",
-      "branch": "worktree-dynamic-arrays-only",
+      "hash": "61b589dab5d52a9fb0f9b5a5737591315e67f129",
+      "shortHash": "61b589dab5d5",
+      "branch": "polymorphism-spec",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-23T03:34:42.0000000+09:00",
-      "subject": "Spell the header out at v107 in the byte-for-byte test",
+      "committedAt": "2026-08-25T12:52:02.0000000+09:00",
+      "subject": "refactor: 다중 대상 참조를 걷어낸다 — 셀렉터는 검사이지 참조가 아니다",
       "origin": "git",
       "dirty": true,
       "attributable": false
@@ -82,7 +82,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "B4",
+              "cell": "C3",
               "url": null
             },
             "isIndex": true,
@@ -105,7 +105,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "C4",
+              "cell": "D3",
               "url": null
             },
             "isIndex": false,
@@ -128,7 +128,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "D4",
+              "cell": "E3",
               "url": null
             },
             "isIndex": false,
@@ -151,7 +151,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "E4",
+              "cell": "F3",
               "url": null
             },
             "isIndex": false,
@@ -166,7 +166,7 @@
           },
           {
             "name": "Operator",
-            "rawName": "*Operator",
+            "rawName": "Operator",
             "typeName": "string",
             "type": "String",
             "targetSide": "cs",
@@ -174,7 +174,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "F4",
+              "cell": "G3",
               "url": null
             },
             "isIndex": false,
@@ -197,7 +197,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "G4",
+              "cell": "H3",
               "url": null
             },
             "isIndex": false,
@@ -220,7 +220,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "H4",
+              "cell": "I3",
               "url": null
             },
             "isIndex": false,
@@ -243,7 +243,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "I4",
+              "cell": "J3",
               "url": null
             },
             "isIndex": false,
@@ -289,7 +289,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "K4",
+              "cell": "L3",
               "url": null
             },
             "isIndex": true,
@@ -312,7 +312,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "L4",
+              "cell": "M3",
               "url": null
             },
             "isIndex": false,
@@ -335,7 +335,7 @@
             "location": {
               "file": "test/fixtures/xlsx/reserved-words/reserved-words.xlsx",
               "sheet": "ReservedWords",
-              "cell": "M4",
+              "cell": "N3",
               "url": null
             },
             "isIndex": false,

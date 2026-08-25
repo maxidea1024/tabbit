@@ -16,11 +16,11 @@ import (
 // LoadoutSlotEntry is one element of LoadoutRecord.Slot.
 type LoadoutSlotEntry struct {
 	// element 1, the reference
-	ItemId *ItemRecord
-	ItemIdIndex int32
+	ItemId int32
+	ItemByItemId *ItemRecord
 	// element 1, a second reference to the same table
-	SwapId *ItemRecord
-	SwapIdIndex int32
+	SwapId int32
+	ItemBySwapId *ItemRecord
 	// element 1, an ordinary member
 	Count int32
 }
@@ -144,7 +144,7 @@ func (t *LoadoutTable) Read(filename string) error {
 					// two counts would shift every value after it.
 					r.Slot = make([]LoadoutSlotEntry, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.Slot[j].ItemIdIndex = cursor.NextI32()
+						r.Slot[j].ItemId = cursor.NextI32()
 					}
 				}
 			}
@@ -159,7 +159,7 @@ func (t *LoadoutTable) Read(filename string) error {
 							"Loadout: the file gives one member of `Slot` a different element count than another")
 					}
 					for j := 0; j < elementCount; j++ {
-						r.Slot[j].SwapIdIndex = cursor.NextI32()
+						r.Slot[j].SwapId = cursor.NextI32()
 					}
 				}
 			}

@@ -14,13 +14,13 @@ from . import tabbit
 class LoadoutSlotEntry:
     """One element of LoadoutRecord.slot."""
 
-    __slots__ = ("item_id", "item_id_index", "swap_id", "swap_id_index", "count")
+    __slots__ = ("item_id", "item_by_item_id", "swap_id", "item_by_swap_id", "count")
 
     def __init__(self):
-        self.item_id = None
-        self.item_id_index = 0
-        self.swap_id = None
-        self.swap_id_index = 0
+        self.item_id = 0
+        self.item_by_item_id = None
+        self.swap_id = 0
+        self.item_by_swap_id = None
         self.count = 0
 
     def __repr__(self):
@@ -126,7 +126,7 @@ class LoadoutTable:
                     record.slot = [
                         LoadoutSlotEntry() for _ in range(element_count)]
                     for element in range(element_count):
-                        record.slot[element].item_id_index = cursor.next_i32()
+                        record.slot[element].item_id = cursor.next_i32()
             elif column.tag == 3:
                 tabbit.check_column(column, "Loadout.Slot.SwapId", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32,))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Slot.SwapId")
@@ -137,7 +137,7 @@ class LoadoutTable:
                             "Loadout.slot: the file gives one member of "
                             "this record a different element count than another")
                     for element in range(element_count):
-                        record.slot[element].swap_id_index = cursor.next_i32()
+                        record.slot[element].swap_id = cursor.next_i32()
             elif column.tag == 4:
                 tabbit.check_column(column, "Loadout.Slot.Count", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Loadout.Slot.Count")

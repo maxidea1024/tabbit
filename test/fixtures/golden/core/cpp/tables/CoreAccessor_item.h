@@ -31,8 +31,8 @@ struct ItemRecord {
   /// item name
   std::string name;
   /// owning category
-  const ItemCategoryRecord* category_id = nullptr;
-  std::int32_t category_id_index = 0;
+  std::int32_t category_id = 0;
+  const ItemCategoryRecord* item_category_by_category_id = nullptr;
   /// item grade
   Grade grade_field = static_cast<Grade>(0);
   /// granted skill
@@ -144,7 +144,7 @@ class ItemTable {
             std::int32_t n = cursor.next_same_i32(
                 static_cast<std::int32_t>(row_count - i), value);
             for (; n > 0; --n, ++i) {
-              records[i].category_id_index = value;
+              records[i].category_id = value;
             }
           }
           break;

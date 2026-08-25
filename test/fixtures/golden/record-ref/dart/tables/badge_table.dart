@@ -9,11 +9,11 @@ part of '../tables.dart';
 /// One element of [BadgeRecord.mark].
 class BadgeMarkEntry {
   /// a string key, on the run path
-  ClipRecord? clipId;
-  String clipIdIndex = '';
+  String clipId = '';
+  ClipRecord? clipByClipId;
   /// a uuid key, on the run path
-  SealRecord? sealId;
-  Uuid sealIdIndex = Uuid.empty();
+  Uuid sealId = Uuid.empty();
+  SealRecord? sealBySealId;
   /// an ordinary member beside them
   int rank = 0;
 }
@@ -111,14 +111,14 @@ class BadgeTable {
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameString(count - i);
             for (var left = n; left > 0; left--, i++) {
-              loaded[i].mark.clipIdIndex = value;
+              loaded[i].mark.clipId = value;
             }
           }
           break;
         case 3:
           checkColumn(column, 'Badge.Mark.SealId', kindScalar, false, [elementUuid]);
           for (final record in loaded) {
-            record.mark.sealIdIndex = reader.readUuid();
+            record.mark.sealId = reader.readUuid();
           }
           break;
         case 4:

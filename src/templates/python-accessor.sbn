@@ -96,14 +96,14 @@ class {{ accessor_name }}:
         for record in {{ reference.table }}.records:
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-            for position, index in enumerate(record.{{ field.name }}_index):
+            for position, index in enumerate(record.{{ field.name }}):
                 target = {{ field.ref_table }}.{{ field.ref_lookup }}(index)
                 if target is not None:
-                    record.{{ field.name }}[position] = {{ field.value }}
+                    record.{{ field.row_name }}[position] = {{ field.value }}
 {{~ else ~}}
-            target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}_index)
+            target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }})
             if target is not None:
-                record.{{ field.name }} = {{ field.value }}
+                record.{{ field.row_name }} = {{ field.value }}
 {{~ end ~}}
 {{~ end ~}}
 {{~## A reference that is a member of a record resolves inside the element, so the list is

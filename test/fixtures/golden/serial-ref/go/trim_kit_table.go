@@ -19,14 +19,14 @@ type TrimKitRecord struct {
 	// primary index
 	Index int32
 	// element 1 - the row it points at
-	Slot []*BitRecord
-	SlotIndex []int32
+	Slot []int32
+	BitBySlot []*BitRecord
 	// Which of Slot's elements have a value. Empty where the file did not carry
 	// the column, and then every index is out of range anyway.
 	HasSlotAt []bool
 	// element 1 - the target's own value
-	Tier []int32
 	TierIndex []int32
+	Tier []int32
 	// Which of Tier's elements have a value. Empty where the file did not carry
 	// the column, and then every index is out of range anyway.
 	HasTierAt []bool
@@ -133,11 +133,11 @@ func (t *TrimKitTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Slot = make([]*BitRecord, elementCount)
-					r.SlotIndex = make([]int32, elementCount)
+					r.BitBySlot = make([]*BitRecord, elementCount)
+					r.Slot = make([]int32, elementCount)
 					r.HasSlotAt = make([]bool, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.SlotIndex[j] = cursor.NextI32()
+						r.Slot[j] = cursor.NextI32()
 						r.HasSlotAt[j] =
 							tabbit.IsPresent(elementPresence, elementAt)
 						elementAt++
@@ -155,11 +155,11 @@ func (t *TrimKitTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Tier = make([]int32, elementCount)
 					r.TierIndex = make([]int32, elementCount)
+					r.Tier = make([]int32, elementCount)
 					r.HasTierAt = make([]bool, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.TierIndex[j] = cursor.NextI32()
+						r.Tier[j] = cursor.NextI32()
 						r.HasTierAt[j] =
 							tabbit.IsPresent(elementPresence, elementAt)
 						elementAt++

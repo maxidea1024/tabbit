@@ -95,14 +95,14 @@ func (t *{{ accessor_name }}) solveCrossReferences() {
 		record := &t.{{ reference.table }}.records[i]
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-		for k := range record.{{ field.name }}Index {
-			if target := t.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index[k]); target != nil {
-				record.{{ field.name }}[k] = {{ field.value }}
+		for k := range record.{{ field.name }} {
+			if target := t.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}[k]); target != nil {
+				record.{{ field.row_name }}[k] = {{ field.value }}
 			}
 		}
 {{~ else ~}}
-		if target := t.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index); target != nil {
-			record.{{ field.name }} = {{ field.value }}
+		if target := t.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}); target != nil {
+			record.{{ field.row_name }} = {{ field.value }}
 		}
 {{~ end ~}}
 {{~ end ~}}

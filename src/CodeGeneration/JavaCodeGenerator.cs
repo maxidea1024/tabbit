@@ -526,23 +526,37 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                     ? member.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record"
                     : MemberTypeName(member);
 
-                var declarations = new List<string>
-                {
-                    memberType + (member.IsArray ? "[] " : " ") + JavaName(member.Name)
-                        + (member.IsArray
-                            ? $" = new {memberType}[{member.Fields.Count}]"
-                            : member.IsRef ? "" : MemberInitializer(member))
-                        + ";",
-                };
+                // The member's own name is the key's, because the key is what the cell
+                // holds; the row is linked after loading and takes a derived name.
+                // spec/reference-surface-naming.md sections 4 and 5.
+                string rowName = member.IsRef
+                    ? JavaName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                    : "";
+
+                var declarations = new List<string>();
 
                 if (member.IsRef)
                 {
                     string keyType = ToJavaTypeName(member.FirstField!.RefKeyType, null, null);
 
                     declarations.Add(
-                        keyType + (member.IsArray ? "[] " : " ") + JavaName(member.Name) + "Index"
+                        keyType + (member.IsArray ? "[] " : " ") + JavaName(member.Name)
                         + (member.IsArray ? $" = new {keyType}[{member.Fields.Count}]" : "")
                         + ";");
+
+                    declarations.Add(
+                        memberType + (member.IsArray ? "[] " : " ") + rowName
+                        + (member.IsArray ? $" = new {memberType}[{member.Fields.Count}]" : "")
+                        + ";");
+                }
+                else
+                {
+                    declarations.Add(
+                        memberType + (member.IsArray ? "[] " : " ") + JavaName(member.Name)
+                            + (member.IsArray
+                                ? $" = new {memberType}[{member.Fields.Count}]"
+                                : MemberInitializer(member))
+                            + ";");
                 }
 
 
@@ -689,7 +703,20 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
             // is an array holds one key per element. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "Index" : "",
+            MemberRefSuffix = "",
+
+            RowMemberAccess = (wire.Member is not null && wire.IsRef
+                               && ResolvesToRow(wire.TagCarrier))
+                ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                    .Select(part => "." + JavaName(part)))
+                  + "." + JavaName(RowAccessorName(
+                        wire.TagCarrier.ResolvedRefTable!.Name, wire.MemberPath[^1]))
+                : "",
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? JavaName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                : "",
             MemberAt = wire.MemberAt,
 
             // Qualified, because the element class is nested in the record and this is read
@@ -809,9 +836,17 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             // spec/reference-key-types.md.
             string keyType = ToJavaTypeName(sf.FirstField!.RefKeyType, null, null);
 
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? JavaName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "Index";
+
             return sf.IsArray
-                ? new[] { $"{elementType}[] {name} = new {elementType}[0];", $"{keyType}[] {name}Index = new {keyType}[0];" }
-                : new[] { $"{elementType} {name};", $"{keyType} {name}Index;" };
+                ? new[] { $"{keyType}[] {keyName} = new {keyType}[0];", $"{elementType}[] {rowName} = new {elementType}[0];" }
+                : new[] { $"{keyType} {keyName};", $"{elementType} {rowName};" };
         }
 
         return sf.IsArray
@@ -1025,8 +1060,8 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             string local = wire.RefKeyType == ValueType.String ? "runSameText" : "runSameValue";
 
             return (wire.Member is null)
-                ? $"loaded.get(i).{name}Index = cursor.{local};"
-                : $"loaded.get(i).{name}{memberAccess}Index = cursor.{local};";
+                ? $"loaded.get(i).{name}{(ResolvesToRow(wire.TagCarrier) ? "" : "Index")} = cursor.{local};"
+                : $"loaded.get(i).{name}{memberAccess}{(ResolvesToRow(wire.TagCarrier) ? "" : "Index")} = cursor.{local};";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -1111,7 +1146,14 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                 RecordName = x.Table.Name.ToPascalCase() + "Record",
                 Fields = x.Fields.Select(sf => new JavaReferenceFieldView
                 {
-                    Name = JavaName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? JavaName(sf.Name)
+                        : JavaName(sf.Name) + "Index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? JavaName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : JavaName(sf.Name),
+
                     RefTable = JavaName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     RefRecordName = sf.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record",
@@ -1142,20 +1184,36 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
         bool isArray = wire.IsArray;
 
+        string rowLeaf = wire.Member is not null
+            ? JavaName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : JavaName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + JavaName(part))) + "." + rowLeaf
+            : "";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{name}{rowMember}"
+                : $"record.{name}[i]{rowMember}")
+            : $"record.{rowLeaf}";
+
         string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
 
         return new JavaRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "Index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever array holds the elements. Its own length rather than the column
             // count, because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}Index.length" : $"record.{name}.length")
+                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{name}.length")
                 : "",
 
             RefTable = JavaName(refTable!.Name),

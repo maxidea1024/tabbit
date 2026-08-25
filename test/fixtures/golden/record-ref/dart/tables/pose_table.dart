@@ -9,8 +9,8 @@ part of '../tables.dart';
 /// One element of [PoseRecord.step].
 class PoseStepEntry {
   /// element 1, a string key
-  ClipRecord? clipId;
-  String clipIdIndex = '';
+  String clipId = '';
+  ClipRecord? clipByClipId;
   /// element 1, an ordinary member
   int weight = 0;
 }
@@ -111,7 +111,7 @@ class PoseTable {
             record.step =
                 List.generate(elementCount, (_) => PoseStepEntry());
             for (var j = 0; j < elementCount; j++) {
-              record.step[j].clipIdIndex = cursor.nextString();
+              record.step[j].clipId = cursor.nextString();
             }
           }
           break;

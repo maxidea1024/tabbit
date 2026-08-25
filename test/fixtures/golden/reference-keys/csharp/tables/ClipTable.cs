@@ -37,17 +37,20 @@ namespace Tabbit.Fixtures.ReferenceKeys
             /// <summary>
             /// a string-keyed target
             /// </summary>
-            public AnimationTable.Record Anim => _anim;
+            public string Anim => _anim_Animation_index;
+            public AnimationTable.Record AnimationByAnim => _anim;
 
             /// <summary>
             /// a bigint-keyed target
             /// </summary>
-            public LedgerTable.Record Entry => _entry;
+            public long Entry => _entry_Ledger_index;
+            public LedgerTable.Record LedgerByEntry => _entry;
 
             /// <summary>
             /// a uuid-keyed target
             /// </summary>
-            public ArtTable.Record Cover => _cover;
+            public System.Guid Cover => _cover_Art_index;
+            public ArtTable.Record ArtByCover => _cover;
             #endregion
 
             #region Reference wiring
@@ -59,13 +62,13 @@ namespace Tabbit.Fixtures.ReferenceKeys
             #region Storage
             internal int _index;
             internal AnimationTable.Record _anim;
-            public string _anim_Animation_index;
+            internal string _anim_Animation_index;
             public bool _anim_F = false;
             internal LedgerTable.Record _entry;
-            public long _entry_Ledger_index;
+            internal long _entry_Ledger_index;
             public bool _entry_F = false;
             internal ArtTable.Record _cover;
-            public System.Guid _cover_Art_index;
+            internal System.Guid _cover_Art_index;
             public bool _cover_F = false;
             #endregion
 

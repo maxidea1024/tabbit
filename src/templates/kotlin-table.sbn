@@ -266,21 +266,21 @@ class {{ table.table_name }} {
    length - which is what `serial_ref` below does from the column count.
    spec/variable-length-record-arrays.md. ##~}}
                         val elementCount = {{ column_view.length_read }}
-                        record.{{ column_view.name }}Index = ArrayList(elementCount.coerceAtLeast(0))
+                        record.{{ column_view.name }} = ArrayList(elementCount.coerceAtLeast(0))
 {{~ if column_view.has_optional_elements ~}}
                         record.{{ column_view.element_presence_member }} =
                             ArrayList(elementCount.coerceAtLeast(0))
                         repeat(elementCount) {
-                            record.{{ column_view.name }}Index.add({{ column_view.read_element }})
+                            record.{{ column_view.name }}.add({{ column_view.read_element }})
                             record.{{ column_view.element_presence_member }}
                                 .add(isPresent(elementPresence, elementAt))
                             elementAt++
                         }
 {{~ else ~}}
-                        repeat(elementCount) { record.{{ column_view.name }}Index.add({{ column_view.read_element }}) }
+                        repeat(elementCount) { record.{{ column_view.name }}.add({{ column_view.read_element }}) }
 {{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-                        record.{{ column_view.name }}Index = {{ column_view.read_scalar }}
+                        record.{{ column_view.name }} = {{ column_view.read_scalar }}
 {{~ else ~}}
                         record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_scalar }}
 {{~ end ~}}

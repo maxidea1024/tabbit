@@ -2,8 +2,12 @@
 
 > [문서 목록으로](../doc/readme.md)
 >
-> 상태: **설계.** 구현 없음 · 근거 조사 2026-08-25 (`multi-target` 골든 전 언어 실측 · 타 도구
-> 대조)
+> 1절이 인용하는 `multi-target` 골든은 **이 개정이 지운 것**입니다 — 커밋 `7148a6b0`에
+> 있습니다.
+>
+> 상태: **구현 완료** (2026-08-25) — 세 단계 전부. `refs=`가 섰고, 다중 대상 참조를 걷어냈고,
+> 이름 규칙이 전 언어에 들어갔습니다. 근거 조사 2026-08-25 (`multi-target` 골든 전 언어 실측 ·
+> 타 도구 대조)
 >
 > **이 문서는 다중 대상 참조를 되돌리고 그 자리에 검사 표기 `refs=`를 둡니다** — 6절.
 > [다중 대상 접근자](multi-target-accessors.md) · [다중 대상 참조 §8](multi-target-references.md) ·
@@ -27,7 +31,7 @@
 ### 1.1 단일 대상, 대부분의 언어
 
 `only`라는 컬럼에 `foreign Weapon`을 적은 골든입니다
-([holder_table.go:26-27](../test/fixtures/golden/multi-target/go/holder_table.go#L26-L27)).
+(`multi-target` 골든의 `go/holder_table.go`, 커밋 `7148a6b0` 시점).
 
 ```go
 Only      *WeaponRecord     // 컬럼 이름이 행에게 갔습니다
@@ -37,8 +41,7 @@ OnlyIndex int32             // 키는 이름을 지어 받았습니다
 ### 1.2 단일 대상, C#과 TypeScript
 
 같은 컬럼입니다
-([HolderTable.cs:50](../test/fixtures/golden/multi-target/csharp/tables/HolderTable.cs#L50) ·
-[168](../test/fixtures/golden/multi-target/csharp/tables/HolderTable.cs#L168)).
+(같은 골든의 `csharp/tables/HolderTable.cs`).
 
 ```csharp
 public WeaponTable.Record Only => _only;     // 행 — 여기까지는 같습니다
@@ -51,7 +54,7 @@ public int _only_Weapon_index;               // 키 — 밑줄로 시작하는 �
 ### 1.3 다중 대상, 전 언어
 
 같은 파일의 다른 컬럼입니다 — `pick`에 `foreign Weapon|Armour`를 적었습니다
-([HolderTable.cs:40-66](../test/fixtures/golden/multi-target/csharp/tables/HolderTable.cs#L40-L66)).
+(같은 파일).
 
 ```csharp
 public int Pick => _pick;                          // 컬럼 이름이 키에게 갔습니다
@@ -96,6 +99,18 @@ public WeaponTable.Record WeaponByPick => ...;     // 행은 이름을 지어 �
 
 `<대상>By<컬럼>`은 **이미 배포된 형태입니다.** 지금 다중 대상이 그것을 쓰고 있고, 이 문서는
 단일 대상을 그 형태로 맞춥니다.
+
+### 링킹이 없는 언어
+
+Rust와 Unreal은 참조를 로드 시점에 잇지 않습니다. 그러면 **행이 없으므로 이름도 없습니다** —
+그 두 언어의 참조 컬럼은 키 하나이고, 그 키가 컬럼의 이름을 씁니다. 규칙 2는 낼 행이 있는
+언어에만 걸립니다.
+
+### 점 표기는 규칙 밖입니다
+
+`foreign Item.Name`은 행이 아니라 **값**을 돌려줍니다. 그러면 컬럼의 이름은 그 값의 것이고,
+키가 지어진 이름을 받습니다 — 규칙 2가 뒤집힌 셈입니다. 낼 행이 없으므로 `<대상>By<컬럼>`을
+줄 자리가 없고, 키는 그 언어가 쓰던 `<컬럼>Index`를 그대로 씁니다(1절 · 9절).
 
 ### 누가 읽는가
 
@@ -296,13 +311,13 @@ foreign Mail              참조 — 값이 행이 되고 접근자가 나옵니
 |다중 대상을 아는 소스 파일|**33개**|
 |대상별 접근자를 내는 자리|**13개 생성기·뷰의 43곳**|
 |진단 메시지|4개|
-|골든 시나리오 `multi-target`|**317개 파일** — `refs=` 시나리오로 다시 씁니다|
+|골든 시나리오 `multi-target` · `variant-set`|**지웠습니다.** `refs=`의 게이트는 `TabbitLayoutTests`와 `ReferencedTableTests`에 있습니다|
 |코어 표기 `\|`|없어집니다 — 그 자리를 `refs=`가 받습니다|
 |판별 enum · 대상 무관 슬롯 · 식별자 · 승격 패스|없어집니다|
 
 그리고 **이 브랜치의 다형 참조가 함께 없어집니다** — `foreign Reward`, 테이블의 `extends=`,
 `foreign A\|B[]`입니다([다형성 §11](polymorphism.md)의 2 · 2′ · 3′). `main`에 없으므로 지금이
-되돌리는 비용이 가장 작은 시점입니다.
+되돌리는 비용이 가장 작은 시점이었습니다.
 
 **남는 것.** `abstract struct`는 남습니다 — struct 다형성(`:type`,
 [다형성 §5](polymorphism.md))의 것이고 거기서는 상속이 실제로 있습니다. `foreign X[]`도
@@ -352,7 +367,7 @@ foreign Mail              참조 — 값이 행이 되고 접근자가 나옵니
 |#|무엇|골든|
 |--|--|--|
 |1|**`refs=`** — 괄호 메타 하나. 모델 항목과 검사 패스는 있습니다|**무변경** — 새 표기를 더할 뿐입니다|
-|2|**되돌리기** — 다중 대상 참조를 걷어냅니다. 모델 · 승격 · 생성기 · `\|` 표기|**`multi-target` 시나리오가 `refs=`로 다시 쓰입니다**|
+|2|**되돌리기** — 다중 대상 참조를 걷어냅니다. 모델 · 승격 · 생성기 · `\|` 표기|**`multi-target`·`variant-set` 시나리오를 지웠습니다**|
 |3|**이름** — 규칙 1·2를 전 생성기에|**전 언어 재기록.** 값은 한 바이트도 안 바뀌고 이름만|
 
 |게이트|확인하는 것|
@@ -373,4 +388,7 @@ foreign Mail              참조 — 값이 행이 되고 접근자가 나옵니
 |무엇|어떻게 정합니까|
 |--|--|
 |`refs=` 목록에 이름을 붙일지|[Luban의 `refgroup`](https://github.com/focus-creative-games/luban/wiki/define) 같은 것입니다. 같은 목록이 되풀이되는 것이 실제로 부담인지부터 셉니다|
-|[다형성](polymorphism.md)의 개정 범위|§1 · §3과 §11의 2 · 2′ · 3′이 다중 대상 위에 서 있습니다. struct 다형성(§5)은 그대로입니다|
+
+**[다형성](polymorphism.md)의 개정은 끝났습니다** — §1 · §3과 §11의 2 · 2′ · 3′이 되돌림
+표시를 달았고, 대상 하나짜리 참조 배열(§11의 3)은 그대로 섭니다. struct 다형성(§5 · §6)도
+그대로입니다.

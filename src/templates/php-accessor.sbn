@@ -110,18 +110,18 @@ final class {{ accessor.name }}
         foreach (${{ reference.table }}->records as $record) {
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-            foreach ($record->{{ field.name }}Index as $position => $index) {
+            foreach ($record->{{ field.name }} as $position => $index) {
                 $target = ${{ field.ref_table }}->{{ field.ref_lookup }}($index);
 
                 if ($target !== null) {
-                    $record->{{ field.name }}[$position] = {{ field.value }};
+                    $record->{{ field.row_name }}[$position] = {{ field.value }};
                 }
             }
 {{~ else ~}}
-            $target = ${{ field.ref_table }}->{{ field.ref_lookup }}($record->{{ field.name }}Index);
+            $target = ${{ field.ref_table }}->{{ field.ref_lookup }}($record->{{ field.name }});
 
             if ($target !== null) {
-                $record->{{ field.name }} = {{ field.value }};
+                $record->{{ field.row_name }} = {{ field.value }};
             }
 {{~ end ~}}
 {{~ end ~}}

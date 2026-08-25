@@ -147,18 +147,18 @@ end
 local t = require('tables').new()
 t:readAll(arg[1])
 local rows = t.loadout.records
-assert(rows[1].slot[1].itemId.name == 'sword')
-assert(rows[1].slot[2].itemId.name == 'shield')
-assert(rows[1].slot[1].swapId.name == 'shield')
-assert(rows[2].slot[2].itemId == nil)
-assert(t.holder.records[1].main.itemId.name == 'shield')
-assert(t.bag.records[1].slots.itemId[1].name == 'sword')
-assert(t.mount.records[1].rig[1].core.itemId.name == 'sword')
-assert(t.pose.records[1].step[1].clipId.index == 'Idle_01')
+assert(rows[1].slot[1].itemByItemId.name == 'sword')
+assert(rows[1].slot[2].itemByItemId.name == 'shield')
+assert(rows[1].slot[1].itemBySwapId.name == 'shield')
+assert(rows[2].slot[2].itemByItemId == nil)
+assert(t.holder.records[1].main.itemByItemId.name == 'shield')
+assert(t.bag.records[1].slots.itemByItemId[1].name == 'sword')
+assert(t.mount.records[1].rig[1].core.itemByItemId.name == 'sword')
+assert(t.pose.records[1].step[1].clipByClipId.index == 'Idle_01')
 local parts = {}
 for i = 1, #t.kit.records do parts[i] = #t.kit.records[i].part end
 assert(eq(parts, {3, 2, 0}), table.concat(parts, ','))
-assert(t.kit.records[2].part[1].itemId.name == 'shield')
+assert(t.kit.records[2].part[1].itemByItemId.name == 'shield')
 ");
 
     /// <summary>
@@ -176,11 +176,11 @@ assert(t.kit.records[2].part[1].itemId.name == 'shield')
 local t = require('tables').new()
 t:readAll(arg[1])
 local rows = t.kit.records
-for i = 1, 3 do assert(#rows[i].slotIndex == 2) end
-assert(rows[1].slot[1].name == 'sword')
-assert(rows[1].slot[2].name == 'shield')
-assert(rows[2].slot[1].name == 'ring')
-assert(rows[3].slot[2] == nil)
+for i = 1, 3 do assert(#rows[i].slot == 2) end
+assert(rows[1].pieceBySlot[1].name == 'sword')
+assert(rows[1].pieceBySlot[2].name == 'shield')
+assert(rows[2].pieceBySlot[1].name == 'ring')
+assert(rows[3].pieceBySlot[2] == nil)
 assert(rows[1].tier[1] == 3 and rows[1].tier[2] == 5)
 assert(rows[3].tier[2] == nil)
 ");

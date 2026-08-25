@@ -14,11 +14,11 @@ from . import tabbit
 class HolderMainEntry:
     """One element of HolderRecord.main."""
 
-    __slots__ = ("item_id", "item_id_index", "count")
+    __slots__ = ("item_id", "item_by_item_id", "count")
 
     def __init__(self):
-        self.item_id = None
-        self.item_id_index = 0
+        self.item_id = 0
+        self.item_by_item_id = None
         self.count = 0
 
     def __repr__(self):
@@ -122,7 +122,7 @@ class HolderTable:
                 while at < count:
                     n, value = cursor.next_same_i32(count - at)
                     for i in range(at, at + n):
-                        records[i].main.item_id_index = value
+                        records[i].main.item_id = value
                     at += n
             elif column.tag == 3:
                 tabbit.check_column(column, "Holder.Main.Count", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))

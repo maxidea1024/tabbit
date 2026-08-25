@@ -149,16 +149,16 @@ end
     public void A_reference_inside_a_record_reads()
         => AssertReads("record-ref", "RecordRef", @"
 rows = accessor.loadout.records
-raise unless rows[0].slot[0].item_id.name == 'sword'
-raise unless rows[0].slot[1].item_id.name == 'shield'
-raise unless rows[0].slot[0].swap_id.name == 'shield'
-raise unless rows[1].slot[1].item_id.nil?
-raise unless accessor.holder.records[0].main.item_id.name == 'shield'
-raise unless accessor.bag.records[0].slots.item_id[0].name == 'sword'
-raise unless accessor.mount.records[0].rig[0].core.item_id.name == 'sword'
-raise unless accessor.pose.records[0].step[0].clip_id.index == 'Idle_01'
+raise unless rows[0].slot[0].item_by_item_id.name == 'sword'
+raise unless rows[0].slot[1].item_by_item_id.name == 'shield'
+raise unless rows[0].slot[0].item_by_swap_id.name == 'shield'
+raise unless rows[1].slot[1].item_by_item_id.nil?
+raise unless accessor.holder.records[0].main.item_by_item_id.name == 'shield'
+raise unless accessor.bag.records[0].slots.item_by_item_id[0].name == 'sword'
+raise unless accessor.mount.records[0].rig[0].core.item_by_item_id.name == 'sword'
+raise unless accessor.pose.records[0].step[0].clip_by_clip_id.index == 'Idle_01'
 raise unless accessor.kit.records.map { |r| r.part.length } == [3, 2, 0]
-raise unless accessor.kit.records[1].part[0].item_id.name == 'shield'
+raise unless accessor.kit.records[1].part[0].item_by_item_id.name == 'shield'
 ");
 
     /// <summary>
@@ -176,16 +176,16 @@ raise unless accessor.kit.records[1].part[0].item_id.name == 'shield'
         => AssertReads("serial-ref", "SerialRef", @"
 rows = accessor.kit.records
 raise unless rows.map { |r| r.slot.length } == [2, 2, 2]
-raise unless rows[0].slot[0].name == 'sword'
-raise unless rows[0].slot[1].name == 'shield'
-raise unless rows[1].slot[0].name == 'ring'
-raise unless rows[2].slot[1].nil?
+raise unless rows[0].piece_by_slot[0].name == 'sword'
+raise unless rows[0].piece_by_slot[1].name == 'shield'
+raise unless rows[1].piece_by_slot[0].name == 'ring'
+raise unless rows[2].piece_by_slot[1].nil?
 raise unless rows[0].tier == [3, 5]
 raise unless rows[2].tier[1].nil?
 trimmed = accessor.trim_kit.records
 raise unless trimmed.map { |r| r.slot.length } == [3, 2, 0]
-raise unless trimmed[0].slot[2].name == 'ring'
-raise unless trimmed[1].slot[0].name == 'ring'
+raise unless trimmed[0].bit_by_slot[2].name == 'ring'
+raise unless trimmed[1].bit_by_slot[0].name == 'ring'
 raise unless trimmed[0].tier[2] == 8
 ");
 

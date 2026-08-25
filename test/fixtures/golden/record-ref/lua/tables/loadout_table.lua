@@ -9,16 +9,18 @@ local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
 ---@class LoadoutSlotEntry
----@field itemId ItemRecord|nil
----@field swapId ItemRecord|nil
+---@field itemId integer
+---@field itemByItemId ItemRecord|nil
+---@field swapId integer
+---@field itemBySwapId ItemRecord|nil
 ---@field count integer
-local LoadoutSlotEntryMeta = tcb.strictType("an element of LoadoutRecord.slot", { "itemId", "itemIdIndex", "swapId", "swapIdIndex", "count" })
+local LoadoutSlotEntryMeta = tcb.strictType("an element of LoadoutRecord.slot", { "itemId", "itemByItemId", "swapId", "itemBySwapId", "count" })
 
 ---@return LoadoutSlotEntry
 local function newLoadoutSlotEntry()
   return setmetatable({
-    itemIdIndex = 0,
-    swapIdIndex = 0,
+    itemId = 0,
+    swapId = 0,
     count = 0,
   }, LoadoutSlotEntryMeta)
 end
@@ -129,7 +131,7 @@ function LoadoutTable:readBytes(data)
         record.slot = tcb.filledArray(elementCount, newLoadoutSlotEntry)
 
         for element = 1, elementCount do
-          record.slot[element].itemIdIndex = cursor:nextI32()
+          record.slot[element].itemId = cursor:nextI32()
         end
       end
     elseif column.tag == 3 then
@@ -144,7 +146,7 @@ function LoadoutTable:readBytes(data)
         end
 
         for element = 1, elementCount do
-          record.slot[element].swapIdIndex = cursor:nextI32()
+          record.slot[element].swapId = cursor:nextI32()
         end
       end
     elseif column.tag == 4 then

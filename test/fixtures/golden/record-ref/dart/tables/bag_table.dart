@@ -9,8 +9,8 @@ part of '../tables.dart';
 /// One element of [BagRecord.slots].
 class BagSlotsEntry {
   /// element 1 of the member
-  List<ItemRecord?> itemId = List.filled(2, null);
-  List<int> itemIdIndex = List.filled(2, 0);
+  List<int> itemId = List.filled(2, 0);
+  List<ItemRecord?> itemByItemId = List.filled(2, null);
   /// element 1 of the member beside it
   List<int> count = List.filled(2, 0);
 }
@@ -105,7 +105,7 @@ class BagTable {
           cursor = TcbColumnCursor(reader, column, count, 'Bag.Slots.ItemId');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.slots.itemIdIndex =
+            record.slots.itemId =
                 List.generate(elementCount, (_) => cursor.nextI32());
           }
           break;

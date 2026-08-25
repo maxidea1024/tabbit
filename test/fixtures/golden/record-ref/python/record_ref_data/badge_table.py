@@ -14,13 +14,13 @@ from . import tabbit
 class BadgeMarkEntry:
     """One element of BadgeRecord.mark."""
 
-    __slots__ = ("clip_id", "clip_id_index", "seal_id", "seal_id_index", "rank")
+    __slots__ = ("clip_id", "clip_by_clip_id", "seal_id", "seal_by_seal_id", "rank")
 
     def __init__(self):
-        self.clip_id = None
-        self.clip_id_index = ""
-        self.seal_id = None
-        self.seal_id_index = ""
+        self.clip_id = ""
+        self.clip_by_clip_id = None
+        self.seal_id = ""
+        self.seal_by_seal_id = None
         self.rank = 0
 
     def __repr__(self):
@@ -123,12 +123,12 @@ class BadgeTable:
                 while at < count:
                     n, value = cursor.next_same_string(count - at)
                     for i in range(at, at + n):
-                        records[i].mark.clip_id_index = value
+                        records[i].mark.clip_id = value
                     at += n
             elif column.tag == 3:
                 tabbit.check_column(column, "Badge.Mark.SealId", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_UUID,))
                 for record in records:
-                    record.mark.seal_id_index = reader.read_uuid()
+                    record.mark.seal_id = reader.read_uuid()
             elif column.tag == 4:
                 tabbit.check_column(column, "Badge.Mark.Rank", tabbit.KIND_SCALAR, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Badge.Mark.Rank")

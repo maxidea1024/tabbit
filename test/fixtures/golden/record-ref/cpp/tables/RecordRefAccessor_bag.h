@@ -24,8 +24,8 @@ namespace record_ref {
 /// One element of BagRecord::slots.
 struct BagRecord_slots_entry {
   /// element 1 of the member
-  std::vector<const ItemRecord*> item_id;
-  std::vector<std::int32_t> item_id_index;
+  std::vector<std::int32_t> item_id;
+  std::vector<const ItemRecord*> item_by_item_id;
   /// element 1 of the member beside it
   std::vector<std::int32_t> count;
 };
@@ -124,12 +124,12 @@ class BagTable {
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.slots.item_id.assign(
+            record.slots.item_by_item_id.assign(
                 static_cast<std::size_t>(element_count), nullptr);
-            record.slots.item_id_index.resize(
+            record.slots.item_id.resize(
                 static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.slots.item_id_index[static_cast<std::size_t>(j)] = cursor.next_i32();
+              record.slots.item_id[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;
