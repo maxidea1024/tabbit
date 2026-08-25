@@ -46,6 +46,42 @@ class {{ table.record_name }} {
   {{ declaration }}
 {{~ end ~}}
 {{~ end ~}}
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+
+{{~## **The value, built once on first use.** The entry above is what the read filled - one
+   assignment per column - and which variant it is only became knowable when the discriminator
+   column arrived. Building it here keeps the read path and the wire exactly as they were.
+   spec/polymorphism.md section 7.2. ##~}}
+  {{ field.abstract_type_name }}? _{{ field.name }}Value;
+
+  /// What this row's [{{ field.abstract_type_name }}] is. `switch` over it is exhaustive.
+  {{ field.abstract_type_name }} get {{ field.name }}Of {
+    final cached = _{{ field.name }}Value;
+    if (cached != null) return cached;
+
+    final built = switch ({{ field.name }}.type) {
+{{~ for variant in field.variants ~}}
+      {{ variant.discriminator }} => {{ variant.type_name }}(
+{{~ for member in field.base_members ~}}
+        {{ member.name }}: {{ field.name }}.{{ member.name }},
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+        {{ member.name }}: {{ field.name }}.{{ member.name }},
+{{~ end ~}}
+      ),
+{{~ end ~}}
+{{~## An unknown number is a variant this build does not have. Unlike a column added later,
+   which the reader skips, that makes the whole row uninterpretable. ##~}}
+      _ => throw StateError(
+          '{{ field.abstract_type_name }}: no variant is numbered ${ {{ field.name }}.type }'),
+    };
+
+    _{{ field.name }}Value = built;
+    return built;
+  }
+{{~ end ~}}
+{{~ end ~}}
 {{~## A column whose value is a row of one of several tables. One field for the resolved row
    whatever table it came from, and the discriminator saying which - the targets take separate
    id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}

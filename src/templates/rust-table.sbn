@@ -54,6 +54,37 @@ pub struct {{ table.record_name }} {
 }
 
 impl {{ table.record_name }} {
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+{{~## **The value, built on call from the flat entry.** Which variant a row is only became
+   knowable when the discriminator column arrived, so the entry is read as it always was and the
+   value is built from it here - which is why the read path and the wire are untouched.
+
+   Built rather than cached: this language has no interior mutability here and a `&mut self`
+   accessor would be worse than a clone of a small struct. spec/polymorphism.md section 7.2. ##~}}
+
+    /// What this row's [`{{ field.abstract_type_name }}`] is. `match` over it is exhaustive.
+    pub fn {{ field.name }}_of(&self) -> {{ field.abstract_type_name }} {
+        match self.{{ field.name }}.{{ field.discriminator_name }} {
+{{~ for variant in field.variants ~}}
+            {{ variant.discriminator }} => {{ field.abstract_type_name }}::{{ variant.type_name }}(
+                {{ variant.type_name }} {
+{{~ for member in field.base_members ~}}
+                    {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+                    {{ member.name }}: self.{{ field.name }}.{{ member.name }}.clone(),
+{{~ end ~}}
+                }),
+{{~ end ~}}
+{{~## An unknown number is a variant this build does not have. Unlike a column added later,
+   which the reader skips, that makes the whole row uninterpretable. ##~}}
+            other => panic!(
+                "{{ field.abstract_type_name }}: no variant is numbered {}", other),
+        }
+    }
+{{~ end ~}}
+{{~ end ~}}
 }
 
 /// Every row of {{ table.raw_name }}.

@@ -245,8 +245,13 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             Write(TableModule(pair.model), "rust-table.sbn", new RustPartView
             {
                 AccessorName = AccessorType,
+                // And the abstract types this table's groups are. Declared in modules of their
+                // own - one per declaration - so the table brings the enum in rather than
+                // declaring its own. spec/polymorphism.md section 7.1.
                 Uses = Uses(new[] { "std::collections::HashMap", "std::path::Path" }, reader: true)
-                    .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumUse)).ToList(),
+                    .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumUse))
+                    .Concat(PolymorphicUses(pair.model))
+                    .ToList(),
                 Table = pair.rendered,
             });
         }
@@ -259,6 +264,20 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                 AccessorName = AccessorType,
                 Uses = Array.Empty<string>(),
                 Enumm = pair.rendered,
+            });
+        }
+
+        // A struct is an entity beside a table and an enum, so it gets a module of its own -
+        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            var structure = BuildStruct(declared);
+
+            Write(structure.ModuleName, "rust-struct.sbn", new RustPartView
+            {
+                AccessorName = AccessorType,
+                Uses = Array.Empty<string>(),
+                Structure = structure,
             });
         }
 
@@ -299,6 +318,35 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             System.IO.Path.Combine(SourceDir, module + ".rs"));
 
         StagingFiles.WriteAllTextToFile(full, TemplateEngine.Render(templateName, view));
+    }
+
+    /// <summary>
+    /// The `use` lines a table needs for the abstract types its groups are.
+    /// </summary>
+    /// <remarks>
+    /// Both the enum and every variant, because the built value names all of them.
+    /// spec/polymorphism.md section 7.1.
+    /// </remarks>
+    private IEnumerable<string> PolymorphicUses(Table table)
+    {
+        foreach (string name in table.Fields
+                     .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
+                     .Select(field => field.AbstractTypeName!.ToPascalCase())
+                     .Distinct())
+        {
+            var declared = _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == name);
+
+            if (declared is null)
+                continue;
+
+            string module = "struct_" + declared.Name.ToSnakeCase();
+
+            yield return $"use crate::{module}::{name};";
+
+            foreach (var variant in declared.Variants)
+                yield return $"use crate::{module}::{variant.Name};";
+        }
     }
 
     /// <summary>
@@ -345,6 +393,27 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             text.Append("mod ").Append(EnumModule(pair.model)).Append(";\n");
             text.Append("pub use ").Append(EnumModule(pair.model))
                 .Append("::").Append(pair.rendered.Name).Append(";\n");
+        }
+
+        Section(text, "The declared abstract types, one module each.",
+                _model.PolymorphicTypes.Count > 0);
+
+        // Re-exported the way an enum is, so a consumer writes `gamedata::Effect` and the
+        // module the type lives in stays an implementation detail.
+        // spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            string module = "struct_" + declared.Name.ToSnakeCase();
+
+            text.Append("mod ").Append(module).Append(";\n");
+            text.Append("pub use ").Append(module).Append("::").Append(declared.Name)
+                .Append(";\n");
+
+            foreach (var variant in declared.Variants)
+            {
+                text.Append("pub use ").Append(module).Append("::").Append(variant.Name)
+                    .Append(";\n");
+            }
         }
 
         Section(text, "The constant sets, each keeping the module path it always had.",
@@ -746,8 +815,52 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         return result;
     }
 
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// An `enum`, which is this language's sum type and the shape the spec named for it
+    /// outright: a `match` over it that misses a variant does not compile.
+    /// spec/polymorphism.md section 7.
+    /// </remarks>
+    private RustPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new RustPolymorphicTypeView
+        {
+            Name = declared.Name,
+            ModuleName = "struct_" + declared.Name.ToSnakeCase(),
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new RustVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private RustStructMemberView StructMember(Models.Field field)
+        => new RustStructMemberView
+        {
+            Name = RustName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = ToRustTypeName(field.Type, field.EnumOrNull),
+            Comment = CommentLines(field.Comment),
+        };
+
     private RustFieldView BuildRecordField(Table table, SerialField sf)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string name = RustName(sf.Name);
         string elementType = RecordTypeName(table, sf);
 
@@ -765,6 +878,22 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         return new RustFieldView
         {
+            AbstractTypeName = declaredType?.Name ?? "",
+            DiscriminatorName = declaredType is null
+                ? ""
+                : RustName(sf.Members
+                    .First(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                    .Name),
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new RustVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+
             // A record has no header cell of its own, so the first member's column comment is
             // the nearest thing the sheet said about the group.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),

@@ -208,6 +208,22 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                        "dart-enum.sbn", new DartPartView { AccessorName = AccessorType, Library = library, Enumm = enumm }));
         }
 
+        // A struct is an entity beside a table and an enum, so it gets a part of its own - one
+        // per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            string name = declared.Name.ToSnakeCase();
+
+            parts.Add(($"structs/{name}.dart", System.IO.Path.Combine("structs", name + ".dart"),
+                       "dart-struct.sbn",
+                       new DartPartView
+                       {
+                           AccessorName = AccessorType,
+                           Library = library,
+                           Structure = BuildStruct(declared),
+                       }));
+        }
+
         foreach (var set in view.ConstantSets)
         {
             string name = set.Name.ToSnakeCase();
@@ -541,8 +557,56 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         return result;
     }
 
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// Classes and `is`, which is this language's way of narrowing - and since Dart 3 a
+    /// `sealed` base makes a `switch` over it exhaustive, so a variant added to the
+    /// declaration is a compile error at every consumer. spec/polymorphism.md section 7.
+    /// </remarks>
+    private DartPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new DartPolymorphicTypeView
+        {
+            Name = declared.Name,
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new DartVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private DartStructMemberView StructMember(Models.Field field)
+        => new DartStructMemberView
+        {
+            Name = DartName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = ToDartTypeName(
+                field.Type,
+                field.Type is Models.ValueType.Enum or Models.ValueType.EnumArray
+                    ? field.Enum
+                    : null,
+                field.RefTableName),
+            Comment = CommentLines(field.Comment),
+        };
+
     private DartFieldView BuildRecordField(Table table, SerialField sf)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string name = DartName(sf.Name);
         string entry = RecordTypeName(table, sf);
 
@@ -576,6 +640,17 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         return new DartFieldView
         {
+            AbstractTypeName = declaredType?.Name ?? "",
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new DartVariantView
+                {
+                    TypeName = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+
             // A record has no header cell of its own, so the first member's column comment is
             // the nearest thing the sheet said about the group.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),

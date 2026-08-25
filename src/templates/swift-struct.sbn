@@ -1,0 +1,56 @@
+{{~##
+   One abstract type and its variants, as an enum with associated values.
+
+   **An `enum` with associated values, which is this language's sum type.** Like Kotlin's sealed
+   class it makes a `switch` exhaustive: a variant added to the declaration is a compile error at
+   every consumer rather than a silent default.
+
+   The base fields sit on the enum as computed properties rather than being repeated in every
+   case's payload, so a consumer holding the enum reads them without switching. The read path is
+   untouched: the file is still read into the table's flat entry and the value is built from it.
+   spec/polymorphism.md section 7.
+##~}}
+{{ include 'swift-file-head.sbn' ~}}
+/// One value of `{{ structure.name }}`, whichever shape it took.
+///
+/// Narrow it with `switch`, which is exhaustive over an enum.
+public enum {{ structure.name }} {
+{{~ for variant in structure.variants ~}}
+    /// One shape of `{{ structure.name }}`.
+    ///
+    /// The file carries `{{ variant.discriminator }}` for it. That number rather than the name
+    /// is what lets this variant be renamed without a deployed reader reading a different one.
+    case {{ variant.case_name }}({{ variant.type_name }})
+{{~ end ~}}
+{{~ for member in structure.base_members ~}}
+
+{{~ for line in member.comment ~}}
+    /// {{ line }}
+{{~ end ~}}
+    public var {{ member.name }}: {{ member.type_name }} {
+        switch self {
+{{~ for variant in structure.variants ~}}
+        case .{{ variant.case_name }}(let it): return it.{{ member.name }}
+{{~ end ~}}
+        }
+    }
+{{~ end ~}}
+}
+{{~ for variant in structure.variants ~}}
+
+/// The payload of `{{ structure.name }}.{{ variant.case_name }}`.
+public struct {{ variant.type_name }} {
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+    /// {{ line }}
+{{~ end ~}}
+    public var {{ member.name }}: {{ member.type_name }}
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+    /// {{ line }}
+{{~ end ~}}
+    public var {{ member.name }}: {{ member.type_name }}
+{{~ end ~}}
+}
+{{~ end ~}}

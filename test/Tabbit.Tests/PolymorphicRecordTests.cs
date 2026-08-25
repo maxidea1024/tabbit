@@ -228,6 +228,9 @@ public class PolymorphicRecordTests
     [InlineData("Go")]
     [InlineData("Java")]
     [InlineData("Kotlin")]
+    [InlineData("Swift")]
+    [InlineData("Dart")]
+    [InlineData("Rust")]
     public void The_generated_code_compiles(string language)
     {
         var conversion = TabbitRunner.Convert(Scenario);
@@ -260,6 +263,9 @@ public class PolymorphicRecordTests
             "Go" => (ConformanceHarness.GoIsAvailable, ConformanceHarness.CompileGo),
             "Java" => (ConformanceHarness.JavaIsAvailable, ConformanceHarness.CompileJava),
             "Kotlin" => (ConformanceHarness.KotlinIsAvailable, ConformanceHarness.CompileKotlin),
+            "Swift" => (ConformanceHarness.SwiftIsAvailable, ConformanceHarness.CompileSwift),
+            "Dart" => (ConformanceHarness.DartIsAvailable, ConformanceHarness.CompileDart),
+            "Rust" => (ConformanceHarness.RustIsAvailable, ConformanceHarness.CompileRust),
             _ => throw new System.ArgumentOutOfRangeException(nameof(language), language, null),
         };
 

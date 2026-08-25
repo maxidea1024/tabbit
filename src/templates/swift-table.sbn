@@ -29,6 +29,46 @@ public final class {{ table.record_name }} {
     public var {{ field.element_presence_member }}: [Bool] = []
 {{~ end ~}}
 {{~ end ~}}
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+
+{{~## **The value, built once on first use.** The entry above is what the read filled - one
+   assignment per column - and which variant it is only became knowable when the discriminator
+   column arrived. Building it here keeps the read path and the wire exactly as they were.
+   spec/polymorphism.md section 7.2. ##~}}
+    private var {{ field.name }}Value: {{ field.abstract_type_name }}?
+
+    /// What this row's {{ field.abstract_type_name }} is. `switch` over it is exhaustive.
+    public var {{ field.name }}Of: {{ field.abstract_type_name }} {
+        get {
+            if let built = {{ field.name }}Value { return built }
+
+            let built: {{ field.abstract_type_name }}
+            switch {{ field.name }}.type {
+{{~ for variant in field.variants ~}}
+            case {{ variant.discriminator }}:
+                built = .{{ variant.case_name }}({{ variant.type_name }}(
+{{~ for member in field.base_members ~}}
+                    {{ member.name }}: {{ field.name }}.{{ member.name }},
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+                    {{ member.name }}: {{ field.name }}.{{ member.name }},
+{{~ end ~}}
+                ))
+{{~ end ~}}
+{{~## An unknown number is a variant this build does not have. Unlike a column added later,
+   which the reader skips, that makes the whole row uninterpretable. ##~}}
+            default:
+                fatalError(
+                    "{{ field.abstract_type_name }}: no variant is numbered \({{ field.name }}.type)")
+            }
+
+            {{ field.name }}Value = built
+            return built
+        }
+    }
+{{~ end ~}}
+{{~ end ~}}
 {{~## A column whose value is a row of one of several tables. One property for the resolved row
    whatever table it came from, and the discriminator saying which - the targets take separate
    id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}

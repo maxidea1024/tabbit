@@ -201,6 +201,14 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             Write(System.IO.Path.Combine("enums", enumm.Name + ".swift"),
                   "swift-enum.sbn", Part(enumm: enumm));
 
+        // A struct is an entity beside a table and an enum, so it gets a file of its own - one
+        // per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            Write(System.IO.Path.Combine("structs", declared.Name + ".swift"),
+                  "swift-struct.sbn", Part(structure: BuildStruct(declared)));
+        }
+
         foreach (var set in view.ConstantSets)
             Write(System.IO.Path.Combine("constants", set.Name + ".swift"),
                   "swift-constants.sbn", Part(set: set));
@@ -211,14 +219,56 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             WriteManifest(view);
     }
 
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// An `enum` with associated values, which is this language's sum type - and like Kotlin's
+    /// sealed class it makes a `switch` exhaustive, so a variant added to the declaration is a
+    /// compile error at every consumer rather than a silent default.
+    /// spec/polymorphism.md section 7.
+    /// </remarks>
+    private SwiftPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new SwiftPolymorphicTypeView
+        {
+            Name = declared.Name,
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new SwiftVariantView
+                {
+                    TypeName = variant.Name,
+                    CaseName = SwiftName(variant.Name),
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private SwiftStructMemberView StructMember(Models.Field field)
+        => new SwiftStructMemberView
+        {
+            Name = SwiftName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = ToSwiftTypeName(
+                field.Type,
+                field.Type is Models.ValueType.Enum or Models.ValueType.EnumArray
+                    ? field.Enum
+                    : null,
+                field.RefTableName),
+            Comment = CommentLines(field.Comment),
+        };
+
     private SwiftPartView Part(
-        SwiftTableView? table = null, SwiftEnumView? enumm = null, SwiftConstantSetView? set = null)
+        SwiftTableView? table = null, SwiftEnumView? enumm = null, SwiftConstantSetView? set = null, SwiftPolymorphicTypeView? structure = null)
         => new SwiftPartView
         {
             AccessorName = AccessorType,
             Table = table,
             Enumm = enumm,
             Set = set,
+            Structure = structure,
         };
 
     private void Write(string relative, string templateName, object view)
@@ -557,6 +607,15 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
     private SwiftFieldView BuildRecordField(Table table, SerialField sf)
     {
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         string name = SwiftName(sf.Name);
         string entry = sf.Name.ToPascalCase() + "Entry";
 
@@ -596,6 +655,18 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
         return new SwiftFieldView
         {
+            AbstractTypeName = declaredType?.Name ?? "",
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = (declaredType?.Variants ?? [])
+                .Select(variant => new SwiftVariantView
+                {
+                    TypeName = variant.Name,
+                    CaseName = SwiftName(variant.Name),
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+
             // A record has no header cell of its own, so the first member's column comment is
             // the nearest thing the sheet said about the group.
             Comment = CommentLines(sf.Members[0].FirstField!.Comment),

@@ -49,6 +49,18 @@
       "Path": "test/fixtures/output/polymorphism/kotlin"
     },
     {
+      "Type": "swift",
+      "Path": "test/fixtures/output/polymorphism/swift"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/polymorphism/dart"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/polymorphism/rust"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

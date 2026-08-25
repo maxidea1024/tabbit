@@ -38,6 +38,9 @@ internal sealed class SwiftPartView
 
     /// <summary>The constant set this file is for, when it is a constants file.</summary>
     public SwiftConstantSetView? Set { get; set; }
+
+    /// <summary>The abstract type this file declares, when it declares one.</summary>
+    public SwiftPolymorphicTypeView? Structure { get; set; }
 }
 
 internal sealed class SwiftEnumView
@@ -139,6 +142,23 @@ internal sealed class SwiftIndexView
 
 internal sealed class SwiftFieldView
 {
+    /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// The type itself is declared once, elsewhere; this is what the table needs to build a
+    /// value of it - which number means which variant, and which of the entry's fields each
+    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// </remarks>
+    public IReadOnlyList<SwiftVariantView> Variants { get; set; } = new List<SwiftVariantView>();
+
+    /// <summary>The abstract type the variants make up, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>The members every variant carries.</summary>
+    public IReadOnlyList<SwiftStructMemberView> BaseMembers { get; set; }
+        = new List<SwiftStructMemberView>();
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     public required string Name { get; set; }
@@ -387,3 +407,61 @@ internal sealed class SwiftReferenceFieldView
     public required bool IsArray { get; set; }
 }
 
+/// <summary>
+/// An abstract type and its variants, as this target declares them.
+/// </summary>
+/// <remarks>
+/// One per declaration however many tables named it. A struct is an entity beside a table and
+/// an enum, and emitting it inside each table that used it would give them types that share a
+/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// </remarks>
+internal sealed class SwiftPolymorphicTypeView
+{
+    /// <summary>The abstract type's name.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<SwiftStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<SwiftVariantView> Variants { get; set; }
+}
+
+/// <summary>One variant of a <see cref="SwiftPolymorphicTypeView"/>.</summary>
+internal sealed class SwiftVariantView
+{
+    /// <summary>The variant's declared name - the type a consumer narrows to.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>
+    /// The enum case's name, which this language spells with a lower first letter.
+    /// </summary>
+    /// <remarks>
+    /// Computed here rather than in the template: lowercasing the whole word gives
+    /// `damageeffect`, and the case has to read as the type it carries.
+    /// </remarks>
+    public required string CaseName { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<SwiftStructMemberView> Members { get; set; }
+}
+
+/// <summary>One member of an abstract type or of one of its variants.</summary>
+/// <remarks>
+/// A view of its own rather than the record member's, because none of the reference machinery
+/// applies: the model refuses a reference inside a polymorphic group.
+/// </remarks>
+internal sealed class SwiftStructMemberView
+{
+    /// <summary>The member's name in the generated type.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its type in this language.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
+}

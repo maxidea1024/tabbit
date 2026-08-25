@@ -1,0 +1,53 @@
+{{~##
+   One abstract type and its variants. `structure` is the single declaration this part is for.
+
+   **A `sealed` base and one class per variant.** Since Dart 3 that makes a `switch` over the
+   base exhaustive, so a variant added to the declaration is a compile error at every consumer
+   rather than a silent fall-through - and `is` narrows where a switch is not wanted.
+
+   The base fields are on the sealed class, so a consumer holding it reads them without
+   narrowing. The read path is untouched: the file is still read into the table's flat entry
+   and the value is built from it. spec/polymorphism.md section 7.
+##~}}
+{{ include 'dart-part-head.sbn' ~}}
+/// One value of [{{ structure.name }}], whichever shape it took.
+///
+/// Narrow it with `switch`, which is exhaustive over a sealed class, or with `is`.
+sealed class {{ structure.name }} {
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+  final {{ member.type_name }} {{ member.name }};
+{{~ end ~}}
+
+  const {{ structure.name }}({
+{{~ for member in structure.base_members ~}}
+    required this.{{ member.name }},
+{{~ end ~}}
+  });
+}
+{{~ for variant in structure.variants ~}}
+
+/// One shape of [{{ structure.name }}].
+///
+/// The file carries `{{ variant.discriminator }}` for it. That number rather than the name is
+/// what lets this variant be renamed without a deployed reader reading a different one.
+final class {{ variant.type_name }} extends {{ structure.name }} {
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+  final {{ member.type_name }} {{ member.name }};
+{{~ end ~}}
+
+  const {{ variant.type_name }}({
+{{~ for member in structure.base_members ~}}
+    required super.{{ member.name }},
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+    required this.{{ member.name }},
+{{~ end ~}}
+  });
+}
+{{~ end ~}}

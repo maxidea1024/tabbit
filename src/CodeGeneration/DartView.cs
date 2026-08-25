@@ -54,6 +54,9 @@ internal sealed class DartPartView
     /// <summary>The table this file is for, when it is a table file.</summary>
     public DartTableView? Table { get; set; }
 
+    /// <summary>The abstract type this file declares, when it declares one.</summary>
+    public DartPolymorphicTypeView? Structure { get; set; }
+
     /// <summary>The enum this file is for, when it is an enum file.</summary>
     public DartEnumView? Enumm { get; set; }
 
@@ -174,6 +177,23 @@ internal sealed class DartIndexView
 
 internal sealed class DartFieldView
 {
+    /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// The type itself is declared once, elsewhere; this is what the table needs to build a
+    /// value of it - which number means which variant, and which of the entry's fields each
+    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// </remarks>
+    public IReadOnlyList<DartVariantView> Variants { get; set; } = new List<DartVariantView>();
+
+    /// <summary>The abstract type the variants make up, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>The members every variant carries.</summary>
+    public IReadOnlyList<DartStructMemberView> BaseMembers { get; set; }
+        = new List<DartStructMemberView>();
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     public required string Name { get; set; }
@@ -442,3 +462,52 @@ internal sealed class DartReferenceFieldView
     public required bool IsArray { get; set; }
 }
 
+/// <summary>
+/// An abstract type and its variants, as this target declares them.
+/// </summary>
+/// <remarks>
+/// One per declaration however many tables named it. A struct is an entity beside a table and
+/// an enum, and emitting it inside each table that used it would give them types that share a
+/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// </remarks>
+internal sealed class DartPolymorphicTypeView
+{
+    /// <summary>The abstract type's name.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<DartStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<DartVariantView> Variants { get; set; }
+}
+
+/// <summary>One variant of a <see cref="DartPolymorphicTypeView"/>.</summary>
+internal sealed class DartVariantView
+{
+    /// <summary>The variant's declared name - the type a consumer narrows to.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<DartStructMemberView> Members { get; set; }
+}
+
+/// <summary>One member of an abstract type or of one of its variants.</summary>
+/// <remarks>
+/// A view of its own rather than the record member's, because none of the reference machinery
+/// applies: the model refuses a reference inside a polymorphic group.
+/// </remarks>
+internal sealed class DartStructMemberView
+{
+    /// <summary>The member's name in the generated type.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its type in this language.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
+}
