@@ -293,6 +293,7 @@ string (text=Common, namespace=Shared)
 string (asset=icon)
 int[] (size=1..4)
 string (allowed=weapon;armour)
+int (refs=Item;Mount)
 ```
 
 |키|값|뜻|
@@ -302,6 +303,7 @@ string (allowed=weapon;armour)
 |`asset`|종류 이름|자산 존재 확인|
 |`min` · `max`|수|범위|
 |`allowed`|`a;b;c`|허용값|
+|`refs`|`A;B;C`|**값의 출처** — 이 테이블들 중 하나의 행 id인지 검사합니다|
 |`regex` · `size` · `notDefault`|—|컬럼 제약|
 
 - **키의 사전은 [STRUCT DSL](../notes/struct-dsl-design.md)과 하나**입니다. 같은 키, 같은

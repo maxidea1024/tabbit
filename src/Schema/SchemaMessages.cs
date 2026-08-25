@@ -197,7 +197,7 @@ public static class SchemaMessages
     /// <summary>A key the notation defines and this build does not act on yet.</summary>
     public const string MetaKeyNotCarried = "schema.meta-key-not-carried";
 
-    /// <summary>`refs`, which says what `foreign` already says in this tool.</summary>
+    /// <summary>`refs` on a column that `foreign` already resolves.</summary>
     public const string MetaRefsIsForeign = "schema.meta-refs-is-foreign";
 
     /// <summary>A default written beside a `?`, which says two things about one blank.</summary>
@@ -232,6 +232,12 @@ public static class SchemaMessages
 
     /// <summary>A sheet's whitelist and a declaration's with nothing in common.</summary>
     public const string AllowedIntersectionEmpty = "schema.allowed-intersection-empty";
+
+    /// <summary>`refs` with no table in it.</summary>
+    public const string RefsEmpty = "schema.refs-empty";
+
+    /// <summary>A sheet's table list and a declaration's with nothing in common.</summary>
+    public const string RefsIntersectionEmpty = "schema.refs-intersection-empty";
 
     /// <summary>A pattern on a column that already has a different one.</summary>
     public const string PatternWrittenTwice = "schema.pattern-written-twice";

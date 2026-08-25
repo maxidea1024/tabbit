@@ -1052,6 +1052,35 @@ public class TabbitLayoutTests
         Assert.Contains("text", reported);
     }
 
+    /// <summary>
+    /// `refs` names the tables a value has to be an id of, and the column stays what it was.
+    /// </summary>
+    /// <remarks>
+    /// The core notation's way of saying what a project layout says with a constraint row.
+    /// It is a check and not a reference - `foreign` names one table and resolves it, and
+    /// this says where a value may have come from while leaving the type alone. Several
+    /// tables is what it exists for: "one of these" has no single type to resolve to.
+    ///
+    /// spec/reference-surface-naming.md section 6.
+    /// </remarks>
+    [Fact]
+    public void Refs_names_the_tables_a_value_has_to_be_an_id_of()
+    {
+        var model = Cook(Sheet(
+            [":table Shop", "what a shop sells"],
+            [":field", "code", "rewardId"],
+            [":type", "int", "int (refs=Item;Mount)"],
+            ["", "1", "3001"]));
+
+        var field = model.Tables[0].Fields[1];
+
+        Assert.Equal(["Item", "Mount"], field.Constraints.ReferencedTables);
+
+        // Nothing resolved. The value is the number the cell holds and the wire is unchanged.
+        Assert.False(field.IsRef);
+        Assert.Equal(ValueType.Int32, field.Type);
+    }
+
     #endregion
 
     #region The declaration's brackets - section 3.4
