@@ -1,0 +1,40 @@
+{{~##
+   One abstract type and its variants. `structure` is the single declaration this header is for.
+
+   **The discriminator + per-variant accessors shape section 7 named for this language.** There
+   is no inheritance and no sum type here, so a consumer branches on a number - and this is the
+   one generator in the repository that emits an enum for that, because a number with no name is
+   a magic one. Section 7.1 declined to put a discriminator type in the model for every language
+   and said the three languages that need one would emit their own; this is one of them.
+
+   One struct per variant, each carrying the base fields as well - there is nothing to inherit
+   from, so they are repeated in the type rather than in the file. The wire is untouched either
+   way: the base fields are still one column. spec/polymorphism.md section 7.
+##~}}
+{{ include 'c-header-head.sbn' ~}}
+/** Which shape a {{ structure.name }} value took. */
+typedef enum {{ structure.kind_enum_name }} {
+{{~ for variant in structure.variants ~}}
+  /** The file carries {{ variant.discriminator }} for this one. */
+  {{ variant.kind_name }} = {{ variant.discriminator }},
+{{~ end ~}}
+} {{ structure.kind_enum_name }};
+{{~ for variant in structure.variants ~}}
+
+/** One shape of {{ structure.name }}. */
+typedef struct {{ variant.type_name }} {
+{{~ for member in structure.base_members ~}}
+{{~ for line in member.comment ~}}
+  /* {{ line }} */
+{{~ end ~}}
+  {{ member.type_name }} {{ member.name }};
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+{{~ for line in member.comment ~}}
+  /* {{ line }} */
+{{~ end ~}}
+  {{ member.type_name }} {{ member.name }};
+{{~ end ~}}
+} {{ variant.type_name }};
+{{~ end ~}}
+{{ include 'c-header-foot.sbn' ~}}

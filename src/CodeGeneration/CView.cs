@@ -69,6 +69,9 @@ internal sealed class CPartView
     /// <summary>The constant set this file is for, when it is a constants header or source.</summary>
     public CConstantSetView? Set { get; set; }
 
+    /// <summary>The abstract type this header declares, when it declares one.</summary>
+    public CPolymorphicTypeView? Structure { get; set; }
+
     /// <summary>The accessor's own shape, for its header and source.</summary>
     public CAccessorView? Accessor { get; set; }
 }
@@ -241,6 +244,38 @@ internal sealed class CIndexView
 
 internal sealed class CFieldView
 {
+    /// <summary>
+    /// The variants of a polymorphic group, or empty when the group is one fixed shape.
+    /// </summary>
+    /// <remarks>
+    /// The type itself is declared once, elsewhere; this is what the table needs to build a
+    /// value of it - which number means which variant, and which of the entry's fields each
+    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// </remarks>
+    public IReadOnlyList<CVariantView> Variants { get; set; } = new List<CVariantView>();
+
+    /// <summary>The abstract type the variants make up, or empty.</summary>
+    public string AbstractTypeName { get; set; } = "";
+
+    /// <summary>The enum naming which variant a value is, or empty.</summary>
+    public string KindEnumName { get; set; } = "";
+
+    /// <summary>
+    /// The group's name as a function name carries it, which this target spells in Pascal.
+    /// </summary>
+    /// <remarks>
+    /// The member is `effect` and the function is `SkilleffectKind` without this - the field
+    /// name is the struct member's spelling and a function name is not.
+    /// </remarks>
+    public string PascalName { get; set; } = "";
+
+    /// <summary>What the discriminator member is called on the flat entry.</summary>
+    public string DiscriminatorName { get; set; } = "";
+
+    /// <summary>The members every variant carries.</summary>
+    public IReadOnlyList<CStructMemberView> BaseMembers { get; set; }
+        = new List<CStructMemberView>();
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     public required string Name { get; set; }
@@ -610,3 +645,67 @@ internal sealed class CColumnView
     public required string EmptyAssignment { get; set; }
 }
 
+/// <summary>
+/// An abstract type and its variants, as this target declares them.
+/// </summary>
+/// <remarks>
+/// One per declaration however many tables named it. A struct is an entity beside a table and
+/// an enum, and emitting it inside each table that used it would give them types that share a
+/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// </remarks>
+internal sealed class CPolymorphicTypeView
+{
+    /// <summary>The abstract type's name, already carrying this target's prefix.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>The enum naming which variant a value is.</summary>
+    /// <remarks>
+    /// **The one place in this repository where a discriminator enum earns its keep.** There
+    /// are no variant types to test against here, so a consumer has to branch on a number - and
+    /// a number with no name is a magic one. Section 7.1 declined to put this in the model for
+    /// every language; this generator emits its own, which is what that section said it would.
+    /// </remarks>
+    public required string KindEnumName { get; set; }
+
+    /// <summary>Its own fields, which every variant carries.</summary>
+    public required IReadOnlyList<CStructMemberView> BaseMembers { get; set; }
+
+    /// <summary>What one of its values may be.</summary>
+    public required IReadOnlyList<CVariantView> Variants { get; set; }
+}
+
+/// <summary>One variant of a <see cref="CPolymorphicTypeView"/>.</summary>
+internal sealed class CVariantView
+{
+    /// <summary>The variant's struct name, already carrying this target's prefix.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The enum constant naming this variant.</summary>
+    public required string KindName { get; set; }
+
+    /// <summary>The suffix a per-variant accessor is named with.</summary>
+    public required string Suffix { get; set; }
+
+    /// <summary>The number the file carries for it.</summary>
+    public required int Discriminator { get; set; }
+
+    /// <summary>The members this variant declares, beside the base ones.</summary>
+    public required IReadOnlyList<CStructMemberView> Members { get; set; }
+}
+
+/// <summary>One member of an abstract type or of one of its variants.</summary>
+/// <remarks>
+/// A view of its own rather than the record member's, because none of the reference machinery
+/// applies: the model refuses a reference inside a polymorphic group.
+/// </remarks>
+internal sealed class CStructMemberView
+{
+    /// <summary>The member's name in the generated type.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its type in this language.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The documentation lines the declaration carried.</summary>
+    public required IReadOnlyList<string> Comment { get; set; }
+}

@@ -224,6 +224,19 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             });
         }
 
+        // A struct is an entity beside a table and an enum, so it gets a header of its own -
+        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        foreach (var declared in _model.PolymorphicTypes)
+        {
+            Write(StructHeader(declared), "c-struct.sbn", new CPartView
+            {
+                Guard = Guard("STRUCT_" + declared.Name.ToUpperSnakeCase()),
+                Includes = new[] { "#include <stdbool.h>", "#include <stdint.h>" },
+                Forwards = Array.Empty<string>(),
+                Structure = BuildStruct(declared),
+            });
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             bool anyExtern = pair.rendered.Constants.Any(constant => constant.IsExtern);
@@ -262,11 +275,15 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             Write(TableHeader(pair.rendered), "c-table-header.sbn", new CPartView
             {
                 Guard = Guard(pair.rendered.RawName.ToUpperSnakeCase()),
+                // And the abstract types its groups are: the variant structs are values a
+                // caller owns, so an incomplete type will not do here either.
+                // spec/polymorphism.md section 7.1.
                 Includes = Includes(
                     reader: true,
                     headers: new[] { ForwardHeader }
                         .Concat(TypeDependencies.EnumsNamedBy(pair.model)
-                                .Select(EnumHeaderFor))),
+                                .Select(EnumHeaderFor))
+                        .Concat(PolymorphicHeaders(pair.model))),
                 Forwards = Array.Empty<string>(),
                 ExternC = true,
                 Table = pair.rendered,
@@ -350,6 +367,60 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// two Tabbit outputs on one include path from colliding, and a directory does not
     /// take that over: `tables/Template.h` from two of them is the same path twice.
     /// </remarks>
+    /// <summary>The headers a table needs for the abstract types its groups are.</summary>
+    private IEnumerable<string> PolymorphicHeaders(Table table)
+        => table.Fields
+            .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
+            .Select(field => field.AbstractTypeName!.ToPascalCase())
+            .Distinct()
+            .Select(name => _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == name))
+            .Where(declared => declared is not null)
+            .Select(declared => StructHeader(declared!));
+
+    /// <summary>Where one declared abstract type's header goes.</summary>
+    private string StructHeader(Models.PolymorphicType declared)
+        => $"structs/{FileBase}_Struct{declared.Name}.h";
+
+    /// <summary>
+    /// One abstract type and its variants, as the template reads them.
+    /// </summary>
+    /// <remarks>
+    /// **The discriminator + per-variant accessors shape section 7 named for this language.**
+    /// There is no inheritance and no sum type here, so a consumer branches on a number - and
+    /// this is the one generator that emits an enum for it, because a number with no name is a
+    /// magic one. spec/polymorphism.md section 7.
+    /// </remarks>
+    private CPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
+        => new CPolymorphicTypeView
+        {
+            Name = FileBase + "_Struct" + declared.Name,
+            KindEnumName = FileBase + "_Struct" + declared.Name + "Kind",
+            BaseMembers = declared.BaseMembers.Select(StructMember).ToList(),
+            Variants = declared.Variants
+                .Select(variant => new CVariantView
+                {
+                    TypeName = FileBase + "_Struct" + variant.Name,
+                    KindName = (FileBase + "_Struct" + declared.Name + "Kind_"
+                                + variant.Name).ToUpperSnakeCase(),
+                    Suffix = variant.Name,
+                    Discriminator = variant.Discriminator,
+                    Members = variant.Members.Select(StructMember).ToList(),
+                })
+                .ToList(),
+        };
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private CStructMemberView StructMember(Models.Field field)
+        => new CStructMemberView
+        {
+            Name = CName(field.NamePath is { Count: > 1 }
+                ? field.NamePath[^1].Name
+                : field.Name),
+            TypeName = ScalarTypeName(field.ElementType, field.EnumOrNull),
+            Comment = CommentLines(field.Comment),
+        };
+
     private string EnumHeader(CEnumView enumm) => $"enums/{FileBase}_Enum{enumm.RawName}.h";
     private string EnumHeaderFor(Models.Enum enumm) => $"enums/{FileBase}_Enum{enumm.Name.ToPascalCase()}.h";
 
@@ -698,6 +769,15 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     {
         string name = CName(sf.Name);
 
+        // Which abstract type this group is, if it is one. One per declaration however many
+        // tables named it. spec/polymorphism.md section 7.1.
+        var declaredType = sf.Members
+                .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                ?.FirstField?.AbstractTypeName is { } abstractName
+            ? _model.PolymorphicTypes.FirstOrDefault(
+                candidate => candidate.Name == abstractName.ToPascalCase())
+            : null;
+
         var recordTypes = new List<CRecordTypeView>();
 
         var members = sf.IsRecord
@@ -718,6 +798,19 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         return new CFieldView
         {
+            AbstractTypeName = declaredType is null ? "" : FileBase + "_Struct" + declaredType.Name,
+            KindEnumName = declaredType is null
+                ? ""
+                : FileBase + "_Struct" + declaredType.Name + "Kind",
+            PascalName = sf.Name.ToPascalCase(),
+            DiscriminatorName = declaredType is null
+                ? ""
+                : CName(sf.Members
+                    .First(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
+                    .Name),
+            BaseMembers = (declaredType?.BaseMembers ?? []).Select(StructMember).ToList(),
+            Variants = declaredType is null ? [] : BuildStruct(declaredType).Variants,
+
             // A record group has no header cell of its own, so the first member's column
             // comment is the nearest thing the sheet said about the group.
             Comment = CommentLines(

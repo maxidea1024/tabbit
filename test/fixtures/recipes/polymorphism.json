@@ -80,6 +80,11 @@
       "Path": "test/fixtures/output/polymorphism/lua"
     },
     {
+      "Type": "c",
+      "Path": "test/fixtures/output/polymorphism/c",
+      "AccessorName": "PolyData"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/polymorphism/json-named",
       "UseCompactRowFormat": false,

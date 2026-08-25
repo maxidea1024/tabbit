@@ -231,6 +231,7 @@ public class PolymorphicRecordTests
     [InlineData("Swift")]
     [InlineData("Dart")]
     [InlineData("Rust")]
+    [InlineData("C")]
     public void The_generated_code_compiles(string language)
     {
         var conversion = TabbitRunner.Convert(Scenario);
@@ -512,6 +513,10 @@ assert(not ok and tostring(err):find('no field'), tostring(err))
             "Swift" => (ConformanceHarness.SwiftIsAvailable, ConformanceHarness.CompileSwift),
             "Dart" => (ConformanceHarness.DartIsAvailable, ConformanceHarness.CompileDart),
             "Rust" => (ConformanceHarness.RustIsAvailable, ConformanceHarness.CompileRust),
+            // This one takes the accessor name too: every C identifier carries it as a prefix,
+            // so the harness has to be told which one the recipe set.
+            "C" => (ConformanceHarness.CIsAvailable,
+                    scenario => ConformanceHarness.CompileC(scenario, "PolyData")),
             _ => throw new System.ArgumentOutOfRangeException(nameof(language), language, null),
         };
 

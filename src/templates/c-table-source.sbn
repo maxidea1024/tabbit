@@ -591,3 +591,31 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
 {{~## The per-target accessors of a column reaching several tables. The cast is safe by
    construction: the discriminator was set by the same assignment that filled the slot.
    spec/multi-target-accessors.md. ##~}}
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+
+{{ field.kind_enum_name }} {{ table.function_prefix }}{{ field.pascal_name }}Kind(
+  const {{ table.record_name }}* record)
+{
+  return ({{ field.kind_enum_name }})record->{{ field.name }}.{{ field.discriminator_name }};
+}
+{{~ for variant in field.variants ~}}
+
+bool {{ table.function_prefix }}{{ field.pascal_name }}As{{ variant.suffix }}(
+  const {{ table.record_name }}* record, {{ variant.type_name }}* out)
+{
+  if (record->{{ field.name }}.{{ field.discriminator_name }} != {{ variant.discriminator }}) {
+    return false;
+  }
+
+{{~ for member in field.base_members ~}}
+  out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
+{{~ end ~}}
+{{~ for member in variant.members ~}}
+  out->{{ member.name }} = record->{{ field.name }}.{{ member.name }};
+{{~ end ~}}
+  return true;
+}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}

@@ -105,4 +105,25 @@ const {{ table.record_name }}* {{ table.function_prefix }}FindBy{{ index.suffix 
 bool {{ table.function_prefix }}Contains{{ index.suffix }}(
   const {{ table.table_name }}* table, {{ index.params }});
 {{~ end ~}}
+{{~ for field in table.fields ~}}
+{{~ if field.variants.size > 0 }}
+{{~## **The discriminator and one accessor per variant** - the shape section 7 named for this
+   language. There is nothing to narrow to here, so a consumer reads the kind and then asks for
+   the variant it named; each ask fills a caller-owned struct and answers whether it was that
+   one. The row still carries the flat entry, so the read path and the wire are untouched.
+   spec/polymorphism.md section 7.2. ##~}}
+
+/* Which shape this row's {{ field.abstract_type_name }} took. */
+{{ field.kind_enum_name }} {{ table.function_prefix }}{{ field.pascal_name }}Kind(
+  const {{ table.record_name }}* record);
+{{~ for variant in field.variants ~}}
+
+/* Fills `out` when this row is a {{ variant.type_name }}, and answers whether it was.
+ *
+ * The file carries {{ variant.discriminator }} for that variant. */
+bool {{ table.function_prefix }}{{ field.pascal_name }}As{{ variant.suffix }}(
+  const {{ table.record_name }}* record, {{ variant.type_name }}* out);
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 {{ include 'c-header-foot.sbn' ~}}
