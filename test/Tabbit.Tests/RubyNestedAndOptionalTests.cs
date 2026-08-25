@@ -149,16 +149,16 @@ end
     public void A_reference_inside_a_record_reads()
         => AssertReads("record-ref", "RecordRef", @"
 rows = accessor.loadout.records
-raise unless rows[0].slot[0].item_id.name == 'sword'
-raise unless rows[0].slot[1].item_id.name == 'shield'
-raise unless rows[0].slot[0].swap_id.name == 'shield'
-raise unless rows[1].slot[1].item_id.nil?
-raise unless accessor.holder.records[0].main.item_id.name == 'shield'
-raise unless accessor.bag.records[0].slots.item_id[0].name == 'sword'
-raise unless accessor.mount.records[0].rig[0].core.item_id.name == 'sword'
-raise unless accessor.pose.records[0].step[0].clip_id.index == 'Idle_01'
+raise unless rows[0].slot[0].item_by_item_id.name == 'sword'
+raise unless rows[0].slot[1].item_by_item_id.name == 'shield'
+raise unless rows[0].slot[0].item_by_swap_id.name == 'shield'
+raise unless rows[1].slot[1].item_by_item_id.nil?
+raise unless accessor.holder.records[0].main.item_by_item_id.name == 'shield'
+raise unless accessor.bag.records[0].slots.item_by_item_id[0].name == 'sword'
+raise unless accessor.mount.records[0].rig[0].core.item_by_item_id.name == 'sword'
+raise unless accessor.pose.records[0].step[0].clip_by_clip_id.index == 'Idle_01'
 raise unless accessor.kit.records.map { |r| r.part.length } == [3, 2, 0]
-raise unless accessor.kit.records[1].part[0].item_id.name == 'shield'
+raise unless accessor.kit.records[1].part[0].item_by_item_id.name == 'shield'
 ");
 
     /// <summary>
@@ -176,56 +176,17 @@ raise unless accessor.kit.records[1].part[0].item_id.name == 'shield'
         => AssertReads("serial-ref", "SerialRef", @"
 rows = accessor.kit.records
 raise unless rows.map { |r| r.slot.length } == [2, 2, 2]
-raise unless rows[0].slot[0].name == 'sword'
-raise unless rows[0].slot[1].name == 'shield'
-raise unless rows[1].slot[0].name == 'ring'
-raise unless rows[2].slot[1].nil?
+raise unless rows[0].piece_by_slot[0].name == 'sword'
+raise unless rows[0].piece_by_slot[1].name == 'shield'
+raise unless rows[1].piece_by_slot[0].name == 'ring'
+raise unless rows[2].piece_by_slot[1].nil?
 raise unless rows[0].tier == [3, 5]
 raise unless rows[2].tier[1].nil?
 trimmed = accessor.trim_kit.records
 raise unless trimmed.map { |r| r.slot.length } == [3, 2, 0]
-raise unless trimmed[0].slot[2].name == 'ring'
-raise unless trimmed[1].slot[0].name == 'ring'
+raise unless trimmed[0].bit_by_slot[2].name == 'ring'
+raise unless trimmed[1].bit_by_slot[0].name == 'ring'
 raise unless trimmed[0].tier[2] == 8
-");
-
-    /// <summary>
-    /// A column whose value is a row of one of several tables.
-    /// </summary>
-    /// <remarks>
-    /// Reading rather than only parsing, because what can go wrong here runs: the slot and the
-    /// discriminator are written by the same assignment, and one set a target late hands out a
-    /// row of the wrong table. The wide column is checked at its first and last target, which
-    /// is where an off-by-one shows. spec/multi-target-accessors.md.
-    /// </remarks>
-    [Fact]
-    public void A_multi_target_column_reads()
-        => AssertReads("multi-target", "MultiTarget", @"
-rows = accessor.holder.records
-raise unless rows[0].weapon_by_pick.name == 'weapon-a'
-raise unless rows[0].armour_by_pick.nil?
-raise unless rows[1].armour_by_pick.name == 'armour-b'
-raise unless rows[1].weapon_by_pick.nil?
-raise unless rows[0].trinket_by_wide.name == 'trinket-a'
-raise unless rows[1].banner_by_wide.name == 'banner-b'
-raise unless rows[2].weapon_by_wide.name == 'weapon-a'
-raise unless rows[1].maybe_target == MultiTarget::HolderMaybeTarget::NONE
-raise unless rows[1].weapon_by_maybe.nil? && rows[1].armour_by_maybe.nil?
-raise unless rows[0].only.name == 'weapon-a'
-groups = accessor.loadout.records
-raise unless groups[0].slot[0].weapon_by_pick.name == 'weapon-a'
-raise unless groups[0].slot[1].armour_by_pick.name == 'armour-a'
-raise unless groups[0].slot[0].armour_by_pick.nil?
-raise unless groups[1].slot[0].armour_by_pick.name == 'armour-b'
-fittings = accessor.fitting.records
-raise unless fittings[0].main.armour_by_pick.name == 'armour-a'
-raise unless fittings[1].main.weapon_by_pick.name == 'weapon-b'
-raise unless fittings[0].main.weapon_by_pick.nil?
-racks = accessor.rack.records
-raise unless racks[0].slots.weapon_by_pick(0).name == 'weapon-a'
-raise unless racks[0].slots.armour_by_pick(1).name == 'armour-b'
-raise unless racks[0].slots.weapon_by_pick(1).nil?
-raise unless racks[1].slots.armour_by_pick(0).name == 'armour-a'
 ");
 
     private static void AssertReads(string scenario, string module, string body)

@@ -73,8 +73,8 @@ function main(): number {
             compare('Kit', i, `slot[${k}].key`,
                     j._slot_Piece_index[k], b._slot_Piece_index[k])
             compare('Kit', i, `slot[${k}]`,
-                    resolved(j.slot[k], j._slot_F[k]),
-                    resolved(b.slot[k], b._slot_F[k]))
+                    resolved(j.pieceBySlot[k], j._slot_F[k]),
+                    resolved(b.pieceBySlot[k], b._slot_F[k]))
 
             // A field reference resolves to the value itself, so there is no row to name.
             compare('Kit', i, `tier[${k}]`,
@@ -87,7 +87,7 @@ function main(): number {
     // of one mistake.
     const values = {
         slots: fromBinary.kit.records.map(
-            r => r.slot.map((piece, at) => resolved(piece, r._slot_F[at])).join('/')),
+            r => r.pieceBySlot.map((piece, at) => resolved(piece, r._slot_F[at])).join('/')),
         tiers: fromBinary.kit.records.map(
             r => r.tier.map((tier, at) => r._tier_F[at] ? String(tier) : '<unresolved>').join('/')),
     }

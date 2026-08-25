@@ -112,17 +112,17 @@ function tables:readAll(source, fileExtension)
   -- memory.
   for _, record in ipairs(loadedLoadout.records) do
     for i = 1, #record.slot do
-      local target = loadedItem:findByIndex(record.slot[i].itemIdIndex)
+      local target = loadedItem:findByIndex(record.slot[i].itemId)
 
       if target ~= nil then
-        record.slot[i].itemId = target
+        record.slot[i].itemByItemId = target
       end
     end
     for i = 1, #record.slot do
-      local target = loadedItem:findByIndex(record.slot[i].swapIdIndex)
+      local target = loadedItem:findByIndex(record.slot[i].swapId)
 
       if target ~= nil then
-        record.slot[i].swapId = target
+        record.slot[i].itemBySwapId = target
       end
     end
   end
@@ -131,10 +131,10 @@ function tables:readAll(source, fileExtension)
   -- memory.
   for _, record in ipairs(loadedHolder.records) do
     do
-      local target = loadedItem:findByIndex(record.main.itemIdIndex)
+      local target = loadedItem:findByIndex(record.main.itemId)
 
       if target ~= nil then
-        record.main.itemId = target
+        record.main.itemByItemId = target
       end
     end
   end
@@ -142,11 +142,11 @@ function tables:readAll(source, fileExtension)
   -- Turns loadedBag's stored keys into rows, now that every table is in
   -- memory.
   for _, record in ipairs(loadedBag.records) do
-    for i = 1, #record.slots.itemIdIndex do
-      local target = loadedItem:findByIndex(record.slots.itemIdIndex[i])
+    for i = 1, #record.slots.itemId do
+      local target = loadedItem:findByIndex(record.slots.itemId[i])
 
       if target ~= nil then
-        record.slots.itemId[i] = target
+        record.slots.itemByItemId[i] = target
       end
     end
   end
@@ -155,10 +155,10 @@ function tables:readAll(source, fileExtension)
   -- memory.
   for _, record in ipairs(loadedMount.records) do
     for i = 1, #record.rig do
-      local target = loadedItem:findByIndex(record.rig[i].core.itemIdIndex)
+      local target = loadedItem:findByIndex(record.rig[i].core.itemId)
 
       if target ~= nil then
-        record.rig[i].core.itemId = target
+        record.rig[i].core.itemByItemId = target
       end
     end
   end
@@ -167,10 +167,10 @@ function tables:readAll(source, fileExtension)
   -- memory.
   for _, record in ipairs(loadedPose.records) do
     for i = 1, #record.step do
-      local target = loadedClip:findByIndex(record.step[i].clipIdIndex)
+      local target = loadedClip:findByIndex(record.step[i].clipId)
 
       if target ~= nil then
-        record.step[i].clipId = target
+        record.step[i].clipByClipId = target
       end
     end
   end
@@ -179,17 +179,17 @@ function tables:readAll(source, fileExtension)
   -- memory.
   for _, record in ipairs(loadedBadge.records) do
     do
-      local target = loadedClip:findByIndex(record.mark.clipIdIndex)
+      local target = loadedClip:findByIndex(record.mark.clipId)
 
       if target ~= nil then
-        record.mark.clipId = target
+        record.mark.clipByClipId = target
       end
     end
     do
-      local target = loadedSeal:findByIndex(record.mark.sealIdIndex)
+      local target = loadedSeal:findByIndex(record.mark.sealId)
 
       if target ~= nil then
-        record.mark.sealId = target
+        record.mark.sealBySealId = target
       end
     end
   end
@@ -198,10 +198,10 @@ function tables:readAll(source, fileExtension)
   -- memory.
   for _, record in ipairs(loadedKit.records) do
     for i = 1, #record.part do
-      local target = loadedItem:findByIndex(record.part[i].itemIdIndex)
+      local target = loadedItem:findByIndex(record.part[i].itemId)
 
       if target ~= nil then
-        record.part[i].itemId = target
+        record.part[i].itemByItemId = target
       end
     end
   end

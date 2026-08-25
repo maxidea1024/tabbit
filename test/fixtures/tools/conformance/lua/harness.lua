@@ -97,8 +97,11 @@ local ok, err = pcall(function()
       .. ",\"uids\":" .. array(record.uids, escaped)
 
       -- The reference indices, which is what the exporter writes for a foreign field.
-      .. ",\"owner\":" .. number(record.ownerIndex)
+      .. ",\"owner\":" .. number(record.owner)
       .. ",\"tier\":" .. number(record.tierIndex)
+
+      -- And one reference per element, printed as the stored index each came in as.
+      .. ",\"owners\":" .. array(record.owners, number)
 
       .. ",\"count\":" .. number(record.count)
       .. ",\"route\":" .. escaped(record.route)

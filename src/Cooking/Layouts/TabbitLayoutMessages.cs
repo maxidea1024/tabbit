@@ -32,6 +32,9 @@ public static class TabbitLayoutMessages
     /// <summary>A declaration meta key written with no value where it takes one.</summary>
     public const string DeclarationMetaValueMissing = "tabbit.declaration-meta-value-missing";
 
+    /// <summary>A table-only declaration key written on an `:enum` or a `:const`.</summary>
+    public const string DeclarationMetaKeyNotOnKind = "tabbit.declaration-meta-key-not-on-kind";
+
     /// <summary>Two entities of one run with the same name, whatever their kind.</summary>
     public const string EntityNameDuplicated = "tabbit.entity-name-duplicated";
 
@@ -76,8 +79,9 @@ public static class TabbitLayoutMessages
     /// <summary>An entity with no column that carries a field.</summary>
     public const string NoFieldColumns = "tabbit.no-field-columns";
 
-    /// <summary>A reference naming several tables and a field of one of them.</summary>
-    public const string MultiTargetNamesAField = "tabbit.multi-target-names-a-field";
+    /// <summary>`foreign A|B[]` - an array whose elements reach several tables.</summary>
+    /// <summary>`foreign A|B`, which is a check and not a reference.</summary>
+    public const string MultiTargetReferenceRemoved = "tabbit.multi-target-reference-removed";
 
     /// <summary>A type cell whose bracket meta never closes.</summary>
     public const string ColumnMetaUnclosed = "tabbit.column-meta-unclosed";

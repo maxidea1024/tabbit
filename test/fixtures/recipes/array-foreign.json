@@ -1,15 +1,14 @@
 {
-  // Regression recipe for the `core.xlsx` fixture.
+  // An array of references written as one cell: `foreign Target[]` and the dotted form
+  // `foreign Target.Note[]` beside it, with rows of three, one and no elements.
   //
-  // Every path is relative to the repository root, which is where the test
-  // harness invokes Tabbit from. Output lands in test/fixtures/output/array-foreign
-  // (transient, gitignored) and is compared against test/fixtures/golden/core.
+  // Every path is relative to the repository root, which is where the test harness invokes
+  // Tabbit from. Output lands in test/fixtures/output/array-foreign (transient, gitignored)
+  // and is compared against test/fixtures/golden/array-foreign.
   //
   // Both JSON row formats are exported because they take different code paths in
   // JsonExporter, so both need covering. The named form is the one generated readers
-  // consume - it is what the conformance corpus compares against and what the
-  // TypeScript round trip reads.
-
+  // consume.
   "Sources": {
     "Xlsx": [
       {

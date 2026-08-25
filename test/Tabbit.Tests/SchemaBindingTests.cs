@@ -183,13 +183,13 @@ public class SchemaBindingTests
     // ------------------------------------------------------------------ metadata
 
     /// <summary>
-    /// A key nothing reads is reported, and the report says which of three kinds it is.
+    /// A key nothing reads is reported, and the report says which kind of nothing it is.
     /// </summary>
     /// <remarks>
     /// The parser carries every key without checking one, which is what lets a project write
     /// its own. The other half of that policy is this: once every declaration is in, a key
-    /// nobody claimed is named. Three answers rather than two - see `SchemaMetadata` - and
-    /// each sends the reader somewhere different.
+    /// nobody claimed is named - and a key the notation defines is told apart from one
+    /// nothing defines at all, because the two send the reader somewhere different.
     /// </remarks>
     [Fact]
     public void A_key_nothing_reads_says_which_kind_of_nothing_it_is()
@@ -204,9 +204,6 @@ public class SchemaBindingTests
         Assert.Contains(
             "`uniqueBy` on `Reward.bonus` is a key this notation defines and this build does not act on",
             result.StdOut);
-
-        // And the one that says what `foreign` already says here.
-        Assert.Contains("`refs` on `Reward.itemId` says what `foreign` already says", result.StdOut);
     }
 
     /// <summary>

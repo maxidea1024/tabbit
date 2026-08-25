@@ -107,10 +107,10 @@ public final class Tables {
      */
     private void solveCrossReferences(PieceTable piece, KitTable kit, BitTable bit, TrimKitTable trimKit) {
         for (KitRecord record : kit.records()) {
-            for (int i = 0; i < record.slotIndex.length; i++) {
-                PieceRecord target = piece.findByIndex(record.slotIndex[i]);
+            for (int i = 0; i < record.slot.length; i++) {
+                PieceRecord target = piece.findByIndex(record.slot[i]);
                 if (target != null) {
-                    record.slot[i] = target;
+                    record.pieceBySlot[i] = target;
                 }
             }
             for (int i = 0; i < record.tierIndex.length; i++) {
@@ -121,10 +121,10 @@ public final class Tables {
             }
         }
         for (TrimKitRecord record : trimKit.records()) {
-            for (int i = 0; i < record.slotIndex.length; i++) {
-                BitRecord target = bit.findByIndex(record.slotIndex[i]);
+            for (int i = 0; i < record.slot.length; i++) {
+                BitRecord target = bit.findByIndex(record.slot[i]);
                 if (target != null) {
-                    record.slot[i] = target;
+                    record.bitBySlot[i] = target;
                 }
             }
             for (int i = 0; i < record.tierIndex.length; i++) {

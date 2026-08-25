@@ -11,11 +11,11 @@ require_relative '../tabbit/tcb_reader'
 module RecordRef
   # One element of PoseRecord#step.
   class PoseStepEntry
-    attr_accessor :clip_id, :clip_id_index, :weight
+    attr_accessor :clip_id, :clip_by_clip_id, :weight
 
     def initialize
-      @clip_id = nil
-      @clip_id_index = ""
+      @clip_id = ""
+      @clip_by_clip_id = nil
       @weight = 0
     end
   end
@@ -115,7 +115,7 @@ module RecordRef
             # would shift every value after it.
             record.step = Array.new(element_count) { PoseStepEntry.new }
             element_count.times do |element|
-              record.step[element].clip_id_index = cursor.next_string
+              record.step[element].clip_id = cursor.next_string
             end
           end
         when 3

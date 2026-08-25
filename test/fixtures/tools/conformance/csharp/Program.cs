@@ -75,8 +75,14 @@ internal static class Program
             json.Append(']');
 
             // The reference indices, which is what the exporter writes for a foreign field.
-            json.Append(",\"owner\":").Append(r._owner_Owners_index);
+            json.Append(",\"owner\":").Append(r.Owner);
             json.Append(",\"tier\":").Append(r._tier_Owners_index);
+
+            // And one reference per element, printed as the stored index each came in as.
+            json.Append(",\"owners\":[");
+            for (int k = 0; k < r.Owners.Length; k++)
+                json.Append(k > 0 ? "," : "").Append(r.Owners[k]);
+            json.Append(']');
 
             // The three the v104 encodings win on.
             json.Append(",\"count\":").Append(Number(r.Count));

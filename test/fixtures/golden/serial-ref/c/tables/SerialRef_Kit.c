@@ -69,17 +69,17 @@ static bool SerialRef_KitParse(SerialRef_KitTable_t* table, tb_reader* reader) {
         (void)tb_cursor_next_length(&cursor, &element_count);
 
         record->slot_count = element_count;
-        record->slot = (const SerialRef_PieceRecord_t**)tb_arena_alloc(
+        record->piece_by_slot = (const SerialRef_PieceRecord_t**)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->piece_by_slot);
+        record->slot = (int32_t*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->slot);
-        record->slot_index = (int32_t*)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->slot_index);
 
         if (element_count > 0
-            && (record->slot == NULL || record->slot_index == NULL))
+            && (record->piece_by_slot == NULL || record->slot == NULL))
           return tb_fail_with(reader, "out of memory allocating an array");
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
-          (void)tb_cursor_next_i32(&cursor, &record->slot_index[element]);
+          (void)tb_cursor_next_i32(&cursor, &record->slot[element]);
       }
       break;
 
@@ -98,11 +98,11 @@ static bool SerialRef_KitParse(SerialRef_KitTable_t* table, tb_reader* reader) {
         record->tier_count = element_count;
         record->tier = (int32_t*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->tier);
-        record->tier_index = (int32_t*)tb_arena_alloc(
-          &table->arena, (size_t)element_count * sizeof *record->tier_index);
+        record->tier = (int32_t*)tb_arena_alloc(
+          &table->arena, (size_t)element_count * sizeof *record->tier);
 
         if (element_count > 0
-            && (record->tier == NULL || record->tier_index == NULL))
+            && (record->tier == NULL || record->tier == NULL))
           return tb_fail_with(reader, "out of memory allocating an array");
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)

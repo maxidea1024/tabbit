@@ -119,7 +119,7 @@ public final class KitTable {
 
                         for (int j = 0; j < elementCount; j++) {
                             record.part[j] = new KitRecord.PartEntry();
-                            record.part[j].itemIdIndex = cursor.nextI32();
+                            record.part[j].itemId = cursor.nextI32();
                         }
                     }
                     break;

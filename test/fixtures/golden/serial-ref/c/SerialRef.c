@@ -33,10 +33,10 @@ static void SerialRef_SolveCrossReferences(SerialRef_t* data) {
 
       for (element = 0; element < record->slot_count; ++element) {
         const SerialRef_PieceRecord_t* target = SerialRef_PieceFindByIndex(
-          &data->piece, record->slot_index[element]);
+          &data->piece, record->slot[element]);
 
         if (target != NULL)
-          record->slot[element] = target;
+          record->piece_by_slot[element] = target;
       }
     }
 
@@ -61,10 +61,10 @@ static void SerialRef_SolveCrossReferences(SerialRef_t* data) {
 
       for (element = 0; element < record->slot_count; ++element) {
         const SerialRef_BitRecord_t* target = SerialRef_BitFindByIndex(
-          &data->bit, record->slot_index[element]);
+          &data->bit, record->slot[element]);
 
         if (target != NULL)
-          record->slot[element] = target;
+          record->bit_by_slot[element] = target;
       }
     }
 

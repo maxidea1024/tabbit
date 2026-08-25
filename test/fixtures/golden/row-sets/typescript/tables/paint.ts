@@ -37,10 +37,12 @@ export class PaintRecord {
   public get index(): number { return this._index }
 
   /** the same set first */
-  public get colourId(): ColourRecord { return this._colourId }
+  public get colourId(): number { return this._colourId_Colour_index }
+  public get colourByColourId(): ColourRecord { return this._colourId }
 
   /** falls back to the one set */
-  public get brushId(): BrushRecord { return this._brushId }
+  public get brushId(): number { return this._brushId_Brush_index }
+  public get brushByBrushId(): BrushRecord { return this._brushId }
 
   public setReference_colourId_INTERNAL(value: ColourRecord) { this._colourId = value; }
   public setReference_brushId_INTERNAL(value: BrushRecord) { this._brushId = value; }

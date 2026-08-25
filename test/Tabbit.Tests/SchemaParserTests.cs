@@ -67,6 +67,77 @@ public class SchemaParserTests
     }
 
     /// <summary>
+    /// The three things polymorphism adds to a `struct` line - spec/polymorphism.md section 5.
+    /// </summary>
+    [Fact]
+    public void A_struct_line_carries_abstract_extends_and_a_discriminator()
+    {
+        var file = Parse("""
+            abstract struct Effect
+                field chance int
+
+            struct DamageEffect extends Effect @1
+                field damage int
+
+            struct HealEffect extends Effect @2
+                field amount int
+            """);
+
+        var declared = file.Structs;
+        Assert.Equal(3, declared.Count);
+
+        Assert.True(declared[0].IsAbstract);
+        Assert.Null(declared[0].BaseName);
+        Assert.Equal(["chance"], declared[0].Fields.Select(member => member.Name));
+
+        Assert.False(declared[1].IsAbstract);
+        Assert.Equal("Effect", declared[1].BaseName);
+        Assert.Equal(1, declared[1].VariantTag);
+        Assert.Equal(["damage"], declared[1].Fields.Select(member => member.Name));
+
+        Assert.Equal(2, declared[2].VariantTag);
+    }
+
+    /// <summary>
+    /// An abstract struct with no members is the name of a set and nothing else, which section
+    /// 3 of the spec keeps legal: the variants may share no surface at all.
+    /// </summary>
+    [Fact]
+    public void An_abstract_struct_may_hold_no_members()
+    {
+        var file = Parse("abstract struct Reward");
+
+        var declared = Assert.Single(file.Structs);
+        Assert.True(declared.IsAbstract);
+        Assert.Empty(declared.Fields);
+    }
+
+    [Fact]
+    public void A_variant_may_carry_no_discriminator()
+    {
+        var file = Parse("""
+            abstract struct Effect
+            struct DamageEffect extends Effect
+            """);
+
+        Assert.Equal("Effect", file.Structs[1].BaseName);
+        Assert.Equal(0, file.Structs[1].VariantTag);
+    }
+
+    [Fact]
+    public void A_variant_takes_bracket_metadata_after_its_discriminator()
+    {
+        var file = Parse("""
+            abstract struct Effect
+            struct DamageEffect extends Effect @1 (sep=",")
+                field damage int
+            """);
+
+        Assert.Equal(1, file.Structs[1].VariantTag);
+        Assert.Equal(",", file.Structs[1].Meta.Value("sep"));
+    }
+
+    /// <summary>
     /// Indentation is decoration. A member joins the struct above it because of where it is,
     /// not because of how far in it starts - design section 9.3.
     /// </summary>
@@ -369,7 +440,7 @@ public class SchemaParserTests
     /// </summary>
     [Theory]
     [InlineData("regex=^[a-z]+$", "regex", "^[a-z]+$")]
-    [InlineData("refs=Item|CEquip", "refs", "Item|CEquip")]
+    [InlineData("refs=Item;CEquip", "refs", "Item;CEquip")]
     [InlineData("allowed=1;2;3", "allowed", "1;2;3")]
     [InlineData("size=1..3", "size", "1..3")]
     [InlineData("x.path=art/icons", "x.path", "art/icons")]
@@ -429,15 +500,35 @@ public class SchemaParserTests
     public void A_line_that_starts_with_nothing_known_is_refused()
         => Assert.Contains("is not a declaration", Refusal("record Reward"));
 
+    [Fact]
+    public void Abstract_without_struct_after_it_is_refused()
+        => Assert.Contains("`struct` has to follow it", Refusal("abstract Effect"));
+
     /// <summary>
-    /// Reserved by name rather than left to the unknown-keyword report, so that somebody who
-    /// writes one is told it is coming - design section 8.
+    /// Refused by name rather than left to the unknown-keyword report: the word exists here,
+    /// and being told it does not would send somebody looking for a spelling mistake.
     /// </summary>
-    [Theory]
-    [InlineData("abstract struct Effect")]
-    [InlineData("extends Effect")]
-    public void Inheritance_is_reserved_and_says_so(string source)
-        => Assert.Contains("reserved", Refusal(source));
+    [Fact]
+    public void Extends_on_a_line_of_its_own_is_refused()
+        => Assert.Contains("written on the `struct` line", Refusal("extends Effect"));
+
+    /// <summary>
+    /// One level, enforced by the grammar - spec/polymorphism.md section 5.1.
+    /// </summary>
+    [Fact]
+    public void A_variant_that_is_itself_abstract_is_refused()
+    {
+        string reported = Refusal("""
+            abstract struct Effect
+            abstract struct DamageEffect extends Effect
+            """);
+
+        Assert.Contains("cannot itself be abstract", reported);
+    }
+
+    [Fact]
+    public void A_discriminator_on_a_struct_that_extends_nothing_is_refused()
+        => Assert.Contains("extends nothing", Refusal("struct Reward @2"));
 
     [Fact]
     public void A_member_outside_a_struct_is_refused()

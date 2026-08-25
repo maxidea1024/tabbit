@@ -125,17 +125,11 @@ public static class CookingMessages
     /// <summary>A reference inside a record group naming a field rather than a table.</summary>
     public const string RecordReferenceNamesField = "cook.record-reference-names-field";
 
-    /// <summary>Two tables a column may point at that share an id.</summary>
-    public const string MultiTargetIdOverlap = "cook.multi-target-id-overlap";
-
     /// <summary>A value that is not a row of any table the column points at.</summary>
     public const string MultiTargetMissingRow = "cook.multi-target-missing-row";
 
     /// <summary>Tables a column points at that are keyed differently from each other.</summary>
     public const string MultiTargetKeysDiffer = "cook.multi-target-keys-differ";
-
-    /// <summary>The enum a multi-target column needs is a name already taken.</summary>
-    public const string MultiTargetEnumNameTaken = "cook.multi-target-enum-name-taken";
 
     /// <summary>A value the column's list of allowed values does not name.</summary>
     public const string ValueNotAllowed = "cook.value-not-allowed";

@@ -32,23 +32,6 @@ public final class {{ table.record_name }} {
 {{~## A column whose value is a row of one of several tables. One property for the resolved row
    whatever table it came from, and the discriminator saying which - the targets take separate
    id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_references }}
-    /// The row `{{ ref.key_member }}` names, as whichever of its target tables holds it. Read it
-    /// through the properties below rather than directly: they check the discriminator first.
-    public var {{ ref.slot_member }}: AnyObject?
-
-    /// Which table `{{ ref.key_member }}` is a row of.
-    public var {{ ref.target_member }}: {{ ref.target_type_name }} = {{ ref.target_type_name }}.{{ ref.none_label }}
-{{~ for target in ref.targets }}
-    /// The `{{ target.record_name }}` row `{{ ref.key_member }}` names, or nil when it names a row
-    /// of one of the others.
-    public var {{ target.method }}: {{ target.record_name }}? {
-        {{ ref.target_member }} == {{ ref.target_type_name }}.{{ target.label }}
-            ? ({{ ref.slot_member }} as? {{ target.record_name }})
-            : nil
-    }
-{{~ end ~}}
-{{~ end ~}}
 {{~## The element type of each record group. Nested rather than a second top-level type,
    which Swift would allow in this file - nesting scopes the name, so two tables each
    holding a `Slot` group do not collide in the module they share.
@@ -83,27 +66,6 @@ public final class {{ table.record_name }} {
    computed property where the member is one value; a method taking the element number where the
    member is the array, which is the third place an element number sits.
    spec/multi-target-accessors.md. ##~}}
-{{~ for multi in rt.multi_members ~}}
-{{~ for target in multi.targets }}
-{{~ if multi.is_array ~}}
-        /// The `{{ target.record_name }}` row element `at` of `{{ multi.key_member }}` names, or
-        /// nil when that element names a row of one of the others.
-        public func {{ target.method }}(_ at: Int) -> {{ target.record_name }}? {
-            {{ multi.target_member }}[at] == {{ multi.target_type_name }}.{{ target.label }}
-                ? ({{ multi.slot_member }}[at] as? {{ target.record_name }})
-                : nil
-        }
-{{~ else ~}}
-        /// The `{{ target.record_name }}` row `{{ multi.key_member }}` names, or nil when it names
-        /// a row of one of the others.
-        public var {{ target.method }}: {{ target.record_name }}? {
-            {{ multi.target_member }} == {{ multi.target_type_name }}.{{ target.label }}
-                ? ({{ multi.slot_member }} as? {{ target.record_name }})
-                : nil
-        }
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
     }
 {{~ end ~}}
 {{~ end ~}}
@@ -334,14 +296,14 @@ public final class {{ table.table_name }} {
 {{~## A trimmed array of references. The keys are the array this row's length fills; the
    resolved rows are filled by the linking pass. spec/variable-length-record-arrays.md. ##~}}
                     let elementCount = max(0, {{ column_view.length_read }})
-                    record.{{ column_view.name }}Index = []
-                    record.{{ column_view.name }}Index.reserveCapacity(elementCount)
+                    record.{{ column_view.name }} = []
+                    record.{{ column_view.name }}.reserveCapacity(elementCount)
 {{~ if column_view.has_optional_elements ~}}
                     record.{{ column_view.element_presence_member }} = []
                     record.{{ column_view.element_presence_member }}.reserveCapacity(elementCount)
 
                     for _ in 0 ..< elementCount {
-                        record.{{ column_view.name }}Index.append({{ column_view.read_element }})
+                        record.{{ column_view.name }}.append({{ column_view.read_element }})
                         record.{{ column_view.element_presence_member }}.append(
                             Tcb.isPresent(elementPresence, elementAt))
                         elementAt += 1
@@ -349,11 +311,11 @@ public final class {{ table.table_name }} {
 {{~ else ~}}
 
                     for _ in 0 ..< elementCount {
-                        record.{{ column_view.name }}Index.append({{ column_view.read_element }})
+                        record.{{ column_view.name }}.append({{ column_view.read_element }})
                     }
 {{~ end ~}}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-                    record.{{ column_view.name }}Index = {{ column_view.read_scalar }}
+                    record.{{ column_view.name }} = {{ column_view.read_scalar }}
 {{~ else ~}}
                     record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_scalar }}
 {{~ end ~}}

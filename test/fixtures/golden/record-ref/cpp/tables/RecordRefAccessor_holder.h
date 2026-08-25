@@ -24,8 +24,8 @@ namespace record_ref {
 /// One element of HolderRecord::main.
 struct HolderRecord_main_entry {
   /// the reference, in a record of one
-  const ItemRecord* item_id = nullptr;
-  std::int32_t item_id_index = 0;
+  std::int32_t item_id = 0;
+  const ItemRecord* item_by_item_id = nullptr;
   /// an ordinary member beside it
   std::int32_t count = 0;
 };
@@ -130,7 +130,7 @@ class HolderTable {
             std::int32_t n = cursor.next_same_i32(
                 static_cast<std::int32_t>(row_count - i), value);
             for (; n > 0; --n, ++i) {
-              records[i].main.item_id_index = value;
+              records[i].main.item_id = value;
             }
           }
           break;

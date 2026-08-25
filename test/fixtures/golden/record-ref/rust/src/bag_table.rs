@@ -13,7 +13,7 @@ use crate::tabbit;
 #[derive(Clone, Debug, Default)]
 pub struct BagSlotsEntry {
     /// element 1 of the member
-    pub item_id_index: Vec<i32>,
+    pub item_id: Vec<i32>,
     /// element 1 of the member beside it
     pub count: Vec<i32>,
 }
@@ -110,7 +110,7 @@ impl BagTable {
         // vector, so otherwise a file that no longer carries the first member would leave
         // the ones after it indexing past the end.
         for record in records.iter_mut() {
-            record.slots.item_id_index = Vec::new();
+            record.slots.item_id = Vec::new();
             record.slots.count = Vec::new();
         }
 
@@ -135,11 +135,11 @@ impl BagTable {
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Bag.Slots.ItemId")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.slots.item_id_index =
+                        record.slots.item_id =
                             Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
                             let value = cursor.next_i32()?;
-                            record.slots.item_id_index.push(value);
+                            record.slots.item_id.push(value);
                         }
                     }
                 }

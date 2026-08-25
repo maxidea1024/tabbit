@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="753" height="126" viewBox="0 0 753 126" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>짧은 이름을 파생할 수 없는 두 경우</title>
+<rect x="0" y="0" width="451.8125" height="118" fill="#FFFFFF"/>
+<rect x="0" y="0" width="450.8125" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="118" fill="#E9ECEF"/>
+<rect x="30" y="22" width="420.8125" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="420.8125" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="420.8125" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="132.8125" y1="22" x2="132.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="184.8125" y1="22" x2="184.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="242.0625" y1="22" x2="242.0625" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="337.5625" y1="22" x2="337.5625" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="450.8125" y1="22" x2="450.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="450.8125" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="450.8125" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="450.8125" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="450.8125" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="450.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="450.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="132.8125" y1="0" x2="132.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="184.8125" y1="0" x2="184.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="242.0625" y1="0" x2="242.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="337.5625" y1="0" x2="337.5625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="450.8125" y1="0" x2="450.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="450.3125" height="117.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="81.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="158.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="213.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="289.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="394.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Holder</text>
+<text x="139.8125" y="38.5" font-size="12.5" fill="#1F2328">짧은 이름을 파생하면 부딪히는 두 경우입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="139.8125" y="62.5" font-size="12.5" fill="#1F2328">id</text>
+<text x="191.8125" y="62.5" font-size="12.5" fill="#1F2328">mail</text>
+<text x="249.0625" y="62.5" font-size="12.5" fill="#1F2328">mailId</text>
+<text x="344.5625" y="62.5" font-size="12.5" fill="#1F2328">only</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="139.8125" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="191.8125" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="249.0625" y="86.5" font-size="12.5" fill="#1F2328">foreign Mail</text>
+<text x="344.5625" y="86.5" font-size="12.5" fill="#1F2328">foreign Weapon</text>
+<text x="139.8125" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="191.8125" y="110.5" font-size="12.5" fill="#1F2328">안 읽음</text>
+<text x="249.0625" y="110.5" font-size="12.5" fill="#1F2328">5001</text>
+<text x="344.5625" y="110.5" font-size="12.5" fill="#1F2328">7001</text>
+<text x="460.8125" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ mail 컬럼이 Mail을 이미 씁니다</text>
+<text x="460.8125" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 짧은 이름은 Mail과 Only — 둘 다 부딪힙니다</text>
+</svg>

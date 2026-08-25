@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NPOI.XSSF.UserModel;
 
 namespace Tabbit.FixtureGen;
@@ -42,6 +43,7 @@ internal static class Program
         WriteInvalid(Prepare(outputDir, "invalid", "invalid.xlsx"));
         WriteSideDangling(Prepare(outputDir, "side-dangling", "side-dangling.xlsx"));
         WriteArrayForeign(Prepare(outputDir, "array-foreign", "array-foreign.xlsx"));
+        WriteArrayForeignMulti(Prepare(outputDir, "array-foreign-multi", "array-foreign-multi.xlsx"));
         WriteStrictValues(Prepare(outputDir, "strict-values", "strict-values.xlsx"));
         WriteDoubleStar(Prepare(outputDir, "double-star", "double-star.xlsx"));
         WriteMemberArray(Prepare(outputDir, "member-array", "member-array.xlsx"));
@@ -68,6 +70,7 @@ internal static class Program
         WriteRecordRefTrim(Prepare(outputDir, "record-ref-trim", "record-ref-trim.xlsx"));
         WriteKeyTypes(Prepare(outputDir, "key-types", "key-types.xlsx"));
         WriteCompositeKey(Prepare(outputDir, "composite-key", "composite-key.xlsx"));
+        WriteVariantSet(Prepare(outputDir, "variant-set", "variant-set.xlsx"));
         WriteOptional(Prepare(outputDir, "optional", "optional.xlsx"));
         WriteBlankAndNull(Prepare(outputDir, "blank-and-null", "blank-and-null.xlsx"));
         WriteBlankCell(Prepare(outputDir, "blank-cell", "blank-cell.xlsx"));
@@ -613,9 +616,72 @@ internal static class Program
     }
 
     /// <summary>
-    /// `foreign[]`, which is deliberately unsupported.
+    /// `foreign Target[]` - a cell holding a delimited list of keys.
     /// </summary>
+    /// <remarks>
+    /// The third way an array of references reaches the model, beside numbered columns
+    /// (`serial-ref`) and rows (multi-row). What it has to show is that the three arrive as
+    /// one thing: the generated surface here is `serial-ref`'s, because the fold has already
+    /// made a column's delimited list and a group of numbered columns the same group.
+    ///
+    /// Rows of three, one and none, so the per-row length is what the file carries rather
+    /// than a count the sheet happened to have. Both forms a reference takes are arrayed -
+    /// the whole row and one of that row's values - because the element type differs between
+    /// them and each has its own path through resolution.
+    ///
+    /// `foreign A|B[]` is not here: it is refused, and `TabbitLayoutTests` holds that.
+    /// spec/polymorphism.md section 4.
+    /// </remarks>
     private static void WriteArrayForeign(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Refs"));
+
+        var target = new TableSpec { Name = "Target", Comment = "Reference target." };
+        target
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "name"))
+            .Field(FieldSpec.Of("Note", "string", "note"));
+        target
+            .Row("1", "one", "first")
+            .Row("2", "two", "second")
+            .Row("3", "three", "third");
+
+        b.Table(1, 1, target);
+
+        var holders = new SheetBuilder(workbook.CreateSheet("Holder"));
+
+        var holder = new TableSpec { Name = "Holder", Comment = "Arrays of references, written in one cell each." };
+        holder
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Targets", "foreign[]", "a list of rows", detailType: "Target"))
+            // The other form a reference takes, arrayed: each element resolves to one of the
+            // target's values rather than to the row.
+            .Field(FieldSpec.Of("Notes", "foreign[]", "a list of one of that row's values", detailType: "Target.Note"))
+            .Field(FieldSpec.Of("Label", "string", "label"));
+        holder
+            .Row("1", "1;2;3", "1;2", "three and two")
+            // One element, which is where an array of one and a scalar have to stay apart.
+            .Row("2", "2", "3", "one and one")
+            // Empty cells are empty arrays, as they are for every other array type.
+            .Row("3", "", "", "none and none");
+
+        holders.Table(1, 1, holder);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// `foreign A|B[]`, which stays refused.
+    /// </summary>
+    /// <remarks>
+    /// The half of an array of references the generators have no shape for: an element that
+    /// may be a row of either table needs a discriminator and a narrowing accessor of its
+    /// own, and those exist for a column and for a record member rather than for an array.
+    /// Refused rather than emitted as a column of keys nothing can resolve.
+    /// spec/polymorphism.md section 4.
+    /// </remarks>
+    private static void WriteArrayForeignMulti(string path)
     {
         var workbook = new XSSFWorkbook();
         var b = new SheetBuilder(workbook.CreateSheet("Bad"));
@@ -623,20 +689,26 @@ internal static class Program
         var target = new TableSpec { Name = "Target", Comment = "Reference target." };
         target
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Name", "string", "name"))
-            .Field(FieldSpec.Of("Note", "string", "note"));
-        target.Row("1", "one", "first");
+            .Field(FieldSpec.Of("Name", "string", "name"));
+        target.Row("1", "one");
 
         b.Table(1, 1, target);
 
-        var holder = new TableSpec { Name = "Holder", Comment = "Declares an array of references." };
+        var other = new TableSpec { Name = "Other", Comment = "A second target." };
+        other
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "name"));
+        other.Row("101", "alpha");
+
+        b.Table(6, 1, other);
+
+        var holder = new TableSpec { Name = "Holder", Comment = "Declares a list reaching either." };
         holder
             .Field(FieldSpec.Of("index", "int", "primary index"))
-            .Field(FieldSpec.Of("Targets", "foreign[]", "unsupported", detailType: "Target"))
-            .Field(FieldSpec.Of("Label", "string", "label"));
-        holder.Row("1", "1", "a");
+            .Field(FieldSpec.Of("Mixed", "foreign[]", "unsupported", detailType: "Target|Other"));
+        holder.Row("1", "1;101");
 
-        b.Table(9, 1, holder);
+        b.Table(11, 1, holder);
 
         Save(workbook, path);
     }
@@ -1570,6 +1642,104 @@ internal static class Program
             .Row("0", "1", "floor", "north");
 
         grids.Table(1, 1, grid);
+
+        Save(workbook, path);
+    }
+
+    // ---------------------------------------------------------------- variant set
+
+    /// <summary>
+    /// A named set of catalogues, and a column that reaches all of them by naming the set.
+    /// </summary>
+    /// <remarks>
+    /// The declaration is `extends=Reward` on each catalogue's own cell, and
+    /// test/fixtures/schemas/variant-set declares what `Reward` is. What the tree pins is that
+    /// `foreign Reward` produces exactly what `foreign Item|Mount|Title` produces - the set is
+    /// a name for the list and nothing else travels.
+    ///
+    /// The key bands do not overlap, which is not decoration: a multi-target column resolves
+    /// by finding the id, so two catalogues holding one id is refused. Written far apart on
+    /// purpose so the fixture says which rule it is keeping.
+    ///
+    /// spec/polymorphism.md sections 3 and 4.
+    /// </remarks>
+    private static void WriteVariantSet(string path)
+    {
+        var workbook = new XSSFWorkbook();
+
+        var catalogues = new SheetBuilder(workbook.CreateSheet("Catalogues"));
+
+        // `name` and `icon` are the surface `Reward` declares. Every catalogue carries both,
+        // under those names and those types, or the set's promise does not hold.
+        var item = new TableSpec
+        {
+            Name = "Item",
+            Comment = "A catalogue in the Reward set.",
+            Meta = "extends=Reward",
+        };
+        item
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("name", "string", "shown to the player"))
+            .Field(FieldSpec.Of("icon", "string", "art beside the name"))
+            .Field(FieldSpec.Of("Stack", "int", "how many fit in one slot"));
+        item
+            .Row("1", "Short Sword", "sword", "1")
+            .Row("2", "Small Potion", "potion", "99");
+
+        int next = catalogues.Table(1, 1, item);
+
+        var mount = new TableSpec
+        {
+            Name = "Mount",
+            Comment = "Another catalogue in the same set, keyed well clear of the first.",
+            Meta = "extends=Reward",
+        };
+        mount
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("name", "string", "shown to the player"))
+            .Field(FieldSpec.Of("icon", "string", "art beside the name"))
+            .Field(FieldSpec.Of("Speed", "int", "how fast it goes"));
+        mount
+            .Row("101", "Brown Horse", "horse", "12")
+            .Row("102", "Grey Wolf", "wolf", "15");
+
+        catalogues.Table(1, next + 1, mount);
+
+        // A catalogue that is not in the set, so the fixture also says what the set excludes.
+        var currency = new TableSpec
+        {
+            Name = "Currency",
+            Comment = "Not in the set: no `extends`, and no surface to keep.",
+        };
+        currency
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Symbol", "string", "anything"));
+        currency
+            .Row("1", "G")
+            .Row("2", "S");
+
+        var others = new SheetBuilder(workbook.CreateSheet("Other"));
+        others.Table(1, 1, currency);
+
+        // --- the column that names the set --------------------------------
+
+        var shops = new SheetBuilder(workbook.CreateSheet("Shop"));
+
+        var shop = new TableSpec
+        {
+            Name = "Shop",
+            Comment = "What is for sale. The reward may be a row of any catalogue in the set.",
+        };
+        shop
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("RewardId", "foreign", "any row in the Reward set", detailType: "Reward"))
+            .Field(FieldSpec.Of("Price", "int", "what it costs"));
+        shop
+            .Row("1", "1", "100")
+            .Row("2", "102", "5000")
+            .Row("3", "2", "50");
+
+        shops.Table(1, 1, shop);
 
         Save(workbook, path);
     }
@@ -2964,6 +3134,13 @@ internal static class Program
             .Field(FieldSpec.Of("tier", "foreign", "one field of another table's row",
                                 detailType: "Owners.rank"))
 
+            // A reference per element, with the length the row's. This is the one column
+            // whose reader has to allocate the resolved slots rather than assign into a
+            // record it already sized, so it is the only place `ForeignRecordArray` is read.
+            // spec/polymorphism.md section 4.
+            .Field(FieldSpec.Of("owners", "foreign[]", "a row of another table per element",
+                                detailType: "Owners"))
+
             // The three columns the v104 encodings need somewhere to win.
             //
             // A spreadsheet has one kind of number, so a column of counts arrives as
@@ -2983,30 +3160,30 @@ internal static class Program
             // paths at length zero.
             .Row("1", "0", "0", "0", "0", "", "N",
                  "0001-01-01 00:00:00", "00:00:00", "00000000-0000-0000-0000-000000000000",
-                 "None", "", "", "", "", "0", "0", "0", "", "")
+                 "None", "", "", "", "", "0", "0", "", "0", "", "")
 
             // The value a double cannot hold, and one varint byte short of two.
             .Row("2", "63", "9007199254740993", "0.1", "0.1", "ascii", "Y",
                  "2022-03-01 09:00:00", "0.00:05:00", "6f9619ff-8b86-d011-b42d-00c04fc964ff",
-                 "One", "0;1;-1", "a;b", "One", "6f9619ff-8b86-d011-b42d-00c04fc964ff", "1", "1",
+                 "One", "0;1;-1", "a;b", "One", "6f9619ff-8b86-d011-b42d-00c04fc964ff", "1", "1", "1",
                  "1", "north_gate_small_leg_north_gate", "north_gate_small_leg_north_gate")
 
             // Its negative, and the zig-zag boundary either side of zero.
             .Row("3", "-64", "-9007199254740993", "-0.1", "-0.1", "é한Ａ", "N",
                  "9999-12-31 23:59:59", "-0.00:05:00", "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                 "Negative", "-2147483648;2147483647", "", "Negative;Large", "00000000-0000-0000-0000-000000000000;ffffffff-ffff-ffff-ffff-ffffffffffff", "2", "2",
+                 "Negative", "-2147483648;2147483647", "", "Negative;Large", "00000000-0000-0000-0000-000000000000;ffffffff-ffff-ffff-ffff-ffffffffffff", "2", "2", "2;3",
                  "-1", "south_wall_large_leg_south_wall", "north_gate_small_leg_north_gate")
 
             // Three varint bytes, and both 32-bit extremes.
             .Row("4", "1048576", "-1", "3.4028235E+38", "1.7976931348623157E+308", "  spaced  ", "Y",
                  "1970-01-01 00:00:00", "10675199.02:48:05", "01020304-0506-0708-090a-0b0c0d0e0f10",
-                 "Large", "1048576", "one;;three", "None;One;Large", "01020304-0506-0708-090a-0b0c0d0e0f10", "3", "3",
+                 "Large", "1048576", "one;;three", "None;One;Large", "01020304-0506-0708-090a-0b0c0d0e0f10", "3", "3", "1;2;3",
                  "2", "east_tower_small_leg_east_tower", "north_gate_small_leg_north_gate")
 
             // Five varint bytes each way.
             .Row("5", "2147483647", "9223372036854775807", "1.4E-45", "5E-324", "tail", "N",
                  "2038-01-19 03:14:07", "00:00:00.0000001", "ffffffff-0000-ffff-0000-ffffffffffff",
-                 "None", "134217728;-134217729", "z", "Large", "ffffffff-0000-ffff-0000-ffffffffffff", "1", "3",
+                 "None", "134217728;-134217729", "z", "Large", "ffffffff-0000-ffff-0000-ffffffffffff", "1", "3", "3",
                  "3", "west_gate_large_leg_west_gate", "south_wall_large_leg_south_wall")
 
             // Negative zero is deliberately not here: JSON has no such value, so the
@@ -3015,7 +3192,7 @@ internal static class Program
             // does survive the round trip.
             .Row("6", "-2147483648", "-9223372036854775808", "-1.4E-45", "-5E-324", "", "Y",
                  "2000-02-29 12:00:00", "1.00:00:00", "80000000-0000-0000-0000-000000000001",
-                 "One", "", "é", "", "80000000-0000-0000-0000-000000000001", "3", "1",
+                 "One", "", "é", "", "80000000-0000-0000-0000-000000000001", "3", "1", "2;1",
                  "-2", "upper_wall_small_leg_upper_wall", "south_wall_large_leg_south_wall");
 
         // The encoding rows: enough of each shape that every column encoding of
@@ -3091,6 +3268,14 @@ internal static class Program
                 // are not dense, so this is the ordinary case rather than a contrived one.
                 at == 7 ? "1000" : pattern[at % pattern.Length].ToString(),
                 pattern[(at + 3) % pattern.Length].ToString(),
+
+                // The reference array, with a length that varies and an empty row among
+                // them - so the reader allocates a different number of slots per row and
+                // has to get zero right as well.
+                at % 4 == 0
+                    ? ""
+                    : string.Join(";", Enumerable.Range(1, at % 4)
+                        .Select(n => pattern[(at + n) % pattern.Length].ToString())),
 
                 // Whole numbers stepping by one, which the integer encodings flatten to a
                 // run of deltas once the column says its values are integers.

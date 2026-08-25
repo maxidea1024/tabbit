@@ -46,15 +46,15 @@ internal static class Program
                     ["index"] = r.Index,
 
                     ["animKey"] = r._anim_Animation_index,
-                    ["animBlend"] = r.Anim != null ? (object)r.Anim.Blend : "<unresolved>",
+                    ["animBlend"] = r.AnimationByAnim != null ? (object)r.AnimationByAnim.Blend : "<unresolved>",
 
                     // As text, so a 64-bit key is compared exactly rather than through a
                     // double - which is the same reason the JSON exporter writes it as one.
                     ["entryKey"] = r._entry_Ledger_index.ToString(),
-                    ["entryNote"] = r.Entry != null ? r.Entry.Note : "<unresolved>",
+                    ["entryNote"] = r.LedgerByEntry != null ? r.LedgerByEntry.Note : "<unresolved>",
 
                     ["coverKey"] = r._cover_Art_index.ToString(),
-                    ["coverPath"] = r.Cover != null ? r.Cover.Path : "<unresolved>",
+                    ["coverPath"] = r.ArtByCover != null ? r.ArtByCover.Path : "<unresolved>",
                 }).ToList(),
             };
 

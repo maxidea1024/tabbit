@@ -56,7 +56,7 @@ $data->readAll('./data');
 $sword = $data->item->findByIndex(1);
 if ($sword !== null) {
     // 참조는 로드 후 실제 레코드로 연결됩니다.
-    echo $sword->name . ' / ' . $sword->categoryId->name;
+    echo $sword->name . ' / ' . $sword->itemCategoryByCategoryId->name;
 }
 
 foreach ($data->item->records as $row) { /* ... */ }

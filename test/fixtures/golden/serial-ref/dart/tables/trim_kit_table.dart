@@ -12,12 +12,12 @@ class TrimKitRecord {
   /// primary index
   int index = 0;
   /// element 1 - the row it points at
-  List<BitRecord?> slot = [];
-  List<int> slotIndex = [];
+  List<int> slot = [];
+  List<BitRecord?> bitBySlot = [];
   List<bool> hasSlotAt = const <bool>[];
   /// element 1 - the target's own value
-  List<int?> tier = [];
   List<int> tierIndex = [];
+  List<int?> tier = [];
   List<bool> hasTierAt = const <bool>[];
 
 }
@@ -108,7 +108,8 @@ class TrimKitTable {
           cursor = TcbColumnCursor(reader, column, count, 'TrimKit.Slot');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.slotIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.slot = List.generate(elementCount, (_) => cursor.nextI32());
+            record.bitBySlot = List.filled(elementCount, null);
             record.hasSlotAt =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
             elementAt += elementCount;
@@ -123,7 +124,8 @@ class TrimKitTable {
           cursor = TcbColumnCursor(reader, column, count, 'TrimKit.Tier');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.tierIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.tier = List.generate(elementCount, (_) => cursor.nextI32());
+            record.tier = List.filled(elementCount, null);
             record.hasTierAt =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
             elementAt += elementCount;

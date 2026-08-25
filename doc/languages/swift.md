@@ -63,7 +63,7 @@ try data.readAll("./data")
 
 if let sword = data.item.findByIndex(1) {
     // 참조는 로드 후 실제 레코드로 연결됩니다.
-    print("\(sword.name) / \(sword.categoryId?.name ?? "-")")
+    print("\(sword.name) / \(sword.itemCategoryByCategoryId?.name ?? "-")")
 }
 
 for row in data.item.records { /* ... */ }

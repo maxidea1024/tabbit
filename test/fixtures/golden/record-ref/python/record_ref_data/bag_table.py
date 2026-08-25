@@ -14,11 +14,11 @@ from . import tabbit
 class BagSlotsEntry:
     """One element of BagRecord.slots."""
 
-    __slots__ = ("item_id", "item_id_index", "count")
+    __slots__ = ("item_id", "item_by_item_id", "count")
 
     def __init__(self):
-        self.item_id = [None] * 2
-        self.item_id_index = [0] * 2
+        self.item_id = [0] * 2
+        self.item_by_item_id = [None] * 2
         self.count = [0] * 2
 
     def __repr__(self):
@@ -118,9 +118,9 @@ class BagTable:
                 cursor = tabbit.ColumnCursor(reader, column, count, "Bag.Slots.ItemId")
                 for record in records:
                     element_count = cursor.next_length()
-                    record.slots.item_id_index = [None] * element_count
+                    record.slots.item_id = [None] * element_count
                     for element in range(element_count):
-                        record.slots.item_id_index[element] = cursor.next_i32()
+                        record.slots.item_id[element] = cursor.next_i32()
             elif column.tag == 3:
                 tabbit.check_column(column, "Bag.Slots.Count", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Bag.Slots.Count")

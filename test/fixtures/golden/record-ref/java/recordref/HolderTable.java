@@ -112,7 +112,7 @@ public final class HolderTable {
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
                         for (; n > 0; n--, i++) {
-                            loaded.get(i).main.itemIdIndex = cursor.runSameValue;
+                            loaded.get(i).main.itemId = cursor.runSameValue;
                         }
                     }
                     break;

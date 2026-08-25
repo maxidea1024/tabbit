@@ -55,9 +55,13 @@ internal static class SchemaMetadata
         // dropped member's wire tag from being handed to a new one.
         ["removed"] = MetaKey.Carried,
 
-        // Says what `foreign` already says here - this tool resolves a named table rather
-        // than only checking against it, so carrying both would be one thing spelled twice.
-        ["refs"] = MetaKey.SaidByForeign,
+        // The tables a value has to be an id of, checked and nothing else. It is not a
+        // weaker `foreign`: `foreign` names one table, resolves it and narrows the column
+        // to that table's key type, while this states where a value may have come from and
+        // leaves the type alone. Several tables is what it exists for - "one of these" has
+        // no single type to resolve to, so it is a check and not a reference.
+        // spec/reference-surface-naming.md section 6.
+        ["refs"] = MetaKey.Carried,
 
         ["notDefault"] = MetaKey.Carried,
         ["regex"] = MetaKey.Carried,
@@ -87,9 +91,6 @@ internal static class SchemaMetadata
 
         /// <summary>Defined by the notation, and not carried by this build.</summary>
         NotCarried,
-
-        /// <summary>Defined, and a second way to write something that already exists.</summary>
-        SaidByForeign,
     }
 
     /// <summary>
@@ -141,12 +142,8 @@ internal static class SchemaMetadata
     {
         foreach (var entry in meta.Beyond([.. known.Keys.Where(key => known[key] == MetaKey.Carried)]))
         {
-            string id = known.TryGetValue(entry.Key, out var kind)
-                ? kind switch
-                {
-                    MetaKey.SaidByForeign => SchemaMessages.MetaRefsIsForeign,
-                    _ => SchemaMessages.MetaKeyNotCarried,
-                }
+            string id = known.ContainsKey(entry.Key)
+                ? SchemaMessages.MetaKeyNotCarried
                 : SchemaMessages.MetaKeyUnknown;
 
             diagnostics.Error(entry.Location, Message.Of(
@@ -186,6 +183,7 @@ internal static class SchemaMetadata
         ApplyRole(field, meta, memberName, typeName, diagnostics);
         ApplyBounds(field, meta, memberName, diagnostics);
         ApplyAllowedValues(table, field, meta, memberName, diagnostics);
+        ApplyReferencedTables(table, field, meta, memberName, diagnostics);
         ApplyPattern(table, field, meta, memberName, typeName, diagnostics);
         ApplyLength(field, meta, memberName, typeName, typeIsArray, diagnostics);
 
@@ -499,5 +497,83 @@ internal static class SchemaMetadata
         }
 
         field.Constraints.AllowedValues = both;
+    }
+
+    /// <summary>
+    /// `refs`, the tables a value has to be an id of.
+    /// </summary>
+    /// <remarks>
+    /// **A check, and the type is untouched.** `allowed` is a list of values and this is a
+    /// list of the places values come from, so it sits in the same brackets, parts on the
+    /// same `;`, and narrows the same way when both a declaration and a sheet wrote one.
+    /// spec/reference-surface-naming.md section 6.
+    ///
+    /// **Not on a column that is already a reference.** `foreign` names one table and
+    /// resolves it, which is a stronger statement than "the value is an id of one of
+    /// these"; carrying both would leave two declarations that can disagree about the same
+    /// column, and nothing decides which one loses.
+    ///
+    /// Tables named here are checked for existence later, once every sheet is read - a name
+    /// cannot be resolved while the sheet that declares it may still be unread.
+    /// </remarks>
+    private static void ApplyReferencedTables(
+        Table table, Field field, SchemaMeta meta, string memberName,
+        Diagnostics diagnostics)
+    {
+        string? written = meta.Value("refs");
+
+        if (written is null)
+            return;
+
+        if (field.IsRef || field.RefTableName is not null)
+        {
+            diagnostics.Error(meta.LocationOf("refs"), Message.Of(
+                SchemaMessages.MetaRefsIsForeign,
+                ("Key", "refs"), ("Where", $"{table.Name}.{field.RawName}"),
+                ("Owner", table.Name)));
+            return;
+        }
+
+        var declared = written
+            .Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Select(name => name.Trim())
+            .Where(name => name.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (declared.Count == 0)
+        {
+            diagnostics.Error(meta.LocationOf("refs"), Message.Of(
+                SchemaMessages.RefsEmpty, ("Member", memberName)));
+            return;
+        }
+
+        if (field.Constraints.ReferencedTables is not { Count: > 0 } already)
+        {
+            field.Constraints.ReferencedTables = declared;
+            field.Constraints.ReferencedTablesLocation = meta.LocationOf("refs");
+            return;
+        }
+
+        // Both said something, so the value has to satisfy both - it is an id of a table in
+        // each list, which is a table in both.
+        var both = already
+            .Where(name => declared.Contains(name, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+
+        if (both.Count == 0)
+        {
+            diagnostics.Error(field.TypeLocation, Message.Of(
+                SchemaMessages.RefsIntersectionEmpty,
+                ("Table", table.Name),
+                ("Column", field.RawName),
+                ("Member", memberName),
+                ("Sheet", string.Join(";", already)),
+                ("Declared", written)));
+
+            return;
+        }
+
+        field.Constraints.ReferencedTables = both;
     }
 }

@@ -25,8 +25,8 @@ public final class KitRecord {
         public init() {}
 
         /// element 1, the reference
-        public var itemId: ItemRecord? = nil
-        public var itemIdIndex: Int32 = 0
+        public var itemId: Int32 = 0
+        public var itemByItemId: ItemRecord? = nil
 
         /// element 1, an ordinary member
         public var count: Int32 = 0
@@ -140,7 +140,7 @@ public final class KitTable {
                         repeating: KitRecord.PartEntry(), count: elementCount)
 
                     for element in 0 ..< elementCount {
-                        record.part[element].itemIdIndex = try cursor.nextI32()
+                        record.part[element].itemId = try cursor.nextI32()
                     }
                 }
             case 3:

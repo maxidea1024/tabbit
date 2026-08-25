@@ -119,7 +119,7 @@ public final class LoadoutTable {
 
                         for (int j = 0; j < elementCount; j++) {
                             record.slot[j] = new LoadoutRecord.SlotEntry();
-                            record.slot[j].itemIdIndex = cursor.nextI32();
+                            record.slot[j].itemId = cursor.nextI32();
                         }
                     }
                     break;
@@ -137,7 +137,7 @@ public final class LoadoutTable {
                         }
 
                         for (int j = 0; j < elementCount; j++) {
-                            record.slot[j].swapIdIndex = cursor.nextI32();
+                            record.slot[j].swapId = cursor.nextI32();
                         }
                     }
                     break;

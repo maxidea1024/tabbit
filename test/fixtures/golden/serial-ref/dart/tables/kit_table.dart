@@ -12,11 +12,11 @@ class KitRecord {
   /// primary index
   int index = 0;
   /// element 1 - the row it points at
-  List<PieceRecord?> slot = [];
-  List<int> slotIndex = [];
+  List<int> slot = [];
+  List<PieceRecord?> pieceBySlot = [];
   /// element 1 - the target's own value
-  List<int?> tier = [];
   List<int> tierIndex = [];
+  List<int?> tier = [];
 
 }
 
@@ -100,7 +100,8 @@ class KitTable {
           cursor = TcbColumnCursor(reader, column, count, 'Kit.Slot');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.slotIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.slot = List.generate(elementCount, (_) => cursor.nextI32());
+            record.pieceBySlot = List.filled(elementCount, null);
           }
           break;
         case 3:
@@ -108,7 +109,8 @@ class KitTable {
           cursor = TcbColumnCursor(reader, column, count, 'Kit.Tier');
           for (final record in loaded) {
             final elementCount = cursor.nextLength();
-            record.tierIndex = List.generate(elementCount, (_) => cursor.nextI32());
+            record.tier = List.generate(elementCount, (_) => cursor.nextI32());
+            record.tier = List.filled(elementCount, null);
           }
           break;
         default:

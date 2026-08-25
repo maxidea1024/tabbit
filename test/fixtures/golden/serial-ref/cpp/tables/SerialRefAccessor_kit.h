@@ -26,11 +26,11 @@ struct KitRecord {
   /// primary index
   std::int32_t index = 0;
   /// element 1 - the row it points at
-  std::vector<const PieceRecord*> slot;
-  std::vector<std::int32_t> slot_index;
+  std::vector<std::int32_t> slot;
+  std::vector<const PieceRecord*> piece_by_slot;
   /// element 1 - the target's own value
-  std::vector<std::int32_t> tier;
   std::vector<std::int32_t> tier_index;
+  std::vector<std::int32_t> tier;
 };
 
 /// Numbered reference columns, folded into arrays.
@@ -119,11 +119,11 @@ class KitTable {
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
             const std::int32_t element_count = cursor.next_length();
-            record.slot.assign(
+            record.piece_by_slot.assign(
                 static_cast<std::size_t>(element_count), nullptr);
-            record.slot_index.resize(static_cast<std::size_t>(element_count));
+            record.slot.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.slot_index[static_cast<std::size_t>(j)] = cursor.next_i32();
+              record.slot[static_cast<std::size_t>(j)] = cursor.next_i32();
             }
           }
           break;
@@ -136,7 +136,7 @@ class KitTable {
             const std::int32_t element_count = cursor.next_length();
             record.tier.assign(
                 static_cast<std::size_t>(element_count), 0);
-            record.tier_index.resize(static_cast<std::size_t>(element_count));
+            record.tier.resize(static_cast<std::size_t>(element_count));
             for (std::int32_t j = 0; j < element_count; ++j) {
               record.tier_index[static_cast<std::size_t>(j)] = cursor.next_i32();
             }

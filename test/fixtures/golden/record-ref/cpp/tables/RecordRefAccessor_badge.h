@@ -24,11 +24,11 @@ namespace record_ref {
 /// One element of BadgeRecord::mark.
 struct BadgeRecord_mark_entry {
   /// a string key, on the run path
-  const ClipRecord* clip_id = nullptr;
-  std::string clip_id_index = std::string();
+  std::string clip_id = std::string();
+  const ClipRecord* clip_by_clip_id = nullptr;
   /// a uuid key, on the run path
-  const SealRecord* seal_id = nullptr;
-  tabbit::Uuid seal_id_index;
+  tabbit::Uuid seal_id;
+  const SealRecord* seal_by_seal_id = nullptr;
   /// an ordinary member beside them
   std::int32_t rank = 0;
 };
@@ -131,7 +131,7 @@ class BadgeTable {
             std::int32_t n = cursor.next_same_string(
                 static_cast<std::int32_t>(row_count - i), value);
             for (; n > 0; --n, ++i) {
-              records[i].mark.clip_id_index = value;
+              records[i].mark.clip_id = value;
             }
           }
           break;
@@ -140,7 +140,7 @@ class BadgeTable {
           tabbit::check_column(column, "Badge.Mark.SealId", tabbit::kKindScalar, false, {tabbit::kElementUuid});
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
-            reader.read(record.mark.seal_id_index);
+            reader.read(record.mark.seal_id);
           }
           break;
         }

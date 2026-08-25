@@ -95,14 +95,14 @@ func (t *{{ accessor_name }}) solveCrossReferences() {
 		record := &t.{{ reference.table }}.records[i]
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-		for k := range record.{{ field.name }}Index {
-			if target := t.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index[k]); target != nil {
-				record.{{ field.name }}[k] = {{ field.value }}
+		for k := range record.{{ field.name }} {
+			if target := t.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}[k]); target != nil {
+				record.{{ field.row_name }}[k] = {{ field.value }}
 			}
 		}
 {{~ else ~}}
-		if target := t.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index); target != nil {
-			record.{{ field.name }} = {{ field.value }}
+		if target := t.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}); target != nil {
+			record.{{ field.row_name }} = {{ field.value }}
 		}
 {{~ end ~}}
 {{~ end ~}}
@@ -135,45 +135,6 @@ func (t *{{ accessor_name }}) solveCrossReferences() {
    so the elements are walked and each one's own key is looked up. Which slice that is - the
    group's or the member's - the view decided, and a record of one has neither.
    spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
-{{~ for ref in reference.multi_record_fields ~}}
-{{~ if ref.range != '' ~}}
-		for k := range {{ ref.range }} {
-			if {{ ref.key }} {{ ref.key_is_set }} {
-{{~ for target in ref.targets ~}}
-				if {{ ref.target }} == {{ ref.target_type_name }}None {
-					if found := t.{{ target.table }}.{{ target.lookup }}({{ ref.key }}); found != nil {
-						{{ ref.slot }} = found
-						{{ ref.target }} = {{ target.constant }}
-					}
-				}
-{{~ end ~}}
-			}
-		}
-{{~ else ~}}
-		if {{ ref.key }} {{ ref.key_is_set }} {
-{{~ for target in ref.targets ~}}
-			if {{ ref.target }} == {{ ref.target_type_name }}None {
-				if found := t.{{ target.table }}.{{ target.lookup }}({{ ref.key }}); found != nil {
-					{{ ref.slot }} = found
-					{{ ref.target }} = {{ target.constant }}
-				}
-			}
-{{~ end ~}}
-		}
-{{~ end ~}}
-{{~ end ~}}
-{{~ for ref in reference.multi_fields ~}}
-		if record.{{ ref.key_member }} {{ ref.key_is_set }} {
-{{~ for target in ref.targets ~}}
-			if record.{{ ref.target_member }} == {{ ref.target_type_name }}None {
-				if target := t.{{ target.table }}.{{ target.lookup }}(record.{{ ref.key_member }}); target != nil {
-					record.{{ ref.slot_member }} = target
-					record.{{ ref.target_member }} = {{ target.constant }}
-				}
-			}
-{{~ end ~}}
-		}
-{{~ end ~}}
 	}
 {{~ end ~}}
 {{~ end ~}}

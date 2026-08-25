@@ -45,8 +45,8 @@ namespace Tabbit.Fixtures.RecordRef
             public struct PartEntry
             {
                 /// element 1, the reference
-                public ItemTable.Record ItemId;
-                public int ItemId_index;
+                public int ItemId;
+                public ItemTable.Record ItemByItemId;
                 public bool ItemId_F;
                 /// element 1, an ordinary member
                 public int Count;
@@ -223,8 +223,8 @@ namespace Tabbit.Fixtures.RecordRef
                             record._part = new Record.PartEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._part[j].ItemId_index = cursor.NextI32();
-                                record._part[j].ItemId = default(ItemTable.Record); // will be assigned.
+                                record._part[j].ItemId = cursor.NextI32();
+                                record._part[j].ItemByItemId = default(ItemTable.Record); // will be assigned.
                                 record._part[j].ItemId_F = false;
                             }
                         }

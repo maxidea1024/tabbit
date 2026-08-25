@@ -48,11 +48,11 @@ class BadgeRecord {
     /** One element of mark. */
     class MarkEntry {
         /** a string key, on the run path */
-        var clipId: ClipRecord? = null
-        var clipIdIndex: String = ""
+        var clipId: String = ""
+        var clipByClipId: ClipRecord? = null
         /** a uuid key, on the run path */
-        var sealId: SealRecord? = null
-        var sealIdIndex: Uuid = Uuid()
+        var sealId: Uuid = Uuid()
+        var sealBySealId: SealRecord? = null
         /** an ordinary member beside them */
         var rank: Int = 0
     }
@@ -146,7 +146,7 @@ class BadgeTable {
                         var n = cursor.nextSameString(count - at)
                         while (n > 0) {
                             val i = at
-                            loaded[i].mark.clipIdIndex = cursor.runSameText
+                            loaded[i].mark.clipId = cursor.runSameText
                             at++
                             n--
                         }
@@ -155,7 +155,7 @@ class BadgeTable {
                 3 -> {
                     checkColumn(column, "Badge.Mark.SealId", KIND_SCALAR, false, ELEMENT_UUID)
                     for (record in loaded) {
-                        record.mark.sealIdIndex = reader.readUuid()
+                        record.mark.sealId = reader.readUuid()
                     }
                 }
                 4 -> {

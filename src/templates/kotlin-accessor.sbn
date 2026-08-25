@@ -96,14 +96,14 @@ object {{ accessor_name }} {
         for (record in {{ reference.table }}.records) {
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-            record.{{ field.name }} = ArrayList(record.{{ field.name }}Index.size)
-            for (index in record.{{ field.name }}Index) {
+            record.{{ field.row_name }} = ArrayList(record.{{ field.name }}.size)
+            for (index in record.{{ field.name }}) {
                 val target = {{ field.ref_table }}.{{ field.ref_lookup }}(index) ?: continue
-                record.{{ field.name }}.add({{ field.value }})
+                record.{{ field.row_name }}.add({{ field.value }})
             }
 {{~ else ~}}
-            {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}Index)?.let { target ->
-                record.{{ field.name }} = {{ field.value }}
+            {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }})?.let { target ->
+                record.{{ field.row_name }} = {{ field.value }}
             }
 {{~ end ~}}
 {{~ end ~}}
@@ -128,49 +128,10 @@ object {{ accessor_name }} {
    so the elements are walked and each one's own key is looked up. Which list that is - the
    group's or the member's - the view decided, and a record of one has neither.
    spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
-{{~ for ref in reference.multi_record_fields ~}}
-{{~ if ref.count != '' ~}}
-            for (i in 0 until {{ ref.count }}) {
-                if ({{ ref.key }} {{ ref.key_is_set }}) {
-{{~ for target in ref.targets ~}}
-                    if ({{ ref.target }} == {{ ref.target_type_name }}.{{ ref.none_label }}) {
-                        {{ target.table }}.{{ target.lookup }}({{ ref.key }})?.let { found ->
-                            {{ ref.slot }} = found
-                            {{ ref.target }} = {{ ref.target_type_name }}.{{ target.label }}
-                        }
-                    }
-{{~ end ~}}
-                }
-            }
-{{~ else ~}}
-            if ({{ ref.key }} {{ ref.key_is_set }}) {
-{{~ for target in ref.targets ~}}
-                if ({{ ref.target }} == {{ ref.target_type_name }}.{{ ref.none_label }}) {
-                    {{ target.table }}.{{ target.lookup }}({{ ref.key }})?.let { found ->
-                        {{ ref.slot }} = found
-                        {{ ref.target }} = {{ ref.target_type_name }}.{{ target.label }}
-                    }
-                }
-{{~ end ~}}
-            }
-{{~ end ~}}
-{{~ end ~}}
 {{~## A column reaching several tables is looked up in each of them in the order they were
    named, stopping at the first that has the key. The tables take separate id bands - an id in
    two of them is refused at conversion - so the order only decides which lookup runs.
    spec/multi-target-accessors.md. ##~}}
-{{~ for ref in reference.multi_fields ~}}
-            if (record.{{ ref.key_member }} {{ ref.key_is_set }}) {
-{{~ for target in ref.targets ~}}
-                if (record.{{ ref.target_member }} == {{ ref.target_type_name }}.{{ ref.none_label }}) {
-                    {{ target.table }}.{{ target.lookup }}(record.{{ ref.key_member }})?.let { found ->
-                        record.{{ ref.slot_member }} = found
-                        record.{{ ref.target_member }} = {{ ref.target_type_name }}.{{ target.label }}
-                    }
-                }
-{{~ end ~}}
-            }
-{{~ end ~}}
         }
 {{~ end ~}}
 {{~ end ~}}

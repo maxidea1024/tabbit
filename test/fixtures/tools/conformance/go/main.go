@@ -88,8 +88,11 @@ func main() {
 			"uids":   uuids(r.Uids),
 
 			// The reference indices, which is what the exporter writes for a foreign field.
-			"owner": r.OwnerIndex,
+			"owner": r.Owner,
 			"tier":  r.TierIndex,
+
+			// And one reference per element, printed as the stored index each came in as.
+			"owners": r.Owners,
 
 			// The three the v104 encodings win on.
 			"count": r.Count,

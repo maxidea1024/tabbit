@@ -42,7 +42,8 @@ namespace Tabbit.Fixtures.Core.Server
             /// <summary>
             /// owning category
             /// </summary>
-            public ItemCategoryTable.Record CategoryId => _categoryId;
+            public int CategoryId => _categoryId_ItemCategory_index;
+            public ItemCategoryTable.Record ItemCategoryByCategoryId => _categoryId;
 
             /// <summary>
             /// item grade
@@ -73,7 +74,7 @@ namespace Tabbit.Fixtures.Core.Server
             internal int _index;
             internal string _name = "";
             internal ItemCategoryTable.Record _categoryId;
-            public int _categoryId_ItemCategory_index;
+            internal int _categoryId_ItemCategory_index;
             public bool _categoryId_F = false;
             internal global::Tabbit.Fixtures.Core.Server.Grade _gradeField;
             internal global::Tabbit.Fixtures.Core.Server.SkillType _skillField;

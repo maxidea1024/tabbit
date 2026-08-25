@@ -56,7 +56,6 @@ internal static class SchemaFieldTypes
 
         if (resolved.RefTables is not null)
         {
-            field.RefTableNames = resolved.RefTables;
             field.RefTableName = resolved.RefTables[0];
             field.RefFieldName = null;
         }

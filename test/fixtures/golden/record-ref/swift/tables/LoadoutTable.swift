@@ -25,12 +25,12 @@ public final class LoadoutRecord {
         public init() {}
 
         /// element 1, the reference
-        public var itemId: ItemRecord? = nil
-        public var itemIdIndex: Int32 = 0
+        public var itemId: Int32 = 0
+        public var itemByItemId: ItemRecord? = nil
 
         /// element 1, a second reference to the same table
-        public var swapId: ItemRecord? = nil
-        public var swapIdIndex: Int32 = 0
+        public var swapId: Int32 = 0
+        public var itemBySwapId: ItemRecord? = nil
 
         /// element 1, an ordinary member
         public var count: Int32 = 0
@@ -144,7 +144,7 @@ public final class LoadoutTable {
                         repeating: LoadoutRecord.SlotEntry(), count: elementCount)
 
                     for element in 0 ..< elementCount {
-                        record.slot[element].itemIdIndex = try cursor.nextI32()
+                        record.slot[element].itemId = try cursor.nextI32()
                     }
                 }
             case 3:
@@ -159,7 +159,7 @@ public final class LoadoutTable {
                     }
 
                     for element in 0 ..< elementCount {
-                        record.slot[element].swapIdIndex = try cursor.nextI32()
+                        record.slot[element].swapId = try cursor.nextI32()
                     }
                 }
             case 4:

@@ -110,18 +110,18 @@ final class {{ accessor.name }}
         foreach (${{ reference.table }}->records as $record) {
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-            foreach ($record->{{ field.name }}Index as $position => $index) {
+            foreach ($record->{{ field.name }} as $position => $index) {
                 $target = ${{ field.ref_table }}->{{ field.ref_lookup }}($index);
 
                 if ($target !== null) {
-                    $record->{{ field.name }}[$position] = {{ field.value }};
+                    $record->{{ field.row_name }}[$position] = {{ field.value }};
                 }
             }
 {{~ else ~}}
-            $target = ${{ field.ref_table }}->{{ field.ref_lookup }}($record->{{ field.name }}Index);
+            $target = ${{ field.ref_table }}->{{ field.ref_lookup }}($record->{{ field.name }});
 
             if ($target !== null) {
-                $record->{{ field.name }} = {{ field.value }};
+                $record->{{ field.row_name }} = {{ field.value }};
             }
 {{~ end ~}}
 {{~ end ~}}
@@ -150,54 +150,10 @@ final class {{ accessor.name }}
    so the elements are walked and each one's own key is looked up. Which list that is - the
    group's or the member's - the view decided, and a record of one has neither.
    spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
-{{~ for ref in reference.multi_record_fields ~}}
-{{~ if ref.count != '' ~}}
-            for ($j = 0; $j < {{ ref.count }}; $j++) {
-                if ({{ ref.key }} {{ ref.key_is_set }}) {
-{{~ for target in ref.targets ~}}
-                    if ({{ ref.target }} === {{ ref.target_type_name }}::{{ ref.none_case }}) {
-                        $found = ${{ target.table }}->{{ target.lookup }}({{ ref.key }});
-                        if ($found !== null) {
-                            {{ ref.slot }} = $found;
-                            {{ ref.target }} = {{ ref.target_type_name }}::{{ target.case }};
-                        }
-                    }
-{{~ end ~}}
-                }
-            }
-{{~ else ~}}
-            if ({{ ref.key }} {{ ref.key_is_set }}) {
-{{~ for target in ref.targets ~}}
-                if ({{ ref.target }} === {{ ref.target_type_name }}::{{ ref.none_case }}) {
-                    $found = ${{ target.table }}->{{ target.lookup }}({{ ref.key }});
-
-                    if ($found !== null) {
-                        {{ ref.slot }} = $found;
-                        {{ ref.target }} = {{ ref.target_type_name }}::{{ target.case }};
-                    }
-                }
-{{~ end ~}}
-            }
-{{~ end ~}}
-{{~ end ~}}
 {{~## A column reaching several tables is looked up in each of them in the order they were
    named, stopping at the first that has the key. The tables take separate id bands - an id in
    two of them is refused at conversion - so the order only decides which lookup runs.
    spec/multi-target-accessors.md. ##~}}
-{{~ for ref in reference.multi_fields ~}}
-            if ($record->{{ ref.key_member }} {{ ref.key_is_set }}) {
-{{~ for target in ref.targets ~}}
-                if ($record->{{ ref.target_member }} === {{ ref.target_type_name }}::{{ ref.none_case }}) {
-                    $target = ${{ target.table }}->{{ target.lookup }}($record->{{ ref.key_member }});
-
-                    if ($target !== null) {
-                        $record->{{ ref.slot_member }} = $target;
-                        $record->{{ ref.target_member }} = {{ ref.target_type_name }}::{{ target.case }};
-                    }
-                }
-{{~ end ~}}
-            }
-{{~ end ~}}
         }
 {{~ end ~}}
 {{~ end ~}}

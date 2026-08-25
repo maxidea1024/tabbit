@@ -1,0 +1,19 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "b8d2082649558027009f3934c3ea0815",
+  "TotalSize": 233,
+  "Items": [
+    {
+      "Name": "Target.tcb",
+      "Size": 101,
+      "Hash": "b11020f7d4b8a4c319a8b11ead9aa887",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Holder.tcb",
+      "Size": 132,
+      "Hash": "ce5aa9e0921d67c32e06c1abfd75382b",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

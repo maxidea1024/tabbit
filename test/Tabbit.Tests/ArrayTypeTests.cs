@@ -163,17 +163,56 @@ public class ArrayTypeTests
     }
 
     /// <summary>
-    /// An array of references would mean resolving a variable number of targets per
-    /// row, which the generated readers have no shape for. Rejecting it outright
-    /// beats emitting code that silently never resolves.
+    /// An array of references written as one cell - the third way an array of references
+    /// reaches the model, beside numbered columns and rows.
     /// </summary>
+    /// <remarks>
+    /// This was refused, on the grounds that the generated readers had no shape for a variable
+    /// number of targets per row. They do, and had before the refusal was lifted: a folded
+    /// group of numbered reference columns arrives at every generator as the same group, and
+    /// [v107](../../spec/tcb-v107-dynamic-arrays.md) made every array carry its own length -
+    /// so the reader already allocates the slots per row. spec/polymorphism.md section 4.
+    /// </remarks>
     [Fact]
-    public void Arrays_of_foreign_references_are_rejected_with_an_explanation()
+    public void An_array_of_references_written_in_one_cell_resolves_per_element()
     {
         var result = TabbitRunner.Convert("array-foreign");
 
-        Assert.False(result.Succeeded, "`foreign[]` was accepted.");
-        Assert.Contains("is typed as an array of references", result.StdOut);
-        Assert.Contains("numbered columns", result.StdOut);
+        Assert.True(result.Succeeded, result.Describe());
+
+        string cs = File.ReadAllText(Path.Combine(
+            RepoLayout.OutputDir("array-foreign"), "csharp", "tables", "HolderTable.cs"));
+
+        // A row per element for the whole-row form, and one of that row's values for the
+        // dotted one - the same two shapes a scalar reference takes. The column's name is
+        // the key's either way; only the whole-row form has a second name for the rows.
+        // spec/reference-surface-naming.md sections 4, 5 and 9.
+        Assert.Contains("public int[] Targets => _targets_Target_index;", cs);
+        Assert.Contains("public TargetTable.Record[] TargetByTargets => _targets;", cs);
+        Assert.Contains("public string[] Notes => _notes;", cs);
+
+        // Allocated from the row's own element count rather than a constant, which is what
+        // separates a cell array from a folded group of columns.
+        Assert.Contains("record._targets = new TargetTable.Record[elementCount];", cs);
+
+        var rows = Rows("array-foreign", "Holder");
+
+        Assert.Equal(new[] { 1, 2, 3 }, Ints(rows[0], "targets"));
+        Assert.Equal(new[] { 2 }, Ints(rows[1], "targets"));
+        Assert.Empty(Ints(rows[2], "targets"));
+    }
+
+    /// <summary>
+    /// Several tables is refused whether or not it is an array, because it is a check and
+    /// not a reference - spec/reference-surface-naming.md section 6.
+    /// </summary>
+    [Fact]
+    public void An_array_reaching_several_tables_is_refused_with_what_is_available()
+    {
+        var result = TabbitRunner.Convert("array-foreign-multi");
+
+        Assert.False(result.Succeeded, "`foreign A|B[]` was accepted.");
+        Assert.Contains("has no single type to resolve to", result.StdOut);
+        Assert.Contains("refs=", result.StdOut);
     }
 }

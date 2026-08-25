@@ -90,76 +90,9 @@ internal sealed class TsCrossReferenceView
     /// </summary>
     public required IReadOnlyList<TsRecordReferenceView> RecordFields { get; set; }
 
-    /// <summary>
-    /// The columns reaching several tables, which resolve by trying each in turn.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<TsMultiReferenceView> MultiFields { get; set; }
 
-    /// <summary>
-    /// The multi-target columns that are members of a record, resolved per element.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<TsMultiRecordReferenceView> MultiRecordFields { get; set; }
 }
 
-/// <summary>
-/// One column whose value is a row of one of several tables.
-/// </summary>
-/// <remarks>
-/// The key stays the column's value; beside it go one slot for the resolved row and the
-/// discriminator saying which table filled it. One slot rather than one per target, because
-/// the targets take separate id bands and so at most one of them ever answers.
-///
-/// TypeScript can spell the slot as a union of the target record types, which is more than
-/// most languages can say - the cast the others need is a narrowing here.
-/// spec/multi-target-accessors.md.
-/// </remarks>
-internal sealed class TsMultiReferenceView
-{
-    /// <summary>The getter the key is read through.</summary>
-    public required string KeyProp { get; set; }
-
-    /// <summary>The member holding the key.</summary>
-    public required string KeyField { get; set; }
-
-    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
-    public required string SlotField { get; set; }
-    public required string TargetField { get; set; }
-
-    /// <summary>The getter the discriminator is read through.</summary>
-    public required string TargetProp { get; set; }
-
-    /// <summary>The generated enumeration's type name.</summary>
-    public required string TargetTypeName { get; set; }
-
-    /// <summary>The union of the target record types, which is what the slot holds.</summary>
-    public required string SlotTypeName { get; set; }
-
-    /// <summary>What follows the key to ask whether it points anywhere.</summary>
-    public required string RefIsSet { get; set; }
-
-    public required IReadOnlyList<TsMultiTargetView> Targets { get; set; }
-}
-
-/// <summary>One table a multi-target column may point at.</summary>
-internal sealed class TsMultiTargetView
-{
-    /// <summary>The accessor member holding the table.</summary>
-    public required string Table { get; set; }
-
-    /// <summary>The record type a resolved row has.</summary>
-    public required string RecordTypeName { get; set; }
-
-    /// <summary>The getter this target is read through.</summary>
-    public required string Prop { get; set; }
-
-    /// <summary>The enum label for this target.</summary>
-    public required string Label { get; set; }
-
-    /// <summary>The target's lookup that answers with undefined rather than throwing.</summary>
-    public required string Lookup { get; set; }
-}
 
 /// <summary>
 /// One reference that is a member of a record, as the linking pass writes it.
@@ -322,21 +255,6 @@ internal sealed class TsTableView
 /// <summary>The fields that reference another table, and so get a wiring method.</summary>
     public required IReadOnlyList<TsFieldView> ReferenceFields { get; set; }
 
-    /// <summary>
-    /// The columns whose value is a row of one of several tables.
-    /// </summary>
-    /// <remarks>
-    /// A third list rather than a branch inside <see cref="ReferenceFields"/>: such a column
-    /// is not one record and keeps carrying the key, and what is added beside it is a getter
-    /// per target. spec/multi-target-accessors.md.
-    /// </remarks>
-    public required IReadOnlyList<TsMultiReferenceView> MultiReferenceFields { get; set; }
-
-    /// <summary>
-    /// The multi-target members of this table's record groups, for the accessors beside the
-    /// element types. spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<TsMultiMemberView> MultiMembers { get; set; }
 
             /// <summary>The fields a lookup map is built for.</summary>
     public required IReadOnlyList<TsFieldView> IndexedFields { get; set; }
@@ -494,6 +412,12 @@ internal sealed class TsColumnView
 /// </summary>
 internal sealed class TsRecordMemberView
 {
+    /// <summary>
+    /// What the resolved row is called, where this member is a reference. Empty otherwise.
+    /// spec/reference-surface-naming.md section 5.
+    /// </summary>
+    public string RowPropName { get; set; } = "";
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     /// <summary>Property name on the element interface, camelCase and escaped.</summary>
@@ -540,37 +464,6 @@ internal sealed class TsRecordMemberView
     /// </remarks>
     public bool IsRecord { get; set; }
 
-    /// <summary>
-    /// The discriminator's type, when this member reaches several tables. Empty otherwise.
-    /// </summary>
-    /// <remarks>
-    /// The member keeps the key it already carried; beside it go one slot for the resolved
-    /// row and this. At the member's own arity, so a record of arrays holds one of each per
-    /// element. spec/multi-target-accessors.md.
-    /// </remarks>
-    public string MultiTargetTypeName { get; set; } = "";
-
-    /// <summary>The slot and the discriminator, declared beside the key.</summary>
-    public string MultiSlotName { get; set; } = "";
-    public string MultiTargetName { get; set; } = "";
-
-    /// <summary>
-    /// The slot's declared type: the union of the target record types, so a reader sees what
-    /// it may hold rather than `unknown`.
-    /// </summary>
-    public string MultiSlotType { get; set; } = "";
-    public string MultiTargetDeclaredType { get; set; } = "";
-
-    /// <summary>What each is initialized to when the element is built.</summary>
-    public string MultiSlotDefault { get; set; } = "";
-    public string MultiTargetDefault { get; set; } = "";
-
-    /// <summary>Whether the member is the array, so an accessor takes an element number.</summary>
-    public bool MultiIsArray { get; set; }
-
-    /// <summary>One entry per table the member may be a row of.</summary>
-    public IReadOnlyList<TsMultiMemberTargetView> MultiTargets { get; set; }
-        = System.Array.Empty<TsMultiMemberTargetView>();
 
 }
 
@@ -599,6 +492,12 @@ internal sealed class TsRecordTypeView
 /// </summary>
 internal sealed class TsFieldView
 {
+    /// <summary>
+    /// What the resolved row is called, where this column is a reference to a whole row.
+    /// Empty otherwise. spec/reference-surface-naming.md section 5.
+    /// </summary>
+    public string RowPropName { get; set; } = "";
+
     /// <summary>
     /// Whether the sheet marked this field optional, so a row may have no value for it.
     /// </summary>
@@ -712,69 +611,3 @@ internal sealed class TsFieldView
     public required IReadOnlyList<string> FromCompactRow { get; set; }
 }
 
-/// <summary>One table a multi-target record member may point at.</summary>
-internal sealed class TsMultiMemberTargetView
-{
-    /// <summary>The record type a resolved row has.</summary>
-    public required string RecordTypeName { get; set; }
-
-    /// <summary>
-    /// The function this target is read through.
-    /// </summary>
-    /// <remarks>
-    /// A function beside the element rather than a member of it: this language's element type
-    /// is an interface, and an interface declares no accessor. Every other language puts the
-    /// accessor on the element, which is that language's own convention - the same reason
-    /// spec/references-in-records.md gives for not unifying them.
-    /// </remarks>
-    public required string Function { get; set; }
-
-    /// <summary>The enum label for this target.</summary>
-    public required string Label { get; set; }
-}
-
-/// <summary>
-/// One multi-target member of a record, as the element type and its accessors need it.
-/// </summary>
-internal sealed class TsMultiMemberView
-{
-    /// <summary>The element type the accessors take.</summary>
-    public required string ElementTypeName { get; set; }
-
-    /// <summary>The key, the slot and the discriminator, by name on that element.</summary>
-    public required string KeyName { get; set; }
-    public required string SlotName { get; set; }
-    public required string TargetName { get; set; }
-
-    /// <summary>The generated enumeration's type name.</summary>
-    public required string TargetTypeName { get; set; }
-
-    /// <summary>Whether the member is the array, so an accessor takes an element number.</summary>
-    public required bool IsArray { get; set; }
-
-    public required IReadOnlyList<TsMultiMemberTargetView> Targets { get; set; }
-}
-
-/// <summary>
-/// One multi-target column that is a member of a record, as the linking pass writes it.
-/// </summary>
-internal sealed class TsMultiRecordReferenceView
-{
-    /// <summary>The key this resolves through, loop variable included.</summary>
-    public required string Key { get; set; }
-
-    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
-    public required string Slot { get; set; }
-    public required string Target { get; set; }
-
-    /// <summary>The loop bound, or empty where the group is one record.</summary>
-    public required string Count { get; set; }
-
-    /// <summary>The generated enumeration's type name.</summary>
-    public required string TargetTypeName { get; set; }
-
-    /// <summary>What follows the key to ask whether it points anywhere.</summary>
-    public required string RefIsSet { get; set; }
-
-    public required IReadOnlyList<TsMultiTargetView> Targets { get; set; }
-}

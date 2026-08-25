@@ -14,11 +14,11 @@ from . import tabbit
 class PoseStepEntry:
     """One element of PoseRecord.step."""
 
-    __slots__ = ("clip_id", "clip_id_index", "weight")
+    __slots__ = ("clip_id", "clip_by_clip_id", "weight")
 
     def __init__(self):
-        self.clip_id = None
-        self.clip_id_index = ""
+        self.clip_id = ""
+        self.clip_by_clip_id = None
         self.weight = 0
 
     def __repr__(self):
@@ -124,7 +124,7 @@ class PoseTable:
                     record.step = [
                         PoseStepEntry() for _ in range(element_count)]
                     for element in range(element_count):
-                        record.step[element].clip_id_index = cursor.next_string()
+                        record.step[element].clip_id = cursor.next_string()
             elif column.tag == 3:
                 tabbit.check_column(column, "Pose.Step.Weight", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Pose.Step.Weight")

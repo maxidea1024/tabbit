@@ -161,6 +161,8 @@ public class BinaryFormatTests
             1,      // owner:     small and irregular, and one id far from the rest,
                     //            which is a span no bit width pays for -> varint
             13,     // tier:      the same values without the distant one -> bitpack
+            9,      // owners:    an array's lengths and elements, each encoded - and the
+                    //            one whose elements are a target's keys rather than values
             10,     // count:     whole numbers        -> the integer encodings, one level down
             11,     // route:     shared pieces, no runs -> dict-seg
             12,     // zone:      the same, in runs    -> dict-seg-rle

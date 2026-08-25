@@ -50,12 +50,12 @@ namespace Tabbit.Fixtures.RecordRef
             public struct MarkEntry
             {
                 /// a string key, on the run path
-                public ClipTable.Record ClipId;
-                public string ClipId_index;
+                public string ClipId;
+                public ClipTable.Record ClipByClipId;
                 public bool ClipId_F;
                 /// a uuid key, on the run path
-                public SealTable.Record SealId;
-                public System.Guid SealId_index;
+                public System.Guid SealId;
+                public SealTable.Record SealBySealId;
                 public bool SealId_F;
                 /// an ordinary member beside them
                 public int Rank;
@@ -235,8 +235,8 @@ namespace Tabbit.Fixtures.RecordRef
                             do
                             {
                                 var record = records[i++];
-                                record._mark.ClipId_index = value;
-                                record._mark.ClipId = default(ClipTable.Record); // will be assigned.
+                                record._mark.ClipId = value;
+                                record._mark.ClipByClipId = default(ClipTable.Record); // will be assigned.
                                 record._mark.ClipId_F = false;
                             } while (--n > 0);
                         }
@@ -247,8 +247,8 @@ namespace Tabbit.Fixtures.RecordRef
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];
-                            reader.Read(out record._mark.SealId_index);
-                            record._mark.SealId = default(SealTable.Record); // will be assigned.
+                            reader.Read(out record._mark.SealId);
+                            record._mark.SealBySealId = default(SealTable.Record); // will be assigned.
                             record._mark.SealId_F = false;
                         }
                         break;

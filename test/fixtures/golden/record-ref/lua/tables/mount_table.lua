@@ -9,14 +9,15 @@ local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
 ---@class MountRigEntryCore
----@field itemId ItemRecord|nil
+---@field itemId integer
+---@field itemByItemId ItemRecord|nil
 ---@field count integer
-local MountRigEntryCoreMeta = tcb.strictType("a record inside MountRecord.rig", { "itemId", "itemIdIndex", "count" })
+local MountRigEntryCoreMeta = tcb.strictType("a record inside MountRecord.rig", { "itemId", "itemByItemId", "count" })
 
 ---@return MountRigEntryCore
 local function newMountRigEntryCore()
   return setmetatable({
-    itemIdIndex = 0,
+    itemId = 0,
     count = 0,
   }, MountRigEntryCoreMeta)
 end
@@ -138,7 +139,7 @@ function MountTable:readBytes(data)
         record.rig = tcb.filledArray(elementCount, newMountRigEntry)
 
         for element = 1, elementCount do
-          record.rig[element].core.itemIdIndex = cursor:nextI32()
+          record.rig[element].core.itemId = cursor:nextI32()
         end
       end
     elseif column.tag == 3 then

@@ -19,11 +19,11 @@ type KitRecord struct {
 	// primary index
 	Index int32
 	// element 1 - the row it points at
-	Slot []*PieceRecord
-	SlotIndex []int32
+	Slot []int32
+	PieceBySlot []*PieceRecord
 	// element 1 - the target's own value
-	Tier []int32
 	TierIndex []int32
+	Tier []int32
 }
 
 // KitTable holds every row of Kit.
@@ -122,10 +122,10 @@ func (t *KitTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Slot = make([]*PieceRecord, elementCount)
-					r.SlotIndex = make([]int32, elementCount)
+					r.PieceBySlot = make([]*PieceRecord, elementCount)
+					r.Slot = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.SlotIndex[j] = cursor.NextI32()
+						r.Slot[j] = cursor.NextI32()
 					}
 				}
 			}
@@ -135,10 +135,10 @@ func (t *KitTable) Read(filename string) error {
 				for i := int32(0); i < count; i++ {
 					r := &records[i]
 					elementCount := int(cursor.NextLength())
-					r.Tier = make([]int32, elementCount)
 					r.TierIndex = make([]int32, elementCount)
+					r.Tier = make([]int32, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.TierIndex[j] = cursor.NextI32()
+						r.Tier[j] = cursor.NextI32()
 					}
 				}
 			}

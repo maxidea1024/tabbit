@@ -119,7 +119,7 @@ public final class PoseTable {
 
                         for (int j = 0; j < elementCount; j++) {
                             record.step[j] = new PoseRecord.StepEntry();
-                            record.step[j].clipIdIndex = cursor.nextString();
+                            record.step[j].clipId = cursor.nextString();
                         }
                     }
                     break;

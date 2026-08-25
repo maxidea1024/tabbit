@@ -25,8 +25,8 @@ public final class PoseRecord {
         public init() {}
 
         /// element 1, a string key
-        public var clipId: ClipRecord? = nil
-        public var clipIdIndex: String = ""
+        public var clipId: String = ""
+        public var clipByClipId: ClipRecord? = nil
 
         /// element 1, an ordinary member
         public var weight: Int32 = 0
@@ -140,7 +140,7 @@ public final class PoseTable {
                         repeating: PoseRecord.StepEntry(), count: elementCount)
 
                     for element in 0 ..< elementCount {
-                        record.step[element].clipIdIndex = try cursor.nextString()
+                        record.step[element].clipId = try cursor.nextString()
                     }
                 }
             case 3:

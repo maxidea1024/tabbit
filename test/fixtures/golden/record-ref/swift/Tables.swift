@@ -168,54 +168,54 @@ public final class Tables {
     private static func solveCrossReferences(item: ItemTable, loadout: LoadoutTable, holder: HolderTable, bag: BagTable, mount: MountTable, clip: ClipTable, pose: PoseTable, seal: SealTable, badge: BadgeTable, kit: KitTable) {
         for record in loadout.records {
             for i in 0 ..< record.slot.count {
-                if let target = item.findByIndex(record.slot[i].itemIdIndex) {
-                    record.slot[i].itemId = target
+                if let target = item.findByIndex(record.slot[i].itemId) {
+                    record.slot[i].itemByItemId = target
                 }
             }
             for i in 0 ..< record.slot.count {
-                if let target = item.findByIndex(record.slot[i].swapIdIndex) {
-                    record.slot[i].swapId = target
+                if let target = item.findByIndex(record.slot[i].swapId) {
+                    record.slot[i].itemBySwapId = target
                 }
             }
         }
         for record in holder.records {
-            if let target = item.findByIndex(record.main.itemIdIndex) {
-                record.main.itemId = target
+            if let target = item.findByIndex(record.main.itemId) {
+                record.main.itemByItemId = target
             }
         }
         for record in bag.records {
-            for i in 0 ..< record.slots.itemIdIndex.count {
-                if let target = item.findByIndex(record.slots.itemIdIndex[i]) {
-                    record.slots.itemId[i] = target
+            for i in 0 ..< record.slots.itemId.count {
+                if let target = item.findByIndex(record.slots.itemId[i]) {
+                    record.slots.itemByItemId[i] = target
                 }
             }
         }
         for record in mount.records {
             for i in 0 ..< record.rig.count {
-                if let target = item.findByIndex(record.rig[i].core.itemIdIndex) {
-                    record.rig[i].core.itemId = target
+                if let target = item.findByIndex(record.rig[i].core.itemId) {
+                    record.rig[i].core.itemByItemId = target
                 }
             }
         }
         for record in pose.records {
             for i in 0 ..< record.step.count {
-                if let target = clip.findByIndex(record.step[i].clipIdIndex) {
-                    record.step[i].clipId = target
+                if let target = clip.findByIndex(record.step[i].clipId) {
+                    record.step[i].clipByClipId = target
                 }
             }
         }
         for record in badge.records {
-            if let target = clip.findByIndex(record.mark.clipIdIndex) {
-                record.mark.clipId = target
+            if let target = clip.findByIndex(record.mark.clipId) {
+                record.mark.clipByClipId = target
             }
-            if let target = seal.findByIndex(record.mark.sealIdIndex) {
-                record.mark.sealId = target
+            if let target = seal.findByIndex(record.mark.sealId) {
+                record.mark.sealBySealId = target
             }
         }
         for record in kit.records {
             for i in 0 ..< record.part.count {
-                if let target = item.findByIndex(record.part[i].itemIdIndex) {
-                    record.part[i].itemId = target
+                if let target = item.findByIndex(record.part[i].itemId) {
+                    record.part[i].itemByItemId = target
                 }
             }
         }

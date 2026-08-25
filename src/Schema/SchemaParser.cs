@@ -37,18 +37,6 @@ public static class SchemaParser
     private static readonly Regex MetaKey =
         new Regex("^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$", RegexOptions.Compiled);
 
-    /// <summary>
-    /// The two words the notation keeps and does not yet mean.
-    /// </summary>
-    /// <remarks>
-    /// Refused by name rather than left to fall out of the unknown-keyword report, so that
-    /// somebody who writes one is told it is coming rather than told it does not exist. They
-    /// stay reserved either way: section 8 of the design will not settle the notation until
-    /// the wire design for it is known to work, and a word that meant nothing in the meantime
-    /// would be a word somebody had named a struct.
-    /// </remarks>
-    private static readonly string[] Reserved = ["abstract", "extends"];
-
     /// <summary>Reads a file's text into its declarations.</summary>
     public static SchemaFile Parse(string source, string path, Diagnostics diagnostics)
     {
@@ -122,12 +110,13 @@ public static class SchemaParser
                 switch (keyword)
                 {
                     case "struct":
+                    case "abstract":
                     {
                         Close(openStruct);
                         Close(openEnum);
                         openEnum = null;
 
-                        openStruct = ReadStruct(Taken(comment));
+                        openStruct = ReadStruct(Taken(comment), isAbstract: keyword == "abstract");
                         if (openStruct is not null)
                             file.Structs.Add(openStruct);
 
@@ -184,10 +173,13 @@ public static class SchemaParser
                         break;
                     }
 
-                    case "abstract":
                     case "extends":
                     {
-                        Report(SchemaMessages.PolymorphismReserved, keywordToken, ("Word", keyword));
+                        // A line of its own rather than the tail of a `struct` line, which is
+                        // the one place it means anything. Reported by name because the word
+                        // does exist here, and an unknown-keyword report would send somebody
+                        // looking for a spelling mistake instead of a line break.
+                        Report(SchemaMessages.ExtendsOnStructLine, keywordToken);
                         comment.Clear();
                         SkipLine();
                         break;
@@ -322,9 +314,37 @@ public static class SchemaParser
             }
         }
 
-        private SchemaStruct? ReadStruct(string comment)
+        /// <summary>
+        /// Reads `struct X`, and the three things polymorphism adds to that line.
+        /// </summary>
+        /// <remarks>
+        /// `abstract struct X` · `struct X extends Base` · `struct X extends Base @2`, in that
+        /// order and no other. The order is not a preference: `extends` says which set this
+        /// joins and `@N` says which member of that set it is, so the tag has nothing to
+        /// attach to before the base is named.
+        ///
+        /// **One level, and the grammar is what enforces it.** `abstract` and `extends` on one
+        /// line is refused here rather than in the resolver, because a variant that is itself
+        /// abstract leaves a sheet's `:type` cell with two answers to "what shape is this row" -
+        /// the leaf and the layer above it. spec/polymorphism.md section 5.1.
+        /// </remarks>
+        private SchemaStruct? ReadStruct(string comment, bool isAbstract)
         {
+            var keyword = Current;
             Advance();
+
+            if (isAbstract)
+            {
+                if (Current.Kind != SchemaTokenKind.Word || Current.Text != "struct")
+                {
+                    Report(SchemaMessages.AbstractNeedsStruct, keyword,
+                        ("Written", Current.ToString()));
+                    SkipLine();
+                    return null;
+                }
+
+                Advance();
+            }
 
             var name = ReadName();
             if (name is null)
@@ -333,11 +353,54 @@ public static class SchemaParser
                 return null;
             }
 
+            string? baseName = null;
+            Location? baseAt = null;
+
+            if (Current.Kind == SchemaTokenKind.Word && Current.Text == "extends")
+            {
+                var extends = Current;
+                Advance();
+
+                var written = ReadName();
+                if (written is null)
+                {
+                    SkipLine();
+                    return null;
+                }
+
+                if (isAbstract)
+                {
+                    Report(SchemaMessages.AbstractCannotExtend, extends,
+                        ("Struct", name.Value.Text), ("Base", written.Value.Text));
+                    SkipLine();
+                    return null;
+                }
+
+                baseName = written.Value.Text;
+                baseAt = Where(written.Value);
+            }
+
+            var tagAt = Current;
+            int tag = ReadWireTag();
+
+            // A struct that joins no set has nothing for a discriminator to tell apart, so a
+            // number on it would be a number nothing reads.
+            if (tag > 0 && baseName is null)
+            {
+                Report(SchemaMessages.VariantTagWithoutBase, tagAt,
+                    ("Struct", name.Value.Text), ("Tag", tag));
+                tag = 0;
+            }
+
             var declared = new SchemaStruct
             {
                 Name = name.Value.Text,
                 Location = Where(name.Value),
                 Comment = comment,
+                IsAbstract = isAbstract,
+                BaseName = baseName,
+                BaseLocation = baseAt,
+                VariantTag = tag,
                 Meta = ReadMeta(),
             };
 

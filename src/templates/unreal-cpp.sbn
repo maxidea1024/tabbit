@@ -264,6 +264,32 @@ bool {{ table.table_name }}::Read(const FString& Filename)
                 {
                     {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}[ElementAt]{{ column_view.member_access }}{{ column_view.member_ref_suffix }});
                 }
+{{~ else if column_view.kind == 'var_array_ref' ~}}
+{{~## An array of references. The same loop as `var_array`, filling the keys - and the keys
+   are all there is here: this target does not link references at load, so there are no
+   resolved slots beside them to size. The name is what separates the two, and getting it
+   wrong reads into a member the row does not have. spec/multi-target-accessors.md. ##~}}
+                int32 {{ column_view.count_local }} = 0;
+                {{ column_view.length_read }}
+
+                Record.{{ column_view.name }}.Empty(Tabbit::ReserveBound({{ column_view.count_local }}));
+
+                while (Record.{{ column_view.name }}.Num() < {{ column_view.count_local }} && !Reader.HasFailed())
+                {
+                    {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}.AddDefaulted_GetRef());
+                }
+{{~ if column_view.has_optional_elements ~}}
+                Record.{{ column_view.element_presence_member }}.Empty(
+                    Tabbit::ReserveBound({{ column_view.count_local }}));
+
+                for (int32 ElementIndex = 0; ElementIndex < {{ column_view.count_local }}; ++ElementIndex)
+                {
+                    Record.{{ column_view.element_presence_member }}.Add(
+                        Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
+                }
+
+                ElementAt += {{ column_view.count_local }};
+{{~ end ~}}
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so the outer
    level is sized here and this fills its own inner array. spec/nested-multi-level.md. ##~}}
@@ -292,7 +318,7 @@ bool {{ table.table_name }}::Read(const FString& Filename)
 {{~ else if column_view.cursor_read != '' ~}}
                 {{ column_view.cursor_read }}
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-                Reader.Read(Record.{{ column_view.name }}Index);
+                Reader.Read(Record.{{ column_view.name }});
 {{~ else ~}}
                 {{ column_view.read_call }}(Column.Element, Record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }});
 {{~ end ~}}

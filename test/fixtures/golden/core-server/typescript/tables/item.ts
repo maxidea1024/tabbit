@@ -45,7 +45,8 @@ export class ItemRecord {
   public get name(): string { return this._name }
 
   /** owning category */
-  public get categoryId(): ItemCategoryRecord { return this._categoryId }
+  public get categoryId(): number { return this._categoryId_ItemCategory_index }
+  public get itemCategoryByCategoryId(): ItemCategoryRecord { return this._categoryId }
 
   /** item grade */
   public get gradeField(): Grade { return this._gradeField }

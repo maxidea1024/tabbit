@@ -8,14 +8,13 @@
 //   `icon`   is not declared at all and the sheet has a column for it
 //   `bonus`  is declared and the sheet has no column for it
 //
-// And three bracketed keys that nothing acts on, one of each kind.
+// And two bracketed keys that nothing acts on, one of each kind.
 
 /// One thing a row hands out.
 struct Reward
-    // `mn` is nobody's key, `uniqueBy` is one the notation defines and this build has
-    // nowhere to put, and `refs` says what `foreign` already says here. Three
-    // different answers, and each report says which of the three it is.
-    field itemId int (refs=Item)
+    // `mn` is nobody's key and `uniqueBy` is one the notation defines and this build
+    // has nowhere to put. Two different answers, and each report says which it is.
+    field itemId int
     field count string (mn=1)
     field bonus int (uniqueBy=id)
 

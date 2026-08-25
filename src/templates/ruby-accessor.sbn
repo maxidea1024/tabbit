@@ -101,13 +101,13 @@
       {{ reference.table }}.records.each do |record|
 {{~ for field in reference.fields ~}}
 {{~ if field.is_array ~}}
-        record.{{ field.name }}_index.each_with_index do |index, position|
+        record.{{ field.name }}.each_with_index do |index, position|
           target = {{ field.ref_table }}.{{ field.ref_lookup }}(index)
-          record.{{ field.name }}[position] = {{ field.value }} unless target.nil?
+          record.{{ field.row_name }}[position] = {{ field.value }} unless target.nil?
         end
 {{~ else ~}}
-        target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }}_index)
-        record.{{ field.name }} = {{ field.value }} unless target.nil?
+        target = {{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.name }})
+        record.{{ field.row_name }} = {{ field.value }} unless target.nil?
 {{~ end ~}}
 {{~ end ~}}
 {{~## A reference that is a member of a record resolves inside the element, so the array is
@@ -133,48 +133,6 @@
    so the elements are walked and each one's own key is looked up. Which array that is - the
    group's or the member's - the view decided, and a record of one has neither.
    spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
-{{~ for ref in reference.multi_record_fields ~}}
-{{~ if ref.range != '' ~}}
-        {{ ref.range }} do |i|
-          if {{ ref.key }} {{ ref.key_is_set }}
-{{~ for target in ref.targets ~}}
-            if {{ ref.target }} == {{ ref.target_type_name }}::{{ ref.none_label }}
-              found = {{ target.table }}.{{ target.lookup }}({{ ref.key }})
-              unless found.nil?
-                {{ ref.slot }} = found
-                {{ ref.target }} = {{ ref.target_type_name }}::{{ target.label }}
-              end
-            end
-{{~ end ~}}
-          end
-        end
-{{~ else ~}}
-        if {{ ref.key }} {{ ref.key_is_set }}
-{{~ for target in ref.targets ~}}
-          if {{ ref.target }} == {{ ref.target_type_name }}::{{ ref.none_label }}
-            found = {{ target.table }}.{{ target.lookup }}({{ ref.key }})
-            unless found.nil?
-              {{ ref.slot }} = found
-              {{ ref.target }} = {{ ref.target_type_name }}::{{ target.label }}
-            end
-          end
-{{~ end ~}}
-        end
-{{~ end ~}}
-{{~ end ~}}
-{{~ for ref in reference.multi_fields ~}}
-        if record.{{ ref.key_member }} {{ ref.key_is_set }}
-{{~ for target in ref.targets ~}}
-          if record.{{ ref.target_member }} == {{ ref.target_type_name }}::{{ ref.none_label }}
-            target = {{ target.table }}.{{ target.lookup }}(record.{{ ref.key_member }})
-            unless target.nil?
-              record.{{ ref.slot_member }} = target
-              record.{{ ref.target_member }} = {{ ref.target_type_name }}::{{ target.label }}
-            end
-          end
-{{~ end ~}}
-        end
-{{~ end ~}}
       end
 {{~ end ~}}
 {{~ end ~}}

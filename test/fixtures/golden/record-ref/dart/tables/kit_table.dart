@@ -9,8 +9,8 @@ part of '../tables.dart';
 /// One element of [KitRecord.part].
 class KitPartEntry {
   /// element 1, the reference
-  ItemRecord? itemId;
-  int itemIdIndex = 0;
+  int itemId = 0;
+  ItemRecord? itemByItemId;
   /// element 1, an ordinary member
   int count = 0;
 }
@@ -111,7 +111,7 @@ class KitTable {
             record.part =
                 List.generate(elementCount, (_) => KitPartEntry());
             for (var j = 0; j < elementCount; j++) {
-              record.part[j].itemIdIndex = cursor.nextI32();
+              record.part[j].itemId = cursor.nextI32();
             }
           }
           break;

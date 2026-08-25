@@ -20,8 +20,8 @@ public final class BagRecord {
     /** One element of slots. */
     public static final class SlotsEntry {
         /** element 1 of the member */
-        public ItemRecord[] itemId = new ItemRecord[2];
-        public int[] itemIdIndex = new int[2];
+        public int[] itemId = new int[2];
+        public ItemRecord[] itemByItemId = new ItemRecord[2];
         /** element 1 of the member beside it */
         public int[] count = new int[2];
     }

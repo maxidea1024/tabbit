@@ -112,10 +112,10 @@ public final class KitTable {
                     for (KitRecord record : loaded) {
                         int elementCount;
                         elementCount = cursor.nextLength();
-                        record.slot = new PieceRecord[elementCount];
-                        record.slotIndex = new int[elementCount];
+                        record.pieceBySlot = new PieceRecord[elementCount];
+                        record.slot = new int[elementCount];
                         for (int j = 0; j < elementCount; j++) {
-                            record.slotIndex[j] = cursor.nextI32();
+                            record.slot[j] = cursor.nextI32();
                         }
                     }
                     break;

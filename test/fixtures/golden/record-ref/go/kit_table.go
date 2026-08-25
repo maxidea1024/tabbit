@@ -16,8 +16,8 @@ import (
 // KitPartEntry is one element of KitRecord.Part.
 type KitPartEntry struct {
 	// element 1, the reference
-	ItemId *ItemRecord
-	ItemIdIndex int32
+	ItemId int32
+	ItemByItemId *ItemRecord
 	// element 1, an ordinary member
 	Count int32
 }
@@ -132,7 +132,7 @@ func (t *KitTable) Read(filename string) error {
 					// two counts would shift every value after it.
 					r.Part = make([]KitPartEntry, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.Part[j].ItemIdIndex = cursor.NextI32()
+						r.Part[j].ItemId = cursor.NextI32()
 					}
 				}
 			}

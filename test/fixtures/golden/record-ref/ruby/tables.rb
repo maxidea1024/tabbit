@@ -147,46 +147,46 @@ module RecordRef
     def solve_cross_references(item, loadout, holder, bag, mount, clip, pose, seal, badge, kit)
       loadout.records.each do |record|
         record.slot.each_index do |i|
-          target = item.find_by_index(record.slot[i].item_id_index)
-          record.slot[i].item_id = target unless target.nil?
+          target = item.find_by_index(record.slot[i].item_id)
+          record.slot[i].item_by_item_id = target unless target.nil?
         end
         record.slot.each_index do |i|
-          target = item.find_by_index(record.slot[i].swap_id_index)
-          record.slot[i].swap_id = target unless target.nil?
+          target = item.find_by_index(record.slot[i].swap_id)
+          record.slot[i].item_by_swap_id = target unless target.nil?
         end
       end
       holder.records.each do |record|
-        target = item.find_by_index(record.main.item_id_index)
-        record.main.item_id = target unless target.nil?
+        target = item.find_by_index(record.main.item_id)
+        record.main.item_by_item_id = target unless target.nil?
       end
       bag.records.each do |record|
-        record.slots.item_id_index.each_index do |i|
-          target = item.find_by_index(record.slots.item_id_index[i])
-          record.slots.item_id[i] = target unless target.nil?
+        record.slots.item_id.each_index do |i|
+          target = item.find_by_index(record.slots.item_id[i])
+          record.slots.item_by_item_id[i] = target unless target.nil?
         end
       end
       mount.records.each do |record|
         record.rig.each_index do |i|
-          target = item.find_by_index(record.rig[i].core.item_id_index)
-          record.rig[i].core.item_id = target unless target.nil?
+          target = item.find_by_index(record.rig[i].core.item_id)
+          record.rig[i].core.item_by_item_id = target unless target.nil?
         end
       end
       pose.records.each do |record|
         record.step.each_index do |i|
-          target = clip.find_by_index(record.step[i].clip_id_index)
-          record.step[i].clip_id = target unless target.nil?
+          target = clip.find_by_index(record.step[i].clip_id)
+          record.step[i].clip_by_clip_id = target unless target.nil?
         end
       end
       badge.records.each do |record|
-        target = clip.find_by_index(record.mark.clip_id_index)
-        record.mark.clip_id = target unless target.nil?
-        target = seal.find_by_index(record.mark.seal_id_index)
-        record.mark.seal_id = target unless target.nil?
+        target = clip.find_by_index(record.mark.clip_id)
+        record.mark.clip_by_clip_id = target unless target.nil?
+        target = seal.find_by_index(record.mark.seal_id)
+        record.mark.seal_by_seal_id = target unless target.nil?
       end
       kit.records.each do |record|
         record.part.each_index do |i|
-          target = item.find_by_index(record.part[i].item_id_index)
-          record.part[i].item_id = target unless target.nil?
+          target = item.find_by_index(record.part[i].item_id)
+          record.part[i].item_by_item_id = target unless target.nil?
         end
       end
     end

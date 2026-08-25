@@ -14,11 +14,11 @@ from . import tabbit
 class KitPartEntry:
     """One element of KitRecord.part."""
 
-    __slots__ = ("item_id", "item_id_index", "count")
+    __slots__ = ("item_id", "item_by_item_id", "count")
 
     def __init__(self):
-        self.item_id = None
-        self.item_id_index = 0
+        self.item_id = 0
+        self.item_by_item_id = None
         self.count = 0
 
     def __repr__(self):
@@ -124,7 +124,7 @@ class KitTable:
                     record.part = [
                         KitPartEntry() for _ in range(element_count)]
                     for element in range(element_count):
-                        record.part[element].item_id_index = cursor.next_i32()
+                        record.part[element].item_id = cursor.next_i32()
             elif column.tag == 3:
                 tabbit.check_column(column, "Kit.Part.Count", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT))
                 cursor = tabbit.ColumnCursor(reader, column, count, "Kit.Part.Count")

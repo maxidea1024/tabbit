@@ -24,8 +24,8 @@ namespace record_ref {
 /// One element of PoseRecord::step.
 struct PoseRecord_step_entry {
   /// element 1, a string key
-  const ClipRecord* clip_id = nullptr;
-  std::string clip_id_index = std::string();
+  std::string clip_id = std::string();
+  const ClipRecord* clip_by_clip_id = nullptr;
   /// element 1, an ordinary member
   std::int32_t weight = 0;
 };
@@ -126,7 +126,7 @@ class PoseTable {
             const std::int32_t element_count = cursor.next_length();
             record.step.assign(static_cast<std::size_t>(element_count), PoseRecord_step_entry());
             for (std::int32_t j = 0; j < element_count; ++j) {
-              record.step[static_cast<std::size_t>(j)].clip_id_index = cursor.next_string();
+              record.step[static_cast<std::size_t>(j)].clip_id = cursor.next_string();
             }
           }
           break;

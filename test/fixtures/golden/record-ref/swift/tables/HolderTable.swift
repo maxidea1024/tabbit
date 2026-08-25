@@ -31,8 +31,8 @@ public final class HolderRecord {
         public init() {}
 
         /// the reference, in a record of one
-        public var itemId: ItemRecord? = nil
-        public var itemIdIndex: Int32 = 0
+        public var itemId: Int32 = 0
+        public var itemByItemId: ItemRecord? = nil
 
         /// an ordinary member beside it
         public var count: Int32 = 0
@@ -142,7 +142,7 @@ public final class HolderTable {
                     var n = try cursor.nextSameI32(count - at)
                     while n > 0 {
                         let i = at
-                        loaded[i].main.itemIdIndex = cursor.runSameValue
+                        loaded[i].main.itemId = cursor.runSameValue
                         at += 1
                         n -= 1
                     }

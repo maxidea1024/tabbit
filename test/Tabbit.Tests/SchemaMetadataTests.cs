@@ -148,6 +148,99 @@ public class SchemaMetadataTests
         Assert.Equal(["b", "c"], field.Constraints.AllowedValues);
     }
 
+    // ---------------------------------------------------------------------- refs
+
+    /// <summary>
+    /// `refs` names the tables a value has to be an id of, and leaves the type alone.
+    /// </summary>
+    /// <remarks>
+    /// A check and not a reference - `foreign` names one table and resolves it, which
+    /// changes what the column holds. spec/reference-surface-naming.md section 6.
+    /// </remarks>
+    [Fact]
+    public void Refs_names_the_tables_a_value_may_come_from()
+    {
+        var field = Column();
+        Apply(field, "int (refs=Item;Mount)");
+
+        Assert.Equal(["Item", "Mount"], field.Constraints.ReferencedTables);
+
+        // The column is what it was. Nothing about it resolved to a row.
+        Assert.Equal(ValueType.Int32, field.Type);
+        Assert.False(field.IsRef);
+    }
+
+    /// <summary>
+    /// One table is the same statement with a shorter list, not a different key.
+    /// </summary>
+    [Fact]
+    public void Refs_with_one_table_is_a_list_of_one()
+    {
+        var field = Column();
+        Apply(field, "int (refs=Item)");
+
+        Assert.Equal(["Item"], field.Constraints.ReferencedTables);
+        Assert.False(field.IsRef);
+    }
+
+    /// <summary>
+    /// Two lists meet at what they share, the same arithmetic `allowed` follows - a value
+    /// satisfying both is an id of a table named by both.
+    /// </summary>
+    [Fact]
+    public void Two_table_lists_meet_at_what_they_share()
+    {
+        var field = Column();
+        field.Constraints.ReferencedTables = ["Item", "Mount", "Ship"];
+
+        Apply(field, "int (refs=Mount;Ship;Pet)");
+
+        Assert.Equal(["Mount", "Ship"], field.Constraints.ReferencedTables);
+    }
+
+    [Fact]
+    public void Two_table_lists_with_nothing_in_common_are_refused()
+    {
+        var field = Column();
+        field.Constraints.ReferencedTables = ["Item"];
+
+        string reported = Reported(Apply(field, "int (refs=Mount)"));
+
+        Assert.Contains("nothing in common", reported);
+        Assert.Contains("can hold nothing at all", reported);
+
+        // Left as the sheet had it, for the same reason the whitelist is.
+        Assert.Equal(["Item"], field.Constraints.ReferencedTables);
+    }
+
+    /// <summary>
+    /// Separators and nothing else. An empty `refs=` is refused by the parser before this,
+    /// so what is left for here is a value that parts into no names at all.
+    /// </summary>
+    [Fact]
+    public void Refs_with_no_table_in_it_is_refused()
+        => Assert.Contains("names no table", Reported(Apply(Column(), "int (refs=\";;\")")));
+
+    /// <summary>
+    /// `refs` on a column that is already a reference is refused rather than merged.
+    /// </summary>
+    /// <remarks>
+    /// `foreign` says more than `refs` does - one table, resolved - so carrying both would
+    /// leave two declarations that can disagree about one column with nothing to decide
+    /// which of them loses.
+    /// </remarks>
+    [Fact]
+    public void Refs_on_a_reference_column_is_refused()
+    {
+        var field = Column();
+        field.RefTableName = "Item";
+
+        string reported = Reported(Apply(field, "int (refs=Item;Mount)"));
+
+        Assert.Contains("already a reference", reported);
+        Assert.Null(field.Constraints.ReferencedTables);
+    }
+
     /// <summary>
     /// And two that share nothing are refused rather than stored.
     /// </summary>

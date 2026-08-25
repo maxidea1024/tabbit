@@ -11,11 +11,11 @@ require_relative '../tabbit/tcb_reader'
 module RecordRef
   # One element of HolderRecord#main.
   class HolderMainEntry
-    attr_accessor :item_id, :item_id_index, :count
+    attr_accessor :item_id, :item_by_item_id, :count
 
     def initialize
-      @item_id = nil
-      @item_id_index = 0
+      @item_id = 0
+      @item_by_item_id = nil
       @count = 0
     end
   end
@@ -114,7 +114,7 @@ module RecordRef
           while at < count
             n, value = cursor.next_same_i32(count - at)
             (at...(at + n)).each do |i|
-              records[i].main.item_id_index = value
+              records[i].main.item_id = value
             end
             at += n
           end

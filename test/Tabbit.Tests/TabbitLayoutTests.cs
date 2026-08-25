@@ -839,10 +839,19 @@ public class TabbitLayoutTests
         Assert.Equal("Item", drop.Fields[1].RefTableName);
     }
 
+    /// <summary>
+    /// Several tables after `foreign` is refused, and the report says what to write instead.
+    /// </summary>
+    /// <remarks>
+    /// A reference names one table and resolves it. A value that may be an id of any of
+    /// several has no single type to resolve to, so what a sheet means there is a check -
+    /// `refs=`, which leaves the column the type it had.
+    /// spec/reference-surface-naming.md section 6.
+    /// </remarks>
     [Fact]
-    public void A_reference_may_name_several_targets_with_a_bar()
+    public void A_reference_naming_several_tables_is_refused_for_refs()
     {
-        var model = Cook(Sheet(
+        string reported = Reported(Sheet(
             [":table Item", "an item"],
             [":field", "code"],
             [":type", "int"],
@@ -858,9 +867,10 @@ public class TabbitLayoutTests
             [":type", "int", "foreign Item|Gear"],
             ["", "1", "5"]));
 
-        var drop = model.Tables.Single(t => t.Name == "Drop");
+        Assert.Contains("has no single type to resolve to", reported);
 
-        Assert.Equal(["Item", "Gear"], drop.Fields[1].RefTableNames!);
+        // And it says the check that does hold, spelled the way it is written.
+        Assert.Contains("refs=Item;Gear", reported);
     }
 
     [Fact]
@@ -1050,6 +1060,70 @@ public class TabbitLayoutTests
             ["", "1", "50"]));
 
         Assert.Contains("text", reported);
+    }
+
+    /// <summary>
+    /// `refs` names the tables a value has to be an id of, and the column stays what it was.
+    /// </summary>
+    /// <remarks>
+    /// The core notation's way of saying what a project layout says with a constraint row.
+    /// It is a check and not a reference - `foreign` names one table and resolves it, and
+    /// this says where a value may have come from while leaving the type alone. Several
+    /// tables is what it exists for: "one of these" has no single type to resolve to.
+    ///
+    /// spec/reference-surface-naming.md section 6.
+    /// </remarks>
+    [Fact]
+    public void Refs_names_the_tables_a_value_has_to_be_an_id_of()
+    {
+        var model = Cook(Sheet(
+            [":table Shop", "what a shop sells"],
+            [":field", "code", "rewardId"],
+            [":type", "int", "int (refs=Item;Mount)"],
+            ["", "1", "3001"]));
+
+        var field = model.Tables[0].Fields[1];
+
+        Assert.Equal(["Item", "Mount"], field.Constraints.ReferencedTables);
+
+        // Nothing resolved. The value is the number the cell holds and the wire is unchanged.
+        Assert.False(field.IsRef);
+        Assert.Equal(ValueType.Int32, field.Type);
+    }
+
+    /// <summary>
+    /// And the check runs: a value no named table has a row for is reported at the cell.
+    /// </summary>
+    /// <remarks>
+    /// The check itself has its own gates, but they are written in a layout that reads the
+    /// target list out of a project's own row. This one writes the same thing in the core
+    /// notation, which is the point of `refs=` - the check no longer needs a project's
+    /// workbook to be exercised. spec/reference-surface-naming.md section 6.
+    /// </remarks>
+    [Fact]
+    public void Refs_reports_a_value_none_of_the_tables_has()
+    {
+        string reported = Reported(
+            Sheet(
+                [":table Item", "a catalogue"],
+                [":field", "code"],
+                [":type", "int"],
+                ["", "10"]),
+            Sheet(
+                [":table Mount", "another catalogue"],
+                [":field", "code"],
+                [":type", "int"],
+                ["", "20"]),
+            Sheet(
+                [":table Shop", "what a shop sells"],
+                [":field", "code", "rewardId"],
+                [":type", "int", "int (refs=Item;Mount)"],
+                ["", "1", "10"],
+                ["", "2", "999"]));
+
+        Assert.Contains("999", reported);
+        Assert.Contains("Item", reported);
+        Assert.Contains("Mount", reported);
     }
 
     #endregion

@@ -33,21 +33,6 @@ struct {{ rt.type_name }} {
    take the element rather than the row - the slot is inside it - and one more argument where
    the member is the array, which is the third place an element number sits.
    spec/multi-target-accessors.md. ##~}}
-{{~ for multi in rt.multi_members ~}}
-{{~ for target in multi.targets }}
-{{~ if multi.is_array ~}}
-/* The {{ target.record_name }} row element `at` of {{ multi.key_member }} names, or NULL when
- * that element names a row of one of the others. */
-const {{ target.record_name }}* {{ target.function }}(
-  const struct {{ multi.element_type_name }}* element, int32_t at);
-{{~ else ~}}
-/* The {{ target.record_name }} row {{ multi.key_member }} names, or NULL when it names a row of
- * one of the others. */
-const {{ target.record_name }}* {{ target.function }}(
-  const struct {{ multi.element_type_name }}* element);
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
 
 {{~ end ~}}
 {{~ end ~}}
@@ -81,22 +66,7 @@ struct {{ table.record_name }} {
    `const void*` because C has no common type for them. The functions below cast it, having
    asked the discriminator first, and casting from `void*` asks nothing of the target type.
    spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_references ~}}
-  /* The row {{ ref.key_member }} names, as whichever of its target tables holds it. Read it
-   * through the functions below rather than directly: they check the discriminator first. */
-  const void* {{ ref.slot_member }};
-
-  /* Which table {{ ref.key_member }} is a row of. */
-  {{ ref.target_type_name }} {{ ref.target_member }};
-{{~ end ~}}
 };
-{{~ for ref in table.multi_references ~}}
-{{~ for target in ref.targets }}
-/* The {{ target.record_name }} row {{ ref.key_member }} names, or NULL when it names a row of
- * one of the others. */
-const {{ target.record_name }}* {{ target.function }}(const {{ table.record_name }}* record);
-{{~ end ~}}
-{{~ end ~}}
 
 /* Every row of {{ table.raw_name }}.
  *

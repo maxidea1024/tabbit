@@ -9,14 +9,15 @@ local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
 ---@class PoseStepEntry
----@field clipId ClipRecord|nil
+---@field clipId string
+---@field clipByClipId ClipRecord|nil
 ---@field weight integer
-local PoseStepEntryMeta = tcb.strictType("an element of PoseRecord.step", { "clipId", "clipIdIndex", "weight" })
+local PoseStepEntryMeta = tcb.strictType("an element of PoseRecord.step", { "clipId", "clipByClipId", "weight" })
 
 ---@return PoseStepEntry
 local function newPoseStepEntry()
   return setmetatable({
-    clipIdIndex = "",
+    clipId = "",
     weight = 0,
   }, PoseStepEntryMeta)
 end
@@ -127,7 +128,7 @@ function PoseTable:readBytes(data)
         record.step = tcb.filledArray(elementCount, newPoseStepEntry)
 
         for element = 1, elementCount do
-          record.step[element].clipIdIndex = cursor:nextString()
+          record.step[element].clipId = cursor:nextString()
         end
       end
     elseif column.tag == 3 then

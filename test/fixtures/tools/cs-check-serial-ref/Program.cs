@@ -45,10 +45,11 @@ internal static class Program
 
                     // Each element's key and what it resolved to, per element - resolving the
                     // first and leaving the rest is what a loop bounded by the wrong number
-                    // produces.
-                    ["slots"] = r.Slot.Select((piece, at) => new Dictionary<string, object>
+                    // produces. The column's name is the key's and the rows are under the
+                    // derived one. spec/reference-surface-naming.md sections 4 and 5.
+                    ["slots"] = r.PieceBySlot.Select((piece, at) => new Dictionary<string, object>
                     {
-                        ["key"] = r._slot_Piece_index[at],
+                        ["key"] = r.Slot[at],
                         ["resolved"] = r._slot_F[at] ? piece.Name : "<unresolved>",
                     }).ToList(),
 
@@ -69,11 +70,11 @@ internal static class Program
                 {
                     ["index"] = r.Index,
                     ["length"] = r.Slot.Length,
-                    ["keyLength"] = r._slot_Bit_index.Length,
+                    ["keyLength"] = r.Slot.Length,
 
-                    ["slots"] = r.Slot.Select((bit, at) => new Dictionary<string, object>
+                    ["slots"] = r.BitBySlot.Select((bit, at) => new Dictionary<string, object>
                     {
-                        ["key"] = r._slot_Bit_index[at],
+                        ["key"] = r.Slot[at],
                         ["resolved"] = r._slot_F[at] ? bit.Name : "<unresolved>",
                     }).ToList(),
 

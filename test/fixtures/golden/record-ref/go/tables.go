@@ -128,60 +128,60 @@ func (t *Tables) solveCrossReferences() {
 	for i := range t.Loadout.records {
 		record := &t.Loadout.records[i]
 		for k := range record.Slot {
-			if target := t.Item.FindByIndex(record.Slot[k].ItemIdIndex); target != nil {
-				record.Slot[k].ItemId = target
+			if target := t.Item.FindByIndex(record.Slot[k].ItemId); target != nil {
+				record.Slot[k].ItemByItemId = target
 			}
 		}
 		for k := range record.Slot {
-			if target := t.Item.FindByIndex(record.Slot[k].SwapIdIndex); target != nil {
-				record.Slot[k].SwapId = target
+			if target := t.Item.FindByIndex(record.Slot[k].SwapId); target != nil {
+				record.Slot[k].ItemBySwapId = target
 			}
 		}
 	}
 	for i := range t.Holder.records {
 		record := &t.Holder.records[i]
-		if target := t.Item.FindByIndex(record.Main.ItemIdIndex); target != nil {
-			record.Main.ItemId = target
+		if target := t.Item.FindByIndex(record.Main.ItemId); target != nil {
+			record.Main.ItemByItemId = target
 		}
 	}
 	for i := range t.Bag.records {
 		record := &t.Bag.records[i]
-		for k := range record.Slots.ItemIdIndex {
-			if target := t.Item.FindByIndex(record.Slots.ItemIdIndex[k]); target != nil {
-				record.Slots.ItemId[k] = target
+		for k := range record.Slots.ItemId {
+			if target := t.Item.FindByIndex(record.Slots.ItemId[k]); target != nil {
+				record.Slots.ItemByItemId[k] = target
 			}
 		}
 	}
 	for i := range t.Mount.records {
 		record := &t.Mount.records[i]
 		for k := range record.Rig {
-			if target := t.Item.FindByIndex(record.Rig[k].Core.ItemIdIndex); target != nil {
-				record.Rig[k].Core.ItemId = target
+			if target := t.Item.FindByIndex(record.Rig[k].Core.ItemId); target != nil {
+				record.Rig[k].Core.ItemByItemId = target
 			}
 		}
 	}
 	for i := range t.Pose.records {
 		record := &t.Pose.records[i]
 		for k := range record.Step {
-			if target := t.Clip.FindByIndex(record.Step[k].ClipIdIndex); target != nil {
-				record.Step[k].ClipId = target
+			if target := t.Clip.FindByIndex(record.Step[k].ClipId); target != nil {
+				record.Step[k].ClipByClipId = target
 			}
 		}
 	}
 	for i := range t.Badge.records {
 		record := &t.Badge.records[i]
-		if target := t.Clip.FindByIndex(record.Mark.ClipIdIndex); target != nil {
-			record.Mark.ClipId = target
+		if target := t.Clip.FindByIndex(record.Mark.ClipId); target != nil {
+			record.Mark.ClipByClipId = target
 		}
-		if target := t.Seal.FindByIndex(record.Mark.SealIdIndex); target != nil {
-			record.Mark.SealId = target
+		if target := t.Seal.FindByIndex(record.Mark.SealId); target != nil {
+			record.Mark.SealBySealId = target
 		}
 	}
 	for i := range t.Kit.records {
 		record := &t.Kit.records[i]
 		for k := range record.Part {
-			if target := t.Item.FindByIndex(record.Part[k].ItemIdIndex); target != nil {
-				record.Part[k].ItemId = target
+			if target := t.Item.FindByIndex(record.Part[k].ItemId); target != nil {
+				record.Part[k].ItemByItemId = target
 			}
 		}
 	}

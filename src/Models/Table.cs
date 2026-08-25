@@ -29,6 +29,8 @@ public class Table
     /// <summary>Name normalized to Pascal case, which is what generated code uses.</summary>
     public required string Name { get; set; }
 
+
+
     /// <summary>
     /// Base name of the file this table's rows are exported to, without a row-set suffix and
     /// without an extension.

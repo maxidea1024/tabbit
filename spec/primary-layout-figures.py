@@ -310,13 +310,13 @@ build("primary-layout-nested", [
 build("primary-layout-multiref", [
     [":table Shop", "보상 상점입니다."],
     [":field", "id", "itemId", "count"],
-    [":type", "int", "foreign Item|CEquip", "int"],
+    [":type", "int", "int (refs=Item;CEquip)", "int"],
     ["", "1", "1001", "1"],
     ["", "2", "9001", "2"],
 ], notes={
-    3: "1001은 Item의 행",
-    4: "9001은 CEquip의 행 — 어느 쪽인지는 값이 정합니다",
-}, title="다중 대상 참조")
+    3: "1001은 Item에 있습니다",
+    4: "9001은 CEquip에 — 둘 중 어디에도 없으면 그 셀을 가리켜 보고합니다",
+}, title="여러 테이블 중 하나여도 되는 값")
 
 build("primary-layout-pairing", [
     [":table Stage", "보상과 비용입니다."],

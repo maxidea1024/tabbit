@@ -9,8 +9,8 @@ part of '../tables.dart';
 /// A record inside [MountRecord.rig].
 class MountRigEntryCore {
   /// element 1, two levels in
-  ItemRecord? itemId;
-  int itemIdIndex = 0;
+  int itemId = 0;
+  ItemRecord? itemByItemId;
   /// its sibling at that level
   int count = 0;
 }
@@ -117,7 +117,7 @@ class MountTable {
             record.rig =
                 List.generate(elementCount, (_) => MountRigEntry());
             for (var j = 0; j < elementCount; j++) {
-              record.rig[j].core.itemIdIndex = cursor.nextI32();
+              record.rig[j].core.itemId = cursor.nextI32();
             }
           }
           break;

@@ -46,8 +46,8 @@ class MountRecord {
     /** A record inside rig. */
     class RigEntryCore {
         /** element 1, two levels in */
-        var itemId: ItemRecord? = null
-        var itemIdIndex: Int = 0
+        var itemId: Int = 0
+        var itemByItemId: ItemRecord? = null
         /** its sibling at that level */
         var count: Int = 0
     }
@@ -149,7 +149,7 @@ class MountTable {
                         record.rig =
                             MutableList(elementCount.coerceAtLeast(0)) { MountRecord.RigEntry() }
                         for (element in 0 until elementCount) {
-                            record.rig[element].core.itemIdIndex = cursor.nextI32()
+                            record.rig[element].core.itemId = cursor.nextI32()
                         }
                     }
                 }

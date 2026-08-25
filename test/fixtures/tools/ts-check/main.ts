@@ -132,7 +132,7 @@ function main(): number {
 
         console.log(JSON.stringify({
             itemNames: fromBinary.records.map(r => r.name),
-            categoryIndices: fromBinary.records.map(r => r._categoryId_ItemCategory_index),
+            categoryIndices: fromBinary.records.map(r => r.categoryId),
         }))
     }
 
@@ -157,14 +157,14 @@ function main(): number {
             const b = fromBinary.item.records[i]
 
             // The row a reference resolves to, named by a field only the row has.
-            compare('Item', i, 'categoryId.name', j.categoryId?.name, b.categoryId?.name)
-            compare('Item', i, 'categoryId(key)',
-                j._categoryId_ItemCategory_index, b._categoryId_ItemCategory_index)
+            compare('Item', i, 'categoryId.name',
+                j.itemCategoryByCategoryId?.name, b.itemCategoryByCategoryId?.name)
+            compare('Item', i, 'categoryId(key)', j.categoryId, b.categoryId)
             compare('Item', i, 'categoryId(linked)', j._categoryId_F, b._categoryId_F)
         }
 
         console.log(JSON.stringify({
-            linkedCategoryNames: fromBinary.item.records.map(r => r.categoryId?.name ?? null),
+            linkedCategoryNames: fromBinary.item.records.map(r => r.itemCategoryByCategoryId?.name ?? null),
         }))
     }
 

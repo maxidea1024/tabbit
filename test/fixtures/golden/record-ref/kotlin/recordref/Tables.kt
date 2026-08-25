@@ -157,54 +157,54 @@ object Tables {
     private fun solveCrossReferences(item: ItemTable, loadout: LoadoutTable, holder: HolderTable, bag: BagTable, mount: MountTable, clip: ClipTable, pose: PoseTable, seal: SealTable, badge: BadgeTable, kit: KitTable) {
         for (record in loadout.records) {
             for (i in 0 until record.slot.size) {
-                item.findByIndex(record.slot[i].itemIdIndex)?.let { target ->
-                    record.slot[i].itemId = target
+                item.findByIndex(record.slot[i].itemId)?.let { target ->
+                    record.slot[i].itemByItemId = target
                 }
             }
             for (i in 0 until record.slot.size) {
-                item.findByIndex(record.slot[i].swapIdIndex)?.let { target ->
-                    record.slot[i].swapId = target
+                item.findByIndex(record.slot[i].swapId)?.let { target ->
+                    record.slot[i].itemBySwapId = target
                 }
             }
         }
         for (record in holder.records) {
-            item.findByIndex(record.main.itemIdIndex)?.let { target ->
-                record.main.itemId = target
+            item.findByIndex(record.main.itemId)?.let { target ->
+                record.main.itemByItemId = target
             }
         }
         for (record in bag.records) {
-            for (i in 0 until record.slots.itemIdIndex.size) {
-                item.findByIndex(record.slots.itemIdIndex[i])?.let { target ->
-                    record.slots.itemId[i] = target
+            for (i in 0 until record.slots.itemId.size) {
+                item.findByIndex(record.slots.itemId[i])?.let { target ->
+                    record.slots.itemByItemId[i] = target
                 }
             }
         }
         for (record in mount.records) {
             for (i in 0 until record.rig.size) {
-                item.findByIndex(record.rig[i].core.itemIdIndex)?.let { target ->
-                    record.rig[i].core.itemId = target
+                item.findByIndex(record.rig[i].core.itemId)?.let { target ->
+                    record.rig[i].core.itemByItemId = target
                 }
             }
         }
         for (record in pose.records) {
             for (i in 0 until record.step.size) {
-                clip.findByIndex(record.step[i].clipIdIndex)?.let { target ->
-                    record.step[i].clipId = target
+                clip.findByIndex(record.step[i].clipId)?.let { target ->
+                    record.step[i].clipByClipId = target
                 }
             }
         }
         for (record in badge.records) {
-            clip.findByIndex(record.mark.clipIdIndex)?.let { target ->
-                record.mark.clipId = target
+            clip.findByIndex(record.mark.clipId)?.let { target ->
+                record.mark.clipByClipId = target
             }
-            seal.findByIndex(record.mark.sealIdIndex)?.let { target ->
-                record.mark.sealId = target
+            seal.findByIndex(record.mark.sealId)?.let { target ->
+                record.mark.sealBySealId = target
             }
         }
         for (record in kit.records) {
             for (i in 0 until record.part.size) {
-                item.findByIndex(record.part[i].itemIdIndex)?.let { target ->
-                    record.part[i].itemId = target
+                item.findByIndex(record.part[i].itemId)?.let { target ->
+                    record.part[i].itemByItemId = target
                 }
             }
         }

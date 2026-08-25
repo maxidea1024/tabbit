@@ -45,31 +45,6 @@ final class {{ rt.type_name }}
 {{~## The per-target methods of every member of this class that reaches several tables. One
    taking the element number where the member is the array, which is the third place an element
    number sits. spec/multi-target-accessors.md. ##~}}
-{{~ for multi in rt.multi_members ~}}
-{{~ for target in multi.targets }}
-{{~ if multi.is_array ~}}
-    /** The {{ target.record_name }} row element `$at` of ${{ multi.key_member }} names, or null when that element names a row of one of the others. */
-    public function {{ target.method }}(int $at): ?{{ target.record_name }}
-    {
-        if ($this->{{ multi.target_member }}[$at] !== {{ multi.target_type_name }}::{{ target.case }}) {
-            return null;
-        }
-
-        return $this->{{ multi.slot_member }}[$at];
-    }
-{{~ else ~}}
-    /** The {{ target.record_name }} row ${{ multi.key_member }} names, or null when it names a row of one of the others. */
-    public function {{ target.method }}(): ?{{ target.record_name }}
-    {
-        if ($this->{{ multi.target_member }} !== {{ multi.target_type_name }}::{{ target.case }}) {
-            return null;
-        }
-
-        return $this->{{ multi.slot_member }};
-    }
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
 }
 
 {{~ end ~}}
@@ -95,25 +70,6 @@ final class {{ table.record_name }}
 {{~## A column whose value is a row of one of several tables. One property for the resolved row
    whatever table it came from, and the discriminator saying which - the targets take separate
    id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_references ~}}
-    /** The row this column names, as whichever of its targets holds it. Read it through the methods below. */
-    public ?object ${{ ref.slot_member }} = null;
-    /** Which table this column is a row of. */
-    public {{ ref.target_type_name }} ${{ ref.target_member }} = {{ ref.target_type_name }}::{{ ref.none_case }};
-{{~ end ~}}
-{{~ for ref in table.multi_references }}
-{{~ for target in ref.targets }}
-    /** The {{ target.record_name }} row this column names, or null when it names a row of one of the others. */
-    public function {{ target.method }}(): ?{{ target.record_name }}
-    {
-        if ($this->{{ ref.target_member }} !== {{ ref.target_type_name }}::{{ target.case }}) {
-            return null;
-        }
-
-        return $this->{{ ref.slot_member }};
-    }
-{{~ end ~}}
-{{~ end ~}}
 {{~ if table.needs_constructor }}
 
     /**
@@ -344,22 +300,22 @@ final class {{ table.table_name }}
    length - which is what `serial_ref` below does from the column count.
    spec/variable-length-record-arrays.md. ##~}}
                         {{ column_view.length_read }}
-                        $record->{{ column_view.name }}Index = [];
+                        $record->{{ column_view.key_name }} = [];
 {{~ if column_view.has_optional_elements ~}}
                         $record->{{ column_view.element_presence_member }} = [];
 {{~ end ~}}
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->{{ column_view.name }}Index[] = {{ column_view.read_element }};
+                            $record->{{ column_view.key_name }}[] = {{ column_view.read_element }};
 {{~ if column_view.has_optional_elements ~}}
                             $record->{{ column_view.element_presence_member }}[] =
                                 TcbReader::isPresent($elementPresence, $elementAt++);
 {{~ end ~}}
                         }
-                        $record->{{ column_view.name }} = $elementCount > 0
+                        $record->{{ column_view.row_name }} = $elementCount > 0
                             ? \array_fill(0, $elementCount, null)
                             : [];
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-                        $record->{{ column_view.name }}Index = {{ column_view.read_element }};
+                        $record->{{ column_view.key_name }} = {{ column_view.read_element }};
 {{~ else ~}}
                         $record->{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
 {{~ end ~}}

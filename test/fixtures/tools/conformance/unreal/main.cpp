@@ -163,8 +163,14 @@ int main(int argc, char** argv) {
     json << ']';
 
     // The reference indices, which is what the exporter writes for a foreign field.
-    json << ",\"owner\":" << r.OwnerIndex;
-    json << ",\"tier\":" << r.TierIndex;
+    json << ",\"owner\":" << r.Owner;
+    json << ",\"tier\":" << r.Tier;
+
+    // And one reference per element, printed as the stored index each came in as.
+    json << ",\"owners\":[";
+    for (int32 k = 0; k < r.Owners.Num(); ++k)
+        json << (k > 0 ? "," : "") << r.Owners[k];
+    json << "]";
 
     // The three the v104 encodings win on.
     json << ",\"count\":" << number(r.Count);

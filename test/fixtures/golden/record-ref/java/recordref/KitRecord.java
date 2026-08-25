@@ -20,8 +20,8 @@ public final class KitRecord {
     /** One element of part. */
     public static final class PartEntry {
         /** element 1, the reference */
-        public ItemRecord itemId;
-        public int itemIdIndex;
+        public int itemId;
+        public ItemRecord itemByItemId;
         /** element 1, an ordinary member */
         public int count;
     }

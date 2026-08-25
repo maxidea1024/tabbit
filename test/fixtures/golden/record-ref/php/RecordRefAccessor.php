@@ -158,72 +158,72 @@ final class RecordRefAccessor
     {
         foreach ($loadout->records as $record) {
             for ($j = 0; $j < \count($record->slot); $j++) {
-                $target = $item->findByIndex($record->slot[$j]->itemIdIndex);
+                $target = $item->findByIndex($record->slot[$j]->itemId);
 
                 if ($target !== null) {
-                    $record->slot[$j]->itemId = $target;
+                    $record->slot[$j]->itemByItemId = $target;
                 }
             }
             for ($j = 0; $j < \count($record->slot); $j++) {
-                $target = $item->findByIndex($record->slot[$j]->swapIdIndex);
+                $target = $item->findByIndex($record->slot[$j]->swapId);
 
                 if ($target !== null) {
-                    $record->slot[$j]->swapId = $target;
+                    $record->slot[$j]->itemBySwapId = $target;
                 }
             }
         }
         foreach ($holder->records as $record) {
-            $target = $item->findByIndex($record->main->itemIdIndex);
+            $target = $item->findByIndex($record->main->itemId);
 
             if ($target !== null) {
-                $record->main->itemId = $target;
+                $record->main->itemByItemId = $target;
             }
         }
         foreach ($bag->records as $record) {
             for ($j = 0; $j < \count($record->slots->itemId); $j++) {
-                $target = $item->findByIndex($record->slots->itemIdIndex[$j]);
+                $target = $item->findByIndex($record->slots->itemId[$j]);
 
                 if ($target !== null) {
-                    $record->slots->itemId[$j] = $target;
+                    $record->slots->itemByItemId[$j] = $target;
                 }
             }
         }
         foreach ($mount->records as $record) {
             for ($j = 0; $j < \count($record->rig); $j++) {
-                $target = $item->findByIndex($record->rig[$j]->core->itemIdIndex);
+                $target = $item->findByIndex($record->rig[$j]->core->itemId);
 
                 if ($target !== null) {
-                    $record->rig[$j]->core->itemId = $target;
+                    $record->rig[$j]->core->itemByItemId = $target;
                 }
             }
         }
         foreach ($pose->records as $record) {
             for ($j = 0; $j < \count($record->step); $j++) {
-                $target = $clip->findByIndex($record->step[$j]->clipIdIndex);
+                $target = $clip->findByIndex($record->step[$j]->clipId);
 
                 if ($target !== null) {
-                    $record->step[$j]->clipId = $target;
+                    $record->step[$j]->clipByClipId = $target;
                 }
             }
         }
         foreach ($badge->records as $record) {
-            $target = $clip->findByIndex($record->mark->clipIdIndex);
+            $target = $clip->findByIndex($record->mark->clipId);
 
             if ($target !== null) {
-                $record->mark->clipId = $target;
+                $record->mark->clipByClipId = $target;
             }
-            $target = $seal->findByIndex($record->mark->sealIdIndex);
+            $target = $seal->findByIndex($record->mark->sealId);
 
             if ($target !== null) {
-                $record->mark->sealId = $target;
+                $record->mark->sealBySealId = $target;
             }
         }
         foreach ($kit->records as $record) {
             for ($j = 0; $j < \count($record->part); $j++) {
-                $target = $item->findByIndex($record->part[$j]->itemIdIndex);
+                $target = $item->findByIndex($record->part[$j]->itemId);
 
                 if ($target !== null) {
-                    $record->part[$j]->itemId = $target;
+                    $record->part[$j]->itemByItemId = $target;
                 }
             }
         }

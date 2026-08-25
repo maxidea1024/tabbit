@@ -155,25 +155,6 @@ internal sealed class CsTableView
     /// </remarks>
     public required IReadOnlyList<CsRecordReferenceView> RecordReferenceFields { get; set; }
 
-    /// <summary>
-    /// The columns whose value is a row of one of several tables.
-    /// </summary>
-    /// <remarks>
-    /// A third list rather than a branch inside <see cref="ReferenceFields"/>, because such a
-    /// column is not one record and must not present itself as one - the value stays the key
-    /// and what is added beside it is a property per target. spec/multi-target-accessors.md.
-    /// </remarks>
-    public required IReadOnlyList<CsMultiReferenceView> MultiReferenceFields { get; set; }
-
-    /// <summary>
-    /// The multi-target columns that are members of a record, for the linking pass.
-    /// </summary>
-    /// <remarks>
-    /// Separate from <see cref="MultiReferenceFields"/> because the loop differs: a member is
-    /// resolved per element, so the generated code walks the array before it looks anything
-    /// up. spec/multi-target-accessors.md.
-    /// </remarks>
-    public required IReadOnlyList<CsMultiRecordReferenceView> MultiRecordReferenceFields { get; set; }
 
     /// <summary>
     /// Whether the read needs a scratch int for enum casting.
@@ -219,6 +200,15 @@ internal sealed class CsTableView
 /// </remarks>
 internal sealed class CsColumnView
 {
+    /// <summary>
+    /// The member access ending in the row's derived name, for a whole-row reference member.
+    /// The plain access otherwise. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowMemberAccess { get; set; } = "";
+
+    /// <summary>The key's own type, where this column is a reference member.</summary>
+    public string MemberKeyType { get; set; } = "";
+
     /// <summary>The dotted path from the group to this member, empty for a plain column.</summary>
     /// <remarks>
     /// What the allocation of a member-owned array is written against - the read of a record
@@ -360,6 +350,12 @@ internal sealed class CsColumnView
 /// </summary>
 internal sealed class CsRecordMemberView
 {
+    /// <summary>
+    /// What the resolved row is called, where this member is a whole-row reference. Empty
+    /// otherwise. spec/reference-surface-naming.md sections 5 and 9.
+    /// </summary>
+    public string RowPropName { get; set; } = "";
+
     public required IReadOnlyList<string> Comment { get; set; }
 
     /// <summary>Field name on the element type.</summary>
@@ -454,38 +450,6 @@ internal sealed class CsRecordMemberView
     /// </remarks>
     public bool IsRecord { get; set; }
 
-    /// <summary>
-    /// The discriminator's type, when this member reaches several tables. Empty otherwise.
-    /// </summary>
-    /// <remarks>
-    /// Such a member keeps the key it already had and gains two things beside it, inside the
-    /// element: one slot for the resolved row whatever table it came from, and this. Same
-    /// arity as the member - a record of arrays holds one of each per element, just as it
-    /// holds one key per element. spec/multi-target-accessors.md.
-    /// </remarks>
-    public string MultiTargetTypeName { get; set; } = "";
-
-    /// <summary>The slot and the discriminator, declared beside the key.</summary>
-    public string MultiSlotName { get; set; } = "";
-    public string MultiTargetName { get; set; } = "";
-
-    /// <summary>Their declared types, which carry the brackets when the member is an array.</summary>
-    public string MultiSlotType { get; set; } = "";
-    public string MultiTargetDeclaredType { get; set; } = "";
-
-    /// <summary>What each is set to at declaration, for the array case.</summary>
-    public string MultiSlotInitializer { get; set; } = "";
-    public string MultiTargetInitializer { get; set; } = "";
-
-    /// <summary>
-    /// Whether the member is the array, which decides whether an accessor takes an element
-    /// number. spec/nested-multi-level.md.
-    /// </summary>
-    public bool MultiIsArray { get; set; }
-
-    /// <summary>One entry per table the member may be a row of.</summary>
-    public IReadOnlyList<CsMultiMemberTargetView> MultiTargets { get; set; }
-        = System.Array.Empty<CsMultiMemberTargetView>();
 
 }
 
@@ -526,6 +490,16 @@ internal sealed class CsRecordTypeView
 /// </summary>
 internal sealed class CsFieldView
 {
+    /// <summary>
+    /// What the resolved row is called, where this column is a reference to a whole row.
+    /// </summary>
+    /// <remarks>
+    /// Empty on everything else, including a dotted reference: that one hands back a value
+    /// out of the target rather than the row, so the column's name stays on it and there is
+    /// no second name to give. spec/reference-surface-naming.md sections 5 and 9.
+    /// </remarks>
+    public string RowPropName { get; set; } = "";
+
     /// <summary>
     /// Whether this field is a record group, so the template declares an element type for
     /// it and the member is of that type rather than a primitive.
@@ -709,69 +683,6 @@ internal sealed class CsFieldView
     public required bool ReferencesField { get; set; }
 }
 
-/// <summary>
-/// One column whose value is a row of one of several tables.
-/// </summary>
-/// <remarks>
-/// What is stored is a key, one slot for the resolved row whatever table it came from, and
-/// the discriminator saying which table that was. The slot is `object` rather than a property
-/// per target: the tables take separate id bands, so at most one target ever answers, and a
-/// property per target would leave every other one permanently null - fifteen of sixteen in
-/// the widest declaration measured, carried inside an element struct that gets copied.
-///
-/// The cast back out is inside the generated property, where the discriminator has already
-/// said which type it is. spec/multi-target-accessors.md.
-/// </remarks>
-internal sealed class CsMultiReferenceView
-{
-    /// <summary>The member holding the key, which is the column's own value.</summary>
-    public required string KeyProperty { get; set; }
-
-    /// <summary>The name the setter is spelled with, matching the other reference setters.</summary>
-    public required string PascalName { get; set; }
-
-    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
-    public required string SlotField { get; set; }
-    public required string TargetField { get; set; }
-
-    /// <summary>The property the discriminator is read through.</summary>
-    public required string TargetProperty { get; set; }
-
-    /// <summary>The generated enumeration's type name.</summary>
-    public required string TargetTypeName { get; set; }
-
-    /// <summary>What follows the key to ask whether it points anywhere.</summary>
-    public required string RefIsSet { get; set; }
-
-    /// <summary>One entry per table the value may be a row of, in the order named.</summary>
-    public required IReadOnlyList<CsMultiTargetView> Targets { get; set; }
-}
-
-/// <summary>One table a multi-target column may point at.</summary>
-internal sealed class CsMultiTargetView
-{
-    /// <summary>The table as the accessor names it, which is also the enum label.</summary>
-    public required string Table { get; set; }
-
-    /// <summary>The record type a resolved row has.</summary>
-    public required string RecordTypeName { get; set; }
-
-    /// <summary>The property this target is read through.</summary>
-    public required string Property { get; set; }
-
-    /// <summary>The enum label for this target.</summary>
-    public required string Label { get; set; }
-
-    /// <summary>
-    /// The target's non-throwing lookup.
-    /// </summary>
-    /// <remarks>
-    /// Not the throwing one every other reference resolves through. A key that is not in this
-    /// target is the ordinary case here - it means the row belongs to one of the others - so
-    /// a miss has to be an answer rather than an exception.
-    /// </remarks>
-    public required string Lookup { get; set; }
-}
 
 internal sealed class CsEnumView
 {
@@ -840,44 +751,3 @@ internal sealed class CsRecordReferenceView
     public required string RefIsSet { get; set; }
 }
 
-/// <summary>One table a multi-target record member may point at.</summary>
-internal sealed class CsMultiMemberTargetView
-{
-    /// <summary>The record type a resolved row has.</summary>
-    public required string RecordTypeName { get; set; }
-
-    /// <summary>The member this target is read through.</summary>
-    public required string Accessor { get; set; }
-
-    /// <summary>The enum label for this target.</summary>
-    public required string Label { get; set; }
-}
-
-/// <summary>
-/// One multi-target column that is a member of a record, as the linking pass writes it.
-/// </summary>
-/// <remarks>
-/// Whole expressions rather than the parts, for the reason the single-target one gives: which
-/// of the three record shapes this is decides where the element number sits, and the template
-/// should not be the place that knows. spec/multi-target-accessors.md.
-/// </remarks>
-internal sealed class CsMultiRecordReferenceView
-{
-    /// <summary>The key this resolves through, loop variable included.</summary>
-    public required string Key { get; set; }
-
-    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
-    public required string Slot { get; set; }
-    public required string Target { get; set; }
-
-    /// <summary>The loop bound, or empty where the group is one record.</summary>
-    public required string Count { get; set; }
-
-    /// <summary>The generated enumeration's type name.</summary>
-    public required string TargetTypeName { get; set; }
-
-    /// <summary>What follows the key to ask whether it points anywhere.</summary>
-    public required string RefIsSet { get; set; }
-
-    public required IReadOnlyList<CsMultiTargetView> Targets { get; set; }
-}

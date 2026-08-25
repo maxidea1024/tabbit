@@ -45,8 +45,8 @@ namespace Tabbit.Fixtures.RecordRef
             public struct RigCoreEntry
             {
                 /// element 1, two levels in
-                public ItemTable.Record ItemId;
-                public int ItemId_index;
+                public int ItemId;
+                public ItemTable.Record ItemByItemId;
                 public bool ItemId_F;
                 /// its sibling at that level
                 public int Count;
@@ -247,8 +247,8 @@ namespace Tabbit.Fixtures.RecordRef
                             record._rig = Record.NewRigEntryArray(elementCount);
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._rig[j].Core.ItemId_index = cursor.NextI32();
-                                record._rig[j].Core.ItemId = default(ItemTable.Record); // will be assigned.
+                                record._rig[j].Core.ItemId = cursor.NextI32();
+                                record._rig[j].Core.ItemByItemId = default(ItemTable.Record); // will be assigned.
                                 record._rig[j].Core.ItemId_F = false;
                             }
                         }

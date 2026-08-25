@@ -24,8 +24,8 @@ public final class HolderRecord {
     /** One element of main. */
     public static final class MainEntry {
         /** the reference, in a record of one */
-        public ItemRecord itemId;
-        public int itemIdIndex;
+        public int itemId;
+        public ItemRecord itemByItemId;
         /** an ordinary member beside it */
         public int count;
     }

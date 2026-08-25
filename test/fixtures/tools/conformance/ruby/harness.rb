@@ -67,8 +67,10 @@ tables.vectors.records.each_with_index do |r, position|
   json << ',"labels":[' << r.labels.map(&:to_s).join(',') << ']'
   json << ',"uids":[' << r.uids.map { |value| quote(value.to_s) }.join(',') << ']'
   # The reference indices, which is what the exporter writes for a foreign field.
-  json << ',"owner":' << r.owner_index.to_s
+  json << ',"owner":' << r.owner.to_s
   json << ',"tier":' << r.tier_index.to_s
+  # And one reference per element, printed as the stored index each came in as.
+  json << ',"owners":[' << r.owners.map(&:to_s).join(',') << ']'
   # The three the v104 encodings win on.
   json << ',"count":' << r.count.to_s
   json << ',"route":' << quote(r.route)

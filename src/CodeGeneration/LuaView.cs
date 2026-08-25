@@ -93,11 +93,6 @@ internal sealed class LuaTableView
     /// </summary>
     public required string RecordFieldNames { get; set; }
 
-    /// <summary>
-    /// The columns whose value is a row of one of several tables.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<LuaMultiReferenceView> MultiReferences { get; set; }
 
     /// <summary>The table instance's field names, quoted and comma separated.</summary>
     public required string TableFieldNames { get; set; }
@@ -184,17 +179,6 @@ internal sealed class LuaRecordTypeView
     /// <summary>The lua-language-server `---@field` lines of the element class.</summary>
     public required IReadOnlyList<string> Annotations { get; set; }
 
-    /// <summary>
-    /// Those of its members that reach several tables, for the methods written on the element.
-    /// </summary>
-    /// <remarks>
-    /// An element with one of these is sealed behind `strictInstance` rather than `strictType`,
-    /// exactly as a row with a multi-target column is: the accessor is a method, and a method
-    /// needs a table to be looked up on. An element with none keeps `strictType`, so nothing
-    /// already generated moves. spec/multi-target-accessors.md.
-    /// </remarks>
-    public IReadOnlyList<LuaMultiMemberView> MultiMembers { get; set; }
-        = System.Array.Empty<LuaMultiMemberView>();
 }
 
 internal sealed class LuaRecordMemberView
@@ -202,42 +186,13 @@ internal sealed class LuaRecordMemberView
     public required IReadOnlyList<string> Comment { get; set; }
     public required IReadOnlyList<string> Initializers { get; set; }
 
-    /// <summary>
-    /// The slot and the discriminator of a member reaching several tables. Null for every other
-    /// member. spec/multi-target-accessors.md.
-    /// </summary>
-    public LuaMultiMemberView? Multi { get; set; }
 }
 
-/// <summary>
-/// One record member whose value is a row of one of several tables.
-/// </summary>
-/// <remarks>
-/// The member keeps the key it already carried; beside it go one slot for the resolved row and
-/// the discriminator saying which table filled it, at the member's own arity.
-/// spec/multi-target-accessors.md.
-/// </remarks>
-internal sealed class LuaMultiMemberView
-{
-    /// <summary>The key, the slot and the discriminator, in access position.</summary>
-    public required string KeyMember { get; set; }
-    public required string SlotMember { get; set; }
-    public required string TargetMember { get; set; }
-
-    /// <summary>The generated enumeration's local name, and its `None` label.</summary>
-    public required string TargetTypeName { get; set; }
-    public required string NoneLabel { get; set; }
-
-    /// <summary>Whether the member is the array, so a method takes an element number.</summary>
-    public required bool IsArray { get; set; }
-
-    public required IReadOnlyList<LuaMultiTargetView> Targets { get; set; }
-}
 
 /// <summary>
 /// One column of a data file, as the read's tag chain sees it.
 ///
-/// The assignment targets arrive whole - `record.slots[element].itemIdIndex` - because
+/// The assignment targets arrive whole - `record.slots[element].itemId` - because
 /// three things vary inside them: bracket against dotted access, where the element
 /// subscript sits, and whether a reference's key name replaces the member's. The loop
 /// variables they mention are the ones the template declares: `record`, `element`, `i`.
@@ -353,17 +308,7 @@ internal sealed class LuaCrossReferenceView
     public required IReadOnlyList<LuaReferenceFieldView> Fields { get; set; }
     public required IReadOnlyList<LuaRecordReferenceView> RecordFields { get; set; }
 
-    /// <summary>
-    /// The columns reaching several tables, which resolve by trying each in turn.
-    /// spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<LuaMultiReferenceView> MultiFields { get; set; }
 
-    /// <summary>
-    /// The columns reaching several tables that are members of a record, which resolve per
-    /// element. spec/multi-target-accessors.md.
-    /// </summary>
-    public required IReadOnlyList<LuaMultiRecordReferenceView> MultiRecordFields { get; set; }
 }
 
 internal sealed class LuaReferenceFieldView
@@ -407,83 +352,3 @@ internal sealed class LuaRecordReferenceView
     public required string RefLookup { get; set; }
 }
 
-/// <summary>
-/// One column whose value is a row of one of several tables.
-/// </summary>
-/// <remarks>
-/// One field for the resolved row whatever table it came from, and the discriminator saying
-/// which. Lua needs no cast to read it back, but the discriminator is still what a consumer
-/// asks - and the methods below spare it comparing metatables.
-///
-/// A record holding one of these is sealed behind `strictInstance` rather than `strictType`,
-/// which is the difference between a row that has methods and a row that is only data. Only
-/// such a record: a table with no multi-target column keeps the metatable it had, so nothing
-/// already generated moves. spec/multi-target-accessors.md.
-/// </remarks>
-internal sealed class LuaMultiReferenceView
-{
-    /// <summary>The field holding the key.</summary>
-    public required string KeyMember { get; set; }
-
-    /// <summary>The field the resolved row lands in, and the discriminator beside it.</summary>
-    public required string SlotMember { get; set; }
-    public required string TargetMember { get; set; }
-
-    /// <summary>The generated enumeration's table name.</summary>
-    public required string TargetTypeName { get; set; }
-
-    /// <summary>The key standing for "no row of any of them".</summary>
-    public required string NoneLabel { get; set; }
-
-    /// <summary>What follows the key to ask whether it points anywhere.</summary>
-    public required string KeyIsSet { get; set; }
-
-    public required IReadOnlyList<LuaMultiTargetView> Targets { get; set; }
-}
-
-/// <summary>One table a multi-target column may point at.</summary>
-internal sealed class LuaMultiTargetView
-{
-    /// <summary>The loaded local holding the table, for the linking pass.</summary>
-    public required string Table { get; set; }
-
-    /// <summary>The record type a resolved row has, for the annotation.</summary>
-    public required string RecordName { get; set; }
-
-    /// <summary>The method this target is read through.</summary>
-    public required string Method { get; set; }
-
-    /// <summary>The enum key for this target.</summary>
-    public required string Label { get; set; }
-
-    /// <summary>The target's lookup, which answers nil rather than raising.</summary>
-    public required string Lookup { get; set; }
-}
-
-/// <summary>
-/// One multi-target column that is a member of a record, as the linking pass writes it.
-/// </summary>
-internal sealed class LuaMultiRecordReferenceView
-{
-    /// <summary>The key this resolves through, loop variable included.</summary>
-    public required string Key { get; set; }
-
-    /// <summary>The slot the resolved row lands in, and the discriminator beside it.</summary>
-    public required string Slot { get; set; }
-    public required string Target { get; set; }
-
-    /// <summary>
-    /// What the loop counts, or empty where the group is one record and there is nothing to
-    /// walk.
-    /// </summary>
-    public required string Range { get; set; }
-
-    /// <summary>The generated enumeration's local name, and its `None` label.</summary>
-    public required string TargetTypeName { get; set; }
-    public required string NoneLabel { get; set; }
-
-    /// <summary>What follows the key to ask whether it points anywhere.</summary>
-    public required string KeyIsSet { get; set; }
-
-    public required IReadOnlyList<LuaMultiTargetView> Targets { get; set; }
-}

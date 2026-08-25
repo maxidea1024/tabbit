@@ -9,11 +9,11 @@ part of '../tables.dart';
 /// One element of [LoadoutRecord.slot].
 class LoadoutSlotEntry {
   /// element 1, the reference
-  ItemRecord? itemId;
-  int itemIdIndex = 0;
+  int itemId = 0;
+  ItemRecord? itemByItemId;
   /// element 1, a second reference to the same table
-  ItemRecord? swapId;
-  int swapIdIndex = 0;
+  int swapId = 0;
+  ItemRecord? itemBySwapId;
   /// element 1, an ordinary member
   int count = 0;
 }
@@ -114,7 +114,7 @@ class LoadoutTable {
             record.slot =
                 List.generate(elementCount, (_) => LoadoutSlotEntry());
             for (var j = 0; j < elementCount; j++) {
-              record.slot[j].itemIdIndex = cursor.nextI32();
+              record.slot[j].itemId = cursor.nextI32();
             }
           }
           break;
@@ -129,7 +129,7 @@ class LoadoutTable {
                   'record a different element count than another');
             }
             for (var j = 0; j < elementCount; j++) {
-              record.slot[j].swapIdIndex = cursor.nextI32();
+              record.slot[j].swapId = cursor.nextI32();
             }
           }
           break;

@@ -23,9 +23,9 @@ use Tabbit\Uuid;
 final class MountRigEntryCore
 {
     /** element 1, two levels in */
-    public ?ItemRecord $itemId = null;
+    public int $itemId = 0;
 
-    public int $itemIdIndex = 0;
+    public ?ItemRecord $itemByItemId = null;
     /** its sibling at that level */
     public int $count = 0;
 }
@@ -179,7 +179,7 @@ final class MountTable
                             $record->rig[] = new MountRigEntry();
                         }
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->rig[$j]->core->itemIdIndex = $cursor->nextI32();
+                            $record->rig[$j]->core->itemId = $cursor->nextI32();
                         }
                     }
                     break;

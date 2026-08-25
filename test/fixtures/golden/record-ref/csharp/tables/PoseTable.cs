@@ -45,8 +45,8 @@ namespace Tabbit.Fixtures.RecordRef
             public struct StepEntry
             {
                 /// element 1, a string key
-                public ClipTable.Record ClipId;
-                public string ClipId_index;
+                public string ClipId;
+                public ClipTable.Record ClipByClipId;
                 public bool ClipId_F;
                 /// element 1, an ordinary member
                 public int Weight;
@@ -223,8 +223,8 @@ namespace Tabbit.Fixtures.RecordRef
                             record._step = new Record.StepEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._step[j].ClipId_index = cursor.NextString();
-                                record._step[j].ClipId = default(ClipTable.Record); // will be assigned.
+                                record._step[j].ClipId = cursor.NextString();
+                                record._step[j].ClipByClipId = default(ClipTable.Record); // will be assigned.
                                 record._step[j].ClipId_F = false;
                             }
                         }

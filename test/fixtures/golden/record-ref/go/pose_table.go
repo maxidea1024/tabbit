@@ -16,8 +16,8 @@ import (
 // PoseStepEntry is one element of PoseRecord.Step.
 type PoseStepEntry struct {
 	// element 1, a string key
-	ClipId *ClipRecord
-	ClipIdIndex string
+	ClipId string
+	ClipByClipId *ClipRecord
 	// element 1, an ordinary member
 	Weight int32
 }
@@ -141,7 +141,7 @@ func (t *PoseTable) Read(filename string) error {
 					// two counts would shift every value after it.
 					r.Step = make([]PoseStepEntry, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.Step[j].ClipIdIndex = cursor.NextString()
+						r.Step[j].ClipId = cursor.NextString()
 					}
 				}
 			}

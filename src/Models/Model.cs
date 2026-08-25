@@ -240,13 +240,6 @@ public class Model
             foreach (var field in table.Fields)
             {
                 // Several targets is not one record, so there is nothing to resolve to and
-                // the field keeps carrying the key. What it does need is the tables, which
-                // the generated accessors look rows up in. spec/multi-target-references.md.
-                if (field.IsMultiRef)
-                {
-                    ResolveMultiTargetReference(table, field, diagnostics);
-                    continue;
-                }
 
                 if (!field.IsRef)
                     continue;
@@ -268,7 +261,19 @@ public class Model
 
                 if (field.ResolvedRefField is null)
                 {
-                    field.Type = Models.ValueType.ForeignRecord; // the value is a row of the referenced table, not its key
+                    // The value is a row of the referenced table, not its key - and a cell
+                    // holding a delimited list of keys is a row each. The array kind is the
+                    // one the folded numbered columns already produce, so nothing downstream
+                    // meets a shape it has not seen. spec/polymorphism.md section 4.
+                    //
+                    // Told apart by the deferred marker rather than by `IsArray`: a column a
+                    // layout promoted from a constraint row was read as an ordinary number
+                    // and may be an array of them, and that one has never been a record per
+                    // element. Only `foreign T[]` in a type cell leaves `StringArray` here.
+                    field.Type = field.Type == Models.ValueType.StringArray
+                        ? Models.ValueType.ForeignRecordArray
+                        : Models.ValueType.ForeignRecord;
+
                     field.TypeName = $"{field.ResolvedRefTable!.Name}.Record";
                 }
                 else
@@ -289,7 +294,12 @@ public class Model
                         continue;
                     }
 
-                    field.Type = field.ResolvedRefField.Type;
+                    // The same discriminator as above: the deferred marker says the type
+                    // cell wrote `foreign Target.Field[]`, and the element is that field.
+                    field.Type = field.Type == Models.ValueType.StringArray
+                        ? Models.ValueTypes.ArrayOf(field.ResolvedRefField.Type)
+                        : field.ResolvedRefField.Type;
+
                     field.TypeName = field.ResolvedRefField.TypeName;
                 }
 
@@ -298,73 +308,6 @@ public class Model
         }
     }
 
-    /// <summary>
-    /// Finds the tables a multi-target reference names, and reports the ones that are not
-    /// there.
-    /// </summary>
-    /// <remarks>
-    /// No chain and no resolved field: such a column carries an id, and every table it names
-    /// is somewhere that id may live. Which one holds it is answered per target in the
-    /// generated code rather than decided here - deciding it is what would need a sum type.
-    ///
-    /// The type is left alone, which is the whole of how "does not resolve to one record" is
-    /// expressed: the field is not a <see cref="ValueType.ForeignRecord"/>, so nothing that
-    /// reads one has to learn a new state. spec/multi-target-references.md.
-    /// </remarks>
-    private void ResolveMultiTargetReference(Table table, Field field, Diagnostics diagnostics)
-    {
-        var targets = new List<Table>();
-
-        foreach (string name in field.RefTableNames!)
-        {
-            var target = FindTable(name);
-            if (target is null)
-            {
-                diagnostics.Error(field.DetailTypeLocation,
-                    Messages.Message.Of(Cooking.CookingMessages.ReferenceTableMissing,
-                        ("Table", table.Name), ("Field", field.Name), ("Target", name)));
-                return;
-            }
-
-            targets.Add(target);
-        }
-
-        field.ResolvedRefTables = targets;
-
-        // The key every one of them is addressed by has to be the same, because the column
-        // carries one value. Sheets that name several tables key them alike; saying so is
-        // what stops a generated accessor from looking a `string` up in an `int` dictionary.
-        var keyTypes = targets
-            .Select(t => t.PrimaryIndexField?.Type ?? Models.ValueType.Int32)
-            .Distinct()
-            .ToList();
-
-        if (keyTypes.Count > 1)
-        {
-            diagnostics.Error(field.DetailTypeLocation,
-                Messages.Message.Of(Cooking.CookingMessages.MultiTargetKeysDiffer,
-                    ("Table", table.Name), ("Field", field.Name),
-                    ("Targets", string.Join("`, `", targets.Select(t => t.Name))),
-                    ("KeyTypes", string.Join(
-                        "` and `", keyTypes.Select(k => k.ToString().ToLowerInvariant())))));
-            return;
-        }
-
-        field.RefKeyType = keyTypes[0];
-
-        // And the column becomes that key. It was read as an ordinary number - a `double`,
-        // in the layout this comes from - and what it actually holds is the id its targets
-        // are addressed by. Saying so is what makes the value travel at the key's width
-        // instead of a wider one that happens to fit it.
-        //
-        // Arrays are left alone: the element type is the key already, and rewriting the
-        // declared type would say the column holds one value where it holds several.
-        if (!ValueTypes.IsArray(field.Type))
-        {
-            field.Type = field.RefKeyType;
-            field.TypeName = field.RefKeyType.ToString().ToLowerInvariant();
-        }
-    }
 
     /// <summary>
     /// Walks a reference to whatever it ultimately points at, following further

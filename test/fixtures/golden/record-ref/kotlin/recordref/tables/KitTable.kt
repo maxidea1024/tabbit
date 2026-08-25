@@ -46,8 +46,8 @@ class KitRecord {
     /** One element of part. */
     class PartEntry {
         /** element 1, the reference */
-        var itemId: ItemRecord? = null
-        var itemIdIndex: Int = 0
+        var itemId: Int = 0
+        var itemByItemId: ItemRecord? = null
         /** element 1, an ordinary member */
         var count: Int = 0
     }
@@ -144,7 +144,7 @@ class KitTable {
                         record.part =
                             MutableList(elementCount.coerceAtLeast(0)) { KitRecord.PartEntry() }
                         for (element in 0 until elementCount) {
-                            record.part[element].itemIdIndex = cursor.nextI32()
+                            record.part[element].itemId = cursor.nextI32()
                         }
                     }
                 }

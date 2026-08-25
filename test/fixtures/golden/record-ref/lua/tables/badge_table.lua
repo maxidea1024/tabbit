@@ -9,16 +9,18 @@ local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
 ---@class BadgeMarkEntry
----@field clipId ClipRecord|nil
----@field sealId SealRecord|nil
+---@field clipId string
+---@field clipByClipId ClipRecord|nil
+---@field sealId string
+---@field sealBySealId SealRecord|nil
 ---@field rank integer
-local BadgeMarkEntryMeta = tcb.strictType("an element of BadgeRecord.mark", { "clipId", "clipIdIndex", "sealId", "sealIdIndex", "rank" })
+local BadgeMarkEntryMeta = tcb.strictType("an element of BadgeRecord.mark", { "clipId", "clipByClipId", "sealId", "sealBySealId", "rank" })
 
 ---@return BadgeMarkEntry
 local function newBadgeMarkEntry()
   return setmetatable({
-    clipIdIndex = "",
-    sealIdIndex = tcb.UUID_EMPTY,
+    clipId = "",
+    sealId = tcb.UUID_EMPTY,
     rank = 0,
   }, BadgeMarkEntryMeta)
 end
@@ -128,7 +130,7 @@ function BadgeTable:readBytes(data)
         local n, value = cursor:nextSameString(count - at)
 
         for i = at + 1, at + n do
-          records[i].mark.clipIdIndex = value
+          records[i].mark.clipId = value
         end
 
         at = at + n
@@ -137,7 +139,7 @@ function BadgeTable:readBytes(data)
       tcb.checkColumn(column, "Badge.Mark.SealId", tcb.KIND_SCALAR, false, { tcb.ELEMENT_UUID })
       for i = 1, count do
         local record = records[i]
-        record.mark.sealIdIndex = reader:readUuid()
+        record.mark.sealId = reader:readUuid()
       end
     elseif column.tag == 4 then
       tcb.checkColumn(column, "Badge.Mark.Rank", tcb.KIND_SCALAR, false, { tcb.ELEMENT_I32, tcb.ELEMENT_VARINT })

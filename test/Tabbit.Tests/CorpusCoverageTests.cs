@@ -37,10 +37,13 @@ public class CorpusCoverageTests
     /// </summary>
     /// <remarks>
     /// `None` is the absence of a type. `Unresolved` is what a reference holds between parsing
-    /// and resolution, and never survives into a model. `ForeignRecordArray` is the reserved
-    /// spelling of `foreign[]`, which the cooker refuses - an array of references is written as
-    /// a folded serial group instead, and that keeps `ForeignRecord` as its element type. The
-    /// `serial-ref` fixture holds one.
+    /// and resolution, and never survives into a model.
+    ///
+    /// **`ForeignRecordArray` used to be here and is not any more.** It was excluded on the
+    /// grounds that the cooker refused `foreign[]`, and it does not - spec/polymorphism.md
+    /// section 4 opened it - so the corpus carries an `owners` column and every harness reads
+    /// it. That column is the only place a reader has to allocate the resolved slots from the
+    /// row's own element count rather than assign into a record it already sized.
     ///
     /// Named individually rather than by a rule, because the next type added should have to
     /// be thought about rather than swept in by a predicate somebody wrote for these.
@@ -49,7 +52,6 @@ public class CorpusCoverageTests
     {
         ValueType.None,
         ValueType.Unresolved,
-        ValueType.ForeignRecordArray,
     };
 
     /// <summary>

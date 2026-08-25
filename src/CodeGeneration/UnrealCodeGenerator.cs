@@ -373,7 +373,10 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             var field = sf.IsRecord ? sf.Members[0].FirstField : sf.FirstField;
             string member = MemberName(field, sf.Name);
 
-            members.Add(sf.IsRef ? member + "Index" : member);
+            // No linking in this language, so a reference column carries the key and
+            // nothing else - and the key wears the column's own name.
+            // spec/reference-surface-naming.md sections 4 and 6.
+            members.Add(member);
         }
 
         return new UnrealTableView
@@ -434,7 +437,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         // A reference member is declared as the key it holds, so the read names the key - and
         // the suffix goes on the member rather than after the subscript, because a member that
         // is an array holds one key per element. spec/references-in-records.md.
-        string memberRefSuffix = (wire.Member is not null && wire.IsRef) ? "Index" : "";
+        string memberRefSuffix = "";
 
         return new UnrealColumnView
         {
@@ -634,7 +637,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         // So the only thing a member being a reference changes is its name - which has to say
         // what it holds, because the row is not there beside it - and the type of that key.
         // spec/references-in-records.md.
-        string name = MemberName(field, member.Name) + (member.IsRef ? "Index" : "");
+        string name = MemberName(field, member.Name);
         string type = member.IsRef
             ? ToUnrealTypeName(field!.RefKeyType, null)
             : ToUnrealTypeName(field!.ElementType, field!.EnumOrNull);
@@ -938,8 +941,11 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         // Which local the run decoded into is the key's: a string run fills `RunText`, and
         // assigning `RunValue` to an FString does not compile.
         // spec/reference-key-types.md.
+        // No `Index` suffix and no second name: this language does not link, so every
+        // reference column is one key wearing the column's own name - dotted or not.
+        // spec/reference-surface-naming.md, "링킹이 없는 언어".
         if (wire.IsRef)
-            return $"Loaded[Row].{name}Index = {RunValueName(wire)};";
+            return $"Loaded[Row].{name} = {RunValueName(wire)};";
 
         if (wire.ElementType == ValueType.Enum)
             return $"Loaded[Row].{name} = static_cast<{EnumName(wire.TagCarrier.Enum)}>(RunValue);";
@@ -973,9 +979,9 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         {
             return wire.RefKeyType switch
             {
-                ValueType.Int64 => $"Cursor.NextI64(Record.{name}Index);",
-                ValueType.String => $"Cursor.NextString(Record.{name}Index);",
-                _ => $"Cursor.NextI32(Record.{name}Index);",
+                ValueType.Int64 => $"Cursor.NextI64(Record.{name});",
+                ValueType.String => $"Cursor.NextString(Record.{name});",
+                _ => $"Cursor.NextI32(Record.{name});",
             };
         }
 
@@ -1016,7 +1022,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     private string Declaration(Table table, SerialField sf, string name)
     {
         if (sf.IsRef)
-            return sf.IsArray ? $"TArray<int32> {name}Index;" : $"int32 {name}Index = 0;";
+            return sf.IsArray ? $"TArray<int32> {name};" : $"int32 {name} = 0;";
 
         // A record group declares the element type above the row struct, so the member is of
         // that type - or an array of it.

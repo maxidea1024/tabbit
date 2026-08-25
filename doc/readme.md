@@ -80,11 +80,13 @@
 
 | 문서 | 내용 |
 | --- | --- |
-| [다중 대상 참조](../spec/multi-target-references.md) | 값이 여러 테이블 중 하나의 행이어야 할 때 |
+| [참조가 내는 이름](../spec/reference-surface-naming.md) | 키와 행의 이름, 그리고 여러 테이블은 검사(`refs=`)로 |
+| [다중 대상 참조](../spec/multi-target-references.md) | 값이 여러 테이블 중 하나의 행이어야 할 때 — **참조 쪽은 되돌림** |
 | [참조가 가리킬 수 있는 키](../spec/reference-key-types.md) | 인덱스는 `int` 말고도 되는데 참조만 `int32`에 묶여 있던 것 |
 | [레코드 안의 참조](../spec/references-in-records.md) | 레코드 그룹의 멤버가 다른 테이블을 가리킬 때 |
-| [다중 대상 참조의 접근자](../spec/multi-target-accessors.md) | 공개 표면은 대상별로, 저장은 슬롯 하나와 식별자로 |
+| [다중 대상 참조의 접근자](../spec/multi-target-accessors.md) | 공개 표면은 대상별로, 저장은 슬롯 하나와 식별자로 — **되돌림** |
 | [참조의 「없음」](../spec/reference-optionality.md) | 참조 컬럼의 빈 칸. 없음은 명시적으로, 허용된 자리에서만 |
+| [다형과 참조 배열](../spec/polymorphism.md) | 추상 타입의 변종을 가리키는 참조와, 필드 구성이 행마다 다른 레코드 |
 
 ### 검증
 

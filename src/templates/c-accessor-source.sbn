@@ -24,19 +24,19 @@ static void {{ accessor.name }}_SolveCrossReferences({{ accessor.type_name }}* d
 
       for (element = 0; element < {{ field.count_expression }}; ++element) {
         const {{ field.ref_record_name }}* target = {{ field.ref_lookup }}(
-          &data->{{ field.ref_table }}, record->{{ field.name }}_index[element]);
+          &data->{{ field.ref_table }}, record->{{ field.name }}[element]);
 
         if (target != NULL)
-          record->{{ field.name }}[element] = {{ field.value }};
+          record->{{ field.row_name }}[element] = {{ field.value }};
       }
     }
 {{~ else ~}}
     {
       const {{ field.ref_record_name }}* target = {{ field.ref_lookup }}(
-        &data->{{ field.ref_table }}, record->{{ field.name }}_index);
+        &data->{{ field.ref_table }}, record->{{ field.name }});
 
       if (target != NULL)
-        record->{{ field.name }} = {{ field.value }};
+        record->{{ field.row_name }} = {{ field.value }};
     }
 {{~ end ~}}
 {{~ end ~}}
@@ -75,58 +75,6 @@ static void {{ accessor.name }}_SolveCrossReferences({{ accessor.type_name }}* d
    so the elements are walked and each one's own key is looked up. Which array that is - the
    group's or the member's - the view decided, and a record of one has neither.
    spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
-{{~ for ref in reference.multi_record_fields }}
-{{~ if ref.count != '' ~}}
-    {
-      int32_t element;
-
-      for (element = 0; element < {{ ref.count }}; ++element) {
-        if ({{ ref.key_is_set }}) {
-{{~ for target in ref.targets }}
-          if ({{ ref.target }} == {{ ref.none_label }}) {
-            const {{ target.record_name }}* found = {{ target.lookup }}(
-              &data->{{ target.table }}, {{ ref.key }});
-
-            if (found != NULL) {
-              {{ ref.slot }} = found;
-              {{ ref.target }} = {{ target.label }};
-            }
-          }
-{{~ end ~}}
-        }
-      }
-    }
-{{~ else ~}}
-    if ({{ ref.key_is_set }}) {
-{{~ for target in ref.targets }}
-      if ({{ ref.target }} == {{ ref.none_label }}) {
-        const {{ target.record_name }}* found = {{ target.lookup }}(
-          &data->{{ target.table }}, {{ ref.key }});
-
-        if (found != NULL) {
-          {{ ref.slot }} = found;
-          {{ ref.target }} = {{ target.label }};
-        }
-      }
-{{~ end ~}}
-    }
-{{~ end ~}}
-{{~ end ~}}
-{{~ for ref in reference.multi_fields }}
-    if (record->{{ ref.key_member }} {{ ref.key_is_set }}) {
-{{~ for target in ref.targets }}
-      if (record->{{ ref.target_member }} == {{ ref.none_label }}) {
-        const {{ target.record_name }}* found = {{ target.lookup }}(
-          &data->{{ target.table }}, record->{{ ref.key_member }});
-
-        if (found != NULL) {
-          record->{{ ref.slot_member }} = found;
-          record->{{ ref.target_member }} = {{ target.label }};
-        }
-      }
-{{~ end ~}}
-    }
-{{~ end ~}}
   }
 {{~ end ~}}
 }

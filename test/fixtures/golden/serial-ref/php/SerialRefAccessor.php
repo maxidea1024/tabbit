@@ -121,11 +121,11 @@ final class SerialRefAccessor
     private function solveCrossReferences(PieceTable $piece, KitTable $kit, BitTable $bit, TrimKitTable $trimKit): void
     {
         foreach ($kit->records as $record) {
-            foreach ($record->slotIndex as $position => $index) {
+            foreach ($record->slot as $position => $index) {
                 $target = $piece->findByIndex($index);
 
                 if ($target !== null) {
-                    $record->slot[$position] = $target;
+                    $record->pieceBySlot[$position] = $target;
                 }
             }
             foreach ($record->tierIndex as $position => $index) {
@@ -137,11 +137,11 @@ final class SerialRefAccessor
             }
         }
         foreach ($trimKit->records as $record) {
-            foreach ($record->slotIndex as $position => $index) {
+            foreach ($record->slot as $position => $index) {
                 $target = $bit->findByIndex($index);
 
                 if ($target !== null) {
-                    $record->slot[$position] = $target;
+                    $record->bitBySlot[$position] = $target;
                 }
             }
             foreach ($record->tierIndex as $position => $index) {

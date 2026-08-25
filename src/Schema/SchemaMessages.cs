@@ -23,8 +23,35 @@ public static class SchemaMessages
     /// <summary>A line whose first word is not one of the seven keywords.</summary>
     public const string UnknownKeyword = "schema.unknown-keyword";
 
-    /// <summary>`abstract` or `extends`, which are reserved and not settled yet.</summary>
-    public const string PolymorphismReserved = "schema.polymorphism-reserved";
+    /// <summary>`abstract` with something other than `struct` after it.</summary>
+    public const string AbstractNeedsStruct = "schema.abstract-needs-struct";
+
+    /// <summary>`extends` starting a line of its own.</summary>
+    public const string ExtendsOnStructLine = "schema.extends-on-struct-line";
+
+    /// <summary>`abstract struct X extends Y` - a variant that is itself abstract.</summary>
+    public const string AbstractCannotExtend = "schema.abstract-cannot-extend";
+
+    /// <summary>`@N` on a struct that extends nothing.</summary>
+    public const string VariantTagWithoutBase = "schema.variant-tag-without-base";
+
+    /// <summary>`extends` naming something that is not declared anywhere.</summary>
+    public const string BaseUnknown = "schema.base-unknown";
+
+    /// <summary>`extends` naming a struct that is not `abstract`, or an enum.</summary>
+    public const string BaseNotAbstract = "schema.base-not-abstract";
+
+    /// <summary>An `abstract struct` nothing extends.</summary>
+    public const string AbstractWithoutVariants = "schema.abstract-without-variants";
+
+    /// <summary>Two variants of one abstract struct carrying the same discriminator.</summary>
+    public const string VariantTagsCollide = "schema.variant-tags-collide";
+
+    /// <summary>Some variants of one abstract struct numbered and some not.</summary>
+    public const string VariantTagsPartial = "schema.variant-tags-partial";
+
+    /// <summary>An `abstract struct` written where a column's type belongs.</summary>
+    public const string AbstractTypeNotEmbeddable = "schema.abstract-type-not-embeddable";
 
     /// <summary>A `field` line with no `struct` open before it.</summary>
     public const string FieldOutsideStruct = "schema.field-outside-struct";
@@ -170,7 +197,7 @@ public static class SchemaMessages
     /// <summary>A key the notation defines and this build does not act on yet.</summary>
     public const string MetaKeyNotCarried = "schema.meta-key-not-carried";
 
-    /// <summary>`refs`, which says what `foreign` already says in this tool.</summary>
+    /// <summary>`refs` on a column that `foreign` already resolves.</summary>
     public const string MetaRefsIsForeign = "schema.meta-refs-is-foreign";
 
     /// <summary>A default written beside a `?`, which says two things about one blank.</summary>
@@ -205,6 +232,12 @@ public static class SchemaMessages
 
     /// <summary>A sheet's whitelist and a declaration's with nothing in common.</summary>
     public const string AllowedIntersectionEmpty = "schema.allowed-intersection-empty";
+
+    /// <summary>`refs` with no table in it.</summary>
+    public const string RefsEmpty = "schema.refs-empty";
+
+    /// <summary>A sheet's table list and a declaration's with nothing in common.</summary>
+    public const string RefsIntersectionEmpty = "schema.refs-intersection-empty";
 
     /// <summary>A pattern on a column that already has a different one.</summary>
     public const string PatternWrittenTwice = "schema.pattern-written-twice";

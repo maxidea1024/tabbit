@@ -33,10 +33,10 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
 
       for (element = 0; element < record->slot_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
-          &data->item, record->slot[element].item_id_index);
+          &data->item, record->slot[element].item_id);
 
         if (target != NULL)
-          record->slot[element].item_id = target;
+          record->slot[element].item_by_item_id = target;
       }
     }
 
@@ -45,10 +45,10 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
 
       for (element = 0; element < record->slot_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
-          &data->item, record->slot[element].swap_id_index);
+          &data->item, record->slot[element].swap_id);
 
         if (target != NULL)
-          record->slot[element].swap_id = target;
+          record->slot[element].item_by_swap_id = target;
       }
     }
   }
@@ -58,10 +58,10 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
 
     {
       const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
-        &data->item, record->main.item_id_index);
+        &data->item, record->main.item_id);
 
       if (target != NULL)
-        record->main.item_id = target;
+        record->main.item_by_item_id = target;
     }
   }
 
@@ -73,10 +73,10 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
 
       for (element = 0; element < record->slots.item_id_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
-          &data->item, record->slots.item_id_index[element]);
+          &data->item, record->slots.item_id[element]);
 
         if (target != NULL)
-          record->slots.item_id[element] = target;
+          record->slots.item_by_item_id[element] = target;
       }
     }
   }
@@ -89,10 +89,10 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
 
       for (element = 0; element < record->rig_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
-          &data->item, record->rig[element].core.item_id_index);
+          &data->item, record->rig[element].core.item_id);
 
         if (target != NULL)
-          record->rig[element].core.item_id = target;
+          record->rig[element].core.item_by_item_id = target;
       }
     }
   }
@@ -105,10 +105,10 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
 
       for (element = 0; element < record->step_count; ++element) {
         const RecordRef_ClipRecord_t* target = RecordRef_ClipFindByIndex(
-          &data->clip, record->step[element].clip_id_index);
+          &data->clip, record->step[element].clip_id);
 
         if (target != NULL)
-          record->step[element].clip_id = target;
+          record->step[element].clip_by_clip_id = target;
       }
     }
   }
@@ -118,18 +118,18 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
 
     {
       const RecordRef_ClipRecord_t* target = RecordRef_ClipFindByIndex(
-        &data->clip, record->mark.clip_id_index);
+        &data->clip, record->mark.clip_id);
 
       if (target != NULL)
-        record->mark.clip_id = target;
+        record->mark.clip_by_clip_id = target;
     }
 
     {
       const RecordRef_SealRecord_t* target = RecordRef_SealFindByIndex(
-        &data->seal, record->mark.seal_id_index);
+        &data->seal, record->mark.seal_id);
 
       if (target != NULL)
-        record->mark.seal_id = target;
+        record->mark.seal_by_seal_id = target;
     }
   }
 
@@ -141,10 +141,10 @@ static void RecordRef_SolveCrossReferences(RecordRef_t* data) {
 
       for (element = 0; element < record->part_count; ++element) {
         const RecordRef_ItemRecord_t* target = RecordRef_ItemFindByIndex(
-          &data->item, record->part[element].item_id_index);
+          &data->item, record->part[element].item_id);
 
         if (target != NULL)
-          record->part[element].item_id = target;
+          record->part[element].item_by_item_id = target;
       }
     }
   }

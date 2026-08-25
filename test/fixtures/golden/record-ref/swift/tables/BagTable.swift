@@ -25,8 +25,8 @@ public final class BagRecord {
         public init() {}
 
         /// element 1 of the member
-        public var itemId: [ItemRecord?] = [ItemRecord?](repeating: nil, count: 2)
-        public var itemIdIndex: [Int32] = [Int32](repeating: 0, count: 2)
+        public var itemId: [Int32] = [Int32](repeating: 0, count: 2)
+        public var itemByItemId: [ItemRecord?] = [ItemRecord?](repeating: nil, count: 2)
 
         /// element 1 of the member beside it
         public var count: [Int32] = [Int32](repeating: 0, count: 2)
@@ -133,10 +133,10 @@ public final class BagTable {
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Bag.Slots.ItemId")
                 for record in loaded {
                     let elementCount = max(0, try cursor.nextLength())
-                    record.slots.itemIdIndex = []
-                    record.slots.itemIdIndex.reserveCapacity(elementCount)
+                    record.slots.itemId = []
+                    record.slots.itemId.reserveCapacity(elementCount)
                     for _ in 0 ..< elementCount {
-                        record.slots.itemIdIndex.append(try cursor.nextI32())
+                        record.slots.itemId.append(try cursor.nextI32())
                     }
                 }
             case 3:

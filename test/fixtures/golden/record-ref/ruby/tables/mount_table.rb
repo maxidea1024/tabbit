@@ -11,11 +11,11 @@ require_relative '../tabbit/tcb_reader'
 module RecordRef
   # A record inside MountRecord#rig.
   class MountRigEntryCore
-    attr_accessor :item_id, :item_id_index, :count
+    attr_accessor :item_id, :item_by_item_id, :count
 
     def initialize
-      @item_id = nil
-      @item_id_index = 0
+      @item_id = 0
+      @item_by_item_id = nil
       @count = 0
     end
   end
@@ -124,7 +124,7 @@ module RecordRef
             # would shift every value after it.
             record.rig = Array.new(element_count) { MountRigEntry.new }
             element_count.times do |element|
-              record.rig[element].core.item_id_index = cursor.next_i32
+              record.rig[element].core.item_id = cursor.next_i32
             end
           end
         when 3

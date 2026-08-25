@@ -45,12 +45,12 @@ namespace Tabbit.Fixtures.RecordRef
             public struct SlotEntry
             {
                 /// element 1, the reference
-                public ItemTable.Record ItemId;
-                public int ItemId_index;
+                public int ItemId;
+                public ItemTable.Record ItemByItemId;
                 public bool ItemId_F;
                 /// element 1, a second reference to the same table
-                public ItemTable.Record SwapId;
-                public int SwapId_index;
+                public int SwapId;
+                public ItemTable.Record ItemBySwapId;
                 public bool SwapId_F;
                 /// element 1, an ordinary member
                 public int Count;
@@ -228,8 +228,8 @@ namespace Tabbit.Fixtures.RecordRef
                             record._slot = new Record.SlotEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._slot[j].ItemId_index = cursor.NextI32();
-                                record._slot[j].ItemId = default(ItemTable.Record); // will be assigned.
+                                record._slot[j].ItemId = cursor.NextI32();
+                                record._slot[j].ItemByItemId = default(ItemTable.Record); // will be assigned.
                                 record._slot[j].ItemId_F = false;
                             }
                         }
@@ -253,8 +253,8 @@ namespace Tabbit.Fixtures.RecordRef
                             }
                             for (int j = 0; j < elementCount; ++j)
                             {
-                                record._slot[j].SwapId_index = cursor.NextI32();
-                                record._slot[j].SwapId = default(ItemTable.Record); // will be assigned.
+                                record._slot[j].SwapId = cursor.NextI32();
+                                record._slot[j].ItemBySwapId = default(ItemTable.Record); // will be assigned.
                                 record._slot[j].SwapId_F = false;
                             }
                         }

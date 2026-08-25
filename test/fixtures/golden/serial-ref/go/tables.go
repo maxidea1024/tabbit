@@ -103,9 +103,9 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 func (t *Tables) solveCrossReferences() {
 	for i := range t.Kit.records {
 		record := &t.Kit.records[i]
-		for k := range record.SlotIndex {
-			if target := t.Piece.FindByIndex(record.SlotIndex[k]); target != nil {
-				record.Slot[k] = target
+		for k := range record.Slot {
+			if target := t.Piece.FindByIndex(record.Slot[k]); target != nil {
+				record.PieceBySlot[k] = target
 			}
 		}
 		for k := range record.TierIndex {
@@ -116,9 +116,9 @@ func (t *Tables) solveCrossReferences() {
 	}
 	for i := range t.TrimKit.records {
 		record := &t.TrimKit.records[i]
-		for k := range record.SlotIndex {
-			if target := t.Bit.FindByIndex(record.SlotIndex[k]); target != nil {
-				record.Slot[k] = target
+		for k := range record.Slot {
+			if target := t.Bit.FindByIndex(record.Slot[k]); target != nil {
+				record.BitBySlot[k] = target
 			}
 		}
 		for k := range record.TierIndex {

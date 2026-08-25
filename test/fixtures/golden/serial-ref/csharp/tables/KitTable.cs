@@ -37,7 +37,8 @@ namespace Tabbit.Fixtures.SerialRef
             /// <summary>
             /// element 1 - the row it points at
             /// </summary>
-            public PieceTable.Record[] Slot => _slot;
+            public int[] Slot => _slot_Piece_index;
+            public PieceTable.Record[] PieceBySlot => _slot;
 
             /// <summary>
             /// element 1 - the target's own value
@@ -53,7 +54,7 @@ namespace Tabbit.Fixtures.SerialRef
             #region Storage
             internal int _index;
             internal PieceTable.Record[] _slot = System.Array.Empty<PieceTable.Record>();
-            public int[] _slot_Piece_index = System.Array.Empty<int>();
+            internal int[] _slot_Piece_index = System.Array.Empty<int>();
             public bool[] _slot_F = System.Array.Empty<bool>();
             internal int[] _tier = System.Array.Empty<int>();
             public int[] _tier_Piece_index = System.Array.Empty<int>();

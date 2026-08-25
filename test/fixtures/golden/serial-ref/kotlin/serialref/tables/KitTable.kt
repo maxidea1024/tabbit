@@ -41,11 +41,11 @@ class KitRecord {
     /** primary index */
     var index: Int = 0
     /** element 1 - the row it points at */
-    var slot: MutableList<PieceRecord> = ArrayList()
-    var slotIndex: MutableList<Int> = ArrayList()
+    var slot: MutableList<Int> = ArrayList()
+    var pieceBySlot: MutableList<PieceRecord> = ArrayList()
     /** element 1 - the target's own value */
-    var tier: MutableList<Int> = ArrayList()
     var tierIndex: MutableList<Int> = ArrayList()
+    var tier: MutableList<Int> = ArrayList()
 
 }
 
@@ -133,8 +133,8 @@ class KitTable {
                     val cursor = ColumnCursor(reader, column, count, "Kit.Slot")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.slotIndex = ArrayList(elementCount.coerceAtLeast(0))
-                        repeat(elementCount) { record.slotIndex.add(cursor.nextI32()) }
+                        record.slot = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.slot.add(cursor.nextI32()) }
                     }
                 }
                 3 -> {
@@ -142,8 +142,8 @@ class KitTable {
                     val cursor = ColumnCursor(reader, column, count, "Kit.Tier")
                     for (record in loaded) {
                         val elementCount = cursor.nextLength()
-                        record.tierIndex = ArrayList(elementCount.coerceAtLeast(0))
-                        repeat(elementCount) { record.tierIndex.add(cursor.nextI32()) }
+                        record.tier = ArrayList(elementCount.coerceAtLeast(0))
+                        repeat(elementCount) { record.tier.add(cursor.nextI32()) }
                     }
                 }
                 else ->

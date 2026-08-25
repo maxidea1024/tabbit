@@ -17,8 +17,8 @@ internal static class ItemRules
         {
             // A reference arrives resolved, which is what the memory round trip buys: the record
             // rather than the key it was stored as.
-            if (row.CategoryId is null)
-                context.Error(row, nameof(row.CategoryId), "Every item should belong to a category.");
+            if (row.ItemCategoryByCategoryId is null)
+                context.Error(row, nameof(row.ItemCategoryByCategoryId), "Every item should belong to a category.");
 
             // An enum column is the generated enum, so this compares labels rather than numbers.
             if (row.GradeField == Grade.Epic && row.Price <= 0)

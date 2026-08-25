@@ -52,7 +52,7 @@ tables.readAll('./data');
 final sword = tables.item.findByIndex(1);
 if (sword != null) {
   // 참조는 로드 후 실제 레코드로 연결됩니다.
-  print('${sword.name} / ${sword.categoryId?.name}');
+  print('${sword.name} / ${sword.itemCategoryByCategoryId?.name}');
 }
 
 for (final row in tables.item.records) { /* ... */ }

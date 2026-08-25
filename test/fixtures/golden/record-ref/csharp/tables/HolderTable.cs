@@ -55,8 +55,8 @@ namespace Tabbit.Fixtures.RecordRef
             public struct MainEntry
             {
                 /// the reference, in a record of one
-                public ItemTable.Record ItemId;
-                public int ItemId_index;
+                public int ItemId;
+                public ItemTable.Record ItemByItemId;
                 public bool ItemId_F;
                 /// an ordinary member beside it
                 public int Count;
@@ -237,8 +237,8 @@ namespace Tabbit.Fixtures.RecordRef
                             do
                             {
                                 var record = records[i++];
-                                record._main.ItemId_index = value;
-                                record._main.ItemId = default(ItemTable.Record); // will be assigned.
+                                record._main.ItemId = value;
+                                record._main.ItemByItemId = default(ItemTable.Record); // will be assigned.
                                 record._main.ItemId_F = false;
                             } while (--n > 0);
                         }

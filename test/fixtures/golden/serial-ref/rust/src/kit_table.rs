@@ -16,9 +16,9 @@ pub struct KitRecord {
     /// primary index
     pub index: i32,
     /// element 1 - the row it points at
-    pub slot_index: Vec<i32>,
+    pub slot: Vec<i32>,
     /// element 1 - the target's own value
-    pub tier_index: Vec<i32>,
+    pub tier: Vec<i32>,
 }
 
 impl KitRecord {
@@ -119,9 +119,9 @@ impl KitTable {
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Kit.Slot")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.slot_index = Vec::with_capacity(element_count.min(65536));
+                        record.slot = Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
-                            record.slot_index.push(cursor.next_i32()?);
+                            record.slot.push(cursor.next_i32()?);
                         }
                     }
                 }
@@ -130,9 +130,9 @@ impl KitTable {
                     let mut cursor = tabbit::TcbColumnCursor::new(&mut reader, column, header.row_count, "Kit.Tier")?;
                     for record in records.iter_mut() {
                         let element_count = cursor.next_length()?.max(0) as usize;
-                        record.tier_index = Vec::with_capacity(element_count.min(65536));
+                        record.tier = Vec::with_capacity(element_count.min(65536));
                         for _ in 0..element_count {
-                            record.tier_index.push(cursor.next_i32()?);
+                            record.tier.push(cursor.next_i32()?);
                         }
                     }
                 }

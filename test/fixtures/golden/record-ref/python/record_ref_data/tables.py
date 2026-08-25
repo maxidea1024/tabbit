@@ -134,41 +134,41 @@ class Tables:
         """
         for record in loadout.records:
             for i in range(len(record.slot)):
-                target = item.find_by_index(record.slot[i].item_id_index)
+                target = item.find_by_index(record.slot[i].item_id)
                 if target is not None:
-                    record.slot[i].item_id = target
+                    record.slot[i].item_by_item_id = target
             for i in range(len(record.slot)):
-                target = item.find_by_index(record.slot[i].swap_id_index)
+                target = item.find_by_index(record.slot[i].swap_id)
                 if target is not None:
-                    record.slot[i].swap_id = target
+                    record.slot[i].item_by_swap_id = target
         for record in holder.records:
-            target = item.find_by_index(record.main.item_id_index)
+            target = item.find_by_index(record.main.item_id)
             if target is not None:
-                record.main.item_id = target
+                record.main.item_by_item_id = target
         for record in bag.records:
-            for i in range(len(record.slots.item_id_index)):
-                target = item.find_by_index(record.slots.item_id_index[i])
+            for i in range(len(record.slots.item_id)):
+                target = item.find_by_index(record.slots.item_id[i])
                 if target is not None:
-                    record.slots.item_id[i] = target
+                    record.slots.item_by_item_id[i] = target
         for record in mount.records:
             for i in range(len(record.rig)):
-                target = item.find_by_index(record.rig[i].core.item_id_index)
+                target = item.find_by_index(record.rig[i].core.item_id)
                 if target is not None:
-                    record.rig[i].core.item_id = target
+                    record.rig[i].core.item_by_item_id = target
         for record in pose.records:
             for i in range(len(record.step)):
-                target = clip.find_by_index(record.step[i].clip_id_index)
+                target = clip.find_by_index(record.step[i].clip_id)
                 if target is not None:
-                    record.step[i].clip_id = target
+                    record.step[i].clip_by_clip_id = target
         for record in badge.records:
-            target = clip.find_by_index(record.mark.clip_id_index)
+            target = clip.find_by_index(record.mark.clip_id)
             if target is not None:
-                record.mark.clip_id = target
-            target = seal.find_by_index(record.mark.seal_id_index)
+                record.mark.clip_by_clip_id = target
+            target = seal.find_by_index(record.mark.seal_id)
             if target is not None:
-                record.mark.seal_id = target
+                record.mark.seal_by_seal_id = target
         for record in kit.records:
             for i in range(len(record.part)):
-                target = item.find_by_index(record.part[i].item_id_index)
+                target = item.find_by_index(record.part[i].item_id)
                 if target is not None:
-                    record.part[i].item_id = target
+                    record.part[i].item_by_item_id = target

@@ -20,40 +20,7 @@
    the slot. Only such an element - one with none keeps `strictType`, so nothing already
    generated moves. This is the row-level shape one level in.
    spec/multi-target-accessors.md. ##~}}
-{{~ if rt.multi_members | array.size > 0 ~}}
-local {{ rt.type_name }} = {}
-{{~ for multi in rt.multi_members ~}}
-{{~ for target in multi.targets }}
-{{~ if multi.is_array ~}}
--- The {{ target.record_name }} row element `at` of `{{ multi.key_member }}` names, or nil when
--- that element names a row of one of the others.
----@return {{ target.record_name }}|nil
-function {{ rt.type_name }}:{{ target.method }}(at)
-  if self.{{ multi.target_member }}[at] ~= {{ multi.target_type_name }}.{{ target.label }} then
-    return nil
-  end
-
-  return self.{{ multi.slot_member }}[at]
-end
-{{~ else ~}}
--- The {{ target.record_name }} row `{{ multi.key_member }}` names, or nil when it names a row of
--- one of the others.
----@return {{ target.record_name }}|nil
-function {{ rt.type_name }}:{{ target.method }}()
-  if self.{{ multi.target_member }} ~= {{ multi.target_type_name }}.{{ target.label }} then
-    return nil
-  end
-
-  return self.{{ multi.slot_member }}
-end
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
-
-local {{ rt.type_name }}Meta = tcb.strictInstance("{{ if rt.is_outermost }}an element of{{ else }}a record inside{{ end }} {{ rt.owner }}", {{ rt.type_name }}, { {{ rt.field_names }} })
-{{~ else ~}}
 local {{ rt.type_name }}Meta = tcb.strictType("{{ if rt.is_outermost }}an element of{{ else }}a record inside{{ end }} {{ rt.owner }}", { {{ rt.field_names }} })
-{{~ end ~}}
 
 ---@return {{ rt.type_name }}
 local function new{{ rt.type_name }}()
@@ -81,27 +48,7 @@ end
    reaching several tables needs: the per-target accessor asks the discriminator and then hands
    back the slot. Only such a row - a table with no multi-target column keeps `strictType`, so
    nothing already generated moves. spec/multi-target-accessors.md. ##~}}
-{{~ if table.multi_references | array.size > 0 ~}}
-local {{ table.record_name }} = {}
-{{~ for ref in table.multi_references ~}}
-{{~ for target in ref.targets }}
--- The {{ target.record_name }} row `{{ ref.key_member }}` names, or nil when it names a row of
--- one of the others.
----@return {{ target.record_name }}|nil
-function {{ table.record_name }}:{{ target.method }}()
-  if self.{{ ref.target_member }} ~= {{ ref.target_type_name }}.{{ target.label }} then
-    return nil
-  end
-
-  return self.{{ ref.slot_member }}
-end
-{{~ end ~}}
-{{~ end ~}}
-
-local {{ table.record_name }}Meta = tcb.strictInstance("a `{{ table.raw_name }}` row", {{ table.record_name }}, { {{ table.record_field_names }} })
-{{~ else ~}}
 local {{ table.record_name }}Meta = tcb.strictType("a `{{ table.raw_name }}` row", { {{ table.record_field_names }} })
-{{~ end ~}}
 
 ---@return {{ table.record_name }}
 local function new{{ table.record_name }}()
@@ -114,10 +61,6 @@ local function new{{ table.record_name }}()
 {{~## Set here rather than left absent: the discriminator is a value a consumer reads, and a
    row whose key points at nothing has to answer the same thing here as it does in every other
    language. Absent would answer nil. spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_references ~}}
-    {{ ref.slot_member }} = nil,
-    {{ ref.target_member }} = {{ ref.target_type_name }}.{{ ref.none_label }},
-{{~ end ~}}
   }, {{ table.record_name }}Meta)
 end
 

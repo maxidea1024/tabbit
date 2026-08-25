@@ -121,14 +121,13 @@ public class ConversionGoldenTests
     // generator emitted code for it that nothing ever read, and two of them wrote the sheet's
     // column count into the linking pass. spec/nullable-array-elements.md.
     [InlineData("serial-ref")]
-    // A column whose value is a row of one of several tables, written `Weapon|Armour` - the
-    // notation the core layout grew so this shape could be declared without a project's own
-    // constraint row. Every language, because what each adds is a slot, a discriminator and a
-    // narrowing accessor per target, all of them spelled per language. Both file formats too,
-    // and neither may move: the column already travelled as the target's key, so a diff in the
-    // binary or the JSON here is a defect rather than a feature.
-    // spec/multi-target-accessors.md.
-    [InlineData("multi-target")]
+    // An array of references written as one cell, in both forms a reference takes. What the
+    // tree pins is that this is `serial-ref`'s surface: the fold makes a delimited cell and a
+    // group of numbered columns the same group, so the generated page holds one array of rows
+    // and one array of a target's values, each allocated from the row's own element count.
+    // The refusal this replaced said the readers had no shape for it; the tree is what says
+    // they did. spec/polymorphism.md section 4.
+    [InlineData("array-foreign")]
     public void Fixture_matches_golden(string scenario)
     {
         var result = TabbitRunner.Convert(scenario);

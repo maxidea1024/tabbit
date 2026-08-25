@@ -28,25 +28,6 @@ class {{ rt.type_name }} {
    getter where the member is one value; a method taking the element number where the member is
    the array, which is the third place an element number sits.
    spec/multi-target-accessors.md. ##~}}
-{{~ for multi in rt.multi_members ~}}
-{{~ for target in multi.targets }}
-{{~ if multi.is_array ~}}
-  /// The [{{ target.record_name }}] row element [at] of [{{ multi.key_member }}] names, or null
-  /// when that element names a row of one of the others.
-  {{ target.record_name }}? {{ target.method }}(int at) =>
-      {{ multi.target_member }}[at] == {{ multi.target_type_name }}.{{ target.label }}
-          ? {{ multi.slot_member }}[at] as {{ target.record_name }}
-          : null;
-{{~ else ~}}
-  /// The [{{ target.record_name }}] row [{{ multi.key_member }}] names, or null when it names a
-  /// row of one of the others.
-  {{ target.record_name }}? get {{ target.method }} =>
-      {{ multi.target_member }} == {{ multi.target_type_name }}.{{ target.label }}
-          ? {{ multi.slot_member }} as {{ target.record_name }}
-          : null;
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
 }
 
 {{~ end ~}}
@@ -68,26 +49,6 @@ class {{ table.record_name }} {
 {{~## A column whose value is a row of one of several tables. One field for the resolved row
    whatever table it came from, and the discriminator saying which - the targets take separate
    id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}
-{{~ for ref in table.multi_references ~}}
-
-  /// The row [{{ ref.key_member }}] names, as whichever of its target tables holds it. Read it
-  /// through the getters below rather than directly: they check the discriminator first.
-  Object? {{ ref.slot_member }};
-
-  /// Which table [{{ ref.key_member }}] is a row of.
-  {{ ref.target_type_name }} {{ ref.target_member }} = {{ ref.target_type_name }}.{{ ref.none_label }};
-{{~ end ~}}
-{{~ for ref in table.multi_references ~}}
-{{~ for target in ref.targets }}
-
-  /// The [{{ target.record_name }}] row [{{ ref.key_member }}] names, or null when it names a row
-  /// of one of the others.
-  {{ target.record_name }}? get {{ target.method }} =>
-      {{ ref.target_member }} == {{ ref.target_type_name }}.{{ target.label }}
-          ? {{ ref.slot_member }} as {{ target.record_name }}
-          : null;
-{{~ end ~}}
-{{~ end ~}}
 
 }
 
@@ -245,9 +206,15 @@ class {{ table.table_name }} {
 {{~ end ~}}
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys are the list this row's length builds; the
-   resolved values are filled by the linking pass. spec/variable-length-record-arrays.md. ##~}}
+   resolved values are filled by the linking pass. spec/variable-length-record-arrays.md.
+
+   **The slots are built here and not there.** The linking assigns into them by position, and
+   Dart's growable list refuses an index it has no element at - so a list left empty makes the
+   first row with a reference throw at load rather than resolve. Every slot is nullable, which
+   is what says "not resolved yet", so filling with null is also the right starting value. ##~}}
             final elementCount = {{ column_view.length_read }};
-            record.{{ column_view.name }}Index = List.generate(elementCount, (_) => {{ column_view.read_element }});
+            record.{{ column_view.name }} = List.generate(elementCount, (_) => {{ column_view.read_element }});
+            record.{{ column_view.row_name }} = List.filled(elementCount, null);
 {{~ if column_view.has_optional_elements ~}}
             record.{{ column_view.element_presence_member }} =
                 List.generate(elementCount, (at) => isPresent(elementPresence, elementAt + at));
@@ -284,7 +251,7 @@ class {{ table.table_name }} {
             record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
                 List.generate(elementCount, (_) => {{ column_view.read_element }});
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-            record.{{ column_view.name }}Index = {{ column_view.read_element }};
+            record.{{ column_view.name }} = {{ column_view.read_element }};
 {{~ else ~}}
             record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }};
 {{~ end ~}}

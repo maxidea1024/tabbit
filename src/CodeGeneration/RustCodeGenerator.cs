@@ -698,7 +698,10 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                 string memberType = member.IsRef
                     ? ToRustTypeName(member.FirstField!.RefKeyType, null)
                     : ToRustTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull);
-                string memberName = RustName(member.Name) + (member.IsRef ? "_index" : "");
+                // No linking in this language, so a reference column carries the key and
+                // nothing else - and the key wears the column's own name.
+                // spec/reference-surface-naming.md sections 4 and 6.
+                string memberName = RustName(member.Name);
 
                 result.Add(new RustRecordMemberView
                 {
@@ -827,7 +830,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             // and the suffix goes on the member rather than after the subscript, because a
             // member that is an array holds one key per element.
             // spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "_index" : "",
+            MemberRefSuffix = "",
             MemberAt = wire.MemberAt,
 
             RecordTypeName = wire.Group.IsRecord ? RecordTypeName(table, wire.Group) : "",
@@ -871,8 +874,8 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         {
             // Only the index. See the type remarks for why it is not resolved.
             return sf.IsArray
-                ? new[] { $"{name}_index: Vec<i32>," }
-                : new[] { $"{name}_index: i32," };
+                ? new[] { $"{name}: Vec<i32>," }
+                : new[] { $"{name}: i32," };
         }
 
         return sf.IsArray
@@ -1109,9 +1112,12 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             // covers, and a String moves on the first of them.
             string spend = wire.RefKeyType == ValueType.String ? "value.clone()" : "value";
 
+            // No `Index` suffix and no second name: this language does not link, so every
+            // reference column is one key wearing the column's own name - dotted or not.
+            // spec/reference-surface-naming.md, "링킹이 없는 언어".
             return (wire.Member is null)
-                ? $"records[at].{name}_index = {spend};"
-                : $"records[at].{name}{memberAccess}_index = {spend};";
+                ? $"records[at].{name} = {spend};"
+                : $"records[at].{name}{memberAccess} = {spend};";
         }
 
         if (wire.ElementType == ValueType.Enum)

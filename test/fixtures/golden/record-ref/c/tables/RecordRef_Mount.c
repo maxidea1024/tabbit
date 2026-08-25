@@ -79,7 +79,7 @@ static bool RecordRef_MountParse(RecordRef_MountTable_t* table, tb_reader* reade
           return tb_fail_with(reader, "out of memory allocating a record array");
 
         for (element = 0; element < element_count && !tb_failed(reader); ++element)
-          (void)tb_cursor_next_i32(&cursor, &record->rig[element].core.item_id_index);
+          (void)tb_cursor_next_i32(&cursor, &record->rig[element].core.item_id);
       }
       break;
 

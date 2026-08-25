@@ -53,7 +53,7 @@ GameData.readAll("./data")
 val sword = GameData.item.findByIndex(1)
 if (sword != null) {
     // 참조는 로드 후 실제 레코드로 연결됩니다.
-    println("${sword.name} / ${sword.categoryId?.name}")
+    println("${sword.name} / ${sword.itemCategoryByCategoryId?.name}")
 }
 
 for (row in GameData.item.records) { /* ... */ }

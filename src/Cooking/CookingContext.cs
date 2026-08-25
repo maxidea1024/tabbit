@@ -1384,6 +1384,35 @@ public sealed class CookingContext
     /// type, and JSON serialization of an object[] would render enums as bare
     /// integers inconsistently with the scalar path.
     /// </summary>
+    /// <summary>
+    /// Parses the elements of a reference array cell into the key type its targets are
+    /// addressed by.
+    /// </summary>
+    /// <remarks>
+    /// The splitting has already happened: a column typed `foreign Item[]` is read as a
+    /// delimited array while the sheet is open, because the target's key type is not known
+    /// then and the elements are kept as text. This is the second half - the same conversion
+    /// a scalar reference gets, once per element, into an array of the type the keys are.
+    ///
+    /// Not `ParseValue` on a rejoined cell: a key holding the delimiter would be split once
+    /// and joined back differently, and the point of doing it here is that the elements are
+    /// already the ones the sheet wrote. spec/polymorphism.md section 4.
+    /// </remarks>
+    public System.Array ParseReferenceKeys(
+        Models.ValueType keyType, string?[] parts, Location? at)
+    {
+        var result = System.Array.CreateInstance(ElementClrType(keyType, null!), parts.Length);
+
+        for (int i = 0; i < parts.Length; i++)
+        {
+            // `required: false`, for the reason the scalar path gives: a blank element is the
+            // key type's empty value and whether that was allowed is the validator's question.
+            result.SetValue(ParseValue(keyType, null, parts[i], at, required: false), i);
+        }
+
+        return result;
+    }
+
     private static System.Type ElementClrType(Models.ValueType elementType, Models.Enum enumm)
     {
         return elementType switch

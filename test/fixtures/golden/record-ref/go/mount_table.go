@@ -16,8 +16,8 @@ import (
 // MountRigEntryCore is a record inside MountRecord.Rig.
 type MountRigEntryCore struct {
 	// element 1, two levels in
-	ItemId *ItemRecord
-	ItemIdIndex int32
+	ItemId int32
+	ItemByItemId *ItemRecord
 	// its sibling at that level
 	Count int32
 }
@@ -147,7 +147,7 @@ func (t *MountTable) Read(filename string) error {
 					// two counts would shift every value after it.
 					r.Rig = make([]MountRigEntry, elementCount)
 					for j := 0; j < elementCount; j++ {
-						r.Rig[j].Core.ItemIdIndex = cursor.NextI32()
+						r.Rig[j].Core.ItemId = cursor.NextI32()
 					}
 				}
 			}

@@ -189,15 +189,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         {
             AccessorName = AccessorType,
 
-            // And the discriminator of every column reaching several tables: linking compares
-            // against it, so the accessor names that type as well as the table classes.
-            // spec/multi-target-accessors.md.
-            Imports = _model.Tables.Select(table => TableImport(table))
-                            .Concat(_model.Tables
-                                          .SelectMany(TypeDependencies.MultiTargetDiscriminatorsOf)
-                                          .Select(EnumImport)
-                                          .Distinct())
-                            .ToList(),
+            Imports = _model.Tables.Select(TableImport).ToList(),
             Accessor = view.Accessor,
         });
 
@@ -210,7 +202,6 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             {
                 AccessorName = AccessorType,
                 Imports = TypeDependencies.EnumsNamedBy(pair.model)
-                                          .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
                                           .Select(EnumImport).ToList(),
                 AccessorModule = _recipe.ModuleName,
                 Table = pair.rendered,
@@ -439,10 +430,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         var slots = new List<string>();
         foreach (var sf in table.SerialFields)
         {
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
             slots.Add(PythonName(sf.Name));
 
             if (sf.IsRef)
-                slots.Add(PythonName(sf.Name) + "_index");
+                slots.Add(ResolvesToRow(sf.FirstField!)
+                    ? PythonName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                    : PythonName(sf.Name) + "_index");
 
             if (sf.RowMayBeAbsent)
                 slots.Add(PresenceMember(sf));
@@ -453,15 +448,6 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 slots.Add(ElementPresenceMember(sf));
         }
 
-        // A column reaching several tables adds the resolved row and the discriminator beside
-        // the key. spec/multi-target-accessors.md.
-        var multiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList();
-
-        foreach (var reference in multiReferences)
-        {
-            slots.Add(reference.SlotMember);
-            slots.Add(reference.TargetMember);
-        }
 
         return new PythonTableView
         {
@@ -474,7 +460,6 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             TableSlotNames = Tuple(
                 new[] { "records" }.Concat(Indexes(table).Select(index => index.MapName)).ToList()),
             SlotNames = Tuple(slots),
-            MultiReferences = multiReferences,
             ReprFormat = string.Join(", ", table.SerialFields.Select(sf => PythonName(sf.Name) + "=%r")),
             ReprValues = Tuple(table.SerialFields.Select(sf => "self." + PythonName(sf.Name)).ToList(),
                                quote: false),
@@ -552,30 +537,6 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType == ValueType.String ? "!= \"\"" : "!= 0";
 
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    private PythonMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-        => new PythonMultiReferenceView
-        {
-            KeyMember = PythonName(column.Group.Name),
-            SlotMember = PythonName(column.Group.Name) + "_row",
-            TargetMember = PythonName(column.Group.Name) + "_target",
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-            NoneLabel = PythonSnakeName("None"),
-            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
-            Targets = column.Targets.Select(target => new PythonMultiTargetView
-            {
-                Table = PythonName(target.Name),
-                Property = PythonName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-
-                // Spelled the way this generator spells every other label, which is not the
-                // model's spelling: the label list is snake cased here. Reading the model name
-                // straight would name a member the enum module does not declare.
-                Label = PythonSnakeName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
 
     private PythonFieldView BuildField(Table table, SerialField sf)
     {
@@ -655,7 +616,6 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                     // The list is the member's when the group is one record - same columns,
                     // same wire, and only which of the two owns it differs.
                     Initializers = MemberInitializers(member),
-                    Multi = MultiMemberOrNull(member),
                 });
 
                 continue;
@@ -668,7 +628,6 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
             declared.Add(new PythonRecordTypeView
             {
-                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -701,7 +660,6 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         recordTypes.Add(new PythonRecordTypeView
         {
-            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -777,7 +735,16 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
             // is an array holds one key per element. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "_index" : "",
+            MemberRefSuffix = "",
+
+            KeyName = wire.IsRef && !ResolvesToRow(wire.TagCarrier)
+                ? PythonName(wire.Group.Name) + "_index"
+                : PythonName(wire.Group.Name),
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? PythonName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                : PythonName(wire.Group.Name),
             MemberAt = wire.MemberAt,
 
             RecordTypeName = wire.Group.IsRecord ? RecordTypeName(table, wire.Group) : "",
@@ -842,42 +809,27 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         {
             string key = RefKeyDefault(member.FirstField!.RefKeyType);
 
-            return member.IsArray
-                ? new[]
-                {
-                    $"self.{name} = [None] * {member.Fields.Count}",
-                    $"self.{name}_index = [{key}] * {member.Fields.Count}",
-                }
-                : new[]
-                {
-                    $"self.{name} = None",
-                    $"self.{name}_index = {key}",
-                };
-        }
-
-        // A member reaching several tables keeps its key and gains two attributes: one slot
-        // for the resolved row whatever table it came from, and the discriminator saying
-        // which. At the member's own arity. spec/multi-target-accessors.md.
-        var multi = MultiMemberOrNull(member);
-
-        if (multi is not null)
-        {
-            string none = $"{multi.TargetTypeName}.{multi.NoneLabel}";
+            // The member's own name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? PythonName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : PythonName(member.Name);
+                    string keyName = toRow ? PythonName(member.Name) : PythonName(member.Name) + "_index";
 
             return member.IsArray
                 ? new[]
                 {
-                    $"self.{name} = [{MemberDefault(member)}] * {member.Fields.Count}",
-                    $"self.{multi.SlotMember} = [None] * {member.Fields.Count}",
-                    $"self.{multi.TargetMember} = [{none}] * {member.Fields.Count}",
+                    $"self.{keyName} = [{key}] * {member.Fields.Count}",
+                    $"self.{rowName} = [None] * {member.Fields.Count}",
                 }
                 : new[]
                 {
-                    $"self.{name} = {MemberDefault(member)}",
-                    $"self.{multi.SlotMember} = None",
-                    $"self.{multi.TargetMember} = {none}",
+                    $"self.{keyName} = {key}",
+                    $"self.{rowName} = None",
                 };
         }
+
 
         // The list is the member's when the group is one record - same columns, same wire,
         // and only which of the two owns it differs.
@@ -886,90 +838,6 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             : new[] { $"self.{name} = {MemberDefault(member)}" };
     }
 
-    /// <summary>
-    /// The slot and the discriminator of a record member reaching several tables, or null when
-    /// the member reaches one table or none.
-    /// </summary>
-    private PythonMultiMemberView? MultiMemberOrNull(RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return null;
-
-        string name = PythonName(member.Name);
-
-        return new PythonMultiMemberView
-        {
-            KeyMember = name,
-            SlotMember = name + "_row",
-            TargetMember = name + "_target",
-            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
-            NoneLabel = PythonSnakeName("None"),
-            IsArray = member.IsArray,
-            Targets = field.ResolvedRefTables!.Select(target => new PythonMultiTargetView
-            {
-                Table = PythonName(target.Name),
-                Property = PythonName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-
-                // Snake cased here, as the enum module spells its labels - reading the
-                // model name straight would name a member that module does not declare.
-                Label = PythonSnakeName(target.Name),
-                Lookup = "",
-            }).ToList(),
-        };
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Which of the three record shapes this is decides where the element number sits, exactly
-    /// as it does for a single-target member. spec/references-in-records.md.
-    /// </remarks>
-    private PythonMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string name = PythonName(wire.Group.Name);
-        string member = string.Concat(wire.MemberPath.Select(part => "." + PythonName(part)));
-        var field = wire.TagCarrier;
-
-        bool isArray = wire.IsArray;
-
-        string path = !isArray || wire.Group.MembersAreArrays
-            ? $"record.{name}{member}"
-            : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
-
-        return new PythonMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "_row" + subscript,
-            Target = path + "_target" + subscript,
-
-            // Whichever list holds the elements. The key member is that list where the
-            // members are the arrays, so there is no separate key list to count.
-            Range = isArray
-                ? (wire.Group.MembersAreArrays ? $"range(len({path}))" : $"range(len(record.{name}))")
-                : "",
-
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            NoneLabel = PythonSnakeName("None"),
-            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
-            Targets = field.ResolvedRefTables!.Select(target => new PythonMultiTargetView
-            {
-                Table = PythonName(target.Name),
-                Property = "",
-                Label = PythonSnakeName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
 
     /// <summary>What a stored key holds before a row is read.</summary>
     private static string RefKeyDefault(ValueType keyType)
@@ -996,6 +864,21 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         bool isArray = wire.IsArray;
 
+        string rowLeaf = wire.Member is not null
+            ? PythonName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : PythonName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + PythonName(part))) + "." + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{name}{rowMember}"
+                : $"record.{name}[i]{rowMember}")
+            : $"record.{rowLeaf}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
@@ -1003,14 +886,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         return new PythonRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "_index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever list holds the elements. Its own length rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Range = isArray
                 ? (wire.Group.MembersAreArrays
-                    ? $"range(len({path}_index))"
+                    ? $"range(len({path}))"
                     : $"range(len(record.{name}))")
                 : "",
 
@@ -1037,15 +920,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             result.Add(PythonName(member.Name));
 
             if (member.IsLeaf && member.IsRef)
-                result.Add(PythonName(member.Name) + "_index");
-
-            // The slot and the discriminator of a member reaching several tables, for the same
-            // reason: the linking pass assigns to both. spec/multi-target-accessors.md.
-            if (member.IsLeaf && member.FirstField is { IsMultiRef: true, MultiTargetEnum: not null })
-            {
-                result.Add(PythonName(member.Name) + "_row");
-                result.Add(PythonName(member.Name) + "_target");
-            }
+                result.Add(ResolvesToRow(member.FirstField!)
+                    ? PythonName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                    : PythonName(member.Name) + "_index");
         }
 
         return result;
@@ -1214,9 +1091,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // like every other member's does. spec/references-in-records.md.
         if (wire.IsRef)
         {
+            // A dotted reference resolves to a value rather than a row, so there the column's
+            // own name belongs to the value and the key takes the `_index` one.
+            // spec/reference-surface-naming.md section 9.
+            string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "_index";
+
             return (wire.Member is null)
-                ? $"records[i].{name}_index = value"
-                : $"records[i].{name}{memberAccess}_index = value";
+                ? $"records[i].{name}{keySuffix} = value"
+                : $"records[i].{name}{memberAccess}{keySuffix} = value";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -1277,9 +1159,15 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     {
         if (sf.IsRef)
         {
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? PythonName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "_index";
+
             return sf.IsArray
-                ? new[] { $"self.{name} = []", $"self.{name}_index = []" }
-                : new[] { $"self.{name} = None", $"self.{name}_index = 0" };
+                ? new[] { $"self.{keyName} = []", $"self.{rowName} = []" }
+                : new[] { $"self.{keyName} = 0", $"self.{rowName} = None" };
         }
 
         if (sf.IsArray)
@@ -1429,28 +1317,24 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                                     .Select(BuildRecordReference)
                                     .ToList(),
 
-                // A column reaching several tables is looked up in each of them in turn, so it
-                // is a loop of its own too. spec/multi-target-accessors.md.
-                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
-                // One of those that is a member of a record resolves per element, so it is a
-                // loop of its own. spec/multi-target-accessors.md.
-                MultiRecordFields = table.WireColumns
-                                         .Where(IsMultiTargetMember)
-                                         .Select(BuildMultiRecordReference)
-                                         .ToList(),
             })
             .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                         )
             .Select(x => new PythonCrossReferenceView
             {
                 Table = PythonName(x.Table.Name),
                 RecordFields = x.RecordFields,
-                MultiFields = x.MultiFields,
-                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new PythonReferenceFieldView
                 {
-                    Name = PythonName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? PythonName(sf.Name)
+                        : PythonName(sf.Name) + "_index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? PythonName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : PythonName(sf.Name),
+
                     RefTable = PythonName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = sf.ElementType == ValueType.ForeignRecord

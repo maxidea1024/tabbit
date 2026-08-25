@@ -58,7 +58,7 @@ data.readAll("./data");
 ItemRecord sword = data.item.findByIndex(1);
 if (sword != null) {
     // 참조는 로드 후 실제 레코드로 연결됩니다.
-    System.out.println(sword.name + " / " + sword.categoryId.name);
+    System.out.println(sword.name + " / " + sword.itemCategoryByCategoryId.name);
 }
 
 for (ItemRecord row : data.item.records()) { /* ... */ }

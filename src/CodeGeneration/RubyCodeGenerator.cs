@@ -207,15 +207,8 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                       AccessorName = AccessorType,
                       ModuleName = _recipe.ModuleName,
 
-                      // One directory down, and its `read` names the reader. And the
-                      // discriminator module of every column reaching several tables, which
-                      // the record's own methods name. spec/multi-target-accessors.md.
-                      Requires = new[] { "../tabbit/tcb_reader" }
-                          .Concat(table.MultiReferences
-                                       .Select(reference =>
-                                           "../enums/" + reference.TargetTypeName.ToSnakeCase())
-                                       .Distinct())
-                          .ToList(),
+                      // One directory down, and its `read` names the reader.
+                      Requires = new[] { "../tabbit/tcb_reader" }.ToList(),
                       Table = table,
                   });
         }
@@ -317,10 +310,14 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         foreach (var sf in table.SerialFields)
         {
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
             accessors.Add(RubyName(sf.Name));
 
             if (sf.IsRef)
-                accessors.Add(RubyName(sf.Name) + "_index");
+                accessors.Add(ResolvesToRow(sf.FirstField!)
+                    ? RubyName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                    : RubyName(sf.Name) + "_index");
 
             if (sf.RowMayBeAbsent)
                 accessors.Add(PresenceMember(sf));
@@ -331,19 +328,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                 accessors.Add(ElementPresenceMember(sf));
         }
 
-        // A column reaching several tables adds the resolved row and the discriminator beside
-        // the key. spec/multi-target-accessors.md.
-        var multiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList();
-
-        foreach (var reference in multiReferences)
-        {
-            accessors.Add(reference.SlotMember);
-            accessors.Add(reference.TargetMember);
-        }
 
         return new RubyTableView
         {
-            MultiReferences = multiReferences,
             RawName = table.Name,
             RecordName = table.Name.ToPascalCase() + "Record",
             TableName = table.Name.ToPascalCase() + "Table",
@@ -424,29 +411,6 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType == ValueType.String ? "!= ''" : "!= 0";
 
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    private RubyMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-        => new RubyMultiReferenceView
-        {
-            KeyMember = RubyName(column.Group.Name),
-            SlotMember = RubyName(column.Group.Name) + "_row",
-            TargetMember = RubyName(column.Group.Name) + "_target",
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-
-            // Upper snake, which is how this generator spells every other label - a Ruby
-            // constant, not the model's Pascal spelling.
-            NoneLabel = ConstantName("None"),
-            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
-            Targets = column.Targets.Select(target => new RubyMultiTargetView
-            {
-                Table = RubyName(target.Name),
-                Method = RubyName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-                Label = ConstantName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
 
     private RubyFieldView BuildField(Table table, SerialField sf)
     {
@@ -522,7 +486,6 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                     // The array is the member's when the group is one record - same columns,
                     // same wire, and only which of the two owns it differs.
                     Initializers = MemberInitializers(member),
-                    Multi = MultiMemberOrNull(member),
                 });
 
                 continue;
@@ -535,7 +498,6 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
             declared.Add(new RubyRecordTypeView
             {
-                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -564,7 +526,6 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         recordTypes.Add(new RubyRecordTypeView
         {
-            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -638,7 +599,14 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
             // is an array holds one key per element. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "_index" : "",
+            MemberRefSuffix = "",
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? (ResolvesToRow(wire.TagCarrier)
+                    ? RubyName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                    : RubyName(wire.Group.Name) + "_index")
+                : "",
             MemberAt = wire.MemberAt,
 
             RecordTypeName = wire.Group.IsRecord ? RecordTypeName(table, wire.Group) : "",
@@ -700,42 +668,27 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         {
             string key = RefKeyDefault(member.FirstField!.RefKeyType);
 
-            return member.IsArray
-                ? new[]
-                {
-                    $"@{name} = Array.new({member.Fields.Count})",
-                    $"@{name}_index = Array.new({member.Fields.Count}) {{ {key} }}",
-                }
-                : new[]
-                {
-                    $"@{name} = nil",
-                    $"@{name}_index = {key}",
-                };
-        }
-
-        // A member reaching several tables keeps its key and gains two instance variables:
-        // one slot for the resolved row whatever table it came from, and the discriminator
-        // saying which. At the member's own arity. spec/multi-target-accessors.md.
-        var multi = MultiMemberOrNull(member);
-
-        if (multi is not null)
-        {
-            string none = $"{multi.TargetTypeName}::{multi.NoneLabel}";
+            // The member's own name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? RubyName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : RubyName(member.Name);
+                    string keyName = toRow ? RubyName(member.Name) : RubyName(member.Name) + "_index";
 
             return member.IsArray
                 ? new[]
                 {
-                    $"@{name} = Array.new({member.Fields.Count}) {{ {MemberDefault(member)} }}",
-                    $"@{multi.SlotMember} = Array.new({member.Fields.Count})",
-                    $"@{multi.TargetMember} = Array.new({member.Fields.Count}) {{ {none} }}",
+                    $"@{keyName} = Array.new({member.Fields.Count}) {{ {key} }}",
+                    $"@{rowName} = Array.new({member.Fields.Count})",
                 }
                 : new[]
                 {
-                    $"@{name} = {MemberDefault(member)}",
-                    $"@{multi.SlotMember} = nil",
-                    $"@{multi.TargetMember} = {none}",
+                    $"@{keyName} = {key}",
+                    $"@{rowName} = nil",
                 };
         }
+
 
         // The array is the member's when the group is one record - same columns, same wire,
         // and only which of the two owns it differs.
@@ -744,89 +697,6 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             : new[] { $"@{name} = {MemberDefault(member)}" };
     }
 
-    /// <summary>
-    /// The slot and the discriminator of a record member reaching several tables, or null when
-    /// the member reaches one table or none.
-    /// </summary>
-    private RubyMultiMemberView? MultiMemberOrNull(RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return null;
-
-        string name = RubyName(member.Name);
-
-        return new RubyMultiMemberView
-        {
-            KeyMember = name,
-            SlotMember = name + "_row",
-            TargetMember = name + "_target",
-            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
-            NoneLabel = ConstantName("None"),
-            IsArray = member.IsArray,
-            Targets = field.ResolvedRefTables!.Select(target => new RubyMultiTargetView
-            {
-                Table = RubyName(target.Name),
-                Method = RubyName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-                Label = ConstantName(target.Name),
-                Lookup = "",
-            }).ToList(),
-        };
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Which of the three record shapes this is decides where the element number sits, exactly
-    /// as it does for a single-target member. spec/references-in-records.md.
-    /// </remarks>
-    private RubyMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string name = RubyName(wire.Group.Name);
-        string member = string.Concat(wire.MemberPath.Select(part => "." + RubyName(part)));
-        var field = wire.TagCarrier;
-
-        bool isArray = wire.IsArray;
-
-        string path = !isArray || wire.Group.MembersAreArrays
-            ? $"record.{name}{member}"
-            : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
-
-        return new RubyMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "_row" + subscript,
-            Target = path + "_target" + subscript,
-
-            // Whichever array holds the elements. The key member is that array where the
-            // members are the arrays, so there is no separate key array to walk.
-            Range = isArray
-                ? (wire.Group.MembersAreArrays
-                    ? $"{path}.each_index"
-                    : $"record.{name}.each_index")
-                : "",
-
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            NoneLabel = ConstantName("None"),
-            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
-            Targets = field.ResolvedRefTables!.Select(target => new RubyMultiTargetView
-            {
-                Table = RubyName(target.Name),
-                Method = "",
-                Label = ConstantName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
 
     /// <summary>What a stored key holds before a row is read.</summary>
     private static string RefKeyDefault(ValueType keyType)
@@ -853,6 +723,21 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         bool isArray = wire.IsArray;
 
+        string rowLeaf = wire.Member is not null
+            ? RubyName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : RubyName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "." + RubyName(part))) + "." + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"record.{name}{rowMember}"
+                : $"record.{name}[i]{rowMember}")
+            : $"record.{rowLeaf}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
@@ -860,14 +745,14 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         return new RubyRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "_index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever array holds the elements. Its own length rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Range = isArray
                 ? (wire.Group.MembersAreArrays
-                    ? $"{path}_index.each_index"
+                    ? $"{path}.each_index"
                     : $"record.{name}.each_index")
                 : "",
 
@@ -893,15 +778,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             result.Add(RubyName(member.Name));
 
             if (member.IsLeaf && member.IsRef)
-                result.Add(RubyName(member.Name) + "_index");
-
-            // The slot and the discriminator of a member reaching several tables, for the same
-            // reason: the linking pass assigns to both. spec/multi-target-accessors.md.
-            if (member.IsLeaf && member.FirstField is { IsMultiRef: true, MultiTargetEnum: not null })
-            {
-                result.Add(RubyName(member.Name) + "_row");
-                result.Add(RubyName(member.Name) + "_target");
-            }
+                result.Add(ResolvesToRow(member.FirstField!)
+                    ? RubyName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                    : RubyName(member.Name) + "_index");
         }
 
         return result;
@@ -955,9 +834,15 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     {
         if (sf.IsRef)
         {
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? RubyName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "_index";
+
             return sf.IsArray
-                ? new[] { $"@{name} = []", $"@{name}_index = []" }
-                : new[] { $"@{name} = nil", $"@{name}_index = 0" };
+                ? new[] { $"@{keyName} = []", $"@{rowName} = []" }
+                : new[] { $"@{keyName} = 0", $"@{rowName} = nil" };
         }
 
         if (sf.IsArray)
@@ -1106,25 +991,23 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                                     .Select(BuildRecordReference)
                                     .ToList(),
 
-                // A column reaching several tables is looked up in each of them in turn, so it
-                // is a loop of its own too. spec/multi-target-accessors.md.
-                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
-                // One of those that is a member of a record resolves per element, so it is a
-                // loop of its own. spec/multi-target-accessors.md.
-                MultiRecordFields = table.WireColumns
-                                         .Where(IsMultiTargetMember)
-                                         .Select(BuildMultiRecordReference)
-                                         .ToList(),
             })
             .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                         )
             .Select(x => new RubyCrossReferenceView
             {
                 Table = RubyName(x.Table.Name),
                 Fields = x.Fields.Select(sf => new RubyReferenceFieldView
                 {
-                    Name = RubyName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? RubyName(sf.Name)
+                        : RubyName(sf.Name) + "_index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? RubyName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : RubyName(sf.Name),
+
                     RefTable = RubyName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = sf.ElementType == ValueType.ForeignRecord
@@ -1133,8 +1016,6 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                     IsArray = sf.IsArray,
                 }).ToList(),
                 RecordFields = x.RecordFields,
-                MultiFields = x.MultiFields,
-                MultiRecordFields = x.MultiRecordFields,
             })
             .ToList(),
     };
@@ -1264,8 +1145,8 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
         if (wire.IsRef)
         {
             return (wire.Member is null)
-                ? $"records[i].{name}_index = value"
-                : $"records[i].{name}{memberAccess}_index = value";
+                ? $"records[i].{name}{(ResolvesToRow(wire.TagCarrier) ? "" : "_index")} = value"
+                : $"records[i].{name}{memberAccess}{(ResolvesToRow(wire.TagCarrier) ? "" : "_index")} = value";
         }
 
         if (wire.ElementType == ValueType.Enum)

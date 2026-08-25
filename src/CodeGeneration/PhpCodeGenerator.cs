@@ -204,7 +204,6 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             var requires = new List<string> { Require(1, "tabbit/TcbReader.php") };
 
             requires.AddRange(TypeDependencies.EnumsNamedBy(pair.model)
-                                              .Concat(TypeDependencies.MultiTargetDiscriminatorsOf(pair.model))
                 .Select(enumm => Require(1, $"enums/{EnumName(enumm)}.php")));
 
             // The accessor, for the encryption key it holds. It requires this file back, and
@@ -337,7 +336,6 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
-        MultiReferences = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -480,111 +478,6 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             _ => "!== 0",
         };
 
-    /// <summary>
-    /// The slot and the discriminator of a record member reaching several tables, or null when
-    /// the member reaches one table or none.
-    /// </summary>
-    private PhpMultiMemberView? MultiMemberOrNull(RecordMember member)
-    {
-        var field = member.FirstField;
-
-        if (field is null || !field.IsMultiRef || field.MultiTargetEnum is null)
-            return null;
-
-        string name = PhpName(member.Name);
-
-        return new PhpMultiMemberView
-        {
-            KeyMember = name,
-            SlotMember = name + "Row",
-            TargetMember = name + "Target",
-            TargetTypeName = field.MultiTargetEnum.Name.ToPascalCase(),
-            NoneCase = CaseName("None"),
-            IsArray = member.IsArray,
-            Targets = field.ResolvedRefTables!.Select(target => new PhpMultiTargetView
-            {
-                Table = PhpName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = PhpName(target.Name.ToPascalCase() + "By" + member.Name.ToPascalCase()),
-                Case = CaseName(target.Name),
-                Lookup = "",
-            }).ToList(),
-        };
-    }
-
-    /// <summary>
-    /// One multi-target column that is a member of a record, as the linking pass needs it.
-    /// </summary>
-    /// <remarks>
-    /// Which of the three record shapes this is decides where the element number sits, exactly
-    /// as it does for a single-target member. spec/references-in-records.md.
-    /// </remarks>
-    private PhpMultiRecordReferenceView BuildMultiRecordReference(WireColumn wire)
-    {
-        string name = PhpName(wire.Group.Name);
-        string member = string.Concat(wire.MemberPath.Select(part => "->" + PhpName(part)));
-        var field = wire.TagCarrier;
-
-        bool isArray = wire.IsArray;
-
-        string path = !isArray || wire.Group.MembersAreArrays
-            ? $"$record->{name}{member}"
-            : $"$record->{name}[$j]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[$j]" : "";
-
-        return new PhpMultiRecordReferenceView
-        {
-            Key = path + subscript,
-            Slot = path + "Row" + subscript,
-            Target = path + "Target" + subscript,
-
-            // Whichever list holds the elements. The key member is that list where the members
-            // are the arrays, so there is no separate key list to count.
-            Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"\\count({path})" : $"\\count($record->{name})")
-                : "",
-
-            TargetTypeName = field.MultiTargetEnum!.Name.ToPascalCase(),
-            NoneCase = CaseName("None"),
-            KeyIsSet = KeyIsSetSuffix(wire.RefKeyType),
-            Targets = field.ResolvedRefTables!.Select(target => new PhpMultiTargetView
-            {
-                Table = PhpName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = "",
-                Case = CaseName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
-    }
-
-    /// <summary>Whether a wire column is a record member reaching several tables.</summary>
-    private static bool IsMultiTargetMember(WireColumn wire)
-        => wire.Member is not null
-           && wire.TagCarrier.IsMultiRef
-           && wire.TagCarrier.MultiTargetEnum is not null;
-
-    /// <summary>
-    /// One column whose value is a row of one of several tables.
-    /// </summary>
-    private PhpMultiReferenceView BuildMultiReference(MultiTargetColumn column)
-        => new PhpMultiReferenceView
-        {
-            KeyMember = PhpName(column.Group.Name),
-            SlotMember = PhpName(column.Group.Name) + "Row",
-            TargetMember = PhpName(column.Group.Name) + "Target",
-            TargetTypeName = column.Discriminator.Name.ToPascalCase(),
-            NoneCase = CaseName("None"),
-            KeyIsSet = KeyIsSetSuffix(column.Field.RefKeyType),
-            Targets = column.Targets.Select(target => new PhpMultiTargetView
-            {
-                Table = PhpName(target.Name),
-                RecordName = target.Name.ToPascalCase() + "Record",
-                Method = PhpName(target.Name.ToPascalCase() + "By" + column.Group.Name.ToPascalCase()),
-                Case = CaseName(target.Name),
-                Lookup = PrimaryLookup(target),
-            }).ToList(),
-        };
 
     private PhpFieldView BuildField(Table table, SerialField sf)
     {
@@ -665,27 +558,12 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         {
             if (member.IsLeaf)
             {
-                var multi = MultiMemberOrNull(member);
 
                 result.Add(new PhpRecordMemberView
                 {
                     Comment = CommentLines(member.FirstField!.Comment),
                     Declarations = MemberDeclarations(member),
-                    Multi = multi,
                 });
-
-                // The slot and the discriminator of a member reaching several tables start as
-                // lists where the member is the array, for the reason the reference member
-                // below gives: the linking pass fills the positions it resolves, and the ones
-                // it does not have to already be there. spec/multi-target-accessors.md.
-                if (multi is not null && member.IsArray)
-                {
-                    constructorLines.Add(
-                        $"$this->{multi.SlotMember} = array_fill(0, {member.Fields.Count}, null);");
-                    constructorLines.Add(
-                        $"$this->{multi.TargetMember} = array_fill(0, {member.Fields.Count}, "
-                        + $"{multi.TargetTypeName}::{multi.NoneCase});");
-                }
 
                 // A reference member that is an array starts as a list of nulls, the same
                 // shape a reference array outside a record starts as: the linking pass fills
@@ -709,7 +587,6 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
             declared.Add(new PhpRecordTypeView
             {
-                MultiMembers = nested.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
@@ -742,7 +619,6 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         recordTypes.Add(new PhpRecordTypeView
         {
-            MultiMembers = members.Where(m => m.Multi is not null).Select(m => m.Multi!).ToList(),
             TypeName = entry,
             Members = members,
             IsOutermost = true,
@@ -840,9 +716,18 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             MemberAt = wire.MemberAt,
 
             // A reference member reads into the key beside the row it will resolve to, and
-            // the suffix goes on the member rather than after the subscript - `itemIdIndex[$j]`
-            // rather than `itemId[$j]Index`. spec/references-in-records.md.
-            MemberRefSuffix = (wire.Member is not null && wire.IsRef) ? "Index" : "",
+            // the suffix goes on the member rather than after the subscript - `itemId[$j]`
+            // rather than the member's own name. spec/references-in-records.md.
+            MemberRefSuffix = "",
+
+            RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
+                        && ResolvesToRow(wire.TagCarrier)
+                ? PhpName(RowAccessorName(wire.TagCarrier.ResolvedRefTable.Name, wire.Group.Name))
+                : PhpName(wire.Group.Name),
+
+            KeyName = wire.IsRef && !ResolvesToRow(wire.TagCarrier)
+                ? PhpName(wire.Group.Name) + "Index"
+                : PhpName(wire.Group.Name),
 
             RecordTypeName = wire.Group.IsRecord ? RecordTypeName(table, wire.Group) : "",
             IsFirstMember = wire.IsFirstMember,
@@ -899,56 +784,32 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             string row = member.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record";
             string key = LanguageProfile.Php.ScalarTypeName(member.FirstField!.RefKeyType);
 
+            // The member's own name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(member.FirstField!);
+                    string rowName = toRow
+                        ? PhpName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
+                        : PhpName(member.Name);
+                    string keyName = toRow ? PhpName(member.Name) : PhpName(member.Name) + "Index";
+
             return member.IsArray
                 ? new[]
                 {
+                    $"/** @var list<{key}> */",
+                    $"public array ${keyName} = [];",
+                    "",
                     $"/** @var list<?{row}> */",
-                    $"public array ${name} = [];",
-                    "",
-                    $"/** @var list<{key}> */",
-                    $"public array ${name}Index = [];",
+                    $"public array ${rowName} = [];",
                 }
                 : new[]
                 {
-                    $"public ?{row} ${name} = null;",
-                    "",
-                    $"public {RefKeyDeclaration(member.FirstField!.RefKeyType, key)} ${name}Index"
+                    $"public {RefKeyDeclaration(member.FirstField!.RefKeyType, key)} ${keyName}"
                         + $"{RefKeyInitializer(member.FirstField!.RefKeyType)};",
+                    "",
+                    $"public ?{row} ${rowName} = null;",
                 };
         }
 
-        // A member reaching several tables keeps its key declared as an ordinary value and
-        // gains two properties beside it. spec/multi-target-accessors.md.
-        var multiMember = MultiMemberOrNull(member);
-
-        if (multiMember is not null)
-        {
-            string key = MemberTypeName(member);
-            string none = $"{multiMember.TargetTypeName}::{multiMember.NoneCase}";
-
-            return member.IsArray
-                ? new[]
-                {
-                    $"/** @var list<{key}> */",
-                    $"public array ${name} = [];",
-                    "",
-                    "/** @var list<?object> The rows this member names, as whichever of its targets holds each. */",
-                    $"public array ${multiMember.SlotMember} = [];",
-                    "",
-                    $"/** @var list<{multiMember.TargetTypeName}> Which table each element is a row of. */",
-                    $"public array ${multiMember.TargetMember} = [];",
-                }
-                : new[]
-                {
-                    $"public {key} ${name} = {MemberDefault(member)};",
-                    "",
-                    "/** The row this member names, as whichever of its targets holds it. */",
-                    $"public ?object ${multiMember.SlotMember} = null;",
-                    "",
-                    "/** Which table this member is a row of. */",
-                    $"public {multiMember.TargetTypeName} ${multiMember.TargetMember} = {none};",
-                };
-        }
 
         string type = MemberTypeName(member);
 
@@ -1162,9 +1023,14 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         // like every other member's does. spec/references-in-records.md.
         if (wire.IsRef)
         {
+            // A dotted reference resolves to a value rather than a row, so there the column's
+            // own name belongs to the value and the key takes the derived one.
+            // spec/reference-surface-naming.md section 9.
+            string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "Index";
+
             return (wire.Member is null)
-                ? $"$records[$i]->{name}Index = $value;"
-                : $"$records[$i]->{name}{memberAccess}Index = $value;";
+                ? $"$records[$i]->{name}{keySuffix} = $value;"
+                : $"$records[$i]->{name}{memberAccess}{keySuffix} = $value;";
         }
 
         if (wire.ElementType == ValueType.Enum)
@@ -1190,20 +1056,28 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             // record it resolves to once every table is loaded. The resolved one is
             // nullable because a reference into a row that is not there stays null
             // rather than inventing a record.
+            // The column's name is the key's; the row takes the derived one.
+            // spec/reference-surface-naming.md sections 4 and 5.
+            bool toRow = ResolvesToRow(sf.FirstField!);
+            string rowName = toRow
+                ? PhpName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                : name;
+            string keyName = toRow ? name : name + "Index";
+
             return sf.IsArray
                 ? new[]
                 {
-                    $"/** @var list<?{elementType}> */",
-                    $"public array ${name} = [];",
-                    "",
                     "/** @var list<int> */",
-                    $"public array ${name}Index = [];",
+                    $"public array ${keyName} = [];",
+                    "",
+                    $"/** @var list<?{elementType}> */",
+                    $"public array ${rowName} = [];",
                 }
                 : new[]
                 {
-                    $"public ?{elementType} ${name} = null;",
+                    $"public int ${keyName} = 0;",
                     "",
-                    $"public int ${name}Index = 0;",
+                    $"public ?{elementType} ${rowName} = null;",
                 };
         }
 
@@ -1369,27 +1243,23 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                                     .Select(BuildRecordReference)
                                     .ToList(),
 
-                // A column reaching several tables is looked up in each of them in turn, so it
-                // is a loop of its own too. spec/multi-target-accessors.md.
-                MultiFields = MultiTargetColumns.Of(table).Select(BuildMultiReference).ToList(),
 
-                // One of those that is a member of a record resolves per element, so it is a
-                // loop of its own. spec/multi-target-accessors.md.
-                MultiRecordFields = table.WireColumns
-                                         .Where(IsMultiTargetMember)
-                                         .Select(BuildMultiRecordReference)
-                                         .ToList(),
             })
             .Where(x => x.Fields.Count > 0 || x.RecordFields.Count > 0
-                        || x.MultiFields.Count > 0 || x.MultiRecordFields.Count > 0)
+                         )
             .Select(x => new PhpCrossReferenceView
             {
                 Table = PhpName(x.Table.Name),
-                MultiFields = x.MultiFields,
-                MultiRecordFields = x.MultiRecordFields,
                 Fields = x.Fields.Select(sf => new PhpReferenceFieldView
                 {
-                    Name = PhpName(sf.Name),
+                    Name = ResolvesToRow(sf.FirstField!)
+                        ? PhpName(sf.Name)
+                        : PhpName(sf.Name) + "Index",
+
+                    RowName = ResolvesToRow(sf.FirstField!)
+                        ? PhpName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
+                        : PhpName(sf.Name),
+
                     RefTable = PhpName(sf.FirstField!.ResolvedRefTable!.Name),
                     RefLookup = PrimaryLookup(sf.FirstField!.ResolvedRefTable),
                     Value = sf.ElementType == ValueType.ForeignRecord
@@ -1421,6 +1291,21 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         // Where the element number goes is the whole difference between the record shapes -
         // the group's array, the member's, or neither. spec/nested-multi-level.md.
+        string rowLeaf = wire.Member is not null
+            ? PhpName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
+            : PhpName(RowAccessorName(refTable!.Name, wire.Group.Name));
+
+        string rowMember = wire.Member is not null
+            ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
+                                .Select(part => "->" + PhpName(part))) + "->" + rowLeaf
+            : "";
+
+        string rowPath = wire.Member is not null
+            ? (!isArray || wire.Group.MembersAreArrays
+                ? $"$record->{name}{rowMember}"
+                : $"$record->{name}[$j]{rowMember}")
+            : $"$record->{rowLeaf}";
+
         string path = !isArray || wire.Group.MembersAreArrays
             ? $"$record->{name}{member}"
             : $"$record->{name}[$j]{member}";
@@ -1428,8 +1313,8 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         return new PhpRecordReferenceView
         {
-            Access = path + subscript,
-            Key = path + "Index" + subscript,
+            Access = rowPath + subscript,
+            Key = path + subscript,
 
             // Whichever list holds the elements. `count` rather than the column count,
             // because a trimming group's rows differ in how many they carry.

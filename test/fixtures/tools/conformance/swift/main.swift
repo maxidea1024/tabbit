@@ -92,8 +92,11 @@ do {
         json += "\"uids\":[" + r.uids.map { "\"\($0)\"" }.joined(separator: ",") + "]"
 
         // The reference indices, which is what the exporter writes for a foreign field.
-        json += ",\"owner\":\(r.ownerIndex)"
+        json += ",\"owner\":\(r.owner)"
         json += ",\"tier\":\(r.tierIndex)"
+
+        // And one reference per element, printed as the stored index each came in as.
+        json += ",\"owners\":[" + r.owners.map { String($0) }.joined(separator: ",") + "]"
 
         // The three the v104 encodings win on.
         json += ",\"count\":\(r.count)"

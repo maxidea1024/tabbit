@@ -11,11 +11,11 @@ require_relative '../tabbit/tcb_reader'
 module RecordRef
   # One element of KitRecord#part.
   class KitPartEntry
-    attr_accessor :item_id, :item_id_index, :count
+    attr_accessor :item_id, :item_by_item_id, :count
 
     def initialize
-      @item_id = nil
-      @item_id_index = 0
+      @item_id = 0
+      @item_by_item_id = nil
       @count = 0
     end
   end
@@ -115,7 +115,7 @@ module RecordRef
             # would shift every value after it.
             record.part = Array.new(element_count) { KitPartEntry.new }
             element_count.times do |element|
-              record.part[element].item_id_index = cursor.next_i32
+              record.part[element].item_id = cursor.next_i32
             end
           end
         when 3

@@ -17,42 +17,38 @@ Tabbit이 읽는 세 가지 엔티티와, 그것이 각각 무엇으로 생성�
 
 ## 1. 시트
 
-셀에 마커를 적으면 그 자리가 엔티티가 됩니다.
+셀에 `:table`·`:enum`·`:const`로 시작하는 **선언 셀**을 적으면 그 자리가 엔티티가 됩니다.
 
 어느 시트, 어느 위치든 상관없고 한 시트에 여러 개를 놓아도 됩니다.
 
-마커 아래 다섯 줄이 컬럼을 설명하고, 그다음부터 데이터입니다.
-이름, 주석, 타입, 세부 타입, 대상 순서이며 필요 없는 줄은 비워 두면 됩니다.
+선언 셀이 놓인 열이 그 엔티티의 **마커 열**이고, 본문은 그 오른쪽부터입니다.
+마커 열의 아래 칸에는 **행 키**를 적습니다 — 그 줄이 무엇인지를 이름이 정하므로 **순서가
+자유롭고, 필요 없는 줄은 아예 두지 않아도 됩니다.**
+
+|행 키|그 줄에 적는 것|
+|--|--|
+|`:field`|컬럼의 이름. **언제나 필수입니다**|
+|`:type`|타입. 테이블에서는 필수이고, enum · 상수셋은 컬럼이 정해져 있어 이 줄이 없습니다|
+|`:desc`|컬럼 설명. 생성 코드의 doc comment가 됩니다|
+|`:target`|`c`(클라이언트) · `s`(서버) · `cs`(양쪽, 기본)|
+|`:variant`|한 필드의 값 컬럼을 여러 벌 적었을 때 그것들을 구분하는 이름. 빌드가 하나를 고릅니다|
+
+행 키 줄이 끝나면 그다음부터 데이터입니다.
+`:field` 칸에 `#` 하나만 적은 컬럼은 **메모 컬럼**이고, 무엇을 적어도 읽지 않습니다.
 
 ### 테이블 `ItemCategory`
 
 아이템이 가리킬 분류입니다.
 
-```
-~~table:ItemCategory~~
-Referenced by Item.CategoryId.
-index           Name            Description                   ← 이름
-primary index   category name   human readable description    ← 주석
-int             string          string                        ← 타입
-                                                              ← 세부 타입 (없음)
-                                                              ← 대상 (양쪽)
-1               Weapon          things that hit
-2               Armor           things that absorb
-3               Potion          things that heal
-```
+![테이블 ItemCategory](concepts-item-category.svg)
 
 ### enum `Grade`
 
 이름이 붙은 정수 값입니다. 테이블 컬럼의 타입으로 사용합니다.
 
-```
-~~enum:Grade~~
-Item grade. Deliberately omits a zero entry.
-name     value   description
-Common   1       common grade
-Rare     2       rare grade
-Epic     3       epic grade
-```
+enum과 상수셋은 컬럼이 정해져 있으므로 `:field` 줄 하나로 끝납니다.
+
+![enum Grade](concepts-enum-grade.svg)
 
 0 항목이 없습니다. 이런 경우 `None = 0`이 자동으로 추가됩니다.
 
@@ -63,28 +59,20 @@ enum 필드는 값이 대입되기 전에도 무언가를 들고 있는데, 그�
 
 ### 테이블 `Item`
 
-위의 둘을 모두 사용합니다. 폭 때문에 컬럼 넷만 옮겼습니다. 실제로는 일곱입니다.
+위의 둘을 모두 사용합니다. 폭 때문에 컬럼 다섯만 옮겼습니다. 실제로는 일곱입니다.
 
-```
-~~table:Item~~
-References ItemCategory by record.
-index           Name          CategoryId        GradeField    Price
-primary index   item name     owning category   item grade    shop price
-int             string        foreign           enum          int
-                              ItemCategory      Grade
-                                                              s
-1               Short Sword   1                 Common        100
-2               Leather Armor 2                 Rare          250
-3               Small Potion  3                 Epic          50
-```
+![테이블 Item](concepts-item.svg)
 
 여기서 셋만 봐 두면 나머지는 [시트 작성](sheets.md)이 자세히 설명합니다.
 
 | 적은 것 | 뜻 |
 | --- | --- |
-| 타입 `foreign`, 세부 타입 `ItemCategory` | 이 값은 저 테이블의 행이라는 뜻입니다. 숫자가 아니라 행이며, 그 차이는 아래에서 확인할 수 있습니다 |
-| 타입 `enum`, 세부 타입 `Grade` | 셀에 `Common`이라고 적습니다. 숫자를 외울 필요가 없고, 오타는 빌드에서 잡힙니다 |
-| `Price`의 대상 줄에 적은 `s` | 서버 빌드에만 포함합니다. 클라이언트가 받는 파일에는 이 컬럼이 아예 없습니다 |
+| `:type` 칸의 `foreign ItemCategory` | 이 값은 저 테이블의 행이라는 뜻입니다. 숫자가 아니라 행이며, 그 차이는 아래에서 확인할 수 있습니다 |
+| `:type` 칸의 `Grade` | enum 이름을 그대로 적습니다. 셀에는 `Common`이라고 적으므로 숫자를 외울 필요가 없고, 오타는 빌드에서 검출됩니다 |
+| `Price`의 `:target` 칸에 적은 `s` | 서버 빌드에만 포함합니다. 클라이언트가 받는 파일에는 이 컬럼이 아예 없습니다 |
+
+**타입은 한 칸에 하나씩 적습니다.** `foreign`도 enum도 이름을 함께 적으므로, 타입과 세부
+타입을 두 줄에 나눠 적던 자리가 없습니다.
 
 여기서 뺀 컬럼 중 하나가 `SkillField`입니다.
 
@@ -104,17 +92,21 @@ tabbit --recipe my-recipe.json
 
 ## 3. 생성된 코드
 
-`Item` 하나에서 생성되는 C#입니다. 골든에 있는 그대로입니다.
+`Item` 하나에서 생성되는 C#입니다. 골든에서 가져왔고, 네임스페이스 수식만 줄였습니다.
 
 ```csharp
+public int Index => _index;
 public string Name => _name;
-public ItemCategoryTable.Record CategoryId => _categoryId;   // int 가 아닙니다
+public int CategoryId => ...;                                // 셀에 적힌 키
+public ItemCategoryTable.Record ItemCategoryByCategoryId => ...;  // 그것이 가리키는 행
 public Grade GradeField => _gradeField;
+public SkillType SkillField => _skillField;
 public string Description => _description;
 public int Price => _price;                                  // 서버 빌드에만
 ```
 
-`CategoryId`의 타입이 `int`가 아니라 `ItemCategoryTable.Record`입니다.
+`CategoryId`는 셀에 적힌 키 그대로이고, 그것이 가리키는 행은 이름이 따로 있습니다 —
+`<대상>By<컬럼>`입니다 ([참조가 내는 이름](../spec/reference-surface-naming.md)).
 
 파일에는 인덱스로 저장되고, `ReadAllAsync`가 모든 테이블을 읽은 뒤 실제 레코드로 연결합니다.
 
@@ -125,11 +117,11 @@ await GameData.ReadAllAsync("./data");
 
 var sword = GameData.Item.FindByIndex(1);
 Console.WriteLine(sword.Name);                  // Short Sword
-Console.WriteLine(sword.CategoryId.Name);       // Weapon   ← 조회를 한 번 더 하지 않습니다
+Console.WriteLine(sword.ItemCategoryByCategoryId.Name);  // Weapon   ← 조회를 한 번 더 하지 않습니다
 Console.WriteLine(sword.GradeField);            // Common
 ```
 
-조회 함수는 인덱싱된 필드마다 셋이 생성됩니다.
+조회 함수는 인덱스마다 셋이 생성되고, **이름은 그 인덱스의 컬럼에서 만들어집니다.**
 
 | 함수 | 없을 때 |
 | --- | --- |
@@ -139,6 +131,9 @@ Console.WriteLine(sword.GradeField);            // Common
 
 이름이 동작을 설명하므로, 검사를 빠뜨린 자리가 코드를 읽는 것만으로 드러납니다.
 
+컬럼 이름이 `Code`인 보조 인덱스라면 `FindByCode`이고, **성분이 둘인 복합 키**라면
+`FindByFromAndTo(from, to)`처럼 인자가 성분마다 하나씩 생깁니다.
+
 같은 시트에서 지원하는 모든 언어의 코드가 생성되고, 표기는 각 언어의 관례를 따릅니다.
 TypeScript는 `tables.item.findByIndex(1)`, Python은 `tables.item.find_by_index(1)`입니다.
 
@@ -146,17 +141,20 @@ TypeScript는 `tables.item.findByIndex(1)`, Python은 `tables.item.find_by_index
 
 ## 세 가지 엔티티
 
-| 엔티티 | 마커 | 생성되는 것 |
+| 엔티티 | 선언 셀 | 생성되는 것 |
 | --- | --- | --- |
-| **테이블** | `~~table:Item~~` | 레코드 타입, 인덱스별 조회 함수, 데이터 파일 |
-| **enum** | `~~enum:Grade~~` | 언어별 열거형 타입 |
-| **상수셋** | `~~const:Limits~~` | 언어별 상수 선언 |
+| **테이블** | `:table Item` | 레코드 타입, 인덱스별 조회 함수, 데이터 파일 |
+| **enum** | `:enum Grade` | 언어별 열거형 타입 |
+| **상수셋** | `:const Limits` | 언어별 상수 선언 |
+
+선언 셀의 괄호에 설정을 적습니다 — `:table Item(side=s)`가 그 테이블 전체를 서버 빌드로
+한정하고, `:table Loadout(key="stage,slot")`이 복합 인덱스를 선언합니다.
 
 상수셋은 행이 아니라 이름, 타입, 값의 목록입니다.
 
 한 줄짜리 설정값들이 테이블 흉내를 내지 않아도 되는 자리입니다.
 
-### 생성되는 것이 다르므로 배포도 다릅니다
+### 엔티티에 따라 갈리는 배포 경로
 
 | 엔티티 | 배포 |
 | --- | --- |
@@ -172,7 +170,7 @@ TypeScript는 `tables.item.findByIndex(1)`, Python은 `tables.item.find_by_index
 
 ## 다른 규칙으로 쓰인 시트 읽기
 
-위의 마커 방식이 기본(`tabbit` 레이아웃)입니다.
+위의 선언 셀 방식이 기본(`tabbit` 레이아웃)입니다.
 
 다른 규칙으로 작성된 시트도 그대로 읽을 수 있으므로, 시트를 먼저 고칠 필요가 없습니다.
 
@@ -186,8 +184,8 @@ TypeScript는 `tables.item.findByIndex(1)`, Python은 `tables.item.find_by_index
 레이아웃은 소스마다 지정하므로 한 recipe에서 섞어 읽을 수 있습니다.
 한쪽에서 선언한 enum을 다른 쪽 테이블이 타입으로 사용해도 됩니다.
 
-실제로 라이브 서비스 중인 프로젝트의 워크북 20개, 테이블 275개, 269,870행을 손대지 않고 한
-모델로 읽습니다.
+실제로 라이브 서비스 중인 프로젝트 둘을 손대지 않고 한 모델로 읽습니다 — 한쪽은
+워크북 17개·테이블 67개·103,395행이고, 다른 한쪽은 워크북 36개·테이블 544개·724,336행입니다.
 
 - recipe 설정은 [Recipe 파일 — Layout](recipe.md#layout--시트를-읽는-방식)에 있습니다.
 - 적용 기록은 [다른 규칙으로 쓰인 시트 읽기](../samples/rescue/doc/적용-기록.md)에 있습니다.

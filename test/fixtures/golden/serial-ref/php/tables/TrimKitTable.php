@@ -29,19 +29,19 @@ final class TrimKitRecord
     /** primary index */
     public int $index = 0;
     /** element 1 - the row it points at */
-    /** @var list<?BitRecord> */
+    /** @var list<int> */
     public array $slot = [];
 
-    /** @var list<int> */
-    public array $slotIndex = [];
+    /** @var list<?BitRecord> */
+    public array $bitBySlot = [];
 
     public array $hasSlotAt = [];
     /** element 1 - the target's own value */
-    /** @var list<?int> */
-    public array $tier = [];
-
     /** @var list<int> */
     public array $tierIndex = [];
+
+    /** @var list<?int> */
+    public array $tier = [];
 
     public array $hasTierAt = [];
 }
@@ -145,14 +145,14 @@ final class TrimKitTable
                     $cursor = new TcbColumnCursor($reader, $column, $count, 'TrimKit.Slot');
                     foreach ($records as $record) {
                         $elementCount = $cursor->nextLength();
-                        $record->slotIndex = [];
+                        $record->slot = [];
                         $record->hasSlotAt = [];
                         for ($j = 0; $j < $elementCount; $j++) {
-                            $record->slotIndex[] = $cursor->nextI32();
+                            $record->slot[] = $cursor->nextI32();
                             $record->hasSlotAt[] =
                                 TcbReader::isPresent($elementPresence, $elementAt++);
                         }
-                        $record->slot = $elementCount > 0
+                        $record->bitBySlot = $elementCount > 0
                             ? \array_fill(0, $elementCount, null)
                             : [];
                     }

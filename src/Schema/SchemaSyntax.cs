@@ -54,6 +54,33 @@ public abstract class SchemaDeclaration
 /// <summary>An embedded object type - what a sheet's type cell names to use it.</summary>
 public sealed class SchemaStruct : SchemaDeclaration
 {
+    /// <summary>
+    /// Whether `abstract` was written in front of `struct`.
+    /// </summary>
+    /// <remarks>
+    /// An abstract struct is not a shape a column may hold. It names a set of variants and
+    /// the surface they share, and what fills that set is either the structs that `extends`
+    /// it or the tables that do - never both. spec/polymorphism.md sections 3 and 5.
+    /// </remarks>
+    public bool IsAbstract { get; init; }
+
+    /// <summary>The abstract struct this one `extends`, or null when it extends nothing.</summary>
+    public string? BaseName { get; init; }
+
+    /// <summary>Where the extended name was written. Null when there is none.</summary>
+    public Location? BaseLocation { get; init; }
+
+    /// <summary>
+    /// The discriminator value this variant travels under, or zero when none was written.
+    /// </summary>
+    /// <remarks>
+    /// The same question a member's wire tag answers, so it is written the same way. A
+    /// variant numbered by its position in the file is a variant that changes meaning when
+    /// somebody reorders the declarations, and a reader built before that reordering would
+    /// then read one variant as another - spec/polymorphism.md section 5.1.
+    /// </remarks>
+    public int VariantTag { get; init; }
+
     /// <summary>Members, in the order they were declared.</summary>
     /// <remarks>
     /// The order is not decoration. A struct whose members carry no wire tag takes its tags

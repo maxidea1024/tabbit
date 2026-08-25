@@ -46,8 +46,8 @@ class PoseRecord {
     /** One element of step. */
     class StepEntry {
         /** element 1, a string key */
-        var clipId: ClipRecord? = null
-        var clipIdIndex: String = ""
+        var clipId: String = ""
+        var clipByClipId: ClipRecord? = null
         /** element 1, an ordinary member */
         var weight: Int = 0
     }
@@ -144,7 +144,7 @@ class PoseTable {
                         record.step =
                             MutableList(elementCount.coerceAtLeast(0)) { PoseRecord.StepEntry() }
                         for (element in 0 until elementCount) {
-                            record.step[element].clipIdIndex = cursor.nextString()
+                            record.step[element].clipId = cursor.nextString()
                         }
                     }
                 }

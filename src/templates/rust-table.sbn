@@ -298,13 +298,13 @@ impl {{ table.table_name }} {
 {{~## A trimmed array of references. The keys are the vector this row's length fills - Rust
    links nothing, so the keys are all there is. spec/variable-length-record-arrays.md. ##~}}
                         let element_count = {{ column_view.length_read }}.max(0) as usize;
-                        record.{{ column_view.name }}_index = Vec::with_capacity(element_count.min(65536));
+                        record.{{ column_view.name }} = Vec::with_capacity(element_count.min(65536));
 {{~ if column_view.has_optional_elements ~}}
                         record.{{ column_view.element_presence_member }} =
                             Vec::with_capacity(element_count.min(65536));
 {{~ end ~}}
                         for _ in 0..element_count {
-                            record.{{ column_view.name }}_index.push({{ column_view.read_element }});
+                            record.{{ column_view.name }}.push({{ column_view.read_element }});
 {{~ if column_view.has_optional_elements ~}}
                             record.{{ column_view.element_presence_member }}
                                 .push(tabbit::is_present(&element_presence, element_at));
@@ -312,7 +312,7 @@ impl {{ table.table_name }} {
 {{~ end ~}}
                         }
 {{~ else if column_view.kind == 'scalar_ref' ~}}
-                        record.{{ column_view.name }}_index = {{ column_view.read_scalar }};
+                        record.{{ column_view.name }} = {{ column_view.read_scalar }};
 {{~ else ~}}
                         record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_scalar }};
 {{~ end ~}}
