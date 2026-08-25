@@ -68,6 +68,32 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/기획데이
 **`seed.py`는 처음 한 번만입니다.** 다시 돌리면 손으로 고친 값이 사라집니다 — 정본은 `.tsv`
 입니다.
 
+## 유니티에서 확인
+
+```
+Unity.exe -batchmode -quit -projectPath samples/wildling/unity \ 
+          -executeMethod Wildling.Check.WildlingDataCheck.RunFromCommandLine -logFile -
+```
+
+에디터에서는 `Wildling ▸ 데이터 확인` 입니다. **보고는 파일로 나갑니다** —
+[기획데이터/out/unity-check.txt](기획데이터/out/unity-check.txt) 이고 첫 줄이 `OK` 또는
+`FAIL` 입니다. 종료 코드에 맡기지 않는 이유는 그 스크립트에 적어 두었습니다.
+
+|보는 것|무엇이 확인되는가|
+|--|--|
+|행 수 9개 테이블|`.bytes` 를 읽었는가|
+|`hp` · `element` · `grade`|**맞게** 읽었는가|
+|`habitat`|`bitset` 이 값 하나로 왔는가|
+|`tags`|셀 배열이 원소 3개로 왔는가|
+|각성 후 행|참조가 링킹으로 **행**이 되었는가|
+|보상 변종 3종|판별자가 변종 타입으로 왔는가 — `is` 로 좁혀지는가|
+|`ItemByItemId`|**변종의 참조**가 행으로 연결되었는가|
+|`FindByRegionIdAndHourBand`|복합 키 조회가 나왔는가|
+|출현 28종|멀티 로우가 원소로 쌓였는가|
+|상수셋|코드로 나갔는가|
+
+**게임이 아니라 확인입니다.** 자동 전투도 화면도 없습니다 — 그 자리까지가 이 샘플의 범위입니다.
+
 ## 재검증 절차
 
 ```
