@@ -541,7 +541,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         Constants = constantSet.Constants.Select(constant => new CppConstantView
         {
             Name = constant.Name.ToPascalCase(),
-            Type = ToCppTypeName(constant.Type, constant.Enum),
+            Type = ConstantTypeName(constant),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
         }).ToList(),
@@ -572,12 +572,22 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             bool copyCosts = keyType == "std::string";
             string suffix = plan.Suffix(name => name.ToSnakeCase(), "_and_");
 
-            var components = plan.Components.Select(component => new KeyComponentView
+            // **A component that is a reference carries the target's key, not its row.**
+            // The two are one edit apart - the column's own name holds the key and the
+            // derived name holds the row - and a lookup taking rows is one nobody can
+            // call. `KeyComponentView.TypeOf` is the one place that decides, so the type and the
+            // shape the key text is built from cannot disagree.
+            var components = plan.Components.Select(component =>
             {
-                Param = KeyComponentView.ParamOf(component.Name).ToSnakeCase(),
-                Type = CppKeyParam(component),
-                Member = CppName(component.Name),
-                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+                var (keyType, keyEnum) = KeyComponentView.TypeOf(component);
+
+                return new KeyComponentView
+                {
+                    Param = KeyComponentView.ParamOf(component.Name).ToSnakeCase(),
+                    Type = CppKeyParam(keyType, keyEnum),
+                    Member = CppName(component.Name),
+                    Kind = KeyComponentView.KindOf(keyType),
+                };
             }).ToList();
 
             string args = string.Join(", ", components.Select(component => component.Param));
@@ -615,9 +625,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         }).ToList();
 
     /// <summary>How a key column arrives at a lookup: by reference where a copy would cost.</summary>
-    private string CppKeyParam(SerialField component)
+    private string CppKeyParam(ValueType keyType, Models.Enum? keyEnum)
     {
-        string type = ToCppTypeName(component.FirstField);
+        string type = ToCppTypeName(keyType, keyEnum);
 
         return type == "std::string" ? "const " + type + "&" : type;
     }
@@ -1002,15 +1012,22 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 : name;
             string keyName = toRow ? name : name + "_index";
 
+            // **The target's key type, not int32.** A reference carries whatever the target
+            // is keyed by - a name, a uuid, an id past 32 bits - and the member inside a
+            // record group has always been typed that way. This one was not, and nothing
+            // caught it: a top-level reference to a string-keyed table had no golden until
+            // the link table in `composite-key`.
+            string key = ToCppTypeName(sf.FirstField);
+
             return sf.IsArray
                 ? new[]
                 {
-                    $"std::vector<std::int32_t> {keyName};",
+                    $"std::vector<{key}> {keyName};",
                     $"std::vector<{resolved}> {rowName};",
                 }
                 : new[]
                 {
-                    $"std::int32_t {keyName} = 0;",
+                    $"{key} {keyName}{RefKeyInitializer(sf.FirstField!.RefKeyType)};",
                     $"{resolved} {rowName} = {RefDefault(sf)};",
                 };
         }
@@ -1625,52 +1642,94 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         };
     }
 
+    /// <summary>
+    /// How a constant's type is spelled, arrays included.
+    /// </summary>
+    /// <remarks>
+    /// The type functions answer for an element and let the caller add the brackets, exactly
+    /// as a field's do - so an array constant asks for the element and wraps it here.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
+    private string ConstantTypeName(ConstantSet.Constant constant)
+    {
+        string element = ToCppTypeName(ValueTypes.ElementOf(constant.Type), constant.Enum);
+
+        return ValueTypes.IsArray(constant.Type) ? LanguageProfile.Cpp.ArrayOf(element) : element;
+    }
+
+    /// <summary>
+    /// The literal a constant is written as.
+    /// </summary>
+    /// <remarks>
+    /// **An array constant is its elements in this language's list literal.** The element
+    /// spelling is the scalar one, so this wraps rather than repeats it - and the wrapping is
+    /// where the languages differ far more than the elements do.
+    ///
+    /// A constant never reaches the file, so there is no wire question here: what a language
+    /// needs is an expression its compiler accepts in the place a constant is declared.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {
-        switch (constant.Type)
+        if (!ValueTypes.IsArray(constant.Type))
+            return RenderConstantScalar(constant, constant.Type, constant.Value);
+
+        string joined = string.Join(", ",
+            ((System.Array)constant.Value!).Cast<object?>()
+                .Select(value => RenderConstantScalar(
+                    constant, ValueTypes.ElementOf(constant.Type), value)));
+
+        return "{ " + joined + " }";
+    }
+
+    /// <summary>One element, or a constant that is one value.</summary>
+    private string RenderConstantScalar(
+        ConstantSet.Constant constant, ValueType type, object? value)
+    {
+        switch (type)
         {
             case ValueType.String:
-                return $"\"{EscapeCppString((string)constant.Value!)}\"";
+                return $"\"{EscapeCppString((string)value!)}\"";
 
             case ValueType.Bool:
-                return (bool)constant.Value! ? "true" : "false";
+                return (bool)value! ? "true" : "false";
 
             case ValueType.Int32:
-                return ((int)constant.Value!).ToString(CultureInfo.InvariantCulture);
+                return ((int)value!).ToString(CultureInfo.InvariantCulture);
 
             case ValueType.Int64:
-                return ((long)constant.Value!).ToString(CultureInfo.InvariantCulture) + "LL";
+                return ((long)value!).ToString(CultureInfo.InvariantCulture) + "LL";
 
             case ValueType.Float:
-                return ((float)constant.Value!).ToString("R", CultureInfo.InvariantCulture) + "f";
+                return ((float)value!).ToString("R", CultureInfo.InvariantCulture) + "f";
 
             case ValueType.Double:
-                return ((double)constant.Value!).ToString("R", CultureInfo.InvariantCulture);
+                return ((double)value!).ToString("R", CultureInfo.InvariantCulture);
 
             // A time_point and a duration, built from the tick counts the sheet holds.
             // from_net_ticks does the epoch shift, so a constant and a column read from
             // a file are the same value.
             case ValueType.DateTime:
                 return "tabbit::from_net_ticks(" +
-                       ((DateTime)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture) + "LL)";
+                       ((DateTime)value!).Ticks.ToString(CultureInfo.InvariantCulture) + "LL)";
 
             case ValueType.TimeSpan:
                 return "tabbit::TimeSpan(" +
-                       ((TimeSpan)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture) + "LL)";
+                       ((TimeSpan)value!).Ticks.ToString(CultureInfo.InvariantCulture) + "LL)";
 
             case ValueType.Uuid:
-                return RenderUuidLiteral((Guid)constant.Value!);
+                return RenderUuidLiteral((Guid)value!);
 
             case ValueType.Enum:
             {
-                var label = constant.Enum.GetLabel((int)constant.Value!, constant.Location);
+                var label = constant.Enum.GetLabel((int)value!, constant.Location);
                 return $"{constant.Enum.Name.ToPascalCase()}::{label.Name.ToPascalCase()}";
             }
 
             default:
                 throw new TabbitException(constant.Location,
                         Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
-                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Name", constant.Name), ("Type", type),
                             ("Generator", "C++")));
         }
     }

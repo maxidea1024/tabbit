@@ -123,6 +123,12 @@ public partial class ModelCooker
 
             foreach (var field in table.Fields)
             {
+                // A name this tool invented, which the rules have nothing to say about - the
+                // same exemption the synthesized enum and its zero label already have.
+                // See `Field.Synthesized`.
+                if (field.Synthesized)
+                    continue;
+
                 // The marker comes off before anything is judged. `*` says the column is a
                 // secondary index; it is not part of the name, and the generated member does
                 // not carry it.

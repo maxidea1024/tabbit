@@ -11,6 +11,7 @@
 #define TABBIT_GENERATED_COREACCESSOR_CONST_GAME_CONFIG_H
 
 #include <cstdint>
+#include <string>
 
 #include "tabbit/tcb_reader.h"
 #include "enums/CoreAccessor_enum_grade.h"
@@ -36,6 +37,14 @@ struct GameConfig {
   static inline const tabbit::TimeSpan RoundLength = tabbit::TimeSpan(3000000000LL);
   /// identifies this data build
   static inline const tabbit::Uuid BuildId = tabbit::Uuid{ { 0xff, 0x19, 0x96, 0x6f, 0x86, 0x8b, 0x11, 0xd0, 0xb4, 0x2d, 0x00, 0xc0, 0x4f, 0xc9, 0x64, 0xff } };
+  /// text elements
+  static inline const std::vector<std::string> Tiers = { "bronze", "silver", "gold" };
+  /// number elements
+  static inline const std::vector<std::int32_t> Thresholds = { 10, 50, 100 };
+  /// one element, where a separator has nowhere to go
+  static inline const std::vector<std::int32_t> Single = { 1 };
+  /// enum elements
+  static inline const std::vector<Grade> Ladder = { Grade::Common, Grade::Rare, Grade::Epic };
 };
 
 }  // namespace core

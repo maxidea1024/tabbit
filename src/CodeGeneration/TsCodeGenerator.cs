@@ -435,7 +435,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         Constants = constantSet.Constants.Select(constant => new TsConstantView
         {
             Name = TsCamelName(constant.Name),
-            Type = ToTypescriptTypename(constant.Type, constant.Enum, null),
+            Type = ConstantTypeName(constant),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
         }).ToList(),
@@ -811,12 +811,22 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         {
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 
-            var components = plan.Components.Select(component => new KeyComponentView
+            // **A component that is a reference carries the target's key, not its row.**
+            // The two are one edit apart - the column's own name holds the key and the
+            // derived name holds the row - and a lookup taking rows is one nobody can
+            // call. `KeyComponentView.TypeOf` is the one place that decides, so the type and the
+            // shape the key text is built from cannot disagree.
+            var components = plan.Components.Select(component =>
             {
-                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
-                Type = ToTypescriptTypename(component.FirstField),
-                Member = TsName(component.Name),
-                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+                var (keyType, keyEnum) = KeyComponentView.TypeOf(component);
+
+                return new KeyComponentView
+                {
+                    Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                    Type = ToTypescriptTypename(keyType, keyEnum, null),
+                    Member = TsName(component.Name),
+                    Kind = KeyComponentView.KindOf(keyType),
+                };
             }).ToList();
 
             return new CompositeKeyView
@@ -1994,49 +2004,91 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// Types that TypeScript has no native equivalent for - datetime, timespan and
     /// uuid - are surfaced as strings, matching ToTypescriptTypename.
     /// </summary>
+    /// <summary>
+    /// How a constant's type is spelled, arrays included.
+    /// </summary>
+    /// <remarks>
+    /// The type functions answer for an element and let the caller add the brackets, exactly
+    /// as a field's do - so an array constant asks for the element and wraps it here.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
+    private string ConstantTypeName(ConstantSet.Constant constant)
+    {
+        string element = ToTypescriptTypename(ValueTypes.ElementOf(constant.Type), constant.Enum, null);
+
+        return ValueTypes.IsArray(constant.Type) ? LanguageProfile.Typescript.ArrayOf(element) : element;
+    }
+
+    /// <summary>
+    /// The literal a constant is written as.
+    /// </summary>
+    /// <remarks>
+    /// **An array constant is its elements in this language's list literal.** The element
+    /// spelling is the scalar one, so this wraps rather than repeats it - and the wrapping is
+    /// where the languages differ far more than the elements do.
+    ///
+    /// A constant never reaches the file, so there is no wire question here: what a language
+    /// needs is an expression its compiler accepts in the place a constant is declared.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {
-        switch (constant.Type)
+        if (!ValueTypes.IsArray(constant.Type))
+            return RenderConstantScalar(constant, constant.Type, constant.Value);
+
+        string joined = string.Join(", ",
+            ((System.Array)constant.Value!).Cast<object?>()
+                .Select(value => RenderConstantScalar(
+                    constant, ValueTypes.ElementOf(constant.Type), value)));
+
+        return "[" + joined + "]";
+    }
+
+    /// <summary>One element, or a constant that is one value.</summary>
+    private string RenderConstantScalar(
+        ConstantSet.Constant constant, ValueType type, object? value)
+    {
+        switch (type)
         {
             case ValueType.String:
-                return $"'{EscapeTypescriptString((string)constant.Value!)}'";
+                return $"'{EscapeTypescriptString((string)value!)}'";
 
             case ValueType.Bool:
-                return (bool)constant.Value! ? "true" : "false";
+                return (bool)value! ? "true" : "false";
 
             case ValueType.Int32:
-                return ((int)constant.Value!).ToString(CultureInfo.InvariantCulture);
+                return ((int)value!).ToString(CultureInfo.InvariantCulture);
 
             case ValueType.Int64:
                 // `n` suffix: a bigint-typed member cannot be initialized from a
                 // number literal, and TypeScript rejects it outright.
-                return ((long)constant.Value!).ToString(CultureInfo.InvariantCulture) + "n";
+                return ((long)value!).ToString(CultureInfo.InvariantCulture) + "n";
 
             case ValueType.Float:
-                return ((float)constant.Value!).ToString("R", CultureInfo.InvariantCulture);
+                return ((float)value!).ToString("R", CultureInfo.InvariantCulture);
 
             case ValueType.Double:
-                return ((double)constant.Value!).ToString("R", CultureInfo.InvariantCulture);
+                return ((double)value!).ToString("R", CultureInfo.InvariantCulture);
 
             case ValueType.DateTime:
-                return $"'{((DateTime)constant.Value!).ToString("o", CultureInfo.InvariantCulture)}'";
+                return $"'{((DateTime)value!).ToString("o", CultureInfo.InvariantCulture)}'";
 
             case ValueType.TimeSpan:
-                return $"'{((TimeSpan)constant.Value!).ToString(null, CultureInfo.InvariantCulture)}'";
+                return $"'{((TimeSpan)value!).ToString(null, CultureInfo.InvariantCulture)}'";
 
             case ValueType.Uuid:
-                return $"'{(Guid)constant.Value!}'";
+                return $"'{(Guid)value!}'";
 
             case ValueType.Enum:
             {
-                var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
+                var label = constant.Enum.GetLabel(value!, constant.Location);
                 return $"{constant.Enum.Name}.{label.Name}";
             }
 
             default:
                 throw new TabbitException(constant.Location,
                         Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
-                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Name", constant.Name), ("Type", type),
                             ("Generator", "TypeScript")));
         }
     }

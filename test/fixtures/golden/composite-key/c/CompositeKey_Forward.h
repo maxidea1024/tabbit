@@ -19,6 +19,9 @@ extern "C" {
 typedef struct CompositeKey_LoadoutRecord_t CompositeKey_LoadoutRecord_t;
 typedef struct CompositeKey_RouteRecord_t CompositeKey_RouteRecord_t;
 typedef struct CompositeKey_GridRecord_t CompositeKey_GridRecord_t;
+typedef struct CompositeKey_BeastRecord_t CompositeKey_BeastRecord_t;
+typedef struct CompositeKey_MoveRecord_t CompositeKey_MoveRecord_t;
+typedef struct CompositeKey_BeastMoveRecord_t CompositeKey_BeastMoveRecord_t;
 
 /* The key the table files were sealed with, and its length - NULL and 0 when they were not
  * sealed.

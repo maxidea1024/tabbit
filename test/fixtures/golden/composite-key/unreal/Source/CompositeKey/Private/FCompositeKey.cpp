@@ -771,9 +771,644 @@ bool FGridTable::Read(const FString& Filename)
     return true;
 }
 
+
+const FBeastRow* FBeastTable::FindByIndex(const FString& Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FBeastTable::ContainsIndex(const FString& Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FBeastTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FCompositeKey::EncryptionKey and
+    // FCompositeKey::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FCompositeKey::EncryptionKey, Bytes, OpenError,
+            FCompositeKey::MacKey, FCompositeKey::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FBeastRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Beast.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Beast.Index"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Beast.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Beast.Name"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Name = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Beast.Pad1"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Beast.Pad1"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Pad1 = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<FString, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FMoveRow* FMoveTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FMoveTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FMoveTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FCompositeKey::EncryptionKey and
+    // FCompositeKey::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FCompositeKey::EncryptionKey, Bytes, OpenError,
+            FCompositeKey::MacKey, FCompositeKey::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FMoveRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Move.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Move.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Move.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Move.Name"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Name = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Move.Pad1"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Move.Pad1"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Pad1 = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+
+FString FBeastMoveTable::KeyOfBeastIdAndMoveId(const FString& BeastIdKey, int32 MoveIdKey)
+{
+    const FString Parts[] =
+    {
+        BeastIdKey,
+        FString::Printf(TEXT("%lld"), static_cast<int64>(MoveIdKey)),
+    };
+
+    FString Text;
+
+    for (const FString& Part : Parts)
+    {
+        Text.Appendf(TEXT("%d:%s"), Part.Len(), *Part);
+    }
+
+    return Text;
+}
+
+const FBeastMoveRow* FBeastMoveTable::FindByBeastIdAndMoveId(const FString& BeastIdKey, int32 MoveIdKey) const
+{
+    const int32* Position = ByBeastIdAndMoveId.Find(KeyOfBeastIdAndMoveId(BeastIdKey, MoveIdKey));
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FBeastMoveTable::ContainsBeastIdAndMoveId(const FString& BeastIdKey, int32 MoveIdKey) const
+{
+    return ByBeastIdAndMoveId.Contains(KeyOfBeastIdAndMoveId(BeastIdKey, MoveIdKey));
+}
+
+bool FBeastMoveTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FCompositeKey::EncryptionKey and
+    // FCompositeKey::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FCompositeKey::EncryptionKey, Bytes, OpenError,
+            FCompositeKey::MacKey, FCompositeKey::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FBeastMoveRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("BeastMove.BeastId"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("BeastMove.BeastId"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].BeastId = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("BeastMove.MoveId"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("BeastMove.MoveId"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].MoveId = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("BeastMove.Power"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("BeastMove.Power"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Power = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<FString, int32> LoadedByBeastIdAndMoveId;
+    LoadedByBeastIdAndMoveId.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByBeastIdAndMoveId.Add(
+            KeyOfBeastIdAndMoveId(Loaded[Position].BeastId, Loaded[Position].MoveId), Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByBeastIdAndMoveId = MoveTemp(LoadedByBeastIdAndMoveId);
+
+    return true;
+}
+
 FLoadoutTable FCompositeKey::LoadoutStorage;
 FRouteTable FCompositeKey::RouteStorage;
 FGridTable FCompositeKey::GridStorage;
+FBeastTable FCompositeKey::BeastStorage;
+FMoveTable FCompositeKey::MoveStorage;
+FBeastMoveTable FCompositeKey::BeastMoveStorage;
 
 TArray<uint8> FCompositeKey::EncryptionKey;
 TArray<uint8> FCompositeKey::MacKey;
@@ -859,6 +1494,84 @@ FGridRow UCompositeKeyLibrary::GetGridRowAt(int32 Position, bool& bFound)
 }
 
 
+FBeastRow UCompositeKeyLibrary::GetBeastRow(const FString& Key, bool& bFound)
+{
+    const FBeastRow* Found = FCompositeKey::Beast().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FBeastRow();
+}
+
+int32 UCompositeKeyLibrary::GetBeastRowCount()
+{
+    return FCompositeKey::Beast().Records().Num();
+}
+
+FBeastRow UCompositeKeyLibrary::GetBeastRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FBeastRow>& Rows = FCompositeKey::Beast().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FBeastRow();
+}
+
+
+FMoveRow UCompositeKeyLibrary::GetMoveRow(int32 Key, bool& bFound)
+{
+    const FMoveRow* Found = FCompositeKey::Move().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FMoveRow();
+}
+
+int32 UCompositeKeyLibrary::GetMoveRowCount()
+{
+    return FCompositeKey::Move().Records().Num();
+}
+
+FMoveRow UCompositeKeyLibrary::GetMoveRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FMoveRow>& Rows = FCompositeKey::Move().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FMoveRow();
+}
+
+
+FBeastMoveRow UCompositeKeyLibrary::GetBeastMoveRow(const FString& BeastIdKey, int32 MoveIdKey, bool& bFound)
+{
+    const FBeastMoveRow* Found = FCompositeKey::BeastMove().FindByBeastIdAndMoveId(KeyOfBeastIdAndMoveId(BeastIdKey, MoveIdKey));
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FBeastMoveRow();
+}
+
+int32 UCompositeKeyLibrary::GetBeastMoveRowCount()
+{
+    return FCompositeKey::BeastMove().Records().Num();
+}
+
+FBeastMoveRow UCompositeKeyLibrary::GetBeastMoveRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FBeastMoveRow>& Rows = FCompositeKey::BeastMove().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FBeastMoveRow();
+}
+
+
 bool UCompositeKeyLibrary::ReadAll(const FString& BasePath, const FString& FileExtension)
 {
     return FCompositeKey::ReadAll(BasePath, FileExtension);
@@ -887,10 +1600,31 @@ bool FCompositeKey::ReadAll(const FString& BasePath, const FString& FileExtensio
     {
         return false;
     }
+    FBeastTable LoadedBeast;
+
+    if (!LoadedBeast.Read(FPaths::Combine(BasePath, TEXT("Beast") + FileExtension)))
+    {
+        return false;
+    }
+    FMoveTable LoadedMove;
+
+    if (!LoadedMove.Read(FPaths::Combine(BasePath, TEXT("Move") + FileExtension)))
+    {
+        return false;
+    }
+    FBeastMoveTable LoadedBeastMove;
+
+    if (!LoadedBeastMove.Read(FPaths::Combine(BasePath, TEXT("BeastMove") + FileExtension)))
+    {
+        return false;
+    }
 
     LoadoutStorage = MoveTemp(LoadedLoadout);
     RouteStorage = MoveTemp(LoadedRoute);
     GridStorage = MoveTemp(LoadedGrid);
+    BeastStorage = MoveTemp(LoadedBeast);
+    MoveStorage = MoveTemp(LoadedMove);
+    BeastMoveStorage = MoveTemp(LoadedBeastMove);
 
     return true;
 }

@@ -59,6 +59,25 @@ internal static class Program
 
                 ["containsGrid"] = CompositeKeyAccessor.Grid.ContainsXAndYAndZ(1, 0, "floor"),
                 ["containsAbsent"] = CompositeKeyAccessor.Grid.ContainsXAndYAndZ(9, 9, "floor"),
+
+                // A key made of two references, which is where a composite one most often
+                // comes from. Each argument is the target's key - a string for one target and
+                // a number for the other - and this call is what says so: a lookup taking the
+                // target's rows would not compile against these.
+                // spec/reference-surface-naming.md sections 4 and 5.
+                ["link"] = CompositeKeyAccessor.BeastMove.FindByBeastIdAndMoveId("deer", 2)
+                    is { } pair
+                    ? pair.Power.ToString()
+                    : "<none>",
+
+                ["linkAbsent"] = CompositeKeyAccessor.BeastMove
+                    .FindByBeastIdAndMoveId("wolf", 2) is null,
+
+                // And the row each half resolved to, which is the other name the column made.
+                ["linkRow"] = CompositeKeyAccessor.BeastMove
+                    .FindByBeastIdAndMoveId("deer", 1) is { } found
+                    ? found.BeastByBeastId.Name + "/" + found.MoveByMoveId.Name
+                    : "<none>",
             };
 
             Console.WriteLine(JsonSerializer.Serialize(

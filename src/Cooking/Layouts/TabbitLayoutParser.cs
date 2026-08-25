@@ -2786,11 +2786,43 @@ public sealed class TabbitLayoutParser : ILayoutParser
             // The folded expression here too, which is what turns the five columns the old
             // notation needed into four: an enum names itself instead of writing `enum` beside
             // its name.
-            string pascal = typeWritten.ToPascalCase();
-            string resolved = Model.ContainsEnum(pascal) ? pascal : typeWritten.ToLowerInvariant();
+            //
+            // **The brackets come off first, exactly as a column's do.** A folded name is the
+            // element's, so `Grade[]` has to be asked about as `Grade` - looking the whole
+            // expression up found no enum and left `grade[]` for the type parser, which knows
+            // no such element. That was the whole of why an array of an enum could not be
+            // written here while a column could. spec/primary-layout.md section 8.5.
+            string elementWritten = typeWritten;
+            bool constantIsArray = elementWritten.EndsWith("[]", System.StringComparison.Ordinal);
 
-            var enumm = Model.ContainsEnum(pascal) ? Model.GetEnum(pascal, typeCell!.Location) : null;
-            var type = _context.ParseValueType(resolved, typeCell!.Location);
+            if (constantIsArray)
+                elementWritten = elementWritten.Substring(0, elementWritten.Length - 2).Trim();
+
+            string pascal = elementWritten.ToPascalCase();
+            bool namesEnum = Model.ContainsEnum(pascal);
+
+            string resolved = namesEnum ? pascal : elementWritten.ToLowerInvariant();
+            var enumm = namesEnum ? Model.GetEnum(pascal, typeCell!.Location) : null;
+
+            var elementType = _context.ParseValueType(resolved, typeCell!.Location);
+            var type = elementType;
+
+            if (constantIsArray)
+            {
+                type = Models.ValueTypes.ArrayOf(elementType);
+
+                if (type == Models.ValueType.None)
+                {
+                    throw new TabbitException(typeCell!.Location,
+                        Message.Of(TabbitLayoutMessages.ConstantTypeNotArrayElement,
+                            ("Entity", block.Name), ("Name", name), ("Type", elementWritten)));
+                }
+            }
+
+            // The name as written, brackets included: it is what the report and the history
+            // show, and a constant typed `Grade[]` that recorded `Grade` would read as a
+            // change to the type the next time somebody looked.
+            resolved = constantIsArray ? resolved + "[]" : resolved;
 
             result.Constants.Add(new Models.ConstantSet.Constant
             {

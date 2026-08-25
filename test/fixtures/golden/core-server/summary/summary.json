@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "run": "<RUN>",
   "data": {
-    "hash": "0803edd4f02159ff257318fdd719ba2604786559ac50f19455ea14cc41145cce",
+    "hash": "2488f8921adccc38bf0c1947af88ed363dba8d21d2cdaa2a9ec35f774907670e",
     "totals": {
       "tables": 7,
       "rows": 19,
@@ -13,7 +13,7 @@
       "enums": 3,
       "enumLabels": 11,
       "constantSets": 1,
-      "constants": 8,
+      "constants": 12,
       "referenceFields": 1,
       "arrayFields": 4
     },
@@ -1297,6 +1297,30 @@
             "typeName": "uuid",
             "value": "6f9619ff-8b86-d011-b42d-00c04fc964ff",
             "comment": "identifies this data build"
+          },
+          {
+            "name": "Tiers",
+            "typeName": "string[]",
+            "value": "[\"bronze\",\"silver\",\"gold\"]",
+            "comment": "text elements"
+          },
+          {
+            "name": "Thresholds",
+            "typeName": "int[]",
+            "value": "[10,50,100]",
+            "comment": "number elements"
+          },
+          {
+            "name": "Single",
+            "typeName": "int[]",
+            "value": "[1]",
+            "comment": "one element, where a separator has nowhere to go"
+          },
+          {
+            "name": "Ladder",
+            "typeName": "Grade[]",
+            "value": "[1,2,3]",
+            "comment": "enum elements"
           }
         ]
       }

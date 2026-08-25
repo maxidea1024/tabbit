@@ -21,6 +21,12 @@ mod route_table;
 pub use route_table::{RouteRecord, RouteTable};
 mod grid_table;
 pub use grid_table::{GridRecord, GridTable};
+mod beast_table;
+pub use beast_table::{BeastRecord, BeastTable};
+mod move_table;
+pub use move_table::{MoveRecord, MoveTable};
+mod beast_move_table;
+pub use beast_move_table::{BeastMoveRecord, BeastMoveTable};
 
 // The accessor.
 mod tables;

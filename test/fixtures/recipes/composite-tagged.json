@@ -1,0 +1,27 @@
+{
+  // **A refusal fixture.** A table that writes its wire tags out cannot hold a composite
+  // column: a composite becomes one column per component and each needs a tag of its own.
+  //
+  // The tombstone is what this scenario is really for. That report is collected rather than
+  // thrown, and the expansion used to carry on from there - clear the tags the sheet wrote,
+  // ask for them again, and throw about the `#` column reserving a tag while no live field
+  // carries one. Both sentences are about tags and only one is about the sheet.
+  //
+  // spec/composite-value-types.md section 6.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/composite-tagged"
+      }
+    ],
+    "GoogleSheets": []
+  },
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/composite-tagged/json",
+      "Indented": true
+    }
+  ]
+}

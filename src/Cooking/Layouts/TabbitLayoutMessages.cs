@@ -221,5 +221,9 @@ public static class TabbitLayoutMessages
     /// <summary>A constant's name, type or value cell left blank, all of which are required.</summary>
     public const string ConstantCellRequired = "tabbit.constant-cell-required";
 
+    /// <summary>A constant typed as an array of something this tool does not put in one.</summary>
+    public const string ConstantTypeNotArrayElement =
+        "tabbit.constant-type-not-array-element";
+
     #endregion
 }

@@ -24,6 +24,12 @@ public final class CompositeKeyAccessor {
 
     public private(set) var grid: GridTable = GridTable()
 
+    public private(set) var beast: BeastTable = BeastTable()
+
+    public private(set) var move: MoveTable = MoveTable()
+
+    public private(set) var beastMove: BeastMoveTable = BeastMoveTable()
+
     /// The key the table files were sealed with, or nil when they were not sealed.
     ///
     /// Beside `readAll` because it is the same kind of thing: one decision the consuming
@@ -99,17 +105,42 @@ public final class CompositeKeyAccessor {
             base.appendingPathComponent("Grid" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
-        CompositeKeyAccessor.solveCrossReferences(loadout: loadedLoadoutTable, route: loadedRouteTable, grid: loadedGridTable)
+        let loadedBeastTable = BeastTable()
+        try loadedBeastTable.read(
+            base.appendingPathComponent("Beast" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedMoveTable = MoveTable()
+        try loadedMoveTable.read(
+            base.appendingPathComponent("Move" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedBeastMoveTable = BeastMoveTable()
+        try loadedBeastMoveTable.read(
+            base.appendingPathComponent("BeastMove" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        CompositeKeyAccessor.solveCrossReferences(loadout: loadedLoadoutTable, route: loadedRouteTable, grid: loadedGridTable, beast: loadedBeastTable, move: loadedMoveTable, beastMove: loadedBeastMoveTable)
         loadout = loadedLoadoutTable
         route = loadedRouteTable
         grid = loadedGridTable
+        beast = loadedBeastTable
+        move = loadedMoveTable
+        beastMove = loadedBeastMoveTable
     }
 
     /// Turns the stored keys into usable values, once every table is in memory.
     ///
     /// The tables arrive as arguments rather than being read off the instance, which is how
     /// this resolves the load being read rather than the one already published.
-    private static func solveCrossReferences(loadout: LoadoutTable, route: RouteTable, grid: GridTable) {
-        // No table references another.
+    private static func solveCrossReferences(loadout: LoadoutTable, route: RouteTable, grid: GridTable, beast: BeastTable, move: MoveTable, beastMove: BeastMoveTable) {
+        for record in beastMove.records {
+            if let target = beast.findByIndex(record.beastId) {
+                record.beastByBeastId = target
+            }
+            if let target = move.findByIndex(record.moveId) {
+                record.moveByMoveId = target
+            }
+        }
     }
 }

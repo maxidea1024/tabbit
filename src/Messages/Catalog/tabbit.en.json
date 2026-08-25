@@ -55,5 +55,6 @@
   "tabbit.constant-redefined": "Constant set `{Entity}` has two constants named `{Name}`.",
   "tabbit.constant-cannot-be-optional": "Constant `{Name}` of `{Entity}` is typed `{Type}`. A constant is one value written in one cell - there is no row for it to be absent from, so `?` has nothing to mean here.",
   "tabbit.constant-cell-required": "Constant `{Name}` of `{Entity}` leaves its `{Column}` cell blank. The name, the type and the value of a constant are all required.",
+  "tabbit.constant-type-not-array-element": "Constant `{Entity}.{Name}` is typed as an array of `{Type}`, and `{Type}` is not a type this tool puts in an array. The array types are the scalar ones and an enum - a composite value type, a struct and a reference are not among them.",
   "tabbit.composite-key-multi-row": "`{Entity}` is a multi-row table whose primary key `{Key}` is several columns taken together. A multi-row record begins where the primary key's cell has a value, and a combination spread over several columns has no such cell - so where one record ends and the next begins cannot be read. Give the table a single-column primary key, or write one row per record."
 }

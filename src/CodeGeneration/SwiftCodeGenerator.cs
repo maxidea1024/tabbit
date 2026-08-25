@@ -405,7 +405,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         Constants = constantSet.Constants.Select(constant => new SwiftConstantView
         {
             Name = SwiftCamelName(constant.Name),
-            Type = ToSwiftTypeName(constant.Type, constant.Enum, null),
+            Type = ConstantTypeName(constant),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
         }).ToList(),
@@ -435,12 +435,22 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         {
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 
-            var components = plan.Components.Select(component => new KeyComponentView
+            // **A component that is a reference carries the target's key, not its row.**
+            // The two are one edit apart - the column's own name holds the key and the
+            // derived name holds the row - and a lookup taking rows is one nobody can
+            // call. `KeyComponentView.TypeOf` is the one place that decides, so the type and the
+            // shape the key text is built from cannot disagree.
+            var components = plan.Components.Select(component =>
             {
-                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
-                Type = ResolvedElementType(component),
-                Member = SwiftName(component.Name),
-                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+                var (keyType, keyEnum) = KeyComponentView.TypeOf(component);
+
+                return new KeyComponentView
+                {
+                    Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                    Type = ToSwiftTypeName(keyType, keyEnum, null),
+                    Member = SwiftName(component.Name),
+                    Kind = KeyComponentView.KindOf(keyType),
+                };
             }).ToList();
 
             string args = string.Join(", ", components.Select(component => component.Param));
@@ -1259,50 +1269,92 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         }
     }
 
+    /// <summary>
+    /// How a constant's type is spelled, arrays included.
+    /// </summary>
+    /// <remarks>
+    /// The type functions answer for an element and let the caller add the brackets, exactly
+    /// as a field's do - so an array constant asks for the element and wraps it here.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
+    private string ConstantTypeName(ConstantSet.Constant constant)
+    {
+        string element = ToSwiftTypeName(ValueTypes.ElementOf(constant.Type), constant.Enum, null);
+
+        return ValueTypes.IsArray(constant.Type) ? LanguageProfile.Swift.ArrayOf(element) : element;
+    }
+
+    /// <summary>
+    /// The literal a constant is written as.
+    /// </summary>
+    /// <remarks>
+    /// **An array constant is its elements in this language's list literal.** The element
+    /// spelling is the scalar one, so this wraps rather than repeats it - and the wrapping is
+    /// where the languages differ far more than the elements do.
+    ///
+    /// A constant never reaches the file, so there is no wire question here: what a language
+    /// needs is an expression its compiler accepts in the place a constant is declared.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {
-        switch (constant.Type)
+        if (!ValueTypes.IsArray(constant.Type))
+            return RenderConstantScalar(constant, constant.Type, constant.Value);
+
+        string joined = string.Join(", ",
+            ((System.Array)constant.Value!).Cast<object?>()
+                .Select(value => RenderConstantScalar(
+                    constant, ValueTypes.ElementOf(constant.Type), value)));
+
+        return "[" + joined + "]";
+    }
+
+    /// <summary>One element, or a constant that is one value.</summary>
+    private string RenderConstantScalar(
+        ConstantSet.Constant constant, ValueType type, object? value)
+    {
+        switch (type)
         {
             case ValueType.String:
-                return Quote((string)constant.Value!);
+                return Quote((string)value!);
 
             case ValueType.Bool:
-                return (bool)constant.Value! ? "true" : "false";
+                return (bool)value! ? "true" : "false";
 
             case ValueType.Int32:
-                return ((int)constant.Value!).ToString(CultureInfo.InvariantCulture);
+                return ((int)value!).ToString(CultureInfo.InvariantCulture);
 
             case ValueType.Int64:
-                return ((long)constant.Value!).ToString(CultureInfo.InvariantCulture);
+                return ((long)value!).ToString(CultureInfo.InvariantCulture);
 
             case ValueType.Float:
-                return FloatLiteral((float)constant.Value!);
+                return FloatLiteral((float)value!);
 
             case ValueType.Double:
-                return DoubleLiteral((double)constant.Value!);
+                return DoubleLiteral((double)value!);
 
             // Ticks, matching what the generated fields hold and for the same reason.
             case ValueType.DateTime:
-                return ((DateTime)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture);
+                return ((DateTime)value!).Ticks.ToString(CultureInfo.InvariantCulture);
 
             case ValueType.TimeSpan:
-                return ((TimeSpan)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture);
+                return ((TimeSpan)value!).Ticks.ToString(CultureInfo.InvariantCulture);
 
             case ValueType.Uuid:
                 return "Tcb.Uuid([" + string.Join(", ",
-                    ((Guid)constant.Value!).ToByteArray()
+                    ((Guid)value!).ToByteArray()
                         .Select(b => b.ToString(CultureInfo.InvariantCulture))) + "])";
 
             case ValueType.Enum:
             {
-                var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
+                var label = constant.Enum.GetLabel(value!, constant.Location);
                 return $"{constant.Enum.Name.ToPascalCase()}.{SwiftCamelName(label.Name)}";
             }
 
             default:
                 throw new TabbitException(constant.Location,
                         Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
-                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Name", constant.Name), ("Type", type),
                             ("Generator", "swift")));
         }
     }

@@ -1,0 +1,17 @@
+[
+  {
+    "beastId": "deer",
+    "moveId": 1,
+    "power": 10
+  },
+  {
+    "beastId": "deer",
+    "moveId": 2,
+    "power": 20
+  },
+  {
+    "beastId": "wolf",
+    "moveId": 1,
+    "power": 30
+  }
+]

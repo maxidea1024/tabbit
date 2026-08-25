@@ -306,7 +306,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         Constants = constantSet.Constants.Select(constant => new DartConstantView
         {
             Name = DartCamelName(constant.Name),
-            Type = ToDartTypeName(constant.Type, constant.Enum, null),
+            Type = ConstantTypeName(constant),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
         }).ToList(),
@@ -344,12 +344,22 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         {
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 
-            var components = plan.Components.Select(component => new KeyComponentView
+            // **A component that is a reference carries the target's key, not its row.**
+            // The two are one edit apart - the column's own name holds the key and the
+            // derived name holds the row - and a lookup taking rows is one nobody can
+            // call. `KeyComponentView.TypeOf` is the one place that decides, so the type and the
+            // shape the key text is built from cannot disagree.
+            var components = plan.Components.Select(component =>
             {
-                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
-                Type = ResolvedElementType(component),
-                Member = DartName(component.Name),
-                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+                var (keyType, keyEnum) = KeyComponentView.TypeOf(component);
+
+                return new KeyComponentView
+                {
+                    Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                    Type = ToDartTypeName(keyType, keyEnum, null),
+                    Member = DartName(component.Name),
+                    Kind = KeyComponentView.KindOf(keyType),
+                };
             }).ToList();
 
             string args = string.Join(", ", components.Select(component => component.Param));
@@ -989,15 +999,22 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                 : name;
             string keyName = toRow ? name : name + "Index";
 
+            // **The target's key type, not int.** A reference carries whatever the target is
+            // keyed by - a name, a uuid, an id past 32 bits - and the member inside a record
+            // group has always been typed that way. This one was not, and nothing caught it:
+            // a top-level reference to a string-keyed table had no golden until the link
+            // table in `composite-key`.
+            string key = ToDartTypeName(sf.FirstField!.RefKeyType, null, null);
+
             return sf.IsArray
                 ? new[]
                 {
-                    $"List<int> {keyName} = [];",
+                    $"List<{key}> {keyName} = [];",
                     $"List<{elementType}?> {rowName} = [];",
                 }
                 : new[]
                 {
-                    $"int {keyName} = 0;",
+                    $"{key} {keyName} = {RefKeyDefault(sf.FirstField!.RefKeyType)};",
                     $"{elementType}? {rowName};",
                 };
         }
@@ -1324,51 +1341,97 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         }
     }
 
+    /// <summary>
+    /// How a constant's type is spelled, arrays included.
+    /// </summary>
+    /// <remarks>
+    /// The type functions answer for an element and let the caller add the brackets, exactly
+    /// as a field's do - so an array constant asks for the element and wraps it here.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
+    private string ConstantTypeName(ConstantSet.Constant constant)
+    {
+        string element = ToDartTypeName(ValueTypes.ElementOf(constant.Type), constant.Enum, null);
+
+        return ValueTypes.IsArray(constant.Type) ? LanguageProfile.Dart.ArrayOf(element) : element;
+    }
+
+    /// <summary>
+    /// The literal a constant is written as.
+    /// </summary>
+    /// <remarks>
+    /// **An array constant is its elements in this language's list literal.** The element
+    /// spelling is the scalar one, so this wraps rather than repeats it - and the wrapping is
+    /// where the languages differ far more than the elements do.
+    ///
+    /// A constant never reaches the file, so there is no wire question here: what a language
+    /// needs is an expression its compiler accepts in the place a constant is declared.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {
-        switch (constant.Type)
+        if (!ValueTypes.IsArray(constant.Type))
+            return RenderConstantScalar(constant, constant.Type, constant.Value);
+
+        var element = ValueTypes.ElementOf(constant.Type);
+
+        string joined = string.Join(", ",
+            ((System.Array)constant.Value!).Cast<object?>()
+                .Select(value => RenderConstantScalar(constant, element, value)));
+
+        // **A typed literal and not a `const` one.** `const` requires every element to be a
+        // constant expression, and a `bigint` element is `BigInt.parse(...)` - a call. The
+        // declaration is `static final`, so there is one list either way.
+        return "<" + ToDartTypeName(element, constant.Enum, null) + ">[" + joined + "]";
+    }
+
+    /// <summary>One element, or a constant that is one value.</summary>
+    private string RenderConstantScalar(
+        ConstantSet.Constant constant, ValueType type, object? value)
+    {
+        switch (type)
         {
             case ValueType.String:
-                return Quote((string)constant.Value!);
+                return Quote((string)value!);
 
             case ValueType.Bool:
-                return (bool)constant.Value! ? "true" : "false";
+                return (bool)value! ? "true" : "false";
 
             case ValueType.Int32:
-                return ((int)constant.Value!).ToString(CultureInfo.InvariantCulture);
+                return ((int)value!).ToString(CultureInfo.InvariantCulture);
 
             // Parsed rather than written as a literal: an int literal past 2^53 is not
             // exact on the web, which is the whole reason this is a BigInt.
             case ValueType.Int64:
-                return $"BigInt.parse('{((long)constant.Value!).ToString(CultureInfo.InvariantCulture)}')";
+                return $"BigInt.parse('{((long)value!).ToString(CultureInfo.InvariantCulture)}')";
 
             case ValueType.Float:
             case ValueType.Double:
-                return Decimal(constant.Type == ValueType.Float
-                    ? ((float)constant.Value!).ToString("R", CultureInfo.InvariantCulture)
-                    : ((double)constant.Value!).ToString("R", CultureInfo.InvariantCulture));
+                return Decimal(type == ValueType.Float
+                    ? ((float)value!).ToString("R", CultureInfo.InvariantCulture)
+                    : ((double)value!).ToString("R", CultureInfo.InvariantCulture));
 
             case ValueType.DateTime:
-                return $"BigInt.parse('{((DateTime)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture)}')";
+                return $"BigInt.parse('{((DateTime)value!).Ticks.ToString(CultureInfo.InvariantCulture)}')";
 
             case ValueType.TimeSpan:
-                return $"BigInt.parse('{((TimeSpan)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture)}')";
+                return $"BigInt.parse('{((TimeSpan)value!).Ticks.ToString(CultureInfo.InvariantCulture)}')";
 
             case ValueType.Uuid:
                 return "Uuid(Uint8List.fromList([" + string.Join(", ",
-                    ((Guid)constant.Value!).ToByteArray()
+                    ((Guid)value!).ToByteArray()
                         .Select(b => b.ToString(CultureInfo.InvariantCulture))) + "]))";
 
             case ValueType.Enum:
             {
-                var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
+                var label = constant.Enum.GetLabel(value!, constant.Location);
                 return $"{constant.Enum.Name.ToPascalCase()}.{DartCamelName(label.Name)}";
             }
 
             default:
                 throw new TabbitException(constant.Location,
                         Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
-                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Name", constant.Name), ("Type", type),
                             ("Generator", "dart")));
         }
     }

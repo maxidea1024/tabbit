@@ -143,6 +143,29 @@ internal sealed class KeyComponentView
     /// </remarks>
     public required string Kind { get; set; }
 
+    /// <summary>
+    /// The value type a key component's parameter carries, and its enum when it has one.
+    /// </summary>
+    /// <remarks>
+    /// **A reference component carries the target's key, not the target's row.** The column
+    /// is a `foreign`, so its own element type is a row - and a lookup taking rows is a
+    /// lookup nobody can call: what a caller has is the id it read from somewhere else, and
+    /// what the map is keyed by is the text those ids make. A link table is where a composite
+    /// key most often comes from, and both of its columns are references.
+    /// spec/reference-surface-naming.md sections 4 and 5.
+    ///
+    /// The enum comes from the target's primary index for the same reason: a table keyed by
+    /// an enum label is referenced by that label.
+    /// </remarks>
+    public static (Models.ValueType Type, Models.Enum? Enum) TypeOf(SerialField component)
+    {
+        var field = component.FirstField!;
+
+        return field.IsRef
+            ? (field.RefKeyType, field.ResolvedRefTable?.PrimaryIndexField?.EnumOrNull)
+            : (field.ElementType, field.EnumOrNull);
+    }
+
     /// <summary>What a component's parameter is called, before the language cases it.</summary>
     /// <remarks>
     /// **`Key` on the end, and not the bare column name.** A single-column lookup has always

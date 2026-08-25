@@ -19,6 +19,33 @@ const uint8_t* CompositeKey_MacKey = NULL;
 int32_t CompositeKey_MacKeyLength = 0;
 bool CompositeKey_VerifyMac = true;
 
+/* Turns the stored indices into usable pointers, once every table is in memory.
+ *
+ * A reference into a row that is not there stays NULL rather than inventing one. */
+static void CompositeKey_SolveCrossReferences(CompositeKey_t* data) {
+  int32_t row;
+
+  for (row = 0; row < data->beast_move.count; ++row) {
+    CompositeKey_BeastMoveRecord_t* record = &data->beast_move.records[row];
+
+    {
+      const CompositeKey_BeastRecord_t* target = CompositeKey_BeastFindByIndex(
+        &data->beast, record->beast_id);
+
+      if (target != NULL)
+        record->beast_by_beast_id = target;
+    }
+
+    {
+      const CompositeKey_MoveRecord_t* target = CompositeKey_MoveFindByIndex(
+        &data->move, record->move_id);
+
+      if (target != NULL)
+        record->move_by_move_id = target;
+    }
+  }
+}
+
 bool CompositeKey_LoadAll(CompositeKey_t* data, const char* base_path,
                  char* error, size_t error_size) {
   return CompositeKey_LoadAllWithExtension(
@@ -79,6 +106,51 @@ bool CompositeKey_LoadAllWithExtension(CompositeKey_t* data, const char* base_pa
     return false;
   }
 
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Beast", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
+  if (!CompositeKey_BeastLoad(&loaded.beast, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Move", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
+  if (!CompositeKey_MoveLoad(&loaded.move, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "BeastMove", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
+  if (!CompositeKey_BeastMoveLoad(&loaded.beast_move, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
+  /* Linked among the tables of this load, so no row points into the previous one. */
+  CompositeKey_SolveCrossReferences(&loaded);
+
   /* The previous load goes now, and not before. */
   CompositeKey_Free(data);
   *data = loaded;
@@ -90,4 +162,7 @@ void CompositeKey_Free(CompositeKey_t* data) {
   CompositeKey_LoadoutFree(&data->loadout);
   CompositeKey_RouteFree(&data->route);
   CompositeKey_GridFree(&data->grid);
+  CompositeKey_BeastFree(&data->beast);
+  CompositeKey_MoveFree(&data->move);
+  CompositeKey_BeastMoveFree(&data->beast_move);
 }

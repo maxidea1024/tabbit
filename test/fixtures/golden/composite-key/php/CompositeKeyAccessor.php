@@ -16,6 +16,9 @@ require_once __DIR__ . '/enums/Slot.php';
 require_once __DIR__ . '/tables/LoadoutTable.php';
 require_once __DIR__ . '/tables/RouteTable.php';
 require_once __DIR__ . '/tables/GridTable.php';
+require_once __DIR__ . '/tables/BeastTable.php';
+require_once __DIR__ . '/tables/MoveTable.php';
+require_once __DIR__ . '/tables/BeastMoveTable.php';
 
 use Tabbit\TcbReader;
 use Tabbit\TcbColumnCursor;
@@ -28,12 +31,18 @@ final class CompositeKeyAccessor
     public LoadoutTable $loadout;
     public RouteTable $route;
     public GridTable $grid;
+    public BeastTable $beast;
+    public MoveTable $move;
+    public BeastMoveTable $beastMove;
 
     public function __construct()
     {
         $this->loadout = new LoadoutTable();
         $this->route = new RouteTable();
         $this->grid = new GridTable();
+        $this->beast = new BeastTable();
+        $this->move = new MoveTable();
+        $this->beastMove = new BeastMoveTable();
     }
 
     /**
@@ -99,12 +108,21 @@ final class CompositeKeyAccessor
         $loadedRouteTable->read($basePath . \DIRECTORY_SEPARATOR . 'Route' . $fileExtension);
         $loadedGridTable = new GridTable();
         $loadedGridTable->read($basePath . \DIRECTORY_SEPARATOR . 'Grid' . $fileExtension);
+        $loadedBeastTable = new BeastTable();
+        $loadedBeastTable->read($basePath . \DIRECTORY_SEPARATOR . 'Beast' . $fileExtension);
+        $loadedMoveTable = new MoveTable();
+        $loadedMoveTable->read($basePath . \DIRECTORY_SEPARATOR . 'Move' . $fileExtension);
+        $loadedBeastMoveTable = new BeastMoveTable();
+        $loadedBeastMoveTable->read($basePath . \DIRECTORY_SEPARATOR . 'BeastMove' . $fileExtension);
 
-        $this->solveCrossReferences($loadedLoadoutTable, $loadedRouteTable, $loadedGridTable);
+        $this->solveCrossReferences($loadedLoadoutTable, $loadedRouteTable, $loadedGridTable, $loadedBeastTable, $loadedMoveTable, $loadedBeastMoveTable);
 
         $this->loadout = $loadedLoadoutTable;
         $this->route = $loadedRouteTable;
         $this->grid = $loadedGridTable;
+        $this->beast = $loadedBeastTable;
+        $this->move = $loadedMoveTable;
+        $this->beastMove = $loadedBeastMoveTable;
     }
 
     /**
@@ -113,8 +131,19 @@ final class CompositeKeyAccessor
      * The tables arrive as arguments rather than off $this, which is how this resolves the
      * load being read rather than the one already published.
      */
-    private function solveCrossReferences(LoadoutTable $loadout, RouteTable $route, GridTable $grid): void
+    private function solveCrossReferences(LoadoutTable $loadout, RouteTable $route, GridTable $grid, BeastTable $beast, MoveTable $move, BeastMoveTable $beastMove): void
     {
-        // No table references another.
+        foreach ($beastMove->records as $record) {
+            $target = $beast->findByIndex($record->beastId);
+
+            if ($target !== null) {
+                $record->beastByBeastId = $target;
+            }
+            $target = $move->findByIndex($record->moveId);
+
+            if ($target !== null) {
+                $record->moveByMoveId = $target;
+            }
+        }
     }
 }

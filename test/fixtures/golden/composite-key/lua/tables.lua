@@ -10,6 +10,9 @@ local tcb = require(_root .. "tabbit.tcb_reader")
 local LoadoutTable = require(_root .. "tables.loadout_table")
 local RouteTable = require(_root .. "tables.route_table")
 local GridTable = require(_root .. "tables.grid_table")
+local BeastTable = require(_root .. "tables.beast_table")
+local MoveTable = require(_root .. "tables.move_table")
+local BeastMoveTable = require(_root .. "tables.beast_move_table")
 
 -- Every table, loaded together so cross-table references can be resolved.
 ---@class tables
@@ -34,13 +37,16 @@ tables.macKey = nil
 -- is not a security boundary.
 tables.verifyMac = true
 
-local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "loadout", "route", "grid" })
+local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "loadout", "route", "grid", "beast", "move", "beastMove" })
 
 function tables.new()
   return setmetatable({
     loadout = LoadoutTable.new(),
     route = RouteTable.new(),
     grid = GridTable.new(),
+    beast = BeastTable.new(),
+    move = MoveTable.new(),
+    beastMove = BeastMoveTable.new(),
   }, instanceMeta)
 end
 
@@ -73,10 +79,41 @@ function tables:readAll(source, fileExtension)
   local loadedGrid = GridTable.new()
   loadedGrid:readBytes(bytesOf(source, "Grid", fileExtension))
 
+  local loadedBeast = BeastTable.new()
+  loadedBeast:readBytes(bytesOf(source, "Beast", fileExtension))
+
+  local loadedMove = MoveTable.new()
+  loadedMove:readBytes(bytesOf(source, "Move", fileExtension))
+
+  local loadedBeastMove = BeastMoveTable.new()
+  loadedBeastMove:readBytes(bytesOf(source, "BeastMove", fileExtension))
+
+  -- Turns loadedBeastMove's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedBeastMove.records) do
+    do
+      local target = loadedBeast:findByIndex(record.beastId)
+
+      if target ~= nil then
+        record.beastByBeastId = target
+      end
+    end
+    do
+      local target = loadedMove:findByIndex(record.moveId)
+
+      if target ~= nil then
+        record.moveByMoveId = target
+      end
+    end
+  end
+
   -- Published, now that every table read and linked.
   self.loadout = loadedLoadout
   self.route = loadedRoute
   self.grid = loadedGrid
+  self.beast = loadedBeast
+  self.move = loadedMove
+  self.beastMove = loadedBeastMove
 end
 
 return setmetatable(tables, tcb.strictType(

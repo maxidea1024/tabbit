@@ -43,6 +43,24 @@ public static class CanonicalValue
     }
 
     /// <summary>
+    /// The canonical text of a value whose type is known but which has no field.
+    /// </summary>
+    /// <remarks>
+    /// A constant is the caller: it carries a type and a value and no column, so the array
+    /// question cannot be asked of a field the way <see cref="Of"/> asks it. The rendering is
+    /// the same either way - what differs is only where the type comes from.
+    /// </remarks>
+    public static string? OfTyped(object? value, ValueType type)
+    {
+        if (value is null)
+            return null;
+
+        return value is Array elements
+            ? OfArray(elements, Models.ValueTypes.ElementOf(type))
+            : OfScalar(value, type);
+    }
+
+    /// <summary>
     /// The canonical text of a single value of a known type.
     /// </summary>
     public static string? OfScalar(object value, ValueType type)

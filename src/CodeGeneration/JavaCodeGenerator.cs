@@ -417,7 +417,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         Constants = constantSet.Constants.Select(constant => new JavaConstantView
         {
             Name = JavaConstantName(constant.Name),
-            Type = ToJavaTypeName(constant.Type, constant.Enum, null),
+            Type = ConstantTypeName(constant),
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
         }).ToList(),
@@ -456,12 +456,22 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         {
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 
-            var components = plan.Components.Select(component => new KeyComponentView
+            // **A component that is a reference carries the target's key, not its row.**
+            // The two are one edit apart - the column's own name holds the key and the
+            // derived name holds the row - and a lookup taking rows is one nobody can
+            // call. `KeyComponentView.TypeOf` is the one place that decides, so the type and the
+            // shape the key text is built from cannot disagree.
+            var components = plan.Components.Select(component =>
             {
-                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
-                Type = ResolvedElementType(component),
-                Member = JavaName(component.Name),
-                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+                var (keyType, keyEnum) = KeyComponentView.TypeOf(component);
+
+                return new KeyComponentView
+                {
+                    Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                    Type = ToJavaTypeName(keyType, keyEnum, null),
+                    Member = JavaName(component.Name),
+                    Kind = KeyComponentView.KindOf(keyType),
+                };
             }).ToList();
 
             string args = string.Join(", ", components.Select(component => component.Param));
@@ -1426,52 +1436,95 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         }
     }
 
+    /// <summary>
+    /// How a constant's type is spelled, arrays included.
+    /// </summary>
+    /// <remarks>
+    /// The type functions answer for an element and let the caller add the brackets, exactly
+    /// as a field's do - so an array constant asks for the element and wraps it here.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
+    private string ConstantTypeName(ConstantSet.Constant constant)
+    {
+        string element = ToJavaTypeName(ValueTypes.ElementOf(constant.Type), constant.Enum, null);
+
+        return ValueTypes.IsArray(constant.Type) ? LanguageProfile.Java.ArrayOf(element) : element;
+    }
+
+    /// <summary>
+    /// The literal a constant is written as.
+    /// </summary>
+    /// <remarks>
+    /// **An array constant is its elements in this language's list literal.** The element
+    /// spelling is the scalar one, so this wraps rather than repeats it - and the wrapping is
+    /// where the languages differ far more than the elements do.
+    ///
+    /// A constant never reaches the file, so there is no wire question here: what a language
+    /// needs is an expression its compiler accepts in the place a constant is declared.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {
-        switch (constant.Type)
+        if (!ValueTypes.IsArray(constant.Type))
+            return RenderConstantScalar(constant, constant.Type, constant.Value);
+
+        var element = ValueTypes.ElementOf(constant.Type);
+
+        string joined = string.Join(", ",
+            ((System.Array)constant.Value!).Cast<object?>()
+                .Select(value => RenderConstantScalar(constant, element, value)));
+
+        return "new " + ToJavaTypeName(element, constant.Enum, null) + "[] { " + joined + " }";
+    }
+
+    /// <summary>One element, or a constant that is one value.</summary>
+    private string RenderConstantScalar(
+        ConstantSet.Constant constant, ValueType type, object? value)
+    {
+        switch (type)
         {
             case ValueType.String:
-                return Quote((string)constant.Value!);
+                return Quote((string)value!);
 
             case ValueType.Bool:
-                return (bool)constant.Value! ? "true" : "false";
+                return (bool)value! ? "true" : "false";
 
             case ValueType.Int32:
-                return ((int)constant.Value!).ToString(CultureInfo.InvariantCulture);
+                return ((int)value!).ToString(CultureInfo.InvariantCulture);
 
             // `L`, or the literal is an int and will not fit.
             case ValueType.Int64:
-                return ((long)constant.Value!).ToString(CultureInfo.InvariantCulture) + "L";
+                return ((long)value!).ToString(CultureInfo.InvariantCulture) + "L";
 
             // `f`, or the literal is a double and will not narrow implicitly.
             case ValueType.Float:
-                return ((float)constant.Value!).ToString("R", CultureInfo.InvariantCulture) + "f";
+                return ((float)value!).ToString("R", CultureInfo.InvariantCulture) + "f";
 
             case ValueType.Double:
-                return ((double)constant.Value!).ToString("R", CultureInfo.InvariantCulture);
+                return ((double)value!).ToString("R", CultureInfo.InvariantCulture);
 
             // Ticks, matching what the generated fields hold and for the same reason.
             case ValueType.DateTime:
-                return ((DateTime)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture) + "L";
+                return ((DateTime)value!).Ticks.ToString(CultureInfo.InvariantCulture) + "L";
 
             case ValueType.TimeSpan:
-                return ((TimeSpan)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture) + "L";
+                return ((TimeSpan)value!).Ticks.ToString(CultureInfo.InvariantCulture) + "L";
 
             case ValueType.Uuid:
                 return "new TcbReader.Uuid(new byte[] { " + string.Join(", ",
-                    ((Guid)constant.Value!).ToByteArray()
+                    ((Guid)value!).ToByteArray()
                         .Select(b => "(byte) 0x" + b.ToString("x2", CultureInfo.InvariantCulture))) + " })";
 
             case ValueType.Enum:
             {
-                var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
+                var label = constant.Enum.GetLabel(value!, constant.Location);
                 return $"{constant.Enum.Name.ToPascalCase()}.{JavaConstantName(label.Name)}";
             }
 
             default:
                 throw new TabbitException(constant.Location,
                         Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
-                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Name", constant.Name), ("Type", type),
                             ("Generator", "java")));
         }
     }

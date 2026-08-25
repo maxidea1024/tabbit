@@ -12,6 +12,9 @@ import * as path from 'path'
 import { LoadoutTable } from './tables/loadout'
 import { RouteTable } from './tables/route'
 import { GridTable } from './tables/grid'
+import { BeastTable } from './tables/beast'
+import { MoveTable } from './tables/move'
+import { BeastMoveTable } from './tables/beast-move'
 
 /** Tables */
 export class Tables {
@@ -78,6 +81,18 @@ export class Tables {
   public get grid(): GridTable { return this._grid }
   private _grid: GridTable = new GridTable()
 
+  /** Peroperty for table Beast */
+  public get beast(): BeastTable { return this._beast }
+  private _beast: BeastTable = new BeastTable()
+
+  /** Peroperty for table Move */
+  public get move(): MoveTable { return this._move }
+  private _move: MoveTable = new MoveTable()
+
+  /** Peroperty for table BeastMove */
+  public get beastMove(): BeastMoveTable { return this._beastMove }
+  private _beastMove: BeastMoveTable = new BeastMoveTable()
+
   /**
    * Read all tables asynchronously.
    *
@@ -91,8 +106,14 @@ export class Tables {
     await route.read(path.join(basePath, `Route${fileExtension}`))
     const grid = new GridTable()
     await grid.read(path.join(basePath, `Grid${fileExtension}`))
+    const beast = new BeastTable()
+    await beast.read(path.join(basePath, `Beast${fileExtension}`))
+    const move = new MoveTable()
+    await move.read(path.join(basePath, `Move${fileExtension}`))
+    const beastMove = new BeastMoveTable()
+    await beastMove.read(path.join(basePath, `BeastMove${fileExtension}`))
 
-    this.publish(loadout, route, grid)
+    this.publish(loadout, route, grid, beast, move, beastMove)
   }
 
   /** Read all tables synchronously. */
@@ -103,8 +124,14 @@ export class Tables {
     route.readSync(path.join(basePath, `Route${fileExtension}`))
     const grid = new GridTable()
     grid.readSync(path.join(basePath, `Grid${fileExtension}`))
+    const beast = new BeastTable()
+    beast.readSync(path.join(basePath, `Beast${fileExtension}`))
+    const move = new MoveTable()
+    move.readSync(path.join(basePath, `Move${fileExtension}`))
+    const beastMove = new BeastMoveTable()
+    beastMove.readSync(path.join(basePath, `BeastMove${fileExtension}`))
 
-    this.publish(loadout, route, grid)
+    this.publish(loadout, route, grid, beast, move, beastMove)
   }
 
   /**
@@ -121,8 +148,14 @@ export class Tables {
     route.readBinarySync(path.join(basePath, `Route${fileExtension}`))
     const grid = new GridTable()
     grid.readBinarySync(path.join(basePath, `Grid${fileExtension}`))
+    const beast = new BeastTable()
+    beast.readBinarySync(path.join(basePath, `Beast${fileExtension}`))
+    const move = new MoveTable()
+    move.readBinarySync(path.join(basePath, `Move${fileExtension}`))
+    const beastMove = new BeastMoveTable()
+    beastMove.readBinarySync(path.join(basePath, `BeastMove${fileExtension}`))
 
-    this.publish(loadout, route, grid)
+    this.publish(loadout, route, grid, beast, move, beastMove)
   }
 
   /**
@@ -133,10 +166,13 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(loadout: LoadoutTable, route: RouteTable, grid: GridTable): void {
+  private publish(loadout: LoadoutTable, route: RouteTable, grid: GridTable, beast: BeastTable, move: MoveTable, beastMove: BeastMoveTable): void {
     this._loadout = loadout
     this._route = route
     this._grid = grid
+    this._beast = beast
+    this._move = move
+    this._beastMove = beastMove
 
     this.solveCrossReferences()
   }
@@ -149,6 +185,19 @@ export class Tables {
    * table's own read. A zero means the sheet left the cell empty and is left unresolved.
    */
   private solveCrossReferences(): void {
-    // No table references another.
+    for (const record of this._beastMove.records) {
+      if (record._beastId_Beast_index !== "") {
+        const target = this._beast.getByIndexOrThrow(
+          record._beastId_Beast_index)
+        record.setReference_beastId_INTERNAL(target)
+        record._beastId_F = true
+      }
+      if (record._moveId_Move_index > 0) {
+        const target = this._move.getByIndexOrThrow(
+          record._moveId_Move_index)
+        record.setReference_moveId_INTERNAL(target)
+        record._moveId_F = true
+      }
+    }
   }
 }

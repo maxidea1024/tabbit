@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "406c2a4252236f56c492a97c3e052d9a",
-  "TotalSize": 364,
+  "MasterHash": "473e24d9b5735502bffa1ed64e7f5dc9",
+  "TotalSize": 617,
   "Items": [
     {
       "Name": "Loadout.tcb",
@@ -19,6 +19,24 @@
       "Name": "Grid.tcb",
       "Size": 127,
       "Hash": "3c723d45386ba9c3afb7d49fa5ab91b3",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Beast.tcb",
+      "Size": 87,
+      "Hash": "5049f9a85c9735e1a7522f3816366373",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Move.tcb",
+      "Size": 81,
+      "Hash": "9c770fe9490642c041a3092062314c5b",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "BeastMove.tcb",
+      "Size": 85,
+      "Hash": "f657c9d002ce474362fa93f281e5a81c",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

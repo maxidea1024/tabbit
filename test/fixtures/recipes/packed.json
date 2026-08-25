@@ -16,6 +16,19 @@
     "GoogleSheets": []
   },
 
+  // **The naming check is this scenario's second gate, and it is here for one reason.** The
+  // members of a `sep` struct are declared in `payout.tbs` as camelCase, and the expansion
+  // used to Pascal-case the name it recorded - so `itemId` arrived as `ItemId` and a project
+  // asking for a convention reported a spelling nobody wrote. The declaration's own spelling
+  // is what a rule has to judge, and `camel` here is what says so: bring the casing back and
+  // this scenario stops converting. The same struct written out as member columns
+  // (`packed-expanded`) has always carried the sheet's own text.
+  "Naming": {
+    "Field": "camel",
+    "Entity": "pascal",
+    "OnViolation": "error"
+  },
+
   "Targets": [
     {
       "Type": "binary",

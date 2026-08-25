@@ -15,6 +15,9 @@
 struct LoadoutRecord;
 struct RouteRecord;
 struct GridRecord;
+struct BeastRecord;
+struct MoveRecord;
+struct BeastMoveRecord;
 
 /// The key the table files were sealed with, or empty when they were not sealed.
 ///

@@ -55,5 +55,6 @@
   "tabbit.constant-redefined": "상수셋 {Entity}에 {Name} 이름의 상수가 둘 있습니다.",
   "tabbit.constant-cannot-be-optional": "{Entity}의 상수 {Name:이} {Type} 타입입니다. 상수는 셀 하나에 적는 값 하나이고 없을 수 있는 행이 없으므로, 여기서 `?`는 뜻할 것이 없습니다.",
   "tabbit.constant-cell-required": "{Entity}의 상수 {Name:이} {Column} 칸을 비웠습니다. 상수의 이름과 타입과 값은 모두 필수입니다.",
+  "tabbit.constant-type-not-array-element": "상수 `{Entity}.{Name}`{Name:이} `{Type}`의 배열로 적혀 있는데, `{Type}`{Type:은} 이 도구가 배열에 담는 타입이 아닙니다. 배열이 되는 것은 스칼라 타입들과 enum이고, 합성 값 타입·struct·참조는 거기에 없습니다.",
   "tabbit.composite-key-multi-row": "{Entity:은} 멀티 로우 테이블인데 기본 키 {Key:는} 컬럼 여럿을 함께 묶은 것입니다. 멀티 로우의 레코드는 기본 키 칸에 값이 있는 곳에서 시작하는데, 컬럼 여럿에 흩어진 조합에는 그런 칸이 없습니다 — 레코드가 어디서 끝나고 어디서 시작하는지 읽을 수 없습니다. 기본 키를 컬럼 하나로 하거나, 레코드마다 한 행으로 적으십시오."
 }

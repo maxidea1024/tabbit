@@ -421,4 +421,38 @@ public class CompositeTypeTests
                 Assert.Matches("^[A-Z][A-Za-z]*$", component);
         }
     }
+    /// <summary>
+    /// A tagged table holding a composite column is refused, and the report says why.
+    /// </summary>
+    /// <remarks>
+    /// **The ordering is the whole of this one.** A composite becomes one column per
+    /// component, so a table writing its tags out needs a tag per component - and that report
+    /// is collected rather than thrown. The expansion then used to carry on: clear the tags
+    /// the sheet wrote, ask for them to be assigned again, and throw about the `#`-excluded
+    /// column reserving a tag while no live field carries one.
+    ///
+    /// Both sentences are about wire tags and only one is about the sheet. The second is true
+    /// of the table this tool had just built - it had cleared those tags itself - and it
+    /// aborted the run before the first was ever printed, sending the author to a `#` column
+    /// they wrote correctly.
+    ///
+    /// So the fixture holds both at once, and this asserts which one speaks.
+    /// spec/composite-value-types.md section 6.
+    /// </remarks>
+    [Fact]
+    public void A_tagged_table_holding_a_composite_column_is_refused_by_name()
+    {
+        var result = TabbitRunner.Convert("composite-tagged");
+
+        Assert.False(result.Succeeded, "A tagged table with a composite column was accepted.");
+
+        // The cause, naming the column and what it expands into.
+        Assert.Contains("`Spot` is `vec2i`", result.StdOut);
+        Assert.Contains("one column per component (X, Y)", result.StdOut);
+
+        // And not the tombstone, which is about tags this tool cleared rather than tags the
+        // sheet left off.
+        Assert.DoesNotContain("no live field carries one", result.StdOut);
+    }
+
 }

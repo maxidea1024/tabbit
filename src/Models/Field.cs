@@ -343,6 +343,22 @@ public class Field
 
     /// <summary>Whether this field references another table.</summary>
     [JsonIgnore]
+    /// <summary>
+    /// Whether this field's name was invented by the tool rather than written in a cell.
+    /// </summary>
+    /// <remarks>
+    /// **A naming convention is a claim about what people write.** A composite value type
+    /// expands into one field per component and the component's part of the name is this
+    /// tool's - `.X` · `.Y` · `.Z` on a `vec3f`, `.R` · `.G` · `.B` · `.A` on a `color` - so
+    /// holding it to the recipe's `Naming` rules reports a spelling nobody chose and points
+    /// at a cell that does not hold it. Enums have had the same exemption since they gained
+    /// a synthesized zero label.
+    ///
+    /// A member of a declared struct is **not** this: somebody wrote that name in a `.tbs`
+    /// file, and it is judged - under the spelling the declaration used.
+    /// </remarks>
+    public bool Synthesized { get; set; }
+
     public bool IsRef => !string.IsNullOrEmpty(RefTableName);
 
     /// <summary>

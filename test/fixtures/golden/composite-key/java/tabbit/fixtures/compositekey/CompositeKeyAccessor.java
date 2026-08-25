@@ -14,6 +14,9 @@ public final class CompositeKeyAccessor {
     public LoadoutTable loadout = new LoadoutTable();
     public RouteTable route = new RouteTable();
     public GridTable grid = new GridTable();
+    public BeastTable beast = new BeastTable();
+    public MoveTable move = new MoveTable();
+    public BeastMoveTable beastMove = new BeastMoveTable();
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -87,12 +90,21 @@ public final class CompositeKeyAccessor {
         loadedRouteTable.read(Paths.get(basePath, "Route" + fileExtension));
         GridTable loadedGridTable = new GridTable();
         loadedGridTable.read(Paths.get(basePath, "Grid" + fileExtension));
+        BeastTable loadedBeastTable = new BeastTable();
+        loadedBeastTable.read(Paths.get(basePath, "Beast" + fileExtension));
+        MoveTable loadedMoveTable = new MoveTable();
+        loadedMoveTable.read(Paths.get(basePath, "Move" + fileExtension));
+        BeastMoveTable loadedBeastMoveTable = new BeastMoveTable();
+        loadedBeastMoveTable.read(Paths.get(basePath, "BeastMove" + fileExtension));
 
-        solveCrossReferences(loadedLoadoutTable, loadedRouteTable, loadedGridTable);
+        solveCrossReferences(loadedLoadoutTable, loadedRouteTable, loadedGridTable, loadedBeastTable, loadedMoveTable, loadedBeastMoveTable);
 
         loadout = loadedLoadoutTable;
         route = loadedRouteTable;
         grid = loadedGridTable;
+        beast = loadedBeastTable;
+        move = loadedMoveTable;
+        beastMove = loadedBeastMoveTable;
     }
 
     /**
@@ -101,7 +113,20 @@ public final class CompositeKeyAccessor {
      * <p>The tables arrive as arguments and shadow the fields of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private void solveCrossReferences(LoadoutTable loadout, RouteTable route, GridTable grid) {
-        // No table references another.
+    private void solveCrossReferences(LoadoutTable loadout, RouteTable route, GridTable grid, BeastTable beast, MoveTable move, BeastMoveTable beastMove) {
+        for (BeastMoveRecord record : beastMove.records()) {
+            {
+                BeastRecord target = beast.findByIndex(record.beastId);
+                if (target != null) {
+                    record.beastByBeastId = target;
+                }
+            }
+            {
+                MoveRecord target = move.findByIndex(record.moveId);
+                if (target != null) {
+                    record.moveByMoveId = target;
+                }
+            }
+        }
     }
 }

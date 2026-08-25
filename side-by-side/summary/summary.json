@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-25T20:21:48.6679435+09:00",
+    "generatedAt": "2026-08-25T23:45:51.0256803+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "side-by-side.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "aac839495880c63146fa4bd267bb508acc2c397d",
-      "shortHash": "aac839495880",
+      "hash": "b2bec7f9560281d911ec0c35bd2ea08b2ef7a672",
+      "shortHash": "b2bec7f95602",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-25T19:33:25.0000000+09:00",
-      "subject": "feat: 다형 배열(5단계) — 표기·모델·검증과 C#의 표면",
+      "committedAt": "2026-08-25T22:31:07.0000000+09:00",
+      "subject": "docs: 「묘비」를 Tombstone으로",
       "origin": "git",
       "dirty": true,
       "attributable": false

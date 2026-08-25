@@ -12,6 +12,9 @@ use crate::tabbit;
 use crate::loadout_table::LoadoutTable;
 use crate::route_table::RouteTable;
 use crate::grid_table::GridTable;
+use crate::beast_table::BeastTable;
+use crate::move_table::MoveTable;
+use crate::beast_move_table::BeastMoveTable;
 
 /// The key the table files were sealed with, or unset when they were not sealed.
 ///
@@ -67,6 +70,9 @@ pub struct Tables {
     pub loadout: LoadoutTable,
     pub route: RouteTable,
     pub grid: GridTable,
+    pub beast: BeastTable,
+    pub move_: MoveTable,
+    pub beast_move: BeastMoveTable,
 }
 
 impl Tables {
@@ -93,6 +99,12 @@ impl Tables {
             &base_path.join(format!("Route{}", file_extension)))?;
         loaded.grid.read(
             &base_path.join(format!("Grid{}", file_extension)))?;
+        loaded.beast.read(
+            &base_path.join(format!("Beast{}", file_extension)))?;
+        loaded.move_.read(
+            &base_path.join(format!("Move{}", file_extension)))?;
+        loaded.beast_move.read(
+            &base_path.join(format!("BeastMove{}", file_extension)))?;
 
         *self = loaded;
 

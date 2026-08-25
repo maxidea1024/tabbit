@@ -119,6 +119,9 @@ namespace Tabbit.Fixtures.CompositeKey
             public LoadoutTable Loadout = new LoadoutTable();
             public RouteTable Route = new RouteTable();
             public GridTable Grid = new GridTable();
+            public BeastTable Beast = new BeastTable();
+            public MoveTable Move = new MoveTable();
+            public BeastMoveTable BeastMove = new BeastMoveTable();
         }
 
         /// <summary>
@@ -146,6 +149,21 @@ namespace Tabbit.Fixtures.CompositeKey
         public static GridTable Grid => Current.Grid;
 
         /// <summary>
+        /// Property for Beast table.
+        /// </summary>
+        public static BeastTable Beast => Current.Beast;
+
+        /// <summary>
+        /// Property for Move table.
+        /// </summary>
+        public static MoveTable Move => Current.Move;
+
+        /// <summary>
+        /// Property for BeastMove table.
+        /// </summary>
+        public static BeastMoveTable BeastMove => Current.BeastMove;
+
+        /// <summary>
         /// Reads every table and links them, and hands the result back without publishing it.
         /// </summary>
         /// <remarks>
@@ -161,6 +179,9 @@ namespace Tabbit.Fixtures.CompositeKey
             tasks.Add(snapshot.Loadout.ReadAsync(System.IO.Path.Combine(basePath, $"Loadout{fileExtension}")));
             tasks.Add(snapshot.Route.ReadAsync(System.IO.Path.Combine(basePath, $"Route{fileExtension}")));
             tasks.Add(snapshot.Grid.ReadAsync(System.IO.Path.Combine(basePath, $"Grid{fileExtension}")));
+            tasks.Add(snapshot.Beast.ReadAsync(System.IO.Path.Combine(basePath, $"Beast{fileExtension}")));
+            tasks.Add(snapshot.Move.ReadAsync(System.IO.Path.Combine(basePath, $"Move{fileExtension}")));
+            tasks.Add(snapshot.BeastMove.ReadAsync(System.IO.Path.Combine(basePath, $"BeastMove{fileExtension}")));
 
             await Task.WhenAll(tasks);
 
@@ -204,6 +225,19 @@ namespace Tabbit.Fixtures.CompositeKey
         /// </summary>
         private static void SolveCrossReferences(Snapshot snapshot)
         {
+            foreach (var record in snapshot.BeastMove.Records)
+            {
+                if (record._beastId_Beast_index is { Length: > 0 })
+                {
+                    record.SetReference_BeastId_INTERNAL(snapshot.Beast.GetByIndexOrThrow(record._beastId_Beast_index));
+                    record._beastId_F = true;
+                }
+                if (record._moveId_Move_index > 0)
+                {
+                    record.SetReference_MoveId_INTERNAL(snapshot.Move.GetByIndexOrThrow(record._moveId_Move_index));
+                    record._moveId_F = true;
+                }
+            }
         }
     }
 } // namespace Tabbit.Fixtures.CompositeKey

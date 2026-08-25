@@ -42,6 +42,12 @@ object CompositeKeyAccessor {
         private set
     var grid: GridTable = GridTable()
         private set
+    var beast: BeastTable = BeastTable()
+        private set
+    var move: MoveTable = MoveTable()
+        private set
+    var beastMove: BeastMoveTable = BeastMoveTable()
+        private set
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -105,12 +111,21 @@ object CompositeKeyAccessor {
         loadedRouteTable.read(File(basePath, "Route$fileExtension").path)
         val loadedGridTable = GridTable()
         loadedGridTable.read(File(basePath, "Grid$fileExtension").path)
+        val loadedBeastTable = BeastTable()
+        loadedBeastTable.read(File(basePath, "Beast$fileExtension").path)
+        val loadedMoveTable = MoveTable()
+        loadedMoveTable.read(File(basePath, "Move$fileExtension").path)
+        val loadedBeastMoveTable = BeastMoveTable()
+        loadedBeastMoveTable.read(File(basePath, "BeastMove$fileExtension").path)
 
-        solveCrossReferences(loadedLoadoutTable, loadedRouteTable, loadedGridTable)
+        solveCrossReferences(loadedLoadoutTable, loadedRouteTable, loadedGridTable, loadedBeastTable, loadedMoveTable, loadedBeastMoveTable)
 
         loadout = loadedLoadoutTable
         route = loadedRouteTable
         grid = loadedGridTable
+        beast = loadedBeastTable
+        move = loadedMoveTable
+        beastMove = loadedBeastMoveTable
     }
 
     /**
@@ -119,7 +134,14 @@ object CompositeKeyAccessor {
      * The tables arrive as arguments and shadow the properties of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private fun solveCrossReferences(loadout: LoadoutTable, route: RouteTable, grid: GridTable) {
-        // No table references another.
+    private fun solveCrossReferences(loadout: LoadoutTable, route: RouteTable, grid: GridTable, beast: BeastTable, move: MoveTable, beastMove: BeastMoveTable) {
+        for (record in beastMove.records) {
+            beast.findByIndex(record.beastId)?.let { target ->
+                record.beastByBeastId = target
+            }
+            move.findByIndex(record.moveId)?.let { target ->
+                record.moveByMoveId = target
+            }
+        }
     }
 }

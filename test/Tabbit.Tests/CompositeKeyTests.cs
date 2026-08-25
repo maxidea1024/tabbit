@@ -55,6 +55,12 @@ public class CompositeKeyTests
         Assert.Contains("\"grid\": \"above origin\"", result.Output);
         Assert.Contains("\"containsGrid\": true", result.Output);
         Assert.Contains("\"containsAbsent\": false", result.Output);
+
+        // A key made of two references. The harness calling it at all is most of this: a
+        // lookup typed with the targets' rows does not compile against these arguments.
+        Assert.Contains("\"link\": \"20\"", result.Output);
+        Assert.Contains("\"linkAbsent\": true", result.Output);
+        Assert.Contains("\"linkRow\": \"Deer/Charge\"", result.Output);
     }
 
     /// <summary>Python, read back through the generated lookups.</summary>
@@ -72,6 +78,13 @@ assert t.loadout.find_by_stage_and_slot(2, Slot.feet).label == 'field boots'
 assert t.grid.find_by_x_and_y_and_z(0, 0, 'roof').name == 'above origin'
 assert t.grid.contains_x_and_y_and_z(1, 0, 'floor')
 assert not t.grid.contains_x_and_y_and_z(9, 9, 'floor')
+
+# The link table, whose key is two references. Each parameter is the target's key - a
+# string for one and a number for the other - and not the target's row.
+assert t.beast_move.find_by_beast_id_and_move_id('deer', 2).power == 20
+assert t.beast_move.find_by_beast_id_and_move_id('wolf', 1).power == 30
+assert t.beast_move.find_by_beast_id_and_move_id('wolf', 2) is None
+assert t.beast_move.find_by_beast_id_and_move_id('deer', 1).beast_by_beast_id.name == 'Deer'
 ");
 
     /// <summary>Ruby, the same.</summary>
@@ -86,6 +99,10 @@ raise 'loadout' unless accessor.loadout.find_by_stage_and_slot(2, CompositeKey::
 raise 'grid' unless accessor.grid.find_by_x_and_y_and_z(0, 0, 'roof').name == 'above origin'
 raise 'contains' unless accessor.grid.contains_x_and_y_and_z?(1, 0, 'floor')
 raise 'absent grid' if accessor.grid.contains_x_and_y_and_z?(9, 9, 'floor')
+raise 'link' unless accessor.beast_move.find_by_beast_id_and_move_id('deer', 2).power == 20
+raise 'link 2' unless accessor.beast_move.find_by_beast_id_and_move_id('wolf', 1).power == 30
+raise 'link absent' unless accessor.beast_move.find_by_beast_id_and_move_id('wolf', 2).nil?
+raise 'link row' unless accessor.beast_move.find_by_beast_id_and_move_id('deer', 1).beast_by_beast_id.name == 'Deer'
 ");
 
     /// <summary>
@@ -108,7 +125,15 @@ raise 'absent grid' if accessor.grid.contains_x_and_y_and_z?(9, 9, 'floor')
             + "\\Tabbit\\Fixtures\\CompositeKey\\Slot::Feet)->label === 'field boots'); "
             + "assert($accessor->grid->findByXAndYAndZ(0, 0, 'roof')->name === 'above origin'); "
             + "assert($accessor->grid->containsXAndYAndZ(1, 0, 'floor')); "
-            + "assert(!$accessor->grid->containsXAndYAndZ(9, 9, 'floor'));");
+            + "assert(!$accessor->grid->containsXAndYAndZ(9, 9, 'floor')); "
+
+            // The link table, whose key is two references: the string one has to stay a
+            // string, which is what a property typed `int` refused outright.
+            + "assert($accessor->beastMove->findByBeastIdAndMoveId('deer', 2)->power === 20); "
+            + "assert($accessor->beastMove->findByBeastIdAndMoveId('wolf', 1)->power === 30); "
+            + "assert($accessor->beastMove->findByBeastIdAndMoveId('wolf', 2) === null); "
+            + "assert($accessor->beastMove->findByBeastIdAndMoveId('deer', 1)"
+            + "->beastByBeastId->name === 'Deer');");
 
     /// <summary>
     /// Lua, whose composite key skips the int64 normalization a single key uses.
@@ -125,6 +150,10 @@ assert(t.route:findByCode('R3').to == 'south')
 assert(t.grid:findByXAndYAndZ(0, 0, 'roof').name == 'above origin')
 assert(t.grid:containsXAndYAndZ(1, 0, 'floor'))
 assert(not t.grid:containsXAndYAndZ(9, 9, 'floor'))
+assert(t.beastMove:findByBeastIdAndMoveId('deer', 2).power == 20)
+assert(t.beastMove:findByBeastIdAndMoveId('wolf', 1).power == 30)
+assert(t.beastMove:findByBeastIdAndMoveId('wolf', 2) == nil)
+assert(t.beastMove:findByBeastIdAndMoveId('deer', 1).beastByBeastId.name == 'Deer')
 ");
 
     // ------------------------------------------------------------------ compile

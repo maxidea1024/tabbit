@@ -43,8 +43,19 @@ public partial class ModelCooker
             if (composites.Count == 0)
                 continue;
 
+            int reportedBefore = diagnostics.Count;
+
             foreach (var field in composites)
                 RefuseWhatTheShapeCannotCarry(table, field, diagnostics);
+
+            // **A table that already failed is not expanded.** Those reports are collected
+            // rather than thrown, and the work below clears the tags the sheet wrote and asks
+            // for them to be assigned again - which then throws about a tombstone reserving a
+            // tag while no live field carries one. That is true of the table this code just
+            // made and not of the sheet, so the author is sent to a `#` column they wrote
+            // correctly while the report naming the real cause never gets printed.
+            if (diagnostics.Count != reportedBefore)
+                continue;
 
             var original = table.Fields.ToList();
 
@@ -203,6 +214,10 @@ public partial class ModelCooker
                 RawName = $"{field.RawName}.{component}",
                 Name = field.Name + component,
                 NamePath = path,
+
+                // The component's part of the name is this tool's, not the sheet's, so the
+                // naming rules have nothing to judge here. See `Field.Synthesized`.
+                Synthesized = true,
 
                 TargetSide = field.TargetSide,
                 IsRequired = field.IsRequired,

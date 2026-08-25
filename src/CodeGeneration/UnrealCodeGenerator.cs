@@ -1095,7 +1095,20 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     private string Declaration(Table table, SerialField sf, string name)
     {
         if (sf.IsRef)
-            return sf.IsArray ? $"TArray<int32> {name};" : $"int32 {name} = 0;";
+        {
+            // **The target's key type, not int32.** A reference carries whatever the target
+            // is keyed by - a name, a uuid, an id past 32 bits - and the member inside a
+            // record group has always been typed that way. This one was not, and nothing
+            // caught it: a top-level reference to a string-keyed table had no golden until
+            // the link table in `composite-key`.
+            string key = ToUnrealTypeName(
+                sf.FirstField!.RefKeyType,
+                sf.FirstField!.ResolvedRefTable?.PrimaryIndexField?.EnumOrNull);
+
+            return sf.IsArray
+                ? $"TArray<{key}> {name};"
+                : $"{key} {name}{RefKeyInitializer(sf.FirstField!.RefKeyType)};";
+        }
 
         // A record group declares the element type above the row struct, so the member is of
         // that type - or an array of it.
@@ -1254,16 +1267,23 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             bool copyCosts = keyType == "FString";
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 
-            var components = plan.Components.Select(component => new KeyComponentView
+            // **A component that is a reference carries the target's key, not its row.**
+            // The two are one edit apart - the column's own name holds the key and the
+            // derived name holds the row - and a lookup taking rows is one nobody can
+            // call. `KeyComponentView.TypeOf` is the one place that decides, so the type and the
+            // shape the key text is built from cannot disagree.
+            var components = plan.Components.Select(component =>
             {
-                Param = KeyComponentView.ParamOf(component.Name).ToPascalCase(),
+                var (keyType, keyEnum) = KeyComponentView.TypeOf(component);
+                string spelled = ToUnrealTypeName(keyType, keyEnum);
 
-                Type = ToUnrealTypeName(component.FirstField) == "FString"
-                    ? "const FString&"
-                    : ToUnrealTypeName(component.FirstField),
-
-                Member = MemberName(component.FirstField, component.Name),
-                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+                return new KeyComponentView
+                {
+                    Param = KeyComponentView.ParamOf(component.Name).ToPascalCase(),
+                    Type = spelled == "FString" ? "const FString&" : spelled,
+                    Member = MemberName(component.FirstField, component.Name),
+                    Kind = KeyComponentView.KindOf(keyType),
+                };
             }).ToList();
 
             string args = string.Join(", ", components.Select(component => component.Param));

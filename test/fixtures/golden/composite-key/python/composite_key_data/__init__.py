@@ -9,6 +9,9 @@ from .enum_slot import Slot
 from .loadout_table import LoadoutRecord, LoadoutTable
 from .route_table import RouteRecord, RouteTable
 from .grid_table import GridRecord, GridTable
+from .beast_table import BeastRecord, BeastTable
+from .move_table import MoveRecord, MoveTable
+from .beast_move_table import BeastMoveRecord, BeastMoveTable
 from .tables import Tables
 
 __all__ = [
@@ -19,5 +22,11 @@ __all__ = [
     "RouteTable",
     "GridRecord",
     "GridTable",
+    "BeastRecord",
+    "BeastTable",
+    "MoveRecord",
+    "MoveTable",
+    "BeastMoveRecord",
+    "BeastMoveTable",
     "Tables",
 ]

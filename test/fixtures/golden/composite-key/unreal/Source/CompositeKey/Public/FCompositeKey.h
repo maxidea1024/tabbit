@@ -112,6 +112,72 @@ struct COMPOSITEKEY_API FGridRow
 };
 
 
+// Generated from test/fixtures/xlsx/composite-key/composite-key.xlsx : Link : B2
+/** Keyed by name, so a reference to it carries a string. */
+USTRUCT(BlueprintType)
+struct COMPOSITEKEY_API FBeastRow
+{
+    GENERATED_BODY()
+
+    /** primary index, a string */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beast")
+    FString Index;
+
+    /** anything */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beast")
+    FString Name;
+
+    /** padding, so every table is one width */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beast")
+    int32 Pad1 = 0;
+
+};
+
+
+// Generated from test/fixtures/xlsx/composite-key/composite-key.xlsx : Link : H2
+/** Keyed by a number, so a reference to it carries an int. */
+USTRUCT(BlueprintType)
+struct COMPOSITEKEY_API FMoveRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Move")
+    int32 Index = 0;
+
+    /** anything */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Move")
+    FString Name;
+
+    /** padding, so every table is one width */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Move")
+    int32 Pad1 = 0;
+
+};
+
+
+// Generated from test/fixtures/xlsx/composite-key/composite-key.xlsx : Link : N2
+/** One row per pair; the key is both references taken together. */
+USTRUCT(BlueprintType)
+struct COMPOSITEKEY_API FBeastMoveRow
+{
+    GENERATED_BODY()
+
+    /** a string-keyed target */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BeastMove")
+    FString BeastId;
+
+    /** an int-keyed target */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BeastMove")
+    int32 MoveId = 0;
+
+    /** anything */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BeastMove")
+    int32 Power = 0;
+
+};
+
+
 /** Every row of Loadout. */
 class COMPOSITEKEY_API FLoadoutTable
 {
@@ -211,6 +277,87 @@ private:
 };
 
 
+/** Every row of Beast. */
+class COMPOSITEKEY_API FBeastTable
+{
+public:
+    const TArray<FBeastRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FBeastRow* FindByIndex(const FString& Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(const FString& Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FBeastRow> RecordsStorage;
+    TMap<FString, int32> ByIndex;
+};
+
+
+/** Every row of Move. */
+class COMPOSITEKEY_API FMoveTable
+{
+public:
+    const TArray<FMoveRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FMoveRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FMoveRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of BeastMove. */
+class COMPOSITEKEY_API FBeastMoveTable
+{
+public:
+    const TArray<FBeastMoveRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this BeastId and MoveId, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FBeastMoveRow* FindByBeastIdAndMoveId(const FString& BeastIdKey, int32 MoveIdKey) const;
+
+    /** Whether the table holds a row with this BeastId and MoveId. */
+    bool ContainsBeastIdAndMoveId(const FString& BeastIdKey, int32 MoveIdKey) const;
+
+    /** Joins the columns of the BeastId and MoveId key into the text the map is keyed by. */
+    static FString KeyOfBeastIdAndMoveId(const FString& BeastIdKey, int32 MoveIdKey);
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FBeastMoveRow> RecordsStorage;
+    TMap<FString, int32> ByBeastIdAndMoveId;
+};
+
+
 /**
  * Every table, loaded together.
  *
@@ -223,6 +370,9 @@ public:
     static const FLoadoutTable& Loadout() { return LoadoutStorage; }
     static const FRouteTable& Route() { return RouteStorage; }
     static const FGridTable& Grid() { return GridStorage; }
+    static const FBeastTable& Beast() { return BeastStorage; }
+    static const FMoveTable& Move() { return MoveStorage; }
+    static const FBeastMoveTable& BeastMove() { return BeastMoveStorage; }
 
     /**
      * Reads every table from BasePath. Returns false if any of them could not be read.
@@ -288,6 +438,9 @@ private:
     static FLoadoutTable LoadoutStorage;
     static FRouteTable RouteStorage;
     static FGridTable GridStorage;
+    static FBeastTable BeastStorage;
+    static FMoveTable MoveStorage;
+    static FBeastMoveTable BeastMoveStorage;
 };
 
 /**
@@ -393,6 +546,90 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|Grid",
               meta = (DisplayName = "Get Grid Row At"))
     static FGridRow GetGridRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Beast row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Beast",
+              meta = (DisplayName = "Get Beast Row"))
+    static FBeastRow GetBeastRow(const FString& Key, bool& bFound);
+
+    /** How many Beast rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Beast",
+              meta = (DisplayName = "Get Beast Row Count"))
+    static int32 GetBeastRowCount();
+
+    /**
+     * The Beast row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Beast",
+              meta = (DisplayName = "Get Beast Row At"))
+    static FBeastRow GetBeastRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Move row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Move",
+              meta = (DisplayName = "Get Move Row"))
+    static FMoveRow GetMoveRow(int32 Key, bool& bFound);
+
+    /** How many Move rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Move",
+              meta = (DisplayName = "Get Move Row Count"))
+    static int32 GetMoveRowCount();
+
+    /**
+     * The Move row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Move",
+              meta = (DisplayName = "Get Move Row At"))
+    static FMoveRow GetMoveRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The BeastMove row with the given BeastId and MoveId.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|BeastMove",
+              meta = (DisplayName = "Get BeastMove Row"))
+    static FBeastMoveRow GetBeastMoveRow(const FString& BeastIdKey, int32 MoveIdKey, bool& bFound);
+
+    /** How many BeastMove rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|BeastMove",
+              meta = (DisplayName = "Get BeastMove Row Count"))
+    static int32 GetBeastMoveRowCount();
+
+    /**
+     * The BeastMove row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|BeastMove",
+              meta = (DisplayName = "Get BeastMove Row At"))
+    static FBeastMoveRow GetBeastMoveRowAt(int32 Position, bool& bFound);
 
     /**
      * Reads every table from BasePath, as FCompositeKey::ReadAll does.

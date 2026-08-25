@@ -587,12 +587,36 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     {
         // A uuid is a struct, and a struct defined in a header would be a separate
         // object in every translation unit including it. Those go in the .c.
-        bool isStruct = constant.Type == ValueType.Uuid;
+        //
+        // **An array is the same case for a stronger reason**: a `#define` of a brace list
+        // would paste the whole list at every use, and one copy per translation unit is what
+        // a header definition gives. So it is declared in the header and defined once.
+        bool isArray = ValueTypes.IsArray(constant.Type);
+        bool isStruct = constant.Type == ValueType.Uuid || isArray;
+
+        string name = ConstantName(set.Name, constant.Name);
+        var element = ValueTypes.ElementOf(constant.Type);
 
         return new CConstantView
         {
-            Name = ConstantName(set.Name, constant.Name),
-            Type = ScalarTypeName(constant.Type, constant.Enum),
+            Name = name,
+
+            // **`char* const`, and the template's own `const` completes it.** An array of
+            // pointers needs both: `const char*` alone makes what the elements point at
+            // const and leaves the array writable, and the declaration this joins already
+            // begins with `const`.
+            Type = isArray && element == ValueType.String
+                ? "char* const"
+                : ScalarTypeName(element, constant.Enum),
+
+            NameSuffix = isArray ? "[]" : "",
+            CountName = isArray ? name + "_COUNT" : "",
+
+            Count = isArray
+                ? ((System.Array)constant.Value!).Length.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture)
+                : "",
+
             Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
             IsExtern = isStruct,
@@ -639,15 +663,22 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             string family = plan.IsComposite ? "tb_string_index" : IndexFamily(plan.Only);
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 
-            var components = plan.Components.Select(component => new KeyComponentView
+            // **A component that is a reference carries the target's key, not its row.**
+            // The two are one edit apart - the column's own name holds the key and the
+            // derived name holds the row - and a lookup taking rows is one nobody can
+            // call. `KeyComponentView.TypeOf` is the one place that decides, so the type and the
+            // shape the key text is built from cannot disagree.
+            var components = plan.Components.Select(component =>
             {
-                Param = KeyComponentView.ParamOf(component.Name).ToSnakeCase(),
+                var (keyType, keyEnum) = KeyComponentView.TypeOf(component);
 
-                Type = ScalarTypeName(
-                    component.FirstField!.ElementType, component.FirstField!.EnumOrNull),
-
-                Member = CName(component.Name),
-                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+                return new KeyComponentView
+                {
+                    Param = KeyComponentView.ParamOf(component.Name).ToSnakeCase(),
+                    Type = ScalarTypeName(keyType, keyEnum),
+                    Member = CName(component.Name),
+                    Kind = KeyComponentView.KindOf(keyType),
+                };
             }).ToList();
 
             return new CIndexView
@@ -1684,46 +1715,73 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         return LanguageProfile.C.ScalarTypeName(type);
     }
 
+    /// <summary>
+    /// The literal a constant is written as.
+    /// </summary>
+    /// <remarks>
+    /// **An array constant is its elements in a brace list.** The element spelling is the
+    /// scalar one, so this wraps rather than repeats it.
+    ///
+    /// A constant never reaches the file, so there is no wire question here: what a language
+    /// needs is an expression its compiler accepts in the place a constant is declared.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {
-        switch (constant.Type)
+        if (!ValueTypes.IsArray(constant.Type))
+            return RenderConstantScalar(constant, constant.Type, constant.Value);
+
+        var element = ValueTypes.ElementOf(constant.Type);
+
+        string joined = string.Join(", ",
+            ((System.Array)constant.Value!).Cast<object?>()
+                .Select(value => RenderConstantScalar(constant, element, value)));
+
+        return "{ " + joined + " }";
+    }
+
+    /// <summary>One element, or a constant that is one value.</summary>
+    private string RenderConstantScalar(
+        ConstantSet.Constant constant, ValueType type, object? value)
+    {
+        switch (type)
         {
             case ValueType.String:
-                return Quote((string)constant.Value!);
+                return Quote((string)value!);
 
             // C has no bool literal without <stdbool.h>, which the reader includes -
             // and the header includes the reader, so these are safe.
             case ValueType.Bool:
-                return (bool)constant.Value! ? "true" : "false";
+                return (bool)value! ? "true" : "false";
 
             case ValueType.Int32:
-                return ((int)constant.Value!).ToString(CultureInfo.InvariantCulture);
+                return ((int)value!).ToString(CultureInfo.InvariantCulture);
 
             // The suffix matters: without it the literal is an int and the value is
             // truncated before it ever reaches the constant.
             case ValueType.Int64:
-                return ((long)constant.Value!).ToString(CultureInfo.InvariantCulture) + "LL";
+                return ((long)value!).ToString(CultureInfo.InvariantCulture) + "LL";
 
             case ValueType.Float:
-                return ((float)constant.Value!).ToString("R", CultureInfo.InvariantCulture) + "f";
+                return ((float)value!).ToString("R", CultureInfo.InvariantCulture) + "f";
 
             case ValueType.Double:
-                return ((double)constant.Value!).ToString("R", CultureInfo.InvariantCulture);
+                return ((double)value!).ToString("R", CultureInfo.InvariantCulture);
 
             case ValueType.DateTime:
-                return ((DateTime)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture) + "LL";
+                return ((DateTime)value!).Ticks.ToString(CultureInfo.InvariantCulture) + "LL";
 
             case ValueType.TimeSpan:
-                return ((TimeSpan)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture) + "LL";
+                return ((TimeSpan)value!).Ticks.ToString(CultureInfo.InvariantCulture) + "LL";
 
             case ValueType.Uuid:
                 return "{ { " + string.Join(", ",
-                    ((Guid)constant.Value!).ToByteArray()
+                    ((Guid)value!).ToByteArray()
                         .Select(b => "0x" + b.ToString("x2", CultureInfo.InvariantCulture))) + " } }";
 
             case ValueType.Enum:
             {
-                var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
+                var label = constant.Enum.GetLabel(value!, constant.Location);
 
                 return ConstantName(constant.Enum.Name, label.Name);
             }
@@ -1731,7 +1789,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             default:
                 throw new TabbitException(constant.Location,
                         Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
-                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Name", constant.Name), ("Type", type),
                             ("Generator", "c")));
         }
     }

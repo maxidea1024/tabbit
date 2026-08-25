@@ -166,7 +166,13 @@ public partial class ModelCooker
                 DetailTypeLocation = field.DetailTypeLocation,
                 TargetSideLocation = field.TargetSideLocation,
 
-                RawName = $"{field.RawName}.{spelled}",
+                // **The declaration's own spelling, not the cased one.** A member of a
+                // declared struct is a name somebody wrote, so the naming rules judge it -
+                // and they have to judge what was written. Pascal-casing it here made a
+                // `.tbs` declaring `currency_id` arrive as `CurrencyId`, which a recipe
+                // asking for `snake` then reported. The same struct written out as member
+                // columns passed, because there the sheet's own text is what arrives.
+                RawName = $"{field.RawName}.{member.Name}",
                 Name = field.Name + spelled,
                 NamePath = [.. basePath, new FieldPathStep { Name = spelled, Index = null }],
 

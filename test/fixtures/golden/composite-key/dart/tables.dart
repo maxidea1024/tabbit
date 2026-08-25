@@ -15,6 +15,9 @@ import 'tabbit/tcb_reader.dart';
 part 'tables/loadout_table.dart';
 part 'tables/route_table.dart';
 part 'tables/grid_table.dart';
+part 'tables/beast_table.dart';
+part 'tables/move_table.dart';
+part 'tables/beast_move_table.dart';
 part 'enums/slot.dart';
 
 /// Every table, loaded together so cross-table references can be resolved.
@@ -22,6 +25,9 @@ class Tables {
   LoadoutTable loadout = LoadoutTable();
   RouteTable route = RouteTable();
   GridTable grid = GridTable();
+  BeastTable beast = BeastTable();
+  MoveTable move = MoveTable();
+  BeastMoveTable beastMove = BeastMoveTable();
 
   /// The key the table files were sealed with, or null when they were not sealed.
   ///
@@ -81,19 +87,37 @@ class Tables {
     loadedRouteTable.read('$basePath${Platform.pathSeparator}Route$fileExtension');
     final loadedGridTable = GridTable();
     loadedGridTable.read('$basePath${Platform.pathSeparator}Grid$fileExtension');
+    final loadedBeastTable = BeastTable();
+    loadedBeastTable.read('$basePath${Platform.pathSeparator}Beast$fileExtension');
+    final loadedMoveTable = MoveTable();
+    loadedMoveTable.read('$basePath${Platform.pathSeparator}Move$fileExtension');
+    final loadedBeastMoveTable = BeastMoveTable();
+    loadedBeastMoveTable.read('$basePath${Platform.pathSeparator}BeastMove$fileExtension');
 
-    _solveCrossReferences(loadedLoadoutTable, loadedRouteTable, loadedGridTable);
+    _solveCrossReferences(loadedLoadoutTable, loadedRouteTable, loadedGridTable, loadedBeastTable, loadedMoveTable, loadedBeastMoveTable);
 
     loadout = loadedLoadoutTable;
     route = loadedRouteTable;
     grid = loadedGridTable;
+    beast = loadedBeastTable;
+    move = loadedMoveTable;
+    beastMove = loadedBeastMoveTable;
   }
 
   /// Turns the stored indices into usable values, once every table is in memory.
   ///
   /// The tables arrive as arguments and shadow the fields of the same name, which is how
   /// this resolves the load being read rather than the one already published.
-  void _solveCrossReferences(LoadoutTable loadout, RouteTable route, GridTable grid) {
-    // No table references another.
+  void _solveCrossReferences(LoadoutTable loadout, RouteTable route, GridTable grid, BeastTable beast, MoveTable move, BeastMoveTable beastMove) {
+    for (final record in beastMove.records) {
+      {
+        final target = beast.findByIndex(record.beastId);
+        if (target != null) record.beastByBeastId = target;
+      }
+      {
+        final target = move.findByIndex(record.moveId);
+        if (target != null) record.moveByMoveId = target;
+      }
+    }
   }
 }

@@ -133,7 +133,7 @@ public sealed class ModelFingerprint
     private static string? ConstantValueOf(ConstantSet.Constant constant)
     {
         if (constant.Type != ValueType.Enum)
-            return CanonicalValue.OfScalar(constant.Value!, constant.Type);
+            return CanonicalValue.OfTyped(constant.Value, constant.Type);
 
         if (constant.Value is null)
             return null;

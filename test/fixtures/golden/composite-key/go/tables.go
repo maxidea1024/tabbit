@@ -16,6 +16,9 @@ type Tables struct {
 	Loadout LoadoutTable
 	Route RouteTable
 	Grid GridTable
+	Beast BeastTable
+	Move MoveTable
+	BeastMove BeastMoveTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not
@@ -86,6 +89,15 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 	if err := loaded.Grid.Read(filepath.Join(basePath, "Grid"+fileExtension)); err != nil {
 		return err
 	}
+	if err := loaded.Beast.Read(filepath.Join(basePath, "Beast"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Move.Read(filepath.Join(basePath, "Move"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.BeastMove.Read(filepath.Join(basePath, "BeastMove"+fileExtension)); err != nil {
+		return err
+	}
 
 	loaded.solveCrossReferences()
 
@@ -97,5 +109,13 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 // solveCrossReferences turns the stored indices into usable values, once every table is
 // in memory.
 func (t *Tables) solveCrossReferences() {
-	// No table references another.
+	for i := range t.BeastMove.records {
+		record := &t.BeastMove.records[i]
+		if target := t.Beast.FindByIndex(record.BeastId); target != nil {
+			record.BeastByBeastId = target
+		}
+		if target := t.Move.FindByIndex(record.MoveId); target != nil {
+			record.MoveByMoveId = target
+		}
+	}
 }

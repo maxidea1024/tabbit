@@ -8,6 +8,6 @@
 
 {{~ for constant in set.constants ~}}
 {{~ if constant.is_extern ~}}
-const {{ constant.type }} {{ constant.name }} = {{ constant.value }};
+const {{ constant.type }} {{ constant.name }}{{ constant.name_suffix }} = {{ constant.value }};
 {{~ end ~}}
 {{~ end ~}}

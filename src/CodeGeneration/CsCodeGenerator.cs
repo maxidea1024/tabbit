@@ -845,12 +845,22 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         {
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 
-            var components = plan.Components.Select(component => new KeyComponentView
+            // **A component that is a reference carries the target's key, not its row.**
+            // The two are one edit apart - the column's own name holds the key and the
+            // derived name holds the row - and a lookup taking rows is one nobody can
+            // call. `KeyComponentView.TypeOf` is the one place that decides, so the type and the
+            // shape the key text is built from cannot disagree.
+            var components = plan.Components.Select(component =>
             {
-                Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
-                Type = ToCSharpTypeName(component.FirstField),
-                Member = CsName(component.Name),
-                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+                var (keyType, keyEnum) = KeyComponentView.TypeOf(component);
+
+                return new KeyComponentView
+                {
+                    Param = KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                    Type = ToCSharpTypeName(keyType, keyEnum, null),
+                    Member = CsName(component.Name),
+                    Kind = KeyComponentView.KindOf(keyType),
+                };
             }).ToList();
 
             return new CompositeKeyView
@@ -1781,8 +1791,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         Constants = constantSet.Constants.Select(constant => new CsConstantView
         {
             Name = constant.Name.ToPascalCase(),
-            Type = ToCSharpTypeName(constant.Type, constant.Enum, null),
-            Value = RenderConstantValue(constant.Type, constant.Enum, constant.Value, constant.Location),
+            Type = ConstantTypeName(constant),
+            Value = RenderConstantValue(constant),
             Comment = CommentLines(constant.Comment),
         }).ToList(),
     };
@@ -1818,7 +1828,54 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         return asArray ? LanguageProfile.CSharp.ArrayOf(result) : result;
     }
 
-    private string RenderConstantValue(
+    /// <summary>
+    /// How a constant's type is spelled, arrays included.
+    /// </summary>
+    /// <remarks>
+    /// The type functions answer for an element and let the caller add the brackets, exactly
+    /// as a field's do - so an array constant asks for the element and wraps it here.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
+    private string ConstantTypeName(ConstantSet.Constant constant)
+        => ToCSharpTypeName(
+            Models.ValueTypes.ElementOf(constant.Type), constant.Enum, null,
+            asArray: Models.ValueTypes.IsArray(constant.Type));
+
+    /// <summary>
+    /// The literal a constant is written as.
+    /// </summary>
+    /// <remarks>
+    /// **An array constant is its elements in this language's list literal.** The element
+    /// spelling is the scalar one, so this wraps rather than repeats it - and the wrapping is
+    /// where the languages differ far more than the elements do.
+    ///
+    /// A constant never reaches the file, so there is no wire question here: what a language
+    /// needs is an expression its compiler accepts in the place a constant is declared.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
+    private string RenderConstantValue(ConstantSet.Constant constant)
+    {
+        if (!Models.ValueTypes.IsArray(constant.Type))
+        {
+            return RenderConstantScalar(
+                constant.Type, constant.Enum, constant.Value, constant.Location);
+        }
+
+        var element = Models.ValueTypes.ElementOf(constant.Type);
+
+        string joined = string.Join(", ",
+            ((System.Array)constant.Value!).Cast<object?>()
+                .Select(value => RenderConstantScalar(
+                    element, constant.Enum, value, constant.Location)));
+
+        // The element type is written out rather than left to `new[]`: an empty list has
+        // nothing to infer from, and a one-element list of an enum infers the enum only
+        // because the label spells it.
+        return $"new {ToCSharpTypeName(element, constant.Enum, null)}[] {{ {joined} }}";
+    }
+
+    /// <summary>One element, or a constant that is one value.</summary>
+    private string RenderConstantScalar(
         Models.ValueType valueType, Models.Enum enumm, object? value, Location location)
     {
         switch (valueType)

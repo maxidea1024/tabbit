@@ -84,6 +84,8 @@ internal static class Program
         WriteReservedWords(Prepare(outputDir, "reserved-words", "reserved-words.xlsx"));
         WriteText(Prepare(outputDir, "text", "text.xlsx"));
         WriteBitset(Prepare(outputDir, "bitset", "bitset.xlsx"));
+        WriteCompositeTagged(
+            Prepare(outputDir, "composite-tagged", "composite-tagged.xlsx"));
 
         // The same table twice: once with composite columns and once with the components
         // written out. Two workbooks rather than two tables in one, so both can carry the
@@ -342,7 +344,63 @@ internal static class Program
             // sheet declaring one of these produced a file that would not compile.
             .Constant("SeasonStart", "datetime", "2022-03-01 09:00:00", "when the season opens")
             .Constant("RoundLength", "timespan", "0.00:05:00", "length of one round")
-            .Constant("BuildId", "uuid", "6f9619ff-8b86-d011-b42d-00c04fc964ff", "identifies this data build"));
+            .Constant("BuildId", "uuid", "6f9619ff-8b86-d011-b42d-00c04fc964ff", "identifies this data build")
+
+            // The array types. Here as well as in the conformance corpus because this is the
+            // only golden scenario with a constant set: the corpus says the literals compile
+            // and this says what they are, and a literal nothing records can drift silently.
+            .Constant("Tiers", "string[]", "bronze;silver;gold", "text elements")
+            .Constant("Thresholds", "int[]", "10;50;100", "number elements")
+            .Constant("Single", "int[]", "1", "one element, where a separator has nowhere to go")
+
+            // The one that reaches outside the constants file, at the array width: every
+            // language spells an enum element by naming the enum, so the file depends on it.
+            .Constant("Ladder", "Grade[]", "Common;Rare;Epic", "enum elements"));
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// A table that writes its wire tags out and holds a composite column.
+    /// </summary>
+    /// <remarks>
+    /// **A refusal fixture, and the tombstone is the point of it.** A composite becomes one
+    /// column per component, so a tagged table needs a tag per component - and the report
+    /// saying so is collected rather than thrown. The expansion used to carry on from there,
+    /// clear the tags the sheet wrote, ask for them again, and throw about the `#` column
+    /// reserving a tag while no live field carries one: a sentence about the table this tool
+    /// had just built, printed instead of the one about the sheet.
+    ///
+    /// So this workbook holds both at once - `@N` on every column, a `vec2i` among them, and
+    /// a tombstone holding a tag. Only the ordering makes the two tell apart.
+    /// spec/composite-value-types.md section 6.
+    /// </remarks>
+    private static void WriteCompositeTagged(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Tagged"));
+
+        var spec = new TableSpec
+        {
+            Name = "Placed",
+            Comment = "Writes its tags out, and one of its columns has several components.",
+        };
+
+        spec
+            .Field(FieldSpec.Of("index@1", "int", "primary index"))
+            .Field(FieldSpec.Of("Name@2", "string", "a plain column"))
+
+            // The one that cannot take a single tag.
+            .Field(FieldSpec.Of("Spot@3", "vec2i", "two components, one tag"))
+
+            // The tombstone, which is what used to speak first.
+            .Field(FieldSpec.Of("#old@7", "", ""));
+
+        spec
+            .Row("1", "first", "(1, 2)", "")
+            .Row("2", "second", "(3, 4)", "");
+
+        b.Table(1, 1, spec);
 
         Save(workbook, path);
     }
@@ -1089,7 +1147,50 @@ internal static class Program
             // A run of equal values in every column, which is what the column encodings read.
             .Row("3", "third",  "20", "3", "",       "21", "4", "icon_c", "Ice");
 
-        b.Table(1, 1, spec);
+        int next = b.Table(1, 1, spec);
+
+        // --- the same notation over a multi-row group ------------------------
+        //
+        // **A group whose elements are the rows below, typed by a declaration.** The header
+        // is one column per member and every element's field carries that same cell, so the
+        // check asking which column named the struct counted the elements: it reported a
+        // group naming its struct twice and then reported every member as a column no group
+        // claimed. Both sentences in one run, and neither true.
+        //
+        // Its own table rather than another group on `Loadout`: a continuation row leaves the
+        // other columns blank, and `Loadout`'s are declaration-typed - which is a second
+        // question and not this one. spec/primary-layout.md section 4.3.
+
+        var multi = new TableSpec
+        {
+            Name = "Bonuses",
+            Comment = "A multi-row group whose members a schema file declares.",
+        };
+
+        multi
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of(
+                "Bonus[].StatId",
+                fromSchema ? "Bonus" : "int",
+                Said("Which stat it raises.")))
+
+            // Typed on both sides, like `Slot1.Count` above: what this group is here to
+            // exercise is the first column naming the struct, not a second blank cell.
+            .Field(FieldSpec.Of("Bonus[].Amount", "int", Said("By how much.")));
+
+        // Every record the same number of rows. A record with fewer would leave the last
+        // element's cells blank, and the declaration says those members are required - which
+        // is a question about variable-length groups and not about this notation.
+        multi
+            .Row("1", "1", "5")
+            .Row("", "2", "7")
+            .Row("2", "3", "9")
+            .Row("", "4", "11")
+            // A run of equal values, which is what the column encodings read.
+            .Row("3", "3", "9")
+            .Row("", "4", "11");
+
+        b.Table(1, next + 2, multi);
 
         Save(workbook, path);
     }
@@ -1302,9 +1403,14 @@ internal static class Program
 
         spec.Field(FieldSpec.Of("index", "int", "primary index"));
 
+        // **Written in the case `payout.tbs` declares its members in**, which is what lets
+        // this scenario's recipe turn the naming check on: the `sep` expansion records the
+        // declaration's own spelling, and a check is only a gate on that if the sheet's own
+        // columns agree with it. The normalized names are unchanged - `reward` and `Reward`
+        // are one member - so the file and every generated reader are the same either way.
         if (inOneCell)
         {
-            spec.Field(FieldSpec.Of("Reward", "Reward"));
+            spec.Field(FieldSpec.Of("reward", "Reward"));
         }
         else
         {
@@ -1314,13 +1420,13 @@ internal static class Program
             // is read while the sheet is parsed, which refuses the blank cell before the
             // declaration is ever consulted.
             spec
-                .Field(FieldSpec.Of("Reward.ItemId", "Reward"))
-                .Field(FieldSpec.Of("Reward.Count", ""))
-                .Field(FieldSpec.Of("Reward.Icon", ""))
-                .Field(FieldSpec.Of("Reward.Grade", ""));
+                .Field(FieldSpec.Of("reward.itemId", "Reward"))
+                .Field(FieldSpec.Of("reward.count", ""))
+                .Field(FieldSpec.Of("reward.icon", ""))
+                .Field(FieldSpec.Of("reward.grade", ""));
         }
 
-        spec.Field(FieldSpec.Of("Grade", "enum", "an enum the schema file declares", "Element"));
+        spec.Field(FieldSpec.Of("grade", "enum", "an enum the schema file declares", "Element"));
 
         if (inOneCell)
         {
@@ -1641,6 +1747,68 @@ internal static class Program
             .Row("0", "1", "floor", "north");
 
         grids.Table(1, 1, grid);
+
+        // --- components that are references -------------------------------
+        //
+        // **A link table, which is where a composite key most often comes from** - one row
+        // per pair, and both columns point at a catalogue. The key type is the target's key
+        // rather than the target's row, and the two are easy to swap: the column's own name
+        // holds the key and the derived name holds the row, so a generator reaching for the
+        // wrong one still compiles against something.
+        //
+        // One target keyed by a string and one by an int, because that is what separates
+        // "wrote the row type" from "wrote the wrong scalar" - a generator hardcoding a
+        // number for every key passes a table whose keys are all numbers.
+        // spec/reference-surface-naming.md sections 4 and 5.
+
+        var links = new SheetBuilder(workbook.CreateSheet("Link"));
+
+        var beast = new TableSpec
+        {
+            Name = "Beast",
+            Comment = "Keyed by name, so a reference to it carries a string.",
+        };
+        beast
+            .Field(FieldSpec.Of("index", "string", "primary index, a string"))
+            .Field(FieldSpec.Of("Name", "string", "anything"))
+            .Field(FieldSpec.Of("Pad1", "int", "padding, so every table is one width"));
+        beast
+            .Row("deer", "Deer", "0")
+            .Row("wolf", "Wolf", "0");
+
+        links.Table(1, 1, beast);
+
+        var move = new TableSpec
+        {
+            Name = "Move",
+            Comment = "Keyed by a number, so a reference to it carries an int.",
+        };
+        move
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "anything"))
+            .Field(FieldSpec.Of("Pad1", "int", "padding, so every table is one width"));
+        move
+            .Row("1", "Charge", "0")
+            .Row("2", "Howl", "0");
+
+        links.Table(7, 1, move);
+
+        var beastMove = new TableSpec
+        {
+            Name = "BeastMove",
+            Comment = "One row per pair; the key is both references taken together.",
+            Meta = "key=\"BeastId,MoveId\"",
+        };
+        beastMove
+            .Field(FieldSpec.Of("BeastId", "foreign", "a string-keyed target", detailType: "Beast"))
+            .Field(FieldSpec.Of("MoveId", "foreign", "an int-keyed target", detailType: "Move"))
+            .Field(FieldSpec.Of("Power", "int", "anything"));
+        beastMove
+            .Row("deer", "1", "10")
+            .Row("deer", "2", "20")
+            .Row("wolf", "1", "30");
+
+        links.Table(13, 1, beastMove);
 
         Save(workbook, path);
     }
@@ -3412,7 +3580,32 @@ internal static class Program
             // own type carries.
             .Constant("DefaultFlag", "enum", "Large", "names the Flag enum", detailType: "Flag")
             .Constant("BuildId", "uuid", "6f9619ff-8b86-d011-b42d-00c04fc964ff",
-                      "names the reader's uuid type");
+                      "names the reader's uuid type")
+
+            // The array types, which the type cell has always taken and no generator could
+            // write. A constant is code and never reaches the file, so the wire has nothing
+            // to say here - what each language needs is a literal for a list, and that is a
+            // different expression from the element's in most of them.
+            //
+            // Here rather than in a scenario of their own because this corpus is the one
+            // place a constants file is built in every language: an array literal that does
+            // not compile is a thing only a compiler says.
+            .Constant("Names", "string[]", "alpha;é한Ａ;gamma", "text elements, beyond ascii")
+            .Constant("Steps", "int[]", "1;2;3", "number elements")
+            // The negative one is not the type's minimum on purpose: `-9223372036854775808`
+            // is unary minus applied to a literal that does not fit, which several C
+            // compilers refuse before they ever see the negation.
+            .Constant("Wide", "bigint[]", "9223372036854775807;-9223372036854775807",
+                      "elements past what a double carries exactly")
+            .Constant("Weights", "float[]", "0.5;0.25", "single precision elements")
+            .Constant("Switches", "bool[]", "Y;N;Y", "logical elements")
+
+            // One element, which is where a language that writes a separator between
+            // elements and a language that writes one after each part differ.
+            .Constant("Only", "int[]", "7", "one element")
+            // The negative label included: an enum element goes through the same zig-zag as a
+            // column's, and a language that casts rather than names gets it wrong here first.
+            .Constant("Ladder", "Flag[]", "One;Large;Negative", "enum elements, which name the enum");
 
         // Column 1, well below the Flag enum: the two tables are at column 8.
         b.Const(1, 20, limits);

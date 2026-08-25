@@ -383,12 +383,24 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         {
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 
-            var components = plan.Components.Select(component => new KeyComponentView
+            // **A component that is a reference carries the target's key, not its row.**
+            // The two are one edit apart - the column's own name holds the key and the
+            // derived name holds the row - and a lookup taking rows is one nobody can
+            // call. `KeyComponentView.TypeOf` is the one place that decides, so the type and the
+            // shape the key text is built from cannot disagree.
+            var components = plan.Components.Select(component =>
             {
-                Param = "$" + KeyComponentView.ParamOf(component.Name).ToCamelCase(),
-                Type = ResolvedElementType(component),
-                Member = "$record->" + PhpName(component.Name),
-                Kind = KeyComponentView.KindOf(component.FirstField!.ElementType),
+                var (keyType, keyEnum) = KeyComponentView.TypeOf(component);
+
+                return new KeyComponentView
+                {
+                    Param = "$" + KeyComponentView.ParamOf(component.Name).ToCamelCase(),
+                    Type = keyEnum is not null
+                        ? EnumName(keyEnum)
+                        : LanguageProfile.Php.ScalarTypeName(keyType),
+                    Member = "$record->" + PhpName(component.Name),
+                    Kind = KeyComponentView.KindOf(keyType),
+                };
             }).ToList();
 
             string args = string.Join(", ", components.Select(component => component.Param));
@@ -1160,10 +1172,17 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                 : name;
             string keyName = toRow ? name : name + "Index";
 
+            // **The target's key type, not an int.** A reference carries whatever the
+            // target is keyed by - a name, a uuid, an id past 32 bits - and the member
+            // inside a record group has always been typed that way. This one was not,
+            // and nothing caught it: a top-level reference to a string-keyed table had
+            // no golden until the link table in `composite-key`.
+            string key = LanguageProfile.Php.ScalarTypeName(sf.FirstField!.RefKeyType);
+
             return sf.IsArray
                 ? new[]
                 {
-                    "/** @var list<int> */",
+                    $"/** @var list<{key}> */",
                     $"public array ${keyName} = [];",
                     "",
                     $"/** @var list<?{elementType}> */",
@@ -1171,7 +1190,8 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                 }
                 : new[]
                 {
-                    $"public int ${keyName} = 0;",
+                    $"public {RefKeyDeclaration(sf.FirstField!.RefKeyType, key)} ${keyName}"
+                        + $"{RefKeyInitializer(sf.FirstField!.RefKeyType)};",
                     "",
                     $"public ?{elementType} ${rowName} = null;",
                 };
@@ -1523,50 +1543,77 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         return LanguageProfile.Php.ScalarTypeName(sf.FirstField!.ElementType);
     }
 
+    /// <summary>
+    /// The literal a constant is written as.
+    /// </summary>
+    /// <remarks>
+    /// **An array constant is its elements in this language's list literal.** The element
+    /// spelling is the scalar one, so this wraps rather than repeats it - and the wrapping is
+    /// where the languages differ far more than the elements do.
+    ///
+    /// A constant never reaches the file, so there is no wire question here: what a language
+    /// needs is an expression its compiler accepts in the place a constant is declared.
+    /// spec/primary-layout.md section 8.5.
+    /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {
-        switch (constant.Type)
+        if (!ValueTypes.IsArray(constant.Type))
+            return RenderConstantScalar(constant, constant.Type, constant.Value);
+
+        string joined = string.Join(", ",
+            ((System.Array)constant.Value!).Cast<object?>()
+                .Select(value => RenderConstantScalar(
+                    constant, ValueTypes.ElementOf(constant.Type), value)));
+
+        return "[" + joined + "]";
+    }
+
+    /// <summary>One element, or a constant that is one value.</summary>
+    private string RenderConstantScalar(
+        ConstantSet.Constant constant, ValueType type, object? value)
+    {
+        switch (type)
         {
             case ValueType.String:
-                return Quote((string)constant.Value!);
+                return Quote((string)value!);
 
             case ValueType.Bool:
-                return (bool)constant.Value! ? "true" : "false";
+                return (bool)value! ? "true" : "false";
 
             case ValueType.Int32:
-                return ((int)constant.Value!).ToString(CultureInfo.InvariantCulture);
+                return ((int)value!).ToString(CultureInfo.InvariantCulture);
 
             case ValueType.Int64:
-                return ((long)constant.Value!).ToString(CultureInfo.InvariantCulture);
+                return ((long)value!).ToString(CultureInfo.InvariantCulture);
 
             case ValueType.Float:
-                return ((float)constant.Value!).ToString("R", CultureInfo.InvariantCulture);
+                return ((float)value!).ToString("R", CultureInfo.InvariantCulture);
 
             case ValueType.Double:
-                return ((double)constant.Value!).ToString("R", CultureInfo.InvariantCulture);
+                return ((double)value!).ToString("R", CultureInfo.InvariantCulture);
 
             // Ticks, matching what the generated fields hold and for the same reason.
             case ValueType.DateTime:
-                return ((DateTime)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture);
+                return ((DateTime)value!).Ticks.ToString(CultureInfo.InvariantCulture);
 
             case ValueType.TimeSpan:
-                return ((TimeSpan)constant.Value!).Ticks.ToString(CultureInfo.InvariantCulture);
+                return ((TimeSpan)value!).Ticks.ToString(CultureInfo.InvariantCulture);
 
             // The text, not a Uuid: a class constant has to be a constant expression
             // and `new` is not one. The caller builds a Uuid from it if it wants one.
             case ValueType.Uuid:
-                return Quote(((Guid)constant.Value!).ToString());
+                return Quote(((Guid)value!).ToString());
 
             case ValueType.Enum:
             {
-                var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
+                var label = constant.Enum.GetLabel(value!, constant.Location);
                 return $"{EnumName(constant.Enum)}::{CaseName(label.Name)}";
             }
 
             default:
                 throw new TabbitException(constant.Location,
                         Messages.Message.Of(Exporters.ExportMessages.ConstantTypeNotRendered,
-                            ("Name", constant.Name), ("Type", constant.Type),
+                            ("Name", constant.Name), ("Type", type),
                             ("Generator", "php")));
         }
     }

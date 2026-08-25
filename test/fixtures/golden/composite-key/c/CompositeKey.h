@@ -13,6 +13,9 @@
 #include "tables/CompositeKey_Loadout.h"
 #include "tables/CompositeKey_Route.h"
 #include "tables/CompositeKey_Grid.h"
+#include "tables/CompositeKey_Beast.h"
+#include "tables/CompositeKey_Move.h"
+#include "tables/CompositeKey_BeastMove.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +26,9 @@ typedef struct CompositeKey_t {
   CompositeKey_LoadoutTable_t loadout;
   CompositeKey_RouteTable_t route;
   CompositeKey_GridTable_t grid;
+  CompositeKey_BeastTable_t beast;
+  CompositeKey_MoveTable_t move;
+  CompositeKey_BeastMoveTable_t beast_move;
 } CompositeKey_t;
 
 /* Reads every table from base_path, then links the references between them.

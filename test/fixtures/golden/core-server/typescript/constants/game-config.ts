@@ -37,4 +37,16 @@ export class GameConfig {
 
   /** identifies this data build */
   public static readonly buildId: string = '6f9619ff-8b86-d011-b42d-00c04fc964ff'
+
+  /** text elements */
+  public static readonly tiers: string[] = ['bronze', 'silver', 'gold']
+
+  /** number elements */
+  public static readonly thresholds: number[] = [10, 50, 100]
+
+  /** one element, where a separator has nowhere to go */
+  public static readonly single: number[] = [1]
+
+  /** enum elements */
+  public static readonly ladder: Grade[] = [Grade.Common, Grade.Rare, Grade.Epic]
 }

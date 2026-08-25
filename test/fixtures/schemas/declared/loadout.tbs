@@ -17,6 +17,20 @@ struct Reward
     /// Shown beside the count. Blank where there is nothing to show.
     field icon string? (asset=icon)
 
+/// One line of a table whose rows below make up the record.
+///
+/// **Here so the notation reaches a multi-row group as well as a serial one.** A group whose
+/// elements are the rows below it has one header column per member, and every element's field
+/// carries that same cell - so the check asking "which column named the struct" counted the
+/// elements and reported a group naming its struct twice, then reported every member as a
+/// column no group claimed. Both sentences at once, and neither true.
+/// spec/primary-layout.md section 4.3.
+struct Bonus
+    /// Which stat it raises.
+    field statId int
+    /// By how much.
+    field amount int
+
 /// What a reward is made of.
 ///
 /// Declared here rather than in a sheet, so the type cell that names it is reading a

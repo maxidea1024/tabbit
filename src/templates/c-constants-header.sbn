@@ -22,7 +22,13 @@
 /* {{ line }} */
 {{~ end ~}}
 {{~ if constant.is_extern ~}}
-extern const {{ constant.type }} {{ constant.name }};
+extern const {{ constant.type }} {{ constant.name }}{{ constant.name_suffix }};
+{{~ if constant.count_name != '' ~}}
+{{~## The length, which the type has no room for. A `#define` because it is a number and
+   nothing else in the header is one. ##~}}
+/* How many elements {{ constant.name }} has. */
+#define {{ constant.count_name }} {{ constant.count }}
+{{~ end ~}}
 {{~ else ~}}
 #define {{ constant.name }} {{ constant.value }}
 {{~ end ~}}

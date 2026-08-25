@@ -456,6 +456,34 @@ public class NamingConventionTests
         Assert.Contains("`ItemId`", Assert.Single(found).Message);
     }
 
+    /// <summary>
+    /// A name this tool invented is not judged.
+    /// </summary>
+    /// <remarks>
+    /// **The check is a claim about what people write.** A composite value type expands into
+    /// one field per component and the component's part of the name is this tool's - `.X` on a
+    /// `vec3f`, `.R` on a `color` - so a report about it names a spelling nobody chose and
+    /// points at a cell that does not hold it. The enums have had the same exemption since
+    /// they gained a synthesized zero label.
+    ///
+    /// A member of a declared struct is deliberately **not** exempt: somebody wrote that name
+    /// in a `.tbs` file. That case is the test below.
+    /// </remarks>
+    [Fact]
+    public void A_name_the_tool_invented_is_not_judged()
+    {
+        var model = ModelOfFields(("Item", ["offset.X", "offset.Y", "offset.Z"]));
+
+        // Written the way the composite expansion writes them: the whole field, not the
+        // level, is the tool's - so every one of these is skipped.
+        Assert.NotEmpty(Check(model, Rules(field: "snake")));
+
+        foreach (var field in model.Tables[0].Fields)
+            field.Synthesized = true;
+
+        Assert.Empty(Check(model, Rules(field: "snake")));
+    }
+
     /// <summary>Entities, labels and constants each answer to their own setting.</summary>
     [Fact]
     public void Each_kind_answers_to_its_own_setting()

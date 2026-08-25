@@ -49,6 +49,22 @@ namespace Tabbit.Fixtures.Core
         /// identifies this data build
         /// </summary>
         public static System.Guid BuildId { get; }
+        /// <summary>
+        /// text elements
+        /// </summary>
+        public static string[] Tiers { get; }
+        /// <summary>
+        /// number elements
+        /// </summary>
+        public static int[] Thresholds { get; }
+        /// <summary>
+        /// one element, where a separator has nowhere to go
+        /// </summary>
+        public static int[] Single { get; }
+        /// <summary>
+        /// enum elements
+        /// </summary>
+        public static global::Tabbit.Fixtures.Core.Grade[] Ladder { get; }
 
         /// <summary>
         /// Static constructor for initialize static variables.
@@ -63,6 +79,10 @@ namespace Tabbit.Fixtures.Core
             SeasonStart = new System.DateTime(637817220000000000L);
             RoundLength = new System.TimeSpan(3000000000L);
             BuildId = new System.Guid("6f9619ff-8b86-d011-b42d-00c04fc964ff");
+            Tiers = new string[] { "bronze", "silver", "gold" };
+            Thresholds = new int[] { 10, 50, 100 };
+            Single = new int[] { 1 };
+            Ladder = new global::Tabbit.Fixtures.Core.Grade[] { global::Tabbit.Fixtures.Core.Grade.Common, global::Tabbit.Fixtures.Core.Grade.Rare, global::Tabbit.Fixtures.Core.Grade.Epic };
         }
     }
 } // namespace Tabbit.Fixtures.Core

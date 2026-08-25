@@ -138,6 +138,26 @@ internal sealed class CConstantView
     /// declared `extern` instead.
     /// </summary>
     public required bool IsExtern { get; set; }
+
+    /// <summary>
+    /// What follows the name in the declaration, which for an array is `[]`.
+    /// </summary>
+    /// <remarks>
+    /// **C puts an array's brackets after the name**, so the type alone cannot say it - and
+    /// this language's array format is the element pointer, which is what a member of a row
+    /// needs and not what a file-scope array of static data is. So a constant carries the
+    /// brackets separately, and a count beside it because there is nowhere in the type for
+    /// one. spec/primary-layout.md section 8.5.
+    /// </remarks>
+    public required string NameSuffix { get; set; }
+
+    /// <summary>
+    /// The name of the count constant, or empty when this constant is one value.
+    /// </summary>
+    public required string CountName { get; set; }
+
+    /// <summary>How many elements, as text. Empty when this constant is one value.</summary>
+    public required string Count { get; set; }
 }
 
 internal sealed class CTableView

@@ -1,7 +1,7 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "4f5eb7ffbb69a73f7656518907f993fa",
-  "TotalSize": 885,
+  "MasterHash": "eaf122ee32d3364fc323a5cfad2b7514",
+  "TotalSize": 1337,
   "Items": [
     {
       "Name": "Loadout.json",
@@ -19,6 +19,24 @@
       "Name": "Grid.json",
       "Size": 293,
       "Hash": "367ac18b7d3a180f11c5b1816d9bbc7b",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Beast.json",
+      "Size": 131,
+      "Hash": "c1317c1d0c5edf7b204fcd1ff29ea36e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Move.json",
+      "Size": 123,
+      "Hash": "c211857a6c257824ed55ca46c0634cec",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "BeastMove.json",
+      "Size": 198,
+      "Hash": "2bd30858a5a3dce80f324858f57df731",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

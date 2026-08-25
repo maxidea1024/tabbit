@@ -15,11 +15,17 @@ require_relative 'tables/route_table'
 
 require_relative 'tables/grid_table'
 
+require_relative 'tables/beast_table'
+
+require_relative 'tables/move_table'
+
+require_relative 'tables/beast_move_table'
+
 
 module CompositeKey
   # Every table, loaded together so cross-table references can be resolved.
   class Tables
-    attr_reader :loadout, :route, :grid
+    attr_reader :loadout, :route, :grid, :beast, :move, :beast_move
 
     class << self
       # The key the table files were sealed with, or nil when they were not sealed.
@@ -78,6 +84,9 @@ module CompositeKey
       @loadout = LoadoutTable.new
       @route = RouteTable.new
       @grid = GridTable.new
+      @beast = BeastTable.new
+      @move = MoveTable.new
+      @beast_move = BeastMoveTable.new
     end
 
     # Reads every table from base_path, then links the references between them.
@@ -91,12 +100,21 @@ module CompositeKey
       loaded_route.read(File.join(base_path, "Route#{file_extension}"))
       loaded_grid = GridTable.new
       loaded_grid.read(File.join(base_path, "Grid#{file_extension}"))
+      loaded_beast = BeastTable.new
+      loaded_beast.read(File.join(base_path, "Beast#{file_extension}"))
+      loaded_move = MoveTable.new
+      loaded_move.read(File.join(base_path, "Move#{file_extension}"))
+      loaded_beast_move = BeastMoveTable.new
+      loaded_beast_move.read(File.join(base_path, "BeastMove#{file_extension}"))
 
-      solve_cross_references(loaded_loadout, loaded_route, loaded_grid)
+      solve_cross_references(loaded_loadout, loaded_route, loaded_grid, loaded_beast, loaded_move, loaded_beast_move)
 
       @loadout = loaded_loadout
       @route = loaded_route
       @grid = loaded_grid
+      @beast = loaded_beast
+      @move = loaded_move
+      @beast_move = loaded_beast_move
     end
 
     private
@@ -104,9 +122,13 @@ module CompositeKey
     # Turns the stored indices into usable values, once every table is in memory.
     # The tables arrive as arguments rather than off the instance, which is how this
     # resolves the load being read rather than the one already published.
-    def solve_cross_references(loadout, route, grid)
-      # No table references another.
-      nil
+    def solve_cross_references(loadout, route, grid, beast, move, beast_move)
+      beast_move.records.each do |record|
+        target = beast.find_by_index(record.beast_id)
+        record.beast_by_beast_id = target unless target.nil?
+        target = move.find_by_index(record.move_id)
+        record.move_by_move_id = target unless target.nil?
+      end
     end
   end
 end
