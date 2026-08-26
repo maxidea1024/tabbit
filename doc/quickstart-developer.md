@@ -8,11 +8,16 @@
 
 ## 1. 도구를 손에 넣습니다
 
+[릴리즈](https://github.com/maxidea1024/tabbit/releases)에서 자기 플랫폼의 아카이브를 받아
+풀면 끝입니다. .NET 런타임을 따로 설치하지 않아도 됩니다.
+
+저장소를 이미 받아 두었다면 소스에서 빌드해도 됩니다 — `.NET 10 SDK`가 필요합니다.
+
 ```bash
 dotnet build Tabbit.slnx -c Release
 ```
 
-`.NET 10 SDK`가 필요합니다. 자세한 것은 [설치](install.md)에.
+내려받는 명령과 받은 파일 확인은 [설치](install.md)에 있습니다.
 
 ## 2. recipe 를 만듭니다
 

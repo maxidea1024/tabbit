@@ -437,11 +437,11 @@ internal static class ConformanceHarness
 
         // `main.swift` and not `harness.swift`: top-level statements are only allowed in a
         // file of that name, and every other harness in this corpus is top-level code.
-        File.Copy(Path.Combine(HarnessDir("swift"), "main.swift"),
-                  Path.Combine(root, "main.swift"), overwrite: true);
+        Place(Path.Combine(HarnessDir("swift"), "main.swift"),
+              Path.Combine(root, "main.swift"));
 
-        File.Copy(Path.Combine(HarnessDir("swift"), "Package.swift"),
-                  Path.Combine(root, "Package.swift"), overwrite: true);
+        Place(Path.Combine(HarnessDir("swift"), "Package.swift"),
+              Path.Combine(root, "Package.swift"));
 
         // Built into a scratch directory outside the scenario's output, for two reasons.
         // SwiftPM's own `.build` holds the package checkouts, whose files come out of git
@@ -471,6 +471,37 @@ internal static class ConformanceHarness
             binPath.StdOut.Trim(), OnWindows ? "harness.exe" : "harness");
 
         return Execute(product, root, SwiftEnvironment(), BinaryDir(dataScenario ?? scenario));
+    }
+
+    /// <summary>
+    /// Puts one of the harness's own files into a staged tree without any moment in which
+    /// a reader could see it half-written.
+    /// </summary>
+    /// <remarks>
+    /// More than one test builds the same staged tree - the corpus check and the one that
+    /// hands the harness a tampered file - and xUnit runs their classes at the same time.
+    /// `File.Copy` truncates the destination before it writes, so the manifest a concurrent
+    /// SwiftPM reads can be a prefix of the real one: a package with no `platforms:` still
+    /// parses, and the build then fails on an availability error naming CryptoKit rather
+    /// than on anything that points here.
+    ///
+    /// Unwritten when the bytes already match, which is the steady state after the first
+    /// test through - so in the ordinary run there is no write for anyone to race with.
+    /// The write that does happen goes to a sibling and is renamed over, and a rename is
+    /// the one file operation the reader cannot catch part way.
+    /// </remarks>
+    private static void Place(string source, string destination)
+    {
+        byte[] wanted = File.ReadAllBytes(source);
+
+        if (File.Exists(destination) && File.ReadAllBytes(destination).AsSpan()
+                                            .SequenceEqual(wanted))
+            return;
+
+        string staging = destination + ".staging";
+
+        File.WriteAllBytes(staging, wanted);
+        File.Move(staging, destination, overwrite: true);
     }
 
     /// <summary>
@@ -1646,6 +1677,16 @@ internal static class ConformanceHarness
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, object>
         WorkingDirectoryLocks = new();
 
+    /// <summary>How long any one tool gets before it is taken to have hung.</summary>
+    /// <remarks>
+    /// Longer on Windows, and for one tool. Every other harness here answers in seconds;
+    /// the first SwiftPM build fetches swift-crypto and compiles it from source, and on a
+    /// Windows runner that does not fit in five minutes. What it looked like when it did
+    /// not was the Swift gate timing out with the toolchain and the generated code both
+    /// fine, which is the least useful failure a gate can produce.
+    /// </remarks>
+    private static readonly int ToolTimeout = OnWindows ? 900_000 : 300_000;
+
     private static ToolResult ExecuteHere(
         string fileName,
         string workingDirectory,
@@ -1707,10 +1748,11 @@ internal static class ConformanceHarness
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 
-        if (!process.WaitForExit(milliseconds: 300_000))
+        if (!process.WaitForExit(ToolTimeout))
         {
             process.Kill(entireProcessTree: true);
-            throw new TimeoutException($"`{fileName}` did not finish within 5 minutes.");
+            throw new TimeoutException(
+                $"`{fileName}` did not finish within {ToolTimeout / 60_000} minutes.");
         }
 
         process.WaitForExit();

@@ -19,6 +19,10 @@ import PackageDescription
 
 let package = Package(
     name: "X",
+    // CryptoKit answers HMAC-SHA-256 on Apple platforms and starts at macOS 10.15.
+    // Without a floor SwiftPM picks an older one and the build fails on the HMAC call
+    // rather than on anything that names the cause.
+    platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v6)],
     products: [
         .library(name: "X", targets: ["X"])
     ],

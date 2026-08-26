@@ -17,6 +17,10 @@ import PackageDescription
 
 let package = Package(
     name: "harness",
+    // CryptoKit answers HMAC-SHA-256 on Apple platforms and starts at macOS 10.15.
+    // Without a floor SwiftPM picks an older one and the build fails on the HMAC call
+    // rather than on anything that names the cause.
+    platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v6)],
     dependencies: [
         .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0")
     ],

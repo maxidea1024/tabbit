@@ -320,15 +320,37 @@ jobs:
       # as a missing C header rather than as a missing toolchain.
       # doc/languages/swift.md has that trap written down.
       #
-      # The Windows job asked for 6.1 and the action answered `Version "6.1" is not
-      # available` - it publishes a different set per platform. `6` takes whatever 6.x that
-      # platform has, which is what this gate wants: it checks that the emitted Swift builds
-      # under a current toolchain, not under one exact patch of it.
+      # The installer rather than `swift-actions/setup-swift`, and only here. That action's
+      # Windows path is broken upstream in both lines: v2 publishes no 6.1 for Windows
+      # (swift-actions/setup-swift#709) and its signature check then fails with no public
+      # key (#798), and v3.0.0-beta.1 crashes in `setupWindows` (#798 again, unresolved).
+      # winget installs the same toolchain in one line, and the harness already looks where
+      # it lands - `WindowsSwiftToolchains` walks `%LOCALAPPDATA%\Programs\Swift\Toolchains`
+      # and puts the runtime on the path itself.
       - name: Setup Swift
         if: runner.os == 'Windows'
-        uses: swift-actions/setup-swift@v2
-        with:
-          swift-version: '6'
+        run: >
+          winget install --id Swift.Toolchain -e
+          --accept-source-agreements --accept-package-agreements --disable-interactivity
+
+      # Only so that the report below can name the version it got. The toolchain and the
+      # runtime are two directories and `swift.exe` needs both - it links against the
+      # runtime's DLLs, and a path with just the compiler fails with a missing DLL rather
+      # than with anything that says Swift. The suite does not depend on this step: it
+      # resolves both directories itself, which is what makes the gate work on a developer's
+      # machine where nothing was put on the path either.
+      - name: Put Swift on the path
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          foreach ($kind in 'Toolchains', 'Runtimes') {
+            $bin = Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\$kind" -ErrorAction Stop |
+                   Sort-Object Name -Descending |
+                   Select-Object -First 1 |
+                   ForEach-Object { Join-Path $_.FullName 'usr\bin' }
+            Write-Host "$kind : $bin"
+            $bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          }
 
       # The C and C++ updaters are the only emitted files that link against anything, and
       # neither language has an HTTP client. macOS carries libcurl in its SDK and `-lcurl` is

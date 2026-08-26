@@ -241,7 +241,11 @@ internal static class CppToolchain
             "# Written by the test suite. See CppToolchain.RunMsvc for why it looks like this.",
             "$ErrorActionPreference = 'Stop'",
             "",
-            $"cmd /c \"call `\"{FindVcVars()}`\" >nul 2>&1 && set\" | ForEach-Object {{",
+            // `$env:ComSpec` and not `cmd`: a runner that has set Ruby up puts msys2 on the
+            // path ahead of System32, and msys2 ships an extensionless `cmd` that PowerShell
+            // resolves first and then refuses to start - the failure reads as though the
+            // compiler rejected the generated code.
+            $"& $env:ComSpec /c \"call `\"{FindVcVars()}`\" >nul 2>&1 && set\" | ForEach-Object {{",
             "    if ($_ -match '^([^=]+)=(.*)$') {",
             "        [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2])",
             "    }",

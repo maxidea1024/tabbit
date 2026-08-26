@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   # 빌드는 PR에서도 돕니다. 이것이 문서의 게이트입니다 — 깨진 링크·없는 파일·이름이 바뀐
-  # 섹션을 가리키는 앵커가 여기서 빌드를 세웁니다(website/readme.md).
+  # 섹션을 가리키는 앵커가 여기서 빌드를 실패시킵니다(website/readme.md).
   build:
     runs-on: ubuntu-latest
     steps:
