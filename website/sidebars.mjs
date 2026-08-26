@@ -84,6 +84,9 @@ const sidebars = {
     {
       type: 'category',
       label: '설계 노트',
+      // 색인이 이 묶음의 첫 장입니다. 내비게이션의 「설계 노트」가 여기로 오고, 무엇이
+      // 어느 폴더에 있는지는 그 문서가 말합니다 — 와이어 형식은 그중 하나일 뿐입니다.
+      link: { type: 'doc', id: 'spec/readme' },
       items: [
         {
           type: 'category',
