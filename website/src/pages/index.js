@@ -3,26 +3,25 @@ import Link from '@docusaurus/Link'
 import useBaseUrl from '@docusaurus/useBaseUrl'
 import styles from './index.module.css'
 
-// 아래 시트와 코드는 이 저장소의 `core` 픽스처와 그 골든 트리에서 그대로 가져온 것입니다.
-// 회귀 스위트가 매 실행마다 바이트 단위로 대조하는 그 시트입니다.
-const SHEET = `~~table:Item~~
-References ItemCategory by record.
+// 아래 시트와 코드는 doc/concepts.md 가 처음부터 끝까지 따라가는 예제이고, 그 문서의 그림은
+// `core` 픽스처를 그대로 옮긴 것입니다 — doc/figures/concepts-figures.py 가 정본입니다.
+// 여기를 고치면 그쪽도 함께 고칩니다.
+const SHEET = `:table Item      References ItemCategory by record.
 
-index          Name           CategoryId       GradeField   Price
-primary index  item name      owning category  item grade   shop price
-int            string         foreign          enum         int
-                              ItemCategory     Grade
-                                                            s
+:field          index          Name           CategoryId             GradeField   Price
+:type           int            string         foreign ItemCategory   Grade        int
+:desc           primary index  item name      owning category        item grade   shop price
+:target         cs             cs             cs                     cs           s
 
-1              Short Sword    1                Common       100
-2              Leather Armor  2                Rare         250
-3              Small Potion   3                Epic          50`
+                1              Short Sword    1                      Common       100
+                2              Leather Armor  2                      Rare         250
+                3              Small Potion   3                      Epic          50`
 
 const FIGURES = [
-  { value: '13개 언어', label: '하나의 writer가 정한 형식을, 13개 리더가 각자 구현합니다. 스위트가 하나로 쓰고 13개로 읽어 대조합니다' },
-  { value: '269,870행', label: '라이브 서비스 중인 프로젝트의 워크북 20개·테이블 275개를 한 모델로. 135초' },
-  { value: '35.5%', label: '컬럼 인코딩으로 줄어든 크기. 4,111,118 바이트가 1,460,895 바이트' },
-  { value: '1,001개', label: '매번 도는 게이트. 골든 비교부터 실제 언리얼 헤더 툴까지' },
+  { value: '27배', label: '같은 데이터를 JSON으로 낼 때와 비교한 크기. 그만큼 덜 읽고 덜 만듭니다' },
+  { value: '549개', label: '샘플 하나가 담은 테이블. 워크북 42개를 한 번에 읽습니다' },
+  { value: 'C#부터 Lua까지', label: '쓰는 언어로 읽는 코드가 나옵니다. 손으로 파서를 쓰지 않습니다' },
+  { value: '1,752개', label: '커밋마다 도는 검사. 생성된 코드를 언어마다 실제로 컴파일해서 돌려 봅니다' },
 ]
 
 const REASONS = [
@@ -31,16 +30,16 @@ const REASONS = [
     body: '걸러낼 수 있는 실수는 걸러내고, 남은 것은 어느 셀인지 알려줍니다. 구글 시트라면 링크를 눌러 그 자리로 갑니다. 한 번에 모아서 보고하므로 고치고 다시 돌리기를 반복하지 않습니다.',
   },
   {
-    title: '시트에 적을 수 없는 규칙은 C#으로',
-    body: '프로젝트의 .cs 파일을 변환할 때 컴파일해서 돌립니다. 그 게이트가 모든 출력보다 앞이라, 실패한 실행은 파일에도 데이터베이스에도 흔적을 남기지 않습니다.',
+    title: '시트로 표현할 수 없는 규칙까지',
+    body: '「전설 등급은 강화 재료가 있어야 한다」 같은 규칙을 C# 파일 하나로 적습니다. 검사는 무엇을 내보내기 전에 끝나므로, 규칙을 어긴 데이터는 게임에 도달하지 않습니다.',
   },
   {
-    title: '중간에 실패해도 이전 결과가 남습니다',
-    body: '파일은 스테이징에 모았다가 한 번에 옮기고, 데이터베이스는 섀도 테이블을 통째로 바꿉니다. 읽는 쪽도 전부 읽고 참조까지 연결한 다음 교체합니다.',
+    title: '반쯤 바뀐 데이터가 나오지 않습니다',
+    body: '빌드가 중간에 실패해도 직전 결과가 그대로 남습니다. 새 데이터는 전부 준비된 다음에 한 번에 바뀌고, 게임이 읽는 쪽도 마찬가지입니다.',
   },
   {
-    title: '시트를 먼저 고치지 않아도 됩니다',
-    body: '이 도구의 규칙으로 쓰이지 않은 시트도 그대로 읽습니다. 레이아웃은 소스마다 지정하므로 한 recipe에서 섞어 읽고, 한쪽에서 선언한 enum을 다른 쪽 테이블이 씁니다.',
+    title: '쓰던 시트를 그대로 가져옵니다',
+    body: '이 도구를 몰랐던 시트도 읽습니다. 이미 몇 년치가 쌓인 시트를 다시 쓰는 것은 현실적이지 않으니, 읽는 규칙을 시트마다 지정하고 새 것과 옛 것을 한 번에 변환합니다.',
   },
 ]
 
@@ -100,9 +99,9 @@ export default function Home() {
             <div className={styles.sectionHead}>
               <h2>시트 한 장이 이렇게 됩니다</h2>
               <p>
-                아래 시트와 코드는 지어낸 예제가 아니라 저장소의 <code>core</code> 픽스처와 그
-                골든 트리에서 그대로 가져온 것입니다 — 회귀 스위트가 매 실행마다 바이트 단위로
-                대조하는 그 시트입니다.
+                왼쪽은 기획자가 스프레드시트에 적는 그대로입니다. 특별한 도구도, 별도의 스키마
+                파일도 없습니다. 오른쪽은 그것으로 만들어진 코드이고, 프로그래머는 이걸
+                받아 씁니다.
               </p>
             </div>
 
@@ -118,28 +117,25 @@ export default function Home() {
                 <div className={styles.panelHead}>생성된 C#</div>
                 <pre>
 {`public string Name => _name;
-`}<span className={styles.mark}>{`public ItemCategoryTable.Record CategoryId`}</span>{`
+public int CategoryId => _categoryId;
+`}<span className={styles.mark}>{`public ItemCategoryTable.Record ItemCategoryByCategoryId`}</span>{`
 public Grade GradeField => _gradeField;
-public int Price => _price;
 
 await GameData.ReadAllAsync("./data");
 
 var sword = GameData.Item.FindByIndex(1);
-sword.Name;                 // Short Sword
-`}<span className={styles.mark}>{`sword.CategoryId.Name;      // Weapon`}</span>{`
-sword.GradeField;           // Common`}
+sword.Name;                                // Short Sword
+`}<span className={styles.mark}>{`sword.ItemCategoryByCategoryId.Name;       // Weapon`}</span>{`
+sword.GradeField;                          // Common`}
                 </pre>
               </div>
             </div>
 
             <p className={styles.note}>
-              <strong>
-                <code>CategoryId</code>를 <code>foreign</code>이라고 적었더니 <code>int</code>가
-                아니라 레코드가 나왔습니다.
-              </strong>{' '}
-              파일에는 인덱스로 실리고, 읽은 뒤에 연결됩니다. 그래서{' '}
-              <code>sword.CategoryId.Name</code>은 조회가 아니라 필드 접근입니다 — 같은 값을 여러
-              시트에 옮겨 적을 이유가 없어집니다.
+              <strong>분류 이름을 아이템 시트에 다시 적지 않아도 됩니다.</strong>{' '}
+              타입 칸에 <code>foreign ItemCategory</code>라고만 적으면, 코드에서는 분류 자체가
+              따라옵니다. 분류 이름이 바뀌면 한 곳만 고치면 되고, 없는 분류를 가리키면
+              변환이 멈추고 어느 셀인지 알려줍니다.
             </p>
 
             <div className={styles.targets}>
